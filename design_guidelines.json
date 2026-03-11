@@ -1,0 +1,151 @@
+{
+  "identity": "E1 - The Anti-AI Designer",
+  "mission": "Create a 100% Dark Mode Dashboard that feels like a premium SaaS product, not a generic admin template. Use glassmorphism, subtle gradients, and deep slate backgrounds.",
+  "theme_strategy": "dark_mode_only",
+  "typography": {
+    "headings": {
+      "font_family": "Sora, sans-serif",
+      "weights": ["600", "700"],
+      "usage": "All headings (h1-h6). Use tracking-tight for h1/h2."
+    },
+    "body": {
+      "font_family": "Inter, sans-serif",
+      "weights": ["400", "500", "600"],
+      "usage": "Paragraphs, inputs, buttons, data tables."
+    }
+  },
+  "colors": {
+    "backgrounds": {
+      "app_bg": "#020617",
+      "card_bg": "#0f172a",
+      "sidebar_bg": "#0f172a",
+      "input_bg": "#1e293b"
+    },
+    "primary_gradient": {
+      "start": "#5B6CFF",
+      "mid": "#7C5CFF",
+      "end": "#8A6CFF",
+      "hover": "#4F46E5",
+      "css_class": "bg-gradient-to-r from-[#5B6CFF] via-[#7C5CFF] to-[#8A6CFF]"
+    },
+    "neutrals": {
+      "slate_950": "#020617",
+      "slate_900": "#0f172a",
+      "slate_800": "#1e293b",
+      "slate_700": "#334155",
+      "slate_600": "#475569",
+      "slate_400": "#94a3b8",
+      "slate_100": "#f1f5f9",
+      "slate_50": "#f8fafc"
+    },
+    "accents": {
+      "violet": "#8b5cf6",
+      "indigo": "#6366f1",
+      "emerald": "#10b981",
+      "danger": "#F26B6B"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "cards": "bg-slate-900/50 backdrop-blur-md border border-white/5 shadow-xl",
+      "sidebar": "bg-slate-950/80 backdrop-blur-xl border-r border-white/5",
+      "header": "bg-slate-950/60 backdrop-blur-md border-b border-white/5 sticky top-0 z-50"
+    },
+    "effects": {
+      "glow": "shadow-[0_0_15px_rgba(91,108,255,0.3)]",
+      "tracing_beam": "absolute left-0 w-1 h-full bg-gradient-to-b from-[#5B6CFF] to-[#8A6CFF] rounded-r-full",
+      "noise": "fixed inset-0 z-[9999] pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"
+    }
+  },
+  "component_strategies": {
+    "buttons": {
+      "primary": "bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] rounded-lg font-medium",
+      "secondary": "bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 rounded-lg font-medium",
+      "ghost": "hover:bg-slate-800/50 text-slate-400 hover:text-white rounded-lg",
+      "danger": "bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20"
+    },
+    "inputs": {
+      "style": "bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] rounded-lg text-slate-200 placeholder:text-slate-500 transition-all duration-200"
+    },
+    "cards": {
+      "style": "bg-slate-900/40 border border-white/5 rounded-xl backdrop-blur-sm p-6"
+    }
+  },
+  "layout_structures": {
+    "login_register": {
+      "wrapper": "min-h-screen w-full flex items-center justify-center bg-[#020617] relative overflow-hidden",
+      "card": "w-full max-w-md bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10",
+      "background_elements": "Add a large, blurred gradient orb in the background (bg-indigo-600/20 blur-[100px] w-[500px] h-[500px] rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2)"
+    },
+    "dashboard": {
+      "wrapper": "flex h-screen bg-[#020617] overflow-hidden",
+      "sidebar": "w-64 hidden md:flex flex-col border-r border-white/5 bg-slate-950/50 backdrop-blur-xl",
+      "main_content": "flex-1 overflow-y-auto p-8 relative",
+      "grid_strategy": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+    }
+  },
+  "pages_config": {
+    "dashboard_sections": [
+      {
+        "id": "identity",
+        "title": "Identité",
+        "layout": "col-span-1 md:col-span-2 row-span-2",
+        "icon": "User"
+      },
+      {
+        "id": "social",
+        "title": "Réseaux Sociaux",
+        "layout": "col-span-1 md:col-span-2",
+        "icon": "Share2"
+      },
+      {
+        "id": "gpt_urls",
+        "title": "URLs GPT",
+        "layout": "col-span-1 md:col-span-2",
+        "icon": "Link"
+      },
+      {
+        "id": "api_keys",
+        "title": "Clés API",
+        "layout": "col-span-full",
+        "icon": "Key"
+      },
+      {
+        "id": "style",
+        "title": "Style & Couleurs",
+        "layout": "col-span-full",
+        "icon": "Palette"
+      }
+    ]
+  },
+  "image_assets": {
+    "login_bg": "https://images.unsplash.com/photo-1772831902679-3f41c106d7a2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMGRhcmslMjBncmFkaWVudCUyMHRlY2hub2xvZ3klMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc3MzIxNzI3OXww&ixlib=rb-4.1.0&q=85",
+    "default_avatar": "https://images.unsplash.com/photo-1771050889377-b68415885c64?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjB1c2VyJTIwYXZhdGFyJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzczMjE3MjgwfDA&ixlib=rb-4.1.0&q=85",
+    "placeholder_tech": "https://images.unsplash.com/photo-1762278805303-69a5fe7b6a82?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjd8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGRhcmslMjBncmFkaWVudCUyMHRlY2hub2xvZ3klMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc3MzIxNzI3OXww&ixlib=rb-4.1.0&q=85"
+  },
+  "universal_guidelines": {
+    "design_philosophy": [
+      "No 'AI Slop': Avoid generic, flat designs.",
+      "Dark Mode Dominance: Use varied shades of slate, not just black.",
+      "Micro-Interactions: Every button, input, and card must have a hover state.",
+      "Data-Test-IDs: All interactive elements must have data-testid attributes.",
+      "JS Files: The project uses .js files, not .tsx. Adjust imports accordingly."
+    ],
+    "accessibility": [
+      "Ensure contrast ratios are met (Slate 400 on Slate 900 is borderline, use Slate 300/200 for text).",
+      "Interactive elements must be focusable.",
+      "Do not use transparent backgrounds where text readability is compromised."
+    ],
+    "file_conventions": {
+      "components": "Use named exports: export const Button = ...",
+      "pages": "Use default exports: export default function Dashboard() ...",
+      "icons": "Use lucide-react icons."
+    },
+    "instructions_to_main_agent": [
+      "Use the 'visual_enhancers' strictly. Do not use default Shadow DOM shadows.",
+      "Implement the 'primary_gradient' on the main Call-to-Actions.",
+      "Use 'sonner' for all toast notifications.",
+      "For charts, use Recharts with custom tooltips styled like the glass cards."
+    ]
+  }
+}
