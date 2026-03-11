@@ -151,17 +151,21 @@ def sanitize_user(user: dict) -> dict:
 @auth_router.post("/register")
 async def register(user_data: UserRegister):
     try:
+        # telegram_id is required (must come from Telegram bot link)
+        if not user_data.telegram_id:
+            raise HTTPException(status_code=400, detail="telegram_id_required")
+        
+        telegram_id = user_data.telegram_id
+        
+        # Check if telegram_id already exists
+        existing_id = supabase.table("users").select("telegram_id").eq("telegram_id", telegram_id).execute()
+        if existing_id.data:
+            raise HTTPException(status_code=400, detail="telegram_id_exists")
+        
         # Check if email already exists
         existing = supabase.table("users").select("email").eq("email", user_data.email).execute()
         if existing.data:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        
-        # Generate telegram_id if not provided
-        telegram_id = user_data.telegram_id
-        if not telegram_id:
-            # Get max telegram_id and increment
-            max_id = supabase.table("users").select("telegram_id").order("telegram_id", desc=True).limit(1).execute()
-            telegram_id = (max_id.data[0]["telegram_id"] + 1) if max_id.data else 1000000
+            raise HTTPException(status_code=400, detail="email_exists")
         
         # Hash password and insert user
         password_hash = hash_password(user_data.password)
