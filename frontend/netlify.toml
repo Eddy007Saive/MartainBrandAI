@@ -1,4 +1,4 @@
-je met ceci ? [build]
+[build]
   command = "CI=false npm run build"
   publish = "build"
 
