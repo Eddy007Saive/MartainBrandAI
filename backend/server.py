@@ -1,81 +1,38 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
-
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List
+from datetime import datetime, timezone, timedelta
+import jwt
+import bcrypt
+from supabase import create_client, Client
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# Supabase connection
+supabase_url = os.environ.get('SUPABASE_URL')
+supabase_key = os.environ.get('SUPABASE_ANON_KEY')
+supabase: Client = create_client(supabase_url, supabase_key)
 
-# Create the main app without a prefix
+JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+
+# Create the main app
 app = FastAPI()
 
-# Create a router with the /api prefix
+# Create routers
 api_router = APIRouter(prefix="/api")
+auth_router = APIRouter(prefix="/auth", tags=["auth"])
+users_router = APIRouter(prefix="/users", tags=["users"])
+admin_router = APIRouter(prefix="/admin", tags=["admin"])
 
-
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
-app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+security = HTTPBearer()
 
 # Configure logging
 logging.basicConfig(
@@ -84,6 +41,328 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Models
+class UserRegister(BaseModel):
+    telegram_id: Optional[int] = None
+    nom: str
+    email: EmailStr
+    username: Optional[str] = None
+    password: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class AdminLogin(BaseModel):
+    password: str
+
+class UserUpdate(BaseModel):
+    nom: Optional[str] = None
+    username: Optional[str] = None
+    photo_url: Optional[str] = None
+    use_photo: Optional[bool] = None
+    user_name: Optional[str] = None
+    style_vestimentaire: Optional[str] = None
+    sexe: Optional[str] = None
+    couleur_principale: Optional[str] = None
+    couleur_secondaire: Optional[str] = None
+    couleur_accent: Optional[str] = None
+    api_key_openrouter: Optional[str] = None
+    api_key_gemini: Optional[str] = None
+    api_key_openai: Optional[str] = None
+    late_profile_id: Optional[str] = None
+    late_account_linkedin: Optional[str] = None
+    late_account_instagram: Optional[str] = None
+    late_account_facebook: Optional[str] = None
+    late_account_tiktok: Optional[str] = None
+    gpt_url_linkedin: Optional[str] = None
+    gpt_url_instagram: Optional[str] = None
+    gpt_url_sujets: Optional[str] = None
+    gpt_url_default: Optional[str] = None
+    telegram_bot_token: Optional[str] = None
+    telegram_bot_username: Optional[str] = None
+
+class UserResponse(BaseModel):
+    telegram_id: Optional[int] = None
+    nom: str
+    username: Optional[str] = None
+    email: str
+    actif: bool = False
+    photo_url: Optional[str] = None
+    use_photo: Optional[bool] = None
+    user_name: Optional[str] = None
+    style_vestimentaire: Optional[str] = None
+    sexe: Optional[str] = None
+    couleur_principale: Optional[str] = None
+    couleur_secondaire: Optional[str] = None
+    couleur_accent: Optional[str] = None
+    api_key_openrouter: Optional[str] = None
+    api_key_gemini: Optional[str] = None
+    api_key_openai: Optional[str] = None
+    late_profile_id: Optional[str] = None
+    late_account_linkedin: Optional[str] = None
+    late_account_instagram: Optional[str] = None
+    late_account_facebook: Optional[str] = None
+    late_account_tiktok: Optional[str] = None
+    gpt_url_linkedin: Optional[str] = None
+    gpt_url_instagram: Optional[str] = None
+    gpt_url_sujets: Optional[str] = None
+    gpt_url_default: Optional[str] = None
+    telegram_bot_token: Optional[str] = None
+    telegram_bot_username: Optional[str] = None
+    created_at: Optional[str] = None
+
+# Helper functions
+def hash_password(password: str) -> str:
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+def create_token(data: dict, expires_delta: timedelta = timedelta(days=7)) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + expires_delta
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, JWT_SECRET, algorithm="HS256")
+
+def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=["HS256"])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+def verify_admin_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    payload = verify_token(credentials)
+    if not payload.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return payload
+
+def sanitize_user(user: dict) -> dict:
+    """Remove sensitive fields from user data"""
+    if user:
+        user.pop('password_hash', None)
+    return user
+
+# Auth routes
+@auth_router.post("/register")
+async def register(user_data: UserRegister):
+    try:
+        # Check if email already exists
+        existing = supabase.table("users").select("email").eq("email", user_data.email).execute()
+        if existing.data:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Generate telegram_id if not provided
+        telegram_id = user_data.telegram_id
+        if not telegram_id:
+            # Get max telegram_id and increment
+            max_id = supabase.table("users").select("telegram_id").order("telegram_id", desc=True).limit(1).execute()
+            telegram_id = (max_id.data[0]["telegram_id"] + 1) if max_id.data else 1000000
+        
+        # Hash password and insert user
+        password_hash = hash_password(user_data.password)
+        new_user = {
+            "telegram_id": telegram_id,
+            "nom": user_data.nom,
+            "email": user_data.email,
+            "username": user_data.username,
+            "password_hash": password_hash,
+            "actif": False,
+            "couleur_principale": "#003D2E",
+            "couleur_secondaire": "#0077FF",
+            "couleur_accent": "#3AFFA3",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        result = supabase.table("users").insert(new_user).execute()
+        
+        return {"success": True, "message": "Registration successful. Awaiting admin approval."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Registration error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@auth_router.post("/login")
+async def login(credentials: UserLogin):
+    try:
+        # Find user by email
+        result = supabase.table("users").select("*").eq("email", credentials.email).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=401, detail="invalid")
+        
+        user = result.data[0]
+        
+        # Verify password
+        if not verify_password(credentials.password, user.get("password_hash", "")):
+            raise HTTPException(status_code=401, detail="invalid")
+        
+        # Check if user is active
+        if not user.get("actif"):
+            raise HTTPException(status_code=403, detail="pending")
+        
+        # Generate token
+        token = create_token({
+            "telegram_id": user["telegram_id"],
+            "email": user["email"],
+            "is_admin": False
+        })
+        
+        return {
+            "token": token,
+            "user": sanitize_user(user)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@auth_router.post("/admin-login")
+async def admin_login(credentials: AdminLogin):
+    if credentials.password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Invalid admin password")
+    
+    token = create_token({
+        "is_admin": True,
+        "role": "admin"
+    }, expires_delta=timedelta(hours=8))
+    
+    return {"token": token}
+
+# User routes
+@users_router.get("/me")
+async def get_current_user(payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        if not telegram_id:
+            raise HTTPException(status_code=400, detail="Invalid token")
+        
+        result = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return sanitize_user(result.data[0])
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@users_router.patch("/me")
+async def update_current_user(updates: UserUpdate, payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        if not telegram_id:
+            raise HTTPException(status_code=400, detail="Invalid token")
+        
+        # Filter out None values
+        update_data = {k: v for k, v in updates.model_dump().items() if v is not None}
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No updates provided")
+        
+        result = supabase.table("users").update(update_data).eq("telegram_id", telegram_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return sanitize_user(result.data[0])
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Admin routes
+@admin_router.get("/users")
+async def get_users(filter: str = "all", payload: dict = Depends(verify_admin_token)):
+    try:
+        query = supabase.table("users").select("*")
+        
+        if filter == "pending":
+            query = query.eq("actif", False)
+        elif filter == "active":
+            query = query.eq("actif", True)
+        
+        result = query.order("created_at", desc=True).execute()
+        
+        return [sanitize_user(user) for user in result.data]
+    except Exception as e:
+        logger.error(f"Get users error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.patch("/users/{telegram_id}/activate")
+async def activate_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+    try:
+        result = supabase.table("users").update({"actif": True}).eq("telegram_id", telegram_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return sanitize_user(result.data[0])
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Activate user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.patch("/users/{telegram_id}/deactivate")
+async def deactivate_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+    try:
+        result = supabase.table("users").update({"actif": False}).eq("telegram_id", telegram_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return sanitize_user(result.data[0])
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Deactivate user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.delete("/users/{telegram_id}")
+async def delete_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+    try:
+        result = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return {"success": True, "message": "User deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Root route
+@api_router.get("/")
+async def root():
+    return {"message": "API is running"}
+
+# Include routers
+api_router.include_router(auth_router)
+api_router.include_router(users_router)
+api_router.include_router(admin_router)
+app.include_router(api_router)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+async def shutdown():
+    pass
