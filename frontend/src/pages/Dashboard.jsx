@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Share2, Link, Key, Palette, Save, Loader2, Menu, X, Trash2 } from 'lucide-react';
+import { User, Share2, Link, Key, Palette, Save, Loader2, Menu, X, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
@@ -23,6 +23,14 @@ import { ColorField } from '../components/ColorField';
 import { SectionBlock } from '../components/SectionBlock';
 import api from '../lib/api';
 import { removeToken } from '../lib/auth';
+
+const REQUIRED_FIELDS = {
+  identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
+  social: ['late_profile_id', 'late_account_linkedin', 'late_account_instagram', 'late_account_facebook', 'late_account_tiktok', 'telegram_bot_token', 'telegram_bot_username'],
+  gpt_urls: ['gpt_url_linkedin', 'gpt_url_instagram', 'gpt_url_sujets', 'gpt_url_default'],
+  api_keys: ['api_key_gemini'],
+  style: ['couleur_principale', 'couleur_secondaire', 'couleur_accent'],
+};
 
 const STYLES_VESTIMENTAIRES = [
   'Casual', 'Business', 'Sportif', 'Élégant', 'Décontracté', 'Streetwear', 'Classique'
@@ -84,6 +92,15 @@ export default function Dashboard() {
       toast.error('Erreur lors de la suppression du compte');
     }
   };
+
+  const incompleteSections = useMemo(() => {
+    if (!user) return [];
+    return Object.entries(REQUIRED_FIELDS)
+      .filter(([, fields]) => fields.some(f => !user[f]))
+      .map(([section]) => section);
+  }, [user]);
+
+  const isProfileComplete = incompleteSections.length === 0;
 
   if (loading) {
     return (
@@ -183,34 +200,18 @@ export default function Dashboard() {
       case 'api_keys':
         return (
           <SectionBlock title="Clés API" icon={Key}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Field 
-                label="OpenRouter API Key" 
-                name="api_key_openrouter" 
-                value={user?.api_key_openrouter} 
-                onChange={handleChange} 
-                type="password"
-                hasValue={!!user?.api_key_openrouter}
-              />
-              <Field 
-                label="Gemini API Key" 
-                name="api_key_gemini" 
-                value={user?.api_key_gemini} 
-                onChange={handleChange} 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Field
+                label="Gemini API Key"
+                name="api_key_gemini"
+                value={user?.api_key_gemini}
+                onChange={handleChange}
                 type="password"
                 hasValue={!!user?.api_key_gemini}
               />
-              <Field 
-                label="OpenAI API Key" 
-                name="api_key_openai" 
-                value={user?.api_key_openai} 
-                onChange={handleChange} 
-                type="password"
-                hasValue={!!user?.api_key_openai}
-              />
             </div>
             <p className="mt-4 text-xs text-slate-500 font-inter">
-              Les clés API sont stockées de manière sécurisée et ne sont jamais affichées en clair.
+              La clé API est stockée de manière sécurisée et n'est jamais affichée en clair.
             </p>
           </SectionBlock>
         );
@@ -282,11 +283,12 @@ export default function Dashboard() {
       <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       
       {/* Desktop Sidebar */}
-      <Sidebar 
-        activeSection={activeSection} 
+      <Sidebar
+        activeSection={activeSection}
         setActiveSection={setActiveSection}
         onLogout={handleLogout}
         userName={user?.nom}
+        incompleteSections={incompleteSections}
       />
       
       {/* Mobile Header */}
@@ -405,6 +407,19 @@ export default function Dashboard() {
             </div>
           </div>
           
+          {!isProfileComplete && (
+            <div className="mb-6 flex items-start gap-3 p-4 rounded-xl border border-orange-500/30 bg-orange-500/10">
+              <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-orange-300 font-inter">Profil incomplet</p>
+                <p className="text-xs text-orange-400/80 mt-0.5 font-inter">
+                  Le système ne peut pas fonctionner correctement tant que tous les champs requis ne sont pas remplis.
+                  Les sections incomplètes sont signalées par un point orange dans la navigation.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="animate-fade-in">
             {renderSection()}
           </div>

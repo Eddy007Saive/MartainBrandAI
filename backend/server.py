@@ -67,9 +67,7 @@ class UserUpdate(BaseModel):
     couleur_principale: Optional[str] = None
     couleur_secondaire: Optional[str] = None
     couleur_accent: Optional[str] = None
-    api_key_openrouter: Optional[str] = None
     api_key_gemini: Optional[str] = None
-    api_key_openai: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
     late_account_instagram: Optional[str] = None
@@ -96,9 +94,7 @@ class UserResponse(BaseModel):
     couleur_principale: Optional[str] = None
     couleur_secondaire: Optional[str] = None
     couleur_accent: Optional[str] = None
-    api_key_openrouter: Optional[str] = None
     api_key_gemini: Optional[str] = None
-    api_key_openai: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
     late_account_instagram: Optional[str] = None
