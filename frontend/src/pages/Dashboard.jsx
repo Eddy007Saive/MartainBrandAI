@@ -1,10 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Share2, Link, Key, Palette, Save, Loader2, Menu, X } from 'lucide-react';
+import { User, Share2, Link, Key, Palette, Save, Loader2, Menu, X, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '../components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Sidebar } from '../components/Sidebar';
 import { Field } from '../components/Field';
@@ -61,6 +72,17 @@ export default function Dashboard() {
   const handleLogout = () => {
     removeToken();
     navigate('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await api.delete('/users/me');
+      removeToken();
+      toast.success('Compte supprimé avec succès');
+      navigate('/');
+    } catch (error) {
+      toast.error('Erreur lors de la suppression du compte');
+    }
   };
 
   if (loading) {
@@ -333,19 +355,54 @@ export default function Dashboard() {
                 Gérez vos informations personnelles
               </p>
             </div>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              data-testid="save-btn"
-              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] font-inter"
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Sauvegarder
-            </Button>
+            <div className="flex items-center gap-3">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    data-testid="delete-account-btn"
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-inter"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Supprimer mon compte
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-slate-900 border-slate-800">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-white font-sora">Supprimer mon compte</AlertDialogTitle>
+                    <AlertDialogDescription className="text-slate-400 font-inter">
+                      Cette action est irréversible. Toutes vos données seront définitivement supprimées.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">
+                      Annuler
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      data-testid="confirm-delete-account-btn"
+                      className="bg-red-600 hover:bg-red-700 text-white font-inter"
+                    >
+                      Supprimer définitivement
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                data-testid="save-btn"
+                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] font-inter"
+              >
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Sauvegarder
+              </Button>
+            </div>
           </div>
           
           <div className="animate-fade-in">

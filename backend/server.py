@@ -259,6 +259,25 @@ async def get_current_user(payload: dict = Depends(verify_token)):
         logger.error(f"Get user error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@users_router.delete("/me")
+async def delete_current_user(payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        if not telegram_id:
+            raise HTTPException(status_code=400, detail="Invalid token")
+
+        result = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
+
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {"success": True, "message": "Account deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete account error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @users_router.patch("/me")
 async def update_current_user(updates: UserUpdate, payload: dict = Depends(verify_token)):
     try:
