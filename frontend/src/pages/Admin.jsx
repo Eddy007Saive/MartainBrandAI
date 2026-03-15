@@ -60,10 +60,17 @@ export default function Admin() {
     setActionLoading(telegramId);
     try {
       const adminToken = getAdminToken();
-      await api.patch(`/admin/users/${telegramId}/activate`, {}, {
+      const response = await api.patch(`/admin/users/${telegramId}/activate`, {}, {
         headers: { Authorization: `Bearer ${adminToken}` }
       });
-      toast.success('Utilisateur activé');
+      if (response.data.late_profile_created) {
+        toast.success('Utilisateur activé et profil Late créé');
+      } else {
+        toast.warning(
+          `Utilisateur activé mais le profil Late n'a pas pu être créé : ${response.data.late_error || 'Erreur inconnue'}`,
+          { duration: 8000 }
+        );
+      }
       fetchUsers();
     } catch (error) {
       toast.error('Erreur lors de l\'activation');

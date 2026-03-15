@@ -311,18 +311,24 @@ async def connect_social(data: SocialConnectRequest, payload: dict = Depends(ver
     if data.platform not in VALID_PLATFORMS:
         raise HTTPException(status_code=400, detail="Invalid platform")
     try:
+        webhook_url = f"{N8N_WEBHOOK_BASE}/late-connect"
+        webhook_body = {"telegram_id": telegram_id, "platform": data.platform}
+        logger.info(f"Social connect: POST {webhook_url} body={webhook_body}")
         async with httpx.AsyncClient(timeout=15) as client:
-            response = await client.post(
-                f"{N8N_WEBHOOK_BASE}/late-connect",
-                json={"telegram_id": telegram_id, "platform": data.platform}
-            )
+            response = await client.post(webhook_url, json=webhook_body)
+            logger.info(f"Social connect response: status={response.status_code} body={response.text}")
+            if response.status_code != 200:
+                return {"success": False, "error": f"Le service a répondu avec le statut {response.status_code}"}
             result = response.json()
             if result.get("success") and result.get("authUrl"):
                 return {"success": True, "authUrl": result["authUrl"]}
-            return {"success": False, "message": result.get("message", "Erreur de connexion")}
+            return {"success": False, "error": result.get("message", "Réponse inattendue du service de connexion")}
+    except httpx.TimeoutException:
+        logger.error(f"Social connect timeout for {telegram_id}/{data.platform}")
+        return {"success": False, "error": "Le service de connexion n'a pas répondu à temps"}
     except Exception as e:
         logger.error(f"Social connect error: {e}")
-        raise HTTPException(status_code=502, detail="Erreur de communication avec le service de connexion")
+        return {"success": False, "error": f"Erreur de communication: {str(e)}"}
 
 @users_router.post("/me/disconnect")
 async def disconnect_social(data: SocialConnectRequest, payload: dict = Depends(verify_token)):
@@ -332,12 +338,14 @@ async def disconnect_social(data: SocialConnectRequest, payload: dict = Depends(
     if data.platform not in VALID_PLATFORMS:
         raise HTTPException(status_code=400, detail="Invalid platform")
     try:
+        webhook_url = f"{N8N_WEBHOOK_BASE}/late-disconnect"
+        webhook_body = {"telegram_id": telegram_id, "platform": data.platform}
+        logger.info(f"Social disconnect: POST {webhook_url} body={webhook_body}")
         async with httpx.AsyncClient(timeout=15) as client:
-            response = await client.post(
-                f"{N8N_WEBHOOK_BASE}/late-disconnect",
-                json={"telegram_id": telegram_id, "platform": data.platform}
-            )
-            result = response.json()
+            response = await client.post(webhook_url, json=webhook_body)
+            logger.info(f"Social disconnect response: status={response.status_code} body={response.text}")
+            if response.status_code != 200:
+                return {"success": False, "error": f"Le service a répondu avec le statut {response.status_code}"}
 
         # Clean the field in database
         field_map = {
@@ -350,9 +358,12 @@ async def disconnect_social(data: SocialConnectRequest, payload: dict = Depends(
         supabase.table("users").update({field: None}).eq("telegram_id", telegram_id).execute()
 
         return {"success": True}
+    except httpx.TimeoutException:
+        logger.error(f"Social disconnect timeout for {telegram_id}/{data.platform}")
+        return {"success": False, "error": "Le service de déconnexion n'a pas répondu à temps"}
     except Exception as e:
         logger.error(f"Social disconnect error: {e}")
-        raise HTTPException(status_code=502, detail="Erreur de communication avec le service de déconnexion")
+        return {"success": False, "error": f"Erreur de communication: {str(e)}"}
 
 # Admin routes
 @admin_router.get("/users")
@@ -383,6 +394,8 @@ async def activate_user(telegram_id: int, payload: dict = Depends(verify_admin_t
         user = result.data[0]
 
         # Create Late profile via n8n webhook
+        late_profile_created = False
+        late_error = None
         try:
             webhook_url = f"{N8N_WEBHOOK_BASE}/late-create-profile"
             webhook_body = {"telegram_id": telegram_id, "nom": user.get("nom", "")}
@@ -390,10 +403,20 @@ async def activate_user(telegram_id: int, payload: dict = Depends(verify_admin_t
             async with httpx.AsyncClient(timeout=15) as client:
                 resp = await client.post(webhook_url, json=webhook_body)
                 logger.info(f"Late webhook response: status={resp.status_code} body={resp.text}")
+                if resp.status_code == 200:
+                    late_profile_created = True
+                else:
+                    late_error = f"Late a répondu avec le statut {resp.status_code}"
         except Exception as e:
+            late_error = str(e)
             logger.warning(f"Failed to create Late profile for {telegram_id}: {e}")
 
-        return sanitize_user(user)
+        response = sanitize_user(user)
+        response["late_profile_created"] = late_profile_created
+        if late_error:
+            response["late_error"] = late_error
+
+        return response
     except HTTPException:
         raise
     except Exception as e:

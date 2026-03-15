@@ -160,10 +160,10 @@ export default function Dashboard() {
       if (response.data.success && response.data.authUrl) {
         openOAuthPopup(response.data.authUrl, platform);
       } else {
-        toast.error(response.data.message || 'Erreur lors de la connexion');
+        toast.error(response.data.error || 'Erreur lors de la connexion', { duration: 6000 });
       }
     } catch (error) {
-      toast.error('Impossible de contacter le serveur de connexion');
+      toast.error(error.response?.data?.detail || 'Impossible de contacter le serveur', { duration: 6000 });
     } finally {
       setConnecting(null);
     }
@@ -179,10 +179,10 @@ export default function Dashboard() {
         }
         toast.success(`${platform.charAt(0).toUpperCase() + platform.slice(1)} déconnecté`);
       } else {
-        toast.error(response.data.message || 'Erreur lors de la déconnexion');
+        toast.error(response.data.error || 'Erreur lors de la déconnexion', { duration: 6000 });
       }
     } catch (error) {
-      toast.error('Erreur lors de la déconnexion');
+      toast.error(error.response?.data?.detail || 'Erreur lors de la déconnexion', { duration: 6000 });
     }
   };
 
