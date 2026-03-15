@@ -1,4 +1,4 @@
-import { User, Share2, Link, Key, Palette, LogOut } from 'lucide-react';
+import { User, Share2, Link, Key, Palette, LogOut, Plug } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const sections = [
@@ -7,6 +7,7 @@ const sections = [
   { id: 'gpt_urls', title: 'URLs GPT', icon: Link },
   { id: 'api_keys', title: 'Clés API', icon: Key },
   { id: 'style', title: 'Style & Couleurs', icon: Palette },
+  { id: 'connections', title: 'Connexions', icon: Plug },
 ];
 
 export const Sidebar = ({ activeSection, setActiveSection, onLogout, userName, incompleteSections = [] }) => {

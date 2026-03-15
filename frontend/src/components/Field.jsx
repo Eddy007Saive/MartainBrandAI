@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Info } from 'lucide-react';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { cn } from '../lib/utils';
 
 export const Field = ({
@@ -13,18 +14,36 @@ export const Field = ({
   placeholder,
   readOnly = false,
   hasValue = false,
+  hint,
   className,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === 'password';
-  
+
   const displayPlaceholder = isPassword && hasValue ? '••••••••' : placeholder;
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <Label htmlFor={name} className="text-sm font-medium text-slate-300 font-inter">
-        {label}
-      </Label>
+      <div className="flex items-center gap-1.5">
+        <Label htmlFor={name} className="text-sm font-medium text-slate-300 font-inter">
+          {label}
+        </Label>
+        {hint && (
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300 cursor-help transition-colors flex-shrink-0" />
+              </TooltipTrigger>
+              <TooltipContent
+                className="max-w-xs bg-slate-800 border border-slate-700 text-slate-200 text-xs leading-relaxed whitespace-pre-line"
+                side="top"
+              >
+                {hint}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
       <div className="relative">
         <Input
           id={name}

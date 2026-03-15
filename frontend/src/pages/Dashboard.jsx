@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Share2, Link, Key, Palette, Save, Loader2, Menu, X, Trash2, AlertTriangle } from 'lucide-react';
+import { User, Share2, Link, Key, Palette, Save, Loader2, Menu, X, Trash2, AlertTriangle, Info, Plug, Check, ExternalLink, Unplug } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from '../components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Sidebar } from '../components/Sidebar';
 import { Field } from '../components/Field';
 import { ColorField } from '../components/ColorField';
@@ -36,6 +37,37 @@ const STYLES_VESTIMENTAIRES = [
   'Casual', 'Business', 'Sportif', 'Élégant', 'Décontracté', 'Streetwear', 'Classique'
 ];
 
+const SOCIAL_PLATFORMS = [
+  {
+    id: 'instagram',
+    name: 'Instagram',
+    field: 'late_account_instagram',
+    color: 'from-pink-500 to-purple-600',
+    icon: '📸',
+  },
+  {
+    id: 'facebook',
+    name: 'Facebook',
+    field: 'late_account_facebook',
+    color: 'from-blue-600 to-blue-700',
+    icon: '👤',
+  },
+  {
+    id: 'linkedin',
+    name: 'LinkedIn',
+    field: 'late_account_linkedin',
+    color: 'from-blue-500 to-cyan-600',
+    icon: '💼',
+  },
+  {
+    id: 'youtube',
+    name: 'YouTube',
+    field: 'late_account_youtube',
+    color: 'from-red-600 to-red-700',
+    icon: '▶️',
+  },
+];
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -43,6 +75,7 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('identity');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [connecting, setConnecting] = useState(null);
 
   useEffect(() => {
     fetchUser();
@@ -51,6 +84,11 @@ export default function Dashboard() {
   const fetchUser = async () => {
     try {
       const response = await api.get('/users/me');
+      if (!response.data.actif) {
+        removeToken();
+        navigate('/pending');
+        return;
+      }
       setUser(response.data);
     } catch (error) {
       toast.error('Erreur lors du chargement du profil');
@@ -93,6 +131,61 @@ export default function Dashboard() {
     }
   };
 
+  const openOAuthPopup = (url, platformName) => {
+    const width = 600;
+    const height = 700;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+    const popup = window.open(
+      url,
+      `${platformName}_oauth`,
+      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes`
+    );
+
+    // Poll to detect when popup closes, then refresh user data
+    if (popup) {
+      const timer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(timer);
+          fetchUser(); // Refresh to pick up new connection status
+        }
+      }, 500);
+    }
+  };
+
+  const handleConnect = async (platform) => {
+    setConnecting(platform);
+    try {
+      const response = await api.post('/users/me/connect', { platform });
+      if (response.data.success && response.data.authUrl) {
+        openOAuthPopup(response.data.authUrl, platform);
+      } else {
+        toast.error(response.data.message || 'Erreur lors de la connexion');
+      }
+    } catch (error) {
+      toast.error('Impossible de contacter le serveur de connexion');
+    } finally {
+      setConnecting(null);
+    }
+  };
+
+  const handleDisconnect = async (platform) => {
+    try {
+      const response = await api.post('/users/me/disconnect', { platform });
+      if (response.data.success) {
+        const field = SOCIAL_PLATFORMS.find(p => p.id === platform)?.field;
+        if (field) {
+          setUser(prev => ({ ...prev, [field]: null }));
+        }
+        toast.success(`${platform.charAt(0).toUpperCase() + platform.slice(1)} déconnecté`);
+      } else {
+        toast.error(response.data.message || 'Erreur lors de la déconnexion');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de la déconnexion');
+    }
+  };
+
   const incompleteSections = useMemo(() => {
     if (!user) return [];
     return Object.entries(REQUIRED_FIELDS)
@@ -116,14 +209,25 @@ export default function Dashboard() {
         return (
           <SectionBlock title="Identité" icon={User}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label="Nom" name="nom" value={user?.nom} onChange={handleChange} />
-              <Field label="Username" name="username" value={user?.username} onChange={handleChange} />
+              <Field label="Nom" name="nom" value={user?.nom} onChange={handleChange}
+                hint="Votre nom complet tel qu'il apparaîtra dans vos contenus générés." />
+              <Field label="Username" name="username" value={user?.username} onChange={handleChange}
+                hint="Votre identifiant unique sur la plateforme (sans espaces, ex: martin_dupont)." />
               <Field label="Email" name="email" value={user?.email} onChange={handleChange} readOnly />
-              <Field label="Nom d'utilisateur" name="user_name" value={user?.user_name} onChange={handleChange} />
-              <Field label="URL Photo" name="photo_url" value={user?.photo_url} onChange={handleChange} />
-              
+              <Field label="Nom d'utilisateur affiché" name="user_name" value={user?.user_name} onChange={handleChange}
+                hint="Le nom public affiché dans vos posts et profils (peut contenir des espaces)." />
+              <Field
+                label="URL Photo"
+                name="photo_url"
+                value={user?.photo_url}
+                onChange={handleChange}
+                hint={"Comment obtenir l'URL depuis Google Drive :\n1. Uploadez votre photo sur Google Drive\n2. Faites un clic droit → « Partager »\n3. Passez en accès « Tout le monde avec le lien »\n4. Copiez l'ID du fichier dans l'URL (ex: .../d/XXXXXXX/view)\n5. Collez ce lien ici — le système l'utilisera pour vos contenus."}
+              />
+
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-300 font-inter">Sexe</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label className="text-sm font-medium text-slate-300 font-inter">Sexe</Label>
+                </div>
                 <Select
                   value={user?.sexe || ''}
                   onValueChange={(value) => handleChange('sexe', value)}
@@ -138,9 +242,21 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-300 font-inter">Style vestimentaire</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label className="text-sm font-medium text-slate-300 font-inter">Style vestimentaire</Label>
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300 cursor-help transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs bg-slate-800 border border-slate-700 text-slate-200 text-xs leading-relaxed" side="top">
+                        {"Casual — décontracté du quotidien\nBusiness — tenue professionnelle sobre\nSportif — vêtements de sport / athleisure\nÉlégant — habillé, soirée, formel\nDécontracté — entre casual et sport\nStreetwear — urban, tendance, hype\nClassique — intemporel, costume, chic"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Select
                   value={user?.style_vestimentaire || ''}
                   onValueChange={(value) => handleChange('style_vestimentaire', value)}
@@ -157,9 +273,21 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="flex items-center justify-between p-4 bg-slate-950/30 rounded-lg border border-slate-800">
-                <Label className="text-sm font-medium text-slate-300 font-inter">Utiliser la photo</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label className="text-sm font-medium text-slate-300 font-inter">Utiliser la photo</Label>
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300 cursor-help transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs bg-slate-800 border border-slate-700 text-slate-200 text-xs leading-relaxed" side="top">
+                        Activez cette option pour que votre photo soit intégrée automatiquement dans les contenus générés.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Switch
                   checked={user?.use_photo || false}
                   onCheckedChange={(checked) => handleChange('use_photo', checked)}
@@ -174,13 +302,20 @@ export default function Dashboard() {
         return (
           <SectionBlock title="Réseaux Sociaux" icon={Share2}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label="Late Profile ID" name="late_profile_id" value={user?.late_profile_id} onChange={handleChange} />
-              <Field label="LinkedIn" name="late_account_linkedin" value={user?.late_account_linkedin} onChange={handleChange} />
-              <Field label="Instagram" name="late_account_instagram" value={user?.late_account_instagram} onChange={handleChange} />
-              <Field label="Facebook" name="late_account_facebook" value={user?.late_account_facebook} onChange={handleChange} />
-              <Field label="TikTok" name="late_account_tiktok" value={user?.late_account_tiktok} onChange={handleChange} />
-              <Field label="Telegram Bot Token" name="telegram_bot_token" value={user?.telegram_bot_token} onChange={handleChange} type="password" hasValue={!!user?.telegram_bot_token} />
-              <Field label="Telegram Bot Username" name="telegram_bot_username" value={user?.telegram_bot_username} onChange={handleChange} />
+              <Field label="Late Profile ID" name="late_profile_id" value={user?.late_profile_id} onChange={handleChange}
+                hint={"Votre identifiant sur la plateforme Late.\nTrouvable dans l'URL de votre profil Late : late.com/@VOTRE_ID"} />
+              <Field label="LinkedIn" name="late_account_linkedin" value={user?.late_account_linkedin} onChange={handleChange}
+                hint={"Votre identifiant LinkedIn (la partie après linkedin.com/in/).\nEx : pour linkedin.com/in/martin-dupont → saisir martin-dupont"} />
+              <Field label="Instagram" name="late_account_instagram" value={user?.late_account_instagram} onChange={handleChange}
+                hint="Votre @username Instagram sans le @.\nEx : pour @martin.dupont → saisir martin.dupont" />
+              <Field label="Facebook" name="late_account_facebook" value={user?.late_account_facebook} onChange={handleChange}
+                hint={"Votre identifiant Facebook (la partie après facebook.com/).\nEx : pour facebook.com/martin.dupont → saisir martin.dupont"} />
+              <Field label="TikTok" name="late_account_tiktok" value={user?.late_account_tiktok} onChange={handleChange}
+                hint="Votre @username TikTok sans le @.\nEx : pour @martindupont → saisir martindupont" />
+              <Field label="Telegram Bot Token" name="telegram_bot_token" value={user?.telegram_bot_token} onChange={handleChange} type="password" hasValue={!!user?.telegram_bot_token}
+                hint={"Comment obtenir votre token Telegram :\n1. Ouvrez Telegram et cherchez @BotFather\n2. Envoyez /newbot et suivez les instructions\n3. BotFather vous donnera un token du type :\n   123456789:AAFxxxxxxxxxxxxxx\n4. Copiez ce token ici."} />
+              <Field label="Telegram Bot Username" name="telegram_bot_username" value={user?.telegram_bot_username} onChange={handleChange}
+                hint={"Le nom d'utilisateur de votre bot Telegram (sans le @).\nBotFather vous le donne lors de la création.\nEx : pour @MonBot → saisir MonBot"} />
             </div>
           </SectionBlock>
         );
@@ -189,10 +324,14 @@ export default function Dashboard() {
         return (
           <SectionBlock title="URLs GPT" icon={Link}>
             <div className="grid grid-cols-1 gap-6">
-              <Field label="GPT URL LinkedIn" name="gpt_url_linkedin" value={user?.gpt_url_linkedin} onChange={handleChange} />
-              <Field label="GPT URL Instagram" name="gpt_url_instagram" value={user?.gpt_url_instagram} onChange={handleChange} />
-              <Field label="GPT URL Sujets" name="gpt_url_sujets" value={user?.gpt_url_sujets} onChange={handleChange} />
-              <Field label="GPT URL Default" name="gpt_url_default" value={user?.gpt_url_default} onChange={handleChange} />
+              <Field label="GPT URL LinkedIn" name="gpt_url_linkedin" value={user?.gpt_url_linkedin} onChange={handleChange}
+                hint={"L'URL de votre GPT personnalisé pour générer des posts LinkedIn.\nFormat : https://chat.openai.com/g/g-XXXXXXX\nCréez votre GPT sur chat.openai.com → Explore GPTs → Create."} />
+              <Field label="GPT URL Instagram" name="gpt_url_instagram" value={user?.gpt_url_instagram} onChange={handleChange}
+                hint={"L'URL de votre GPT personnalisé pour générer des posts Instagram.\nFormat : https://chat.openai.com/g/g-XXXXXXX"} />
+              <Field label="GPT URL Sujets" name="gpt_url_sujets" value={user?.gpt_url_sujets} onChange={handleChange}
+                hint={"L'URL du GPT utilisé pour générer des idées de sujets de contenu.\nFormat : https://chat.openai.com/g/g-XXXXXXX"} />
+              <Field label="GPT URL Default" name="gpt_url_default" value={user?.gpt_url_default} onChange={handleChange}
+                hint={"L'URL du GPT utilisé par défaut quand aucun GPT spécifique n'est défini.\nFormat : https://chat.openai.com/g/g-XXXXXXX"} />
             </div>
           </SectionBlock>
         );
@@ -208,6 +347,7 @@ export default function Dashboard() {
                 onChange={handleChange}
                 type="password"
                 hasValue={!!user?.api_key_gemini}
+                hint={"Comment obtenir votre clé Gemini :\n1. Allez sur aistudio.google.com\n2. Connectez-vous avec votre compte Google\n3. Cliquez sur « Get API Key » → « Create API key »\n4. Copiez la clé générée et collez-la ici.\nGratuit jusqu'à un certain quota."}
               />
             </div>
             <p className="mt-4 text-xs text-slate-500 font-inter">
@@ -272,6 +412,127 @@ export default function Dashboard() {
           </SectionBlock>
         );
         
+      case 'connections':
+        return (
+          <SectionBlock title="Connexions" icon={Plug}>
+            <p className="text-sm text-slate-400 font-inter mb-6">
+              Connectez vos réseaux sociaux via Late pour publier automatiquement du contenu.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {SOCIAL_PLATFORMS.map((platform) => {
+                const isConnected = !!user?.[platform.field];
+                const isLoading = connecting === platform.id;
+                return (
+                  <div
+                    key={platform.id}
+                    data-testid={`connect-card-${platform.id}`}
+                    className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50 p-5 transition-all duration-300 hover:border-slate-700"
+                  >
+                    {/* Gradient accent bar */}
+                    <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${platform.color}`} />
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{platform.icon}</span>
+                        <div>
+                          <h3 className="text-white font-semibold font-sora text-sm">
+                            {platform.name}
+                          </h3>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            {isConnected ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                                <span className="text-xs text-emerald-400 font-inter">Connecté</span>
+                              </>
+                            ) : (
+                              <span className="text-xs text-slate-500 font-inter">Non connecté</span>
+                            )}
+                          </div>
+                          {isConnected && (
+                            <p className="text-xs text-slate-500 font-inter mt-0.5 truncate max-w-[160px]">
+                              {user[platform.field]}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        {isConnected ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                data-testid={`disconnect-${platform.id}`}
+                                className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 font-inter text-xs"
+                              >
+                                <Unplug className="w-4 h-4 mr-1" />
+                                Déconnecter
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-slate-900 border-slate-800">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-white font-sora">
+                                  Déconnecter {platform.name}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-400 font-inter">
+                                  Votre compte {platform.name} ne sera plus lié. Vous pourrez le reconnecter à tout moment.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">
+                                  Annuler
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDisconnect(platform.id)}
+                                  data-testid={`confirm-disconnect-${platform.id}`}
+                                  className="bg-red-600 hover:bg-red-700 text-white font-inter"
+                                >
+                                  Déconnecter
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <Button
+                            size="sm"
+                            disabled={isLoading}
+                            onClick={() => handleConnect(platform.id)}
+                            data-testid={`connect-${platform.id}`}
+                            className={`bg-gradient-to-r ${platform.color} hover:opacity-90 text-white font-inter text-xs`}
+                          >
+                            {isLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                            ) : (
+                              <ExternalLink className="w-4 h-4 mr-1" />
+                            )}
+                            Connecter
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 p-4 rounded-xl border border-slate-800 bg-slate-950/30">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-slate-300 font-inter">Comment ça marche ?</p>
+                  <ol className="text-xs text-slate-500 font-inter mt-2 space-y-1 list-decimal list-inside">
+                    <li>Cliquez sur « Connecter » pour le réseau souhaité</li>
+                    <li>Vous serez redirigé vers la page d'autorisation du réseau social</li>
+                    <li>Autorisez l'accès à votre compte</li>
+                    <li>Vous serez redirigé automatiquement ici — votre compte sera lié</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </SectionBlock>
+        );
+
       default:
         return null;
     }
@@ -315,6 +576,7 @@ export default function Dashboard() {
               { id: 'gpt_urls', title: 'URLs GPT', icon: Link },
               { id: 'api_keys', title: 'Clés API', icon: Key },
               { id: 'style', title: 'Style & Couleurs', icon: Palette },
+              { id: 'connections', title: 'Connexions', icon: Plug },
             ].map((section) => {
               const Icon = section.icon;
               return (
