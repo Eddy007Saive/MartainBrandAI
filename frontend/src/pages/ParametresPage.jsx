@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Share2, Link, Key, Palette, Save, Loader2, Menu, X, Trash2, AlertTriangle, Info, Plug, Check, ExternalLink, Unplug } from 'lucide-react';
+import { User, Share2, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info, Plug, Check, ExternalLink, Unplug } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
@@ -18,12 +18,12 @@ import {
 } from '../components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
-import { Sidebar } from '../components/Sidebar';
 import { Field } from '../components/Field';
 import { ColorField } from '../components/ColorField';
 import { SectionBlock } from '../components/SectionBlock';
 import api from '../lib/api';
 import { removeToken } from '../lib/auth';
+import { useUser } from '../context/UserContext';
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
@@ -62,65 +62,27 @@ const YouTubeIcon = ({ className }) => (
 );
 
 const SOCIAL_PLATFORMS = [
-  {
-    id: 'instagram',
-    name: 'Instagram',
-    field: 'late_account_instagram',
-    color: 'from-pink-500 to-purple-600',
-    icon: InstagramIcon,
-  },
-  {
-    id: 'facebook',
-    name: 'Facebook',
-    field: 'late_account_facebook',
-    color: 'from-blue-600 to-blue-700',
-    icon: FacebookIcon,
-  },
-  {
-    id: 'linkedin',
-    name: 'LinkedIn',
-    field: 'late_account_linkedin',
-    color: 'from-blue-500 to-cyan-600',
-    icon: LinkedInIcon,
-  },
-  {
-    id: 'youtube',
-    name: 'YouTube',
-    field: 'late_account_youtube',
-    color: 'from-red-600 to-red-700',
-    icon: YouTubeIcon,
-  },
+  { id: 'instagram', name: 'Instagram', field: 'late_account_instagram', color: 'from-pink-500 to-purple-600', icon: InstagramIcon },
+  { id: 'facebook', name: 'Facebook', field: 'late_account_facebook', color: 'from-blue-600 to-blue-700', icon: FacebookIcon },
+  { id: 'linkedin', name: 'LinkedIn', field: 'late_account_linkedin', color: 'from-blue-500 to-cyan-600', icon: LinkedInIcon },
+  { id: 'youtube', name: 'YouTube', field: 'late_account_youtube', color: 'from-red-600 to-red-700', icon: YouTubeIcon },
 ];
 
-export default function Dashboard() {
+const SETTINGS_SECTIONS = [
+  { id: 'identity', title: 'Identité', icon: User },
+  { id: 'social', title: 'Réseaux Sociaux', icon: Share2 },
+  { id: 'gpt_urls', title: 'URLs GPT', icon: Link },
+  { id: 'api_keys', title: 'Clés API', icon: Key },
+  { id: 'style', title: 'Style & Couleurs', icon: Palette },
+  { id: 'connections', title: 'Connexions', icon: Plug },
+];
+
+export default function ParametresPage() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, setUser, fetchUser } = useUser();
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('identity');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [connecting, setConnecting] = useState(null);
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
-
-  const fetchUser = async () => {
-    try {
-      const response = await api.get('/users/me');
-      if (!response.data.actif) {
-        removeToken();
-        navigate('/pending');
-        return;
-      }
-      setUser(response.data);
-    } catch (error) {
-      toast.error('Erreur lors du chargement du profil');
-      navigate('/');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleChange = (name, value) => {
     setUser(prev => ({ ...prev, [name]: value }));
@@ -137,11 +99,6 @@ export default function Dashboard() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleLogout = () => {
-    removeToken();
-    navigate('/');
   };
 
   const handleDeleteAccount = async () => {
@@ -165,13 +122,11 @@ export default function Dashboard() {
       `${platformName}_oauth`,
       `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes`
     );
-
-    // Poll to detect when popup closes, then refresh user data
     if (popup) {
       const timer = setInterval(() => {
         if (popup.closed) {
           clearInterval(timer);
-          fetchUser(); // Refresh to pick up new connection status
+          fetchUser();
         }
       }, 500);
     }
@@ -219,14 +174,6 @@ export default function Dashboard() {
 
   const isProfileComplete = incompleteSections.length === 0;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#5B6CFF]" />
-      </div>
-    );
-  }
-
   const renderSection = () => {
     switch (activeSection) {
       case 'identity':
@@ -247,15 +194,11 @@ export default function Dashboard() {
                 onChange={handleChange}
                 hint={"Comment obtenir l'URL depuis Google Drive :\n1. Uploadez votre photo sur Google Drive\n2. Faites un clic droit → « Partager »\n3. Passez en accès « Tout le monde avec le lien »\n4. Copiez l'ID du fichier dans l'URL (ex: .../d/XXXXXXX/view)\n5. Collez ce lien ici — le système l'utilisera pour vos contenus."}
               />
-
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5">
                   <Label className="text-sm font-medium text-slate-300 font-inter">Sexe</Label>
                 </div>
-                <Select
-                  value={user?.sexe || ''}
-                  onValueChange={(value) => handleChange('sexe', value)}
-                >
+                <Select value={user?.sexe || ''} onValueChange={(value) => handleChange('sexe', value)}>
                   <SelectTrigger data-testid="field-sexe" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
@@ -266,7 +209,6 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5">
                   <Label className="text-sm font-medium text-slate-300 font-inter">Style vestimentaire</Label>
@@ -281,23 +223,17 @@ export default function Dashboard() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Select
-                  value={user?.style_vestimentaire || ''}
-                  onValueChange={(value) => handleChange('style_vestimentaire', value)}
-                >
+                <Select value={user?.style_vestimentaire || ''} onValueChange={(value) => handleChange('style_vestimentaire', value)}>
                   <SelectTrigger data-testid="field-style" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800">
                     {STYLES_VESTIMENTAIRES.map(style => (
-                      <SelectItem key={style} value={style.toLowerCase()} className="text-slate-200 focus:bg-slate-800">
-                        {style}
-                      </SelectItem>
+                      <SelectItem key={style} value={style.toLowerCase()} className="text-slate-200 focus:bg-slate-800">{style}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="flex items-center justify-between p-4 bg-slate-950/30 rounded-lg border border-slate-800">
                 <div className="flex items-center gap-1.5">
                   <Label className="text-sm font-medium text-slate-300 font-inter">Utiliser la photo</Label>
@@ -312,16 +248,12 @@ export default function Dashboard() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Switch
-                  checked={user?.use_photo || false}
-                  onCheckedChange={(checked) => handleChange('use_photo', checked)}
-                  data-testid="toggle-use-photo"
-                />
+                <Switch checked={user?.use_photo || false} onCheckedChange={(checked) => handleChange('use_photo', checked)} data-testid="toggle-use-photo" />
               </div>
             </div>
           </SectionBlock>
         );
-        
+
       case 'social':
         return (
           <SectionBlock title="Réseaux Sociaux" icon={Share2}>
@@ -343,7 +275,7 @@ export default function Dashboard() {
             </div>
           </SectionBlock>
         );
-        
+
       case 'gpt_urls':
         return (
           <SectionBlock title="URLs GPT" icon={Link}>
@@ -359,83 +291,43 @@ export default function Dashboard() {
             </div>
           </SectionBlock>
         );
-        
+
       case 'api_keys':
         return (
           <SectionBlock title="Clés API" icon={Key}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field
-                label="Gemini API Key"
-                name="api_key_gemini"
-                value={user?.api_key_gemini}
-                onChange={handleChange}
-                type="password"
-                hasValue={!!user?.api_key_gemini}
-                hint={"Comment obtenir votre clé Gemini :\n1. Allez sur aistudio.google.com\n2. Connectez-vous avec votre compte Google\n3. Cliquez sur « Get API Key » → « Create API key »\n4. Copiez la clé générée et collez-la ici.\nGratuit jusqu'à un certain quota."}
-              />
+              <Field label="Gemini API Key" name="api_key_gemini" value={user?.api_key_gemini} onChange={handleChange} type="password" hasValue={!!user?.api_key_gemini}
+                hint={"Comment obtenir votre clé Gemini :\n1. Allez sur aistudio.google.com\n2. Connectez-vous avec votre compte Google\n3. Cliquez sur « Get API Key » → « Create API key »\n4. Copiez la clé générée et collez-la ici.\nGratuit jusqu'à un certain quota."} />
             </div>
             <p className="mt-4 text-xs text-slate-500 font-inter">
               La clé API est stockée de manière sécurisée et n'est jamais affichée en clair.
             </p>
           </SectionBlock>
         );
-        
+
       case 'style':
         return (
           <SectionBlock title="Style & Couleurs" icon={Palette}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <ColorField 
-                label="Couleur Principale" 
-                name="couleur_principale" 
-                value={user?.couleur_principale} 
-                onChange={handleChange} 
-              />
-              <ColorField 
-                label="Couleur Secondaire" 
-                name="couleur_secondaire" 
-                value={user?.couleur_secondaire} 
-                onChange={handleChange} 
-              />
-              <ColorField 
-                label="Couleur Accent" 
-                name="couleur_accent" 
-                value={user?.couleur_accent} 
-                onChange={handleChange} 
-              />
+              <ColorField label="Couleur Principale" name="couleur_principale" value={user?.couleur_principale} onChange={handleChange} />
+              <ColorField label="Couleur Secondaire" name="couleur_secondaire" value={user?.couleur_secondaire} onChange={handleChange} />
+              <ColorField label="Couleur Accent" name="couleur_accent" value={user?.couleur_accent} onChange={handleChange} />
             </div>
-            
-            {/* Live preview */}
             <div className="p-6 rounded-xl border border-slate-800 bg-slate-950/50">
               <h3 className="text-sm font-medium text-slate-400 mb-4 font-inter">Aperçu en temps réel</h3>
               <div className="flex gap-4 items-center">
-                <div 
-                  className="w-24 h-24 rounded-xl shadow-lg transition-all duration-300"
-                  style={{ backgroundColor: user?.couleur_principale || '#003D2E' }}
-                  data-testid="preview-principale"
-                />
-                <div 
-                  className="w-24 h-24 rounded-xl shadow-lg transition-all duration-300"
-                  style={{ backgroundColor: user?.couleur_secondaire || '#0077FF' }}
-                  data-testid="preview-secondaire"
-                />
-                <div 
-                  className="w-24 h-24 rounded-xl shadow-lg transition-all duration-300"
-                  style={{ backgroundColor: user?.couleur_accent || '#3AFFA3' }}
-                  data-testid="preview-accent"
-                />
+                <div className="w-24 h-24 rounded-xl shadow-lg transition-all duration-300" style={{ backgroundColor: user?.couleur_principale || '#003D2E' }} data-testid="preview-principale" />
+                <div className="w-24 h-24 rounded-xl shadow-lg transition-all duration-300" style={{ backgroundColor: user?.couleur_secondaire || '#0077FF' }} data-testid="preview-secondaire" />
+                <div className="w-24 h-24 rounded-xl shadow-lg transition-all duration-300" style={{ backgroundColor: user?.couleur_accent || '#3AFFA3' }} data-testid="preview-accent" />
               </div>
-              <div className="mt-4 p-4 rounded-lg" style={{ 
-                background: `linear-gradient(135deg, ${user?.couleur_principale || '#003D2E'}, ${user?.couleur_secondaire || '#0077FF'})` 
-              }}>
+              <div className="mt-4 p-4 rounded-lg" style={{ background: `linear-gradient(135deg, ${user?.couleur_principale || '#003D2E'}, ${user?.couleur_secondaire || '#0077FF'})` }}>
                 <p className="text-white font-sora font-semibold">Dégradé Preview</p>
-                <p className="text-sm mt-1" style={{ color: user?.couleur_accent || '#3AFFA3' }}>
-                  Texte avec couleur accent
-                </p>
+                <p className="text-sm mt-1" style={{ color: user?.couleur_accent || '#3AFFA3' }}>Texte avec couleur accent</p>
               </div>
             </div>
           </SectionBlock>
         );
-        
+
       case 'connections':
         return (
           <SectionBlock title="Connexions" icon={Plug}>
@@ -447,21 +339,13 @@ export default function Dashboard() {
                 const isConnected = !!user?.[platform.field];
                 const isLoading = connecting === platform.id;
                 return (
-                  <div
-                    key={platform.id}
-                    data-testid={`connect-card-${platform.id}`}
-                    className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50 p-5 transition-all duration-300 hover:border-slate-700"
-                  >
-                    {/* Gradient accent bar */}
+                  <div key={platform.id} data-testid={`connect-card-${platform.id}`} className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50 p-5 transition-all duration-300 hover:border-slate-700">
                     <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${platform.color}`} />
-
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <platform.icon className="w-7 h-7 text-white" />
                         <div>
-                          <h3 className="text-white font-semibold font-sora text-sm">
-                            {platform.name}
-                          </h3>
+                          <h3 className="text-white font-semibold font-sora text-sm">{platform.name}</h3>
                           <div className="flex items-center gap-1.5 mt-1">
                             {isConnected ? (
                               <>
@@ -473,63 +357,34 @@ export default function Dashboard() {
                             )}
                           </div>
                           {isConnected && (
-                            <p className="text-xs text-slate-500 font-inter mt-0.5 truncate max-w-[160px]">
-                              {user[platform.field]}
-                            </p>
+                            <p className="text-xs text-slate-500 font-inter mt-0.5 truncate max-w-[160px]">{user[platform.field]}</p>
                           )}
                         </div>
                       </div>
-
                       <div>
                         {isConnected ? (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                data-testid={`disconnect-${platform.id}`}
-                                className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 font-inter text-xs"
-                              >
-                                <Unplug className="w-4 h-4 mr-1" />
-                                Déconnecter
+                              <Button variant="ghost" size="sm" data-testid={`disconnect-${platform.id}`} className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 font-inter text-xs">
+                                <Unplug className="w-4 h-4 mr-1" />Déconnecter
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="bg-slate-900 border-slate-800">
                               <AlertDialogHeader>
-                                <AlertDialogTitle className="text-white font-sora">
-                                  Déconnecter {platform.name}
-                                </AlertDialogTitle>
+                                <AlertDialogTitle className="text-white font-sora">Déconnecter {platform.name}</AlertDialogTitle>
                                 <AlertDialogDescription className="text-slate-400 font-inter">
                                   Votre compte {platform.name} ne sera plus lié. Vous pourrez le reconnecter à tout moment.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">
-                                  Annuler
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDisconnect(platform.id)}
-                                  data-testid={`confirm-disconnect-${platform.id}`}
-                                  className="bg-red-600 hover:bg-red-700 text-white font-inter"
-                                >
-                                  Déconnecter
-                                </AlertDialogAction>
+                                <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDisconnect(platform.id)} data-testid={`confirm-disconnect-${platform.id}`} className="bg-red-600 hover:bg-red-700 text-white font-inter">Déconnecter</AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
                         ) : (
-                          <Button
-                            size="sm"
-                            disabled={isLoading}
-                            onClick={() => handleConnect(platform.id)}
-                            data-testid={`connect-${platform.id}`}
-                            className={`bg-gradient-to-r ${platform.color} hover:opacity-90 text-white font-inter text-xs`}
-                          >
-                            {isLoading ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                            ) : (
-                              <ExternalLink className="w-4 h-4 mr-1" />
-                            )}
+                          <Button size="sm" disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`connect-${platform.id}`} className={`bg-gradient-to-r ${platform.color} hover:opacity-90 text-white font-inter text-xs`}>
+                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <ExternalLink className="w-4 h-4 mr-1" />}
                             Connecter
                           </Button>
                         )}
@@ -539,7 +394,6 @@ export default function Dashboard() {
                 );
               })}
             </div>
-
             <div className="mt-6 p-4 rounded-xl border border-slate-800 bg-slate-950/30">
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
@@ -563,154 +417,84 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-[#020617] overflow-hidden" data-testid="dashboard">
-      {/* Noise overlay */}
-      <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-      
-      {/* Desktop Sidebar */}
-      <Sidebar
-        activeSection={activeSection}
-        setActiveSection={setActiveSection}
-        onLogout={handleLogout}
-        userName={user?.nom}
-        incompleteSections={incompleteSections}
-      />
-      
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold font-sora bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
-          Dashboard
-        </h1>
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="text-slate-400 hover:text-white"
-          data-testid="mobile-menu-toggle"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-      
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-slate-950/95 backdrop-blur-xl pt-16">
-          <nav className="p-4 space-y-2">
-            {[
-              { id: 'identity', title: 'Identité', icon: User },
-              { id: 'social', title: 'Réseaux Sociaux', icon: Share2 },
-              { id: 'gpt_urls', title: 'URLs GPT', icon: Link },
-              { id: 'api_keys', title: 'Clés API', icon: Key },
-              { id: 'style', title: 'Style & Couleurs', icon: Palette },
-              { id: 'connections', title: 'Connexions', icon: Plug },
-            ].map((section) => {
-              const Icon = section.icon;
-              return (
-                <button
-                  key={section.id}
-                  onClick={() => {
-                    setActiveSection(section.id);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all ${
-                    activeSection === section.id
-                      ? 'bg-[#5B6CFF]/20 text-white'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-inter">{section.title}</span>
-                </button>
-              );
-            })}
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 mt-4"
-            >
-              <span className="font-inter">Déconnexion</span>
-            </button>
-          </nav>
+    <div className="p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-sora text-white">Paramètres</h1>
+            <p className="text-slate-400 mt-1 font-inter text-sm">Gérez vos informations personnelles</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" data-testid="delete-account-btn" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-inter">
+                  <Trash2 className="w-4 h-4 mr-2" />Supprimer mon compte
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-slate-900 border-slate-800">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-white font-sora">Supprimer mon compte</AlertDialogTitle>
+                  <AlertDialogDescription className="text-slate-400 font-inter">
+                    Cette action est irréversible. Toutes vos données seront définitivement supprimées.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAccount} data-testid="confirm-delete-account-btn" className="bg-red-600 hover:bg-red-700 text-white font-inter">Supprimer définitivement</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Button onClick={handleSave} disabled={saving} data-testid="save-btn" className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] font-inter">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+              Sauvegarder
+            </Button>
+          </div>
         </div>
-      )}
-      
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10 pt-20 md:pt-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+
+        {/* Profile incomplete warning */}
+        {!isProfileComplete && (
+          <div className="mb-6 flex items-start gap-3 p-4 rounded-xl border border-orange-500/30 bg-orange-500/10">
+            <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold font-sora text-white">
-                Mon Profil
-              </h1>
-              <p className="text-slate-400 mt-1 font-inter text-sm">
-                Gérez vos informations personnelles
+              <p className="text-sm font-medium text-orange-300 font-inter">Profil incomplet</p>
+              <p className="text-xs text-orange-400/80 mt-0.5 font-inter">
+                Le système ne peut pas fonctionner correctement tant que tous les champs requis ne sont pas remplis.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    data-testid="delete-account-btn"
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-inter"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Supprimer mon compte
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-slate-900 border-slate-800">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-white font-sora">Supprimer mon compte</AlertDialogTitle>
-                    <AlertDialogDescription className="text-slate-400 font-inter">
-                      Cette action est irréversible. Toutes vos données seront définitivement supprimées.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">
-                      Annuler
-                    </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      data-testid="confirm-delete-account-btn"
-                      className="bg-red-600 hover:bg-red-700 text-white font-inter"
-                    >
-                      Supprimer définitivement
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+          </div>
+        )}
 
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                data-testid="save-btn"
-                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] font-inter"
+        {/* Sub-navigation tabs */}
+        <div className="flex flex-wrap gap-2 mb-6 p-1 bg-slate-950/50 rounded-lg border border-white/5">
+          {SETTINGS_SECTIONS.map((section) => {
+            const Icon = section.icon;
+            const isActive = activeSection === section.id;
+            const isIncomplete = incompleteSections.includes(section.id);
+            return (
+              <button
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
+                data-testid={`settings-tab-${section.id}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-xs font-inter transition-all ${
+                  isActive
+                    ? 'bg-[#5B6CFF]/20 text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                }`}
               >
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                Sauvegarder
-              </Button>
-            </div>
-          </div>
-          
-          {!isProfileComplete && (
-            <div className="mb-6 flex items-start gap-3 p-4 rounded-xl border border-orange-500/30 bg-orange-500/10">
-              <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-orange-300 font-inter">Profil incomplet</p>
-                <p className="text-xs text-orange-400/80 mt-0.5 font-inter">
-                  Le système ne peut pas fonctionner correctement tant que tous les champs requis ne sont pas remplis.
-                  Les sections incomplètes sont signalées par un point orange dans la navigation.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="animate-fade-in">
-            {renderSection()}
-          </div>
+                <Icon className="w-4 h-4" />
+                {section.title}
+                {isIncomplete && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
+              </button>
+            );
+          })}
         </div>
-      </main>
+
+        {/* Section content */}
+        <div className="animate-fade-in">
+          {renderSection()}
+        </div>
+      </div>
     </div>
   );
 }

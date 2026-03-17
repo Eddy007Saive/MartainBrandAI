@@ -423,6 +423,41 @@ async def activate_user(telegram_id: int, payload: dict = Depends(verify_admin_t
         logger.error(f"Activate user error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@admin_router.post("/users/{telegram_id}/retry-late")
+async def retry_late_profile(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+    try:
+        result = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user = result.data[0]
+        if not user.get("actif"):
+            raise HTTPException(status_code=400, detail="L'utilisateur doit être actif pour créer un profil Late")
+
+        late_profile_created = False
+        late_error = None
+        try:
+            webhook_url = f"{N8N_WEBHOOK_BASE}/late-create-profile"
+            webhook_body = {"telegram_id": telegram_id, "nom": user.get("nom", "")}
+            logger.info(f"Retry Late profile: POST {webhook_url} body={webhook_body}")
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.post(webhook_url, json=webhook_body)
+                logger.info(f"Retry Late response: status={resp.status_code} body={resp.text}")
+                if resp.status_code == 200:
+                    late_profile_created = True
+                else:
+                    late_error = f"Late a répondu avec le statut {resp.status_code}"
+        except Exception as e:
+            late_error = str(e)
+            logger.warning(f"Retry Late profile failed for {telegram_id}: {e}")
+
+        return {"late_profile_created": late_profile_created, "late_error": late_error}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Retry Late error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @admin_router.patch("/users/{telegram_id}/deactivate")
 async def deactivate_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
     try:
