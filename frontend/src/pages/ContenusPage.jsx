@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink } from 'lucide-react';
+import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import {
@@ -36,6 +36,7 @@ const STATUT_COLORS = {
   'Publié': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   'Refusé': 'bg-red-500/20 text-red-400 border-red-500/30',
   'Brouillon': 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+  'En cours': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
 };
 
 const RESEAU_ICONS = {
@@ -43,6 +44,10 @@ const RESEAU_ICONS = {
   'instagram': '📸',
   'facebook': '👥',
   'tiktok': '🎵',
+  'LinkedIn': '💼',
+  'Instagram': '📸',
+  'Facebook': '👥',
+  'TikTok': '🎵',
 };
 
 export default function ContenusPage() {
@@ -74,8 +79,19 @@ export default function ContenusPage() {
   const handleUpdateStatut = async (id, newStatut) => {
     setActionLoading(id);
     try {
-      await api.patch(`/contenus/${id}`, { statut: newStatut });
-      toast.success(`Contenu ${newStatut.toLowerCase()}`);
+      const response = await api.patch(`/contenus/${id}`, { statut: newStatut });
+      
+      // Check webhook result
+      if (response.data.webhook_result) {
+        if (response.data.webhook_result.success) {
+          toast.success('Contenu validé et webhook déclenché avec succès');
+        } else {
+          toast.warning('Contenu validé mais le webhook a échoué');
+        }
+      } else {
+        toast.success(`Contenu ${newStatut.toLowerCase()}`);
+      }
+      
       fetchContenus();
       setSelectedContenu(null);
     } catch (error) {
@@ -118,6 +134,14 @@ export default function ContenusPage() {
     }
   };
 
+  // Get stats
+  const stats = {
+    total: contenus.length,
+    aValider: contenus.filter(c => c.statut === 'A valider').length,
+    valides: contenus.filter(c => c.statut === 'Validé').length,
+    publies: contenus.filter(c => c.statut === 'Publié').length,
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -136,13 +160,33 @@ export default function ContenusPage() {
               <SelectValue placeholder="Filtrer par statut" />
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-800">
-              <SelectItem value="all" className="text-slate-200">Tous</SelectItem>
-              <SelectItem value="A valider" className="text-slate-200">À valider</SelectItem>
-              <SelectItem value="Validé" className="text-slate-200">Validés</SelectItem>
-              <SelectItem value="Publié" className="text-slate-200">Publiés</SelectItem>
+              <SelectItem value="all" className="text-slate-200">Tous ({stats.total})</SelectItem>
+              <SelectItem value="A valider" className="text-slate-200">À valider ({stats.aValider})</SelectItem>
+              <SelectItem value="Validé" className="text-slate-200">Validés ({stats.valides})</SelectItem>
+              <SelectItem value="Publié" className="text-slate-200">Publiés ({stats.publies})</SelectItem>
               <SelectItem value="Refusé" className="text-slate-200">Refusés</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      {/* Stats cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-slate-900/40 border border-white/5 rounded-lg p-4 text-center">
+          <p className="text-2xl font-bold text-white font-sora">{stats.total}</p>
+          <p className="text-xs text-slate-400 font-inter">Total</p>
+        </div>
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 text-center">
+          <p className="text-2xl font-bold text-amber-400 font-sora">{stats.aValider}</p>
+          <p className="text-xs text-amber-400/70 font-inter">À valider</p>
+        </div>
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 text-center">
+          <p className="text-2xl font-bold text-emerald-400 font-sora">{stats.valides}</p>
+          <p className="text-xs text-emerald-400/70 font-inter">Validés</p>
+        </div>
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 text-center">
+          <p className="text-2xl font-bold text-blue-400 font-sora">{stats.publies}</p>
+          <p className="text-xs text-blue-400/70 font-inter">Publiés</p>
         </div>
       </div>
 
@@ -177,15 +221,33 @@ export default function ContenusPage() {
                 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
+                  {/* Status and platform row */}
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <Badge className={STATUT_COLORS[contenu.statut] || STATUT_COLORS['Brouillon']}>
                       {contenu.statut}
                     </Badge>
                     {contenu.reseau_cible && (
-                      <span className="text-lg">{RESEAU_ICONS[contenu.reseau_cible?.toLowerCase()] || '📱'}</span>
+                      <span className="text-lg" title={contenu.reseau_cible}>
+                        {RESEAU_ICONS[contenu.reseau_cible] || '📱'}
+                      </span>
                     )}
                     {contenu.type && (
-                      <span className="text-xs text-slate-500 font-inter">{contenu.type}</span>
+                      <span className="text-xs text-slate-500 font-inter bg-slate-800/50 px-2 py-0.5 rounded">
+                        {contenu.type}
+                      </span>
+                    )}
+                    
+                    {/* Published link indicator */}
+                    {contenu.statut === 'Publié' && contenu.lien_publication && (
+                      <a
+                        href={contenu.lien_publication}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 px-2 py-1 rounded-full transition-colors"
+                      >
+                        <Link2 className="w-3 h-3" />
+                        Voir publication
+                      </a>
                     )}
                   </div>
                   
@@ -197,18 +259,30 @@ export default function ContenusPage() {
                     {contenu.contenu}
                   </p>
                   
-                  <p className="text-xs text-slate-500 font-inter">
-                    Créé le {new Date(contenu.created_at).toLocaleDateString('fr-FR')}
-                  </p>
+                  {/* Meta info */}
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-inter">
+                    <span>Créé le {new Date(contenu.created_at).toLocaleDateString('fr-FR')}</span>
+                    {contenu.date_publication && (
+                      <span className="text-blue-400">
+                        Planifié: {new Date(contenu.date_publication).toLocaleDateString('fr-FR')}
+                      </span>
+                    )}
+                    {contenu.callback_url && (
+                      <span className="text-emerald-400/70" title="Webhook configuré">
+                        ⚡ Webhook
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Actions */}
-                <div className="flex lg:flex-col gap-2">
+                <div className="flex lg:flex-col gap-2 flex-shrink-0">
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setSelectedContenu(contenu)}
                     className="text-slate-400 hover:text-white"
+                    title="Voir détails"
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
@@ -220,6 +294,7 @@ export default function ContenusPage() {
                         onClick={() => handleUpdateStatut(contenu.id, 'Validé')}
                         disabled={actionLoading === contenu.id}
                         className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400"
+                        title="Valider"
                       >
                         {actionLoading === contenu.id ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -233,10 +308,24 @@ export default function ContenusPage() {
                         onClick={() => handleUpdateStatut(contenu.id, 'Refusé')}
                         disabled={actionLoading === contenu.id}
                         className="text-red-400 hover:bg-red-500/20"
+                        title="Refuser"
                       >
                         <X className="w-4 h-4" />
                       </Button>
                     </>
+                  )}
+                  
+                  {/* Link to published content */}
+                  {contenu.statut === 'Publié' && contenu.lien_publication && (
+                    <a
+                      href={contenu.lien_publication}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center h-8 w-8 rounded-md text-blue-400 hover:bg-blue-500/20 transition-colors"
+                      title="Voir la publication"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
                   )}
                   
                   <Button
@@ -244,6 +333,7 @@ export default function ContenusPage() {
                     variant="ghost"
                     onClick={() => setEditContenu(contenu)}
                     className="text-slate-400 hover:text-white"
+                    title="Modifier"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -253,6 +343,7 @@ export default function ContenusPage() {
                     variant="ghost"
                     onClick={() => setDeleteContenu(contenu)}
                     className="text-red-400 hover:bg-red-500/20"
+                    title="Supprimer"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -274,17 +365,40 @@ export default function ContenusPage() {
           
           {selectedContenu && (
             <div className="space-y-4">
+              {/* Status badges */}
               <div className="flex flex-wrap gap-2">
                 <Badge className={STATUT_COLORS[selectedContenu.statut]}>
                   {selectedContenu.statut}
                 </Badge>
                 {selectedContenu.reseau_cible && (
                   <Badge variant="outline" className="border-slate-700 text-slate-300">
-                    {selectedContenu.reseau_cible}
+                    {RESEAU_ICONS[selectedContenu.reseau_cible]} {selectedContenu.reseau_cible}
+                  </Badge>
+                )}
+                {selectedContenu.type && (
+                  <Badge variant="outline" className="border-slate-700 text-slate-300">
+                    {selectedContenu.type}
                   </Badge>
                 )}
               </div>
               
+              {/* Published link banner */}
+              {selectedContenu.statut === 'Publié' && selectedContenu.lien_publication && (
+                <a
+                  href={selectedContenu.lien_publication}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg text-blue-400 hover:bg-blue-500/20 transition-colors"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                  <div>
+                    <p className="font-semibold font-sora">Publication en ligne</p>
+                    <p className="text-sm text-blue-400/70 truncate">{selectedContenu.lien_publication}</p>
+                  </div>
+                </a>
+              )}
+              
+              {/* Image */}
               {selectedContenu.lien_visuel && (
                 <img
                   src={selectedContenu.lien_visuel}
@@ -293,23 +407,32 @@ export default function ContenusPage() {
                 />
               )}
               
+              {/* Content */}
               <div className="bg-slate-800/50 rounded-lg p-4">
                 <p className="text-slate-200 font-inter whitespace-pre-wrap">
                   {selectedContenu.contenu}
                 </p>
               </div>
               
-              {selectedContenu.lien_publication && (
-                <a
-                  href={selectedContenu.lien_publication}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-[#5B6CFF] hover:underline"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Voir la publication
-                </a>
-              )}
+              {/* Meta info */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-slate-500 font-inter">Créé le</p>
+                  <p className="text-slate-300">{new Date(selectedContenu.created_at).toLocaleString('fr-FR')}</p>
+                </div>
+                {selectedContenu.date_publication && (
+                  <div>
+                    <p className="text-slate-500 font-inter">Date de publication</p>
+                    <p className="text-slate-300">{new Date(selectedContenu.date_publication).toLocaleString('fr-FR')}</p>
+                  </div>
+                )}
+                {selectedContenu.callback_url && (
+                  <div className="col-span-2">
+                    <p className="text-slate-500 font-inter">Webhook de validation</p>
+                    <p className="text-emerald-400 text-xs truncate">{selectedContenu.callback_url}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           
@@ -321,6 +444,11 @@ export default function ContenusPage() {
                   disabled={actionLoading === selectedContenu?.id}
                   className="bg-emerald-500 hover:bg-emerald-600"
                 >
+                  {actionLoading === selectedContenu?.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Check className="w-4 h-4 mr-2" />
+                  )}
                   Valider
                 </Button>
                 <Button
@@ -328,9 +456,22 @@ export default function ContenusPage() {
                   onClick={() => handleUpdateStatut(selectedContenu.id, 'Refusé')}
                   disabled={actionLoading === selectedContenu?.id}
                 >
+                  <X className="w-4 h-4 mr-2" />
                   Refuser
                 </Button>
               </div>
+            )}
+            {selectedContenu?.statut === 'Publié' && selectedContenu?.lien_publication && (
+              <a
+                href={selectedContenu.lien_publication}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button className="bg-blue-500 hover:bg-blue-600">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Voir la publication
+                </Button>
+              </a>
             )}
           </DialogFooter>
         </DialogContent>
