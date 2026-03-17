@@ -12,6 +12,7 @@ import jwt
 import bcrypt
 import httpx
 from supabase import create_client, Client
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -23,6 +24,7 @@ supabase: Client = create_client(supabase_url, supabase_key)
 
 JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+N8N_WEBHOOK_BASE = os.environ.get('N8N_WEBHOOK_BASE', 'https://n8n.srv903010.hstgr.cloud/webhook')
 
 # Create the main app
 app = FastAPI()
@@ -68,9 +70,7 @@ class UserUpdate(BaseModel):
     couleur_principale: Optional[str] = None
     couleur_secondaire: Optional[str] = None
     couleur_accent: Optional[str] = None
-    api_key_openrouter: Optional[str] = None
     api_key_gemini: Optional[str] = None
-    api_key_openai: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
     late_account_instagram: Optional[str] = None
@@ -97,9 +97,7 @@ class UserResponse(BaseModel):
     couleur_principale: Optional[str] = None
     couleur_secondaire: Optional[str] = None
     couleur_accent: Optional[str] = None
-    api_key_openrouter: Optional[str] = None
     api_key_gemini: Optional[str] = None
-    api_key_openai: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
     late_account_instagram: Optional[str] = None
@@ -206,21 +204,18 @@ async def login(credentials: UserLogin):
         # Verify password
         if not verify_password(credentials.password, user.get("password_hash", "")):
             raise HTTPException(status_code=401, detail="invalid")
-        
-        # Check if user is active
-        if not user.get("actif"):
-            raise HTTPException(status_code=403, detail="pending")
-        
-        # Generate token
+
+        # Generate token (even for pending users, so they can check their status)
         token = create_token({
             "telegram_id": user["telegram_id"],
             "email": user["email"],
             "is_admin": False
         })
-        
+
         return {
             "token": token,
-            "user": sanitize_user(user)
+            "user": sanitize_user(user),
+            "pending": not user.get("actif", False)
         }
     except HTTPException:
         raise
@@ -260,6 +255,25 @@ async def get_current_user(payload: dict = Depends(verify_token)):
         logger.error(f"Get user error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@users_router.delete("/me")
+async def delete_current_user(payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        if not telegram_id:
+            raise HTTPException(status_code=400, detail="Invalid token")
+
+        result = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
+
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {"success": True, "message": "Account deleted"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete account error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @users_router.patch("/me")
 async def update_current_user(updates: UserUpdate, payload: dict = Depends(verify_token)):
     try:
@@ -284,6 +298,73 @@ async def update_current_user(updates: UserUpdate, payload: dict = Depends(verif
     except Exception as e:
         logger.error(f"Update user error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+class SocialConnectRequest(BaseModel):
+    platform: str
+
+VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "youtube"}
+
+@users_router.post("/me/connect")
+async def connect_social(data: SocialConnectRequest, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if data.platform not in VALID_PLATFORMS:
+        raise HTTPException(status_code=400, detail="Invalid platform")
+    try:
+        webhook_url = f"{N8N_WEBHOOK_BASE}/late-connect"
+        webhook_body = {"telegram_id": telegram_id, "platform": data.platform}
+        logger.info(f"Social connect: POST {webhook_url} body={webhook_body}")
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.post(webhook_url, json=webhook_body)
+            logger.info(f"Social connect response: status={response.status_code} body={response.text}")
+            if response.status_code != 200:
+                return {"success": False, "error": f"Le service a répondu avec le statut {response.status_code}"}
+            result = response.json()
+            if result.get("success") and result.get("authUrl"):
+                return {"success": True, "authUrl": result["authUrl"]}
+            return {"success": False, "error": result.get("message", "Réponse inattendue du service de connexion")}
+    except httpx.TimeoutException:
+        logger.error(f"Social connect timeout for {telegram_id}/{data.platform}")
+        return {"success": False, "error": "Le service de connexion n'a pas répondu à temps"}
+    except Exception as e:
+        logger.error(f"Social connect error: {e}")
+        return {"success": False, "error": f"Erreur de communication: {str(e)}"}
+
+@users_router.post("/me/disconnect")
+async def disconnect_social(data: SocialConnectRequest, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if data.platform not in VALID_PLATFORMS:
+        raise HTTPException(status_code=400, detail="Invalid platform")
+    try:
+        webhook_url = f"{N8N_WEBHOOK_BASE}/late-disconnect"
+        webhook_body = {"telegram_id": telegram_id, "platform": data.platform}
+        logger.info(f"Social disconnect: POST {webhook_url} body={webhook_body}")
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.post(webhook_url, json=webhook_body)
+            logger.info(f"Social disconnect response: status={response.status_code} body={response.text}")
+            if response.status_code != 200:
+                return {"success": False, "error": f"Le service a répondu avec le statut {response.status_code}"}
+
+        # Clean the field in database
+        field_map = {
+            "instagram": "late_account_instagram",
+            "facebook": "late_account_facebook",
+            "linkedin": "late_account_linkedin",
+            "youtube": "late_account_youtube",
+        }
+        field = field_map[data.platform]
+        supabase.table("users").update({field: None}).eq("telegram_id", telegram_id).execute()
+
+        return {"success": True}
+    except httpx.TimeoutException:
+        logger.error(f"Social disconnect timeout for {telegram_id}/{data.platform}")
+        return {"success": False, "error": "Le service de déconnexion n'a pas répondu à temps"}
+    except Exception as e:
+        logger.error(f"Social disconnect error: {e}")
+        return {"success": False, "error": f"Erreur de communication: {str(e)}"}
 
 # Admin routes
 @admin_router.get("/users")
@@ -489,15 +570,75 @@ async def get_activity_logs(limit: int = 50, payload: dict = Depends(verify_admi
 async def activate_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
     try:
         result = supabase.table("users").update({"actif": True}).eq("telegram_id", telegram_id).execute()
-        
+
         if not result.data:
             raise HTTPException(status_code=404, detail="User not found")
-        
-        return sanitize_user(result.data[0])
+
+        user = result.data[0]
+
+        # Create Late profile via n8n webhook
+        late_profile_created = False
+        late_error = None
+        try:
+            webhook_url = f"{N8N_WEBHOOK_BASE}/late-create-profile"
+            webhook_body = {"telegram_id": telegram_id, "nom": user.get("nom", "")}
+            logger.info(f"Calling Late webhook: POST {webhook_url} with body={webhook_body}")
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.post(webhook_url, json=webhook_body)
+                logger.info(f"Late webhook response: status={resp.status_code} body={resp.text}")
+                if resp.status_code == 200:
+                    late_profile_created = True
+                else:
+                    late_error = f"Late a répondu avec le statut {resp.status_code}"
+        except Exception as e:
+            late_error = str(e)
+            logger.warning(f"Failed to create Late profile for {telegram_id}: {e}")
+
+        response = sanitize_user(user)
+        response["late_profile_created"] = late_profile_created
+        if late_error:
+            response["late_error"] = late_error
+
+        return response
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Activate user error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.post("/users/{telegram_id}/retry-late")
+async def retry_late_profile(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+    try:
+        result = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user = result.data[0]
+        if not user.get("actif"):
+            raise HTTPException(status_code=400, detail="L'utilisateur doit être actif pour créer un profil Late")
+
+        late_profile_created = False
+        late_error = None
+        try:
+            webhook_url = f"{N8N_WEBHOOK_BASE}/late-create-profile"
+            webhook_body = {"telegram_id": telegram_id, "nom": user.get("nom", "")}
+            logger.info(f"Retry Late profile: POST {webhook_url} body={webhook_body}")
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.post(webhook_url, json=webhook_body)
+                logger.info(f"Retry Late response: status={resp.status_code} body={resp.text}")
+                if resp.status_code == 200:
+                    late_profile_created = True
+                else:
+                    late_error = f"Late a répondu avec le statut {resp.status_code}"
+        except Exception as e:
+            late_error = str(e)
+            logger.warning(f"Retry Late profile failed for {telegram_id}: {e}")
+
+        return {"late_profile_created": late_profile_created, "late_error": late_error}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Retry Late error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @admin_router.patch("/users/{telegram_id}/deactivate")

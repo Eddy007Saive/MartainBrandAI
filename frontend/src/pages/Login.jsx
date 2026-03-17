@@ -25,16 +25,15 @@ export default function Login() {
     try {
       const response = await api.post('/auth/login', { email, password });
       setToken(response.data.token);
-      toast.success('Connexion réussie');
-      navigate('/dashboard');
-    } catch (error) {
-      const detail = error.response?.data?.detail;
-      if (detail === 'pending') {
+      if (response.data.pending) {
         toast.info('Compte en attente de validation');
         navigate('/pending');
       } else {
-        toast.error('Email ou mot de passe incorrect');
+        toast.success('Connexion réussie');
+        navigate('/dashboard');
       }
+    } catch (error) {
+      toast.error('Email ou mot de passe incorrect');
     } finally {
       setLoading(false);
     }
