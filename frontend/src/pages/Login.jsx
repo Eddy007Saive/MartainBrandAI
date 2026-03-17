@@ -123,7 +123,7 @@ export default function Login() {
         {/* Footer */}
         <div className="relative">
           <p className="text-slate-500 text-sm font-inter">
-            © 2024 PresenceOS. Tous droits réservés.
+            © 2026 PresenceOS. Tous droits réservés.
           </p>
         </div>
       </div>
