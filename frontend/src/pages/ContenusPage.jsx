@@ -61,6 +61,7 @@ export default function ContenusPage() {
 
   useEffect(() => {
     fetchContenus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatut]);
 
   const fetchContenus = async () => {

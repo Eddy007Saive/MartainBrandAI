@@ -70,6 +70,7 @@ export default function Admin() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, userFilter]);
 
   const loadData = async () => {

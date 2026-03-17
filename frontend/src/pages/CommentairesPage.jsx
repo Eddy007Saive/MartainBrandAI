@@ -36,6 +36,7 @@ export default function CommentairesPage() {
 
   useEffect(() => {
     fetchCommentaires();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterStatut]);
 
   const fetchCommentaires = async () => {
