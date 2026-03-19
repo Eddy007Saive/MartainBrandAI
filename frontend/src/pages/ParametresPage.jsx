@@ -79,7 +79,7 @@ const SETTINGS_SECTIONS = [
 
 export default function ParametresPage() {
   const navigate = useNavigate();
-  const { user, setUser, fetchUser } = useUser();
+  const { user, setUser, refetchUser } = useUser();
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('identity');
   const [connecting, setConnecting] = useState(null);
@@ -126,7 +126,7 @@ export default function ParametresPage() {
       const timer = setInterval(() => {
         if (popup.closed) {
           clearInterval(timer);
-          fetchUser();
+          refetchUser();
         }
       }, 500);
     }
