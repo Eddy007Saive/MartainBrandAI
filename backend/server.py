@@ -111,6 +111,16 @@ class UserResponse(BaseModel):
     telegram_bot_username: Optional[str] = None
     created_at: Optional[str] = None
 
+class ScheduleItem(BaseModel):
+    platform: str
+    frequency: str = "weekly"
+    days_of_week: List[int] = []
+    preferred_time: str = "09:00"
+    is_active: bool = True
+
+class ScheduleUpdate(BaseModel):
+    schedules: List[ScheduleItem]
+
 # Helper functions
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt(rounds=12)
@@ -754,16 +764,6 @@ async def get_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
     except Exception as e:
         logger.error(f"Get contenu error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-class ScheduleItem(BaseModel):
-    platform: str
-    frequency: str = "weekly"
-    days_of_week: List[int] = []
-    preferred_time: str = "09:00"
-    is_active: bool = True
-
-class ScheduleUpdate(BaseModel):
-    schedules: List[ScheduleItem]
 
 class ContenuUpdate(BaseModel):
     statut: Optional[str] = None
