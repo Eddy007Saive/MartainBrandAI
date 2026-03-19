@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Share2, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info, Plug, Check, ExternalLink, Unplug } from 'lucide-react';
+import { User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info, Plug, Check, ExternalLink, Unplug, Calendar, Clock } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
@@ -27,15 +27,10 @@ import { useUser } from '../context/UserContext';
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
-  social: ['late_profile_id', 'late_account_linkedin', 'late_account_instagram', 'late_account_facebook', 'late_account_tiktok', 'telegram_bot_token', 'telegram_bot_username'],
   gpt_urls: ['gpt_url_linkedin', 'gpt_url_instagram', 'gpt_url_sujets', 'gpt_url_default'],
   api_keys: ['api_key_gemini'],
   style: ['couleur_principale', 'couleur_secondaire', 'couleur_accent'],
 };
-
-const STYLES_VESTIMENTAIRES = [
-  'Casual', 'Business', 'Sportif', 'Élégant', 'Décontracté', 'Streetwear', 'Classique'
-];
 
 const InstagramIcon = ({ className }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -70,11 +65,29 @@ const SOCIAL_PLATFORMS = [
 
 const SETTINGS_SECTIONS = [
   { id: 'identity', title: 'Identité', icon: User },
-  { id: 'social', title: 'Réseaux Sociaux', icon: Share2 },
   { id: 'gpt_urls', title: 'URLs GPT', icon: Link },
   { id: 'api_keys', title: 'Clés API', icon: Key },
   { id: 'style', title: 'Style & Couleurs', icon: Palette },
   { id: 'connections', title: 'Connexions', icon: Plug },
+  { id: 'schedules', title: 'Planification', icon: Calendar },
+];
+
+const FREQUENCIES = [
+  { value: 'daily', label: 'Tous les jours' },
+  { value: '3_per_week', label: '3 fois par semaine' },
+  { value: 'weekly', label: '1 fois par semaine' },
+  { value: 'biweekly', label: '1 fois toutes les 2 semaines' },
+  { value: 'custom', label: 'Personnalisé' },
+];
+
+const DAYS = [
+  { value: 1, label: 'Lun' },
+  { value: 2, label: 'Mar' },
+  { value: 3, label: 'Mer' },
+  { value: 4, label: 'Jeu' },
+  { value: 5, label: 'Ven' },
+  { value: 6, label: 'Sam' },
+  { value: 0, label: 'Dim' },
 ];
 
 export default function ParametresPage() {
@@ -83,6 +96,78 @@ export default function ParametresPage() {
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('identity');
   const [connecting, setConnecting] = useState(null);
+  const defaultSchedules = SOCIAL_PLATFORMS.map(p => ({
+    platform: p.id,
+    frequency: 'weekly',
+    days_of_week: [],
+    preferred_time: '09:00',
+    is_active: false,
+  }));
+  const [schedules, setSchedules] = useState(defaultSchedules);
+  const [schedulesLoaded, setSchedulesLoaded] = useState(false);
+  const [savingSchedules, setSavingSchedules] = useState(false);
+
+  const fetchSchedules = useCallback(async () => {
+    try {
+      const response = await api.get('/users/me/schedules');
+      const data = response.data;
+      // Build a map by platform, fill missing platforms with defaults
+      const map = {};
+      for (const s of data) map[s.platform] = s;
+      const full = SOCIAL_PLATFORMS.map(p => map[p.id] || {
+        platform: p.id,
+        frequency: 'weekly',
+        days_of_week: [],
+        preferred_time: '09:00',
+        is_active: false,
+      });
+      setSchedules(full);
+      setSchedulesLoaded(true);
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+      setSchedulesLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeSection === 'schedules' && !schedulesLoaded) {
+      fetchSchedules();
+    }
+  }, [activeSection, schedulesLoaded, fetchSchedules]);
+
+  const handleScheduleChange = (platform, field, value) => {
+    setSchedules(prev => prev.map(s =>
+      s.platform === platform ? { ...s, [field]: value } : s
+    ));
+  };
+
+  const handleToggleDay = (platform, day) => {
+    setSchedules(prev => prev.map(s => {
+      if (s.platform !== platform) return s;
+      const days = s.days_of_week || [];
+      const next = days.includes(day) ? days.filter(d => d !== day) : [...days, day];
+      return { ...s, days_of_week: next };
+    }));
+  };
+
+  const handleSaveSchedules = async () => {
+    setSavingSchedules(true);
+    try {
+      const response = await api.put('/users/me/schedules', { schedules });
+      const data = response.data;
+      const map = {};
+      for (const s of data) map[s.platform] = s;
+      const full = SOCIAL_PLATFORMS.map(p => map[p.id] || {
+        platform: p.id, frequency: 'weekly', days_of_week: [], preferred_time: '09:00', is_active: false,
+      });
+      setSchedules(full);
+      toast.success('Planification sauvegardée');
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde de la planification');
+    } finally {
+      setSavingSchedules(false);
+    }
+  };
 
   const handleChange = (name, value) => {
     setUser(prev => ({ ...prev, [name]: value }));
@@ -209,31 +294,8 @@ export default function ParametresPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-1.5">
-                  <Label className="text-sm font-medium text-slate-300 font-inter">Style vestimentaire</Label>
-                  <TooltipProvider delayDuration={200}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300 cursor-help transition-colors" />
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs bg-slate-800 border border-slate-700 text-slate-200 text-xs leading-relaxed" side="top">
-                        {"Casual — décontracté du quotidien\nBusiness — tenue professionnelle sobre\nSportif — vêtements de sport / athleisure\nÉlégant — habillé, soirée, formel\nDécontracté — entre casual et sport\nStreetwear — urban, tendance, hype\nClassique — intemporel, costume, chic"}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <Select value={user?.style_vestimentaire || ''} onValueChange={(value) => handleChange('style_vestimentaire', value)}>
-                  <SelectTrigger data-testid="field-style" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-800">
-                    {STYLES_VESTIMENTAIRES.map(style => (
-                      <SelectItem key={style} value={style.toLowerCase()} className="text-slate-200 focus:bg-slate-800">{style}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Field label="Style vestimentaire" name="style_vestimentaire" value={user?.style_vestimentaire} onChange={handleChange}
+                hint="Décrivez votre style vestimentaire (ex: Casual, Business, Sportif, Élégant, Streetwear, Classique…)" />
               <div className="flex items-center justify-between p-4 bg-slate-950/30 rounded-lg border border-slate-800">
                 <div className="flex items-center gap-1.5">
                   <Label className="text-sm font-medium text-slate-300 font-inter">Utiliser la photo</Label>
@@ -250,28 +312,6 @@ export default function ParametresPage() {
                 </div>
                 <Switch checked={user?.use_photo || false} onCheckedChange={(checked) => handleChange('use_photo', checked)} data-testid="toggle-use-photo" />
               </div>
-            </div>
-          </SectionBlock>
-        );
-
-      case 'social':
-        return (
-          <SectionBlock title="Réseaux Sociaux" icon={Share2}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label="Late Profile ID" name="late_profile_id" value={user?.late_profile_id} onChange={handleChange}
-                hint={"Votre identifiant sur la plateforme Late.\nTrouvable dans l'URL de votre profil Late : late.com/@VOTRE_ID"} />
-              <Field label="LinkedIn" name="late_account_linkedin" value={user?.late_account_linkedin} onChange={handleChange}
-                hint={"Votre identifiant LinkedIn (la partie après linkedin.com/in/).\nEx : pour linkedin.com/in/martin-dupont → saisir martin-dupont"} />
-              <Field label="Instagram" name="late_account_instagram" value={user?.late_account_instagram} onChange={handleChange}
-                hint="Votre @username Instagram sans le @.\nEx : pour @martin.dupont → saisir martin.dupont" />
-              <Field label="Facebook" name="late_account_facebook" value={user?.late_account_facebook} onChange={handleChange}
-                hint={"Votre identifiant Facebook (la partie après facebook.com/).\nEx : pour facebook.com/martin.dupont → saisir martin.dupont"} />
-              <Field label="TikTok" name="late_account_tiktok" value={user?.late_account_tiktok} onChange={handleChange}
-                hint="Votre @username TikTok sans le @.\nEx : pour @martindupont → saisir martindupont" />
-              <Field label="Telegram Bot Token" name="telegram_bot_token" value={user?.telegram_bot_token} onChange={handleChange} type="password" hasValue={!!user?.telegram_bot_token}
-                hint={"Comment obtenir votre token Telegram :\n1. Ouvrez Telegram et cherchez @BotFather\n2. Envoyez /newbot et suivez les instructions\n3. BotFather vous donnera un token du type :\n   123456789:AAFxxxxxxxxxxxxxx\n4. Copiez ce token ici."} />
-              <Field label="Telegram Bot Username" name="telegram_bot_username" value={user?.telegram_bot_username} onChange={handleChange}
-                hint={"Le nom d'utilisateur de votre bot Telegram (sans le @).\nBotFather vous le donne lors de la création.\nEx : pour @MonBot → saisir MonBot"} />
             </div>
           </SectionBlock>
         );
@@ -324,6 +364,108 @@ export default function ParametresPage() {
                 <p className="text-white font-sora font-semibold">Dégradé Preview</p>
                 <p className="text-sm mt-1" style={{ color: user?.couleur_accent || '#3AFFA3' }}>Texte avec couleur accent</p>
               </div>
+            </div>
+          </SectionBlock>
+        );
+
+      case 'schedules':
+        return (
+          <SectionBlock title="Planification" icon={Calendar}>
+            <p className="text-sm text-slate-400 font-inter mb-6">
+              Définissez la fréquence et les jours de publication pour chaque réseau social.
+            </p>
+            <div className="space-y-4">
+              {schedules.map((schedule) => {
+                const platformInfo = SOCIAL_PLATFORMS.find(p => p.id === schedule.platform);
+                if (!platformInfo) return null;
+                const showDays = schedule.frequency === 'custom' || schedule.frequency === '3_per_week';
+                return (
+                  <div key={schedule.platform} data-testid={`schedule-card-${schedule.platform}`} className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50 p-5 transition-all duration-300 hover:border-slate-700">
+                    <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${platformInfo.color}`} />
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <platformInfo.icon className="w-6 h-6 text-white" />
+                        <h3 className="text-white font-semibold font-sora text-sm">{platformInfo.name}</h3>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs text-slate-400 font-inter">Actif</Label>
+                        <Switch
+                          checked={schedule.is_active}
+                          onCheckedChange={(checked) => handleScheduleChange(schedule.platform, 'is_active', checked)}
+                          data-testid={`schedule-toggle-${schedule.platform}`}
+                        />
+                      </div>
+                    </div>
+                    {schedule.is_active && (
+                      <div className="space-y-4 pt-2 border-t border-slate-800">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-400 font-inter">Fréquence</Label>
+                            <Select value={schedule.frequency} onValueChange={(value) => handleScheduleChange(schedule.platform, 'frequency', value)}>
+                              <SelectTrigger data-testid={`schedule-freq-${schedule.platform}`} className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-slate-900 border-slate-800">
+                                {FREQUENCIES.map(f => (
+                                  <SelectItem key={f.value} value={f.value} className="text-slate-200 focus:bg-slate-800 text-sm">{f.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-400 font-inter flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5" /> Heure préférée
+                            </Label>
+                            <input
+                              type="time"
+                              value={schedule.preferred_time || '09:00'}
+                              onChange={(e) => handleScheduleChange(schedule.platform, 'preferred_time', e.target.value)}
+                              data-testid={`schedule-time-${schedule.platform}`}
+                              className="w-full rounded-md bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-sm px-3 py-2 outline-none"
+                            />
+                          </div>
+                        </div>
+                        {showDays && (
+                          <div className="space-y-2">
+                            <Label className="text-xs text-slate-400 font-inter">Jours de publication</Label>
+                            <div className="flex gap-2">
+                              {DAYS.map(day => {
+                                const selected = (schedule.days_of_week || []).includes(day.value);
+                                return (
+                                  <button
+                                    key={day.value}
+                                    type="button"
+                                    onClick={() => handleToggleDay(schedule.platform, day.value)}
+                                    data-testid={`schedule-day-${schedule.platform}-${day.value}`}
+                                    className={`px-3 py-1.5 rounded-md text-xs font-inter font-medium transition-all ${
+                                      selected
+                                        ? 'bg-[#5B6CFF]/20 text-white border border-[#5B6CFF]/50'
+                                        : 'bg-slate-950/50 text-slate-500 border border-slate-800 hover:border-slate-600'
+                                    }`}
+                                  >
+                                    {day.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button
+                onClick={handleSaveSchedules}
+                disabled={savingSchedules}
+                data-testid="save-schedules-btn"
+                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] font-inter"
+              >
+                {savingSchedules ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                Sauvegarder la planification
+              </Button>
             </div>
           </SectionBlock>
         );

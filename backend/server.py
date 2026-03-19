@@ -671,6 +671,56 @@ async def delete_user(telegram_id: int, payload: dict = Depends(verify_admin_tok
         logger.error(f"Delete user error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============ SCHEDULES ROUTES ============
+
+VALID_FREQUENCIES = ['daily', '3_per_week', 'weekly', 'biweekly', 'custom']
+VALID_SCHEDULE_PLATFORMS = ['linkedin', 'instagram', 'facebook', 'tiktok']
+
+@users_router.get("/me/schedules")
+async def get_schedules(payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        result = supabase.table("publication_schedules").select("*").eq("telegram_id", telegram_id).execute()
+        return result.data
+    except Exception as e:
+        logger.error(f"Get schedules error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@users_router.put("/me/schedules")
+async def update_schedules(data: ScheduleUpdate, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        for item in data.schedules:
+            if item.platform not in VALID_SCHEDULE_PLATFORMS:
+                raise HTTPException(status_code=400, detail=f"Invalid platform: {item.platform}")
+            if item.frequency not in VALID_FREQUENCIES:
+                raise HTTPException(status_code=400, detail=f"Invalid frequency: {item.frequency}")
+
+            row = {
+                "telegram_id": telegram_id,
+                "platform": item.platform,
+                "frequency": item.frequency,
+                "days_of_week": item.days_of_week,
+                "preferred_time": item.preferred_time,
+                "is_active": item.is_active,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            supabase.table("publication_schedules").upsert(
+                row, on_conflict="telegram_id,platform"
+            ).execute()
+
+        result = supabase.table("publication_schedules").select("*").eq("telegram_id", telegram_id).execute()
+        return result.data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update schedules error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ============ CONTENUS ROUTES ============
 contenus_router = APIRouter(prefix="/contenus", tags=["contenus"])
 
@@ -704,6 +754,16 @@ async def get_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
     except Exception as e:
         logger.error(f"Get contenu error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+class ScheduleItem(BaseModel):
+    platform: str
+    frequency: str = "weekly"
+    days_of_week: List[int] = []
+    preferred_time: str = "09:00"
+    is_active: bool = True
+
+class ScheduleUpdate(BaseModel):
+    schedules: List[ScheduleItem]
 
 class ContenuUpdate(BaseModel):
     statut: Optional[str] = None
