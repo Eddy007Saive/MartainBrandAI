@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Activity, Settings, LogOut, Search, Download,
@@ -28,10 +28,30 @@ import { toast } from 'sonner';
 import { getAdminToken, removeAdminToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 
-const filters = [
-  { id: 'pending', label: 'En attente', icon: Clock },
-  { id: 'active', label: 'Actifs', icon: CheckCircle },
-  { id: 'all', label: 'Tous', icon: Users },
+const API_URL = process.env.REACT_APP_BACKEND_URL;
+
+// API helper with admin token
+const adminApi = async (endpoint, options = {}) => {
+  const token = getAdminToken();
+  const response = await fetch(`${API_URL}/api${endpoint}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      ...options.headers,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.status}`);
+  }
+  return response.json();
+};
+
+const navItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'users', label: 'Utilisateurs', icon: Users },
+  { id: 'activity', label: 'Activité', icon: Activity },
+  { id: 'settings', label: 'Paramètres', icon: Settings },
 ];
 
 export default function Admin() {
