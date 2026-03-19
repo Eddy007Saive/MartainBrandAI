@@ -21,6 +21,8 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/pending" element={<Pending />} />
+          
+          {/* Dashboard routes with layout */}
           <Route
             path="/dashboard"
             element={
@@ -29,15 +31,15 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="accueil" replace />} />
-            <Route path="accueil" element={<AccueilPage />} />
+            <Route index element={<AccueilPage />} />
             <Route path="contenus" element={<ContenusPage />} />
             <Route path="commentaires" element={<CommentairesPage />} />
             <Route path="planification" element={<PlanificationPage />} />
             <Route path="parametres" element={<ParametresPage />} />
           </Route>
-          <Route
-            path="/admin"
+          
+          <Route 
+            path="/admin" 
             element={
               <AdminRoute>
                 <Admin />

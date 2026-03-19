@@ -10,6 +10,7 @@ from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
+import httpx
 from supabase import create_client, Client
 import httpx
 
@@ -383,6 +384,188 @@ async def get_users(filter: str = "all", payload: dict = Depends(verify_admin_to
         logger.error(f"Get users error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@admin_router.get("/users/{telegram_id}")
+async def get_user_detail(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+    """Get detailed user profile"""
+    try:
+        user_result = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
+        
+        if not user_result.data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user = sanitize_user(user_result.data[0])
+        
+        # Get user's contenus count
+        contenus = supabase.table("contenu").select("id, statut").eq("telegram_id", telegram_id).execute()
+        contenus_stats = {}
+        for c in contenus.data:
+            statut = c.get("statut", "Inconnu")
+            contenus_stats[statut] = contenus_stats.get(statut, 0) + 1
+        
+        # Get user's commentaires count
+        commentaires = supabase.table("commentaires").select("id").eq("telegram_id", telegram_id).execute()
+        
+        user["stats"] = {
+            "total_contenus": len(contenus.data),
+            "contenus_par_statut": contenus_stats,
+            "total_commentaires": len(commentaires.data)
+        }
+        
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get user detail error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/users/{telegram_id}/contenus")
+async def get_user_contenus(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+    """Get all contenus for a specific user"""
+    try:
+        result = supabase.table("contenu").select("*").eq("telegram_id", telegram_id).order("created_at", desc=True).execute()
+        return result.data
+    except Exception as e:
+        logger.error(f"Get user contenus error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/stats")
+async def get_admin_stats(payload: dict = Depends(verify_admin_token)):
+    """Get global platform statistics"""
+    try:
+        # Users stats
+        users = supabase.table("users").select("telegram_id, actif, created_at").execute()
+        total_users = len(users.data)
+        active_users = len([u for u in users.data if u.get("actif")])
+        pending_users = total_users - active_users
+        
+        # New users this week
+        from datetime import timedelta
+        week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        new_users_week = len([u for u in users.data if u.get("created_at", "") > week_ago])
+        
+        # Contenus stats
+        contenus = supabase.table("contenu").select("id, statut, reseau_cible, created_at").execute()
+        total_contenus = len(contenus.data)
+        contenus_par_statut = {}
+        contenus_par_reseau = {}
+        for c in contenus.data:
+            statut = c.get("statut", "Inconnu")
+            contenus_par_statut[statut] = contenus_par_statut.get(statut, 0) + 1
+            reseau = c.get("reseau_cible", "Autre")
+            if reseau:
+                contenus_par_reseau[reseau] = contenus_par_reseau.get(reseau, 0) + 1
+        
+        # Commentaires stats
+        commentaires = supabase.table("commentaires").select("id, statut").execute()
+        total_commentaires = len(commentaires.data)
+        commentaires_nouveaux = len([c for c in commentaires.data if c.get("statut") == "Nouveau"])
+        
+        # Analytics totals
+        analytics = supabase.table("analytics_performance").select("vues, likes, partages").execute()
+        total_vues = sum(float(a.get("vues", 0) or 0) for a in analytics.data)
+        total_likes = sum(float(a.get("likes", 0) or 0) for a in analytics.data)
+        total_partages = sum(float(a.get("partages", 0) or 0) for a in analytics.data)
+        
+        return {
+            "users": {
+                "total": total_users,
+                "actifs": active_users,
+                "en_attente": pending_users,
+                "nouveaux_semaine": new_users_week
+            },
+            "contenus": {
+                "total": total_contenus,
+                "par_statut": contenus_par_statut,
+                "par_reseau": contenus_par_reseau
+            },
+            "commentaires": {
+                "total": total_commentaires,
+                "nouveaux": commentaires_nouveaux
+            },
+            "engagement": {
+                "vues": int(total_vues),
+                "likes": int(total_likes),
+                "partages": int(total_partages)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Get admin stats error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/export/users")
+async def export_users_csv(payload: dict = Depends(verify_admin_token)):
+    """Export all users as CSV"""
+    try:
+        from fastapi.responses import StreamingResponse
+        import io
+        import csv
+        
+        users = supabase.table("users").select("*").order("created_at", desc=True).execute()
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Headers
+        headers = ["telegram_id", "nom", "email", "username", "actif", "sexe", "style_vestimentaire", "created_at"]
+        writer.writerow(headers)
+        
+        # Data
+        for user in users.data:
+            row = [user.get(h, "") for h in headers]
+            writer.writerow(row)
+        
+        output.seek(0)
+        
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=users_export.csv"}
+        )
+    except Exception as e:
+        logger.error(f"Export users error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/activity")
+async def get_activity_logs(limit: int = 50, payload: dict = Depends(verify_admin_token)):
+    """Get recent activity (contenus and users created)"""
+    try:
+        # Recent contenus
+        contenus = supabase.table("contenu").select("id, titre, statut, telegram_id, created_at, updated_at").order("updated_at", desc=True).limit(limit).execute()
+        
+        # Recent users
+        users = supabase.table("users").select("telegram_id, nom, email, actif, created_at").order("created_at", desc=True).limit(limit).execute()
+        
+        # Combine into activity feed
+        activities = []
+        
+        for c in contenus.data:
+            activities.append({
+                "type": "contenu",
+                "action": f"Contenu {c.get('statut', 'créé')}",
+                "title": c.get("titre") or "Sans titre",
+                "user_id": c.get("telegram_id"),
+                "date": c.get("updated_at") or c.get("created_at"),
+                "id": c.get("id")
+            })
+        
+        for u in users.data:
+            activities.append({
+                "type": "user",
+                "action": "Inscription" if not u.get("actif") else "Utilisateur actif",
+                "title": u.get("nom") or u.get("email"),
+                "user_id": u.get("telegram_id"),
+                "date": u.get("created_at"),
+                "id": u.get("telegram_id")
+            })
+        
+        # Sort by date
+        activities.sort(key=lambda x: x.get("date", ""), reverse=True)
+        
+        return activities[:limit]
+    except Exception as e:
+        logger.error(f"Get activity error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @admin_router.patch("/users/{telegram_id}/activate")
 async def activate_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
     try:
@@ -488,6 +671,223 @@ async def delete_user(telegram_id: int, payload: dict = Depends(verify_admin_tok
         logger.error(f"Delete user error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============ CONTENUS ROUTES ============
+contenus_router = APIRouter(prefix="/contenus", tags=["contenus"])
+
+@contenus_router.get("")
+async def get_contenus(statut: str = None, payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        query = supabase.table("contenu").select("*").eq("telegram_id", telegram_id)
+        
+        if statut:
+            query = query.eq("statut", statut)
+        
+        result = query.order("created_at", desc=True).execute()
+        return result.data
+    except Exception as e:
+        logger.error(f"Get contenus error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@contenus_router.get("/{contenu_id}")
+async def get_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        result = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Contenu not found")
+        
+        return result.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get contenu error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class ContenuUpdate(BaseModel):
+    statut: Optional[str] = None
+    titre: Optional[str] = None
+    contenu: Optional[str] = None
+    date_publication: Optional[str] = None
+
+@contenus_router.patch("/{contenu_id}")
+async def update_contenu(contenu_id: str, updates: ContenuUpdate, payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        
+        # Get current content to check callback_url
+        current = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+        if not current.data:
+            raise HTTPException(status_code=404, detail="Contenu not found")
+        
+        contenu_data = current.data[0]
+        update_data = {k: v for k, v in updates.model_dump().items() if v is not None}
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        # If validating content and callback_url exists, call the webhook
+        webhook_result = None
+        if updates.statut == "Validé" and contenu_data.get("callback_url"):
+            callback_url = contenu_data["callback_url"]
+            try:
+                logger.info(f"Calling validation webhook: {callback_url}")
+                async with httpx.AsyncClient(timeout=30) as client:
+                    webhook_response = await client.post(
+                        callback_url,
+                        json={
+                            "contenu_id": contenu_id,
+                            "telegram_id": telegram_id,
+                            "action": "validate",
+                            "statut": "Validé"
+                        }
+                    )
+                    logger.info(f"Webhook response: {webhook_response.status_code}")
+                    webhook_result = {
+                        "success": webhook_response.status_code == 200,
+                        "status_code": webhook_response.status_code
+                    }
+            except Exception as webhook_error:
+                logger.error(f"Webhook error: {webhook_error}")
+                webhook_result = {"success": False, "error": str(webhook_error)}
+        
+        # Update in database
+        result = supabase.table("contenu").update(update_data).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+        
+        response = result.data[0] if result.data else contenu_data
+        if webhook_result:
+            response["webhook_result"] = webhook_result
+        
+        return response
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update contenu error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@contenus_router.delete("/{contenu_id}")
+async def delete_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        result = supabase.table("contenu").delete().eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Contenu not found")
+        
+        return {"success": True}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete contenu error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============ COMMENTAIRES ROUTES ============
+commentaires_router = APIRouter(prefix="/commentaires", tags=["commentaires"])
+
+@commentaires_router.get("")
+async def get_commentaires(statut: str = None, payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        query = supabase.table("commentaires").select("*").eq("telegram_id", telegram_id)
+        
+        if statut:
+            query = query.eq("statut", statut)
+        
+        result = query.order("created_at", desc=True).execute()
+        return result.data
+    except Exception as e:
+        logger.error(f"Get commentaires error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class CommentaireUpdate(BaseModel):
+    statut: Optional[str] = None
+    reponse_ia: Optional[str] = None
+
+@commentaires_router.patch("/{commentaire_id}")
+async def update_commentaire(commentaire_id: str, updates: CommentaireUpdate, payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        update_data = {k: v for k, v in updates.model_dump().items() if v is not None}
+        
+        result = supabase.table("commentaires").update(update_data).eq("id", commentaire_id).eq("telegram_id", telegram_id).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Commentaire not found")
+        
+        return result.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update commentaire error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============ ANALYTICS ROUTES ============
+analytics_router = APIRouter(prefix="/analytics", tags=["analytics"])
+
+@analytics_router.get("/stats")
+async def get_stats(payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        
+        # Get analytics
+        analytics = supabase.table("analytics_performance").select("*").eq("telegram_id", telegram_id).execute()
+        
+        # Calculate totals
+        total_vues = sum(float(a.get("vues", 0) or 0) for a in analytics.data)
+        total_likes = sum(float(a.get("likes", 0) or 0) for a in analytics.data)
+        total_commentaires = sum(int(a.get("commentaires", 0) or 0) for a in analytics.data)
+        total_partages = sum(float(a.get("partages", 0) or 0) for a in analytics.data)
+        
+        # Average engagement
+        engagements = [float(a.get("taux_engagement", 0) or 0) for a in analytics.data if a.get("taux_engagement")]
+        avg_engagement = sum(engagements) / len(engagements) if engagements else 0
+        
+        # Count contenus by status
+        contenus = supabase.table("contenu").select("statut").eq("telegram_id", telegram_id).execute()
+        contenus_stats = {}
+        for c in contenus.data:
+            statut = c.get("statut", "Inconnu")
+            contenus_stats[statut] = contenus_stats.get(statut, 0) + 1
+        
+        # Count new comments
+        new_comments = supabase.table("commentaires").select("id").eq("telegram_id", telegram_id).eq("statut", "Nouveau").execute()
+        
+        return {
+            "vues": int(total_vues),
+            "likes": int(total_likes),
+            "commentaires": total_commentaires,
+            "partages": int(total_partages),
+            "taux_engagement": round(avg_engagement, 2),
+            "contenus_stats": contenus_stats,
+            "nouveaux_commentaires": len(new_comments.data),
+            "posts_performants": len([a for a in analytics.data if a.get("post_performant")])
+        }
+    except Exception as e:
+        logger.error(f"Get stats error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@analytics_router.get("/performance")
+async def get_performance(payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        result = supabase.table("analytics_performance").select("*").eq("telegram_id", telegram_id).order("created_at", desc=True).limit(20).execute()
+        return result.data
+    except Exception as e:
+        logger.error(f"Get performance error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============ BROUILLONS ROUTES ============
+brouillons_router = APIRouter(prefix="/brouillons", tags=["brouillons"])
+
+@brouillons_router.get("")
+async def get_brouillons(payload: dict = Depends(verify_token)):
+    try:
+        telegram_id = payload.get("telegram_id")
+        result = supabase.table("brouillons").select("*").eq("telegram_id", telegram_id).order("created_at", desc=True).execute()
+        return result.data
+    except Exception as e:
+        logger.error(f"Get brouillons error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Root route
 @api_router.get("/")
 async def root():
@@ -497,6 +897,10 @@ async def root():
 api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(admin_router)
+api_router.include_router(contenus_router)
+api_router.include_router(commentaires_router)
+api_router.include_router(analytics_router)
+api_router.include_router(brouillons_router)
 app.include_router(api_router)
 
 # CORS middleware

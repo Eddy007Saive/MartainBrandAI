@@ -1,6 +1,7 @@
+
 [build]
-  command = "CI=false npm run build"
   publish = "build"
+  command = "yarn build"
 
 [[redirects]]
   from = "/*"
