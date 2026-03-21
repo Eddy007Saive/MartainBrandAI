@@ -684,7 +684,7 @@ async def delete_user(telegram_id: int, payload: dict = Depends(verify_admin_tok
 # ============ SCHEDULES ROUTES ============
 
 VALID_FREQUENCIES = ['daily', '3_per_week', 'weekly', 'biweekly', 'custom']
-VALID_SCHEDULE_PLATFORMS = ['linkedin', 'instagram', 'facebook', 'tiktok']
+VALID_SCHEDULE_PLATFORMS = ['linkedin', 'instagram', 'facebook', 'tiktok', 'youtube']
 
 @users_router.get("/me/schedules")
 async def get_schedules(payload: dict = Depends(verify_token)):
