@@ -346,8 +346,8 @@ export default function ParametresPage() {
         return (
           <SectionBlock title="Clés API" icon={Key}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Field label="Gemini API Key" name="api_key_gemini" value={user?.api_key_gemini} onChange={handleChange} type="password" hasValue={!!user?.api_key_gemini}
-                hint={"Comment obtenir votre clé Gemini :\n1. Allez sur aistudio.google.com\n2. Connectez-vous avec votre compte Google\n3. Cliquez sur « Get API Key » → « Create API key »\n4. Copiez la clé générée et collez-la ici.\nGratuit jusqu'à un certain quota."} />
+              <Field label="OpenRouter API Key" name="api_key_gemini" value={user?.api_key_gemini} onChange={handleChange} type="password" hasValue={!!user?.api_key_gemini}
+                hint={"Comment obtenir votre clé OpenRouter :\n1. Allez sur openrouter.ai\n2. Créez un compte ou connectez-vous\n3. Allez dans « Keys » → « Create Key »\n4. Copiez la clé générée et collez-la ici."} />
             </div>
             <p className="mt-4 text-xs text-slate-500 font-inter">
               La clé API est stockée de manière sécurisée et n'est jamais affichée en clair.
