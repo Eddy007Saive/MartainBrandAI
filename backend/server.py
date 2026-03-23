@@ -704,10 +704,13 @@ async def update_schedules(data: ScheduleUpdate, payload: dict = Depends(verify_
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     try:
+        logger.info(f"Schedules received: {[{'platform': s.platform, 'frequency': s.frequency, 'is_active': s.is_active} for s in data.schedules]}")
         for item in data.schedules:
             if item.platform not in VALID_SCHEDULE_PLATFORMS:
+                logger.error(f"Invalid platform rejected: '{item.platform}' (valid: {VALID_SCHEDULE_PLATFORMS})")
                 raise HTTPException(status_code=400, detail=f"Invalid platform: {item.platform}")
             if item.frequency not in VALID_FREQUENCIES:
+                logger.error(f"Invalid frequency rejected: '{item.frequency}' for platform '{item.platform}' (valid: {VALID_FREQUENCIES})")
                 raise HTTPException(status_code=400, detail=f"Invalid frequency: {item.frequency}")
 
             row = {
