@@ -96,7 +96,8 @@ export default function ParametresPage() {
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('identity');
   const [connecting, setConnecting] = useState(null);
-  const defaultSchedules = SOCIAL_PLATFORMS.map(p => ({
+  const connectedPlatforms = SOCIAL_PLATFORMS.filter(p => user?.[p.field]);
+  const defaultSchedules = connectedPlatforms.map(p => ({
     platform: p.id,
     frequency: 'weekly',
     days_of_week: [],
@@ -114,7 +115,8 @@ export default function ParametresPage() {
       // Build a map by platform, fill missing platforms with defaults
       const map = {};
       for (const s of data) map[s.platform] = s;
-      const full = SOCIAL_PLATFORMS.map(p => map[p.id] || {
+      const connected = SOCIAL_PLATFORMS.filter(p => user?.[p.field]);
+      const full = connected.map(p => map[p.id] || {
         platform: p.id,
         frequency: 'weekly',
         days_of_week: [],
@@ -127,7 +129,7 @@ export default function ParametresPage() {
       console.error('Error fetching schedules:', error);
       setSchedulesLoaded(true);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (activeSection === 'schedules' && !schedulesLoaded) {
@@ -157,7 +159,8 @@ export default function ParametresPage() {
       const data = response.data;
       const map = {};
       for (const s of data) map[s.platform] = s;
-      const full = SOCIAL_PLATFORMS.map(p => map[p.id] || {
+      const connected = SOCIAL_PLATFORMS.filter(p => user?.[p.field]);
+      const full = connected.map(p => map[p.id] || {
         platform: p.id, frequency: 'weekly', days_of_week: [], preferred_time: '09:00', is_active: false,
       });
       setSchedules(full);
@@ -374,6 +377,11 @@ export default function ParametresPage() {
             <p className="text-sm text-slate-400 font-inter mb-6">
               Définissez la fréquence et les jours de publication pour chaque réseau social.
             </p>
+            {connectedPlatforms.length === 0 && (
+              <div className="text-center py-8 text-slate-500 font-inter text-sm">
+                Aucun réseau social connecté. Rendez-vous dans la section <button onClick={() => setActiveSection('connections')} className="text-[#5B6CFF] hover:underline">Connexions</button> pour lier vos comptes.
+              </div>
+            )}
             <div className="space-y-4">
               {schedules.map((schedule) => {
                 const platformInfo = SOCIAL_PLATFORMS.find(p => p.id === schedule.platform);
