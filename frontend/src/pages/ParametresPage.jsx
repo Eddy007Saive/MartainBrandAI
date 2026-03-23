@@ -384,12 +384,18 @@ export default function ParametresPage() {
             <p className="text-sm text-slate-400 font-inter mb-6">
               Définissez la fréquence et les jours de publication pour chaque réseau social.
             </p>
+            {!schedulesLoaded && connectedPlatforms.length > 0 && (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <Loader2 className="w-6 h-6 animate-spin text-[#5B6CFF]" />
+                <p className="text-sm text-slate-400 font-inter">Chargement de la planification...</p>
+              </div>
+            )}
             {connectedPlatforms.length === 0 && (
               <div className="text-center py-8 text-slate-500 font-inter text-sm">
                 Aucun réseau social connecté. Rendez-vous dans la section <button onClick={() => setActiveSection('connections')} className="text-[#5B6CFF] hover:underline">Connexions</button> pour lier vos comptes.
               </div>
             )}
-            <div className="space-y-4">
+            {schedulesLoaded && <div className="space-y-4">
               {schedules.map((schedule) => {
                 const platformInfo = SOCIAL_PLATFORMS.find(p => p.id === schedule.platform);
                 if (!platformInfo) return null;
@@ -470,18 +476,20 @@ export default function ParametresPage() {
                   </div>
                 );
               })}
-            </div>
-            <div className="mt-6 flex justify-end">
-              <Button
-                onClick={handleSaveSchedules}
-                disabled={savingSchedules}
-                data-testid="save-schedules-btn"
-                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] font-inter"
-              >
-                {savingSchedules ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Sauvegarder la planification
-              </Button>
-            </div>
+            </div>}
+            {schedulesLoaded && connectedPlatforms.length > 0 && (
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={handleSaveSchedules}
+                  disabled={savingSchedules}
+                  data-testid="save-schedules-btn"
+                  className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] font-inter"
+                >
+                  {savingSchedules ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Sauvegarder la planification
+                </Button>
+              </div>
+            )}
           </SectionBlock>
         );
 
@@ -649,7 +657,12 @@ export default function ParametresPage() {
 
         {/* Section content */}
         <div className="animate-fade-in">
-          {renderSection()}
+          {!user ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#5B6CFF]" />
+              <p className="text-sm text-slate-400 font-inter">Chargement des données...</p>
+            </div>
+          ) : renderSection()}
         </div>
       </div>
     </div>

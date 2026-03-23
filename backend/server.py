@@ -312,7 +312,7 @@ async def update_current_user(updates: UserUpdate, payload: dict = Depends(verif
 class SocialConnectRequest(BaseModel):
     platform: str
 
-VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "youtube"}
+VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube"}
 
 @users_router.post("/me/connect")
 async def connect_social(data: SocialConnectRequest, payload: dict = Depends(verify_token)):
