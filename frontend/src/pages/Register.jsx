@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import api from '../lib/api';
+import { authService } from '../services/authService';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ export default function Register() {
         telegram_id: formData.telegram_id ? parseInt(formData.telegram_id) : undefined,
       };
       
-      await api.post('/auth/register', payload);
+      await authService.register(payload);
       toast.success('Inscription réussie ! En attente de validation.');
       navigate('/pending');
     } catch (error) {

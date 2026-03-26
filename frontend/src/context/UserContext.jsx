@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../lib/api';
+import { userService } from '../services/userService';
 import { getToken, removeToken } from '../lib/auth';
 
 const UserContext = createContext(null);
@@ -20,8 +20,8 @@ export function UserProvider({ children }) {
     }
 
     try {
-      const response = await api.get('/users/me');
-      setUser(response.data);
+      const data = await userService.getMe();
+      setUser(data);
     } catch (error) {
       console.error('Error fetching user:', error);
       removeToken();

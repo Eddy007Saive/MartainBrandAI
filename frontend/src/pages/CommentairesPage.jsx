@@ -18,7 +18,7 @@ import {
 } from '../components/ui/dialog';
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
-import api from '../lib/api';
+import { commentaireService } from '../services/commentaireService';
 
 const STATUT_COLORS = {
   'Nouveau': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
@@ -42,9 +42,8 @@ export default function CommentairesPage() {
   const fetchCommentaires = async () => {
     setLoading(true);
     try {
-      const params = filterStatut !== 'all' ? `?statut=${filterStatut}` : '';
-      const response = await api.get(`/commentaires${params}`);
-      setCommentaires(response.data);
+      const data = await commentaireService.getAll(filterStatut);
+      setCommentaires(data);
     } catch (error) {
       toast.error('Erreur lors du chargement des commentaires');
     } finally {
@@ -55,7 +54,7 @@ export default function CommentairesPage() {
   const handleMarkAsTraite = async (id) => {
     setActionLoading(id);
     try {
-      await api.patch(`/commentaires/${id}`, { statut: 'Traité' });
+      await commentaireService.update(id, { statut: 'Traité' });
       toast.success('Commentaire marqué comme traité');
       fetchCommentaires();
     } catch (error) {
@@ -69,7 +68,7 @@ export default function CommentairesPage() {
     if (!selectedComment || !reponse.trim()) return;
     setActionLoading(selectedComment.id);
     try {
-      await api.patch(`/commentaires/${selectedComment.id}`, {
+      await commentaireService.update(selectedComment.id, {
         reponse_ia: reponse,
         statut: 'Traité'
       });

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2 } from 'lucide-react';
-import api from '../lib/api';
+import { analyticsService } from '../services/analyticsService';
 
 export default function AccueilPage() {
   const { user } = useUser();
@@ -14,8 +14,8 @@ export default function AccueilPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/analytics/stats');
-      setStats(response.data);
+      const data = await analyticsService.getStats();
+      setStats(data);
     } catch (error) {
       console.error('Erreur chargement stats:', error);
     } finally {

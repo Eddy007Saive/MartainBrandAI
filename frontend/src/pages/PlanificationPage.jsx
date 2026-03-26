@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Calendar, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import api from '../lib/api';
+import { contenuService } from '../services/contenuService';
 
 const STATUT_COLORS = {
   'A valider': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
@@ -25,8 +25,8 @@ export default function PlanificationPage() {
 
   const fetchContenus = async () => {
     try {
-      const response = await api.get('/contenus');
-      setContenus(response.data);
+      const data = await contenuService.getAll();
+      setContenus(data);
     } catch (error) {
       console.error('Erreur chargement contenus:', error);
     } finally {

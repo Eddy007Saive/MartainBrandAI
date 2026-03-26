@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Activity, Settings, LogOut, Search, Download,
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
-  Loader2, ChevronRight, Clock, CheckCircle, XCircle, RefreshCw
+  Loader2, ChevronRight, Clock, CheckCircle, XCircle, RefreshCw,
+  Video, ExternalLink, Save, AlertCircle
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -25,34 +26,24 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { getAdminToken, removeAdminToken } from '../lib/auth';
+import { removeAdminToken } from '../lib/auth';
 import { cn } from '../lib/utils';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL;
-
-// API helper with admin token
-const adminApi = async (endpoint, options = {}) => {
-  const token = getAdminToken();
-  const response = await fetch(`${API_URL}/api${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...options.headers,
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
-  }
-  return response.json();
-};
+import { adminService } from '../services/adminService';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'users', label: 'Utilisateurs', icon: Users },
+  { id: 'avatars', label: 'Avatars', icon: Video },
   { id: 'activity', label: 'Activité', icon: Activity },
   { id: 'settings', label: 'Paramètres', icon: Settings },
 ];
+
+const AVATAR_STATUS_CONFIG = {
+  pending: { label: 'En attente', color: 'text-amber-400', bg: 'bg-amber-500/20' },
+  in_progress: { label: 'En cours', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
+  complete: { label: 'Prêt', color: 'text-emerald-400', bg: 'bg-emerald-500/20' },
+  failed: { label: 'Échec', color: 'text-red-400', bg: 'bg-red-500/20' },
+};
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -68,6 +59,12 @@ export default function Admin() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
 
+  // Avatar management
+  const [avatars, setAvatars] = useState([]);
+  const [editingAvatar, setEditingAvatar] = useState(null);
+  const [avatarForm, setAvatarForm] = useState({});
+  const [savingAvatar, setSavingAvatar] = useState(false);
+
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,13 +74,16 @@ export default function Admin() {
     setLoading(true);
     try {
       if (activeTab === 'dashboard') {
-        const statsData = await adminApi('/admin/stats');
+        const statsData = await adminService.getStats();
         setStats(statsData);
       } else if (activeTab === 'users') {
-        const usersData = await adminApi(`/admin/users?filter=${userFilter}`);
+        const usersData = await adminService.getUsers(userFilter);
         setUsers(usersData);
+      } else if (activeTab === 'avatars') {
+        const avatarData = await adminService.getAvatars();
+        setAvatars(avatarData);
       } else if (activeTab === 'activity') {
-        const activityData = await adminApi('/admin/activity?limit=50');
+        const activityData = await adminService.getActivity(50);
         setActivities(activityData);
       }
     } catch (error) {
@@ -98,8 +98,8 @@ export default function Admin() {
 
   const handleViewUser = async (telegramId) => {
     try {
-      const userData = await adminApi(`/admin/users/${telegramId}`);
-      const contenusData = await adminApi(`/admin/users/${telegramId}/contenus`);
+      const userData = await adminService.getUser(telegramId);
+      const contenusData = await adminService.getUserContenus(telegramId);
       setSelectedUser(userData);
       setUserContenus(contenusData);
     } catch (error) {
@@ -110,7 +110,7 @@ export default function Admin() {
   const handleActivate = async (telegramId) => {
     setActionLoading(telegramId);
     try {
-      await adminApi(`/admin/users/${telegramId}/activate`, { method: 'PATCH' });
+      await adminService.activateUser(telegramId);
       toast.success('Utilisateur activé');
       loadData();
     } catch (error) {
@@ -123,7 +123,7 @@ export default function Admin() {
   const handleDeactivate = async (telegramId) => {
     setActionLoading(telegramId);
     try {
-      await adminApi(`/admin/users/${telegramId}/deactivate`, { method: 'PATCH' });
+      await adminService.deactivateUser(telegramId);
       toast.success('Utilisateur désactivé');
       loadData();
     } catch (error) {
@@ -137,7 +137,7 @@ export default function Admin() {
     if (!deleteConfirm) return;
     setActionLoading(deleteConfirm.telegram_id);
     try {
-      await adminApi(`/admin/users/${deleteConfirm.telegram_id}`, { method: 'DELETE' });
+      await adminService.deleteUser(deleteConfirm.telegram_id);
       toast.success('Utilisateur supprimé');
       setDeleteConfirm(null);
       loadData();
@@ -150,11 +150,7 @@ export default function Admin() {
 
   const handleExportCSV = async () => {
     try {
-      const token = getAdminToken();
-      const response = await fetch(`${API_URL}/api/admin/export/users`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const blob = await response.blob();
+      const blob = await adminService.exportCSV();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -163,6 +159,48 @@ export default function Admin() {
       toast.success('Export téléchargé');
     } catch (error) {
       toast.error('Erreur lors de l\'export');
+    }
+  };
+
+  const handleEditAvatar = (avatar) => {
+    setEditingAvatar(avatar);
+    setAvatarForm({
+      avatar_id: avatar.avatar_id || '',
+      status: avatar.status || 'pending',
+      consent_url: avatar.consent_url || '',
+      error_message: avatar.error_message || '',
+    });
+  };
+
+  const handleSaveAvatar = async () => {
+    if (!editingAvatar) return;
+    setSavingAvatar(true);
+    try {
+      const data = {};
+      if (avatarForm.avatar_id) data.avatar_id = avatarForm.avatar_id;
+      if (avatarForm.status) data.status = avatarForm.status;
+      if (avatarForm.consent_url) data.consent_url = avatarForm.consent_url;
+      if (avatarForm.error_message) data.error_message = avatarForm.error_message;
+
+      await adminService.updateAvatar(editingAvatar.telegram_id, data);
+      toast.success('Avatar mis à jour');
+      setEditingAvatar(null);
+      loadData();
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setSavingAvatar(false);
+    }
+  };
+
+  const handleDeleteAvatar = async (telegramId) => {
+    if (!window.confirm('Supprimer cette demande d\'avatar ?')) return;
+    try {
+      await adminService.deleteAvatar(telegramId);
+      toast.success('Avatar supprimé');
+      loadData();
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
     }
   };
 
@@ -433,6 +471,163 @@ export default function Admin() {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Avatars Tab */}
+          {activeTab === 'avatars' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold font-sora text-white">Gestion des Avatars</h2>
+                <Button variant="ghost" onClick={loadData} className="text-slate-400 hover:text-white">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Actualiser
+                </Button>
+              </div>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+                </div>
+              ) : avatars.length === 0 ? (
+                <div className="text-center py-20">
+                  <Video className="w-12 h-12 mx-auto text-slate-600 mb-3" />
+                  <p className="text-slate-400 font-inter">Aucune demande d'avatar</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {avatars.map((av) => {
+                    const statusCfg = AVATAR_STATUS_CONFIG[av.status] || AVATAR_STATUS_CONFIG.pending;
+                    const userName = av.users?.nom || av.users?.username || `ID ${av.telegram_id}`;
+                    const isEditing = editingAvatar?.telegram_id === av.telegram_id;
+
+                    return (
+                      <div key={av.telegram_id} className="bg-slate-900/40 border border-white/5 rounded-xl overflow-hidden">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-sora font-semibold text-sm">
+                              {userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <h3 className="text-white font-sora font-semibold">{userName}</h3>
+                              <p className="text-xs text-slate-500 font-mono">ID: {av.telegram_id}</p>
+                              {av.users?.email && <p className="text-xs text-slate-400">{av.users.email}</p>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Badge className={`${statusCfg.bg} ${statusCfg.color}`}>{statusCfg.label}</Badge>
+                            {av.created_at && (
+                              <span className="text-xs text-slate-500 font-inter">
+                                {new Date(av.created_at).toLocaleDateString('fr-FR')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        {av.description && (
+                          <div className="px-5 pb-3">
+                            <p className="text-xs text-slate-500 font-inter mb-1">Description du client</p>
+                            <p className="text-sm text-slate-300 font-inter bg-slate-800/30 rounded-lg p-3">{av.description}</p>
+                          </div>
+                        )}
+
+                        {/* Video link */}
+                        <div className="px-5 pb-3 flex flex-wrap gap-3">
+                          {av.training_video_url && (
+                            <a href={av.training_video_url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 text-xs font-inter hover:bg-blue-500/20 transition-colors">
+                              <ExternalLink className="w-3.5 h-3.5" />Vidéo entraînement
+                            </a>
+                          )}
+                          {av.consent_url && (
+                            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-inter">
+                              <CheckCircle className="w-3.5 h-3.5" />Lien consentement envoyé
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Edit form (expandable) */}
+                        {isEditing ? (
+                          <div className="px-5 pb-5 pt-3 border-t border-white/5 space-y-4">
+                            <h4 className="text-sm font-semibold text-white font-sora">Remplir les infos avatar</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="text-xs text-slate-400 font-inter">Avatar ID (HeyGen)</label>
+                                <Input
+                                  value={avatarForm.avatar_id}
+                                  onChange={(e) => setAvatarForm(p => ({ ...p, avatar_id: e.target.value }))}
+                                  placeholder="avatar_xxxxxxxx"
+                                  className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs text-slate-400 font-inter">Statut</label>
+                                <select
+                                  value={avatarForm.status}
+                                  onChange={(e) => setAvatarForm(p => ({ ...p, status: e.target.value }))}
+                                  className="w-full rounded-md bg-slate-950/50 border border-slate-800 text-slate-200 text-sm px-3 py-2 outline-none"
+                                  data-testid="avatar-status-select"
+                                >
+                                  <option value="pending">En attente</option>
+                                  <option value="in_progress">En cours</option>
+                                  <option value="complete">Prêt</option>
+                                  <option value="failed">Échec</option>
+                                </select>
+                              </div>
+                              <div className="space-y-1.5 md:col-span-2">
+                                <label className="text-xs text-slate-400 font-inter">Lien de consentement HeyGen</label>
+                                <Input
+                                  value={avatarForm.consent_url}
+                                  onChange={(e) => setAvatarForm(p => ({ ...p, consent_url: e.target.value }))}
+                                  placeholder="https://app.heygen.com/consent/..."
+                                  className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm"
+                                />
+                                <p className="text-[10px] text-slate-500 font-inter">Ce lien sera visible par l'utilisateur pour qu'il donne son consentement.</p>
+                              </div>
+                              {avatarForm.status === 'failed' && (
+                                <div className="space-y-1.5 md:col-span-2">
+                                  <label className="text-xs text-slate-400 font-inter">Message d'erreur</label>
+                                  <Input
+                                    value={avatarForm.error_message}
+                                    onChange={(e) => setAvatarForm(p => ({ ...p, error_message: e.target.value }))}
+                                    placeholder="Raison de l'échec..."
+                                    className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button onClick={handleSaveAvatar} disabled={savingAvatar} size="sm"
+                                className="bg-gradient-to-r from-red-500 to-orange-500 hover:opacity-90 text-white font-inter text-xs">
+                                {savingAvatar ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Save className="w-3.5 h-3.5 mr-1" />}
+                                Sauvegarder
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => setEditingAvatar(null)}
+                                className="text-slate-400 hover:text-white font-inter text-xs">
+                                Annuler
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="px-5 pb-4 pt-2 border-t border-white/5 flex gap-2">
+                            <Button size="sm" onClick={() => handleEditAvatar(av)}
+                              className="bg-red-500/20 text-red-400 hover:bg-red-500/30 font-inter text-xs">
+                              <Settings className="w-3.5 h-3.5 mr-1" />
+                              Gérer l'avatar
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => handleDeleteAvatar(av.telegram_id)}
+                              className="text-red-400 hover:bg-red-500/20 font-inter text-xs">
+                              <Trash2 className="w-3.5 h-3.5 mr-1" />Supprimer
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

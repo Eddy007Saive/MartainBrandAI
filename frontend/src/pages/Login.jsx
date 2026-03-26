@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import api from '../lib/api';
+import { authService } from '../services/authService';
 import { setToken, setAdminToken } from '../lib/auth';
 
 export default function Login() {
@@ -23,9 +23,9 @@ export default function Login() {
     setLoading(true);
     
     try {
-      const response = await api.post('/auth/login', { email, password });
-      setToken(response.data.token);
-      if (response.data.pending) {
+      const data = await authService.login(email, password);
+      setToken(data.token);
+      if (data.pending) {
         toast.info('Compte en attente de validation');
         navigate('/pending');
       } else {
@@ -44,8 +44,8 @@ export default function Login() {
     setAdminLoading(true);
     
     try {
-      const response = await api.post('/auth/admin-login', { password: adminPassword });
-      setAdminToken(response.data.token);
+      const data = await authService.adminLogin(adminPassword);
+      setAdminToken(data.token);
       toast.success('Accès administrateur');
       navigate('/admin');
     } catch (error) {
