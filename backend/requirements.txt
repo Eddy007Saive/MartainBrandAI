@@ -70,6 +70,7 @@ numpy
 oauthlib==3.3.1
 openai==1.99.9
 packaging==26.0
+cloudinary
 pandas
 passlib==1.7.4
 pathspec==1.0.4
