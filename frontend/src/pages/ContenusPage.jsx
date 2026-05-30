@@ -49,6 +49,10 @@ const STATUT_CONFIG = {
 };
 const STATUT_DEFAUT = { label: '', bg: 'bg-slate-500/15', text: 'text-slate-400', border: 'border-slate-500/25', dot: 'bg-slate-400', icon: FileText };
 
+// Video types = scripts vidéo, le reste = posts
+const VIDEO_TYPES = ['Video', 'Reel', 'Short'];
+const isVideoType = (c) => VIDEO_TYPES.includes(c.type);
+
 const RESEAU_CONFIG = {
   'linkedin': { label: 'LinkedIn', color: 'from-blue-500 to-cyan-600', short: 'LI' },
   'instagram': { label: 'Instagram', color: 'from-pink-500 to-purple-600', short: 'IG' },
@@ -374,9 +378,6 @@ export default function ContenusPage() {
     }
   };
 
-  // Video types = scripts vidéo, the rest = posts
-  const VIDEO_TYPES = ['Video', 'Reel', 'Short'];
-  const isVideoType = (c) => VIDEO_TYPES.includes(c.type);
   const scripts = useMemo(() => contenus.filter(c => isVideoType(c) && !c.lien_video_dropbox), [contenus]);
   const videos = useMemo(() => contenus.filter(c => isVideoType(c) && !!c.lien_video_dropbox), [contenus]);
   const posts = useMemo(() => contenus.filter(c => !isVideoType(c)), [contenus]);
