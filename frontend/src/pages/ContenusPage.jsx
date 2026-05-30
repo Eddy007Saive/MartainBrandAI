@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video } from 'lucide-react';
+import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { Switch } from '../components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -29,15 +30,24 @@ import {
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import { contenuService } from '../services/contenuService';
+import { agentService } from '../services/agentService';
+import { useUser } from '../context/UserContext';
 
+const IMAGE_MODELES = [
+  { id: 'nano2', label: 'nano-banana 2.5', cout: 50 },
+  { id: 'nano3', label: 'nano-banana 3 (Pro)', cout: 150 },
+];
+
+// Clés = valeurs réelles de l'enum statut_contenu en base ; label = affichage
 const STATUT_CONFIG = {
-  'A valider': { bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/25', dot: 'bg-amber-400', icon: Clock },
-  'Validé': { bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/25', dot: 'bg-emerald-400', icon: Check },
-  'Publié': { bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/25', dot: 'bg-blue-400', icon: ExternalLink },
-  'Refusé': { bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/25', dot: 'bg-red-400', icon: X },
-  'Brouillon': { bg: 'bg-slate-500/15', text: 'text-slate-400', border: 'border-slate-500/25', dot: 'bg-slate-400', icon: FileText },
-  'En cours': { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/25', dot: 'bg-purple-400', icon: Sparkles },
+  'A valider': { label: 'À valider', bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/25', dot: 'bg-amber-400', icon: Clock },
+  'Valider': { label: 'Validé', bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/25', dot: 'bg-emerald-400', icon: Check },
+  'Planifie': { label: 'Planifié', bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/25', dot: 'bg-purple-400', icon: Calendar },
+  'Pret a publier': { label: 'Prêt à publier', bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/25', dot: 'bg-cyan-400', icon: Check },
+  'Publie': { label: 'Publié', bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/25', dot: 'bg-blue-400', icon: ExternalLink },
+  'Refuse': { label: 'Refusé', bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/25', dot: 'bg-red-400', icon: X },
 };
+const STATUT_DEFAUT = { label: '', bg: 'bg-slate-500/15', text: 'text-slate-400', border: 'border-slate-500/25', dot: 'bg-slate-400', icon: FileText };
 
 const RESEAU_CONFIG = {
   'linkedin': { label: 'LinkedIn', color: 'from-blue-500 to-cyan-600', short: 'LI' },
@@ -51,11 +61,11 @@ const RESEAU_CONFIG = {
 };
 
 function StatusBadge({ statut }) {
-  const config = STATUT_CONFIG[statut] || STATUT_CONFIG['Brouillon'];
+  const config = STATUT_CONFIG[statut] || STATUT_DEFAUT;
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter ${config.bg} ${config.text} border ${config.border}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-      {statut}
+      {config.label || statut}
     </span>
   );
 }
@@ -162,7 +172,7 @@ function ContentCard({ contenu, onView, onEdit, onDelete, onValidate, onRefuse, 
                   Vidéo Dropbox
                 </a>
               )}
-              {contenu.statut === 'Publié' && contenu.lien_publication && (
+              {contenu.statut === 'Publie' && contenu.lien_publication && (
                 <a
                   href={contenu.lien_publication}
                   target="_blank"
@@ -207,7 +217,7 @@ function ContentCard({ contenu, onView, onEdit, onDelete, onValidate, onRefuse, 
               </>
             )}
 
-            {contenu.statut === 'Publié' && contenu.lien_publication && (
+            {contenu.statut === 'Publie' && contenu.lien_publication && (
               <a
                 href={contenu.lien_publication}
                 target="_blank"
@@ -240,6 +250,57 @@ function ContentCard({ contenu, onView, onEdit, onDelete, onValidate, onRefuse, 
   );
 }
 
+function ContentRow({ contenu, onView, onImage, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
+  const isLoading = actionLoading === contenu.id;
+  const createdDate = new Date(contenu.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  return (
+    <tr className="group border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors">
+      <td className="px-4 py-3 align-middle"><StatusBadge statut={contenu.statut} /></td>
+      <td className="px-4 py-3 align-middle">
+        {contenu.reseau_cible ? <ReseauBadge reseau={contenu.reseau_cible} /> : <span className="text-slate-600 text-xs">—</span>}
+      </td>
+      <td className="px-4 py-3 align-middle max-w-0 w-full">
+        <div className="flex items-center gap-3 min-w-0">
+          {contenu.lien_visuel && (
+            <img src={contenu.lien_visuel} alt="" className="w-9 h-9 rounded object-cover flex-shrink-0 ring-1 ring-white/10" />
+          )}
+          <button onClick={() => onView(contenu)} className="text-left block flex-1 min-w-0">
+            <div className="text-white font-medium text-sm truncate hover:text-[#8A6CFF] transition-colors">{contenu.titre || 'Sans titre'}</div>
+            {contenu.contenu && <div className="text-slate-500 text-xs truncate mt-0.5">{contenu.contenu}</div>}
+          </button>
+        </div>
+      </td>
+      <td className="px-4 py-3 align-middle whitespace-nowrap text-xs text-slate-400">{createdDate}</td>
+      <td className="px-4 py-3 align-middle">
+        <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => onView(contenu)} title="Voir" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+            <Eye className="w-4 h-4" />
+          </button>
+          <button onClick={() => onImage(contenu)} title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${contenu.lien_visuel ? 'text-emerald-400 hover:bg-emerald-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+            <ImageIcon className="w-4 h-4" />
+          </button>
+          {contenu.statut === 'A valider' && (
+            <>
+              <button onClick={() => onValidate(contenu.id)} disabled={isLoading} title="Valider" className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-400 hover:bg-emerald-500/20 transition-all">
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              </button>
+              <button onClick={() => onRefuse(contenu.id)} disabled={isLoading} title="Refuser" className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all">
+                <X className="w-4 h-4" />
+              </button>
+            </>
+          )}
+          <button onClick={() => onEdit(contenu)} title="Modifier" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={() => onDelete(contenu)} title="Supprimer" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all">
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export default function ContenusPage() {
   const [contenus, setContenus] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -250,6 +311,51 @@ export default function ContenusPage() {
   const [editContenu, setEditContenu] = useState(null);
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+
+  const { user, updateUser } = useUser();
+  const [imageContenu, setImageContenu] = useState(null);
+  const [imgPrompt, setImgPrompt] = useState('');
+  const [imgAvecPhoto, setImgAvecPhoto] = useState(false);
+  const [imgModele, setImgModele] = useState('nano2');
+  const [imgLoadingPrompt, setImgLoadingPrompt] = useState(false);
+  const [imgGenerating, setImgGenerating] = useState(false);
+
+  const chargerPrompt = async (contenu) => {
+    setImgLoadingPrompt(true);
+    try {
+      const data = await agentService.imagePrompt(contenu.contenu || contenu.titre || '', String(contenu.reseau_cible || 'linkedin').toLowerCase());
+      setImgPrompt(data.prompt || '');
+    } catch (e) {
+      toast.error('Erreur lors de la préparation du prompt');
+    } finally {
+      setImgLoadingPrompt(false);
+    }
+  };
+
+  const openImage = (contenu) => {
+    setImageContenu(contenu);
+    setImgPrompt('');
+    setImgAvecPhoto(!!user?.use_photo);
+    setImgModele('nano2');
+    if (!contenu.lien_visuel) chargerPrompt(contenu); // pas d'image → on prépare une description (sinon on ne dépense rien)
+  };
+
+  const genererImage = async () => {
+    if (!imageContenu || !imgPrompt.trim()) return;
+    setImgGenerating(true);
+    try {
+      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele);
+      if (data.credits != null) updateUser({ credits: data.credits });
+      setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel } : c)));
+      setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel } : prev));
+      toast.success('Visuel généré ✨');
+    } catch (e) {
+      if (e.response?.status === 402) toast.error('Crédits insuffisants');
+      else toast.error(e.response?.data?.detail || "Échec de la génération d'image");
+    } finally {
+      setImgGenerating(false);
+    }
+  };
 
   useEffect(() => {
     fetchContenus();
@@ -291,14 +397,21 @@ export default function ContenusPage() {
     setActionLoading(id);
     try {
       const data = await contenuService.update(id, { statut: newStatut });
+      const datePlanif = data?.date_publication
+        ? new Date(data.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+        : null;
       if (data.webhook_result) {
         if (data.webhook_result.success) {
           toast.success('Contenu validé et webhook déclenché avec succès');
         } else {
           toast.warning('Contenu validé mais le webhook a échoué');
         }
+      } else if (newStatut === 'Valider' && datePlanif) {
+        toast.success(`Contenu validé — planifié le ${datePlanif}`);
+      } else if (newStatut === 'Refuse') {
+        toast.success('Contenu refusé');
       } else {
-        toast.success(`Contenu ${newStatut.toLowerCase()}`);
+        toast.success('Contenu validé');
       }
       fetchContenus();
       setSelectedContenu(null);
@@ -345,13 +458,13 @@ export default function ContenusPage() {
   const stats = {
     total: activeContenus.length,
     aValider: activeContenus.filter(c => c.statut === 'A valider').length,
-    valides: activeContenus.filter(c => c.statut === 'Validé').length,
-    publies: activeContenus.filter(c => c.statut === 'Publié').length,
+    valides: activeContenus.filter(c => c.statut === 'Valider').length,
+    publies: activeContenus.filter(c => c.statut === 'Publie').length,
   };
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div>
+      <div className="w-full space-y-6">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -430,9 +543,9 @@ export default function ContenusPage() {
               <SelectContent className="bg-slate-900 border-slate-800">
                 <SelectItem value="all" className="text-slate-200">Tous ({stats.total})</SelectItem>
                 <SelectItem value="A valider" className="text-slate-200">À valider ({stats.aValider})</SelectItem>
-                <SelectItem value="Validé" className="text-slate-200">Validés ({stats.valides})</SelectItem>
-                <SelectItem value="Publié" className="text-slate-200">Publiés ({stats.publies})</SelectItem>
-                <SelectItem value="Refusé" className="text-slate-200">Refusés</SelectItem>
+                <SelectItem value="Valider" className="text-slate-200">Validés ({stats.valides})</SelectItem>
+                <SelectItem value="Publie" className="text-slate-200">Publiés ({stats.publies})</SelectItem>
+                <SelectItem value="Refuse" className="text-slate-200">Refusés</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -461,154 +574,181 @@ export default function ContenusPage() {
         ) : (
           <div className="space-y-3">
             <p className="text-xs text-slate-500 font-inter">{filteredContenus.length} contenu{filteredContenus.length > 1 ? 's' : ''}</p>
-            {filteredContenus.map((contenu) => (
-              <ContentCard
-                key={contenu.id}
-                contenu={contenu}
-                onView={setSelectedContenu}
-                onEdit={setEditContenu}
-                onDelete={setDeleteContenu}
-                onValidate={(id) => handleUpdateStatut(id, 'Validé')}
-                onRefuse={(id) => handleUpdateStatut(id, 'Refusé')}
-                actionLoading={actionLoading}
-              />
-            ))}
+            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[640px]">
+                  <thead>
+                    <tr className="border-b border-white/[0.06]">
+                      <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Statut</th>
+                      <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Réseau</th>
+                      <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Contenu</th>
+                      <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Date</th>
+                      <th className="px-4 py-3 text-right text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredContenus.map((contenu) => (
+                      <ContentRow
+                        key={contenu.id}
+                        contenu={contenu}
+                        onView={setSelectedContenu}
+                        onImage={openImage}
+                        onEdit={setEditContenu}
+                        onDelete={setDeleteContenu}
+                        onValidate={(id) => handleUpdateStatut(id, 'Valider')}
+                        onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
+                        actionLoading={actionLoading}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
         {/* View Dialog */}
         <Dialog open={!!selectedContenu} onOpenChange={() => setSelectedContenu(null)}>
-          <DialogContent className="bg-[#0f172a] border-slate-800 max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-white font-sora text-lg">
+          <DialogContent className="bg-[#0f172a] border-slate-800 max-w-4xl max-h-[88vh] overflow-y-auto">
+            <DialogHeader className="space-y-3">
+              <DialogTitle className="text-white font-sora text-lg pr-8 leading-snug">
                 {selectedContenu?.titre || 'Détail du contenu'}
               </DialogTitle>
-            </DialogHeader>
-
-            {selectedContenu && (
-              <div className="space-y-5">
-                {/* Badges */}
-                <div className="flex flex-wrap gap-2">
-                  <StatusBadge statut={selectedContenu.statut} />
-                  {selectedContenu.reseau_cible && <ReseauBadge reseau={selectedContenu.reseau_cible} />}
-                  {selectedContenu.type && (
+              {/* Barre du haut : badges + actions */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge statut={selectedContenu?.statut} />
+                  {selectedContenu?.reseau_cible && <ReseauBadge reseau={selectedContenu.reseau_cible} />}
+                  {selectedContenu?.type && (
                     <span className="text-[10px] text-slate-500 font-inter bg-slate-800/80 px-2 py-1 rounded-md border border-white/5">
                       {selectedContenu.type}
                     </span>
                   )}
                 </div>
-
-                {/* Published link */}
-                {selectedContenu.statut === 'Publié' && selectedContenu.lien_publication && (
-                  <a
-                    href={selectedContenu.lien_publication}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 bg-blue-500/[0.08] border border-blue-500/20 rounded-xl text-blue-400 hover:bg-blue-500/[0.12] transition-colors group"
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <ExternalLink className="w-5 h-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold font-sora text-sm">Publication en ligne</p>
-                      <p className="text-xs text-blue-400/60 truncate">{selectedContenu.lien_publication}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-blue-400/40" />
-                  </a>
-                )}
-
-                {/* Dropbox video link */}
-                {selectedContenu.lien_video_dropbox && (
-                  <a
-                    href={selectedContenu.lien_video_dropbox}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-4 bg-purple-500/[0.08] border border-purple-500/20 rounded-xl text-purple-400 hover:bg-purple-500/[0.12] transition-colors group"
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Video className="w-5 h-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold font-sora text-sm">Vidéo Dropbox</p>
-                      <p className="text-xs text-purple-400/60 truncate">{selectedContenu.lien_video_dropbox}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-purple-400/40" />
-                  </a>
-                )}
-
-                {/* Image */}
-                {selectedContenu.lien_visuel && (
-                  <img
-                    src={selectedContenu.lien_visuel}
-                    alt=""
-                    className="w-full rounded-xl max-h-72 object-cover ring-1 ring-white/5"
-                  />
-                )}
-
-                {/* Content */}
-                <div className="bg-slate-800/30 rounded-xl p-5 border border-white/[0.04]">
-                  <p className="text-slate-200 font-inter text-sm leading-relaxed whitespace-pre-wrap">
-                    {selectedContenu.contenu}
-                  </p>
-                </div>
-
-                {/* Meta */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
-                    <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Créé le</p>
-                    <p className="text-slate-300 text-sm font-inter">{new Date(selectedContenu.created_at).toLocaleString('fr-FR')}</p>
-                  </div>
-                  {selectedContenu.date_publication && (
-                    <div className="bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Publication</p>
-                      <p className="text-slate-300 text-sm font-inter">{new Date(selectedContenu.date_publication).toLocaleString('fr-FR')}</p>
-                    </div>
+                <div className="flex items-center gap-2">
+                  {selectedContenu?.statut === 'A valider' && (
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => handleUpdateStatut(selectedContenu.id, 'Valider')}
+                        disabled={actionLoading === selectedContenu?.id}
+                        className="bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 font-inter"
+                      >
+                        {actionLoading === selectedContenu?.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                        ) : (
+                          <Check className="w-4 h-4 mr-1.5" />
+                        )}
+                        Valider
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleUpdateStatut(selectedContenu.id, 'Refuse')}
+                        disabled={actionLoading === selectedContenu?.id}
+                        className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 font-inter"
+                      >
+                        <X className="w-4 h-4 mr-1.5" />
+                        Refuser
+                      </Button>
+                    </>
                   )}
-                  {selectedContenu.callback_url && (
-                    <div className="col-span-2 bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Webhook</p>
-                      <p className="text-emerald-400 text-xs truncate font-inter">{selectedContenu.callback_url}</p>
-                    </div>
+                  {selectedContenu?.statut === 'Publie' && selectedContenu?.lien_publication && (
+                    <a href={selectedContenu.lien_publication} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" className="bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 font-inter">
+                        <ExternalLink className="w-4 h-4 mr-1.5" />
+                        Voir
+                      </Button>
+                    </a>
                   )}
                 </div>
               </div>
-            )}
+            </DialogHeader>
 
-            <DialogFooter className="gap-2">
-              {selectedContenu?.statut === 'A valider' && (
-                <>
-                  <Button
-                    onClick={() => handleUpdateStatut(selectedContenu.id, 'Validé')}
-                    disabled={actionLoading === selectedContenu?.id}
-                    className="bg-emerald-500 hover:bg-emerald-600 font-inter"
-                  >
-                    {actionLoading === selectedContenu?.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : (
-                      <Check className="w-4 h-4 mr-2" />
+            {selectedContenu && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-1">
+                {/* Colonne gauche : visuel + liens */}
+                <div className="space-y-3">
+                  {selectedContenu.lien_visuel ? (
+                    <img
+                      src={selectedContenu.lien_visuel}
+                      alt=""
+                      className="w-full rounded-xl object-cover ring-1 ring-white/10"
+                    />
+                  ) : (
+                    <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-600">
+                      <ImageIcon className="w-10 h-10" />
+                      <span className="text-xs font-inter">Aucun visuel</span>
+                    </div>
+                  )}
+
+                  {/* Published link */}
+                  {selectedContenu.statut === 'Publie' && selectedContenu.lien_publication && (
+                    <a
+                      href={selectedContenu.lien_publication}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 bg-blue-500/[0.08] border border-blue-500/20 rounded-xl text-blue-400 hover:bg-blue-500/[0.12] transition-colors group"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                        <ExternalLink className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold font-sora text-sm">Publication en ligne</p>
+                        <p className="text-xs text-blue-400/60 truncate">{selectedContenu.lien_publication}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-blue-400/40 shrink-0" />
+                    </a>
+                  )}
+
+                  {/* Dropbox video link */}
+                  {selectedContenu.lien_video_dropbox && (
+                    <a
+                      href={selectedContenu.lien_video_dropbox}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 bg-purple-500/[0.08] border border-purple-500/20 rounded-xl text-purple-400 hover:bg-purple-500/[0.12] transition-colors group"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                        <Video className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold font-sora text-sm">Vidéo Dropbox</p>
+                        <p className="text-xs text-purple-400/60 truncate">{selectedContenu.lien_video_dropbox}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-purple-400/40 shrink-0" />
+                    </a>
+                  )}
+                </div>
+
+                {/* Colonne droite : texte + méta */}
+                <div className="space-y-4">
+                  <div className="bg-slate-800/30 rounded-xl p-5 border border-white/[0.04] max-h-[48vh] overflow-y-auto">
+                    <p className="text-slate-200 font-inter text-sm leading-relaxed whitespace-pre-wrap">
+                      {selectedContenu.contenu}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Créé le</p>
+                      <p className="text-slate-300 text-sm font-inter">{new Date(selectedContenu.created_at).toLocaleString('fr-FR')}</p>
+                    </div>
+                    {selectedContenu.date_publication && (
+                      <div className="bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Publication</p>
+                        <p className="text-slate-300 text-sm font-inter">{new Date(selectedContenu.date_publication).toLocaleString('fr-FR')}</p>
+                      </div>
                     )}
-                    Valider
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => handleUpdateStatut(selectedContenu.id, 'Refusé')}
-                    disabled={actionLoading === selectedContenu?.id}
-                    className="font-inter"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Refuser
-                  </Button>
-                </>
-              )}
-              {selectedContenu?.statut === 'Publié' && selectedContenu?.lien_publication && (
-                <a href={selectedContenu.lien_publication} target="_blank" rel="noopener noreferrer">
-                  <Button className="bg-blue-500 hover:bg-blue-600 font-inter">
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Voir la publication
-                  </Button>
-                </a>
-              )}
-            </DialogFooter>
+                    {selectedContenu.callback_url && (
+                      <div className="col-span-2 bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
+                        <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Webhook</p>
+                        <p className="text-emerald-400 text-xs truncate font-inter">{selectedContenu.callback_url}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
@@ -663,6 +803,60 @@ export default function ContenusPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Image Dialog */}
+        <Dialog open={!!imageContenu} onOpenChange={() => setImageContenu(null)}>
+          <DialogContent className="bg-[#0f172a] border-slate-800 max-w-xl max-h-[88vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-white font-sora">Créer le visuel</DialogTitle>
+            </DialogHeader>
+            {imageContenu && (
+              <div className="space-y-4">
+                {imageContenu.lien_visuel && (
+                  <img src={imageContenu.lien_visuel} alt="" className="w-full rounded-xl max-h-72 object-cover ring-1 ring-white/10" />
+                )}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-sm font-medium text-slate-300 font-inter">Description de l'image (modifiable)</label>
+                    <button onClick={() => chargerPrompt(imageContenu)} disabled={imgLoadingPrompt}
+                      className="text-xs text-[#8A6CFF] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50 flex-shrink-0">
+                      <Wand2 className="w-3 h-3" /> Proposer une description
+                    </button>
+                  </div>
+                  {imgLoadingPrompt ? (
+                    <div className="flex items-center gap-2 text-slate-400 text-sm py-4"><Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" /> L'IA prépare la description…</div>
+                  ) : (
+                    <Textarea value={imgPrompt} onChange={(e) => setImgPrompt(e.target.value)} rows={4}
+                      className="bg-slate-900/80 border-slate-800 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50" />
+                  )}
+                </div>
+                {user?.use_photo && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-white/5">
+                    <span className="text-sm text-slate-300 font-inter">Inclure ma photo dans le visuel</span>
+                    <Switch checked={imgAvecPhoto} onCheckedChange={setImgAvecPhoto} />
+                  </div>
+                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 font-inter">Modèle</span>
+                  {IMAGE_MODELES.map((m) => (
+                    <button key={m.id} onClick={() => setImgModele(m.id)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium font-inter border transition-all ${imgModele === m.id ? 'bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-[#5B6CFF]/50' : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'}`}>
+                      {m.label} · {m.cout} cr.
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <DialogFooter className="gap-2">
+              <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">Fermer</Button>
+              <Button onClick={genererImage} disabled={imgGenerating || imgLoadingPrompt || !imgPrompt.trim()}
+                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 text-white font-inter">
+                {imgGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
+                {imageContenu?.lien_visuel ? 'Régénérer' : 'Générer'} · {IMAGE_MODELES.find((m) => m.id === imgModele)?.cout} cr.
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

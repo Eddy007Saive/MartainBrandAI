@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, MessageSquare, CalendarDays, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, MessageSquare, CalendarDays, Settings, LogOut, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const mainNav = [
   { to: '/dashboard/accueil', title: 'Accueil', icon: LayoutDashboard },
+  { to: '/dashboard/studio', title: 'Studio IA', icon: Sparkles },
   { to: '/dashboard/contenus', title: 'Contenus', icon: FileText },
   { to: '/dashboard/commentaires', title: 'Commentaires', icon: MessageSquare },
   { to: '/dashboard/planification', title: 'Planification', icon: CalendarDays },
@@ -34,7 +35,7 @@ export const Sidebar = ({ onLogout, userName }) => {
     <aside className="w-64 hidden md:flex flex-col border-r border-white/5 bg-slate-950/50 backdrop-blur-xl">
       <div className="p-6 border-b border-white/5">
         <h1 className="text-xl font-bold font-sora bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
-          MartainBrand
+          Presence OS
         </h1>
         {userName && (
           <p className="text-sm text-slate-400 mt-1 font-inter truncate">

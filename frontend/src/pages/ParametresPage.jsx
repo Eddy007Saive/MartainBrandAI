@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
-  CheckCircle, XCircle, AlertCircle, ChevronRight,
+  CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Field } from '../components/Field';
 import { ColorField } from '../components/ColorField';
+import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
 import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
@@ -27,17 +28,15 @@ import { FREQUENCIES, DAYS, DEFAULT_SCHEDULE } from '../constants/schedules';
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
-  gpt_urls: ['gpt_url_linkedin', 'gpt_url_instagram', 'gpt_url_sujets', 'gpt_url_default'],
-  api_keys: ['api_key_gemini'],
+  marque: ['secteur', 'voix_marque'],
   style: ['couleur_principale', 'couleur_secondaire', 'couleur_accent'],
 };
 
 const SETTINGS_SECTIONS = [
   { id: 'identity', title: 'Identité', icon: User },
+  { id: 'marque', title: 'Voix de marque', icon: Megaphone },
   { id: 'connections', title: 'Réseaux sociaux', icon: Plug },
   { id: 'schedules', title: 'Planification', icon: Calendar },
-  { id: 'gpt_urls', title: 'URLs GPT', icon: Link },
-  { id: 'api_keys', title: 'Clés API', icon: Key },
   { id: 'style', title: 'Style & Couleurs', icon: Palette },
   { id: 'avatar', title: 'Avatar HeyGen', icon: Video },
 ];
@@ -95,12 +94,31 @@ function FileDropZone({ label, description, accept, file, onFileChange, id }) {
   );
 }
 
+// --- TextareaField (champs longs de la voix de marque) ---
+function TextareaField({ label, name, value, placeholder, onChange, rows = 3, hint }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-slate-300 font-inter">{label}</label>
+      {hint && <p className="text-xs text-slate-500 font-inter">{hint}</p>}
+      <textarea
+        value={value || ''}
+        onChange={(e) => onChange(name, e.target.value)}
+        placeholder={placeholder}
+        rows={rows}
+        className="w-full rounded-lg bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-sm px-3 py-2 outline-none resize-y font-inter placeholder:text-slate-600"
+        data-testid={`field-${name}`}
+      />
+    </div>
+  );
+}
+
 export default function ParametresPage() {
   const navigate = useNavigate();
   const { user, setUser, refetchUser } = useUser();
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('identity');
   const [connecting, setConnecting] = useState(null);
+  const [exReseau, setExReseau] = useState('linkedin');
 
   // Schedules
   const connectedPlatforms = SOCIAL_PLATFORMS.filter(p => user?.[p.field]);
@@ -340,6 +358,92 @@ export default function ParametresPage() {
           </div>
           <Switch checked={user?.use_photo || false} onCheckedChange={(c) => handleChange('use_photo', c)} data-testid="toggle-use-photo" />
         </div>
+      </div>
+    </div>
+  );
+
+  const renderMarque = () => (
+    <div className="space-y-5">
+      <div className="flex items-start gap-2 p-3 rounded-lg bg-[#5B6CFF]/5 border border-[#5B6CFF]/20">
+        <Info className="w-4 h-4 text-[#5B6CFF] mt-0.5 flex-shrink-0" />
+        <p className="text-xs text-slate-300 font-inter">
+          Ces informations nourrissent l'IA du <span className="text-white font-medium">Studio IA</span>.
+          Plus elles sont précises, plus les sujets et les posts générés sonnent juste.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <Field label="Secteur / activité" name="secteur" value={user?.secteur} onChange={handleChange}
+          hint="Ex: Coach business pour entrepreneures, Agence immobilière, Restaurant bistronomique…" />
+        <Field label="Audience cible" name="audience" value={user?.audience} onChange={handleChange}
+          hint="À qui tu t'adresses. Ex: Freelances 28-45 ans en reconversion." />
+      </div>
+      <TextareaField label="Voix & ton" name="voix_marque" value={user?.voix_marque} onChange={handleChange} rows={4}
+        hint="Ton style d'écriture : tutoiement, direct, chaleureux, pas de jargon, etc."
+        placeholder="Ex: Tutoiement, ton chaleureux et direct. Phrases courtes. Honnête (on parle aussi des galères). Zéro promesse magique." />
+      <TextareaField label="Piliers / thèmes" name="piliers" value={user?.piliers} onChange={handleChange} rows={3}
+        hint="Tes grands sujets récurrents (un par ligne)."
+        placeholder={"Mindset & confiance\nMéthode business\nCoulisses & vécu"} />
+      <TextareaField label="À éviter absolument" name="a_eviter" value={user?.a_eviter} onChange={handleChange} rows={3}
+        hint="Mots, promesses ou tons à bannir."
+        placeholder="Ex: pas de promesses chiffrées, pas de jargon corporate, pas de hashtags en pagaille." />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <TextareaField label="Hooks / accroches qui marchent" name="hooks" value={user?.hooks} onChange={handleChange} rows={5}
+          hint="Tes meilleures accroches (une par ligne). L'IA s'en inspire pour les posts et les scripts."
+          placeholder={"Pendant 2 ans, j'ai bradé mes prix…\nPersonne ne te dira ça, mais…\n90% des freelances font cette erreur"} />
+        <TextareaField label="CTA habituels" name="ctas" value={user?.ctas} onChange={handleChange} rows={5}
+          hint="Tes appels à l'action récurrents (un par ligne)."
+          placeholder={"Commente MÉTHODE\nLien en bio\nDM-moi le mot X\nAbonne-toi pour la suite"} />
+      </div>
+
+      {/* Règles éditoriales (la "bible") */}
+      <div className="rounded-xl border border-[#5B6CFF]/20 bg-[#5B6CFF]/[0.04] p-4">
+        <TextareaField label="📕 Règles éditoriales (l'IA les respecte à la lettre)" name="regles" value={user?.regles} onChange={handleChange} rows={9}
+          hint="Ta « bible » : structure des posts, dosage des CTA, ce qui est interdit, etc. Ces règles priment sur tout le reste. Tu peux coller ton document complet (sections incluses)."
+          placeholder={"Ex:\n1. Un seul CTA par post.\n2. Choisis un pilier + un hook de la banque (ou un neuf dans le même esprit).\n3. Respecte la structure et adapte à la plateforme demandée.\n4. Interdits : promesses chiffrées garanties, jargon corporate…\nTu ne violes jamais une règle de la section 4."} />
+      </div>
+
+      {/* Exemples de posts par réseau */}
+      <div className="space-y-2 pt-2 border-t border-white/5">
+        <label className="text-sm font-medium text-slate-300 font-inter">Exemples de posts (par réseau)</label>
+        <p className="text-xs text-slate-500 font-inter">
+          Colle 1 à 3 de tes meilleurs posts pour chaque réseau (sépare-les par une ligne <span className="text-slate-400">---</span>).
+          C'est ce qui calibre le mieux le style des contenus générés. Optionnel mais fortement recommandé.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: 'linkedin', label: 'LinkedIn' },
+            { id: 'instagram', label: 'Instagram' },
+            { id: 'facebook', label: 'Facebook' },
+            { id: 'tiktok', label: 'TikTok' },
+          ].map((r) => {
+            const rempli = !!user?.[`exemples_${r.id}`];
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setExReseau(r.id)}
+                data-testid={`exemples-tab-${r.id}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium font-inter transition-all border flex items-center gap-1.5 ${
+                  exReseau === r.id
+                    ? 'bg-[#5B6CFF]/15 text-white border-[#5B6CFF]/50'
+                    : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'
+                }`}
+              >
+                {r.label}
+                {rempli && <Check className="w-3 h-3 text-emerald-400" />}
+              </button>
+            );
+          })}
+        </div>
+        <textarea
+          value={user?.[`exemples_${exReseau}`] || ''}
+          onChange={(e) => handleChange(`exemples_${exReseau}`, e.target.value)}
+          rows={8}
+          placeholder={`Colle ici tes meilleurs posts ${exReseau}…\n\nPost 1\n---\nPost 2`}
+          className="w-full rounded-lg bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-sm px-3 py-2 outline-none resize-y font-inter placeholder:text-slate-600"
+          data-testid={`field-exemples-${exReseau}`}
+        />
       </div>
     </div>
   );
@@ -709,10 +813,9 @@ export default function ParametresPage() {
 
   const sectionRenderers = {
     identity: renderIdentity,
+    marque: renderMarque,
     connections: renderConnections,
     schedules: renderSchedules,
-    gpt_urls: renderGptUrls,
-    api_keys: renderApiKeys,
     style: renderStyle,
     avatar: renderAvatar,
   };
@@ -722,36 +825,37 @@ export default function ParametresPage() {
   return (
     <div className="h-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold font-sora text-white">Paramètres</h1>
-          <p className="text-slate-400 mt-0.5 font-inter text-sm">Gérez votre profil, connexions et avatar</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" data-testid="delete-account-btn" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-inter text-xs">
-                <Trash2 className="w-3.5 h-3.5 mr-1" />Supprimer
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="bg-slate-900 border-slate-800">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-white font-sora">Supprimer mon compte</AlertDialogTitle>
-                <AlertDialogDescription className="text-slate-400 font-inter">Cette action est irréversible.</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">Annuler</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteAccount} data-testid="confirm-delete-account-btn" className="bg-red-600 hover:bg-red-700 text-white font-inter">Supprimer</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <Button onClick={handleSave} disabled={saving} size="sm" data-testid="save-btn"
-            className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 font-inter text-xs">
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
-            Sauvegarder
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        icon={Settings}
+        title="Paramètres"
+        subtitle="Gérez votre profil, votre marque et vos connexions"
+        actions={
+          <>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" data-testid="delete-account-btn" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-inter text-xs">
+                  <Trash2 className="w-3.5 h-3.5 mr-1" />Supprimer
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-slate-900 border-slate-800">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-white font-sora">Supprimer mon compte</AlertDialogTitle>
+                  <AlertDialogDescription className="text-slate-400 font-inter">Cette action est irréversible.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAccount} data-testid="confirm-delete-account-btn" className="bg-red-600 hover:bg-red-700 text-white font-inter">Supprimer</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <Button onClick={handleSave} disabled={saving} size="sm" data-testid="save-btn"
+              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 font-inter text-xs">
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
+              Sauvegarder
+            </Button>
+          </>
+        }
+      />
 
       {/* Profile incomplete warning */}
       {!isProfileComplete && (
@@ -780,18 +884,16 @@ export default function ParametresPage() {
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
                 data-testid={`settings-tab-${section.id}`}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 font-inter group ${
-                  isActive
-                    ? 'bg-gradient-to-r from-[#5B6CFF]/15 to-[#8A6CFF]/10 text-white border-l-2 border-[#5B6CFF]'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+                className={`group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 font-inter ${
+                  isActive ? 'bg-white/[0.06] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-[#5B6CFF]' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-gradient-to-b from-[#5B6CFF] to-[#8A6CFF]" />}
+                <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300'}`} />
                 <span className="text-sm font-medium flex-1 truncate">{section.title}</span>
                 {isIncomplete && <span className="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0" />}
                 {hasAvatarBadge && avatar.status === 'complete' && <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />}
                 {hasAvatarBadge && avatar.status === 'in_progress' && <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />}
-                {isActive && <ChevronRight className="w-3.5 h-3.5 text-[#5B6CFF] flex-shrink-0" />}
               </button>
             );
           })}

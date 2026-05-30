@@ -1,6 +1,7 @@
 import httpx
 from datetime import datetime, timezone
 from config import supabase, logger
+from services import planning_service
 
 
 def get_contenus(telegram_id: int, statut: str = None) -> list:
@@ -25,9 +26,18 @@ async def update_contenu(contenu_id: str, telegram_id: int, update_data: dict) -
     contenu_data = current.data[0]
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
 
+    # Auto-planification : à la validation, pose une date provisoire si absente
+    if (update_data.get("statut") == "Valider"
+            and not update_data.get("date_publication")
+            and not contenu_data.get("date_publication")):
+        creneau = planning_service.prochain_creneau(telegram_id, contenu_data.get("reseau_cible"))
+        if creneau:
+            update_data["date_publication"] = creneau
+            logger.info(f"Auto-planif contenu {contenu_id} -> {creneau}")
+
     # If validating content and callback_url exists, call the webhook
     webhook_result = None
-    if update_data.get("statut") == "Validé" and contenu_data.get("callback_url"):
+    if update_data.get("statut") == "Valider" and contenu_data.get("callback_url"):
         callback_url = contenu_data["callback_url"]
         try:
             logger.info(f"Calling validation webhook: {callback_url}")
@@ -38,7 +48,7 @@ async def update_contenu(contenu_id: str, telegram_id: int, update_data: dict) -
                         "contenu_id": contenu_id,
                         "telegram_id": telegram_id,
                         "action": "validate",
-                        "statut": "Validé"
+                        "statut": "Valider"
                     }
                 )
                 logger.info(f"Webhook response: {webhook_response.status_code}")

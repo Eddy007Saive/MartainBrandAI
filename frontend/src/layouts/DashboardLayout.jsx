@@ -1,17 +1,58 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Home, FileText, MessageCircle, Calendar, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, Settings, LogOut, Menu, X, Sparkles } from 'lucide-react';
 import { UserProvider, useUser } from '../context/UserContext';
 import { removeToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 
 const navItems = [
   { path: '/dashboard', label: 'Accueil', icon: Home },
+  { path: '/dashboard/studio', label: 'Studio IA', icon: Sparkles },
   { path: '/dashboard/contenus', label: 'Contenus', icon: FileText },
   { path: '/dashboard/commentaires', label: 'Commentaires', icon: MessageCircle },
   { path: '/dashboard/planification', label: 'Planification', icon: Calendar },
   { path: '/dashboard/parametres', label: 'Paramètres', icon: Settings },
 ];
+
+function NavItem({ item, onClick }) {
+  const Icon = item.icon;
+  return (
+    <NavLink
+      to={item.path}
+      end={item.path === '/dashboard'}
+      onClick={onClick}
+      data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
+      className={({ isActive }) =>
+        cn(
+          'group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium font-inter transition-all duration-150',
+          isActive ? 'bg-white/[0.06] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+        )
+      }
+    >
+      {({ isActive }) => (
+        <>
+          {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-gradient-to-b from-[#5B6CFF] to-[#8A6CFF]" />}
+          <Icon className={cn('w-[18px] h-[18px] transition-colors', isActive ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300')} />
+          <span>{item.label}</span>
+        </>
+      )}
+    </NavLink>
+  );
+}
+
+function Brand() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center shadow-lg shadow-[#5B6CFF]/20 flex-shrink-0">
+        <Sparkles className="w-5 h-5 text-white" />
+      </div>
+      <div className="leading-tight">
+        <p className="text-sm font-bold text-white font-sora">Presence OS</p>
+        <p className="text-[11px] text-slate-500 font-inter">Studio de contenu IA</p>
+      </div>
+    </div>
+  );
+}
 
 function DashboardContent() {
   const { user, logout } = useUser();
@@ -24,112 +65,77 @@ function DashboardContent() {
     navigate('/');
   };
 
+  const initial = (user?.nom || user?.username || 'U').charAt(0).toUpperCase();
+
+  const UserBlock = () => (
+    <div className="p-3 border-t border-white/[0.06] space-y-1">
+      <div className="flex items-center justify-between px-3 py-2 mb-1 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+        <span className="text-xs text-slate-400 font-inter">Crédits</span>
+        <span className="text-sm font-semibold text-white font-inter">{user?.credits ?? '—'}</span>
+      </div>
+      <div className="flex items-center gap-3 px-2 py-2">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+          {initial}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-white font-inter truncate">{user?.nom || user?.username || 'Utilisateur'}</p>
+          {user?.email && <p className="text-[11px] text-slate-500 font-inter truncate">{user.email}</p>}
+        </div>
+      </div>
+      <button
+        onClick={handleLogout}
+        data-testid="logout-btn"
+        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150 text-sm font-medium font-inter"
+      >
+        <LogOut className="w-[18px] h-[18px]" />
+        <span>Déconnexion</span>
+      </button>
+    </div>
+  );
+
   return (
     <div className="flex h-screen bg-[#020617] overflow-hidden">
-      {/* Noise overlay */}
-      <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      {/* Glow + noise */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#5B6CFF]/[0.06] blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.025] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r border-white/5 bg-slate-950/50 backdrop-blur-xl relative z-10">
-        <div className="p-6 border-b border-white/5">
-          <h1 className="text-xl font-bold font-sora bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          {user?.nom && (
-            <p className="text-sm text-slate-400 mt-1 font-inter truncate">
-              {user.nom}
-            </p>
-          )}
+      <aside className="hidden md:flex w-64 flex-col border-r border-white/[0.06] bg-[#080c17]/80 backdrop-blur-xl relative z-10">
+        <div className="px-5 pt-6 pb-5 border-b border-white/[0.06]">
+          <Brand />
         </div>
-
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path === '/dashboard'}
-                className={({ isActive }) =>
-                  cn(
-                    "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 font-inter",
-                    isActive
-                      ? "bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-l-2 border-[#5B6CFF]"
-                      : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                  )
-                }
-              >
-                <Icon className="w-5 h-5" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </NavLink>
-            );
-          })}
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter px-3 mb-2">Menu</p>
+          {navItems.map((item) => (
+            <NavItem key={item.path} item={item} />
+          ))}
         </nav>
-
-        <div className="p-4 border-t border-white/5">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 font-inter"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="text-sm font-medium">Déconnexion</span>
-          </button>
-        </div>
+        <UserBlock />
       </aside>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/5 px-4 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold font-sora bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
-          Dashboard
-        </h1>
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="text-slate-400 hover:text-white"
-        >
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#080c17]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
+        <Brand />
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-400 hover:text-white">
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-slate-950/95 backdrop-blur-xl pt-16">
-          <nav className="p-4 space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  end={item.path === '/dashboard'}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all font-inter",
-                      isActive
-                        ? "bg-[#5B6CFF]/20 text-white"
-                        : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                    )
-                  }
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </NavLink>
-              );
-            })}
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 mt-4 font-inter"
-            >
-              <LogOut className="w-5 h-5" />
-              <span className="font-medium">Déconnexion</span>
-            </button>
+        <div className="md:hidden fixed inset-0 z-40 bg-[#050810]/95 backdrop-blur-xl pt-20 flex flex-col">
+          <nav className="px-4 space-y-1 flex-1">
+            {navItems.map((item) => (
+              <NavItem key={item.path} item={item} onClick={() => setMobileMenuOpen(false)} />
+            ))}
           </nav>
+          <UserBlock />
         </div>
       )}
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative z-10 pt-16 md:pt-0">
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="p-5 md:p-8 w-full min-h-full">
           <Outlet />
         </div>
       </main>

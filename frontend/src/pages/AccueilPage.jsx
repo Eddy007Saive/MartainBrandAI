@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
-import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2 } from 'lucide-react';
+import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { analyticsService } from '../services/analyticsService';
 
 export default function AccueilPage() {
@@ -41,6 +42,26 @@ export default function AccueilPage() {
           Voici un aperçu de vos performances
         </p>
       </div>
+
+      {/* CTA Studio */}
+      <Link to="/dashboard/studio" className="block group">
+        <div className="relative overflow-hidden rounded-2xl border border-[#5B6CFF]/20 bg-gradient-to-br from-[#5B6CFF]/10 to-[#8A6CFF]/[0.04] p-5 hover:border-[#5B6CFF]/40 transition-all">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center shadow-lg shadow-[#5B6CFF]/20 flex-shrink-0">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-white font-semibold font-sora">Créer du contenu avec l'IA</p>
+                <p className="text-slate-400 text-sm font-inter">Générez posts et scripts à partir de votre marque</p>
+              </div>
+            </div>
+            <div className="hidden sm:flex items-center gap-1.5 text-[#8A6CFF] font-medium text-sm font-inter group-hover:gap-2.5 transition-all flex-shrink-0">
+              Ouvrir le Studio <ArrowRight className="w-4 h-4" />
+            </div>
+          </div>
+        </div>
+      </Link>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">

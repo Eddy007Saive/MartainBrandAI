@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react';
 import { Calendar, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
 
 const STATUT_COLORS = {
   'A valider': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  'Validé': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  'Publié': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  'Refusé': 'bg-red-500/20 text-red-400 border-red-500/30',
+  'Valider': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  'Planifie': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  'Publie': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  'Refuse': 'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -88,15 +90,7 @@ export default function PlanificationPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold font-sora text-white">Planification</h1>
-          <p className="text-slate-400 font-inter text-sm mt-1">
-            Visualisez vos publications planifiées
-          </p>
-        </div>
-      </div>
+      <PageHeader icon={Calendar} title="Planification" subtitle="Visualisez vos publications planifiées" />
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
@@ -162,11 +156,11 @@ export default function PlanificationPage() {
                         key={c.id}
                         className="text-xs p-1 rounded truncate"
                         style={{
-                          backgroundColor: c.statut === 'Publié' ? 'rgba(59, 130, 246, 0.2)' :
-                                          c.statut === 'Validé' ? 'rgba(16, 185, 129, 0.2)' :
+                          backgroundColor: c.statut === 'Publie' ? 'rgba(59, 130, 246, 0.2)' :
+                                          c.statut === 'Valider' ? 'rgba(16, 185, 129, 0.2)' :
                                           'rgba(245, 158, 11, 0.2)',
-                          color: c.statut === 'Publié' ? '#60a5fa' :
-                                c.statut === 'Validé' ? '#34d399' :
+                          color: c.statut === 'Publie' ? '#60a5fa' :
+                                c.statut === 'Valider' ? '#34d399' :
                                 '#fbbf24'
                         }}
                         title={c.titre || c.contenu?.substring(0, 50)}

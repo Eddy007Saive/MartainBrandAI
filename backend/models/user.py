@@ -5,6 +5,20 @@ from typing import Optional
 class UserUpdate(BaseModel):
     nom: Optional[str] = None
     username: Optional[str] = None
+    # Voix de marque (nourrit les agents du Studio IA)
+    secteur: Optional[str] = None
+    voix_marque: Optional[str] = None
+    audience: Optional[str] = None
+    piliers: Optional[str] = None
+    a_eviter: Optional[str] = None
+    hooks: Optional[str] = None
+    ctas: Optional[str] = None
+    regles: Optional[str] = None
+    # Exemples de posts par réseau (few-shot : calibre le style)
+    exemples_linkedin: Optional[str] = None
+    exemples_instagram: Optional[str] = None
+    exemples_facebook: Optional[str] = None
+    exemples_tiktok: Optional[str] = None
     photo_url: Optional[str] = None
     use_photo: Optional[bool] = None
     user_name: Optional[str] = None

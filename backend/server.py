@@ -9,6 +9,7 @@ from routes.commentaires import router as commentaires_router
 from routes.analytics import router as analytics_router
 from routes.brouillons import router as brouillons_router
 from routes.heygen import router as heygen_router
+from routes.agent import router as agent_router
 
 app = FastAPI()
 
@@ -30,6 +31,7 @@ api_router.include_router(commentaires_router)
 api_router.include_router(analytics_router)
 api_router.include_router(brouillons_router)
 api_router.include_router(heygen_router)
+api_router.include_router(agent_router)
 
 app.include_router(api_router)
 

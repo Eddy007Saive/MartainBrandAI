@@ -1,0 +1,10 @@
+{
+  "name": "agent-writer-test",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Test : génération de contenu par Claude (Anthropic SDK) à partir du dossier-mémoire d'un client",
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest"
+  }
+}
