@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from dependencies import verify_token
 from models.user import UserUpdate, SocialConnectRequest
 from models.schedule import ScheduleUpdate
@@ -68,6 +68,25 @@ async def update_current_user(updates: UserUpdate, payload: dict = Depends(verif
     except Exception as e:
         logger.error(f"Update user error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/me/photo")
+async def upload_my_photo(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
+    """Upload la photo de profil (image) -> Cloudinary -> users.photo_url."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image (jpg, png, webp…)")
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
+    try:
+        url = user_service.upload_photo(telegram_id, data)
+        return {"photo_url": url}
+    except Exception as e:
+        logger.error(f"Upload photo error: {e}")
+        raise HTTPException(status_code=500, detail="Échec de l'upload de la photo")
 
 
 @router.post("/me/connect")

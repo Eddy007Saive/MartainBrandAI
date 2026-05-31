@@ -121,8 +121,9 @@ export default function PlanificationPage() {
             </Button>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1">
+          {/* Calendar Grid — scroll horizontal sur mobile pour garder des cellules lisibles */}
+          <div className="overflow-x-auto -mx-2 px-2">
+          <div className="grid grid-cols-7 gap-1 min-w-[640px]">
             {/* Day headers */}
             {JOURS.map((jour) => (
               <div key={jour} className="text-center text-slate-500 text-sm font-inter py-2">
@@ -177,6 +178,7 @@ export default function PlanificationPage() {
                 </div>
               );
             })}
+          </div>
           </div>
 
           {/* Legend */}

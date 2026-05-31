@@ -232,6 +232,28 @@ export default function ParametresPage() {
   // --- Profile ---
   const handleChange = (name, value) => setUser(prev => ({ ...prev, [name]: value }));
 
+  // Upload de la photo de profil
+  const photoInputRef = useRef(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image (jpg, png, webp).'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    setUploadingPhoto(true);
+    try {
+      const { photo_url } = await userService.uploadPhoto(file);
+      handleChange('photo_url', photo_url);
+      toast.success('Photo mise à jour');
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Échec de l'upload de la photo");
+    } finally {
+      setUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -317,6 +339,44 @@ export default function ParametresPage() {
   // --- Section renderers ---
   const renderIdentity = () => (
     <div className="space-y-6">
+      {/* Photo de profil — en haut */}
+      <div className="flex flex-col sm:flex-row items-center gap-5 p-5 rounded-2xl bg-slate-950/40 border border-slate-800">
+        <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-slate-800/60 border border-white/10 flex items-center justify-center flex-shrink-0">
+          {user?.photo_url ? (
+            <img src={user.photo_url} alt="Photo de profil" className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-10 h-10 text-slate-600" />
+          )}
+          {uploadingPhoto && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-white" />
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 text-center sm:text-left space-y-2">
+          <p className="text-sm font-semibold text-white font-sora">Photo de profil</p>
+          <p className="text-xs text-slate-500 font-inter leading-relaxed">
+            JPG, PNG ou WebP — 10 Mo max.<br className="hidden sm:block" /> Utilisée dans vos visuels générés si activée.
+          </p>
+          <div className="flex items-center justify-center sm:justify-start gap-3 pt-1">
+            <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" data-testid="input-photo" />
+            <Button
+              type="button" size="sm" onClick={() => photoInputRef.current?.click()} disabled={uploadingPhoto}
+              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter"
+            >
+              <Upload className="w-4 h-4 mr-1.5" />
+              {user?.photo_url ? 'Changer la photo' : 'Téléverser une photo'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 sm:self-start sm:pt-1">
+          <Label className="text-sm font-medium text-slate-300 font-inter">Utiliser</Label>
+          <Switch checked={user?.use_photo || false} onCheckedChange={(c) => handleChange('use_photo', c)} data-testid="toggle-use-photo" />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Field label="Nom" name="nom" value={user?.nom} onChange={handleChange}
           hint="Votre nom complet tel qu'il apparaîtra dans vos contenus générés." />
@@ -325,8 +385,6 @@ export default function ParametresPage() {
         <Field label="Email" name="email" value={user?.email} onChange={handleChange} readOnly />
         <Field label="Nom affiché" name="user_name" value={user?.user_name} onChange={handleChange}
           hint="Le nom public affiché dans vos posts." />
-        <Field label="URL Photo" name="photo_url" value={user?.photo_url} onChange={handleChange}
-          hint={"Comment obtenir l'URL depuis Google Drive :\n1. Uploadez votre photo sur Google Drive\n2. Clic droit → « Partager »\n3. Accès « Tout le monde avec le lien »\n4. Copiez l'ID et collez le lien ici."} />
         <div className="space-y-2">
           <Label className="text-sm font-medium text-slate-300 font-inter">Sexe</Label>
           <Select value={user?.sexe || ''} onValueChange={(v) => handleChange('sexe', v)}>
@@ -342,22 +400,6 @@ export default function ParametresPage() {
         </div>
         <Field label="Style vestimentaire" name="style_vestimentaire" value={user?.style_vestimentaire} onChange={handleChange}
           hint="Ex: Casual, Business, Sportif, Élégant, Streetwear…" />
-        <div className="flex items-center justify-between p-4 bg-slate-950/30 rounded-lg border border-slate-800">
-          <div className="flex items-center gap-1.5">
-            <Label className="text-sm font-medium text-slate-300 font-inter">Utiliser la photo</Label>
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300 cursor-help transition-colors" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs bg-slate-800 border border-slate-700 text-slate-200 text-xs leading-relaxed" side="top">
-                  Votre photo sera intégrée dans les contenus générés.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <Switch checked={user?.use_photo || false} onCheckedChange={(c) => handleChange('use_photo', c)} data-testid="toggle-use-photo" />
-        </div>
       </div>
     </div>
   );

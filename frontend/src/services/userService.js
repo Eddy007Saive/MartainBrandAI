@@ -7,6 +7,15 @@ export const userService = {
   updateMe: (data) =>
     api.patch('/users/me', data).then(r => r.data),
 
+  // Upload de la photo de profil (multipart) -> { photo_url }
+  uploadPhoto: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post('/users/me/photo', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data);
+  },
+
   deleteMe: () =>
     api.delete('/users/me').then(r => r.data),
 

@@ -70,17 +70,21 @@ def prochain_creneau(telegram_id: int, reseau_cible: str | None) -> str | None:
 
     ptime = _parse_time(row.get("preferred_time")) if row else DEFAULT_TIME
     days = set(row.get("days_of_week") or []) if row else set()
-    actif = bool(row.get("is_active")) if row else False
 
     occ = _jours_occupes(telegram_id, reseau_cible)
     today = datetime.now(timezone.utc).date()
 
     for i in range(1, HORIZON_DAYS + 1):
         d = today + timedelta(days=i)
-        jour_num = d.isoweekday() % 7  # Lun=1 … Sam=6, Dim=0
-        # Cadence active avec jours définis -> respecter ; sinon n'importe quel jour libre
-        if actif and days and jour_num not in days:
-            continue
+        jour_num = d.isoweekday() % 7  # Lun=1 … Ven=5, Sam=6, Dim=0
+        if days:
+            # Jours préférés définis -> on les respecte tels quels (même un week-end choisi exprès)
+            if jour_num not in days:
+                continue
+        else:
+            # Pas de jours définis -> jours ouvrés seulement (on saute samedi & dimanche)
+            if jour_num == 6 or jour_num == 0:
+                continue
         if d.isoformat() in occ:
             continue
         dt = datetime(d.year, d.month, d.day, ptime.hour, ptime.minute, tzinfo=timezone.utc)
