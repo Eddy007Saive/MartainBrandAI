@@ -1,5 +1,6 @@
 import bcrypt
 import jwt
+import hashlib
 from datetime import datetime, timezone, timedelta
 from config import JWT_SECRET, supabase, logger
 
@@ -52,6 +53,45 @@ def register_user(telegram_id: int, nom: str, email: str, username: str, passwor
     }
 
     supabase.table("users").insert(new_user).execute()
+    return {"success": True}
+
+
+def _pwd_fingerprint(password_hash: str) -> str:
+    """Empreinte courte du hash actuel — sert à rendre le lien de reset à usage unique."""
+    return hashlib.sha256((password_hash or "").encode("utf-8")).hexdigest()[:16]
+
+
+def create_reset_token(telegram_id: int, password_hash: str) -> str:
+    """Token JWT de réinitialisation (1h). Lié au hash courant -> invalide dès que le mdp change."""
+    return create_token(
+        {"telegram_id": telegram_id, "type": "reset", "fp": _pwd_fingerprint(password_hash)},
+        expires_delta=timedelta(hours=1),
+    )
+
+
+def find_user_by_email(email: str) -> dict | None:
+    res = supabase.table("users").select("telegram_id, email, nom, username, password_hash").eq("email", email).execute()
+    return res.data[0] if res.data else None
+
+
+def reset_password(token: str, new_password: str) -> dict:
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        return {"error": "expired"}
+    except Exception:
+        return {"error": "invalid"}
+    if payload.get("type") != "reset":
+        return {"error": "invalid"}
+    telegram_id = payload.get("telegram_id")
+    res = supabase.table("users").select("password_hash").eq("telegram_id", telegram_id).execute()
+    if not res.data:
+        return {"error": "invalid"}
+    current_hash = res.data[0].get("password_hash", "")
+    # Lien déjà utilisé : le hash a changé donc l'empreinte ne correspond plus
+    if payload.get("fp") != _pwd_fingerprint(current_hash):
+        return {"error": "used"}
+    supabase.table("users").update({"password_hash": hash_password(new_password)}).eq("telegram_id", telegram_id).execute()
     return {"success": True}
 
 

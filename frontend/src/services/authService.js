@@ -9,4 +9,10 @@ export const authService = {
 
   adminLogin: (password) =>
     api.post('/auth/admin-login', { password }).then(r => r.data),
+
+  forgotPassword: (email) =>
+    api.post('/auth/forgot-password', { email }).then(r => r.data),
+
+  resetPassword: (token, password) =>
+    api.post('/auth/reset-password', { token, password }).then(r => r.data),
 };
