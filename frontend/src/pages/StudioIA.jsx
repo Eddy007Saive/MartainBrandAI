@@ -92,6 +92,14 @@ export default function StudioIA() {
   const [cfgType, setCfgType] = useState('Reel');
   const [cfgQualite, setCfgQualite] = useState('equilibre');
 
+  // Brief perso (sujet libre écrit par l'utilisateur)
+  const [briefOpen, setBriefOpen] = useState(false);
+  const [briefText, setBriefText] = useState('');
+  const [bFormat, setBFormat] = useState('post');
+  const [bReseau, setBReseau] = useState('linkedin');
+  const [bType, setBType] = useState('Reel');
+  const [bQualite, setBQualite] = useState('equilibre');
+
   const [loadingSujets, setLoadingSujets] = useState(false);
   const [logIndex, setLogIndex] = useState(0);
   const [contenus, setContenus] = useState(chargerContenus); // restaurés depuis le navigateur
@@ -170,14 +178,41 @@ export default function StudioIA() {
     }
   };
 
+  // --- Génération depuis un brief libre écrit par l'utilisateur ---
+  const genererBrief = async () => {
+    const txt = briefText.trim();
+    if (!txt) return;
+    if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
+    const fmt = bFormat;
+    const meta = fmt === 'post' ? bReseau : bType;
+    const qualite = bQualite;
+    const cardId = nextId();
+    const titre = txt.length > 80 ? txt.slice(0, 80) + '…' : txt;
+    setContenus((prev) => [{ id: cardId, sujet: titre, promptFull: txt, texte: '', statut: 'redaction', format: fmt, meta, qualite }, ...prev]);
+    setBriefText('');
+    setBriefOpen(false);
+    try {
+      const d = fmt === 'script'
+        ? await agentService.script(txt, meta, qualite)
+        : await agentService.rediger(txt, meta, false, qualite);
+      if (d.credits != null) updateUser({ credits: d.credits });
+      const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
+    } catch (e) {
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'pret' } : c)));
+      erreurGen(e);
+    }
+  };
+
   const regenerer = async (id) => {
     const card = contenus.find((c) => c.id === id);
     if (!card) return;
+    const prompt = card.promptFull || card.sujet;
     setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'redaction' } : c)));
     try {
       const d = card.format === 'script'
-        ? await agentService.script(card.sujet, card.meta, card.qualite)
-        : await agentService.rediger(card.sujet, card.meta, false, card.qualite);
+        ? await agentService.script(prompt, card.meta, card.qualite)
+        : await agentService.rediger(prompt, card.meta, false, card.qualite);
       if (d.credits != null) updateUser({ credits: d.credits });
       const texte = card.format === 'script' ? (d.script || '') : (d.contenu || '');
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, statut: 'pret' } : c)));
@@ -277,6 +312,61 @@ export default function StudioIA() {
               {loadingSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               <span className="ml-2">Générer des sujets</span>
             </Button>
+          </div>
+
+          {/* Brief perso (sujet libre) */}
+          <div className="rounded-xl border border-white/5 bg-slate-950/40">
+            <button onClick={() => setBriefOpen((o) => !o)} data-testid="studio-brief-toggle"
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-inter text-slate-300 hover:text-white transition-colors">
+              <PenLine className="w-4 h-4 text-[#8A6CFF]" />
+              <span>Écrire mon propre brief</span>
+              <span className="ml-auto text-xs text-slate-500">{briefOpen ? '▲' : '▼'}</span>
+            </button>
+            {briefOpen && (
+              <div className="px-4 pb-4 space-y-3 animate-fade-in">
+                <Textarea
+                  value={briefText} onChange={(e) => setBriefText(e.target.value)} rows={3}
+                  data-testid="studio-brief-text"
+                  placeholder="Ex : Promo pour la sortie du module Goodtime — ton enthousiaste, bénéfices clés, CTA inscription."
+                  className="bg-slate-950/60 border-white/10 text-slate-100 font-inter resize-y text-sm"
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 font-inter">Format</span>
+                  {FORMATS.map((f) => {
+                    const Icon = f.icon;
+                    return (
+                      <Pill key={f.id} active={bFormat === f.id} onClick={() => setBFormat(f.id)}>
+                        <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{f.label}</span>
+                      </Pill>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 font-inter">{bFormat === 'script' ? 'Type' : 'Réseau'}</span>
+                  {(bFormat === 'script' ? TYPES_VIDEO : RESEAUX).map((r) => (
+                    <Pill key={r.id}
+                      active={bFormat === 'script' ? bType === r.id : bReseau === r.id}
+                      onClick={() => (bFormat === 'script' ? setBType(r.id) : setBReseau(r.id))}>
+                      {r.label}
+                    </Pill>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 font-inter">Qualité</span>
+                  {QUALITES.map((q) => (
+                    <Pill key={q.id} active={bQualite === q.id} onClick={() => setBQualite(q.id)}>
+                      {q.icon} {q.label} · {q.cout[bFormat]} cr.
+                    </Pill>
+                  ))}
+                </div>
+                <div className="flex items-center justify-end">
+                  <Button onClick={genererBrief} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer"
+                    className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white disabled:opacity-40">
+                    <Wand2 className="w-4 h-4" /><span className="ml-2">Rédiger · {QUALITES.find((q) => q.id === bQualite)?.cout[bFormat]} cr.</span>
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Logs */}
