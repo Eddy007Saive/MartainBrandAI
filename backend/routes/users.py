@@ -89,6 +89,43 @@ async def upload_my_photo(file: UploadFile = File(...), payload: dict = Depends(
         raise HTTPException(status_code=500, detail="Échec de l'upload de la photo")
 
 
+@router.get("/me/inspirations")
+async def list_inspirations(payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return {"images": user_service.list_inspirations(telegram_id)}
+
+
+@router.post("/me/inspirations")
+async def add_inspiration(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
+    """Ajoute une image d'inspiration (style aimé) -> Cloudinary."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image")
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
+    try:
+        return {"images": user_service.add_inspiration(telegram_id, data)}
+    except Exception as e:
+        logger.error(f"Add inspiration error: {e}")
+        raise HTTPException(status_code=500, detail="Échec de l'upload")
+
+
+@router.delete("/me/inspirations")
+async def remove_inspiration(body: dict, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    url = (body.get("url") or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="url requise")
+    return {"images": user_service.remove_inspiration(telegram_id, url)}
+
+
 @router.post("/me/connect")
 async def connect_social(data: SocialConnectRequest, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")

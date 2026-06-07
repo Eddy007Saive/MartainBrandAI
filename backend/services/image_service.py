@@ -9,6 +9,7 @@ import base64
 import httpx
 import cloudinary
 import cloudinary.uploader
+import cloudinary.api
 import anthropic
 from config import (
     CLAUDE_API_KEY, OPENROUTER_API_KEY, OPENROUTER_IMAGE_MODEL,
@@ -59,17 +60,43 @@ def generer_prompt(telegram_id: int, post_texte: str, reseau: str = "linkedin") 
     return {"prompt": prompt}
 
 
+def inspiration_urls(telegram_id: int, limit: int = 20) -> list:
+    """Liste les images d'inspiration de l'utilisateur (dossier Cloudinary)."""
+    try:
+        res = cloudinary.api.resources(
+            type="upload", prefix=f"inspirations/{telegram_id}/", max_results=limit,
+        )
+        return [r["secure_url"] for r in res.get("resources", []) if r.get("secure_url")]
+    except Exception as e:
+        logger.warning(f"list inspirations error: {e}")
+        return []
+
+
 async def generer_image(telegram_id: int, prompt: str, avec_photo: bool = False, model: str = None) -> dict:
-    """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL."""
+    """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
+
+    Si l'utilisateur a des images d'inspiration, elles sont passées en référence de STYLE.
+    Si avec_photo, sa photo de profil est intégrée (même visage).
+    """
     if not OPENROUTER_API_KEY:
         return {"error": "no_openrouter_key"}
     u = _charger_marque(telegram_id)
 
+    texte = prompt
+    images = []  # images de référence à joindre
     if avec_photo and u.get("photo_url"):
-        content = [
-            {"type": "text", "text": prompt + "\n\nIntègre la personne de la photo de référence de façon naturelle et cohérente (même visage)."},
-            {"type": "image_url", "image_url": {"url": u["photo_url"]}},
-        ]
+        texte += "\n\nIntègre la personne de la photo de référence de façon naturelle et cohérente (même visage)."
+        images.append(u["photo_url"])
+
+    inspis = inspiration_urls(telegram_id)[:3]  # max 3 références de style
+    if inspis:
+        texte += ("\n\nInspire-toi du STYLE VISUEL (composition, palette de couleurs, ambiance, "
+                  "éclairage, traitement) de ces images de référence, sans en copier le contenu.")
+        images.extend(inspis)
+
+    if images:
+        content = [{"type": "text", "text": texte}]
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in images]
     else:
         content = prompt
 

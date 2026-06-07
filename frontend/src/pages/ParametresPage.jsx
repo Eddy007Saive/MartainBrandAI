@@ -126,6 +126,12 @@ export default function ParametresPage() {
   const [schedulesLoaded, setSchedulesLoaded] = useState(false);
   const [savingSchedules, setSavingSchedules] = useState(false);
 
+  // Inspirations visuelles
+  const [inspirations, setInspirations] = useState([]);
+  const [inspiLoaded, setInspiLoaded] = useState(false);
+  const [uploadingInspi, setUploadingInspi] = useState(false);
+  const inspiInputRef = useRef(null);
+
   // Avatar
   const [avatar, setAvatar] = useState(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
@@ -152,6 +158,45 @@ export default function ParametresPage() {
   useEffect(() => {
     if (activeSection === 'schedules' && !schedulesLoaded) fetchSchedules();
   }, [activeSection, schedulesLoaded, fetchSchedules]);
+
+  // --- Inspirations visuelles ---
+  useEffect(() => {
+    if (activeSection === 'style' && !inspiLoaded) {
+      userService.listInspirations()
+        .then((d) => setInspirations(d.images || []))
+        .catch(() => {})
+        .finally(() => setInspiLoaded(true));
+    }
+  }, [activeSection, inspiLoaded]);
+
+  const handleInspiUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploadingInspi(true);
+    try {
+      let latest;
+      for (const f of files) {
+        if (!f.type.startsWith('image/')) { toast.error(`${f.name} : pas une image`); continue; }
+        if (f.size > 10 * 1024 * 1024) { toast.error(`${f.name} : trop lourde (10 Mo max)`); continue; }
+        latest = await userService.addInspiration(f);
+      }
+      if (latest) { setInspirations(latest.images || []); toast.success('Inspiration(s) ajoutée(s)'); }
+    } catch (err) {
+      toast.error("Échec de l'upload");
+    } finally {
+      setUploadingInspi(false);
+      if (inspiInputRef.current) inspiInputRef.current.value = '';
+    }
+  };
+
+  const handleInspiDelete = async (url) => {
+    try {
+      const d = await userService.removeInspiration(url);
+      setInspirations(d.images || []);
+    } catch (err) {
+      toast.error('Échec de la suppression');
+    }
+  };
 
   const handleScheduleChange = (platform, field, value) => {
     setSchedules(prev => prev.map(s => s.platform === platform ? { ...s, [field]: value } : s));
@@ -686,6 +731,47 @@ export default function ParametresPage() {
           <p className="text-white font-sora font-semibold text-sm">Dégradé Preview</p>
           <p className="text-xs mt-0.5" style={{ color: user?.couleur_accent || '#3AFFA3' }}>Texte accent</p>
         </div>
+      </div>
+
+      {/* Inspirations visuelles */}
+      <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/50 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-white font-sora">Inspirations visuelles</h3>
+            <p className="text-xs text-slate-500 font-inter mt-0.5 leading-relaxed">
+              Ajoutez des images dont vous aimez le style. L'IA s'en inspire (composition, couleurs, ambiance) pour générer vos visuels.
+            </p>
+          </div>
+          <input ref={inspiInputRef} type="file" accept="image/*" multiple onChange={handleInspiUpload} className="hidden" data-testid="input-inspiration" />
+          <Button
+            type="button" size="sm" onClick={() => inspiInputRef.current?.click()} disabled={uploadingInspi}
+            className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter flex-shrink-0"
+          >
+            {uploadingInspi ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Upload className="w-4 h-4 mr-1.5" />}
+            Ajouter
+          </Button>
+        </div>
+
+        {!inspiLoaded ? (
+          <div className="flex items-center justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-[#5B6CFF]" /></div>
+        ) : inspirations.length === 0 ? (
+          <p className="text-xs text-slate-600 font-inter py-4 text-center">Aucune inspiration pour l'instant. Ajoutez des images que vous aimez.</p>
+        ) : (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+            {inspirations.map((url) => (
+              <div key={url} className="relative group aspect-square rounded-lg overflow-hidden border border-white/10">
+                <img src={url} alt="" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => handleInspiDelete(url)}
+                  className="absolute top-1 right-1 w-6 h-6 rounded-md bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-500/80"
+                  title="Supprimer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

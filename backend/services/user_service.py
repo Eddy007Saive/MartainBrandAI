@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import cloudinary
 import cloudinary.uploader
+import cloudinary.api
 from config import (
     supabase, logger,
     CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
@@ -56,6 +57,36 @@ def upload_photo(telegram_id: int, file_bytes: bytes) -> str:
 
     _delete_old_photo(old_url, keep_public_id=public_id)
     return url
+
+
+# ---- Inspirations visuelles (stockées dans Cloudinary : inspirations/{telegram_id}/) ----
+
+def list_inspirations(telegram_id: int) -> list:
+    try:
+        res = cloudinary.api.resources(
+            type="upload", prefix=f"inspirations/{telegram_id}/", max_results=30,
+        )
+        return [r["secure_url"] for r in res.get("resources", []) if r.get("secure_url")]
+    except Exception as e:
+        logger.warning(f"list_inspirations error: {e}")
+        return []
+
+
+def add_inspiration(telegram_id: int, file_bytes: bytes) -> list:
+    cloudinary.uploader.upload(
+        file_bytes, resource_type="image", folder=f"inspirations/{telegram_id}",
+    )
+    return list_inspirations(telegram_id)
+
+
+def remove_inspiration(telegram_id: int, url: str) -> list:
+    pid = _public_id_from_cloudinary_url(url or "")
+    if pid:
+        try:
+            cloudinary.uploader.destroy(pid, resource_type="image", invalidate=True)
+        except Exception as e:
+            logger.warning(f"remove_inspiration destroy error ({pid}): {e}")
+    return list_inspirations(telegram_id)
 
 
 def get_user(telegram_id: int) -> dict | None:
