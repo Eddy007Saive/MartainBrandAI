@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from dependencies import verify_token
-from services import agent_service, credit_service, usage_service, image_service, planning_service
+from services import agent_service, credit_service, usage_service, image_service, planning_service, plan_service
 from config import supabase, logger, CLAUDE_MODEL, OPENROUTER_IMAGE_MODEL
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -54,6 +54,15 @@ async def sujets(body: dict, payload: dict = Depends(verify_token)):
             logger.error(f"Save sujets error: {e}")
             saved = [{"id": None, "titre": s} for s in result.get("sujets", [])]
     return {"sujets": saved, "credits": solde}
+
+
+@router.get("/plan")
+async def plan(payload: dict = Depends(verify_token)):
+    """Plan éditorial glissant 30j : besoin/rempli/reste par réseau actif."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return {"plan": plan_service.compute_plan(telegram_id)}
 
 
 @router.get("/sujets")

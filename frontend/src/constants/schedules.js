@@ -16,9 +16,19 @@ export const DAYS = [
   { value: 0, label: 'Dim' },
 ];
 
+// Format de contenu par réseau (pour le plan éditorial)
+export const FORMATS_RESEAU = [
+  { value: 'post', label: 'Post écrit' },
+  { value: 'reel', label: 'Réel / Short' },
+  { value: 'video', label: 'Vidéo' },
+];
+
+export const FORMAT_LABELS = { post: 'Post', reel: 'Réel', video: 'Vidéo' };
+
 export const DEFAULT_SCHEDULE = {
   frequency: 'weekly',
   days_of_week: [],
   preferred_time: '09:00',
   is_active: false,
+  format: 'post',
 };

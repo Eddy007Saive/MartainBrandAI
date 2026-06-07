@@ -24,7 +24,7 @@ import { heygenService } from '../services/heygenService';
 import { removeToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
-import { FREQUENCIES, DAYS, DEFAULT_SCHEDULE } from '../constants/schedules';
+import { FREQUENCIES, DAYS, DEFAULT_SCHEDULE, FORMATS_RESEAU } from '../constants/schedules';
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
@@ -652,6 +652,17 @@ export default function ParametresPage() {
                           className="w-full rounded-md bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-xs px-3 py-1.5 h-8 outline-none" />
                       </div>
                     </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-slate-400 font-inter">Format de contenu</Label>
+                      <Select value={schedule.format || 'post'} onValueChange={(v) => handleScheduleChange(schedule.platform, 'format', v)}>
+                        <SelectTrigger data-testid={`schedule-format-${schedule.platform}`} className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-xs h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-900 border-slate-800">
+                          {FORMATS_RESEAU.map(f => <SelectItem key={f.value} value={f.value} className="text-slate-200 focus:bg-slate-800 text-xs">{f.label}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     {showDays && (
                       <div className="space-y-1.5">
                         <Label className="text-xs text-slate-400 font-inter">Jours</Label>
@@ -741,6 +752,10 @@ export default function ParametresPage() {
             <p className="text-xs text-slate-500 font-inter mt-0.5 leading-relaxed">
               Ajoutez des images dont vous aimez le style. L'IA s'en inspire (composition, couleurs, ambiance) pour générer vos visuels.
             </p>
+            <div className="flex items-center gap-2 mt-2">
+              <Switch checked={user?.use_inspirations ?? true} onCheckedChange={(c) => handleChange('use_inspirations', c)} data-testid="toggle-use-inspirations" />
+              <span className="text-xs text-slate-400 font-inter">Utiliser mes inspirations à la génération</span>
+            </div>
           </div>
           <input ref={inspiInputRef} type="file" accept="image/*" multiple onChange={handleInspiUpload} className="hidden" data-testid="input-inspiration" />
           <Button

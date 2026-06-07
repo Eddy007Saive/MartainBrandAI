@@ -8,6 +8,7 @@ class ScheduleItem(BaseModel):
     days_of_week: List[int] = []
     preferred_time: str = "09:00"
     is_active: bool = True
+    format: str = "post"  # post | reel | video
 
 
 class ScheduleUpdate(BaseModel):

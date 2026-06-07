@@ -21,6 +21,7 @@ class UserUpdate(BaseModel):
     exemples_tiktok: Optional[str] = None
     photo_url: Optional[str] = None
     use_photo: Optional[bool] = None
+    use_inspirations: Optional[bool] = None
     user_name: Optional[str] = None
     style_vestimentaire: Optional[str] = None
     sexe: Optional[str] = None
@@ -49,6 +50,7 @@ class UserResponse(BaseModel):
     actif: bool = False
     photo_url: Optional[str] = None
     use_photo: Optional[bool] = None
+    use_inspirations: Optional[bool] = None
     user_name: Optional[str] = None
     style_vestimentaire: Optional[str] = None
     sexe: Optional[str] = None

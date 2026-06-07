@@ -5,6 +5,9 @@ export const agentService = {
   sujets: (nombre = 6) =>
     api.post('/agent/sujets', { nombre }).then((r) => r.data),
 
+  // Plan éditorial glissant 30j (besoin/rempli/reste par réseau)
+  plan: () => api.get('/agent/plan').then((r) => r.data),
+
   // Liste les sujets sauvegardés (persistants)
   sujetsList: () => api.get('/agent/sujets').then((r) => r.data),
 

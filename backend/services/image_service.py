@@ -88,7 +88,7 @@ async def generer_image(telegram_id: int, prompt: str, avec_photo: bool = False,
         texte += "\n\nIntègre la personne de la photo de référence de façon naturelle et cohérente (même visage)."
         images.append(u["photo_url"])
 
-    inspis = inspiration_urls(telegram_id)[:3]  # max 3 références de style
+    inspis = inspiration_urls(telegram_id)[:3] if u.get("use_inspirations", True) else []  # max 3 références de style
     if inspis:
         texte += ("\n\nInspire-toi du STYLE VISUEL (composition, palette de couleurs, ambiance, "
                   "éclairage, traitement) de ces images de référence, sans en copier le contenu.")

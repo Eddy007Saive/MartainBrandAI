@@ -27,6 +27,7 @@ def update_schedules(telegram_id: int, schedules: list) -> dict:
             "days_of_week": item.days_of_week,
             "preferred_time": item.preferred_time,
             "is_active": item.is_active,
+            "format": getattr(item, "format", "post") or "post",
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         supabase.table("publication_schedules").upsert(
