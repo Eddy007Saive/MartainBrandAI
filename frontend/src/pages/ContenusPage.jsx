@@ -113,7 +113,7 @@ function CardAction({ title, onClick, children, className = '' }) {
 
 function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
   const isLoading = actionLoading === contenu.id;
-  const isCarrousel = contenu.type === 'Carrousel';
+  const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
   const regenLoading = carrouselLoading === contenu.id;
   const date = contenu.date_publication
     ? new Date(contenu.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
