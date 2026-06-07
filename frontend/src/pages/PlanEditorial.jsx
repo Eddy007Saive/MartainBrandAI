@@ -24,15 +24,31 @@ const NET_META = {
 const FORMAT_LABEL = { post: 'Post écrit', reel: 'Réel', video: 'Vidéo' };
 // coût crédits par (kind × qualité) — kind: post | script
 const COST = {
-  post:   { rapide: 8, equilibre: 20, premium: 40 },
-  script: { rapide: 12, equilibre: 30, premium: 60 },
+  post:      { rapide: 8, equilibre: 20, premium: 40 },
+  script:    { rapide: 12, equilibre: 30, premium: 60 },
+  carrousel: { rapide: 40, equilibre: 80, premium: 140 },
+};
+// libellés des formats
+const FORMAT_LBL = { post: 'Post', carrousel: 'Carrousel', reel: 'Réel', video: 'Vidéo' };
+// formats acceptés PAR réseau (chaque réseau n'accepte pas tout)
+const FORMATS_BY_NET = {
+  linkedin:  ['post', 'carrousel', 'video'],
+  instagram: ['post', 'carrousel', 'reel', 'video'],
+  facebook:  ['post', 'carrousel', 'reel', 'video'],
+  tiktok:    ['reel', 'video'],
+  youtube:   ['video', 'reel'],
+};
+const formatsFor = (netId) => FORMATS_BY_NET[netId] || ['post'];
+const defaultFormat = (netId, configFmt) => {
+  const allowed = formatsFor(netId);
+  return allowed.includes(configFmt) ? configFmt : allowed[0];
 };
 const QUALITES = [
   { id: 'rapide', label: 'Rapide' },
   { id: 'equilibre', label: 'Équilibré' },
   { id: 'premium', label: 'Premium' },
 ];
-const kindOf = (fmt) => (fmt === 'post' ? 'post' : 'script');
+const costKey = (fmt) => (fmt === 'post' ? 'post' : fmt === 'carrousel' ? 'carrousel' : 'script');
 
 export default function PlanEditorial() {
   const { user, updateUser } = useUser();
@@ -45,7 +61,7 @@ export default function PlanEditorial() {
   const [plan, setPlan] = useState([]);
   const [loadingPlan, setLoadingPlan] = useState(true);
   const [subjects, setSubjects] = useState([]);
-  const [sel, setSel] = useState({}); // { [subjectId]: { checked, nets:Set } } — réseaux choisis PAR sujet
+  const [sel, setSel] = useState({}); // { [subjectId]: { checked, nets:{netId: format} } } — réseaux + format PAR sujet
   const [quality, setQuality] = useState('equilibre');
   const [nbSujets, setNbSujets] = useState(6);
   const [genSujets, setGenSujets] = useState(false);
@@ -89,30 +105,34 @@ export default function PlanEditorial() {
     const items = [];
     for (const s of subjects) {
       const st = sel[s.id];
-      if (!st?.checked || !st.nets?.size) continue;
-      for (const netId of st.nets) {
-        const net = networks.find((n) => n.id === netId);
-        const fmt = net?.format || 'post';
+      if (!st?.checked || !st.nets || !Object.keys(st.nets).length) continue;
+      for (const [netId, fmt] of Object.entries(st.nets)) {
         posts += 1;
-        cost += COST[kindOf(fmt)][quality];
-        items.push({ sujet: s.titre, reseau: netId, qualite: quality });
+        cost += COST[costKey(fmt)][quality];
+        items.push({ sujet: s.titre, reseau: netId, format: fmt, qualite: quality });
       }
     }
     return { posts, cost, items };
-  }, [subjects, sel, quality, networks]);
+  }, [subjects, sel, quality]);
 
   // coche/décoche un sujet ; le décocher vide ses réseaux
   const toggleSubj = (id) => setSel((p) => {
-    const cur = p[id] || { checked: false, nets: new Set() };
+    const cur = p[id] || { checked: false, nets: {} };
     const isOn = !cur.checked;
-    return { ...p, [id]: { checked: isOn, nets: isOn ? cur.nets : new Set() } };
+    return { ...p, [id]: { checked: isOn, nets: isOn ? cur.nets : {} } };
   });
-  // ajoute/retire un réseau POUR ce sujet (et coche le sujet si besoin)
+  // ajoute/retire un réseau POUR ce sujet (format par défaut = format du réseau)
   const toggleNet = (id, netId) => setSel((p) => {
-    const cur = p[id] || { checked: true, nets: new Set() };
-    const nets = new Set(cur.nets);
-    nets.has(netId) ? nets.delete(netId) : nets.add(netId);
+    const cur = p[id] || { checked: true, nets: {} };
+    const nets = { ...cur.nets };
+    if (netId in nets) { delete nets[netId]; }
+    else { nets[netId] = defaultFormat(netId, networks.find((n) => n.id === netId)?.format); }
     return { ...p, [id]: { checked: true, nets } };
+  });
+  // change le format d'un réseau pour ce sujet
+  const setNetFormat = (id, netId, fmt) => setSel((p) => {
+    const cur = p[id] || { checked: true, nets: {} };
+    return { ...p, [id]: { checked: true, nets: { ...cur.nets, [netId]: fmt } } };
   });
 
   const proposerSujets = async () => {
@@ -144,7 +164,7 @@ export default function PlanEditorial() {
       const ko = (d.errors || []).length;
       toast.success(`${d.created} contenu${d.created > 1 ? 's' : ''} généré${d.created > 1 ? 's' : ''} → onglet Contenus${ko ? ` (${ko} échec${ko > 1 ? 's' : ''})` : ''}`);
       // retire les sujets utilisés du pool
-      const used = subjects.filter((s) => sel[s.id]?.checked && sel[s.id]?.nets?.size);
+      const used = subjects.filter((s) => sel[s.id]?.checked && Object.keys(sel[s.id]?.nets || {}).length);
       used.forEach((s) => agentService.supprimerSujet(s.id).catch(() => {}));
       setSubjects((prev) => prev.filter((s) => !used.includes(s)));
       setSel({});
@@ -277,28 +297,38 @@ export default function PlanEditorial() {
                       <Check className={`w-3 h-3 text-white transition-all ${st.checked ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
                     </div>
                     <span className={`flex-1 text-sm ${st.checked ? 'text-white font-medium' : 'text-slate-200'}`}>{s.titre}</span>
-                    {st.checked && (
-                      <span className={`text-[11px] whitespace-nowrap ${st.nets.size ? 'text-[#3AFFA3]' : 'text-amber-400'}`}>
-                        {st.nets.size ? `${st.nets.size} réseau${st.nets.size > 1 ? 'x' : ''}` : 'choisis un réseau'}
+                    {st.checked && (() => { const cnt = Object.keys(st.nets).length; return (
+                      <span className={`text-[11px] whitespace-nowrap ${cnt ? 'text-[#3AFFA3]' : 'text-amber-400'}`}>
+                        {cnt ? `${cnt} réseau${cnt > 1 ? 'x' : ''}` : 'choisis un réseau'}
                       </span>
-                    )}
+                    ); })()}
                     <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} className="text-slate-600 hover:text-red-400 transition-colors flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
                   </div>
                   {st.checked && (
-                    <div className="px-4 pb-4 pt-0.5 flex items-center gap-2 flex-wrap border-t border-white/[0.06]">
-                      <span className="text-[11px] text-slate-500 mr-0.5 mt-2.5">Réseaux :</span>
-                      {networks.length === 0 && <span className="text-[11px] text-slate-600 mt-2.5">Configure ta cadence dans Paramètres → Planification</span>}
-                      {networks.map((n) => {
-                        const on = st.nets.has(n.id);
-                        const meta = NET_META[n.id] || { short: '•', cls: 'bg-slate-700' };
-                        return (
-                          <button key={n.id} onClick={() => toggleNet(s.id, n.id)}
-                            className={`mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-all ${on ? 'text-white border-[#5B6CFF]/50 bg-[#5B6CFF]/15' : 'text-slate-400 border-white/10 bg-white/[0.02] hover:text-white hover:border-white/20'}`}>
-                            <span className={`w-[18px] h-[18px] rounded-[5px] grid place-items-center text-white ${meta.cls}`}><SocialIcon network={n.id} className="w-3 h-3" /></span>
-                            {n.label}<span className={`text-[10px] ${on ? 'text-white/60' : 'text-slate-600'}`}>{FORMAT_LABEL[n.format]}</span>
-                          </button>
-                        );
-                      })}
+                    <div className="px-4 pb-4 pt-3 border-t border-white/[0.06]">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] text-slate-500 mr-0.5">Réseaux :</span>
+                        {networks.length === 0 && <span className="text-[11px] text-slate-600">Configure ta cadence dans Paramètres → Planification</span>}
+                        {networks.map((n) => {
+                          const on = n.id in st.nets;
+                          const meta = NET_META[n.id] || { short: '•', cls: 'bg-slate-700' };
+                          return (
+                            <div key={n.id} className="inline-flex items-center gap-1.5">
+                              <button onClick={() => toggleNet(s.id, n.id)}
+                                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-all ${on ? 'text-white border-[#5B6CFF]/50 bg-[#5B6CFF]/15' : 'text-slate-400 border-white/10 bg-white/[0.02] hover:text-white hover:border-white/20'}`}>
+                                <span className={`w-[18px] h-[18px] rounded-[5px] grid place-items-center text-white ${meta.cls}`}><SocialIcon network={n.id} className="w-3 h-3" /></span>
+                                {n.label}
+                              </button>
+                              {on && (
+                                <select value={st.nets[n.id]} onChange={(e) => setNetFormat(s.id, n.id, e.target.value)}
+                                  className="rounded-lg bg-slate-950/70 border border-[#5B6CFF]/30 text-slate-200 text-[11.5px] px-2 py-1.5 outline-none focus:border-[#5B6CFF]/60 cursor-pointer">
+                                  {formatsFor(n.id).map((f) => <option key={f} value={f} className="bg-slate-900">{FORMAT_LBL[f]}</option>)}
+                                </select>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>

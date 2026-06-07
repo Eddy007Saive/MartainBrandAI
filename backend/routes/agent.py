@@ -102,8 +102,9 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
         if not sujet or not reseau_cap:
             errors.append({"sujet": sujet, "reseau": reseau_low, "err": "invalide"})
             continue
-        fmt = formats.get(reseau_low, "post")
-        action = "post" if fmt == "post" else "script"
+        # format : choisi par l'utilisateur (par réseau), sinon cadence du réseau
+        fmt = (it.get("format") or formats.get(reseau_low) or "post")
+        action = "post" if fmt == "post" else "carrousel" if fmt == "carrousel" else "script"
         cost = credit_service.cout(action, qualite)
         s = credit_service.deduct(telegram_id, cost)
         if s < 0:
@@ -112,9 +113,14 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
         solde = s
         try:
             model = agent_service.QUALITE_MODELS.get(qualite)
+            slides = None
             if action == "post":
                 r = agent_service.rediger_post(telegram_id, sujet, reseau_low, model, cache=True)
                 texte = r.get("contenu", "")
+            elif action == "carrousel":
+                r = agent_service.rediger_carrousel(telegram_id, sujet, 5, model, cache=True)
+                slides = r.get("slides")
+                texte = "\n\n".join(f"{sl['titre']}\n{sl['texte']}".strip() for sl in (slides or []))
             else:
                 tv = "Reel" if fmt == "reel" else "Video"
                 r = agent_service.rediger_script(telegram_id, sujet, tv, model, cache=True)
@@ -138,7 +144,19 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             }
             if date_pub:
                 row["date_publication"] = date_pub
-            supabase.table("contenu").insert(row).execute()
+            ins = supabase.table("contenu").insert(row).execute()
+            cid = ins.data[0]["id"] if ins.data else None
+
+            # carrousel : rendu des images de slides
+            if action == "carrousel" and slides and cid:
+                try:
+                    imgs = await carrousel_service.generer_carrousel(telegram_id, slides, cid)
+                    if imgs:
+                        supabase.table("contenu").update(
+                            {"slides_images": imgs, "lien_visuel": imgs[0]}
+                        ).eq("id", cid).execute()
+                except Exception as e:
+                    logger.error(f"rafale carrousel render error: {e}")
             created += 1
         except Exception as e:
             credit_service.refund(telegram_id, cost)
