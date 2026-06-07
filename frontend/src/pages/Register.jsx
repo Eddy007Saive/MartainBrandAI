@@ -263,7 +263,7 @@ export default function Register() {
             type="submit"
             disabled={loading}
             data-testid="register-submit"
-            className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-[0_0_10px_rgba(91,108,255,0.2)] font-inter mt-6"
+            className="w-full bg-[#e7ecf5] text-[#0b1322] hover:bg-white transition-all duration-300 font-inter mt-6"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />

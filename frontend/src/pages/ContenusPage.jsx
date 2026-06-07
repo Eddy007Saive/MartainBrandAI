@@ -787,7 +787,7 @@ export default function ContenusPage() {
               <Button
                 onClick={handleEdit}
                 disabled={actionLoading === editContenu?.id}
-                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 font-inter"
+                className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter"
               >
                 {actionLoading === editContenu?.id && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Enregistrer
@@ -862,7 +862,7 @@ export default function ContenusPage() {
             <DialogFooter className="gap-2">
               <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">Fermer</Button>
               <Button onClick={genererImage} disabled={imgGenerating || imgLoadingPrompt || !imgPrompt.trim()}
-                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 text-white font-inter">
+                className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter">
                 {imgGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
                 {imageContenu?.lien_visuel ? 'Régénérer' : 'Générer'} · {IMAGE_MODELES.find((m) => m.id === imgModele)?.cout} cr.
               </Button>

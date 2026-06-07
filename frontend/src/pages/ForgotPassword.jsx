@@ -79,7 +79,7 @@ export default function ForgotPassword() {
                   type="submit"
                   disabled={loading}
                   data-testid="forgot-submit"
-                  className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 transition-all duration-300 shadow-lg shadow-[#5B6CFF]/20 font-inter"
+                  className="w-full bg-[#e7ecf5] text-[#0b1322] hover:bg-white transition-all duration-300 font-inter"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                   Envoyer le lien

@@ -306,7 +306,7 @@ export default function StudioIA() {
               className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1.5 outline-none focus:border-[#5B6CFF]/50"
             />
             <Button onClick={proposerSujets} disabled={!marqueOk || loadingSujets} data-testid="studio-generer-sujets"
-              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white disabled:opacity-40 ml-auto">
+              className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40 ml-auto">
               {loadingSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               <span className="ml-2">Générer des sujets</span>
             </Button>
@@ -359,7 +359,7 @@ export default function StudioIA() {
                 </div>
                 <div className="flex items-center justify-end">
                   <Button onClick={genererBrief} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer"
-                    className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white disabled:opacity-40">
+                    className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
                     <Wand2 className="w-4 h-4" /><span className="ml-2">Rédiger · {QUALITES.find((q) => q.id === bQualite)?.cout[bFormat]} cr.</span>
                   </Button>
                 </div>
@@ -451,7 +451,7 @@ export default function StudioIA() {
                         </div>
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => setOpenId(null)} className="text-xs text-slate-400 hover:text-white font-inter px-2">Annuler</button>
-                          <Button onClick={() => genererContenu(s)} className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white">
+                          <Button onClick={() => genererContenu(s)} className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
                             <Wand2 className="w-4 h-4" /><span className="ml-2">Générer · {QUALITES.find((q) => q.id === cfgQualite)?.cout[cfgFormat]} cr.</span>
                           </Button>
                         </div>

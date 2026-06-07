@@ -334,7 +334,7 @@ export default function AvatarPage() {
             <button
               type="submit"
               disabled={creating || !trainingVideo || !consentVideo}
-              className="w-full py-3 px-6 rounded-lg font-medium font-inter text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:shadow-lg hover:shadow-[#5B6CFF]/25"
+              className="w-full py-3 px-6 rounded-lg font-medium font-inter text-[#0b1322] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-[#e7ecf5] hover:bg-white"
               data-testid="create-avatar-btn"
             >
               {creating ? (

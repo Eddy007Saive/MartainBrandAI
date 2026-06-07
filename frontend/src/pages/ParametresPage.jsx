@@ -692,7 +692,7 @@ export default function ParametresPage() {
       {schedulesLoaded && connectedPlatforms.length > 0 && (
         <div className="flex justify-end">
           <Button onClick={handleSaveSchedules} disabled={savingSchedules} data-testid="save-schedules-btn"
-            className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 font-inter text-xs">
+            className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter text-xs">
             {savingSchedules ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
             Sauvegarder
           </Button>
@@ -942,7 +942,7 @@ export default function ParametresPage() {
           accept="video/*" file={trainingVideo} onFileChange={setTrainingVideo} />
 
         <button type="submit" disabled={creating || !trainingVideo}
-          className="w-full py-2.5 px-4 rounded-lg font-medium font-inter text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:shadow-lg hover:shadow-[#5B6CFF]/25"
+          className="w-full py-2.5 px-4 rounded-lg font-medium font-inter text-[#0b1322] text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-[#e7ecf5] hover:bg-white"
           data-testid="create-avatar-btn">
           {creating ? (
             <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Upload en cours...</span>
@@ -992,7 +992,7 @@ export default function ParametresPage() {
               </AlertDialogContent>
             </AlertDialog>
             <Button onClick={handleSave} disabled={saving} size="sm" data-testid="save-btn"
-              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 font-inter text-xs">
+              className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter text-xs">
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
               Sauvegarder
             </Button>
@@ -1014,8 +1014,8 @@ export default function ParametresPage() {
       {/* Two-panel layout */}
       <div className="flex gap-6 min-h-[calc(100vh-220px)]">
 
-        {/* Left sub-nav */}
-        <nav className="w-52 flex-shrink-0 space-y-1 hidden md:block">
+        {/* Left sub-nav (carte) */}
+        <nav className="w-[220px] flex-shrink-0 hidden md:flex flex-col gap-1 p-2 rounded-2xl border border-white/[0.06] bg-[#0f172a] self-start sticky top-6">
           {SETTINGS_SECTIONS.map((section) => {
             const Icon = section.icon;
             const isActive = activeSection === section.id;
@@ -1027,16 +1027,15 @@ export default function ParametresPage() {
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
                 data-testid={`settings-tab-${section.id}`}
-                className={`group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 font-inter ${
-                  isActive ? 'bg-white/[0.06] text-white' : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 font-inter border ${
+                  isActive ? 'bg-[#5B6CFF]/[0.12] border-[#5B6CFF]/25 text-white' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.03]'
                 }`}
               >
-                {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-gradient-to-b from-[#5B6CFF] to-[#8A6CFF]" />}
-                <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                <span className="text-sm font-medium flex-1 truncate">{section.title}</span>
-                {isIncomplete && <span className="w-2 h-2 rounded-full bg-orange-400 flex-shrink-0" />}
-                {hasAvatarBadge && avatar.status === 'complete' && <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />}
-                {hasAvatarBadge && avatar.status === 'in_progress' && <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />}
+                <Icon className={`w-[17px] h-[17px] flex-shrink-0 ${isActive ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                <span className="text-[13.5px] font-medium flex-1 truncate">{section.title}</span>
+                {isIncomplete && <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />}
+                {hasAvatarBadge && avatar.status === 'complete' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />}
+                {hasAvatarBadge && avatar.status === 'in_progress' && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />}
               </button>
             );
           })}
@@ -1058,13 +1057,13 @@ export default function ParametresPage() {
 
         {/* Right content panel */}
         <div className="flex-1 min-w-0">
-          <div className="rounded-xl border border-white/5 bg-slate-900/30 backdrop-blur-sm p-6">
+          <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-6 md:p-7">
             {/* Section title */}
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/[0.06]">
               {currentSection && (
                 <>
                   <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-[#5B6CFF]/20 to-[#8A6CFF]/20 border border-[#5B6CFF]/20">
-                    <currentSection.icon className="w-4.5 h-4.5 text-[#5B6CFF]" />
+                    <currentSection.icon className="w-[18px] h-[18px] text-[#8A6CFF]" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold font-sora text-white">{currentSection.title}</h2>

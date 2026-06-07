@@ -254,7 +254,7 @@ export default function PlanEditorial() {
             onChange={(e) => setNbSujets(Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 1)))}
             className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 outline-none focus:border-[#5B6CFF]/50" />
           <Button onClick={proposerSujets} disabled={!marqueOk || genSujets}
-            className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white disabled:opacity-40">
+            className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
             {genSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             <span className="ml-2">Générer des sujets</span>
           </Button>
@@ -326,7 +326,7 @@ export default function PlanEditorial() {
             ≈ <span className="font-bold text-[#3AFFA3]">{rafale.cost}</span> crédits
           </div>
           <Button onClick={lancerRafale} disabled={running}
-            className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white">
+            className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
             {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
             <span className="ml-2">{running ? 'Génération…' : `Générer en rafale · ${rafale.posts}`}</span>
           </Button>

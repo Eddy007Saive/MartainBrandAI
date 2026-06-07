@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boutons — options couleur</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#020617;color:#e7ecf5;font-family:Inter,sans-serif;padding:36px}
+  h1{font-family:Sora;font-size:20px;margin:0 0 6px}
+  .sub{color:#5b6680;font-size:13px;margin-bottom:28px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:920px}
+  .opt{border:1px solid rgba(255,255,255,.07);background:#0f172a;border-radius:16px;padding:18px}
+  .opt h2{font-family:Sora;font-size:14px;margin:0 0 3px}
+  .opt .d{font-size:11.5px;color:#5b6680;margin-bottom:14px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:11px;font-family:Inter;font-weight:600;font-size:13.5px;border:1px solid transparent;cursor:pointer}
+  .btn svg{width:15px;height:15px}
+  .ghost{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.12);color:#8a97ad}
+  .tag{font-size:10px;color:#5b6680;margin-left:auto;font-family:ui-monospace,monospace}
+  /* A actuel */
+  .a-pri{background:linear-gradient(135deg,#5B6CFF,#8A6CFF);color:#fff;box-shadow:0 8px 20px rgba(91,108,255,.25)}
+  /* B indigo plat */
+  .b-pri{background:#5B6CFF;color:#fff}
+  /* C vert accent */
+  .c-pri{background:#3AFFA3;color:#04231a;box-shadow:0 8px 20px rgba(58,255,163,.18)}
+  /* D bleu marque */
+  .d-pri{background:#2563eb;color:#fff}
+  /* E sobre : neutre clair */
+  .e-pri{background:#e7ecf5;color:#0b1322}
+  /* F dégradé froid teal */
+  .f-pri{background:linear-gradient(135deg,#2dd4bf,#3b82f6);color:#04231a}
+  .reco{margin-top:26px;border:1px solid rgba(58,255,163,.25);background:rgba(58,255,163,.05);border-radius:16px;padding:18px;max-width:920px}
+  .reco h2{font-family:Sora;font-size:14px;margin:0 0 12px;color:#6ee7b7}
+  .ic{width:15px;height:15px}
+</style></head>
+<body>
+  <h1 class="sora">Couleurs de boutons — 6 directions</h1>
+  <div class="sub">Chaque carte : bouton principal (CTA) + bouton secondaire. Fond et reste de l'UI inchangés.</div>
+
+  <div class="grid">
+    <div class="opt"><h2>A · Dégradé violet <span class="tag">actuel</span></h2><div class="d">Ce que tu as maintenant — jugé « trop ».</div>
+      <div class="row"><button class="btn a-pri">Générer</button><button class="btn ghost">Annuler</button></div></div>
+
+    <div class="opt"><h2>B · Indigo plat <span class="tag">#5B6CFF</span></h2><div class="d">Même teinte, sans dégradé : plus sobre, plus « Linear ».</div>
+      <div class="row"><button class="btn b-pri">Générer</button><button class="btn ghost">Annuler</button></div></div>
+
+    <div class="opt"><h2>C · Vert accent <span class="tag">#3AFFA3</span></h2><div class="d">Ta couleur d'accent en CTA — énergique, texte foncé.</div>
+      <div class="row"><button class="btn c-pri">Générer</button><button class="btn ghost">Annuler</button></div></div>
+
+    <div class="opt"><h2>D · Bleu <span class="tag">#2563EB</span></h2><div class="d">Bleu franc, neutre et pro (proche de ta couleur secondaire).</div>
+      <div class="row"><button class="btn d-pri">Générer</button><button class="btn ghost">Annuler</button></div></div>
+
+    <div class="opt"><h2>E · Clair / inversé <span class="tag">#E7ECF5</span></h2><div class="d">Bouton clair sur fond sombre — très épuré, haut de gamme.</div>
+      <div class="row"><button class="btn e-pri">Générer</button><button class="btn ghost">Annuler</button></div></div>
+
+    <div class="opt"><h2>F · Dégradé froid <span class="tag">teal→bleu</span></h2><div class="d">Alternative au violet, plus frais.</div>
+      <div class="row"><button class="btn f-pri">Générer</button><button class="btn ghost">Annuler</button></div></div>
+  </div>
+
+  <div class="reco">
+    <h2>★ Ma reco : 1 seul accent fort, le reste neutre</h2>
+    <div class="d" style="color:#8a97ad;margin-bottom:14px;font-size:12.5px">Le souci n'est pas la couleur mais la FRÉQUENCE : tout est en dégradé. On réserve l'accent au CTA principal d'un écran, le reste passe en « soft » (teinté léger) ou « ghost ».</div>
+    <div class="row">
+      <button class="btn b-pri">Action principale</button>
+      <button class="btn" style="background:rgba(91,108,255,.15);color:#a9b4ff;border-color:rgba(91,108,255,.3)">Action secondaire</button>
+      <button class="btn ghost">Tertiaire</button>
+    </div>
+  </div>
+</body></html>

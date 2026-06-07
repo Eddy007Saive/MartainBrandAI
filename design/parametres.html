@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Paramètres — Presence OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#020617; --card:#0f172a; --card2:#0b1322;
+    --line:rgba(255,255,255,.06); --line2:rgba(255,255,255,.10);
+    --ink:#e7ecf5; --muted:#8a97ad; --muted2:#5b6680;
+    --p1:#5B6CFF; --p2:#8A6CFF; --accent:#3AFFA3;
+    --grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .sora{font-family:Sora,sans-serif}
+  .glow{position:fixed;top:-120px;left:50%;transform:translateX(-50%);width:680px;height:320px;background:rgba(91,108,255,.10);filter:blur(130px);border-radius:50%;pointer-events:none;z-index:0}
+  .app{display:flex;min-height:100vh;position:relative;z-index:1}
+
+  /* Sidebar */
+  .side{width:248px;flex-shrink:0;border-right:1px solid var(--line);background:rgba(8,12,23,.82);backdrop-filter:blur(18px);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:10px;padding:22px 20px 18px;border-bottom:1px solid var(--line)}
+  .logo{width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center;box-shadow:0 8px 20px rgba(91,108,255,.30);flex-shrink:0}
+  .brand h1{font-size:14px;font-weight:700;margin:0}
+  .brand p{font-size:11px;color:var(--muted2);margin:1px 0 0}
+  nav{padding:14px 12px;flex:1;overflow:auto}
+  .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted2);padding:0 12px 8px;font-weight:600}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;color:var(--muted);font-weight:500;cursor:pointer;position:relative;transition:.15s;margin-bottom:2px;text-decoration:none}
+  .nav-item:hover{color:var(--ink);background:rgba(255,255,255,.03)}
+  .nav-item.active{color:#fff;background:rgba(255,255,255,.06)}
+  .nav-item.active::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:18px;border-radius:3px;background:var(--grad)}
+  .nav-item svg{width:18px;height:18px;color:var(--muted2)}
+  .nav-item.active svg{color:var(--p2)}
+  .userbox{padding:12px;border-top:1px solid var(--line)}
+  .credits-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--line);margin-bottom:8px}
+  .credits-row .k{font-size:12px;color:var(--muted)} .credits-row .v{font-size:14px;font-weight:600}
+  .user{display:flex;align-items:center;gap:10px;padding:6px 8px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-weight:600;font-size:13px;color:#fff}
+  .user .n{font-size:13px;font-weight:500}.user .e{font-size:11px;color:var(--muted2)}
+
+  /* Main */
+  main{flex:1;min-width:0;padding:26px 34px 60px;max-width:1180px}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+  .title-wrap{display:flex;gap:13px;align-items:center}
+  .page-icon{width:42px;height:42px;border-radius:12px;background:var(--grad);display:grid;place-items:center;flex-shrink:0;box-shadow:0 8px 22px rgba(91,108,255,.28)}
+  .title-wrap h2{font-size:22px;font-weight:700;margin:0;letter-spacing:-.02em}
+  .title-wrap p{margin:2px 0 0;color:var(--muted);font-size:13px}
+  .top-actions{display:flex;align-items:center;gap:10px}
+  .credit-chip{display:flex;align-items:center;gap:8px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid var(--line);white-space:nowrap}
+  .credit-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .credit-chip .k{font-size:12px;color:var(--muted)} .credit-chip .v{font-size:14px;font-weight:700}
+
+  /* layout: subnav + panel */
+  .layout{display:grid;grid-template-columns:220px 1fr;gap:22px;align-items:start}
+  .subnav{position:sticky;top:26px;display:flex;flex-direction:column;gap:3px;border:1px solid var(--line);background:var(--card);border-radius:16px;padding:8px}
+  .sub-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:var(--muted);font-weight:500;font-size:13.5px;cursor:pointer;transition:.15s;border:1px solid transparent}
+  .sub-item:hover{color:var(--ink);background:rgba(255,255,255,.03)}
+  .sub-item.active{color:#fff;background:rgba(91,108,255,.12);border-color:rgba(91,108,255,.25)}
+  .sub-item svg{width:17px;height:17px;color:var(--muted2)} .sub-item.active svg{color:var(--p2)}
+  .sub-item .ok{margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+  .panel{border:1px solid var(--line);background:var(--card);border-radius:18px;padding:24px 26px}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+  .panel-head h3{font-size:16px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .panel-head p{font-size:12.5px;color:var(--muted2);margin:3px 0 0}
+  .sec{display:none} .sec.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:11px;border:1px solid transparent;font-family:Inter;font-weight:600;font-size:13px;cursor:pointer;transition:.15s}
+  .btn svg{width:16px;height:16px}
+  .btn-primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(91,108,255,.25)}
+  .btn-primary:hover{opacity:.92;transform:translateY(-1px)}
+  .btn-soft{background:rgba(91,108,255,.15);color:#a9b4ff;border-color:rgba(91,108,255,.3)}
+  .btn-soft:hover{background:rgba(91,108,255,.25);color:#fff}
+  .btn-ghost{background:rgba(255,255,255,.03);border-color:var(--line2);color:var(--muted)}
+  .btn-ghost:hover{color:var(--ink)}
+
+  /* fields */
+  .field{display:flex;flex-direction:column;gap:7px;margin-bottom:2px}
+  .field label{font-size:12.5px;font-weight:500;color:#c3cbd9}
+  .field .hint{font-size:11px;color:var(--muted2)}
+  .inp,.sel,.ta{width:100%;background:#0a1120;border:1px solid var(--line2);border-radius:11px;color:var(--ink);font-family:Inter;font-size:13.5px;padding:10px 13px;outline:none;transition:.15s}
+  .inp:focus,.sel:focus,.ta:focus{border-color:rgba(91,108,255,.55);box-shadow:0 0 0 3px rgba(91,108,255,.12)}
+  .inp[readonly]{color:var(--muted);background:#070d1a;cursor:not-allowed}
+  .ta{resize:vertical;min-height:84px;line-height:1.55}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .sel{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238a97ad' stroke-width='2'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+
+  /* switch */
+  .switch{width:40px;height:23px;border-radius:20px;background:rgba(255,255,255,.10);position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+  .switch.on{background:var(--grad)}
+  .switch::after{content:"";position:absolute;top:2.5px;left:2.5px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+  .switch.on::after{left:19px}
+
+  /* identity photo */
+  .photo-block{display:flex;align-items:center;gap:20px;padding:18px;border:1px solid var(--line);background:#0a1120;border-radius:16px;margin-bottom:22px}
+  .photo{width:104px;height:104px;border-radius:18px;overflow:hidden;background:#111a2e;border:1px solid var(--line2);display:grid;place-items:center;flex-shrink:0}
+  .photo img{width:100%;height:100%;object-fit:cover}
+  .photo .ph{color:var(--muted2)}
+  .photo-info{flex:1}
+  .photo-info .t{font-size:14px;font-weight:600}
+  .photo-info .d{font-size:12px;color:var(--muted2);margin:3px 0 11px;line-height:1.5}
+  .use-toggle{display:flex;align-items:center;gap:9px}.use-toggle span{font-size:12.5px;color:#c3cbd9}
+
+  /* color pickers */
+  .colors{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .cfield{border:1px solid var(--line2);background:#0a1120;border-radius:13px;padding:13px}
+  .cfield .cl{font-size:12px;color:#c3cbd9;margin-bottom:9px}
+  .crow{display:flex;align-items:center;gap:10px}
+  .sw{width:38px;height:38px;border-radius:10px;border:1px solid rgba(255,255,255,.14);flex-shrink:0;cursor:pointer}
+  .chex{background:#070d1a;border:1px solid var(--line2);border-radius:8px;color:var(--ink);font-family:ui-monospace,monospace;font-size:12.5px;padding:7px 10px;width:100%;outline:none;text-transform:uppercase}
+  .preview-card{margin-top:16px;border:1px solid var(--line);border-radius:14px;padding:16px;background:#0a1120}
+  .preview-card .pl{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:11px}
+  .sws{display:flex;gap:12px;margin-bottom:13px}
+  .sws div{width:54px;height:54px;border-radius:13px;box-shadow:0 8px 18px rgba(0,0,0,.3)}
+  .grad-prev{border-radius:11px;padding:14px 16px}
+  .grad-prev .gt{color:#fff;font-weight:600;font-family:Sora}
+  .grad-prev .ga{font-size:12px;margin-top:2px}
+
+  /* inspirations */
+  .insp{margin-top:22px;border-top:1px solid var(--line);padding-top:20px}
+  .insp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:14px}
+  .insp-head .t{font-size:14px;font-weight:600}
+  .insp-head .d{font-size:12px;color:var(--muted2);margin-top:3px;max-width:420px;line-height:1.5}
+  .insp-toggle{display:flex;align-items:center;gap:8px;margin-top:9px}.insp-toggle span{font-size:12px;color:#c3cbd9}
+  .gallery{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .thumb{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--line2)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb .del{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:7px;background:rgba(0,0,0,.6);display:grid;place-items:center;cursor:pointer;opacity:0;transition:.15s}
+  .thumb:hover .del{opacity:1}
+  .thumb .del:hover{background:rgba(239,68,68,.8)}
+  .add-thumb{aspect-ratio:1;border-radius:12px;border:1.5px dashed var(--line2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--muted2);cursor:pointer;transition:.15s;font-size:11px}
+  .add-thumb:hover{border-color:rgba(91,108,255,.5);color:#a9b4ff}
+
+  /* network cards (connections + schedules) */
+  .netcards{display:flex;flex-direction:column;gap:12px}
+  .netcard{border:1px solid var(--line2);background:#0a1120;border-radius:14px;padding:15px 16px}
+  .nc-top{display:flex;align-items:center;gap:12px}
+  .nbadge{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+  .b-li{background:#0a66c2}.b-ig{background:linear-gradient(135deg,#feda75,#d62976 45%,#962fbf)}.b-fb{background:#1877f2}.b-tt{background:#111;border:1px solid #2b2b2b}.b-yt{background:#f00}
+  .nc-top .nm{font-weight:600;font-size:14px}.nc-top .st{font-size:11.5px;margin-top:1px}
+  .st.on{color:var(--accent)}.st.off{color:var(--muted2)}
+  .nc-sched{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .days{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .day{width:32px;height:30px;border-radius:8px;border:1px solid var(--line2);background:#070d1a;color:var(--muted2);font-size:11px;font-weight:600;cursor:pointer;display:grid;place-items:center;transition:.15s}
+  .day.on{background:rgba(91,108,255,.18);color:#fff;border-color:rgba(91,108,255,.5)}
+
+  /* dropzone */
+  .dropzone{border:1.5px dashed var(--line2);border-radius:14px;padding:34px;text-align:center;color:var(--muted2);transition:.15s;cursor:pointer}
+  .dropzone:hover{border-color:rgba(91,108,255,.5);background:rgba(91,108,255,.03)}
+  .dropzone .di{width:42px;height:42px;border-radius:12px;background:rgba(91,108,255,.12);display:grid;place-items:center;margin:0 auto 12px}
+  .status{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:8px 13px;border-radius:10px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);color:#fbbf24;font-size:12.5px}
+
+  .info-banner{display:flex;gap:10px;padding:12px 14px;border-radius:12px;background:rgba(91,108,255,.06);border:1px solid rgba(91,108,255,.22);margin-bottom:18px}
+  .info-banner svg{width:16px;height:16px;color:var(--p2);flex-shrink:0;margin-top:1px}
+  .info-banner p{margin:0;font-size:12.5px;color:#c3cbd9;line-height:1.5}
+  .seg{display:flex;gap:3px;padding:3px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--line);width:max-content;margin-bottom:14px}
+  .seg button{border:0;background:transparent;color:var(--muted);font-family:Inter;font-size:12px;font-weight:600;padding:6px 12px;border-radius:7px;cursor:pointer;transition:.15s}
+  .seg button.on{background:var(--grad);color:#fff}
+
+  .hamb{display:none}
+  @media(max-width:960px){
+    .side{position:fixed;left:0;top:0;z-index:30;transform:translateX(-100%);transition:.25s}
+    .side.open{transform:translateX(0)}
+    main{padding:18px 16px 50px}.topbar{margin-top:42px}
+    .layout{grid-template-columns:1fr}
+    .subnav{position:static;flex-direction:row;overflow-x:auto;gap:6px}
+    .sub-item{white-space:nowrap}.sub-item .label-hide{display:inline}
+    .colors{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.nc-sched{grid-template-columns:1fr}
+    .gallery{grid-template-columns:repeat(3,1fr)}
+    .hamb{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--line2);background:var(--card);position:fixed;top:14px;left:14px;z-index:20;cursor:pointer}
+    .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:25;display:none}.scrim.show{display:block}
+  }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="hamb" onclick="document.querySelector('.side').classList.toggle('open');document.querySelector('.scrim').classList.toggle('show')">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e7ecf5" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+</div>
+<div class="scrim" onclick="this.classList.remove('show');document.querySelector('.side').classList.remove('open')"></div>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6 7 18.2l1.9-5.8L4 8.8h6.1z"/></svg></div>
+      <div><h1 class="sora">Presence OS</h1><p>Studio de contenu IA</p></div>
+    </div>
+    <nav>
+      <div class="nav-label">Menu</div>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Accueil</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6 7 18.2l1.9-5.8L4 8.8h6.1z"/></svg>Studio IA</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Plan éditorial</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Contenus</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Commentaires</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Planification</a>
+      <a class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.74.99 1.65 1.65 0 0 0-3.32 0 1.65 1.65 0 0 0-2.74-.99l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9z"/></svg>Paramètres</a>
+    </nav>
+    <div class="userbox">
+      <div class="credits-row"><span class="k">Crédits</span><span class="v">786</span></div>
+      <div class="user"><div class="avatar">M</div><div><div class="n">Martin Kraemer</div><div class="e">martin.kraemer@…</div></div></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="title-wrap">
+        <div class="page-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.74.99 1.65 1.65 0 0 0-3.32 0 1.65 1.65 0 0 0-2.74-.99l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9z"/></svg></div>
+        <div><h2 class="sora">Paramètres</h2><p>Configure ton profil, ta marque et tes préférences.</p></div>
+      </div>
+      <div class="top-actions">
+        <div class="credit-chip"><span class="dot"></span><span class="k">Crédits</span><span class="v">786</span></div>
+        <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Enregistrer</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <!-- Sub navigation -->
+      <div class="subnav">
+        <div class="sub-item active" data-sec="identity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Identité</span></div>
+        <div class="sub-item" data-sec="marque"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg><span>Voix de marque</span><span class="ok"></span></div>
+        <div class="sub-item" data-sec="connections"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M8 12h8"/></svg><span>Réseaux sociaux</span></div>
+        <div class="sub-item" data-sec="schedules"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Planification</span></div>
+        <div class="sub-item" data-sec="style"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="12.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="13.5" r="2.5"/><path d="M12 22a10 10 0 1 1 0-20 8 8 0 0 1 0 16h-1.5"/></svg><span>Style &amp; Couleurs</span></div>
+        <div class="sub-item" data-sec="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg><span>Avatar HeyGen</span></div>
+      </div>
+
+      <!-- Panel -->
+      <div class="panel">
+
+        <!-- IDENTITÉ -->
+        <section class="sec active" id="sec-identity">
+          <div class="panel-head"><div><h3 class="sora">Identité</h3><p>Ces infos personnalisent tes contenus générés.</p></div></div>
+
+          <div class="photo-block">
+            <div class="photo"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&q=80&auto=format&fit=crop" alt="" onerror="this.parentNode.innerHTML='<svg class=ph width=40 height=40 viewBox=\'0 0 24 24\' fill=none stroke=currentColor stroke-width=1.6><circle cx=12 cy=8 r=4/><path d=\'M4 21a8 8 0 0 1 16 0\'/></svg>'"></div>
+            <div class="photo-info">
+              <div class="t">Photo de profil</div>
+              <div class="d">JPG, PNG ou WebP — 10 Mo max. Utilisée dans tes visuels générés si activée.</div>
+              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <button class="btn btn-soft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Changer la photo</button>
+                <div class="use-toggle"><div class="switch on" onclick="this.classList.toggle('on')"></div><span>Utiliser</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field"><label>Nom</label><input class="inp" value="Kraemer"></div>
+            <div class="field"><label>Username</label><input class="inp" value="Martin"></div>
+            <div class="field"><label>Email</label><input class="inp" value="martin.kraemer@hotmail.fr" readonly></div>
+            <div class="field"><label>Nom affiché</label><input class="inp" value="Martin"></div>
+            <div class="field"><label>Sexe</label>
+              <select class="sel"><option>Homme</option><option>Femme</option><option>Autre</option></select>
+            </div>
+            <div class="field"><label>Style vestimentaire</label><input class="inp" placeholder="Ex: Business casual, Élégant…" value="Décontracté classe"></div>
+          </div>
+        </section>
+
+        <!-- VOIX DE MARQUE -->
+        <section class="sec" id="sec-marque">
+          <div class="panel-head"><div><h3 class="sora">Voix de marque</h3><p>Plus c'est précis, plus les contenus sonnent juste.</p></div></div>
+          <div class="info-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><p>Ces informations nourrissent l'IA du Studio et du Plan éditorial.</p></div>
+          <div class="grid2">
+            <div class="field"><label>Secteur / activité</label><input class="inp" value="Conseil en organisation pour dirigeants"></div>
+            <div class="field"><label>Audience cible</label><input class="inp" value="Dirigeants de PME 30-50 ans"></div>
+          </div>
+          <div style="height:16px"></div>
+          <div class="field"><label>Voix &amp; ton</label><textarea class="ta">Direct, sans bullshit, un peu provocateur mais bienveillant.</textarea></div>
+          <div style="height:16px"></div>
+          <div class="grid2">
+            <div class="field"><label>Piliers / thèmes</label><textarea class="ta">Délégation · structure · liberté du dirigeant</textarea></div>
+            <div class="field"><label>À éviter</label><textarea class="ta">Jargon corporate, promesses chiffrées creuses, emojis à outrance</textarea></div>
+            <div class="field"><label>Hooks / accroches</label><textarea class="ta">« Le jour où… » · « Personne ne te dira que… »</textarea></div>
+            <div class="field"><label>CTA habituels</label><textarea class="ta">« Dis-moi en commentaire… » · lien en bio</textarea></div>
+          </div>
+          <div style="height:16px"></div>
+          <div class="field"><label>Règles éditoriales (priment sur tout)</label><textarea class="ta">Toujours tutoyer. Pas plus de 1 idée par post. Jamais de hashtags sur LinkedIn.</textarea></div>
+          <div style="height:20px"></div>
+          <div class="field"><label>Exemples de posts (calibrent le style)</label>
+            <div class="seg" style="margin-top:8px"><button class="on">LinkedIn</button><button>Instagram</button><button>Facebook</button><button>TikTok</button></div>
+            <textarea class="ta" style="min-height:120px" placeholder="Colle 1-3 posts qui sonnent comme toi…">Le jour où tu ne peux plus partir en vacances, c'est que tu n'as pas délégué…</textarea>
+          </div>
+        </section>
+
+        <!-- RÉSEAUX -->
+        <section class="sec" id="sec-connections">
+          <div class="panel-head"><div><h3 class="sora">Réseaux sociaux</h3><p>Connecte tes comptes pour publier et planifier.</p></div></div>
+          <div class="netcards">
+            <div class="netcard"><div class="nc-top"><div class="nbadge b-li">in</div><div style="flex:1"><div class="nm">LinkedIn</div><div class="st on">● Connecté</div></div><button class="btn btn-ghost">Déconnecter</button></div></div>
+            <div class="netcard"><div class="nc-top"><div class="nbadge b-ig">◎</div><div style="flex:1"><div class="nm">Instagram</div><div class="st on">● Connecté</div></div><button class="btn btn-ghost">Déconnecter</button></div></div>
+            <div class="netcard"><div class="nc-top"><div class="nbadge b-fb">f</div><div style="flex:1"><div class="nm">Facebook</div><div class="st on">● Connecté</div></div><button class="btn btn-ghost">Déconnecter</button></div></div>
+            <div class="netcard"><div class="nc-top"><div class="nbadge b-tt">♪</div><div style="flex:1"><div class="nm">TikTok</div><div class="st off">Non connecté</div></div><button class="btn btn-soft">Connecter</button></div></div>
+            <div class="netcard"><div class="nc-top"><div class="nbadge b-yt">▶</div><div style="flex:1"><div class="nm">YouTube</div><div class="st off">Non connecté</div></div><button class="btn btn-soft">Connecter</button></div></div>
+          </div>
+        </section>
+
+        <!-- PLANIFICATION -->
+        <section class="sec" id="sec-schedules">
+          <div class="panel-head"><div><h3 class="sora">Planification</h3><p>Fréquence, jours, heure et format par réseau.</p></div></div>
+          <div class="netcards">
+            <div class="netcard">
+              <div class="nc-top"><div class="nbadge b-li">in</div><div style="flex:1"><div class="nm">LinkedIn</div></div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="nc-sched">
+                <div class="field"><label>Fréquence</label><select class="sel"><option>3 fois / semaine</option><option>Tous les jours</option><option>1 fois / semaine</option></select></div>
+                <div class="field"><label>Heure</label><input class="inp" type="time" value="08:00"></div>
+                <div class="field"><label>Format</label><select class="sel"><option>Post écrit</option><option>Réel / Short</option><option>Vidéo</option></select></div>
+              </div>
+              <div class="days"><div class="day on">Lun</div><div class="day">Mar</div><div class="day on">Mer</div><div class="day">Jeu</div><div class="day on">Ven</div><div class="day">Sam</div><div class="day">Dim</div></div>
+            </div>
+            <div class="netcard">
+              <div class="nc-top"><div class="nbadge b-ig">◎</div><div style="flex:1"><div class="nm">Instagram</div></div><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="nc-sched">
+                <div class="field"><label>Fréquence</label><select class="sel"><option>3 fois / semaine</option></select></div>
+                <div class="field"><label>Heure</label><input class="inp" type="time" value="06:30"></div>
+                <div class="field"><label>Format</label><select class="sel"><option selected>Réel / Short</option><option>Post écrit</option><option>Vidéo</option></select></div>
+              </div>
+              <div class="days"><div class="day on">Lun</div><div class="day">Mar</div><div class="day on">Mer</div><div class="day">Jeu</div><div class="day on">Ven</div><div class="day">Sam</div><div class="day">Dim</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STYLE & COULEURS -->
+        <section class="sec" id="sec-style">
+          <div class="panel-head"><div><h3 class="sora">Style &amp; Couleurs</h3><p>La palette et les inspirations qui guident tes visuels.</p></div></div>
+          <div class="colors">
+            <div class="cfield"><div class="cl">Couleur principale</div><div class="crow"><div class="sw" style="background:#003D2E"></div><input class="chex" value="#003D2E"></div></div>
+            <div class="cfield"><div class="cl">Couleur secondaire</div><div class="crow"><div class="sw" style="background:#0077FF"></div><input class="chex" value="#0077FF"></div></div>
+            <div class="cfield"><div class="cl">Couleur accent</div><div class="crow"><div class="sw" style="background:#3AFFA3"></div><input class="chex" value="#3AFFA3"></div></div>
+          </div>
+          <div class="preview-card">
+            <div class="pl">Aperçu</div>
+            <div class="sws"><div style="background:#003D2E"></div><div style="background:#0077FF"></div><div style="background:#3AFFA3"></div></div>
+            <div class="grad-prev" style="background:linear-gradient(135deg,#003D2E,#0077FF)"><div class="gt">Dégradé de marque</div><div class="ga" style="color:#3AFFA3">Texte accent</div></div>
+          </div>
+
+          <div class="insp">
+            <div class="insp-head">
+              <div>
+                <div class="t">Inspirations visuelles</div>
+                <div class="d">Ajoute des images dont tu aimes le style. L'IA s'en inspire (composition, couleurs, ambiance) pour générer tes visuels.</div>
+                <div class="insp-toggle"><div class="switch on" onclick="this.classList.toggle('on')"></div><span>Utiliser mes inspirations à la génération</span></div>
+              </div>
+              <button class="btn btn-soft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Ajouter</button>
+            </div>
+            <div class="gallery">
+              <div class="thumb"><img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&q=80&auto=format&fit=crop"><div class="del"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div></div>
+              <div class="thumb"><img src="https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=300&q=80&auto=format&fit=crop"><div class="del"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div></div>
+              <div class="thumb"><img src="https://images.unsplash.com/photo-1635776062127-d379bfcba9f8?w=300&q=80&auto=format&fit=crop"><div class="del"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></div></div>
+              <div class="add-thumb"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Ajouter</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AVATAR -->
+        <section class="sec" id="sec-avatar">
+          <div class="panel-head"><div><h3 class="sora">Avatar HeyGen</h3><p>Crée ton avatar vidéo IA à partir d'une vidéo d'entraînement.</p></div></div>
+          <div class="dropzone">
+            <div class="di"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a9b4ff" stroke-width="2"><path d="M23 7l-7 5 7 5z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+            <div style="color:#c3cbd9;font-weight:500">Dépose ta vidéo d'entraînement</div>
+            <div style="font-size:12px;margin-top:5px">MP4 · 2-5 min · bien éclairé, face caméra · 500 Mo max</div>
+          </div>
+          <div class="status"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Demande en attente de traitement</div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  document.querySelectorAll('.sub-item').forEach(it => it.addEventListener('click', () => {
+    document.querySelectorAll('.sub-item').forEach(x => x.classList.remove('active'));
+    it.classList.add('active');
+    document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + it.dataset.sec).classList.add('active');
+  }));
+  // color swatch live sync
+  document.querySelectorAll('.cfield').forEach(cf => {
+    const hex = cf.querySelector('.chex'), sw = cf.querySelector('.sw');
+    hex.addEventListener('input', () => { if(/^#[0-9a-fA-F]{6}$/.test(hex.value)) sw.style.background = hex.value; });
+  });
+</script>
+</body>
+</html>
