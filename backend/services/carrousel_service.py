@@ -1,8 +1,11 @@
 """
 Carrousel : rend chaque slide (HTML brandé) en PNG via Playwright -> Cloudinary.
+Assemble aussi les slides en PDF (post "document" LinkedIn).
 Le contenu des slides est généré par agent_service.rediger_carrousel.
 """
 import html as _html
+from io import BytesIO
+from PIL import Image
 import cloudinary
 import cloudinary.uploader
 from config import (
@@ -81,11 +84,12 @@ def build_html(slides: list, p: str, s: str, a: str, nom: str, secteur: str) -> 
 
 
 def _render_and_upload(telegram_id: int, slides: list, p: str, s: str, a: str,
-                       nom: str, secteur: str, base: str) -> list:
-    """SYNC : rend chaque slide en PNG (Playwright sync) + upload Cloudinary. À exécuter dans un thread."""
+                       nom: str, secteur: str, base: str) -> dict:
+    """SYNC : rend chaque slide en PNG + assemble un PDF, upload Cloudinary. À exécuter dans un thread.
+    Retourne {"images": [url...], "pdf": url|None}."""
     from playwright.sync_api import sync_playwright
     html_str = build_html(slides, p, s, a, nom, secteur)
-    urls = []
+    urls, pngs = [], []
     with sync_playwright() as pw:
         launch_args = ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
         try:
@@ -100,17 +104,34 @@ def _render_and_upload(telegram_id: int, slides: list, p: str, s: str, a: str,
             pass
         for i in range(len(slides)):
             png = page.locator(".slide").nth(i).screenshot(type="png")
+            pngs.append(png)
             up = cloudinary.uploader.upload(
                 png, resource_type="image", folder=f"carrousels/{telegram_id}",
                 public_id=f"{base}_s{i+1}", overwrite=True,
             )
             urls.append(up["secure_url"])
         browser.close()
-    return urls
+
+    # PDF (post "document" LinkedIn) : 1 slide = 1 page
+    pdf_url = None
+    try:
+        imgs = [Image.open(BytesIO(b)).convert("RGB") for b in pngs]
+        if imgs:
+            buf = BytesIO()
+            imgs[0].save(buf, format="PDF", save_all=True, append_images=imgs[1:], resolution=150.0)
+            up = cloudinary.uploader.upload(
+                buf.getvalue(), resource_type="image", folder=f"carrousels/{telegram_id}",
+                public_id=f"{base}_doc", format="pdf", overwrite=True,
+            )
+            pdf_url = up["secure_url"]
+    except Exception as e:
+        logger.error(f"carrousel pdf error: {e}")
+
+    return {"images": urls, "pdf": pdf_url}
 
 
-async def generer_carrousel(telegram_id: int, slides: list, contenu_id: str = None) -> list:
-    """slides -> images de slides uploadées sur Cloudinary -> liste d'URLs.
+async def generer_carrousel(telegram_id: int, slides: list, contenu_id: str = None) -> dict:
+    """slides -> images + PDF uploadés sur Cloudinary -> {"images": [...], "pdf": url}.
 
     Le rendu Playwright tourne dans un THREAD séparé (API sync) pour éviter les conflits
     avec la boucle asyncio d'uvicorn (lancement de sous-processus impossible sinon sous Windows).

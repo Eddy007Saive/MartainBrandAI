@@ -152,10 +152,11 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             # carrousel : rendu des images de slides
             if action == "carrousel" and slides and cid:
                 try:
-                    imgs = await carrousel_service.generer_carrousel(telegram_id, slides, cid)
+                    res = await carrousel_service.generer_carrousel(telegram_id, slides, cid)
+                    imgs = res.get("images", [])
                     if imgs:
                         supabase.table("contenu").update(
-                            {"slides_images": imgs, "lien_visuel": imgs[0]}
+                            {"slides_images": imgs, "lien_visuel": imgs[0], "carrousel_pdf": res.get("pdf")}
                         ).eq("id", cid).execute()
                     else:
                         errors.append({"sujet": sujet, "reseau": reseau_low, "err": "render_vide"})
@@ -283,18 +284,21 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
         ins = supabase.table("contenu").insert(row).execute()
         contenu_id = ins.data[0]["id"] if ins.data else None
 
-    # Rendu des slides en images
-    slides_images = []
+    # Rendu des slides en images + PDF
+    slides_images, pdf_url = [], None
     try:
-        slides_images = await carrousel_service.generer_carrousel(telegram_id, slides, contenu_id)
+        res = await carrousel_service.generer_carrousel(telegram_id, slides, contenu_id)
+        slides_images = res.get("images", [])
+        pdf_url = res.get("pdf")
         if contenu_id and slides_images:
             supabase.table("contenu").update(
-                {"slides_images": slides_images, "lien_visuel": slides_images[0]}
+                {"slides_images": slides_images, "lien_visuel": slides_images[0], "carrousel_pdf": pdf_url}
             ).eq("id", contenu_id).execute()
     except Exception as e:
         logger.error(f"Carrousel render error: {e}")
 
-    return {"contenu_id": contenu_id, "slides": slides, "slides_images": slides_images, "credits": solde}
+    return {"contenu_id": contenu_id, "slides": slides, "slides_images": slides_images,
+            "carrousel_pdf": pdf_url, "credits": solde}
 
 
 @router.post("/script")

@@ -594,6 +594,15 @@ export default function ContenusPage() {
                     </div>
                   )}
 
+                  {/* PDF carrousel (post document LinkedIn) */}
+                  {selectedContenu.carrousel_pdf && (
+                    <a href={selectedContenu.carrousel_pdf} target="_blank" rel="noopener noreferrer" download
+                      className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-slate-200 text-sm font-inter py-2.5 transition-colors">
+                      <FileText className="w-4 h-4 text-[#5B6CFF]" />
+                      Télécharger le PDF <span className="text-slate-500">(document LinkedIn)</span>
+                    </a>
+                  )}
+
                   {/* Published link */}
                   {selectedContenu.statut === 'Publie' && selectedContenu.lien_publication && (
                     <a
