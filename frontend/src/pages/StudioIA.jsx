@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
-  RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2,
+  RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { agentService } from '../services/agentService';
@@ -13,6 +13,7 @@ import { Textarea } from '../components/ui/textarea';
 
 const FORMATS = [
   { id: 'post', label: 'Post écrit', icon: PenLine },
+  { id: 'carrousel', label: 'Carrousel', icon: LayoutGrid },
   { id: 'script', label: 'Script vidéo', icon: Clapperboard },
 ];
 const RESEAUX = [
@@ -29,9 +30,9 @@ const TYPES_VIDEO = [
 ];
 // Niveaux de qualité (le modèle réel est caché côté serveur) + coût en crédits
 const QUALITES = [
-  { id: 'rapide', label: 'Rapide', icon: '⚡', cout: { post: 8, script: 12 } },
-  { id: 'equilibre', label: 'Équilibré', icon: '⚖️', cout: { post: 20, script: 30 } },
-  { id: 'premium', label: 'Premium', icon: '💎', cout: { post: 40, script: 60 } },
+  { id: 'rapide', label: 'Rapide', icon: '⚡', cout: { post: 8, script: 12, carrousel: 40 } },
+  { id: 'equilibre', label: 'Équilibré', icon: '⚖️', cout: { post: 20, script: 30, carrousel: 80 } },
+  { id: 'premium', label: 'Premium', icon: '💎', cout: { post: 40, script: 60, carrousel: 140 } },
 ];
 
 const LOGS_SUJETS = [
@@ -91,6 +92,7 @@ export default function StudioIA() {
   const [cfgReseau, setCfgReseau] = useState('linkedin');
   const [cfgType, setCfgType] = useState('Reel');
   const [cfgQualite, setCfgQualite] = useState('equilibre');
+  const [nbSlides, setNbSlides] = useState(5); // carrousel
 
   // Brief perso (sujet libre écrit par l'utilisateur)
   const [briefOpen, setBriefOpen] = useState(false);
@@ -156,14 +158,19 @@ export default function StudioIA() {
   // --- Transformation d'un sujet en contenu (le sujet RESTE dispo : réutilisable sur plusieurs réseaux) ---
   const genererContenu = async (s) => {
     const fmt = cfgFormat;
-    const meta = fmt === 'post' ? cfgReseau : cfgType;
+    const meta = fmt === 'script' ? cfgType : cfgReseau;
     const qualite = cfgQualite;
     const cardId = nextId();
     setContenus((prev) => [{ id: cardId, sujet: s.titre, texte: '', statut: 'redaction', format: fmt, meta, qualite }, ...prev]);
     setOpenId(null);
     // le sujet n'est PAS supprimé : on peut le réutiliser pour un autre réseau
-
     try {
+      if (fmt === 'carrousel') {
+        const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite);
+        if (d.credits != null) updateUser({ credits: d.credits });
+        setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        return;
+      }
       const d = fmt === 'script'
         ? await agentService.script(s.titre, meta, qualite)
         : await agentService.rediger(s.titre, meta, false, qualite);
@@ -171,7 +178,7 @@ export default function StudioIA() {
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
     } catch (e) {
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'pret' } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: fmt === 'carrousel' ? 'carrousel' : 'pret', images: c.images || [] } : c)));
       erreurGen(e);
     }
   };
@@ -182,7 +189,7 @@ export default function StudioIA() {
     if (!txt) return;
     if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
     const fmt = bFormat;
-    const meta = fmt === 'post' ? bReseau : bType;
+    const meta = fmt === 'script' ? bType : bReseau;
     const qualite = bQualite;
     const cardId = nextId();
     const titre = txt.length > 80 ? txt.slice(0, 80) + '…' : txt;
@@ -190,6 +197,12 @@ export default function StudioIA() {
     setBriefText('');
     setBriefOpen(false);
     try {
+      if (fmt === 'carrousel') {
+        const d = await agentService.carrousel(txt, meta, nbSlides, qualite);
+        if (d.credits != null) updateUser({ credits: d.credits });
+        setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        return;
+      }
       const d = fmt === 'script'
         ? await agentService.script(txt, meta, qualite)
         : await agentService.rediger(txt, meta, false, qualite);
@@ -197,7 +210,7 @@ export default function StudioIA() {
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
     } catch (e) {
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'pret' } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: fmt === 'carrousel' ? 'carrousel' : 'pret', images: c.images || [] } : c)));
       erreurGen(e);
     }
   };
@@ -349,6 +362,14 @@ export default function StudioIA() {
                     </Pill>
                   ))}
                 </div>
+                {bFormat === 'carrousel' && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500 font-inter">Slides</span>
+                    <input type="number" min={3} max={10} value={nbSlides}
+                      onChange={(e) => setNbSlides(Math.max(3, Math.min(10, parseInt(e.target.value, 10) || 5)))}
+                      className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
+                  </div>
+                )}
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-500 font-inter">Qualité</span>
                   {QUALITES.map((q) => (
@@ -441,6 +462,14 @@ export default function StudioIA() {
                             </Pill>
                           ))}
                         </div>
+                        {cfgFormat === 'carrousel' && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-slate-500 font-inter">Slides</span>
+                            <input type="number" min={3} max={10} value={nbSlides}
+                              onChange={(e) => setNbSlides(Math.max(3, Math.min(10, parseInt(e.target.value, 10) || 5)))}
+                              className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
+                          </div>
+                        )}
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-xs text-slate-500 font-inter">Qualité</span>
                           {QUALITES.map((q) => (
@@ -492,7 +521,7 @@ export default function StudioIA() {
                   className="rounded-xl border border-white/[0.06] bg-slate-950/40 p-4 space-y-3 transition-all duration-300 animate-fade-in">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-inter flex-shrink-0">
-                      {c.format === 'script' ? `🎬 ${c.meta}` : c.meta}
+                      {c.format === 'script' ? `🎬 ${c.meta}` : c.format === 'carrousel' ? `🖼 ${c.meta}` : c.meta}
                     </span>
                     <span className="text-xs font-medium text-slate-400 font-inter flex-1 truncate">{c.sujet}</span>
                     <button onClick={() => supprimerContenu(c.id)} title="Retirer" className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
@@ -503,7 +532,22 @@ export default function StudioIA() {
                   {c.statut === 'redaction' ? (
                     <div className="flex items-center gap-2 text-slate-400 py-8 justify-center">
                       <Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" />
-                      <span className="font-inter text-sm">{c.format === 'script' ? 'Écriture du script…' : 'Rédaction du post…'}</span>
+                      <span className="font-inter text-sm">{c.format === 'carrousel' ? 'Création du carrousel… (slides + images)' : c.format === 'script' ? 'Écriture du script…' : 'Rédaction du post…'}</span>
+                    </div>
+                  ) : c.format === 'carrousel' ? (
+                    <div className="space-y-3">
+                      {c.images && c.images.length ? (
+                        <div className="grid grid-cols-3 gap-2">
+                          {c.images.map((u, i) => (
+                            <img key={i} src={u} alt={`slide ${i + 1}`} className="w-full rounded-lg border border-white/10" />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-amber-400 font-inter py-4 text-center">Aucune image générée — réessaie.</p>
+                      )}
+                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-inter">
+                        <Check className="w-3.5 h-3.5" /> Carrousel enregistré → onglet Contenus
+                      </div>
                     </div>
                   ) : (
                     <>

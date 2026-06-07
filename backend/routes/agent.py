@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from dependencies import verify_token
-from services import agent_service, credit_service, usage_service, image_service, planning_service, plan_service
+from services import agent_service, credit_service, usage_service, image_service, planning_service, plan_service, carrousel_service
 from config import supabase, logger, CLAUDE_MODEL, OPENROUTER_IMAGE_MODEL
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -210,6 +210,59 @@ async def rediger(body: dict, payload: dict = Depends(verify_token)):
         result["contenu_id"] = ins.data[0]["id"] if ins.data else None
     result["credits"] = solde
     return result
+
+
+@router.post("/carrousel")
+async def carrousel(body: dict, payload: dict = Depends(verify_token)):
+    """Génère un carrousel : slides (Claude) + rendu images (Playwright) -> Cloudinary -> Contenus."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    sujet = (body.get("sujet") or "").strip()
+    if not sujet:
+        raise HTTPException(status_code=400, detail="sujet requis")
+    reseau = (body.get("reseau") or "linkedin").lower()
+    nb = max(3, min(10, int(body.get("nb_slides", 5))))
+    qualite = body.get("qualite", "equilibre")
+    cost = credit_service.cout("carrousel", qualite)
+    solde = credit_service.deduct(telegram_id, cost)
+    if solde < 0:
+        raise HTTPException(status_code=402, detail="Crédits insuffisants")
+    try:
+        result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.QUALITE_MODELS.get(qualite))
+    except Exception as e:
+        credit_service.refund(telegram_id, cost)
+        logger.error(f"Carrousel texte error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    if result.get("error"):
+        credit_service.refund(telegram_id, cost)
+        if result["error"] == "parse":
+            raise HTTPException(status_code=502, detail="Échec de génération des slides")
+        _map_agent_error(result)
+    usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), cost, qualite)
+
+    slides = result["slides"]
+    # Enregistre le contenu (texte assemblé) dans Contenus
+    texte = "\n\n".join(f"{s['titre']}\n{s['texte']}".strip() for s in slides)
+    row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": texte,
+           "statut": "A valider", "created_at": datetime.now(timezone.utc).isoformat()}
+    if reseau in RESEAU_MAP:
+        row["reseau_cible"] = RESEAU_MAP[reseau]
+    ins = supabase.table("contenu").insert(row).execute()
+    contenu_id = ins.data[0]["id"] if ins.data else None
+
+    # Rendu des slides en images
+    slides_images = []
+    try:
+        slides_images = await carrousel_service.generer_carrousel(telegram_id, slides, contenu_id)
+        if contenu_id and slides_images:
+            supabase.table("contenu").update(
+                {"slides_images": slides_images, "lien_visuel": slides_images[0]}
+            ).eq("id", contenu_id).execute()
+    except Exception as e:
+        logger.error(f"Carrousel render error: {e}")
+
+    return {"contenu_id": contenu_id, "slides": slides, "slides_images": slides_images, "credits": solde}
 
 
 @router.post("/script")

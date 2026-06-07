@@ -9,6 +9,7 @@ COUTS = {
     "sujets": 5,  # lot d'idées (Haiku) — couvre le coût réel avec marge ~3x
     "post": {"rapide": 8, "equilibre": 20, "premium": 40},
     "script": {"rapide": 12, "equilibre": 30, "premium": 60},
+    "carrousel": {"rapide": 40, "equilibre": 80, "premium": 140},  # texte des slides + rendu N images
     "image": {"nano2": 50, "nano3": 150},
 }
 

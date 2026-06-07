@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>POC Carrousel — Presence OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--p:#0B1340;--s:#1A237E;--a:#D32F2F;--ink:#fff;--mut:rgba(255,255,255,.62)}
+  *{box-sizing:border-box;margin:0}
+  body{background:#05070f;font-family:Inter,sans-serif;padding:30px}
+  .head{color:#e7ecf5;margin-bottom:6px;font-family:Sora;font-weight:700;font-size:18px}
+  .sub{color:#5b6680;font-size:13px;margin-bottom:22px}
+  .row{display:flex;gap:18px;flex-wrap:wrap}
+  /* SLIDE 4:5 */
+  .slide{width:344px;height:430px;border-radius:22px;overflow:hidden;position:relative;
+    background:linear-gradient(165deg,#0B1340 0%,#060a24 100%);color:var(--ink);
+    display:flex;flex-direction:column;padding:30px 28px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+  .slide::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--a)}
+  .slide::after{content:"";position:absolute;width:260px;height:260px;right:-90px;bottom:-90px;border-radius:50%;
+    background:radial-gradient(circle,rgba(26,35,126,.55),transparent 70%);pointer-events:none}
+  .topline{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+  .kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--a);font-weight:700}
+  .idx{font-family:Sora;font-weight:700;font-size:13px;color:var(--mut)}
+  .idx b{color:#fff}
+  .body{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2}
+  .num{font-family:Sora;font-weight:800;font-size:46px;line-height:1;color:rgba(255,255,255,.10);margin-bottom:10px}
+  h1{font-family:Sora;font-weight:800;font-size:30px;line-height:1.12;letter-spacing:-.01em}
+  h2{font-family:Sora;font-weight:700;font-size:21px;line-height:1.18;margin-bottom:12px}
+  h2 .hl{color:var(--a)}
+  p{font-size:14.5px;line-height:1.5;color:var(--mut)}
+  .hookwrap{justify-content:center;text-align:left}
+  .hookwrap h1{font-size:34px}
+  .swipe{position:absolute;bottom:0;right:0;display:flex;align-items:center;gap:7px;color:var(--a);font-weight:700;font-size:13px;z-index:2}
+  .foot{display:flex;align-items:center;gap:9px;position:relative;z-index:2;border-top:1px solid rgba(255,255,255,.10);padding-top:14px}
+  .av{width:26px;height:26px;border-radius:50%;background:var(--a);display:grid;place-items:center;font-weight:700;font-size:12px;font-family:Sora}
+  .foot .nm{font-size:12.5px;font-weight:600}
+  .foot .hd{font-size:11px;color:var(--mut)}
+  /* CTA */
+  .ctaslide{background:linear-gradient(165deg,#1A237E 0%,#0B1340 100%)}
+  .chip{display:inline-flex;align-items:center;gap:8px;background:var(--a);color:#fff;font-weight:700;font-size:14px;padding:11px 18px;border-radius:12px;width:max-content;margin-top:16px;font-family:Sora}
+</style></head>
+<body>
+  <div class="head sora">POC Carrousel — 5 slides générées par l'IA (voix + couleurs de Martin)</div>
+  <div class="sub">Sujet : « Pourquoi déléguer change la vie d'un dirigeant » · format 4:5 · texte rendu en HTML (net), pas en diffusion.</div>
+
+  <div class="row">
+    <!-- 1 HOOK -->
+    <div class="slide">
+      <div class="topline"><span class="kicker">Carrousel</span><span class="idx"><b>01</b> / 05</span></div>
+      <div class="body hookwrap">
+        <h1>Tu ne délègues pas.<br>Tu <span style="color:var(--a)">survives</span>.</h1>
+        <div class="swipe">swipe <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="foot"><span class="av">M</span><div><div class="nm">Martin Kraemer</div><div class="hd">Conseil en organisation</div></div></div>
+    </div>
+
+    <!-- 2 -->
+    <div class="slide">
+      <div class="topline"><span class="kicker">Idée 01</span><span class="idx"><b>02</b> / 05</span></div>
+      <div class="body">
+        <div class="num">01</div>
+        <h2>Déléguer, ce n'est <span class="hl">pas</span> faire confiance à l'aveugle.</h2>
+        <p>C'est construire un système où tu n'as plus besoin d'être présent pour que ça tourne. La nuance est énorme.</p>
+      </div>
+      <div class="foot"><span class="av">M</span><div><div class="nm">Martin Kraemer</div><div class="hd">Conseil en organisation</div></div></div>
+    </div>
+
+    <!-- 3 -->
+    <div class="slide">
+      <div class="topline"><span class="kicker">Idée 02</span><span class="idx"><b>03</b> / 05</span></div>
+      <div class="body">
+        <div class="num">02</div>
+        <h2>L'indépendant débordé travaille <span class="hl">dans</span> son business. L'entrepreneur travaille <span class="hl">sur</span> son business.</h2>
+        <p>Tant que tu es le goulot d'étranglement, tu n'as pas une entreprise. Tu as un emploi à 70h/semaine.</p>
+      </div>
+      <div class="foot"><span class="av">M</span><div><div class="nm">Martin Kraemer</div><div class="hd">Conseil en organisation</div></div></div>
+    </div>
+
+    <!-- 4 -->
+    <div class="slide">
+      <div class="topline"><span class="kicker">Idée 03</span><span class="idx"><b>04</b> / 05</span></div>
+      <div class="body">
+        <div class="num">03</div>
+        <h2>Ce que tu délègues en premier, c'est ce qui te coûte <span class="hl">le plus cher</span>.</h2>
+        <p>Pas en temps. En marge. Les tâches à 15 €/h qui t'empêchent de travailler sur les décisions à 1500 €/h.</p>
+      </div>
+      <div class="foot"><span class="av">M</span><div><div class="nm">Martin Kraemer</div><div class="hd">Conseil en organisation</div></div></div>
+    </div>
+
+    <!-- 5 CTA -->
+    <div class="slide ctaslide">
+      <div class="topline"><span class="kicker">À toi de jouer</span><span class="idx"><b>05</b> / 05</span></div>
+      <div class="body">
+        <h2>Tu veux savoir où tu en es ?</h2>
+        <p>Un audit de 10 min suffit : je te montre les 3 premiers leviers à activer dans ta structure.</p>
+        <div class="chip">Lien en commentaire <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </div>
+      <div class="foot"><span class="av">M</span><div><div class="nm">Martin Kraemer</div><div class="hd">Conseil en organisation</div></div></div>
+    </div>
+  </div>
+</body></html>

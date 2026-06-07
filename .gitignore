@@ -132,3 +132,6 @@ android-sdk/ -e
 
 # Playwright MCP artifacts
 .playwright-mcp/
+
+# uvicorn dev logs
+backend/_uvicorn.*

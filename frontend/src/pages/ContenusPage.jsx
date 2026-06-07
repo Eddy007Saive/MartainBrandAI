@@ -522,7 +522,13 @@ export default function ContenusPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-1">
                 {/* Colonne gauche : visuel + liens */}
                 <div className="space-y-3">
-                  {selectedContenu.lien_visuel ? (
+                  {Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {selectedContenu.slides_images.map((u, i) => (
+                        <img key={i} src={u} alt={`slide ${i + 1}`} className="w-full rounded-lg object-cover ring-1 ring-white/10" />
+                      ))}
+                    </div>
+                  ) : selectedContenu.lien_visuel ? (
                     <img
                       src={selectedContenu.lien_visuel}
                       alt=""

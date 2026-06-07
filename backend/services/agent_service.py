@@ -8,6 +8,7 @@ La "mémoire" de chaque client est lue depuis Supabase (table users), isolée pa
 telegram_id. La voix de marque est mise en cache (prompt caching) → coût réduit.
 """
 
+import json
 import anthropic
 from config import CLAUDE_API_KEY, CLAUDE_MODEL, supabase, logger
 
@@ -187,6 +188,51 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
         }],
     )
     return {"contenu": _texte(resp), "usage": _usage(resp)}
+
+
+# ---------------------------------------------------------------------------
+# Agent CARROUSEL (slides)
+# ---------------------------------------------------------------------------
+ROLE_CARROUSEL = (
+    "Tu crées des CARROUSELS pour la marque personnelle décrite ci-dessous, dans sa voix. "
+    "Structure imposée : slide 1 = HOOK très court et percutant (une accroche qui stoppe le scroll), "
+    "slides du milieu = UNE idée forte chacune (titre court + 1 à 2 phrases max), "
+    "dernière slide = CTA (appel à l'action). Texte court, percutant, lisible sur une slide. "
+    "Réponds UNIQUEMENT avec du JSON valide : "
+    '{"slides":[{"titre":"...","texte":"..."}]} — le hook et le CTA peuvent avoir un texte vide.\n\n'
+)
+
+
+def rediger_carrousel(telegram_id: int, sujet: str, nb_slides: int = 5, model: str = None, cache: bool = False) -> dict:
+    if not _client:
+        return {"error": "no_api_key"}
+    u = _charger_marque(telegram_id)
+    if not (u.get("secteur") or "").strip():
+        return {"error": "profil_incomplet"}
+    contexte = _contexte_marque(u)
+    resp = _client.messages.create(
+        model=model or CLAUDE_MODEL,
+        max_tokens=1300,
+        system=_system(ROLE_CARROUSEL, contexte, "", cache),
+        messages=[{
+            "role": "user",
+            "content": (f"Sujet du carrousel : \"{sujet}\".\n"
+                        f"Donne EXACTEMENT {nb_slides} slides en JSON (slide 1 = hook, dernière = CTA)."),
+        }],
+    )
+    txt = _texte(resp)
+    if "{" in txt and "}" in txt:
+        txt = txt[txt.find("{"):txt.rfind("}") + 1]
+    try:
+        slides = json.loads(txt).get("slides", [])
+    except Exception as e:
+        logger.error(f"carrousel parse error: {e} | {txt[:200]}")
+        return {"error": "parse"}
+    slides = [{"titre": (s.get("titre") or "").strip(), "texte": (s.get("texte") or "").strip()}
+              for s in slides if (s.get("titre") or s.get("texte"))][:nb_slides]
+    if not slides:
+        return {"error": "parse"}
+    return {"slides": slides, "usage": _usage(resp)}
 
 
 # ---------------------------------------------------------------------------
