@@ -32,8 +32,9 @@ export const agentService = {
     api.post('/agent/script', { sujet, type_video, qualite }).then((r) => r.data),
 
   // Génère un carrousel (slides texte + images rendues) -> { contenu_id, slides, slides_images, credits }
-  carrousel: (sujet, reseau = 'linkedin', nb_slides = 5, qualite = 'equilibre') =>
-    api.post('/agent/carrousel', { sujet, reseau, nb_slides, qualite }).then((r) => r.data),
+  // contenu_id fourni = régénère le carrousel d'un contenu existant
+  carrousel: (sujet, reseau = 'linkedin', nb_slides = 5, qualite = 'equilibre', contenu_id = null) =>
+    api.post('/agent/carrousel', { sujet, reseau, nb_slides, qualite, contenu_id }).then((r) => r.data),
 
   // Enregistre un script (édité) dans la table studio
   enregistrerScript: (script, titre, type_video = 'Reel') =>

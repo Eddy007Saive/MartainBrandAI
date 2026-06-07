@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2 } from 'lucide-react';
+import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -111,8 +111,10 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
   const isLoading = actionLoading === contenu.id;
+  const isCarrousel = contenu.type === 'Carrousel';
+  const regenLoading = carrouselLoading === contenu.id;
   const date = contenu.date_publication
     ? new Date(contenu.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
     : new Date(contenu.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
@@ -142,10 +144,17 @@ function ContentCard({ contenu, onView, onImage, onEdit, onDelete, onValidate, o
             {contenu.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
           </span>
           <CardAction title="Voir" onClick={() => onView(contenu)}><Eye className="w-4 h-4" /></CardAction>
-          <CardAction title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} onClick={() => onImage(contenu)}
-            className={contenu.lien_visuel ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
-            <ImageIcon className="w-4 h-4" />
-          </CardAction>
+          {isCarrousel ? (
+            <CardAction title="Régénérer le carrousel" onClick={() => onRegenCarrousel(contenu)}
+              className={contenu.slides_images?.length ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
+              {regenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LayoutGrid className="w-4 h-4" />}
+            </CardAction>
+          ) : (
+            <CardAction title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} onClick={() => onImage(contenu)}
+              className={contenu.lien_visuel ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
+              <ImageIcon className="w-4 h-4" />
+            </CardAction>
+          )}
           {contenu.statut === 'A valider' && (
             <>
               <CardAction title="Valider" onClick={() => onValidate(contenu.id)} className="hover:text-emerald-400">
@@ -172,6 +181,7 @@ export default function ContenusPage() {
   const [editContenu, setEditContenu] = useState(null);
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [carrouselLoading, setCarrouselLoading] = useState(null);
 
   const { user, updateUser } = useUser();
   const [imageContenu, setImageContenu] = useState(null);
@@ -226,6 +236,30 @@ export default function ContenusPage() {
       else toast.error(e.response?.data?.detail || "Échec de la génération d'image");
     } finally {
       setImgGenerating(false);
+    }
+  };
+
+  // Régénère le carrousel (nouvelles slides + images) d'un contenu existant
+  const regenererCarrousel = async (contenu) => {
+    if (carrouselLoading) return;
+    setCarrouselLoading(contenu.id);
+    try {
+      const nb = Array.isArray(contenu.slides_images) && contenu.slides_images.length ? contenu.slides_images.length : 5;
+      const d = await agentService.carrousel(
+        contenu.titre || contenu.contenu?.slice(0, 80) || 'Carrousel',
+        String(contenu.reseau_cible || 'linkedin').toLowerCase(),
+        nb, 'equilibre', contenu.id,
+      );
+      if (d.credits != null) updateUser({ credits: d.credits });
+      const imgs = d.slides_images || [];
+      setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, slides_images: imgs, lien_visuel: imgs[0] || c.lien_visuel } : c)));
+      if (imgs.length) toast.success('Carrousel régénéré ✨');
+      else toast.warning('Slides non rendues — réessaie');
+    } catch (e) {
+      if (e.response?.status === 402) toast.error('Crédits insuffisants');
+      else toast.error(e.response?.data?.detail || 'Échec de la régénération');
+    } finally {
+      setCarrouselLoading(null);
     }
   };
 
@@ -450,6 +484,8 @@ export default function ContenusPage() {
                   contenu={contenu}
                   onView={setSelectedContenu}
                   onImage={openImage}
+                  onRegenCarrousel={regenererCarrousel}
+                  carrouselLoading={carrouselLoading}
                   onEdit={setEditContenu}
                   onDelete={setDeleteContenu}
                   onValidate={(id) => handleUpdateStatut(id, 'Valider')}

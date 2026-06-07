@@ -144,6 +144,8 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             }
             if date_pub:
                 row["date_publication"] = date_pub
+            if action == "carrousel":
+                row["type"] = "Carrousel"
             ins = supabase.table("contenu").insert(row).execute()
             cid = ins.data[0]["id"] if ins.data else None
 
@@ -263,14 +265,23 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), cost, qualite)
 
     slides = result["slides"]
-    # Enregistre le contenu (texte assemblé) dans Contenus
+    # Texte assemblé des slides
     texte = "\n\n".join(f"{s['titre']}\n{s['texte']}".strip() for s in slides)
-    row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": texte,
-           "statut": "A valider", "created_at": datetime.now(timezone.utc).isoformat()}
-    if reseau in RESEAU_MAP:
-        row["reseau_cible"] = RESEAU_MAP[reseau]
-    ins = supabase.table("contenu").insert(row).execute()
-    contenu_id = ins.data[0]["id"] if ins.data else None
+    existing_id = body.get("contenu_id")
+    if existing_id:
+        # Régénération : met à jour le contenu existant
+        supabase.table("contenu").update(
+            {"contenu": texte, "type": "Carrousel"}
+        ).eq("id", existing_id).eq("telegram_id", telegram_id).execute()
+        contenu_id = existing_id
+    else:
+        row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": texte,
+               "statut": "A valider", "type": "Carrousel",
+               "created_at": datetime.now(timezone.utc).isoformat()}
+        if reseau in RESEAU_MAP:
+            row["reseau_cible"] = RESEAU_MAP[reseau]
+        ins = supabase.table("contenu").insert(row).execute()
+        contenu_id = ins.data[0]["id"] if ins.data else None
 
     # Rendu des slides en images
     slides_images = []
