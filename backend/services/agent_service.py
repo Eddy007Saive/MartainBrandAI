@@ -28,6 +28,13 @@ QUALITE_MODELS = {
     "premium": "claude-opus-4-8",
 }
 
+# Les sujets sont des idées jetables -> Haiku suffit (3x moins cher que Sonnet)
+SUJETS_MODEL = "claude-haiku-4-5"
+
+# Note caching : on N'UTILISE PAS le prompt caching ici. Les générations sont espacées
+# (cache ephemeral = TTL 5 min) et le préfixe diffère à chaque appel -> le cache n'était
+# jamais relu mais ré-écrit (+25% sur l'input). Sans cache, l'input est au tarif normal.
+
 
 # ---------------------------------------------------------------------------
 # Mémoire de la marque (depuis Supabase)
@@ -104,9 +111,9 @@ def generer_sujets(telegram_id: int, nombre: int = 6) -> dict:
     contexte = _contexte_marque(u)
 
     resp = _client.messages.create(
-        model=CLAUDE_MODEL,
+        model=SUJETS_MODEL,
         max_tokens=900,
-        system=[{"type": "text", "text": ROLE_SUJETS + contexte, "cache_control": {"type": "ephemeral"}}],
+        system=ROLE_SUJETS + contexte,
         messages=[{
             "role": "user",
             "content": (
@@ -152,7 +159,7 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
     resp = _client.messages.create(
         model=model or CLAUDE_MODEL,
         max_tokens=1200,
-        system=[{"type": "text", "text": bloc, "cache_control": {"type": "ephemeral"}}],
+        system=bloc,
         messages=[{
             "role": "user",
             "content": (
@@ -197,7 +204,7 @@ def rediger_script(telegram_id: int, sujet: str, type_video: str = "Reel", model
     resp = _client.messages.create(
         model=model or CLAUDE_MODEL,
         max_tokens=1500,
-        system=[{"type": "text", "text": ROLE_SCRIPT + contexte, "cache_control": {"type": "ephemeral"}}],
+        system=ROLE_SCRIPT + contexte,
         messages=[{
             "role": "user",
             "content": (

@@ -40,7 +40,7 @@ async def sujets(body: dict, payload: dict = Depends(verify_token)):
         credit_service.refund(telegram_id, cost)
         _map_agent_error(result)
 
-    usage_service.log(telegram_id, "sujets", CLAUDE_MODEL, result.get("usage"), cost)
+    usage_service.log(telegram_id, "sujets", agent_service.SUJETS_MODEL, result.get("usage"), cost)
 
     # Sauvegarde des sujets comme brouillons (sans réseau — choisi à la transformation)
     rows = [{"telegram_id": telegram_id, "titre": s[:200], "statut": "Brouillon"}
@@ -271,6 +271,6 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         supabase.table("contenu").update(upd).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
         res["statut"] = upd.get("statut")
         res["date_publication"] = upd.get("date_publication") or c.get("date_publication")
-    usage_service.log(telegram_id, "image", model_id, {}, cost)
+    usage_service.log(telegram_id, "image", model_id, {}, cost, cost_override=usage_service.IMAGE_PRICES.get(modele, 0.04))
     res["credits"] = solde
     return res

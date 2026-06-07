@@ -6,7 +6,7 @@ from config import supabase, logger
 
 # Coûts en crédits. Pour post/script, le coût dépend du niveau de qualité choisi.
 COUTS = {
-    "sujets": 2,
+    "sujets": 5,  # lot d'idées (Haiku) — couvre le coût réel avec marge ~3x
     "post": {"rapide": 8, "equilibre": 20, "premium": 40},
     "script": {"rapide": 12, "equilibre": 30, "premium": 60},
     "image": {"nano2": 50, "nano3": 150},
