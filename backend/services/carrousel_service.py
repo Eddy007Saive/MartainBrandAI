@@ -87,7 +87,11 @@ def _render_and_upload(telegram_id: int, slides: list, p: str, s: str, a: str,
     html_str = build_html(slides, p, s, a, nom, secteur)
     urls = []
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(channel="chromium", args=["--no-sandbox"])
+        launch_args = ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
+        try:
+            browser = pw.chromium.launch(args=launch_args)  # chrome-headless-shell (stable en conteneur)
+        except Exception:
+            browser = pw.chromium.launch(channel="chromium", args=launch_args)  # fallback local
         page = browser.new_page(viewport={"width": SLIDE_W, "height": SLIDE_H}, device_scale_factor=2)
         page.set_content(html_str, wait_until="networkidle")
         try:
