@@ -30,9 +30,9 @@ export const agentService = {
   enregistrerScript: (script, titre, type_video = 'Reel') =>
     api.post('/agent/enregistrer-script', { script, titre, type_video }).then((r) => r.data),
 
-  // Claude écrit un prompt d'image à partir du texte du post (éditable)
-  imagePrompt: (texte, reseau = 'linkedin') =>
-    api.post('/agent/image-prompt', { texte, reseau }).then((r) => r.data),
+  // Claude écrit un prompt d'image à partir du texte du post (éditable) ; sauvegardé sur le contenu
+  imagePrompt: (texte, reseau = 'linkedin', contenu_id = null) =>
+    api.post('/agent/image-prompt', { texte, reseau, contenu_id }).then((r) => r.data),
 
   // Génère l'image (nano-banana) et l'attache au contenu
   image: (contenu_id, prompt, avec_photo = false, modele = 'nano2') =>

@@ -47,6 +47,14 @@ def generer_prompt(telegram_id: int, post_texte: str, reseau: str = "linkedin") 
         f"Palette de marque (à utiliser) : principale {u.get('couleur_principale')}, "
         f"secondaire {u.get('couleur_secondaire')}, accent {u.get('couleur_accent')}."
     )
+    # Si le client a des images d'inspiration (appliquées en référence à la génération),
+    # on prévient Claude pour qu'il ne sur-décrive pas un style qui entrerait en conflit.
+    if u.get("use_inspirations", True) and inspiration_urls(telegram_id, limit=1):
+        contexte += (
+            " Le client a fourni des IMAGES D'INSPIRATION qui seront appliquées comme référence "
+            "de style au moment de la génération : décris surtout le SUJET et la SCÈNE, et reste "
+            "cohérent avec ces références (le style visuel sera guidé par elles)."
+        )
     resp = _client.messages.create(
         model="claude-haiku-4-5",
         max_tokens=400,

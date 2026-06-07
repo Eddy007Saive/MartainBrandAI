@@ -218,6 +218,13 @@ async def image_prompt(body: dict, payload: dict = Depends(verify_token)):
     res = image_service.generer_prompt(telegram_id, texte, body.get("reseau", "linkedin"))
     if res.get("error") == "no_api_key":
         raise HTTPException(status_code=500, detail="Clé API IA non configurée")
+    # Sauvegarde immédiate du prompt sur le contenu -> on ne le régénère pas à la réouverture (anti-gaspillage)
+    contenu_id = body.get("contenu_id")
+    if contenu_id and res.get("prompt"):
+        try:
+            supabase.table("contenu").update({"prompt_image": res["prompt"]}).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+        except Exception as e:
+            logger.warning(f"save prompt_image error: {e}")
     return res
 
 
@@ -250,7 +257,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
 
     contenu_id = body.get("contenu_id")
     if contenu_id:
-        upd = {"lien_visuel": res["lien_visuel"]}
+        upd = {"lien_visuel": res["lien_visuel"], "prompt_image": prompt}  # garde le prompt finalement utilisé
         # Le visuel est prêt -> on confirme la planification (statut Planifie + date si absente)
         cur = (supabase.table("contenu").select("statut, reseau_cible, date_publication")
                .eq("id", contenu_id).eq("telegram_id", telegram_id).execute())

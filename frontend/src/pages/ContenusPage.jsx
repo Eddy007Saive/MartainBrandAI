@@ -327,8 +327,15 @@ export default function ContenusPage() {
   const chargerPrompt = async (contenu) => {
     setImgLoadingPrompt(true);
     try {
-      const data = await agentService.imagePrompt(contenu.contenu || contenu.titre || '', String(contenu.reseau_cible || 'linkedin').toLowerCase());
+      const data = await agentService.imagePrompt(
+        contenu.contenu || contenu.titre || '',
+        String(contenu.reseau_cible || 'linkedin').toLowerCase(),
+        contenu.id,
+      );
       setImgPrompt(data.prompt || '');
+      // mémorise le prompt (sauvegardé en base) pour ne pas le régénérer à la réouverture
+      setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, prompt_image: data.prompt } : c)));
+      setImageContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, prompt_image: data.prompt } : prev));
     } catch (e) {
       toast.error('Erreur lors de la préparation du prompt');
     } finally {
@@ -338,10 +345,14 @@ export default function ContenusPage() {
 
   const openImage = (contenu) => {
     setImageContenu(contenu);
-    setImgPrompt('');
     setImgAvecPhoto(!!user?.use_photo);
     setImgModele('nano2');
-    if (!contenu.lien_visuel) chargerPrompt(contenu); // pas d'image → on prépare une description (sinon on ne dépense rien)
+    if (contenu.prompt_image) {
+      setImgPrompt(contenu.prompt_image);           // déjà généré → on réutilise (zéro régénération)
+    } else {
+      setImgPrompt('');
+      if (!contenu.lien_visuel) chargerPrompt(contenu); // 1ʳᵉ fois seulement → on prépare la description
+    }
   };
 
   const genererImage = async () => {
@@ -350,8 +361,8 @@ export default function ContenusPage() {
     try {
       const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele);
       if (data.credits != null) updateUser({ credits: data.credits });
-      setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel } : c)));
-      setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel } : prev));
+      setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
+      setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
       toast.success('Visuel généré ✨');
     } catch (e) {
       if (e.response?.status === 402) toast.error('Crédits insuffisants');
