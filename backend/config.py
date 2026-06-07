@@ -24,7 +24,10 @@ CLAUDE_API_KEY = os.environ.get('api_claude') or os.environ.get('ANTHROPIC_API_K
 CLAUDE_MODEL = os.environ.get('CLAUDE_MODEL', 'claude-sonnet-4-6')  # équilibre qualité/prix · alt : claude-haiku-4-5 (moins cher) / claude-opus-4-8 (qualité max)
 
 # OpenRouter — clé UNIQUE plateforme (pour la génération d'images nano-banana)
-OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY') or os.environ.get('api_openrouter', '')
+OPENROUTER_API_KEY = (os.environ.get('OPENROUTER_API_KEY')
+                      or os.environ.get('api_openrouter')
+                      or os.environ.get('API_OPENROUTER')
+                      or '')
 OPENROUTER_IMAGE_MODEL = os.environ.get('OPENROUTER_IMAGE_MODEL', 'google/gemini-2.5-flash-image')  # nano-banana · alt: google/gemini-3.1-flash-image-preview
 
 # HeyGen
