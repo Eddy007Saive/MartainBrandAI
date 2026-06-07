@@ -155,8 +155,11 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                         supabase.table("contenu").update(
                             {"slides_images": imgs, "lien_visuel": imgs[0]}
                         ).eq("id", cid).execute()
+                    else:
+                        errors.append({"sujet": sujet, "reseau": reseau_low, "err": "render_vide"})
                 except Exception as e:
                     logger.error(f"rafale carrousel render error: {e}")
+                    errors.append({"sujet": sujet, "reseau": reseau_low, "err": "render"})
             created += 1
         except Exception as e:
             credit_service.refund(telegram_id, cost)
