@@ -9,6 +9,7 @@ import { agentService } from '../services/agentService';
 import { useUser } from '../context/UserContext';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
+import { SocialIcon } from '../components/SocialIcon';
 
 const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
@@ -226,7 +227,7 @@ export default function PlanEditorial() {
               return (
                 <div key={p.platform} className={`rounded-2xl border p-4 transition-all ${done ? 'border-[#3AFFA3]/30 bg-gradient-to-b from-[#3AFFA3]/[0.05] to-transparent' : 'border-white/[0.06] bg-[#0f172a]'}`}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-8 h-8 rounded-lg grid place-items-center text-[13px] font-bold text-white ${meta.cls}`}>{meta.short}</div>
+                    <div className={`w-8 h-8 rounded-lg grid place-items-center text-white ${meta.cls}`}><SocialIcon network={p.platform} className="w-4 h-4" /></div>
                     <div><div className="font-semibold text-sm">{p.label}</div><div className="text-[11px] text-slate-500">{FORMAT_LABEL[p.format] || p.format}</div></div>
                     <div className="ml-auto text-right">
                       <div className="text-[15px] font-bold font-sora">{p.filled}<span className="text-slate-500 font-medium text-[13px]">/{p.needed}</span></div>
@@ -293,7 +294,7 @@ export default function PlanEditorial() {
                         return (
                           <button key={n.id} onClick={() => toggleNet(s.id, n.id)}
                             className={`mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-all ${on ? 'text-white border-[#5B6CFF]/50 bg-[#5B6CFF]/15' : 'text-slate-400 border-white/10 bg-white/[0.02] hover:text-white hover:border-white/20'}`}>
-                            <span className={`w-[18px] h-[18px] rounded-[5px] grid place-items-center text-[10px] font-bold text-white ${meta.cls}`}>{meta.short}</span>
+                            <span className={`w-[18px] h-[18px] rounded-[5px] grid place-items-center text-white ${meta.cls}`}><SocialIcon network={n.id} className="w-3 h-3" /></span>
                             {n.label}<span className={`text-[10px] ${on ? 'text-white/60' : 'text-slate-600'}`}>{FORMAT_LABEL[n.format]}</span>
                           </button>
                         );

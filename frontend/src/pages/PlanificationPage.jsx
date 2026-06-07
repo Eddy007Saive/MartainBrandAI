@@ -3,6 +3,7 @@ import { Calendar, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
 import { useUser } from '../context/UserContext';
+import { SocialIcon } from '../components/SocialIcon';
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
@@ -90,14 +91,14 @@ export default function PlanificationPage() {
           className="w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[11px] border transition-all hover:brightness-125 text-left"
           style={{ background: st.bg, color: st.co, borderColor: st.bg }}
         >
-          <span className="w-[15px] h-[15px] rounded-[4px] grid place-items-center text-[9px] font-bold text-white shrink-0" style={net.style}>{net.s}</span>
+          <span className="w-[15px] h-[15px] rounded-[4px] grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
           <span className="flex-1 truncate font-medium">{c.titre || c.contenu?.slice(0, 30) || 'Sans titre'}</span>
           {inCell && <span className="text-[9.5px] opacity-70 shrink-0">{hhmm(c.date_publication)}</span>}
         </button>
         {open && (
           <div className="absolute z-30 top-9 left-0 w-[230px] rounded-xl border border-white/10 bg-[#111a2e] p-3 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-2 mb-2">
-              <span className="w-[22px] h-[22px] rounded-md grid place-items-center text-[11px] font-bold text-white" style={net.style}>{net.s}</span>
+              <span className="w-[22px] h-[22px] rounded-md grid place-items-center text-white" style={net.style}><SocialIcon network={c.reseau_cible} className="w-3.5 h-3.5" /></span>
               <span className="text-xs font-semibold">{c.reseau_cible || '—'}</span>
               <span className="text-[11px] text-slate-500 ml-auto">{hhmm(c.date_publication)}</span>
             </div>
@@ -187,7 +188,7 @@ export default function PlanificationPage() {
                   <div className="text-xl font-bold font-sora leading-none">{new Date(c.date_publication).getDate()}</div>
                   <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{MOIS_COURT[new Date(c.date_publication).getMonth()]}</div>
                 </div>
-                <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-xs font-bold text-white shrink-0" style={net.style}>{net.s}</div>
+                <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-4 h-4" /></div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[13.5px] text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 50)}</div>
                   <div className="text-[11.5px] text-slate-500 mt-0.5">{c.reseau_cible || '—'} · {hhmm(c.date_publication)}</div>
@@ -214,7 +215,7 @@ export default function PlanificationPage() {
                     <div className="text-xl font-bold font-sora leading-none">{new Date(c.date_publication).getDate()}</div>
                     <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{MOIS_COURT[new Date(c.date_publication).getMonth()]}</div>
                   </div>
-                  <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-xs font-bold text-white shrink-0" style={net.style}>{net.s}</div>
+                  <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-4 h-4" /></div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[13.5px] text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 50)}</div>
                     <div className="text-[11.5px] text-slate-500 mt-0.5">{c.reseau_cible || '—'} · {hhmm(c.date_publication)}</div>

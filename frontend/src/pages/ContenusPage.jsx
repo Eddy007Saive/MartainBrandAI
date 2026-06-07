@@ -3,6 +3,7 @@ import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, Fil
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
+import { SocialIcon } from '../components/SocialIcon';
 import {
   Select,
   SelectContent,
@@ -78,8 +79,9 @@ function ReseauBadge({ reseau }) {
   const config = RESEAU_CONFIG[reseau];
   if (!config) return <span className="text-xs text-slate-500">{reseau}</span>;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold font-inter text-white bg-gradient-to-r ${config.color}`}>
-      {config.short}
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold font-inter text-white bg-gradient-to-r ${config.color}`}>
+      <SocialIcon network={config.label} className="w-3 h-3" />
+      {config.label}
     </span>
   );
 }
@@ -100,208 +102,63 @@ function StatCard({ value, label, color, borderColor, icon: Icon }) {
   );
 }
 
-function ContentCard({ contenu, onView, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
-  const statutConfig = STATUT_CONFIG[contenu.statut] || STATUT_CONFIG['Brouillon'];
-  const isLoading = actionLoading === contenu.id;
-  const createdDate = new Date(contenu.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-
+function CardAction({ title, onClick, children, className = '' }) {
   return (
-    <div className="group relative bg-slate-900/60 border border-white/[0.06] rounded-xl overflow-hidden hover:border-[#5B6CFF]/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(91,108,255,0.06)]">
-      {/* Top accent line */}
-      <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${statutConfig.bg === 'bg-amber-500/15' ? 'from-amber-500 to-orange-500' : statutConfig.bg === 'bg-emerald-500/15' ? 'from-emerald-500 to-green-500' : statutConfig.bg === 'bg-blue-500/15' ? 'from-blue-500 to-cyan-500' : statutConfig.bg === 'bg-red-500/15' ? 'from-red-500 to-pink-500' : statutConfig.bg === 'bg-purple-500/15' ? 'from-purple-500 to-violet-500' : 'from-slate-500 to-slate-600'} opacity-60`} />
-
-      <div className="p-5">
-        <div className="flex gap-4">
-          {/* Image */}
-          {contenu.lien_visuel && (
-            <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-800 flex-shrink-0 ring-1 ring-white/5">
-              <img
-                src={contenu.lien_visuel}
-                alt=""
-                className="w-full h-full object-cover"
-                onError={(e) => e.target.style.display = 'none'}
-              />
-            </div>
-          )}
-
-          {/* Content body */}
-          <div className="flex-1 min-w-0">
-            {/* Top row: badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <StatusBadge statut={contenu.statut} />
-              {contenu.reseau_cible && <ReseauBadge reseau={contenu.reseau_cible} />}
-              {contenu.type && (
-                <span className="text-[10px] text-slate-500 font-inter bg-slate-800/80 px-2 py-0.5 rounded-md border border-white/5">
-                  {contenu.type}
-                </span>
-              )}
-            </div>
-
-            {/* Title */}
-            {contenu.titre && (
-              <h3 className="text-white font-semibold font-sora text-sm mb-1.5 truncate">{contenu.titre}</h3>
-            )}
-
-            {/* Preview text */}
-            <p className="text-slate-400 font-inter text-xs leading-relaxed line-clamp-2 mb-3">
-              {contenu.contenu}
-            </p>
-
-            {/* Meta row */}
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-inter">
-                <Calendar className="w-3 h-3" />
-                {createdDate}
-              </span>
-              {contenu.date_publication && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-blue-400/70 font-inter">
-                  <Clock className="w-3 h-3" />
-                  Planifié: {new Date(contenu.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                </span>
-              )}
-              {contenu.callback_url && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400/60 font-inter">
-                  <Sparkles className="w-3 h-3" />
-                  Webhook
-                </span>
-              )}
-              {contenu.lien_video_dropbox && (
-                <a
-                  href={contenu.lien_video_dropbox}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 transition-colors"
-                >
-                  <Video className="w-3 h-3" />
-                  Vidéo Dropbox
-                </a>
-              )}
-              {contenu.statut === 'Publie' && contenu.lien_publication && (
-                <a
-                  href={contenu.lien_publication}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  <Link2 className="w-3 h-3" />
-                  Voir en ligne
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col gap-1 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => onView(contenu)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
-              title="Voir détails"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-
-            {contenu.statut === 'A valider' && (
-              <>
-                <button
-                  onClick={() => onValidate(contenu.id)}
-                  disabled={isLoading}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-400 hover:bg-emerald-500/20 transition-all"
-                  title="Valider"
-                >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => onRefuse(contenu.id)}
-                  disabled={isLoading}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all"
-                  title="Refuser"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </>
-            )}
-
-            {contenu.statut === 'Publie' && contenu.lien_publication && (
-              <a
-                href={contenu.lien_publication}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-400 hover:bg-blue-500/20 transition-all"
-                title="Voir la publication"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            )}
-
-            <button
-              onClick={() => onEdit(contenu)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
-              title="Modifier"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onDelete(contenu)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
-              title="Supprimer"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <button onClick={onClick} title={title}
+      className={`w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white/[0.06] transition-all ${className}`}>
+      {children}
+    </button>
   );
 }
 
-function ContentRow({ contenu, onView, onImage, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
+function ContentCard({ contenu, onView, onImage, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
   const isLoading = actionLoading === contenu.id;
-  const createdDate = new Date(contenu.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  const date = contenu.date_publication
+    ? new Date(contenu.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+    : new Date(contenu.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
   return (
-    <tr className="group border-b border-white/[0.04] last:border-0 hover:bg-white/[0.025] transition-colors">
-      <td className="px-4 py-3 align-middle"><StatusBadge statut={contenu.statut} /></td>
-      <td className="px-4 py-3 align-middle">
-        {contenu.reseau_cible ? <ReseauBadge reseau={contenu.reseau_cible} /> : <span className="text-slate-600 text-xs">—</span>}
-      </td>
-      <td className="px-4 py-3 align-middle max-w-0 w-full">
-        <div className="flex items-center gap-3 min-w-0">
-          {contenu.lien_visuel && (
-            <img src={contenu.lien_visuel} alt="" className="w-9 h-9 rounded object-cover flex-shrink-0 ring-1 ring-white/10" />
-          )}
-          <button onClick={() => onView(contenu)} className="text-left block flex-1 min-w-0">
-            <div className="text-white font-medium text-sm truncate hover:text-[#8A6CFF] transition-colors">{contenu.titre || 'Sans titre'}</div>
-            {contenu.contenu && <div className="text-slate-500 text-xs truncate mt-0.5">{contenu.contenu}</div>}
-          </button>
-        </div>
-      </td>
-      <td className="px-4 py-3 align-middle whitespace-nowrap text-xs text-slate-400">{createdDate}</td>
-      <td className="px-4 py-3 align-middle">
-        <div className="flex items-center justify-end gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => onView(contenu)} title="Voir" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
-            <Eye className="w-4 h-4" />
-          </button>
-          <button onClick={() => onImage(contenu)} title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${contenu.lien_visuel ? 'text-emerald-400 hover:bg-emerald-500/20' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+    <div className="group flex flex-col rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden hover:border-white/[0.12] transition-all">
+      {/* Visuel */}
+      <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden">
+        {contenu.lien_visuel ? (
+          <img src={contenu.lien_visuel} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center text-slate-700"><ImageIcon className="w-8 h-8" /></div>
+        )}
+        {contenu.reseau_cible && <span className="absolute top-2.5 left-2.5"><ReseauBadge reseau={contenu.reseau_cible} /></span>}
+        <span className="absolute top-2.5 right-2.5"><StatusBadge statut={contenu.statut} /></span>
+      </div>
+
+      {/* Corps */}
+      <div className="p-4 flex-1 flex flex-col">
+        <button onClick={() => onView(contenu)} className="text-left">
+          {contenu.titre && <h3 className="text-white font-semibold font-sora text-[13.5px] mb-1 line-clamp-1">{contenu.titre}</h3>}
+          <p className="text-slate-400 font-inter text-[12.5px] leading-relaxed line-clamp-3">{contenu.contenu}</p>
+        </button>
+
+        <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]">
+          <span className="text-[11px] text-slate-500 font-inter mr-auto inline-flex items-center gap-1">
+            {contenu.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
+          </span>
+          <CardAction title="Voir" onClick={() => onView(contenu)}><Eye className="w-4 h-4" /></CardAction>
+          <CardAction title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} onClick={() => onImage(contenu)}
+            className={contenu.lien_visuel ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
             <ImageIcon className="w-4 h-4" />
-          </button>
+          </CardAction>
           {contenu.statut === 'A valider' && (
             <>
-              <button onClick={() => onValidate(contenu.id)} disabled={isLoading} title="Valider" className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-400 hover:bg-emerald-500/20 transition-all">
+              <CardAction title="Valider" onClick={() => onValidate(contenu.id)} className="hover:text-emerald-400">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              </button>
-              <button onClick={() => onRefuse(contenu.id)} disabled={isLoading} title="Refuser" className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all">
-                <X className="w-4 h-4" />
-              </button>
+              </CardAction>
+              <CardAction title="Refuser" onClick={() => onRefuse(contenu.id)} className="hover:text-red-400"><X className="w-4 h-4" /></CardAction>
             </>
           )}
-          <button onClick={() => onEdit(contenu)} title="Modifier" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
-            <Edit2 className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={() => onDelete(contenu)} title="Supprimer" className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all">
-            <Trash2 className="w-3.5 h-3.5" />
-          </button>
+          <CardAction title="Modifier" onClick={() => onEdit(contenu)} className="hover:text-white"><Edit2 className="w-3.5 h-3.5" /></CardAction>
+          <CardAction title="Supprimer" onClick={() => onDelete(contenu)} className="hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></CardAction>
         </div>
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
 
@@ -586,35 +443,20 @@ export default function ContenusPage() {
         ) : (
           <div className="space-y-3">
             <p className="text-xs text-slate-500 font-inter">{filteredContenus.length} contenu{filteredContenus.length > 1 ? 's' : ''}</p>
-            <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[640px]">
-                  <thead>
-                    <tr className="border-b border-white/[0.06]">
-                      <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Statut</th>
-                      <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Réseau</th>
-                      <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Contenu</th>
-                      <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Date</th>
-                      <th className="px-4 py-3 text-right text-[11px] uppercase tracking-wider text-slate-500 font-inter font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredContenus.map((contenu) => (
-                      <ContentRow
-                        key={contenu.id}
-                        contenu={contenu}
-                        onView={setSelectedContenu}
-                        onImage={openImage}
-                        onEdit={setEditContenu}
-                        onDelete={setDeleteContenu}
-                        onValidate={(id) => handleUpdateStatut(id, 'Valider')}
-                        onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
-                        actionLoading={actionLoading}
-                      />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              {filteredContenus.map((contenu) => (
+                <ContentCard
+                  key={contenu.id}
+                  contenu={contenu}
+                  onView={setSelectedContenu}
+                  onImage={openImage}
+                  onEdit={setEditContenu}
+                  onDelete={setDeleteContenu}
+                  onValidate={(id) => handleUpdateStatut(id, 'Valider')}
+                  onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
+                  actionLoading={actionLoading}
+                />
+              ))}
             </div>
           </div>
         )}
