@@ -182,6 +182,7 @@ export default function ContenusPage() {
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [carrouselLoading, setCarrouselLoading] = useState(null);
+  const [lightbox, setLightbox] = useState(null); // { images:[], index:0 }
 
   const { user, updateUser } = useUser();
   const [imageContenu, setImageContenu] = useState(null);
@@ -262,6 +263,17 @@ export default function ContenusPage() {
       setCarrouselLoading(null);
     }
   };
+
+  useEffect(() => {
+    if (!lightbox) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightbox(null);
+      else if (e.key === 'ArrowRight') setLightbox((lb) => lb && { ...lb, index: (lb.index + 1) % lb.images.length });
+      else if (e.key === 'ArrowLeft') setLightbox((lb) => lb && { ...lb, index: (lb.index - 1 + lb.images.length) % lb.images.length });
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightbox]);
 
   useEffect(() => {
     fetchContenus();
@@ -561,7 +573,11 @@ export default function ContenusPage() {
                   {Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2">
                       {selectedContenu.slides_images.map((u, i) => (
-                        <img key={i} src={u} alt={`slide ${i + 1}`} className="w-full rounded-lg object-cover ring-1 ring-white/10" />
+                        <button key={i} type="button" onClick={() => setLightbox({ images: selectedContenu.slides_images, index: i })}
+                          className="group relative block w-full overflow-hidden rounded-lg ring-1 ring-white/10 hover:ring-[#5B6CFF]/50 transition-all">
+                          <img src={u} alt={`slide ${i + 1}`} className="w-full object-cover group-hover:scale-[1.03] transition-transform" />
+                          <span className="absolute bottom-1 right-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-black/60 text-white/90">{i + 1}/{selectedContenu.slides_images.length}</span>
+                        </button>
                       ))}
                     </div>
                   ) : selectedContenu.lien_visuel ? (
@@ -753,6 +769,36 @@ export default function ContenusPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Lightbox : agrandir une slide de carrousel */}
+        {lightbox && (
+          <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+            onClick={() => setLightbox(null)}>
+            <button onClick={() => setLightbox(null)} title="Fermer"
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+            {lightbox.images.length > 1 && (
+              <button onClick={(e) => { e.stopPropagation(); setLightbox((lb) => ({ ...lb, index: (lb.index - 1 + lb.images.length) % lb.images.length })); }}
+                title="Précédent"
+                className="absolute left-3 md:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                <ChevronRight className="w-6 h-6 rotate-180" />
+              </button>
+            )}
+            <div className="flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+              <img src={lightbox.images[lightbox.index]} alt={`slide ${lightbox.index + 1}`}
+                className="max-h-[82vh] max-w-[88vw] rounded-xl ring-1 ring-white/15 shadow-2xl" />
+              <span className="text-sm text-white/70 font-inter">{lightbox.index + 1} / {lightbox.images.length}</span>
+            </div>
+            {lightbox.images.length > 1 && (
+              <button onClick={(e) => { e.stopPropagation(); setLightbox((lb) => ({ ...lb, index: (lb.index + 1) % lb.images.length })); }}
+                title="Suivant"
+                className="absolute right-3 md:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
