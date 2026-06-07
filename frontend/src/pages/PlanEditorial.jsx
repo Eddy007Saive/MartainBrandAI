@@ -44,7 +44,7 @@ export default function PlanEditorial() {
   const [plan, setPlan] = useState([]);
   const [loadingPlan, setLoadingPlan] = useState(true);
   const [subjects, setSubjects] = useState([]);
-  const [sel, setSel] = useState({}); // { [subjectId]: { checked, nets:Set } }
+  const [sel, setSel] = useState({}); // { [subjectId]: { checked, nets:Set } } — réseaux choisis PAR sujet
   const [quality, setQuality] = useState('equilibre');
   const [nbSujets, setNbSujets] = useState(6);
   const [genSujets, setGenSujets] = useState(false);
@@ -100,11 +100,13 @@ export default function PlanEditorial() {
     return { posts, cost, items };
   }, [subjects, sel, quality, networks]);
 
+  // coche/décoche un sujet ; le décocher vide ses réseaux
   const toggleSubj = (id) => setSel((p) => {
     const cur = p[id] || { checked: false, nets: new Set() };
-    const checked = !cur.checked;
-    return { ...p, [id]: { checked, nets: checked ? cur.nets : new Set() } };
+    const isOn = !cur.checked;
+    return { ...p, [id]: { checked: isOn, nets: isOn ? cur.nets : new Set() } };
   });
+  // ajoute/retire un réseau POUR ce sujet (et coche le sujet si besoin)
   const toggleNet = (id, netId) => setSel((p) => {
     const cur = p[id] || { checked: true, nets: new Set() };
     const nets = new Set(cur.nets);
@@ -256,7 +258,7 @@ export default function PlanEditorial() {
             {genSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             <span className="ml-2">Générer des sujets</span>
           </Button>
-          <span className="text-[12.5px] text-slate-600 font-inter">un sujet peut servir à plusieurs réseaux</span>
+          <span className="text-[12.5px] text-slate-600 font-inter">coche un sujet, puis choisis ses réseaux (un ou plusieurs)</span>
         </div>
 
         {subjects.length === 0 ? (
@@ -274,19 +276,23 @@ export default function PlanEditorial() {
                       <Check className={`w-3 h-3 text-white transition-all ${st.checked ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
                     </div>
                     <span className={`flex-1 text-sm ${st.checked ? 'text-white font-medium' : 'text-slate-200'}`}>{s.titre}</span>
-                    {st.checked && st.nets.size > 0 && <span className="text-[11px] text-slate-500 whitespace-nowrap">{st.nets.size} réseau{st.nets.size > 1 ? 'x' : ''}</span>}
+                    {st.checked && (
+                      <span className={`text-[11px] whitespace-nowrap ${st.nets.size ? 'text-[#3AFFA3]' : 'text-amber-400'}`}>
+                        {st.nets.size ? `${st.nets.size} réseau${st.nets.size > 1 ? 'x' : ''}` : 'choisis un réseau'}
+                      </span>
+                    )}
                     <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} className="text-slate-600 hover:text-red-400 transition-colors flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
                   </div>
                   {st.checked && (
-                    <div className="px-4 pb-4 pt-0.5 flex items-center gap-2 flex-wrap">
-                      <span className="text-[11px] text-slate-500 mr-0.5">Réseaux :</span>
-                      {networks.length === 0 && <span className="text-[11px] text-slate-600">Configure ta cadence d'abord</span>}
+                    <div className="px-4 pb-4 pt-0.5 flex items-center gap-2 flex-wrap border-t border-white/[0.06]">
+                      <span className="text-[11px] text-slate-500 mr-0.5 mt-2.5">Réseaux :</span>
+                      {networks.length === 0 && <span className="text-[11px] text-slate-600 mt-2.5">Configure ta cadence dans Paramètres → Planification</span>}
                       {networks.map((n) => {
                         const on = st.nets.has(n.id);
                         const meta = NET_META[n.id] || { short: '•', cls: 'bg-slate-700' };
                         return (
                           <button key={n.id} onClick={() => toggleNet(s.id, n.id)}
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-all ${on ? 'text-white border-[#5B6CFF]/50 bg-[#5B6CFF]/15' : 'text-slate-400 border-white/10 bg-white/[0.02] hover:text-white hover:border-white/20'}`}>
+                            className={`mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[12.5px] font-medium transition-all ${on ? 'text-white border-[#5B6CFF]/50 bg-[#5B6CFF]/15' : 'text-slate-400 border-white/10 bg-white/[0.02] hover:text-white hover:border-white/20'}`}>
                             <span className={`w-[18px] h-[18px] rounded-[5px] grid place-items-center text-[10px] font-bold text-white ${meta.cls}`}>{meta.short}</span>
                             {n.label}<span className={`text-[10px] ${on ? 'text-white/60' : 'text-slate-600'}`}>{FORMAT_LABEL[n.format]}</span>
                           </button>
