@@ -5,8 +5,13 @@ export const agentService = {
   sujets: (nombre = 6) =>
     api.post('/agent/sujets', { nombre }).then((r) => r.data),
 
-  // Plan éditorial glissant 30j (besoin/rempli/reste par réseau)
-  plan: () => api.get('/agent/plan').then((r) => r.data),
+  // Plan éditorial du mois (besoin/rempli/reste/format par réseau)
+  plan: (year, month) =>
+    api.get('/agent/plan', { params: (year && month) ? { year, month } : {} }).then((r) => r.data),
+
+  // Génération en rafale : items [{sujet, reseau, qualite}] planifiés sur le mois
+  rafale: (items, year, month) =>
+    api.post('/agent/rafale', { items, year, month }).then((r) => r.data),
 
   // Liste les sujets sauvegardés (persistants)
   sujetsList: () => api.get('/agent/sujets').then((r) => r.data),

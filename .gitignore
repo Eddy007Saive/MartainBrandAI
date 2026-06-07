@@ -129,3 +129,6 @@ android-sdk/ -e
 # Environment files
 *.env
 *.env.*
+
+# Playwright MCP artifacts
+.playwright-mcp/

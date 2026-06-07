@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Plan éditorial — Presence OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#020617; --card:#0f172a; --card2:#0b1322;
+    --line:rgba(255,255,255,.06); --line2:rgba(255,255,255,.10);
+    --ink:#e7ecf5; --muted:#8a97ad; --muted2:#5b6680;
+    --p1:#5B6CFF; --p2:#8A6CFF; --accent:#3AFFA3;
+    --grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);
+    --amber:#fbbf24; --blue:#60a5fa;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:Inter,system-ui,sans-serif; font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sora{font-family:Sora,sans-serif}
+  /* ambient */
+  .glow{position:fixed; top:-120px; left:50%; transform:translateX(-50%); width:680px; height:320px;
+    background:rgba(91,108,255,.10); filter:blur(130px); border-radius:50%; pointer-events:none; z-index:0}
+  .app{display:flex; min-height:100vh; position:relative; z-index:1}
+
+  /* ===== Sidebar ===== */
+  .side{width:248px; flex-shrink:0; border-right:1px solid var(--line);
+    background:rgba(8,12,23,.82); backdrop-filter:blur(18px); display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh}
+  .brand{display:flex; align-items:center; gap:10px; padding:22px 20px 18px; border-bottom:1px solid var(--line)}
+  .logo{width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center;
+    box-shadow:0 8px 20px rgba(91,108,255,.30); flex-shrink:0}
+  .brand h1{font-size:14px;font-weight:700;margin:0;letter-spacing:-.01em}
+  .brand p{font-size:11px;color:var(--muted2);margin:1px 0 0}
+  nav{padding:14px 12px; flex:1; overflow:auto}
+  .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted2);padding:0 12px 8px;font-weight:600}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:10px;color:var(--muted);
+    font-weight:500;cursor:pointer;position:relative;transition:.15s;margin-bottom:2px;text-decoration:none}
+  .nav-item:hover{color:var(--ink);background:rgba(255,255,255,.03)}
+  .nav-item.active{color:#fff;background:rgba(255,255,255,.06)}
+  .nav-item.active::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);
+    width:2px;height:18px;border-radius:3px;background:var(--grad)}
+  .nav-item svg{width:18px;height:18px;color:var(--muted2)}
+  .nav-item.active svg{color:var(--p2)}
+  .userbox{padding:12px;border-top:1px solid var(--line)}
+  .credits-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:10px;
+    background:rgba(255,255,255,.03);border:1px solid var(--line);margin-bottom:8px}
+  .credits-row .k{font-size:12px;color:var(--muted)}
+  .credits-row .v{font-size:14px;font-weight:600}
+  .user{display:flex;align-items:center;gap:10px;padding:6px 8px}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-weight:600;font-size:13px;color:#fff}
+  .user .n{font-size:13px;font-weight:500}
+  .user .e{font-size:11px;color:var(--muted2)}
+
+  /* ===== Main ===== */
+  main{flex:1;min-width:0;padding:26px 34px 140px;max-width:1180px}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px}
+  .page-icon{width:42px;height:42px;border-radius:12px;background:var(--grad);display:grid;place-items:center;flex-shrink:0;box-shadow:0 8px 22px rgba(91,108,255,.28)}
+  .title-wrap{display:flex;gap:13px;align-items:center}
+  .title-wrap h2{font-size:22px;font-weight:700;margin:0;letter-spacing:-.02em}
+  .title-wrap p{margin:2px 0 0;color:var(--muted);font-size:13px}
+  .credit-chip{display:flex;align-items:center;gap:8px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid var(--line);white-space:nowrap}
+  .credit-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .credit-chip .k{font-size:12px;color:var(--muted)}
+  .credit-chip .v{font-size:14px;font-weight:700}
+
+  /* month nav */
+  .monthbar{display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);margin-bottom:18px;flex-wrap:wrap}
+  .month-nav{display:flex;align-items:center;gap:6px}
+  .mbtn{width:34px;height:34px;border-radius:10px;border:1px solid var(--line2);background:rgba(255,255,255,.02);
+    color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:.15s}
+  .mbtn:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18)}
+  .month-name{font-size:17px;font-weight:600;min-width:148px;text-align:center;letter-spacing:-.01em}
+  .month-name .yr{color:var(--muted2);font-weight:500}
+  .month-status{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+  .month-status .ring{position:relative;width:34px;height:34px}
+  .month-status b{color:var(--ink);font-weight:600}
+
+  /* progress grid */
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 12px}
+  .sec-head h3{font-size:13px;font-weight:600;margin:0;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .sec-head .hint{font-size:12px;color:var(--muted2)}
+  .pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+  .pcard{border:1px solid var(--line);background:var(--card);border-radius:15px;padding:15px 16px;transition:.18s}
+  .pcard:hover{border-color:var(--line2)}
+  .pcard.done{border-color:rgba(58,255,163,.28);background:linear-gradient(180deg,rgba(58,255,163,.05),transparent)}
+  .pc-top{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+  .badge{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+  .b-li{background:#0a66c2}.b-ig{background:linear-gradient(135deg,#feda75,#d62976 45%,#962fbf)}
+  .b-fb{background:#1877f2}.b-tt{background:#111;border:1px solid #2b2b2b}
+  .pc-top .nm{font-weight:600;font-size:14px}
+  .pc-top .fmt{font-size:11px;color:var(--muted2)}
+  .pc-count{margin-left:auto;text-align:right}
+  .pc-count .big{font-size:15px;font-weight:700;font-family:Sora}
+  .pc-count .big .den{color:var(--muted2);font-weight:500;font-size:13px}
+  .pc-count .lab{font-size:11px;color:var(--muted2)}
+  .pc-count .lab.ok{color:var(--accent)}
+  .bar{height:7px;border-radius:6px;background:rgba(255,255,255,.06);overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px;background:var(--grad);transition:width .6s cubic-bezier(.4,0,.2,1)}
+  .bar > i.ok{background:linear-gradient(90deg,#22c55e,var(--accent))}
+
+  /* generate subjects */
+  .gen-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:11px;border:1px solid transparent;
+    font-family:Inter;font-weight:600;font-size:13.5px;cursor:pointer;transition:.15s}
+  .btn svg{width:16px;height:16px}
+  .btn-primary{background:var(--grad);color:#fff;box-shadow:0 8px 20px rgba(91,108,255,.25)}
+  .btn-primary:hover{opacity:.92;transform:translateY(-1px)}
+  .btn-ghost{background:rgba(255,255,255,.03);border-color:var(--line2);color:var(--muted)}
+  .btn-ghost:hover{color:var(--ink);background:rgba(255,255,255,.06)}
+  .gen-hint{font-size:12.5px;color:var(--muted2)}
+
+  /* subjects */
+  .subjects{display:flex;flex-direction:column;gap:9px}
+  .subj{border:1px solid var(--line);background:var(--card);border-radius:14px;overflow:hidden;transition:.18s}
+  .subj:hover{border-color:var(--line2)}
+  .subj.sel{border-color:rgba(91,108,255,.45);background:linear-gradient(180deg,rgba(91,108,255,.06),transparent)}
+  .subj-main{display:flex;align-items:center;gap:13px;padding:14px 16px;cursor:pointer}
+  .check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line2);flex-shrink:0;display:grid;place-items:center;transition:.15s;background:rgba(255,255,255,.02)}
+  .check svg{width:13px;height:13px;color:#fff;opacity:0;transform:scale(.6);transition:.15s}
+  .subj.sel .check{background:var(--grad);border-color:transparent}
+  .subj.sel .check svg{opacity:1;transform:scale(1)}
+  .subj-txt{flex:1;font-size:14px;color:var(--ink)}
+  .subj.sel .subj-txt{font-weight:500}
+  .subj-meta{font-size:11px;color:var(--muted2);display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .chev{color:var(--muted2);transition:.2s;width:16px;height:16px}
+  .subj.sel .chev{transform:rotate(180deg);color:var(--p2)}
+
+  .nets{max-height:0;overflow:hidden;transition:max-height .25s ease;border-top:1px solid transparent}
+  .subj.sel .nets{max-height:120px;border-top-color:var(--line)}
+  .nets-inner{padding:13px 16px 15px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .nets-inner .lab{font-size:11px;color:var(--muted2);margin-right:2px}
+  .chip{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:9px;border:1px solid var(--line2);
+    background:rgba(255,255,255,.02);color:var(--muted);font-size:12.5px;font-weight:500;cursor:pointer;transition:.15s;user-select:none}
+  .chip:hover{color:var(--ink);border-color:rgba(255,255,255,.2)}
+  .chip .mini{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff}
+  .chip .fmt{font-size:10px;color:var(--muted2)}
+  .chip.on{color:#fff;border-color:rgba(91,108,255,.5);background:rgba(91,108,255,.14)}
+  .chip.on .fmt{color:rgba(255,255,255,.6)}
+
+  /* rafale bottom bar */
+  .rafale{position:fixed;left:248px;right:0;bottom:0;z-index:5;
+    border-top:1px solid var(--line2);background:rgba(9,13,24,.86);backdrop-filter:blur(20px);
+    padding:14px 34px;display:flex;align-items:center;gap:18px;transform:translateY(120%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  .rafale.show{transform:translateY(0)}
+  .rafale .sum{display:flex;flex-direction:column}
+  .rafale .sum .l1{font-size:14px;font-weight:600}
+  .rafale .sum .l1 b{color:var(--accent)}
+  .rafale .sum .l2{font-size:12px;color:var(--muted2)}
+  .qual{display:flex;gap:3px;padding:3px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin-left:auto}
+  .qual button{border:0;background:transparent;color:var(--muted);font-family:Inter;font-size:12px;font-weight:600;
+    padding:6px 11px;border-radius:7px;cursor:pointer;transition:.15s}
+  .qual button.on{background:var(--grad);color:#fff}
+  .cost-pill{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:13px}
+  .cost-pill .c{font-weight:700;color:var(--accent)}
+  .rafale .btn-primary{padding:11px 20px;font-size:14px}
+
+  .empty{text-align:center;padding:30px;color:var(--muted2);font-size:13px}
+
+  /* mobile */
+  .hamb{display:none}
+  @media(max-width:920px){
+    .side{position:fixed;left:0;top:0;z-index:30;transform:translateX(-100%);transition:.25s}
+    .side.open{transform:translateX(0)}
+    main{padding:18px 18px 150px}
+    .pgrid{grid-template-columns:1fr}
+    .rafale{left:0;padding:12px 16px;flex-wrap:wrap}
+    .qual{margin-left:0;order:3}
+    .hamb{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--line2);
+      background:var(--card);position:fixed;top:14px;left:14px;z-index:20;cursor:pointer}
+    .topbar{margin-top:42px}
+    .scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:25;display:none}
+    .scrim.show{display:block}
+  }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+
+<div class="hamb" onclick="document.querySelector('.side').classList.toggle('open');document.querySelector('.scrim').classList.toggle('show')">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e7ecf5" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+</div>
+<div class="scrim" onclick="this.classList.remove('show');document.querySelector('.side').classList.remove('open')"></div>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="side">
+    <div class="brand">
+      <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6 7 18.2l1.9-5.8L4 8.8h6.1z"/></svg></div>
+      <div><h1 class="sora">Presence OS</h1><p>Studio de contenu IA</p></div>
+    </div>
+    <nav>
+      <div class="nav-label">Menu</div>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Accueil</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6 7 18.2l1.9-5.8L4 8.8h6.1z"/></svg>Studio IA</a>
+      <a class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Plan éditorial</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Contenus</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Commentaires</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Planification</a>
+      <a class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.74.99 1.65 1.65 0 0 0-3.32 0 1.65 1.65 0 0 0-2.74-.99l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9z"/></svg>Paramètres</a>
+    </nav>
+    <div class="userbox">
+      <div class="credits-row"><span class="k">Crédits</span><span class="v" id="credits-side">786</span></div>
+      <div class="user">
+        <div class="avatar">M</div>
+        <div><div class="n">Martin Kraemer</div><div class="e">martin.kraemer@…</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main>
+    <div class="topbar">
+      <div class="title-wrap">
+        <div class="page-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        <div><h2 class="sora">Plan éditorial</h2><p>Remplis ton calendrier du mois, réseau par réseau.</p></div>
+      </div>
+      <div class="credit-chip"><span class="dot"></span><span class="k">Crédits</span><span class="v" id="credits-top">786</span></div>
+    </div>
+
+    <!-- Month nav -->
+    <div class="monthbar">
+      <div class="month-nav">
+        <button class="mbtn" title="Mois précédent"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="month-name sora">Juin <span class="yr">2026</span></div>
+        <button class="mbtn" title="Mois suivant"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+      <div class="month-status">
+        <svg class="ring" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.5" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="3"/>
+          <circle cx="18" cy="18" r="15.5" fill="none" stroke="url(#g)" stroke-width="3" stroke-linecap="round"
+            stroke-dasharray="97.4" stroke-dashoffset="38" transform="rotate(-90 18 18)"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B6CFF"/><stop offset="1" stop-color="#8A6CFF"/></linearGradient></defs>
+        </svg>
+        <span><b>22</b> / 40 contenus du mois · <b>1</b>/4 réseaux bouclés</span>
+      </div>
+    </div>
+
+    <!-- Progress per network -->
+    <div class="sec-head">
+      <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3AFFA3" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Objectifs du mois</h3>
+      <span class="hint">depuis ta cadence (Paramètres → Planification)</span>
+    </div>
+    <div class="pgrid">
+      <div class="pcard">
+        <div class="pc-top"><div class="badge b-li">in</div><div><div class="nm">LinkedIn</div><div class="fmt">Post écrit</div></div>
+          <div class="pc-count"><div class="big">4<span class="den">/13</span></div><div class="lab">9 à faire</div></div></div>
+        <div class="bar"><i style="width:31%"></i></div>
+      </div>
+      <div class="pcard">
+        <div class="pc-top"><div class="badge b-ig">◎</div><div><div class="nm">Instagram</div><div class="fmt">Réel</div></div>
+          <div class="pc-count"><div class="big">2<span class="den">/9</span></div><div class="lab">7 à faire</div></div></div>
+        <div class="bar"><i style="width:22%"></i></div>
+      </div>
+      <div class="pcard">
+        <div class="pc-top"><div class="badge b-fb">f</div><div><div class="nm">Facebook</div><div class="fmt">Post écrit</div></div>
+          <div class="pc-count"><div class="big">7<span class="den">/9</span></div><div class="lab">2 à faire</div></div></div>
+        <div class="bar"><i style="width:78%"></i></div>
+      </div>
+      <div class="pcard done">
+        <div class="pc-top"><div class="badge b-tt">♪</div><div><div class="nm">TikTok</div><div class="fmt">Réel</div></div>
+          <div class="pc-count"><div class="big">9<span class="den">/9</span></div><div class="lab ok">bouclé ✓</div></div></div>
+        <div class="bar"><i class="ok" style="width:100%"></i></div>
+      </div>
+    </div>
+
+    <!-- Generate subjects -->
+    <div class="sec-head">
+      <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg> Sujets du mois</h3>
+      <span class="hint">coche ceux à produire, puis choisis les réseaux</span>
+    </div>
+    <div class="gen-row">
+      <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6 7 18.2l1.9-5.8L4 8.8h6.1z"/></svg>Générer des sujets</button>
+      <span class="gen-hint">6 sujets · 5 crédits — un sujet peut servir à plusieurs réseaux</span>
+    </div>
+
+    <div class="subjects" id="subjects"></div>
+  </main>
+</div>
+
+<!-- Rafale bar -->
+<div class="rafale" id="rafale">
+  <div class="sum">
+    <div class="l1"><b id="r-count">0</b> posts à générer</div>
+    <div class="l2" id="r-detail">sélectionne des sujets et leurs réseaux</div>
+  </div>
+  <div class="qual" id="qual">
+    <button data-q="rapide">Rapide</button>
+    <button data-q="equilibre" class="on">Équilibré</button>
+    <button data-q="premium">Premium</button>
+  </div>
+  <div class="cost-pill">≈ <span class="c" id="r-cost">0</span> crédits</div>
+  <button class="btn btn-primary" id="r-go">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>
+    Générer en rafale
+  </button>
+</div>
+
+<script>
+  // ---- données démo ----
+  const NETS = {
+    linkedin:{name:'LinkedIn', short:'in', cls:'b-li', fmt:'Post', kind:'post'},
+    instagram:{name:'Instagram', short:'◎', cls:'b-ig', fmt:'Réel', kind:'reel'},
+    facebook:{name:'Facebook', short:'f', cls:'b-fb', fmt:'Post', kind:'post'},
+    tiktok:{name:'TikTok', short:'♪', cls:'b-tt', fmt:'Réel', kind:'reel'},
+  };
+  // coût crédits par (kind × qualité)
+  const COST = {
+    post:{rapide:8,equilibre:20,premium:40},
+    reel:{rapide:12,equilibre:30,premium:60},
+  };
+  const SUBJECTS = [
+    "Le jour où tu ne peux plus partir en vacances, c'est que tu n'as pas délégué",
+    "Pourquoi j'ai arrêté de répondre aux mails après 18h",
+    "L'erreur de recrutement qui m'a coûté 40 000 €",
+    "3 signes que ton équipe te cache des problèmes",
+    "Ce que personne ne dit sur la liberté d'entreprendre",
+    "Comment je structure ma semaine de dirigeant en 4 blocs",
+  ];
+
+  let quality = 'equilibre';
+  const state = SUBJECTS.map(()=>({sel:false, nets:new Set()}));
+
+  const elList = document.getElementById('subjects');
+  function render(){
+    elList.innerHTML = SUBJECTS.map((txt,i)=>{
+      const st = state[i];
+      const chips = Object.entries(NETS).map(([id,n])=>{
+        const on = st.nets.has(id);
+        return `<button class="chip ${on?'on':''}" onclick="toggleNet(${i},'${id}',event)">
+          <span class="mini ${n.cls}">${n.short}</span>${n.name}<span class="fmt">${n.fmt}</span></button>`;
+      }).join('');
+      const cnt = st.nets.size;
+      return `<div class="subj ${st.sel?'sel':''}">
+        <div class="subj-main" onclick="toggleSubj(${i})">
+          <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="subj-txt">${txt}</div>
+          <div class="subj-meta">${st.sel && cnt? cnt+' réseau'+(cnt>1?'x':''):''}</div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="nets"><div class="nets-inner"><span class="lab">Réseaux :</span>${chips}</div></div>
+      </div>`;
+    }).join('');
+  }
+  function toggleSubj(i){ state[i].sel=!state[i].sel; if(!state[i].sel) state[i].nets.clear(); render(); recompute(); }
+  function toggleNet(i,id,e){ e.stopPropagation(); const s=state[i].nets; s.has(id)?s.delete(id):s.add(id); render(); recompute(); }
+
+  function recompute(){
+    let posts=0, cost=0;
+    state.forEach(st=>{ if(!st.sel) return; st.nets.forEach(id=>{ posts++; cost+=COST[NETS[id].kind][quality]; }); });
+    document.getElementById('r-count').textContent = posts;
+    document.getElementById('r-cost').textContent = cost;
+    document.getElementById('r-detail').textContent = posts? 'répartis sur tes réseaux · prêts à valider dans Contenus' : 'sélectionne des sujets et leurs réseaux';
+    const bar = document.getElementById('rafale');
+    bar.classList.toggle('show', posts>0);
+    document.getElementById('r-go').textContent = '';
+    const ic = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>';
+    document.getElementById('r-go').innerHTML = ic+' Générer en rafale'+(posts?` · ${posts}`:'');
+  }
+  document.getElementById('qual').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    quality=b.dataset.q;
+    [...document.querySelectorAll('.qual button')].forEach(x=>x.classList.toggle('on',x===b));
+    recompute();
+  });
+  document.getElementById('r-go').addEventListener('click',()=>{
+    const n=document.getElementById('r-count').textContent, c=document.getElementById('r-cost').textContent;
+    if(n==='0') return;
+    document.getElementById('r-detail').textContent = `Génération en rafale… ${n} posts · ${c} crédits`;
+  });
+
+  // pré-cocher 2 sujets pour montrer l'état "vivant"
+  state[0]={sel:true,nets:new Set(['linkedin','instagram'])};
+  state[2]={sel:true,nets:new Set(['linkedin','facebook'])};
+  render(); recompute();
+</script>
+</body>
+</html>

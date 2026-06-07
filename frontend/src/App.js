@@ -10,6 +10,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import AccueilPage from "./pages/AccueilPage";
 import ContenusPage from "./pages/ContenusPage";
 import StudioIA from "./pages/StudioIA";
+import PlanEditorial from "./pages/PlanEditorial";
 import CommentairesPage from "./pages/CommentairesPage";
 import PlanificationPage from "./pages/PlanificationPage";
 import ParametresPage from "./pages/ParametresPage";
@@ -38,6 +39,7 @@ function App() {
           >
             <Route index element={<AccueilPage />} />
             <Route path="studio" element={<StudioIA />} />
+            <Route path="plan" element={<PlanEditorial />} />
             <Route path="contenus" element={<ContenusPage />} />
             <Route path="commentaires" element={<CommentairesPage />} />
             <Route path="planification" element={<PlanificationPage />} />

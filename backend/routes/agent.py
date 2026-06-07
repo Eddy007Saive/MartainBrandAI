@@ -57,12 +57,97 @@ async def sujets(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.get("/plan")
-async def plan(payload: dict = Depends(verify_token)):
-    """Plan éditorial glissant 30j : besoin/rempli/reste par réseau actif."""
+async def plan(year: int = None, month: int = None, payload: dict = Depends(verify_token)):
+    """Plan éditorial du mois : besoin/rempli/reste/format par réseau actif."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
-    return {"plan": plan_service.compute_plan(telegram_id)}
+    now = datetime.now(timezone.utc)
+    y = year or now.year
+    m = month or now.month
+    return {"year": y, "month": m, "plan": plan_service.compute_plan(telegram_id, y, m)}
+
+
+@router.post("/rafale")
+async def rafale(body: dict, payload: dict = Depends(verify_token)):
+    """Génère en rafale un lot de contenus (sujet × réseau), les enregistre dans Contenus
+    (statut 'A valider') et les planifie sur des créneaux libres du mois choisi."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    items = body.get("items") or []
+    if not items:
+        raise HTTPException(status_code=400, detail="items requis")
+    try:
+        year = int(body.get("year"))
+        month = int(body.get("month"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="year/month requis")
+
+    formats = {s["platform"]: (s.get("format") or "post") for s in plan_service._schedules(telegram_id)}
+    start, end = plan_service._month_bounds(year, month)
+    occupied: dict = {}
+
+    def occ_for(reseau_cap: str):
+        if reseau_cap not in occupied:
+            occupied[reseau_cap] = {dp[:10] for dp in plan_service._dates_occupees(telegram_id, reseau_cap, start, end)}
+        return occupied[reseau_cap]
+
+    created, errors, solde = 0, [], None
+    for it in items:
+        sujet = (it.get("sujet") or "").strip()
+        reseau_low = (it.get("reseau") or "").lower()
+        qualite = it.get("qualite", "equilibre")
+        reseau_cap = RESEAU_MAP.get(reseau_low)
+        if not sujet or not reseau_cap:
+            errors.append({"sujet": sujet, "reseau": reseau_low, "err": "invalide"})
+            continue
+        fmt = formats.get(reseau_low, "post")
+        action = "post" if fmt == "post" else "script"
+        cost = credit_service.cout(action, qualite)
+        s = credit_service.deduct(telegram_id, cost)
+        if s < 0:
+            errors.append({"sujet": sujet, "reseau": reseau_low, "err": "credits"})
+            break  # plus de crédits -> on arrête la rafale
+        solde = s
+        try:
+            model = agent_service.QUALITE_MODELS.get(qualite)
+            if action == "post":
+                r = agent_service.rediger_post(telegram_id, sujet, reseau_low, model, cache=True)
+                texte = r.get("contenu", "")
+            else:
+                tv = "Reel" if fmt == "reel" else "Video"
+                r = agent_service.rediger_script(telegram_id, sujet, tv, model, cache=True)
+                texte = r.get("script", "")
+            if r.get("error"):
+                credit_service.refund(telegram_id, cost)
+                errors.append({"sujet": sujet, "reseau": reseau_low, "err": r["error"]})
+                continue
+            usage_service.log(telegram_id, action, model, r.get("usage"), cost, qualite)
+
+            oc = occ_for(reseau_cap)
+            slots = plan_service.creneaux_libres(telegram_id, reseau_cap, year, month, oc)
+            date_pub = slots[0] if slots else None
+            if date_pub:
+                oc.add(date_pub[:10])
+
+            row = {
+                "telegram_id": telegram_id, "titre": sujet[:120], "contenu": texte,
+                "reseau_cible": reseau_cap, "statut": "A valider",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            if date_pub:
+                row["date_publication"] = date_pub
+            supabase.table("contenu").insert(row).execute()
+            created += 1
+        except Exception as e:
+            credit_service.refund(telegram_id, cost)
+            logger.error(f"rafale item error: {e}")
+            errors.append({"sujet": sujet, "reseau": reseau_low, "err": "gen"})
+
+    if solde is None:
+        solde = credit_service.get_credits(telegram_id)
+    return {"created": created, "errors": errors, "credits": solde}
 
 
 @router.get("/sujets")

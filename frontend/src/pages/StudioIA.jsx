@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
-  RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, CalendarDays,
+  RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { agentService } from '../services/agentService';
@@ -10,7 +10,6 @@ import { useUser } from '../context/UserContext';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
-import { FORMAT_LABELS } from '../constants/schedules';
 
 const FORMATS = [
   { id: 'post', label: 'Post écrit', icon: PenLine },
@@ -105,11 +104,6 @@ export default function StudioIA() {
   const [logIndex, setLogIndex] = useState(0);
   const [contenus, setContenus] = useState(chargerContenus); // restaurés depuis le navigateur
 
-  // Plan éditorial glissant 30j
-  const [plan, setPlan] = useState([]);
-  const fetchPlan = () => agentService.plan().then((d) => setPlan(d.plan || [])).catch(() => {});
-  const totalRemaining = plan.reduce((a, p) => a + (p.remaining || 0), 0);
-
   useEffect(() => {
     if (!loadingSujets) { setLogIndex(0); return; }
     const t = setInterval(() => setLogIndex((i) => Math.min(i + 1, LOGS_SUJETS.length - 1)), 1100);
@@ -118,7 +112,6 @@ export default function StudioIA() {
 
   useEffect(() => {
     agentService.sujetsList().then((data) => setSujets(data || [])).catch(() => {});
-    fetchPlan();
   }, []);
 
   // Persiste les brouillons de contenu (sauf ceux en cours de rédaction)
@@ -138,25 +131,6 @@ export default function StudioIA() {
     setLoadingSujets(true);
     try {
       const data = await agentService.sujets(nbSujets);
-      const nouveaux = data.sujets || [];
-      setSujets((prev) => [...nouveaux, ...prev]);
-      if (data.credits != null) updateUser({ credits: data.credits });
-      if (!nouveaux.length) toast.info('Aucun sujet généré, réessayez.');
-    } catch (e) {
-      erreurGen(e);
-    } finally {
-      setLoadingSujets(false);
-    }
-  };
-
-  // Complète le plan : génère juste ce qu'il manque (somme des "reste"), plafonné à 12 par clic
-  const completerPlan = async () => {
-    if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
-    const n = Math.min(totalRemaining, 12);
-    if (n <= 0) { toast.success('Plan complet pour les 30 prochains jours 🎉'); return; }
-    setLoadingSujets(true);
-    try {
-      const data = await agentService.sujets(n);
       const nouveaux = data.sujets || [];
       setSujets((prev) => [...nouveaux, ...prev]);
       if (data.credits != null) updateUser({ credits: data.credits });
@@ -257,7 +231,6 @@ export default function StudioIA() {
       else await agentService.enregistrer(card.texte, card.sujet, card.meta);
       setContenus((prev) => prev.filter((c) => c.id !== id)); // validé → quitte le Studio
       toast.success(card.format === 'script' ? 'Script validé → onglet Contenus' : 'Post validé → onglet Contenus');
-      fetchPlan(); // le contenu entre dans le pipeline → met à jour les barres du plan
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false } : c)));
       toast.error(e.response?.data?.detail || 'Erreur lors de la validation');
@@ -313,65 +286,6 @@ export default function StudioIA() {
               <Link to="/dashboard/parametres" className="underline text-amber-200 hover:text-white">Paramètres → Voix de marque</Link>.
             </p>
           </div>
-        </div>
-      )}
-
-      {/* ─── Plan éditorial du mois (30 jours glissants) ─── */}
-      {plan.length > 0 && (
-        <section className="bg-slate-900/60 border border-white/[0.06] rounded-2xl p-5 space-y-4">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-[#3AFFA3]" />
-              <h2 className="font-medium font-inter text-slate-200">
-                Plan du mois <span className="text-slate-500 font-normal">· 30 prochains jours</span>
-              </h2>
-            </div>
-            <Button onClick={completerPlan} disabled={!marqueOk || loadingSujets || totalRemaining === 0}
-              data-testid="studio-completer-plan"
-              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white disabled:opacity-40">
-              {loadingSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              <span className="ml-2">
-                {totalRemaining > 0
-                  ? `Compléter · ${Math.min(totalRemaining, 12)} sujet${Math.min(totalRemaining, 12) > 1 ? 's' : ''}`
-                  : 'Plan complet 🎉'}
-              </span>
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {plan.map((p) => {
-              const pct = p.needed ? Math.min(100, Math.round((p.filled / p.needed) * 100)) : 0;
-              const done = p.remaining === 0;
-              return (
-                <div key={p.platform} className="rounded-xl border border-white/5 bg-slate-950/40 p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-slate-200 font-inter">
-                      {p.label}
-                      {p.format && <span className="ml-1.5 text-[10px] text-[#3AFFA3]/80 font-normal">{FORMAT_LABELS[p.format] || p.format}</span>}
-                    </span>
-                    <span className={`text-xs font-inter ${done ? 'text-emerald-400' : 'text-slate-400'}`}>
-                      {p.filled}/{p.needed}{done ? ' ✓' : ` · ${p.remaining} à faire`}
-                    </span>
-                  </div>
-                  <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-500 ${done ? 'bg-emerald-500' : 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]'}`}
-                      style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <p className="text-[11px] text-slate-500 font-inter">
-            Mise à jour automatique : un contenu publié rouvre une place à remplir. Un même sujet peut servir à plusieurs réseaux.
-          </p>
-        </section>
-      )}
-      {plan.length === 0 && marqueOk && (
-        <div className="text-xs text-slate-500 font-inter px-1">
-          Définissez votre cadence dans{' '}
-          <Link to="/dashboard/parametres" className="underline hover:text-white">Paramètres → Planification</Link>{' '}
-          pour activer le plan du mois.
         </div>
       )}
 

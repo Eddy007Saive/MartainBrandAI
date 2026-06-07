@@ -93,6 +93,22 @@ def _texte(resp) -> str:
     return "".join(b.text for b in resp.content if b.type == "text").strip()
 
 
+def _system(role: str, contexte: str, extra: str = "", cache: bool = False):
+    """Construit le bloc system.
+
+    cache=True (génération en rafale) : la VOIX DE MARQUE (contexte, identique pour
+    toutes les générations d'un client) est mise en cache -> relue à 0,1× sur les
+    générations suivantes de la rafale. Le rôle + exemples (variables) restent hors cache.
+    cache=False (génération unique) : pas de cache (évite le surcoût d'écriture).
+    """
+    if cache:
+        return [
+            {"type": "text", "text": contexte, "cache_control": {"type": "ephemeral"}},
+            {"type": "text", "text": role + extra},
+        ]
+    return role + contexte + extra
+
+
 # ---------------------------------------------------------------------------
 # Agent SUJETS
 # ---------------------------------------------------------------------------
@@ -140,7 +156,7 @@ ROLE_REDACTION = (
 )
 
 
-def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: str = None) -> dict:
+def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: str = None, cache: bool = False) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     reseau_label = RESEAUX.get(reseau, "LinkedIn")
@@ -149,9 +165,9 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
     exemples = (u.get(f"exemples_{reseau}") or "").strip()
-    bloc = ROLE_REDACTION + contexte
+    extra = ""
     if exemples:
-        bloc += (
+        extra = (
             f"\n\n## EXEMPLES DE POSTS {reseau_label} DU CLIENT "
             f"(imite ce style, cette structure et ce ton — n'invente pas un autre style)\n\n{exemples}"
         )
@@ -159,7 +175,7 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
     resp = _client.messages.create(
         model=model or CLAUDE_MODEL,
         max_tokens=1200,
-        system=bloc,
+        system=_system(ROLE_REDACTION, contexte, extra, cache),
         messages=[{
             "role": "user",
             "content": (
@@ -192,7 +208,7 @@ ROLE_SCRIPT = (
 )
 
 
-def rediger_script(telegram_id: int, sujet: str, type_video: str = "Reel", model: str = None) -> dict:
+def rediger_script(telegram_id: int, sujet: str, type_video: str = "Reel", model: str = None, cache: bool = False) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -204,7 +220,7 @@ def rediger_script(telegram_id: int, sujet: str, type_video: str = "Reel", model
     resp = _client.messages.create(
         model=model or CLAUDE_MODEL,
         max_tokens=1500,
-        system=ROLE_SCRIPT + contexte,
+        system=_system(ROLE_SCRIPT, contexte, "", cache),
         messages=[{
             "role": "user",
             "content": (
