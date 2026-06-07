@@ -32,9 +32,10 @@ def build_html(slides: list, p: str, s: str, a: str, nom: str, secteur: str) -> 
         foot = (f'<div class="foot"><span class="av">{_esc(initial)}</span>'
                 f'<div><div class="nm">{_esc(nom)}</div><div class="hd">{_esc(secteur)}</div></div></div>')
         if i == 0:  # HOOK
+            hook = titre or texte  # certains modèles mettent le hook dans 'texte'
             cards.append(f'''<div class="slide">
               <div class="topline"><span class="kicker">Carrousel</span>{idx}</div>
-              <div class="body hookwrap"><h1>{titre}</h1>
+              <div class="body hookwrap"><h1>{hook}</h1>
                 <div class="swipe">swipe <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
               </div>{foot}</div>''')
         elif i == n - 1:  # CTA
