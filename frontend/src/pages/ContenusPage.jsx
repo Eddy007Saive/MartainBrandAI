@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -770,9 +771,9 @@ export default function ContenusPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Lightbox : agrandir une slide de carrousel */}
-        {lightbox && (
-          <div className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+        {/* Lightbox : agrandir une slide de carrousel (portal sur body pour passer AU-DESSUS du Dialog) */}
+        {lightbox && createPortal((
+          <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
             onClick={() => setLightbox(null)}>
             <button onClick={() => setLightbox(null)} title="Fermer"
               className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
@@ -798,7 +799,7 @@ export default function ContenusPage() {
               </button>
             )}
           </div>
-        )}
+        ), document.body)}
       </div>
     </div>
   );
