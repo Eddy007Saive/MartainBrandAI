@@ -1,0 +1,12 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+_uv.log
+_uv.out
+_uvicorn.log
+_uvicorn.out
+agents/js-test/node_modules/
+.pytest_cache/
