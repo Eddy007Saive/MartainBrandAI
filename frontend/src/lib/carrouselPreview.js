@@ -52,11 +52,18 @@ export const SLIDE_CSS = `
 const CONTENT = {
   hook: 'Le sujet de ton carrousel',
   slides: [
-    { t: 'Idée forte 01', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.' },
-    { t: 'Idée forte 02', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.' },
-    { t: 'Idée forte 03', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.' },
+    { t: 'Idée forte 01', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'chart' },
+    { t: 'Idée forte 02', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'brain' },
+    { t: 'Idée forte 03', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'rocket' },
   ],
   cta: { t: 'Passe à l’action', x: 'Ton appel à l’action final.' },
+};
+
+// filtre duotone (recolore une icône 3D à la couleur d'accent)
+const duotoneSvg = (a) => {
+  const dk = toRgb(dark(a, 0.5)).map((v) => (v / 255).toFixed(3));
+  const lt = toRgb(light(a, 0.3)).map((v) => (v / 255).toFixed(3));
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute"><filter id="czic" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="table" tableValues="${dk[0]} ${lt[0]}"/><feFuncG type="table" tableValues="${dk[1]} ${lt[1]}"/><feFuncB type="table" tableValues="${dk[2]} ${lt[2]}"/></feComponentTransfer></filter></svg>`;
 };
 
 const dots = (n, i, on, off) => `<div class="cz-dots">${Array.from({ length: n }).map((_, k) => `<i class="${k === i ? 'on' : ''}" style="background:${k === i ? on : off}"></i>`).join('')}<span class="cz-cnt" style="color:${off};margin-left:6px">${i + 1}/${n}</span></div>`;
@@ -121,16 +128,18 @@ function renderSlides(tplId, colors) {
     const D1 = mix(P, '#0a1430', 0.30), D2 = mix(P, '#04060e', 0.72);
     const gc = 'rgba(255,255,255,.05)';
     const bg = `background:linear-gradient(${gc} 1px,transparent 1px),linear-gradient(90deg,${gc} 1px,transparent 1px),linear-gradient(155deg,${D1},${D2});background-size:22px 22px,22px 22px,100% 100%`;
+    const duo = duotoneSvg(A);
     const top = (i) => `<div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2">`
       + `<div style="display:flex;align-items:center;gap:6px;font-family:Sora,sans-serif;font-weight:800;font-size:10px;color:#eaf1ff">${av(acc, inkOn(acc))}<span>${nom}</span></div>`
       + `<span style="font-family:Sora,sans-serif;font-weight:800;font-size:10px;color:${acc}">${i + 1}/${n}</span></div>`;
-    const line = `<div style="width:34px;height:3px;background:${acc};border-radius:3px;margin:9px 0 8px;position:relative;z-index:2"></div>`;
-    const num = (i) => `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:54px;line-height:.8;letter-spacing:-2px;color:transparent;-webkit-text-stroke:2px ${acc}">0${i}</div>`;
-    const h = (t, fs) => `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fs}px;line-height:1.02;letter-spacing:-.4px;text-transform:uppercase;position:relative;z-index:2;color:#eaf1ff">${twoTone(t, acc)}</div>`;
+    const line = `<div style="width:34px;height:3px;background:${acc};border-radius:3px;margin:8px 0 7px;position:relative;z-index:2"></div>`;
+    const num = (i) => `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:50px;line-height:.8;letter-spacing:-2px;color:transparent;-webkit-text-stroke:2px ${acc}">0${i}</div>`;
+    const h = (t, fs, mw) => `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fs}px;line-height:1.02;letter-spacing:-.4px;text-transform:uppercase;position:relative;z-index:2;color:#eaf1ff${mw ? ';max-width:' + mw : ''}">${twoTone(t, acc)}</div>`;
+    const illus = (icon) => icon ? `<div style="position:absolute;right:-18px;bottom:-12px;width:128px;height:128px;border-radius:50%;background:radial-gradient(circle,${acc}3d,transparent 70%);z-index:0"></div><img src="/icons3d/${icon}.png" style="position:absolute;right:10px;bottom:14px;width:84px;z-index:1;filter:url(#czic) drop-shadow(0 0 10px ${acc}aa)" alt="">` : '';
     const o = [];
-    o.push(`<div class="cz-slide" style="${bg}">${top(0)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.hook, 22)}${line}<p style="font-size:9.5px;color:#9fb0cf;position:relative;z-index:2">Swipe pour découvrir →</p></div></div>`);
-    CONTENT.slides.forEach((s, i) => o.push(`<div class="cz-slide" style="${bg}">${top(i + 1)}<div class="cz-grow"></div><div style="display:flex;align-items:flex-start;gap:10px;position:relative;z-index:2">${num(i + 1)}${h(s.t, 16)}</div>${line}<p style="font-size:9.5px;color:#9fb0cf;position:relative;z-index:2;max-width:92%">${s.x}</p></div>`));
-    o.push(`<div class="cz-slide" style="${bg}">${top(n - 1)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.cta.t, 22)}${line}<p style="font-size:9.5px;color:#9fb0cf;position:relative;z-index:2">${CONTENT.cta.x}</p><span style="align-self:flex-start;background:${acc};color:${inkOn(acc)};font-family:Sora,sans-serif;font-weight:800;font-size:9px;padding:7px 13px;border-radius:8px;margin-top:10px;position:relative;z-index:2">Lien en bio →</span></div></div>`);
+    o.push(`<div class="cz-slide" style="${bg}">${duo}${top(0)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.hook, 22)}${line}</div></div>`);
+    CONTENT.slides.forEach((s, i) => o.push(`<div class="cz-slide" style="${bg}">${top(i + 1)}${illus(s.icon)}<div style="position:relative;z-index:2;margin-top:10px">${num(i + 1)}<div style="margin-top:2px">${h(s.t, 16, '84%')}</div>${line}</div><div style="flex:1"></div><p style="font-size:9px;color:#9fb0cf;position:relative;z-index:2;max-width:58%">${s.x}</p></div>`));
+    o.push(`<div class="cz-slide" style="${bg}">${top(n - 1)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.cta.t, 22)}${line}<p style="font-size:9px;color:#9fb0cf;position:relative;z-index:2">${CONTENT.cta.x}</p><span style="align-self:flex-start;background:${acc};color:${inkOn(acc)};font-family:Sora,sans-serif;font-weight:800;font-size:8.5px;padding:6px 11px;border-radius:7px;margin-top:8px;position:relative;z-index:2">Lien en bio →</span></div></div>`);
     return o;
   }
 

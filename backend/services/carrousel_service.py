@@ -81,6 +81,34 @@ def _near(p):        # fond quasi-noir teinté (toujours sombre)
     return _mix(p, "#0a0c0b", 0.85)
 
 
+# ---- icônes 3D (banque locale) + recolorage duotone à la couleur d'accent ----
+import os as _os
+import base64 as _b64
+_ICONS_DIR = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "assets", "icons3d")
+
+
+def _icon_b64(key):
+    if not key:
+        return None
+    try:
+        with open(_os.path.join(_ICONS_DIR, f"{key}.png"), "rb") as f:
+            return _b64.b64encode(f.read()).decode()
+    except Exception:
+        return None
+
+
+def _duotone_svg(acc):
+    dk = _to_rgb(_darken(acc, 0.5))
+    lt = _to_rgb(_lighten(acc, 0.30))
+    g = lambda v: f"{v / 255:.3f}"
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute">'
+            '<filter id="ic3d" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">'
+            '<feColorMatrix type="saturate" values="0"/>'
+            f'<feComponentTransfer><feFuncR type="table" tableValues="{g(dk[0])} {g(lt[0])}"/>'
+            f'<feFuncG type="table" tableValues="{g(dk[1])} {g(lt[1])}"/>'
+            f'<feFuncB type="table" tableValues="{g(dk[2])} {g(lt[2])}"/></feComponentTransfer></filter></svg>')
+
+
 # ---- contenu ----
 def _parts(content):
     if isinstance(content, list):
@@ -350,20 +378,35 @@ def _tpl_neon(content, p, s, a, nom, secteur, logo):
   .num{{font-family:Sora;font-weight:800;font-size:96px;line-height:.8;letter-spacing:-4px;color:transparent;-webkit-text-stroke:2.5px {acc}}}
   .row2{{display:flex;align-items:flex-start;gap:16px;position:relative;z-index:2}}
   h1{{font-family:Sora;font-weight:800;font-size:38px;line-height:1.02;letter-spacing:-.5px;text-transform:uppercase;position:relative;z-index:2}}
-  h2{{font-family:Sora;font-weight:800;font-size:27px;line-height:1.04;letter-spacing:-.3px;text-transform:uppercase;margin-top:6px}}
+  h2{{font-family:Sora;font-weight:800;font-size:27px;line-height:1.04;letter-spacing:-.3px;text-transform:uppercase;margin-top:6px;max-width:62%}}
   .line{{width:46px;height:3px;background:{acc};border-radius:3px;margin:14px 0 12px;position:relative;z-index:2}}
-  p{{font-size:15px;line-height:1.5;color:#9fb0cf;position:relative;z-index:2;max-width:92%}}
+  p{{font-size:15px;line-height:1.5;color:#9fb0cf;position:relative;z-index:2;max-width:62%}}
   .btn{{align-self:flex-start;background:{acc};color:{_ink_on(acc)};font-family:Sora;font-weight:800;font-size:14px;padding:12px 22px;border-radius:10px;margin-top:16px;position:relative;z-index:2}}
 </style>'''
     av = _av_span(logo, initial, acc, _ink_on(acc))
+    duo = _duotone_svg(acc)
     top = lambda i: f'<div class="top"><div class="brand">{av}<span>{_esc(nom)}</span></div><span class="cnt">{i+1}/{n}</span></div>'
+
+    def _illus(sl):
+        ic = _icon_b64(sl.get("icon"))
+        if not ic:
+            return ""
+        return (f'<div style="position:absolute;right:-34px;bottom:-20px;width:240px;height:240px;border-radius:50%;'
+                f'background:radial-gradient(circle,{acc}3d,transparent 70%);z-index:0"></div>'
+                f'<img src="data:image/png;base64,{ic}" style="position:absolute;right:20px;bottom:26px;width:158px;z-index:1;'
+                f'filter:url(#ic3d) drop-shadow(0 0 20px {acc}aa)">')
     out = [f'<div class="slide">{top(0)}<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_two_tone(hook, acc)}</h1><div class="line"></div></div></div>']
     for i, sl in enumerate(slides):
-        out.append(f'<div class="slide">{top(i+1)}<div class="grow"></div><div class="row2"><div class="num">{i+1:02d}</div><h2>{_two_tone(sl.get("titre"), acc)}</h2></div><div class="line"></div>'
-                   + (f'<p>{_esc(sl.get("texte"))}</p>' if sl.get("texte") else "") + '</div>')
+        out.append(
+            f'<div class="slide">{top(i+1)}{_illus(sl)}'
+            f'<div style="position:relative;z-index:2;margin-top:18px"><div class="num">{i+1:02d}</div>'
+            f'<h2 style="margin-top:4px;max-width:84%">{_two_tone(sl.get("titre"), acc)}</h2><div class="line"></div></div>'
+            f'<div style="flex:1"></div>'
+            + (f'<p style="position:relative;z-index:2;max-width:56%">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else "")
+            + '</div>')
     out.append(f'<div class="slide">{top(n-1)}<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_two_tone(cta["titre"], acc)}</h1><div class="line"></div>'
                + (f'<p>{_esc(cta["texte"])}</p>' if cta["texte"] else "") + '<span class="btn">Lien en bio →</span></div></div>')
-    return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'
+    return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{duo}{"".join(out)}</body></html>'
 
 
 # =============================================================================

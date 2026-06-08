@@ -193,14 +193,28 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
 # ---------------------------------------------------------------------------
 # Agent CARROUSEL (slides)
 # ---------------------------------------------------------------------------
+# Icônes 3D disponibles (clé -> thème) pour illustrer les slides
+ICON_HINTS = {
+    "chart": "croissance/données", "bars": "stats/chiffres", "money": "argent/revenus", "cash": "cash/flux",
+    "brain": "réflexion/stratégie", "idea": "idée/insight", "rocket": "scale/croissance rapide", "gem": "valeur",
+    "trophy": "réussite/résultat", "briefcase": "business/pro", "handshake": "vente/partenariat", "gear": "process/système",
+    "search": "analyse/audit", "clock": "temps/urgence", "hourglass": "temps qui file", "fire": "urgence/hot",
+    "bolt": "énergie/rapidité", "megaphone": "marketing/communication", "key": "clé/solution", "lock": "sécurité",
+    "calendar": "planning/régularité", "check": "validation/checklist", "warning": "erreur/risque", "package": "produit/offre",
+    "cart": "ventes/e-commerce", "phone": "mobile/digital", "laptop": "outil/digital", "people": "équipe/audience",
+    "star": "excellence", "crown": "premium/leader", "shield": "protection/fiabilité",
+}
+
 ROLE_CARROUSEL = (
     "Tu crées des CARROUSELS pour la marque personnelle décrite ci-dessous, dans sa voix. "
     "Structure : un HOOK (accroche très courte qui stoppe le scroll), des ÉTAPES/IDÉES "
     "(une idée forte chacune), et un CTA final. Chaque idée a un titre TRÈS court (2-5 mots, "
-    "façon gros titre), 1 à 2 phrases d'explication, 2 à 4 mots-clés (pills) et un 'pro_tip' "
-    "(une phrase qui apporte un conseil concret). Texte court, percutant, lisible sur une slide. "
+    "façon gros titre), 1 à 2 phrases d'explication, 2 à 4 mots-clés (pills), un 'pro_tip' "
+    "(une phrase de conseil concret) et un 'icon' (le mot-clé d'illustration le plus pertinent "
+    "dans cette liste : " + ", ".join(ICON_HINTS.keys()) + "). "
+    "Texte court, percutant, lisible sur une slide. "
     "Réponds UNIQUEMENT avec du JSON valide de cette forme :\n"
-    '{"hook":"...","slides":[{"titre":"...","texte":"...","pills":["..",".."],"pro_tip":"..."}],'
+    '{"hook":"...","slides":[{"titre":"...","texte":"...","pills":["..",".."],"pro_tip":"...","icon":"chart"}],'
     '"cta":{"titre":"...","texte":"..."}}\n\n'
 )
 
@@ -237,11 +251,13 @@ def rediger_carrousel(telegram_id: int, sujet: str, nb_slides: int = 5, model: s
         pills = s.get("pills") or []
         if isinstance(pills, str):
             pills = [pills]
+        icon = (s.get("icon") or "").strip().lower()
         return {
             "titre": (s.get("titre") or "").strip(),
             "texte": (s.get("texte") or "").strip(),
             "pills": [str(p).strip() for p in pills if str(p).strip()][:4],
             "pro_tip": (s.get("pro_tip") or s.get("protip") or "").strip(),
+            "icon": icon if icon in ICON_HINTS else "",
         }
 
     slides = [_clean_slide(s) for s in (data.get("slides") or []) if (s.get("titre") or s.get("texte"))]
