@@ -25,7 +25,6 @@ import { removeToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { FREQUENCIES, DAYS, DEFAULT_SCHEDULE, FORMATS_RESEAU } from '../constants/schedules';
-import CarrouselTemplatePicker from '../components/CarrouselTemplatePicker';
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
@@ -731,14 +730,6 @@ export default function ParametresPage() {
                           {FORMATS_RESEAU.map(f => <SelectItem key={f.value} value={f.value} className="text-slate-200 focus:bg-slate-800 text-xs">{f.label}</SelectItem>)}
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <Label className="text-xs text-slate-400 font-inter">Style de carrousel <span className="text-slate-600">— dans tes couleurs</span></Label>
-                      <CarrouselTemplatePicker
-                        value={schedule.carrousel_template || 'creme'}
-                        onChange={(v) => handleScheduleChange(schedule.platform, 'carrousel_template', v)}
-                        colors={{ p: user?.couleur_principale, s: user?.couleur_secondaire, a: user?.couleur_accent }}
-                      />
                     </div>
                     {showDays && (
                       <div className="space-y-1.5">

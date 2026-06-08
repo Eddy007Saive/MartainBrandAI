@@ -13,6 +13,7 @@ import StudioIA from "./pages/StudioIA";
 import PlanEditorial from "./pages/PlanEditorial";
 import CommentairesPage from "./pages/CommentairesPage";
 import PlanificationPage from "./pages/PlanificationPage";
+import CarrouselsPage from "./pages/CarrouselsPage";
 import ParametresPage from "./pages/ParametresPage";
 import Admin from "./pages/Admin";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
@@ -43,6 +44,7 @@ function App() {
             <Route path="contenus" element={<ContenusPage />} />
             <Route path="commentaires" element={<CommentairesPage />} />
             <Route path="planification" element={<PlanificationPage />} />
+            <Route path="carrousels" element={<CarrouselsPage />} />
             <Route path="parametres" element={<ParametresPage />} />
           </Route>
           

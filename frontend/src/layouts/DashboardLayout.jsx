@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid } from 'lucide-react';
 import { UserProvider, useUser } from '../context/UserContext';
 import { removeToken } from '../lib/auth';
 import { cn } from '../lib/utils';
@@ -12,6 +12,7 @@ const navItems = [
   { path: '/dashboard/contenus', label: 'Contenus', icon: FileText },
   { path: '/dashboard/commentaires', label: 'Commentaires', icon: MessageCircle },
   { path: '/dashboard/planification', label: 'Planification', icon: Calendar },
+  { path: '/dashboard/carrousels', label: 'Carrousels', icon: LayoutGrid },
   { path: '/dashboard/parametres', label: 'Paramètres', icon: Settings },
 ];
 
