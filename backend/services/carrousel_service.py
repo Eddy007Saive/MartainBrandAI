@@ -378,9 +378,9 @@ def _tpl_neon(content, p, s, a, nom, secteur, logo):
   .num{{font-family:Sora;font-weight:800;font-size:96px;line-height:.8;letter-spacing:-4px;color:transparent;-webkit-text-stroke:2.5px {acc}}}
   .row2{{display:flex;align-items:flex-start;gap:16px;position:relative;z-index:2}}
   h1{{font-family:Sora;font-weight:800;font-size:38px;line-height:1.02;letter-spacing:-.5px;text-transform:uppercase;position:relative;z-index:2}}
-  h2{{font-family:Sora;font-weight:800;font-size:27px;line-height:1.04;letter-spacing:-.3px;text-transform:uppercase;margin-top:6px;max-width:62%}}
+  h2{{font-family:Sora;font-weight:800;font-size:27px;line-height:1.04;letter-spacing:-.3px;text-transform:uppercase;margin-top:6px}}
   .line{{width:46px;height:3px;background:{acc};border-radius:3px;margin:14px 0 12px;position:relative;z-index:2}}
-  p{{font-size:15px;line-height:1.5;color:#9fb0cf;position:relative;z-index:2;max-width:62%}}
+  p{{font-size:15px;line-height:1.5;color:#9fb0cf;position:relative;z-index:2}}
   .btn{{align-self:flex-start;background:{acc};color:{_ink_on(acc)};font-family:Sora;font-weight:800;font-size:14px;padding:12px 22px;border-radius:10px;margin-top:16px;position:relative;z-index:2}}
 </style>'''
     av = _av_span(logo, initial, acc, _ink_on(acc))
@@ -391,19 +391,18 @@ def _tpl_neon(content, p, s, a, nom, secteur, logo):
         ic = _icon_b64(sl.get("icon"))
         if not ic:
             return ""
-        return (f'<div style="position:absolute;right:-34px;bottom:-20px;width:240px;height:240px;border-radius:50%;'
-                f'background:radial-gradient(circle,{acc}3d,transparent 70%);z-index:0"></div>'
-                f'<img src="data:image/png;base64,{ic}" style="position:absolute;right:20px;bottom:26px;width:158px;z-index:1;'
-                f'filter:url(#ic3d) drop-shadow(0 0 20px {acc}aa)">')
+        return (f'<div style="position:relative;width:138px;flex-shrink:0">'
+                f'<div style="position:absolute;right:-30px;bottom:-30px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,{acc}40,transparent 70%)"></div>'
+                f'<img src="data:image/png;base64,{ic}" style="position:relative;width:138px;display:block;filter:url(#ic3d) drop-shadow(0 0 18px {acc}aa)"></div>')
     out = [f'<div class="slide">{top(0)}<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_two_tone(hook, acc)}</h1><div class="line"></div></div></div>']
     for i, sl in enumerate(slides):
+        body = f'<p style="flex:1">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else '<div style="flex:1"></div>'
         out.append(
-            f'<div class="slide">{top(i+1)}{_illus(sl)}'
+            f'<div class="slide">{top(i+1)}'
             f'<div style="position:relative;z-index:2;margin-top:18px"><div class="num">{i+1:02d}</div>'
-            f'<h2 style="margin-top:4px;max-width:84%">{_two_tone(sl.get("titre"), acc)}</h2><div class="line"></div></div>'
-            f'<div style="flex:1"></div>'
-            + (f'<p style="position:relative;z-index:2;max-width:56%">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else "")
-            + '</div>')
+            f'<h2 style="margin-top:4px">{_two_tone(sl.get("titre"), acc)}</h2><div class="line"></div></div>'
+            f'<div style="flex:1;display:flex;align-items:flex-end;gap:14px;position:relative;z-index:2">{body}{_illus(sl)}</div>'
+            '</div>')
     out.append(f'<div class="slide">{top(n-1)}<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_two_tone(cta["titre"], acc)}</h1><div class="line"></div>'
                + (f'<p>{_esc(cta["texte"])}</p>' if cta["texte"] else "") + '<span class="btn">Lien en bio →</span></div></div>')
     return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{duo}{"".join(out)}</body></html>'
