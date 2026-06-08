@@ -1,0 +1,237 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<title>Config Carrousels — mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--p:#003D2E;--s:#0077FF;--a:#3AFFA3}
+  *{box-sizing:border-box;margin:0}
+  body{background:#020617;font-family:Inter,sans-serif;color:#e7ecf5}
+  .app{display:flex;min-height:100vh}
+  .side{width:230px;background:#0b1322;border-right:1px solid rgba(255,255,255,.06);padding:22px 16px;flex-shrink:0}
+  .logo{font-family:Sora;font-weight:800;font-size:16px;margin-bottom:24px;display:flex;align-items:center;gap:8px}
+  .logo .dot{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#5B6CFF,#8A6CFF)}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;color:#8b95a8;font-size:13.5px;font-weight:500;text-decoration:none;margin-bottom:2px}
+  .nav a.on{background:#5B6CFF/.12;background:rgba(91,108,255,.13);color:#fff}
+  .nav a .i{width:16px;height:16px;border-radius:4px;background:currentColor;opacity:.5}
+  .nav a.on .i{opacity:1;background:#8A6CFF}
+  .main{flex:1;padding:30px 38px;max-width:1180px}
+  h1{font-family:Sora;font-weight:800;font-size:26px;letter-spacing:-.3px}
+  .lead{color:#8b95a8;font-size:14px;margin-top:4px;margin-bottom:22px}
+  /* network tabs */
+  .nets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+  .net{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);font-size:13px;font-weight:600;color:#9aa3b2;cursor:pointer}
+  .net.on{border-color:#5B6CFF;background:rgba(91,108,255,.12);color:#fff}
+  .net b{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:11px;color:#fff;font-family:Sora}
+  /* layout */
+  .grid2{display:grid;grid-template-columns:300px 1fr;gap:26px;align-items:start}
+  .panel{background:#0b1322;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:18px}
+  .ph{font-size:12px;font-weight:700;letter-spacing:.5px;color:#8b95a8;text-transform:uppercase;margin-bottom:13px}
+  .thumbs{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .tcard{border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:8px;cursor:pointer;transition:.15s;background:rgba(255,255,255,.015)}
+  .tcard:hover{border-color:rgba(255,255,255,.22)}
+  .tcard.on{border-color:#5B6CFF;background:rgba(91,108,255,.1)}
+  .tclip{width:100%;height:118px;overflow:hidden;border-radius:8px;position:relative}
+  .tclip>div{transform:scale(.605);transform-origin:top left;width:200px;height:250px}
+  .tname{text-align:center;font-size:12px;margin-top:7px;color:#9aa3b2}
+  .tcard.on .tname{color:#fff;font-weight:600}
+  /* preview */
+  .pvhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .pvtitle{font-family:Sora;font-weight:700;font-size:16px}
+  .pvsub{font-size:12.5px;color:#8b95a8}
+  .save{background:#e7ecf5;color:#0b1322;font-weight:700;font-size:13px;padding:10px 18px;border-radius:10px;border:0;cursor:pointer}
+  .reel{display:flex;gap:16px;overflow-x:auto;padding:6px 2px 14px}
+  .scol{flex-shrink:0}
+  .slbl{font-size:11px;color:#7b8598;text-align:center;margin-top:8px;font-weight:600}
+  /* ---- slide base ---- */
+  .slide{width:200px;height:250px;border-radius:13px;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:18px 16px 28px}
+  .s-tag{align-self:flex-start;font-size:7px;font-weight:800;letter-spacing:.8px;padding:3px 7px;border-radius:4px;text-transform:uppercase}
+  .s-h1{font-family:Anton;font-size:27px;line-height:.95;letter-spacing:.3px;text-transform:uppercase}
+  .s-h2{font-family:Anton;font-size:21px;line-height:.97;letter-spacing:.3px;text-transform:uppercase}
+  .s-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .s-pill{font-size:7px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;padding:3px 6px;border-radius:4px}
+  .s-tip{margin-top:8px;padding-top:7px}
+  .s-tiplbl{font-size:6.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:3px}
+  .s-tiptxt{font-size:8.5px;line-height:1.4;margin-top:4px}
+  .s-bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:0 16px 14px}
+  .s-dots{display:flex;gap:3px;align-items:center}
+  .s-dots i{height:4px;width:4px;border-radius:4px}.s-dots i.on{width:14px}
+  .s-cnt{font-size:7px;font-weight:700}
+  .s-foot{display:flex;align-items:center;gap:6px;font-size:8.5px;font-weight:700}
+  .s-av{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:9px;font-family:Anton}
+  .s-num{font-family:Anton;line-height:1}
+  .grow{flex:1}
+</style></head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><span class="dot"></span> Presence OS</div>
+    <nav class="nav">
+      <a href="#"><span class="i"></span> Accueil</a>
+      <a href="#"><span class="i"></span> Studio IA</a>
+      <a href="#"><span class="i"></span> Contenus</a>
+      <a href="#"><span class="i"></span> Plan éditorial</a>
+      <a href="#"><span class="i"></span> Planification</a>
+      <a href="#" class="on"><span class="i"></span> Carrousels</a>
+      <a href="#"><span class="i"></span> Paramètres</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <h1>Styles de carrousel</h1>
+    <div class="lead">Choisis un style par réseau. L'aperçu s'affiche dans <b style="color:#cfd6e4">tes couleurs</b> — clique un style pour voir les 5 slides.</div>
+
+    <div class="nets" id="nets">
+      <div class="net on" data-net="linkedin"><b style="background:#0A66C2">in</b> LinkedIn</div>
+      <div class="net" data-net="instagram"><b style="background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)">◎</b> Instagram</div>
+      <div class="net" data-net="facebook"><b style="background:#1877F2">f</b> Facebook</div>
+      <div class="net" data-net="youtube"><b style="background:#FF0000">▶</b> YouTube</div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph">Templates</div>
+        <div class="thumbs" id="thumbs"></div>
+      </div>
+
+      <div class="panel">
+        <div class="pvhead">
+          <div>
+            <div class="pvtitle" id="pvName">Crème</div>
+            <div class="pvsub">Aperçu — 5 slides · <span id="pvNet">LinkedIn</span></div>
+          </div>
+          <button class="save">Enregistrer ce style</button>
+        </div>
+        <div class="reel" id="reel"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const P='#003D2E', S='#0077FF', A='#3AFFA3';
+const toRgb=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return [(n>>16)&255,(n>>8)&255,n&255]};
+const toHex=r=>'#'+r.map(x=>Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0')).join('');
+const mix=(a,b,t)=>{const x=toRgb(a),y=toRgb(b);return toHex(x.map((v,i)=>v*(1-t)+y[i]*t))};
+const light=(h,t)=>mix(h,'#ffffff',t), dark=(h,t)=>mix(h,'#000000',t);
+
+const CREAM=light(P,.93), CLINE='#d6dbd2', DARK=dark(P,.5), INK='#14201b', MUT='#5d655e';
+const CONTENT={
+  hook:'Ta conciergerie vaut combien ?',
+  slides:[
+    {t:'Connais ta vraie valeur',x:'Un repreneur achète ce qui tourne sans toi.',pills:['EBITDA','Process'],tip:"Ta valeur = ta capacité à t'absenter."},
+    {t:'Documente tout',x:'Écris tes procédures clés.',pills:['Check-lists','Onboarding'],tip:'Commence par tes 5 tâches critiques.'},
+    {t:'Délègue le quotidien',x:'Sors du goulot opérationnel.',pills:['Ménage','Support'],tip:'Indispensable = tu as un job, pas une boîte.'},
+  ],
+  cta:{t:'On en parle ?',x:'Audit gratuit de 15 min. Lien en bio.'}
+};
+const dots=(n,i,on,off)=>`<div class="s-dots">${Array.from({length:n}).map((_,k)=>`<i class="${k===i?'on':''}" style="background:${k===i?on:off}"></i>`).join('')}<span class="s-cnt" style="color:${off};margin-left:6px">${i+1}/${n}</span></div>`;
+const pills=(arr,bg,col,out)=>arr.map(x=>`<span class="s-pill" style="background:${bg};color:${col};${out||''}">${x}</span>`).join('');
+
+// ---- famille référence (creme / sombre) ----
+function refFamily({bg,bg2,ink,mut,line,swipeCol,pillOutline}){
+  const n=2+CONTENT.slides.length, av=`<span class="s-av" style="background:${A};color:${P}">E</span>`;
+  const foot=`<div class="s-foot" style="color:${ink}">${av}<div>Eddy</div></div>`;
+  const out=[];
+  out.push(`<div class="slide" style="background:${bg};color:${ink}"><span class="s-tag" style="background:${A};color:${P}">Carrousel</span>
+    <div class="grow" style="display:flex;align-items:center"><div class="s-h1">${CONTENT.hook}</div></div>
+    <div class="s-bar">${foot}<span class="s-cnt" style="color:${swipeCol};font-weight:700">SWIPE →</span></div></div>`);
+  CONTENT.slides.forEach((s,i)=>{
+    out.push(`<div class="slide" style="background:${bg};color:${ink}"><span class="s-tag" style="background:${A};color:${P}">Étape 0${i+1}</span><div class="grow"></div>
+      <div class="s-h2">${s.t}</div>
+      <div class="s-pills">${pills(s.pills,pillOutline?'transparent':A,pillOutline?A:P,pillOutline?`border:1px solid ${A}`:'')}</div>
+      <div class="s-tip" style="border-top:1px solid ${line}"><span class="s-tiplbl" style="background:${A};color:${P}">Pro tip</span><div class="s-tiptxt" style="color:${mut}">${s.tip}</div></div>
+      <div class="s-bar"><div></div>${dots(n,i+1,A,line)}</div></div>`);
+  });
+  out.push(`<div class="slide" style="background:${bg2};color:${ink}"><span class="s-tag" style="background:${A};color:${P}">À toi de jouer</span>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center"><div class="s-h2">${CONTENT.cta.t}</div>
+    <div class="s-tiptxt" style="color:${mut};font-size:10px;margin-top:6px">${CONTENT.cta.x}</div>
+    <span style="align-self:flex-start;background:${A};color:${P};font-weight:800;font-size:9px;padding:7px 12px;border-radius:6px;margin-top:10px;text-transform:uppercase">Lien en bio →</span></div>
+    <div class="s-bar">${foot}<div></div></div></div>`);
+  return out;
+}
+function tpl_creme(){return refFamily({bg:CREAM,bg2:light(P,.88),ink:INK,mut:MUT,line:CLINE,swipeCol:P,pillOutline:false})}
+function tpl_sombre(){return refFamily({bg:DARK,bg2:dark(P,.4),ink:'#eef1ec',mut:'rgba(255,255,255,.66)',line:'rgba(255,255,255,.15)',swipeCol:A,pillOutline:true})}
+function tpl_alterne(){
+  const n=2+CONTENT.slides.length, av=`<span class="s-av" style="background:${A};color:${P}">E</span>`;
+  const out=[];
+  out.push(`<div class="slide" style="background:${CREAM};color:${INK}"><span class="s-tag" style="background:${A};color:${P}">Carrousel</span>
+    <div class="grow" style="display:flex;align-items:center"><div class="s-h1">${CONTENT.hook}</div></div>
+    <div class="s-bar"><div class="s-foot">${av}<div>Eddy</div></div><span class="s-cnt" style="color:${P};font-weight:700">SWIPE →</span></div></div>`);
+  CONTENT.slides.forEach((s,i)=>{const dk=i%2===0;const bg=dk?DARK:CREAM;const ink=dk?'#eef1ec':INK;const mut=dk?'rgba(255,255,255,.66)':MUT;const line=dk?'rgba(255,255,255,.15)':CLINE;
+    out.push(`<div class="slide" style="background:${bg};color:${ink}"><span class="s-tag" style="background:${A};color:${P}">Étape 0${i+1}</span><div class="grow"></div>
+      <div class="s-h2">${s.t}</div><div class="s-pills">${pills(s.pills,dk?'transparent':A,dk?A:P,dk?`border:1px solid ${A}`:'')}</div>
+      <div class="s-tip" style="border-top:1px solid ${line}"><span class="s-tiplbl" style="background:${A};color:${P}">Pro tip</span><div class="s-tiptxt" style="color:${mut}">${s.tip}</div></div>
+      <div class="s-bar"><div></div>${dots(n,i+1,A,line)}</div></div>`);});
+  out.push(`<div class="slide" style="background:${CREAM};color:${INK}"><span class="s-tag" style="background:${A};color:${P}">À toi de jouer</span>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center"><div class="s-h2">${CONTENT.cta.t}</div>
+    <span style="align-self:flex-start;background:${A};color:${P};font-weight:800;font-size:9px;padding:7px 12px;border-radius:6px;margin-top:10px;text-transform:uppercase">Lien en bio →</span></div>
+    <div class="s-bar"><div class="s-foot">${av}<div>Eddy</div></div><div></div></div></div>`);
+  return out;
+}
+function tpl_editorial(){
+  const n=2+CONTENT.slides.length, out=[];
+  out.push(`<div class="slide" style="background:${CREAM};color:${INK}"><div style="height:1px;background:${CLINE}"></div>
+    <div class="grow" style="display:flex;align-items:center"><div style="font-family:Fraunces;font-weight:600;font-size:21px;line-height:1.05">${CONTENT.hook}</div></div>
+    <div style="height:1px;background:${CLINE}"></div><div class="s-foot" style="margin-top:8px;font-family:Inter">Eddy · Conciergerie</div></div>`);
+  CONTENT.slides.forEach((s,i)=>{const dk=i%2===0;const bg=dk?P:CREAM;const ink=dk?CREAM:INK;
+    out.push(`<div class="slide" style="background:${bg};color:${ink}"><div style="display:flex;justify-content:space-between;font-size:8px;letter-spacing:1px;opacity:.6;font-weight:600"><span>IDÉE 0${i+1}</span><span>0${i+2} / 0${n}</span></div>
+    <div class="grow"></div><div style="font-family:Fraunces;font-weight:500;font-size:24px;color:${dk?A:P}">0${i+1}</div>
+    <div style="font-family:Fraunces;font-weight:600;font-size:17px;line-height:1.1;margin-top:2px">${s.t}</div>
+    <div style="font-size:9px;opacity:.78;margin-top:6px;line-height:1.4">${s.x}</div></div>`);});
+  out.push(`<div class="slide" style="background:${CREAM};color:${INK}"><div style="height:1px;background:${CLINE}"></div>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center"><div style="font-family:Fraunces;font-weight:600;font-size:20px">${CONTENT.cta.t}</div>
+    <span style="align-self:flex-start;border:1.5px solid ${P};color:${P};font-size:9px;font-weight:600;padding:7px 13px;border-radius:30px;margin-top:10px">Lien en bio →</span></div>
+    <div style="height:1px;background:${CLINE}"></div></div>`);
+  return out;
+}
+function tpl_pop(){
+  const n=2+CONTENT.slides.length, out=[];
+  out.push(`<div class="slide" style="background:${A};color:${P}"><div style="display:flex;justify-content:space-between"><span class="s-tag" style="background:${P};color:${A}">Carrousel</span><span style="font-family:Sora;font-weight:800;font-size:8px">SWIPE →</span></div>
+    <div class="grow" style="display:flex;align-items:center"><div style="font-family:Sora;font-weight:800;font-size:23px;line-height:1;letter-spacing:-.5px">${CONTENT.hook}</div></div>
+    <div style="font-family:Sora;font-weight:700;font-size:9px">E · Eddy</div></div>`);
+  CONTENT.slides.forEach((s,i)=>{const mintbg=i%2===0;const bg=mintbg?A:P;const ink=mintbg?P:'#fff';
+    out.push(`<div class="slide" style="background:${bg};color:${ink}"><span class="s-tag" style="background:${mintbg?P:A};color:${mintbg?A:P}">Étape 0${i+1}</span>
+    <div style="font-family:Sora;font-weight:800;font-size:48px;opacity:.16;line-height:.7;margin-top:auto;letter-spacing:-2px">0${i+1}</div>
+    <div style="font-family:Sora;font-weight:800;font-size:18px;line-height:1;letter-spacing:-.4px;margin-top:2px">${s.t}</div>
+    <div class="s-pills">${pills(s.pills,'rgba(255,255,255,.18)',ink,'')}</div></div>`);});
+  out.push(`<div class="slide" style="background:${S};color:#fff"><span class="s-tag" style="background:#fff;color:${S}">À toi</span>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center"><div style="font-family:Sora;font-weight:800;font-size:18px">${CONTENT.cta.t}</div>
+    <span style="align-self:flex-start;background:#fff;color:${S};font-family:Sora;font-weight:800;font-size:10px;padding:8px 14px;border-radius:9px;margin-top:10px">Lien en bio →</span></div></div>`);
+  return out;
+}
+function tpl_clean(){
+  const n=2+CONTENT.slides.length, LBG=light(P,.93), grad=`linear-gradient(165deg,${P},${mix(P,A,.4)} 60%,${A} 130%)`;
+  const pbar=(i,light)=>`<div style="position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:6px;padding:0 16px 12px"><div style="flex:1;height:3px;border-radius:9px;overflow:hidden;background:${light?'rgba(0,0,0,.08)':'rgba(255,255,255,.16)'}"><div style="width:${(i+1)/n*100}%;height:100%;background:${light?A:'#fff'}"></div></div><span style="font-size:7px;font-weight:700;color:${light?'rgba(0,0,0,.35)':'rgba(255,255,255,.5)'}">${i+1}/${n}</span></div>`;
+  const out=[];
+  out.push(`<div class="slide" style="background:${LBG};color:#181a1f;justify-content:center"><div style="font-size:8px;font-weight:700;letter-spacing:1.5px;color:${A};text-transform:uppercase;margin-bottom:8px">Carrousel</div>
+    <div style="font-family:Plus Jakarta Sans;font-weight:800;font-size:20px;line-height:1.1">${CONTENT.hook}</div><div class="grow"></div>
+    <div class="s-foot"><span class="s-av" style="background:${A};color:${P};font-family:Plus Jakarta Sans">E</span><div>Eddy</div></div>${pbar(0,true)}</div>`);
+  CONTENT.slides.forEach((s,i)=>{const dk=i%2===0;const bg=dk?dark(P,.5):LBG;const ink=dk?'#fff':'#181a1f';
+    out.push(`<div class="slide" style="background:${bg};color:${ink};justify-content:flex-end"><div style="font-family:Plus Jakarta Sans;font-weight:300;font-size:22px;color:${dk?A:P}">0${i+1}</div>
+    <div style="font-family:Plus Jakarta Sans;font-weight:700;font-size:17px;line-height:1.1;margin-top:2px">${s.t}</div>
+    <div class="s-pills">${pills(s.pills,dk?'rgba(255,255,255,.12)':A,dk?'#fff':P,'')}</div>${pbar(i+1,!dk)}</div>`);});
+  out.push(`<div class="slide" style="background:${grad};color:#fff;justify-content:center"><div class="s-foot"><span class="s-av" style="background:${A};color:${P};font-family:Plus Jakarta Sans">E</span><div>Eddy</div></div><div class="grow"></div>
+    <div style="font-family:Plus Jakarta Sans;font-weight:700;font-size:18px">${CONTENT.cta.t}</div>
+    <span style="align-self:flex-start;background:${LBG};color:${P};font-family:Plus Jakarta Sans;font-weight:700;font-size:10px;padding:8px 14px;border-radius:26px;margin-top:10px">Lien en bio →</span>${pbar(n-1,false)}</div>`);
+  return out;
+}
+const TPL={creme:['Crème',tpl_creme],sombre:['Sombre',tpl_sombre],alterne:['Alterné',tpl_alterne],editorial:['Éditorial',tpl_editorial],pop:['Pop',tpl_pop],clean:['Clean',tpl_clean]};
+const ORDER=['creme','sombre','alterne','editorial','pop','clean'];
+const LBLS=['Hook','Étape 01','Étape 02','Étape 03','CTA'];
+let current='creme';
+
+function renderThumbs(){
+  document.getElementById('thumbs').innerHTML=ORDER.map(id=>{
+    const hero=TPL[id][1]()[0];
+    return `<div class="tcard ${id===current?'on':''}" data-tpl="${id}"><div class="tclip"><div>${hero}</div></div><div class="tname">${TPL[id][0]}</div></div>`;
+  }).join('');
+}
+function renderReel(){
+  const slides=TPL[current][1]();
+  document.getElementById('reel').innerHTML=slides.map((s,i)=>`<div class="scol">${s}<div class="slbl">${LBLS[i]||''}</div></div>`).join('');
+  document.getElementById('pvName').textContent=TPL[current][0];
+}
+document.getElementById('thumbs').addEventListener('click',e=>{const c=e.target.closest('.tcard');if(!c)return;current=c.dataset.tpl;renderThumbs();renderReel();});
+document.getElementById('nets').addEventListener('click',e=>{const c=e.target.closest('.net');if(!c)return;document.querySelectorAll('.net').forEach(n=>n.classList.remove('on'));c.classList.add('on');document.getElementById('pvNet').textContent=c.textContent.trim();});
+renderThumbs();renderReel();
+</script>
+</body></html>
