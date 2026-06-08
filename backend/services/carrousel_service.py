@@ -27,8 +27,8 @@ def _esc(t):
 
 def _av_span(logo, initial, fallback_bg, ink):
     if logo:
-        return ('<span class="av" style="background:#fff;padding:3px;overflow:hidden">'
-                f'<img src="{logo}" style="width:100%;height:100%;object-fit:contain" alt=""></span>')
+        return ('<span class="av" style="overflow:hidden">'
+                f'<img src="{logo}" style="width:100%;height:100%;object-fit:cover;display:block" alt=""></span>')
     return f'<span class="av" style="background:{fallback_bg};color:{ink}">{_esc(initial)}</span>'
 
 

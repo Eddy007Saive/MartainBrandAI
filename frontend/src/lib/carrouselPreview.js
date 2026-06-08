@@ -16,7 +16,7 @@ const inkOn = (bg) => (lum(bg) > 0.6 ? '#12150f' : '#ffffff');           // text
 const accOnLight = (a) => (lum(a) < 0.62 ? a : dark(a, 0.5));            // accent visible sur fond clair
 const accOnDark = (a) => (lum(a) > 0.34 ? a : light(a, 0.42));           // accent visible sur fond sombre
 const avHTML = (logo, initial, bg, ink) => (logo
-  ? `<span class="cz-av" style="background:#fff;padding:2px;overflow:hidden"><img src="${logo}" style="width:100%;height:100%;object-fit:contain" alt=""></span>`
+  ? `<span class="cz-av" style="overflow:hidden"><img src="${logo}" style="width:100%;height:100%;object-fit:cover;display:block" alt=""></span>`
   : `<span class="cz-av" style="background:${bg};color:${ink}">${initial}</span>`);
 
 export const TEMPLATES = [
