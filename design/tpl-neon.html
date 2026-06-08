@@ -1,0 +1,87 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<title>Template Néon — mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* palette type GoodTime (bleu nuit) — s'adaptera aux couleurs du client */
+  :root{--p:#0b1c44;--a:#2f7bff;--ink:#eaf1ff;--mut:#9fb0cf}
+  *{box-sizing:border-box;margin:0}
+  body{background:#070b14;font-family:Inter,sans-serif;padding:30px;color:#e7ecf5}
+  .h{font-family:Sora;font-weight:800;font-size:20px;margin-bottom:3px}
+  .sub{color:#6b7686;font-size:13px;margin-bottom:22px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .slide{width:340px;height:425px;border-radius:16px;overflow:hidden;position:relative;
+    background:linear-gradient(155deg,#102449 0%,#070f24 75%,#060b18 100%);
+    color:var(--ink);display:flex;flex-direction:column;padding:26px 26px 28px}
+  .slide::before{content:"";position:absolute;inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+    background-size:26px 26px;mask-image:radial-gradient(circle at 30% 40%,#000,transparent 80%);opacity:.6}
+  .slide::after{content:"";position:absolute;width:280px;height:280px;right:-90px;top:30px;border-radius:50%;
+    background:radial-gradient(circle,rgba(47,123,255,.18),transparent 70%);pointer-events:none}
+  .top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+  .brand{display:flex;align-items:center;gap:9px;font-family:Sora;font-weight:800;font-size:15px;letter-spacing:.5px}
+  .mark{width:26px;height:26px;border-radius:7px;background:var(--a);display:grid;place-items:center;color:#fff;font-family:Sora;font-weight:800;font-size:14px;box-shadow:0 0 16px rgba(47,123,255,.5)}
+  .cnt{font-family:Sora;font-weight:800;font-size:14px;color:var(--a)}
+  .grow{flex:1}
+  .row2{display:flex;align-items:flex-start;gap:14px;position:relative;z-index:2}
+  .num{font-family:Sora;font-weight:800;font-size:96px;line-height:.8;letter-spacing:-4px;color:transparent;-webkit-text-stroke:2.5px var(--a);opacity:.92}
+  h1{font-family:Sora;font-weight:800;font-size:34px;line-height:1.02;letter-spacing:-.5px;text-transform:uppercase;position:relative;z-index:2}
+  h2{font-family:Sora;font-weight:800;font-size:25px;line-height:1.04;letter-spacing:-.3px;text-transform:uppercase;margin-top:8px}
+  .hl{color:var(--a)}
+  .line{width:46px;height:3px;background:var(--a);border-radius:3px;margin:14px 0 12px;position:relative;z-index:2;box-shadow:0 0 12px rgba(47,123,255,.6)}
+  p{font-size:15px;line-height:1.5;color:var(--mut);position:relative;z-index:2;max-width:90%}
+  .btn{align-self:flex-start;background:var(--a);color:#fff;font-family:Sora;font-weight:800;font-size:14px;padding:12px 22px;border-radius:10px;margin-top:16px;position:relative;z-index:2;box-shadow:0 6px 20px rgba(47,123,255,.4)}
+</style></head><body>
+<div class="h">Template « Néon » (style GoodTime)</div>
+<div class="sub">Fond bleu nuit + grille, numéro en contour, titre deux-tons, trait d'accent. Couleurs adaptées au client.</div>
+<div class="row">
+
+  <!-- HERO -->
+  <div class="slide">
+    <div class="top"><div class="brand"><span class="mark">G</span>GOODTIME</div><span class="cnt">1/5</span></div>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+      <h1>5 signes que ta boîte <span class="hl">te dépasse</span></h1>
+      <div class="line"></div>
+      <p>Si tu coches 3 de ces signes, il est temps de structurer. Swipe →</p>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 01 -->
+  <div class="slide">
+    <div class="top"><div class="brand"><span class="mark">G</span>GOODTIME</div><span class="cnt">2/5</span></div>
+    <div class="grow"></div>
+    <div class="row2"><div class="num">01</div><h2>Tu n'as pas <span class="hl">de vision cash</span></h2></div>
+    <div class="line"></div>
+    <p>Tu pilotes à l'instinct. Pas de données fiables, pas de vraie lecture de ton activité.</p>
+  </div>
+
+  <!-- ÉTAPE 02 -->
+  <div class="slide">
+    <div class="top"><div class="brand"><span class="mark">G</span>GOODTIME</div><span class="cnt">3/5</span></div>
+    <div class="grow"></div>
+    <div class="row2"><div class="num">02</div><h2>Tu ne prends plus <span class="hl">de recul</span></h2></div>
+    <div class="line"></div>
+    <p>Tu gères le feu. Plus de temps pour réfléchir, décider et développer.</p>
+  </div>
+
+  <!-- ÉTAPE 03 -->
+  <div class="slide">
+    <div class="top"><div class="brand"><span class="mark">G</span>GOODTIME</div><span class="cnt">4/5</span></div>
+    <div class="grow"></div>
+    <div class="row2"><div class="num">03</div><h2>Tu fais <span class="hl">tout toi-même</span></h2></div>
+    <div class="line"></div>
+    <p>Rien ne tourne sans toi. Ta boîte dépend d'une seule personne : toi.</p>
+  </div>
+
+  <!-- CTA -->
+  <div class="slide">
+    <div class="top"><div class="brand"><span class="mark">G</span>GOODTIME</div><span class="cnt">5/5</span></div>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+      <h1>On en <span class="hl">parle ?</span></h1>
+      <div class="line"></div>
+      <p>Audit gratuit de 15 min : on identifie tes 3 leviers prioritaires.</p>
+      <span class="btn">Lien en bio →</span>
+    </div>
+  </div>
+
+</div>
+</body></html>

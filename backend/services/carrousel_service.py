@@ -18,7 +18,7 @@ from services.agent_service import _charger_marque
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
 
 SLIDE_W, SLIDE_H, DSF = 360, 450, 3  # 1080×1350
-TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean"]
+TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon"]
 
 
 def _esc(t):
@@ -108,9 +108,17 @@ def build_html(content, p, s, a, nom, secteur, template="creme", logo=None):
     if len(secteur) > 42:
         secteur = secteur[:42].rstrip() + "…"
     fn = {"creme": _tpl_creme, "sombre": _tpl_sombre, "alterne": _tpl_alterne,
-          "editorial": _tpl_editorial, "pop": _tpl_pop, "clean": _tpl_clean,
+          "editorial": _tpl_editorial, "pop": _tpl_pop, "clean": _tpl_clean, "neon": _tpl_neon,
           "bold": _tpl_sombre, "instagram": _tpl_clean}.get(template, _tpl_creme)
     return fn(content, p, s, a, nom, secteur, logo)
+
+
+def _two_tone(t, acc):
+    w = (t or "").split(" ")
+    if len(w) < 2:
+        return f'<span style="color:{acc}">{_esc(t)}</span>'
+    c = (len(w) + 1) // 2
+    return f'{_esc(" ".join(w[:c]))} <span style="color:{acc}">{_esc(" ".join(w[c:]))}</span>'
 
 
 # =============================================================================
@@ -317,6 +325,44 @@ def _tpl_clean(content, p, s, a, nom, secteur, logo):
                    + (f'<p>{_esc(sl.get("texte"))}</p>' if sl.get("texte") else "") + pills + f'<div class="swipe">{chev}</div>{pbar(i+1)}</div>')
     out.append(f'<div class="slide gr center"><div class="lockup">{av}<div><div class="lk-nm">{_esc(nom)}</div><div class="lk-hd" style="color:rgba(255,255,255,.7)">{_esc(secteur)}</div></div></div><div class="grow"></div><h2>{_esc(cta["titre"])}</h2>'
                + (f'<p>{_esc(cta["texte"])}</p>' if cta["texte"] else "") + f'<span class="ctabtn">Lien en bio →</span>{pbar(n-1)}</div>')
+    return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'
+
+
+def _tpl_neon(content, p, s, a, nom, secteur, logo):
+    p = p or "#0b1c44"; A = a or "#2f7bff"
+    acc = _acc_dark(A)
+    D1 = _mix(p, "#0a1430", .30); D2 = _mix(p, "#04060e", .72)
+    gc = "rgba(255,255,255,.05)"
+    bg = (f"linear-gradient({gc} 1px,transparent 1px),linear-gradient(90deg,{gc} 1px,transparent 1px),"
+          f"linear-gradient(155deg,{D1},{D2})")
+    hook, slides, cta = _parts(content); n = 2 + len(slides)
+    initial = (nom or "?")[:1].upper()
+    head = '<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">'
+    css = f'''<style>*{{box-sizing:border-box;margin:0}} body{{margin:0;font-family:Inter,sans-serif}}
+  .slide{{width:{SLIDE_W}px;height:{SLIDE_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:40px 38px;color:#eaf1ff;
+    background-image:{bg};background-size:30px 30px,30px 30px,100% 100%}}
+  .slide::after{{content:"";position:absolute;width:420px;height:420px;right:-130px;top:40px;border-radius:50%;background:radial-gradient(circle,{_mix(acc,'#000000',.1)}33,transparent 70%);pointer-events:none}}
+  .top{{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}}
+  .brand{{display:flex;align-items:center;gap:9px;font-family:Sora;font-weight:800;font-size:15px;letter-spacing:.4px}}
+  .av{{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:14px;overflow:hidden}}
+  .cnt{{font-family:Sora;font-weight:800;font-size:14px;color:{acc}}}
+  .grow{{flex:1}}
+  .num{{font-family:Sora;font-weight:800;font-size:96px;line-height:.8;letter-spacing:-4px;color:transparent;-webkit-text-stroke:2.5px {acc}}}
+  .row2{{display:flex;align-items:flex-start;gap:16px;position:relative;z-index:2}}
+  h1{{font-family:Sora;font-weight:800;font-size:38px;line-height:1.02;letter-spacing:-.5px;text-transform:uppercase;position:relative;z-index:2}}
+  h2{{font-family:Sora;font-weight:800;font-size:27px;line-height:1.04;letter-spacing:-.3px;text-transform:uppercase;margin-top:6px}}
+  .line{{width:46px;height:3px;background:{acc};border-radius:3px;margin:14px 0 12px;position:relative;z-index:2}}
+  p{{font-size:15px;line-height:1.5;color:#9fb0cf;position:relative;z-index:2;max-width:92%}}
+  .btn{{align-self:flex-start;background:{acc};color:{_ink_on(acc)};font-family:Sora;font-weight:800;font-size:14px;padding:12px 22px;border-radius:10px;margin-top:16px;position:relative;z-index:2}}
+</style>'''
+    av = _av_span(logo, initial, acc, _ink_on(acc))
+    top = lambda i: f'<div class="top"><div class="brand">{av}<span>{_esc(nom)}</span></div><span class="cnt">{i+1}/{n}</span></div>'
+    out = [f'<div class="slide">{top(0)}<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_two_tone(hook, acc)}</h1><div class="line"></div></div></div>']
+    for i, sl in enumerate(slides):
+        out.append(f'<div class="slide">{top(i+1)}<div class="grow"></div><div class="row2"><div class="num">{i+1:02d}</div><h2>{_two_tone(sl.get("titre"), acc)}</h2></div><div class="line"></div>'
+                   + (f'<p>{_esc(sl.get("texte"))}</p>' if sl.get("texte") else "") + '</div>')
+    out.append(f'<div class="slide">{top(n-1)}<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_two_tone(cta["titre"], acc)}</h1><div class="line"></div>'
+               + (f'<p>{_esc(cta["texte"])}</p>' if cta["texte"] else "") + '<span class="btn">Lien en bio →</span></div></div>')
     return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'
 
 

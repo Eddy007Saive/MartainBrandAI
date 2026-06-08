@@ -26,7 +26,9 @@ export const TEMPLATES = [
   { id: 'editorial', label: 'Éditorial' },
   { id: 'pop', label: 'Pop' },
   { id: 'clean', label: 'Clean' },
+  { id: 'neon', label: 'Néon' },
 ];
+const twoTone = (t, acc) => { const w = (t || '').split(' '); if (w.length < 2) return `<span style="color:${acc}">${t || ''}</span>`; const c = Math.ceil(w.length / 2); return `${w.slice(0, c).join(' ')} <span style="color:${acc}">${w.slice(c).join(' ')}</span>`; };
 export const SLIDE_LABELS = ['Hook', 'Étape 01', 'Étape 02', 'Étape 03', 'CTA'];
 
 export const SLIDE_CSS = `
@@ -112,6 +114,24 @@ function renderSlides(tplId, colors) {
     CONTENT.slides.forEach((s, i) => { const acc = i % 2 === 0, bg = acc ? A : NEAR, ink = acc ? Aink : '#fff'; out.push(`<div class="cz-slide" style="background:${bg};color:${ink}"><span class="cz-tag" style="background:${acc ? NEAR : A};color:${acc ? '#fff' : Aink}">Étape 0${i + 1}</span><div style="font-family:Sora,sans-serif;font-weight:800;font-size:48px;opacity:.16;line-height:.7;margin-top:auto;letter-spacing:-2px;color:${ink}">0${i + 1}</div><div style="font-family:Sora,sans-serif;font-weight:800;font-size:18px;line-height:1;letter-spacing:-.4px;margin-top:2px">${s.t}</div><div class="cz-pills">${pills(s.pills, acc ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.16)', ink, '')}</div></div>`); });
     out.push(`<div class="cz-slide" style="background:${S};color:${Sink}"><span class="cz-tag" style="background:${Sink};color:${S}">À toi</span><div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:18px">${CONTENT.cta.t}</div><span style="align-self:flex-start;background:${Sink};color:${S};font-family:Sora,sans-serif;font-weight:800;font-size:10px;padding:8px 14px;border-radius:9px;margin-top:10px">Lien en bio →</span></div></div>`);
     return out;
+  }
+
+  if (tplId === 'neon') {
+    const acc = accD;
+    const D1 = mix(P, '#0a1430', 0.30), D2 = mix(P, '#04060e', 0.72);
+    const gc = 'rgba(255,255,255,.05)';
+    const bg = `background:linear-gradient(${gc} 1px,transparent 1px),linear-gradient(90deg,${gc} 1px,transparent 1px),linear-gradient(155deg,${D1},${D2});background-size:22px 22px,22px 22px,100% 100%`;
+    const top = (i) => `<div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2">`
+      + `<div style="display:flex;align-items:center;gap:6px;font-family:Sora,sans-serif;font-weight:800;font-size:10px;color:#eaf1ff">${av(acc, inkOn(acc))}<span>${nom}</span></div>`
+      + `<span style="font-family:Sora,sans-serif;font-weight:800;font-size:10px;color:${acc}">${i + 1}/${n}</span></div>`;
+    const line = `<div style="width:34px;height:3px;background:${acc};border-radius:3px;margin:9px 0 8px;position:relative;z-index:2"></div>`;
+    const num = (i) => `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:54px;line-height:.8;letter-spacing:-2px;color:transparent;-webkit-text-stroke:2px ${acc}">0${i}</div>`;
+    const h = (t, fs) => `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fs}px;line-height:1.02;letter-spacing:-.4px;text-transform:uppercase;position:relative;z-index:2;color:#eaf1ff">${twoTone(t, acc)}</div>`;
+    const o = [];
+    o.push(`<div class="cz-slide" style="${bg}">${top(0)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.hook, 22)}${line}<p style="font-size:9.5px;color:#9fb0cf;position:relative;z-index:2">Swipe pour découvrir →</p></div></div>`);
+    CONTENT.slides.forEach((s, i) => o.push(`<div class="cz-slide" style="${bg}">${top(i + 1)}<div class="cz-grow"></div><div style="display:flex;align-items:flex-start;gap:10px;position:relative;z-index:2">${num(i + 1)}${h(s.t, 16)}</div>${line}<p style="font-size:9.5px;color:#9fb0cf;position:relative;z-index:2;max-width:92%">${s.x}</p></div>`));
+    o.push(`<div class="cz-slide" style="${bg}">${top(n - 1)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.cta.t, 22)}${line}<p style="font-size:9.5px;color:#9fb0cf;position:relative;z-index:2">${CONTENT.cta.x}</p><span style="align-self:flex-start;background:${acc};color:${inkOn(acc)};font-family:Sora,sans-serif;font-weight:800;font-size:9px;padding:7px 13px;border-radius:8px;margin-top:10px;position:relative;z-index:2">Lien en bio →</span></div></div>`);
+    return o;
   }
 
   // clean
