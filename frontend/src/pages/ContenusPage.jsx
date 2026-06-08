@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, X, Eye, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -106,7 +106,7 @@ function StatCard({ value, label, color, borderColor, icon: Icon }) {
 function CardAction({ title, onClick, children, className = '' }) {
   return (
     <button onClick={onClick} title={title}
-      className={`w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white/[0.06] transition-all ${className}`}>
+      className={`w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-white/[0.06] transition-all cursor-pointer ${className}`}>
       {children}
     </button>
   );
@@ -121,7 +121,8 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
     : new Date(contenu.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
   return (
-    <div className="group flex flex-col rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden hover:border-white/[0.12] transition-all">
+    <div onClick={() => onView(contenu)}
+      className="group flex flex-col rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden hover:border-white/[0.12] hover:bg-[#111c33] transition-all cursor-pointer">
       {/* Visuel */}
       <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden">
         {contenu.lien_visuel ? (
@@ -135,16 +136,15 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
 
       {/* Corps */}
       <div className="p-4 flex-1 flex flex-col">
-        <button onClick={() => onView(contenu)} className="text-left">
+        <div className="text-left">
           {contenu.titre && <h3 className="text-white font-semibold font-sora text-[13.5px] mb-1 line-clamp-1">{contenu.titre}</h3>}
           <p className="text-slate-400 font-inter text-[12.5px] leading-relaxed line-clamp-3">{contenu.contenu}</p>
-        </button>
+        </div>
 
-        <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]">
+        <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]" onClick={(e) => e.stopPropagation()}>
           <span className="text-[11px] text-slate-500 font-inter mr-auto inline-flex items-center gap-1">
             {contenu.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
           </span>
-          <CardAction title="Voir" onClick={() => onView(contenu)}><Eye className="w-4 h-4" /></CardAction>
           {isCarrousel ? (
             <CardAction title="Régénérer le carrousel" onClick={() => onRegenCarrousel(contenu)}
               className={contenu.slides_images?.length ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
@@ -175,7 +175,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
 export default function ContenusPage() {
   const [contenus, setContenus] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('scripts');
+  const [activeTab, setActiveTab] = useState('all');
   const [filterStatut, setFilterStatut] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedContenu, setSelectedContenu] = useState(null);
