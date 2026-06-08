@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<title>Template 2 — Pop</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--green:#003D2E;--blue:#0077FF;--mint:#3AFFA3}
+  *{box-sizing:border-box;margin:0}
+  body{background:#0c0f12;font-family:Inter,sans-serif;padding:30px}
+  .h{color:#e7ecf5;font-family:Sora;font-weight:800;font-size:20px;margin-bottom:4px}
+  .sub{color:#6b7686;font-size:13px;margin-bottom:22px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .slide{width:340px;height:425px;border-radius:18px;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:32px 30px}
+  .mint{background:var(--mint);color:var(--green)}
+  .green{background:var(--green);color:#fff}
+  .blue{background:var(--blue);color:#fff}
+  .top{display:flex;align-items:center;justify-content:space-between}
+  .badge{font-family:Sora;font-weight:800;font-size:12px;letter-spacing:.5px;padding:5px 11px;border-radius:30px}
+  .mint .badge{background:var(--green);color:var(--mint)}
+  .green .badge{background:var(--mint);color:var(--green)}
+  .blue .badge{background:#fff;color:var(--blue)}
+  .grow{flex:1}
+  h1{font-family:Sora;font-weight:800;font-size:38px;line-height:1.05;letter-spacing:-1px}
+  h2{font-family:Sora;font-weight:800;font-size:27px;line-height:1.1;letter-spacing:-.5px;margin-bottom:12px}
+  p{font-size:15px;line-height:1.5;font-weight:500;opacity:.9}
+  .num{font-family:Sora;font-weight:800;font-size:90px;line-height:.8;letter-spacing:-3px;opacity:.16}
+  .dots{display:flex;gap:6px;margin-top:18px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.3}
+  .dots i.on{opacity:1;width:20px;border-radius:6px}
+  .foot{display:flex;align-items:center;gap:9px;font-family:Sora;font-weight:700;font-size:14px;margin-top:14px}
+  .av{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:14px}
+  .mint .av{background:var(--green);color:var(--mint)} .green .av{background:var(--mint);color:var(--green)} .blue .av{background:#fff;color:var(--blue)}
+  .swipe{font-family:Sora;font-weight:800;font-size:13px;letter-spacing:1px}
+  .cta-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--blue);font-family:Sora;font-weight:800;font-size:15px;padding:13px 24px;border-radius:14px;margin-top:18px;width:max-content}
+</style></head><body>
+<div class="h">Template 2 — « Pop »</div>
+<div class="sub">Énergique : fonds pleins (mint / vert / bleu), gros titres Sora, gros numéros, pastilles de progression.</div>
+<div class="row">
+  <!-- hook mint -->
+  <div class="slide mint">
+    <div class="top"><span class="badge">CARROUSEL</span><span class="swipe">SWIPE →</span></div>
+    <div class="grow" style="display:flex;align-items:center"><h1>Ta conciergerie vaut combien ?</h1></div>
+    <div class="foot"><span class="av">E</span> Eddy · Conciergerie 4.0</div>
+    <div class="dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+  </div>
+  <!-- green -->
+  <div class="slide green">
+    <div class="top"><span class="badge">LE CONSTAT</span><span class="swipe">→</span></div>
+    <div class="grow"></div>
+    <div class="num">01</div>
+    <h2>Sans process, tu ES la boîte.</h2>
+    <p>Tu pars une semaine, tout s'arrête. C'est pas une entreprise, c'est un job à 70h.</p>
+    <div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i></div>
+  </div>
+  <!-- mint -->
+  <div class="slide mint">
+    <div class="top"><span class="badge">L'ERREUR</span><span class="swipe">→</span></div>
+    <div class="grow"></div>
+    <div class="num">02</div>
+    <h2>Activité ≠ valeur.</h2>
+    <p>Un repreneur n'achète pas ton agenda. Il achète ce qui tourne sans toi.</p>
+    <div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></div>
+  </div>
+  <!-- green -->
+  <div class="slide green">
+    <div class="top"><span class="badge">LA SOLUTION</span><span class="swipe">→</span></div>
+    <div class="grow"></div>
+    <div class="num">03</div>
+    <h2>Documente, puis délègue.</h2>
+    <p>Écris tes 5 procédures clés. Une boîte qui tourne sans toi vaut jusqu'à 3× plus.</p>
+    <div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i></div>
+  </div>
+  <!-- cta blue -->
+  <div class="slide blue">
+    <div class="top"><span class="badge">À TOI</span></div>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+      <h2>On en parle ?</h2>
+      <p>Audit gratuit de 15 min. Je te montre ta valeur cachée.</p>
+      <span class="cta-btn">Lien en bio →</span>
+    </div>
+    <div class="foot"><span class="av">E</span> Eddy · Conciergerie 4.0</div>
+    <div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i></div>
+  </div>
+</div>
+</body></html>

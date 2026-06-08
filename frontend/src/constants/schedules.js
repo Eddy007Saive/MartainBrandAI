@@ -25,10 +25,21 @@ export const FORMATS_RESEAU = [
 
 export const FORMAT_LABELS = { post: 'Post', reel: 'Réel', video: 'Vidéo' };
 
+// Styles de carrousel (par réseau) — aperçus colorés via CarrouselTemplatePicker
+export const CARROUSEL_TEMPLATES = [
+  { value: 'creme', label: 'Crème' },
+  { value: 'sombre', label: 'Sombre' },
+  { value: 'alterne', label: 'Alterné' },
+  { value: 'editorial', label: 'Éditorial' },
+  { value: 'pop', label: 'Pop' },
+  { value: 'clean', label: 'Clean' },
+];
+
 export const DEFAULT_SCHEDULE = {
   frequency: 'weekly',
   days_of_week: [],
   preferred_time: '09:00',
   is_active: false,
   format: 'post',
+  carrousel_template: 'creme',
 };

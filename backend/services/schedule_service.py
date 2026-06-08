@@ -28,6 +28,7 @@ def update_schedules(telegram_id: int, schedules: list) -> dict:
             "preferred_time": item.preferred_time,
             "is_active": item.is_active,
             "format": getattr(item, "format", "post") or "post",
+            "carrousel_template": getattr(item, "carrousel_template", "bold") or "bold",
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         supabase.table("publication_schedules").upsert(

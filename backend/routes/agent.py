@@ -21,6 +21,18 @@ def _map_agent_error(result: dict):
         raise HTTPException(status_code=400, detail="Renseignez votre secteur dans Paramètres → Voix de marque avant de générer.")
 
 
+def _carrousel_texte(content: dict) -> str:
+    """Résumé texte du carrousel (pour la colonne contenu, l'édition et la légende)."""
+    if not content:
+        return ""
+    parts = [content.get("hook", "")]
+    for sl in content.get("slides", []):
+        parts.append((f"{sl.get('titre', '')}\n{sl.get('texte', '')}").strip())
+    cta = content.get("cta") or {}
+    parts.append((f"{cta.get('titre', '')}\n{cta.get('texte', '')}").strip())
+    return "\n\n".join(x for x in parts if x)
+
+
 @router.post("/sujets")
 async def sujets(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
@@ -84,7 +96,9 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
     except (TypeError, ValueError):
         raise HTTPException(status_code=400, detail="year/month requis")
 
-    formats = {s["platform"]: (s.get("format") or "post") for s in plan_service._schedules(telegram_id)}
+    _scheds = plan_service._schedules(telegram_id)
+    formats = {s["platform"]: (s.get("format") or "post") for s in _scheds}
+    templates = {s["platform"]: (s.get("carrousel_template") or "bold") for s in _scheds}
     start, end = plan_service._month_bounds(year, month)
     occupied: dict = {}
 
@@ -113,14 +127,14 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
         solde = s
         try:
             model = agent_service.QUALITE_MODELS.get(qualite)
-            slides = None
+            ccontent = None
             if action == "post":
                 r = agent_service.rediger_post(telegram_id, sujet, reseau_low, model, cache=True)
                 texte = r.get("contenu", "")
             elif action == "carrousel":
                 r = agent_service.rediger_carrousel(telegram_id, sujet, 5, model, cache=True)
-                slides = r.get("slides")
-                texte = "\n\n".join(f"{sl['titre']}\n{sl['texte']}".strip() for sl in (slides or []))
+                ccontent = r.get("content")
+                texte = _carrousel_texte(ccontent) if ccontent else ""
             else:
                 tv = "Reel" if fmt == "reel" else "Video"
                 r = agent_service.rediger_script(telegram_id, sujet, tv, model, cache=True)
@@ -150,9 +164,10 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             cid = ins.data[0]["id"] if ins.data else None
 
             # carrousel : rendu des images de slides
-            if action == "carrousel" and slides and cid:
+            if action == "carrousel" and ccontent and cid:
                 try:
-                    res = await carrousel_service.generer_carrousel(telegram_id, slides, cid)
+                    res = await carrousel_service.generer_carrousel(
+                        telegram_id, ccontent, cid, templates.get(reseau_low, "creme"))
                     imgs = res.get("images", [])
                     if imgs:
                         supabase.table("contenu").update(
@@ -248,6 +263,11 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     reseau = (body.get("reseau") or "linkedin").lower()
     nb = max(3, min(10, int(body.get("nb_slides", 5))))
     qualite = body.get("qualite", "equilibre")
+    # template du carrousel : override explicite sinon celui configuré pour ce réseau
+    tmpl = body.get("template")
+    if not tmpl:
+        tmpl = next((sch.get("carrousel_template") or "bold"
+                     for sch in plan_service._schedules(telegram_id) if sch.get("platform") == reseau), "bold")
     cost = credit_service.cout("carrousel", qualite)
     solde = credit_service.deduct(telegram_id, cost)
     if solde < 0:
@@ -265,9 +285,8 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
         _map_agent_error(result)
     usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), cost, qualite)
 
-    slides = result["slides"]
-    # Texte assemblé des slides
-    texte = "\n\n".join(f"{s['titre']}\n{s['texte']}".strip() for s in slides)
+    content = result["content"]
+    texte = _carrousel_texte(content)
     existing_id = body.get("contenu_id")
     if existing_id:
         # Régénération : met à jour le contenu existant
@@ -287,7 +306,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     # Rendu des slides en images + PDF
     slides_images, pdf_url = [], None
     try:
-        res = await carrousel_service.generer_carrousel(telegram_id, slides, contenu_id)
+        res = await carrousel_service.generer_carrousel(telegram_id, content, contenu_id, tmpl)
         slides_images = res.get("images", [])
         pdf_url = res.get("pdf")
         if contenu_id and slides_images:
@@ -297,7 +316,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     except Exception as e:
         logger.error(f"Carrousel render error: {e}")
 
-    return {"contenu_id": contenu_id, "slides": slides, "slides_images": slides_images,
+    return {"contenu_id": contenu_id, "content": content, "slides_images": slides_images,
             "carrousel_pdf": pdf_url, "credits": solde}
 
 

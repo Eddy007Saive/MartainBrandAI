@@ -9,6 +9,7 @@ class ScheduleItem(BaseModel):
     preferred_time: str = "09:00"
     is_active: bool = True
     format: str = "post"  # post | reel | video
+    carrousel_template: str = "bold"  # style des carrousels pour ce réseau
 
 
 class ScheduleUpdate(BaseModel):

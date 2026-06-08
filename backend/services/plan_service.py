@@ -40,7 +40,7 @@ def _parse_time(val) -> time:
 def _schedules(telegram_id: int) -> list:
     try:
         return (supabase.table("publication_schedules")
-                .select("platform, days_of_week, frequency, is_active, format, preferred_time")
+                .select("platform, days_of_week, frequency, is_active, format, preferred_time, carrousel_template")
                 .eq("telegram_id", telegram_id).execute()).data or []
     except Exception as e:
         logger.error(f"plan _schedules error: {e}")

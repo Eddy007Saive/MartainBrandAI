@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<title>Template B — Sombre</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#04261c; --bg2:#06301f; --ink:#eef1ec; --line:rgba(255,255,255,.14);
+    --accent:#3AFFA3; --accent-ink:#003D2E; --mut:rgba(255,255,255,.66);
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:#0c0f12;font-family:Inter,sans-serif;padding:30px}
+  .pageh{color:#e7ecf5;font-family:Anton;font-size:22px;letter-spacing:.5px;margin-bottom:3px}
+  .pages{color:#6b7686;font-size:13px;margin-bottom:22px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .slide{width:360px;height:450px;background:var(--bg);color:var(--ink);border-radius:14px;
+    overflow:hidden;position:relative;display:flex;flex-direction:column;padding:34px 30px 58px}
+  .slide::after{content:"";position:absolute;width:320px;height:320px;right:-120px;top:-120px;border-radius:50%;
+    background:radial-gradient(circle,rgba(58,255,163,.10),transparent 70%);pointer-events:none}
+  .tag{align-self:flex-start;background:var(--accent);color:var(--accent-ink);font-weight:700;
+    font-size:11px;letter-spacing:2px;padding:6px 12px;border-radius:6px;text-transform:uppercase;position:relative;z-index:2}
+  .grow{flex:1}
+  h1{font-family:Anton;font-weight:400;font-size:52px;line-height:.95;letter-spacing:.5px;text-transform:uppercase;margin-top:18px;position:relative;z-index:2}
+  h1 .hl{color:var(--accent)}
+  h2{font-family:Anton;font-weight:400;font-size:40px;line-height:.96;letter-spacing:.5px;text-transform:uppercase;margin:14px 0;position:relative;z-index:2}
+  .sub{font-size:15px;color:var(--mut);line-height:1.5;margin-top:14px;max-width:88%;position:relative;z-index:2}
+  .pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;position:relative;z-index:2}
+  .pill{font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+    background:rgba(58,255,163,.14);color:var(--accent);padding:6px 11px;border-radius:6px;border:1px solid rgba(58,255,163,.3)}
+  .protip{margin-top:16px;border-top:1px solid var(--line);padding-top:13px;position:relative;z-index:2}
+  .protip .lbl{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--accent-ink);
+    background:var(--accent);display:inline-block;padding:3px 8px;border-radius:4px;text-transform:uppercase}
+  .protip p{font-size:13px;color:var(--mut);line-height:1.5;margin-top:8px}
+  .bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:0 30px 22px;z-index:2}
+  .dots{display:flex;gap:6px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2)}
+  .dots i.on{background:var(--accent);width:22px;border-radius:5px}
+  .swipe{font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase}
+  .cnt{font-size:11px;color:var(--mut);font-weight:600}
+  .foot{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600}
+  .av{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:Anton;font-size:14px}
+  .foot small{color:var(--mut);font-weight:500;display:block;font-size:11px}
+  .cta-btn{align-self:flex-start;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:14px;padding:13px 24px;border-radius:8px;margin-top:18px;text-transform:uppercase;letter-spacing:.5px}
+</style></head><body>
+<div class="pageh">Template B — « Sombre »</div>
+<div class="pages">Même langage, fond vert profond, accents mint qui ressortent fort (très "premium / nuit").</div>
+<div class="row">
+
+  <div class="slide">
+    <span class="tag">Carrousel</span>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+      <h1>Ta conciergerie vaut <span class="hl">combien&nbsp;?</span></h1>
+      <p class="sub">La réponse n'est pas ton chiffre d'affaires. Swipe.</p>
+    </div>
+    <div class="bar"><div class="foot"><span class="av">E</span><div>Eddy<small>Conciergerie 4.0</small></div></div><span class="swipe">Swipe →</span></div>
+  </div>
+
+  <div class="slide">
+    <span class="tag">Étape 01</span><div class="grow"></div>
+    <h2>Connais ta vraie valeur</h2>
+    <div class="pills"><span class="pill">EBITDA</span><span class="pill">Process</span><span class="pill">Récurrence</span><span class="pill">Équipe</span></div>
+    <div class="protip"><span class="lbl">Pro tip</span><p>Un repreneur paie ce qui tourne sans toi — pas ton agenda rempli.</p></div>
+    <div class="bar"><div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i></div><span class="cnt">2/5</span></div>
+  </div>
+
+  <div class="slide">
+    <span class="tag">Étape 02</span><div class="grow"></div>
+    <h2>Documente tout</h2>
+    <div class="pills"><span class="pill">Procédures</span><span class="pill">Check-lists</span><span class="pill">Onboarding</span></div>
+    <div class="protip"><span class="lbl">Pro tip</span><p>Écris tes 5 tâches critiques cette semaine. C'est 80 % de la valeur.</p></div>
+    <div class="bar"><div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></div><span class="cnt">3/5</span></div>
+  </div>
+
+  <div class="slide">
+    <span class="tag">Étape 03</span><div class="grow"></div>
+    <h2>Délègue le quotidien</h2>
+    <div class="pills"><span class="pill">Ménage</span><span class="pill">Check-in</span><span class="pill">Support</span><span class="pill">Linge</span></div>
+    <div class="protip"><span class="lbl">Pro tip</span><p>Tant que tu es le goulot, tu n'as pas une boîte — tu as un job.</p></div>
+    <div class="bar"><div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i></div><span class="cnt">4/5</span></div>
+  </div>
+
+  <div class="slide" style="background:var(--bg2)">
+    <span class="tag">À toi de jouer</span>
+    <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+      <h2>On en parle&nbsp;?</h2>
+      <p class="sub">Audit gratuit de 15 min : je te montre ta valeur cachée.</p>
+      <span class="cta-btn">Lien en bio →</span>
+    </div>
+    <div class="bar"><div class="foot"><span class="av">E</span><div>Eddy<small>Conciergerie 4.0</small></div></div><div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i></div></div>
+  </div>
+
+</div>
+</body></html>

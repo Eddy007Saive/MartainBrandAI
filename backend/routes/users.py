@@ -89,6 +89,38 @@ async def upload_my_photo(file: UploadFile = File(...), payload: dict = Depends(
         raise HTTPException(status_code=500, detail="Échec de l'upload de la photo")
 
 
+@router.post("/me/logo")
+async def upload_my_logo(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
+    """Upload le logo de marque (image) -> Cloudinary -> users.logo_url (utilisé dans les carrousels)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image (png, svg, webp…)")
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
+    try:
+        url = user_service.upload_logo(telegram_id, data)
+        return {"logo_url": url}
+    except Exception as e:
+        logger.error(f"Upload logo error: {e}")
+        raise HTTPException(status_code=500, detail="Échec de l'upload du logo")
+
+
+@router.delete("/me/logo")
+async def delete_my_logo(payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        user_service.delete_logo(telegram_id)
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Delete logo error: {e}")
+        raise HTTPException(status_code=500, detail="Échec de la suppression du logo")
+
+
 @router.get("/me/inspirations")
 async def list_inspirations(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")

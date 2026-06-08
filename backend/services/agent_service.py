@@ -195,11 +195,13 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
 # ---------------------------------------------------------------------------
 ROLE_CARROUSEL = (
     "Tu crées des CARROUSELS pour la marque personnelle décrite ci-dessous, dans sa voix. "
-    "Structure imposée : slide 1 = HOOK très court et percutant (une accroche qui stoppe le scroll), "
-    "slides du milieu = UNE idée forte chacune (titre court + 1 à 2 phrases max), "
-    "dernière slide = CTA (appel à l'action). Texte court, percutant, lisible sur une slide. "
-    "Réponds UNIQUEMENT avec du JSON valide : "
-    '{"slides":[{"titre":"...","texte":"..."}]} — le hook et le CTA peuvent avoir un texte vide.\n\n'
+    "Structure : un HOOK (accroche très courte qui stoppe le scroll), des ÉTAPES/IDÉES "
+    "(une idée forte chacune), et un CTA final. Chaque idée a un titre TRÈS court (2-5 mots, "
+    "façon gros titre), 1 à 2 phrases d'explication, 2 à 4 mots-clés (pills) et un 'pro_tip' "
+    "(une phrase qui apporte un conseil concret). Texte court, percutant, lisible sur une slide. "
+    "Réponds UNIQUEMENT avec du JSON valide de cette forme :\n"
+    '{"hook":"...","slides":[{"titre":"...","texte":"...","pills":["..",".."],"pro_tip":"..."}],'
+    '"cta":{"titre":"...","texte":"..."}}\n\n'
 )
 
 
@@ -210,29 +212,51 @@ def rediger_carrousel(telegram_id: int, sujet: str, nb_slides: int = 5, model: s
     if not (u.get("secteur") or "").strip():
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
+    nb_idees = max(1, nb_slides - 2)  # hook + idées + cta
     resp = _client.messages.create(
         model=model or CLAUDE_MODEL,
-        max_tokens=1300,
+        max_tokens=1600,
         system=_system(ROLE_CARROUSEL, contexte, "", cache),
         messages=[{
             "role": "user",
             "content": (f"Sujet du carrousel : \"{sujet}\".\n"
-                        f"Donne EXACTEMENT {nb_slides} slides en JSON (slide 1 = hook, dernière = CTA)."),
+                        f"Donne le hook, EXACTEMENT {nb_idees} idées (avec titre court, texte, pills, pro_tip) "
+                        f"et le cta, en JSON."),
         }],
     )
     txt = _texte(resp)
     if "{" in txt and "}" in txt:
         txt = txt[txt.find("{"):txt.rfind("}") + 1]
     try:
-        slides = json.loads(txt).get("slides", [])
+        data = json.loads(txt)
     except Exception as e:
         logger.error(f"carrousel parse error: {e} | {txt[:200]}")
         return {"error": "parse"}
-    slides = [{"titre": (s.get("titre") or "").strip(), "texte": (s.get("texte") or "").strip()}
-              for s in slides if (s.get("titre") or s.get("texte"))][:nb_slides]
-    if not slides:
+
+    def _clean_slide(s):
+        pills = s.get("pills") or []
+        if isinstance(pills, str):
+            pills = [pills]
+        return {
+            "titre": (s.get("titre") or "").strip(),
+            "texte": (s.get("texte") or "").strip(),
+            "pills": [str(p).strip() for p in pills if str(p).strip()][:4],
+            "pro_tip": (s.get("pro_tip") or s.get("protip") or "").strip(),
+        }
+
+    slides = [_clean_slide(s) for s in (data.get("slides") or []) if (s.get("titre") or s.get("texte"))]
+    slides = slides[:nb_idees]
+    cta = data.get("cta") or {}
+    if isinstance(cta, str):
+        cta = {"titre": cta, "texte": ""}
+    content = {
+        "hook": (data.get("hook") or "").strip(),
+        "slides": slides,
+        "cta": {"titre": (cta.get("titre") or "On en parle ?").strip(), "texte": (cta.get("texte") or "").strip()},
+    }
+    if not content["hook"] and not slides:
         return {"error": "parse"}
-    return {"slides": slides, "usage": _usage(resp)}
+    return {"content": content, "usage": _usage(resp)}
 
 
 # ---------------------------------------------------------------------------

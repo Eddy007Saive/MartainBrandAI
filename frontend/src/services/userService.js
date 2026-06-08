@@ -16,6 +16,17 @@ export const userService = {
     }).then(r => r.data);
   },
 
+  // Logo de marque (utilisé dans les carrousels)
+  uploadLogo: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post('/users/me/logo', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data);
+  },
+
+  deleteLogo: () => api.delete('/users/me/logo').then(r => r.data),
+
   deleteMe: () =>
     api.delete('/users/me').then(r => r.data),
 

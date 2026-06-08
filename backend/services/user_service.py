@@ -59,6 +59,30 @@ def upload_photo(telegram_id: int, file_bytes: bytes) -> str:
     return url
 
 
+def upload_logo(telegram_id: int, file_bytes: bytes) -> str:
+    """Upload le logo de marque sur Cloudinary et met à jour users.logo_url. Retourne l'URL.
+    Remplace l'ancien logo (même public_id + overwrite ; supprime l'orphelin éventuel)."""
+    prev = supabase.table("users").select("logo_url").eq("telegram_id", telegram_id).execute()
+    old_url = prev.data[0].get("logo_url") if prev.data else None
+
+    public_id = f"logos/{telegram_id}/logo"
+    up = cloudinary.uploader.upload(
+        file_bytes, resource_type="image", public_id=public_id, overwrite=True, invalidate=True,
+    )
+    url = up["secure_url"]
+    supabase.table("users").update({"logo_url": url}).eq("telegram_id", telegram_id).execute()
+    _delete_old_photo(old_url, keep_public_id=public_id)
+    return url
+
+
+def delete_logo(telegram_id: int) -> None:
+    """Supprime le logo (Cloudinary + users.logo_url)."""
+    prev = supabase.table("users").select("logo_url").eq("telegram_id", telegram_id).execute()
+    old_url = prev.data[0].get("logo_url") if prev.data else None
+    supabase.table("users").update({"logo_url": None}).eq("telegram_id", telegram_id).execute()
+    _delete_old_photo(old_url, keep_public_id="")
+
+
 # ---- Inspirations visuelles (stockées dans Cloudinary : inspirations/{telegram_id}/) ----
 
 def list_inspirations(telegram_id: int) -> list:

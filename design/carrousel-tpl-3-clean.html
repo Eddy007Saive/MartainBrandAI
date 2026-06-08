@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<title>Template 3 — Clean</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--green:#003D2E;--mint:#3AFFA3;--lbg:#eef3f0;--dbg:#0a1712;--ink:#181a1f}
+  *{box-sizing:border-box;margin:0}
+  body{background:#0c0f12;font-family:'Plus Jakarta Sans',sans-serif;padding:30px}
+  .h{color:#e7ecf5;font-weight:800;font-size:20px;margin-bottom:4px}
+  .sub{color:#6b7686;font-size:13px;margin-bottom:22px}
+  .row{display:flex;gap:16px;flex-wrap:wrap}
+  .slide{width:340px;height:425px;border-radius:18px;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:34px 30px 50px}
+  .lt{background:var(--lbg);color:var(--ink)} .dk{background:var(--dbg);color:#fff}
+  .grad{background:linear-gradient(165deg,var(--green) 0%,#1f7a5e 55%,var(--mint) 120%);color:#fff}
+  .center{justify-content:center}.end{justify-content:flex-end}
+  .grow{flex:1}
+  .kick{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--mint);margin-bottom:12px}
+  .dk .kick{color:var(--mint)}
+  h1{font-size:32px;font-weight:800;line-height:1.12;letter-spacing:-.5px}
+  h2{font-size:24px;font-weight:700;line-height:1.16;letter-spacing:-.3px;margin-bottom:10px}
+  p{font-size:14px;line-height:1.55}
+  .lt p{color:rgba(0,0,0,.55)} .dk p,.grad p{color:rgba(255,255,255,.72)}
+  .num{font-size:38px;font-weight:300;color:var(--mint);line-height:1;margin-bottom:6px}
+  .lockup{display:flex;align-items:center;gap:9px}
+  .av{width:32px;height:32px;border-radius:50%;background:var(--mint);color:var(--green);display:grid;place-items:center;font-weight:800;font-size:14px}
+  .lk-nm{font-size:14px;font-weight:700} .lk-hd{font-size:11px;opacity:.55}
+  .ctabtn{display:inline-flex;align-items:center;gap:7px;background:var(--lbg);color:var(--green);font-weight:700;font-size:14px;padding:11px 22px;border-radius:26px;width:max-content;margin-top:16px}
+  .pbar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:10px;padding:0 30px 20px}
+  .track{flex:1;height:4px;border-radius:9px;overflow:hidden}
+  .lt .track{background:rgba(0,0,0,.08)} .dk .track,.grad .track{background:rgba(255,255,255,.16)}
+  .fill{height:100%;border-radius:9px} .lt .fill{background:var(--mint)} .dk .fill,.grad .fill{background:#fff}
+  .cnt{font-size:12px;font-weight:600} .lt .cnt{color:rgba(0,0,0,.35)} .dk .cnt,.grad .cnt{color:rgba(255,255,255,.5)}
+  .swipe{position:absolute;top:0;right:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;color:rgba(0,0,0,.22)}
+  .dk .swipe{color:rgba(255,255,255,.4)}
+</style></head><body>
+<div class="h">Template 3 — « Clean / Pro »</div>
+<div class="sub">Alternance clair/sombre, barre de progression, flèche swipe, CTA en dégradé de marque (style Instagram natif).</div>
+<div class="row">
+  <!-- hook light -->
+  <div class="slide lt center">
+    <div class="kick">Carrousel</div>
+    <h1>Ta conciergerie vaut combien ?</h1>
+    <div class="grow"></div>
+    <div class="lockup"><span class="av">E</span><div><div class="lk-nm">Eddy</div><div class="lk-hd">Conciergerie 4.0</div></div></div>
+    <div class="swipe"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+    <div class="pbar"><div class="track"><div class="fill" style="width:20%"></div></div><span class="cnt">1/5</span></div>
+  </div>
+  <!-- dark -->
+  <div class="slide dk end">
+    <div class="num">01</div><h2>Sans process, tu ES la boîte.</h2>
+    <p>Tu pars une semaine, tout s'arrête. Ce n'est pas une entreprise, c'est un emploi à 70h.</p>
+    <div class="swipe"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+    <div class="pbar"><div class="track"><div class="fill" style="width:40%"></div></div><span class="cnt">2/5</span></div>
+  </div>
+  <!-- light -->
+  <div class="slide lt end">
+    <div class="num" style="color:var(--green)">02</div><h2>Activité n'est pas valeur.</h2>
+    <p>Un repreneur n'achète pas ton agenda. Il achète ce qui tourne sans toi.</p>
+    <div class="swipe"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+    <div class="pbar"><div class="track"><div class="fill" style="width:60%"></div></div><span class="cnt">3/5</span></div>
+  </div>
+  <!-- dark -->
+  <div class="slide dk end">
+    <div class="num">03</div><h2>Documente, puis délègue.</h2>
+    <p>Écris tes 5 procédures clés. Une boîte qui tourne sans toi vaut jusqu'à 3× plus.</p>
+    <div class="swipe"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
+    <div class="pbar"><div class="track"><div class="fill" style="width:80%"></div></div><span class="cnt">4/5</span></div>
+  </div>
+  <!-- cta gradient -->
+  <div class="slide grad center">
+    <div class="lockup"><span class="av">E</span><div><div class="lk-nm">Eddy</div><div class="lk-hd" style="color:rgba(255,255,255,.7)">Conciergerie 4.0</div></div></div>
+    <div class="grow"></div>
+    <h2>On en parle ?</h2>
+    <p>Audit gratuit de 15 min : je te montre ta valeur cachée.</p>
+    <span class="ctabtn">Lien en bio →</span>
+    <div class="pbar"><div class="track"><div class="fill" style="width:100%"></div></div><span class="cnt">5/5</span></div>
+  </div>
+</div>
+</body></html>

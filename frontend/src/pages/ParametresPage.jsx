@@ -25,6 +25,7 @@ import { removeToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { FREQUENCIES, DAYS, DEFAULT_SCHEDULE, FORMATS_RESEAU } from '../constants/schedules';
+import CarrouselTemplatePicker from '../components/CarrouselTemplatePicker';
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
@@ -280,6 +281,8 @@ export default function ParametresPage() {
   // Upload de la photo de profil
   const photoInputRef = useRef(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const logoInputRef = useRef(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -296,6 +299,37 @@ export default function ParametresPage() {
     } finally {
       setUploadingPhoto(false);
       if (photoInputRef.current) photoInputRef.current.value = '';
+    }
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image (png, svg, webp).'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    setUploadingLogo(true);
+    try {
+      const { logo_url } = await userService.uploadLogo(file);
+      handleChange('logo_url', logo_url);
+      toast.success('Logo mis à jour');
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Échec de l'upload du logo");
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  };
+
+  const handleLogoDelete = async () => {
+    setUploadingLogo(true);
+    try {
+      await userService.deleteLogo();
+      handleChange('logo_url', null);
+      toast.success('Logo retiré');
+    } catch (err) {
+      toast.error("Échec de la suppression du logo");
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -419,6 +453,41 @@ export default function ParametresPage() {
         <div className="flex items-center gap-2 sm:self-start sm:pt-1">
           <Label className="text-sm font-medium text-slate-300 font-inter">Utiliser</Label>
           <Switch checked={user?.use_photo || false} onCheckedChange={(c) => handleChange('use_photo', c)} data-testid="toggle-use-photo" />
+        </div>
+      </div>
+
+      {/* Logo de marque — utilisé dans les carrousels */}
+      <div className="flex flex-col sm:flex-row items-center gap-5 p-5 rounded-2xl bg-slate-950/40 border border-slate-800">
+        <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-white/90 border border-white/10 flex items-center justify-center flex-shrink-0">
+          {user?.logo_url ? (
+            <img src={user.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
+          ) : (
+            <span className="text-xs font-semibold text-slate-400 font-sora">LOGO</span>
+          )}
+          {uploadingLogo && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-white" />
+            </div>
+          )}
+        </div>
+        <div className="flex-1 text-center sm:text-left space-y-2">
+          <p className="text-sm font-semibold text-white font-sora">Logo de marque</p>
+          <p className="text-xs text-slate-500 font-inter leading-relaxed">
+            PNG (fond transparent conseillé), SVG ou WebP — 10 Mo max.<br className="hidden sm:block" />
+            Affiché sur vos carrousels. Sans logo, on utilise l'initiale de votre nom.
+          </p>
+          <div className="flex items-center justify-center sm:justify-start gap-3 pt-1">
+            <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" data-testid="input-logo" />
+            <Button type="button" size="sm" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}
+              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter">
+              <Upload className="w-4 h-4 mr-1.5" />
+              {user?.logo_url ? 'Changer le logo' : 'Téléverser un logo'}
+            </Button>
+            {user?.logo_url && (
+              <button type="button" onClick={handleLogoDelete} disabled={uploadingLogo}
+                className="text-xs text-slate-400 hover:text-red-400 font-inter transition-colors">Retirer</button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -662,6 +731,14 @@ export default function ParametresPage() {
                           {FORMATS_RESEAU.map(f => <SelectItem key={f.value} value={f.value} className="text-slate-200 focus:bg-slate-800 text-xs">{f.label}</SelectItem>)}
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label className="text-xs text-slate-400 font-inter">Style de carrousel <span className="text-slate-600">— dans tes couleurs</span></Label>
+                      <CarrouselTemplatePicker
+                        value={schedule.carrousel_template || 'creme'}
+                        onChange={(v) => handleScheduleChange(schedule.platform, 'carrousel_template', v)}
+                        colors={{ p: user?.couleur_principale, s: user?.couleur_secondaire, a: user?.couleur_accent }}
+                      />
                     </div>
                     {showDays && (
                       <div className="space-y-1.5">
