@@ -15,6 +15,9 @@ const lum = (h) => { const [r, g, b] = toRgb(h); return (0.299 * r + 0.587 * g +
 const inkOn = (bg) => (lum(bg) > 0.6 ? '#12150f' : '#ffffff');           // texte lisible sur un fond plein
 const accOnLight = (a) => (lum(a) < 0.62 ? a : dark(a, 0.5));            // accent visible sur fond clair
 const accOnDark = (a) => (lum(a) > 0.34 ? a : light(a, 0.42));           // accent visible sur fond sombre
+const avHTML = (logo, initial, bg, ink) => (logo
+  ? `<span class="cz-av" style="background:#fff;padding:2px;overflow:hidden"><img src="${logo}" style="width:100%;height:100%;object-fit:contain" alt=""></span>`
+  : `<span class="cz-av" style="background:${bg};color:${ink}">${initial}</span>`);
 
 export const TEMPLATES = [
   { id: 'creme', label: 'Crème' },
@@ -57,11 +60,10 @@ const CONTENT = {
 const dots = (n, i, on, off) => `<div class="cz-dots">${Array.from({ length: n }).map((_, k) => `<i class="${k === i ? 'on' : ''}" style="background:${k === i ? on : off}"></i>`).join('')}<span class="cz-cnt" style="color:${off};margin-left:6px">${i + 1}/${n}</span></div>`;
 const pills = (arr, bg, col, out) => arr.map((x) => `<span class="cz-pill" style="background:${bg};color:${col};${out || ''}">${x}</span>`).join('');
 
-function refFamily(P, A, { bg, bg2, ink, mut, line, accentText, pillOutline }) {
+function refFamily(P, A, { bg, bg2, ink, mut, line, accentText, pillOutline }, ctx) {
   const Aink = inkOn(A);
   const n = 2 + CONTENT.slides.length;
-  const av = `<span class="cz-av" style="background:${A};color:${Aink}">A</span>`;
-  const foot = `<div class="cz-foot" style="color:${ink}">${av}<div>Ta marque</div></div>`;
+  const foot = `<div class="cz-foot" style="color:${ink}">${avHTML(ctx.logo, ctx.initial, A, Aink)}<div>${ctx.nom}</div></div>`;
   const out = [];
   out.push(`<div class="cz-slide" style="background:${bg};color:${ink}"><span class="cz-tag" style="background:${A};color:${Aink}">Carrousel</span><div class="cz-grow" style="display:flex;align-items:center"><div class="cz-h1">${CONTENT.hook}</div></div><div class="cz-bar">${foot}<span class="cz-cnt" style="color:${accentText};font-weight:700">SWIPE →</span></div></div>`);
   CONTENT.slides.forEach((s, i) => out.push(`<div class="cz-slide" style="background:${bg};color:${ink}"><span class="cz-tag" style="background:${A};color:${Aink}">Étape 0${i + 1}</span><div class="cz-grow"></div><div class="cz-h2">${s.t}</div><div class="cz-pills">${pills(s.pills, pillOutline ? 'transparent' : A, pillOutline ? accentText : Aink, pillOutline ? `border:1px solid ${accentText}` : '')}</div><div class="cz-tip" style="border-top:1px solid ${line}"><span class="cz-tiplbl" style="background:${A};color:${Aink}">Pro tip</span><div class="cz-tiptxt" style="color:${mut}">${s.tip}</div></div><div class="cz-bar"><div></div>${dots(n, i + 1, accentText, line)}</div></div>`));
@@ -78,22 +80,26 @@ function renderSlides(tplId, colors) {
   const INKL = '#14201b', MUTL = '#5d655e', MUTD = 'rgba(255,255,255,.66)';
   const accL = accOnLight(A), accD = accOnDark(A);
   const n = 2 + CONTENT.slides.length;
+  const logo = colors?.logo || null;
+  const nom = (colors?.nom || 'Ta marque').trim() || 'Ta marque';
+  const initial = (nom[0] || 'A').toUpperCase();
+  const ctx = { logo, nom, initial };
+  const av = (bg, ink) => avHTML(logo, initial, bg, ink);
 
-  if (tplId === 'creme') return refFamily(P, A, { bg: CREAM, bg2: light(P, 0.88), ink: INKL, mut: MUTL, line: CLINE, accentText: accL, pillOutline: false });
-  if (tplId === 'sombre') return refFamily(P, A, { bg: NEAR, bg2: mix(P, '#0a0c0b', 0.78), ink: '#fff', mut: MUTD, line: 'rgba(255,255,255,.15)', accentText: accD, pillOutline: true });
+  if (tplId === 'creme') return refFamily(P, A, { bg: CREAM, bg2: light(P, 0.88), ink: INKL, mut: MUTL, line: CLINE, accentText: accL, pillOutline: false }, ctx);
+  if (tplId === 'sombre') return refFamily(P, A, { bg: NEAR, bg2: mix(P, '#0a0c0b', 0.78), ink: '#fff', mut: MUTD, line: 'rgba(255,255,255,.15)', accentText: accD, pillOutline: true }, ctx);
 
   if (tplId === 'alterne') {
-    const av = `<span class="cz-av" style="background:${A};color:${Aink}">A</span>`;
     const out = [];
-    out.push(`<div class="cz-slide" style="background:${CREAM};color:${INKL}"><span class="cz-tag" style="background:${A};color:${Aink}">Carrousel</span><div class="cz-grow" style="display:flex;align-items:center"><div class="cz-h1">${CONTENT.hook}</div></div><div class="cz-bar"><div class="cz-foot">${av}<div>Ta marque</div></div><span class="cz-cnt" style="color:${accL};font-weight:700">SWIPE →</span></div></div>`);
+    out.push(`<div class="cz-slide" style="background:${CREAM};color:${INKL}"><span class="cz-tag" style="background:${A};color:${Aink}">Carrousel</span><div class="cz-grow" style="display:flex;align-items:center"><div class="cz-h1">${CONTENT.hook}</div></div><div class="cz-bar"><div class="cz-foot">${av(A, Aink)}<div>${nom}</div></div><span class="cz-cnt" style="color:${accL};font-weight:700">SWIPE →</span></div></div>`);
     CONTENT.slides.forEach((s, i) => { const dk = i % 2 === 0, bg = dk ? NEAR : CREAM, ink = dk ? '#fff' : INKL, mut = dk ? MUTD : MUTL, line = dk ? 'rgba(255,255,255,.15)' : CLINE, acc = dk ? accD : accL; out.push(`<div class="cz-slide" style="background:${bg};color:${ink}"><span class="cz-tag" style="background:${A};color:${Aink}">Étape 0${i + 1}</span><div class="cz-grow"></div><div class="cz-h2">${s.t}</div><div class="cz-pills">${pills(s.pills, dk ? 'transparent' : A, dk ? acc : Aink, dk ? `border:1px solid ${acc}` : '')}</div><div class="cz-tip" style="border-top:1px solid ${line}"><span class="cz-tiplbl" style="background:${A};color:${Aink}">Pro tip</span><div class="cz-tiptxt" style="color:${mut}">${s.tip}</div></div><div class="cz-bar"><div></div>${dots(n, i + 1, acc, line)}</div></div>`); });
-    out.push(`<div class="cz-slide" style="background:${CREAM};color:${INKL}"><span class="cz-tag" style="background:${A};color:${Aink}">À toi de jouer</span><div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center"><div class="cz-h2">${CONTENT.cta.t}</div><span style="align-self:flex-start;background:${A};color:${Aink};font-weight:800;font-size:9px;padding:7px 12px;border-radius:6px;margin-top:10px;text-transform:uppercase">Lien en bio →</span></div><div class="cz-bar"><div class="cz-foot">${av}<div>Ta marque</div></div><div></div></div></div>`);
+    out.push(`<div class="cz-slide" style="background:${CREAM};color:${INKL}"><span class="cz-tag" style="background:${A};color:${Aink}">À toi de jouer</span><div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center"><div class="cz-h2">${CONTENT.cta.t}</div><span style="align-self:flex-start;background:${A};color:${Aink};font-weight:800;font-size:9px;padding:7px 12px;border-radius:6px;margin-top:10px;text-transform:uppercase">Lien en bio →</span></div><div class="cz-bar"><div class="cz-foot">${av(A, Aink)}<div>${nom}</div></div><div></div></div></div>`);
     return out;
   }
 
   if (tplId === 'editorial') {
     const out = [];
-    out.push(`<div class="cz-slide" style="background:${CREAM};color:${INKL}"><div style="height:1px;background:${CLINE}"></div><div class="cz-grow" style="display:flex;align-items:center"><div style="font-family:Fraunces,serif;font-weight:600;font-size:21px;line-height:1.05">${CONTENT.hook}</div></div><div style="height:1px;background:${CLINE}"></div><div class="cz-foot" style="margin-top:8px">Ta marque</div></div>`);
+    out.push(`<div class="cz-slide" style="background:${CREAM};color:${INKL}"><div style="height:1px;background:${CLINE}"></div><div class="cz-grow" style="display:flex;align-items:center"><div style="font-family:Fraunces,serif;font-weight:600;font-size:21px;line-height:1.05">${CONTENT.hook}</div></div><div style="height:1px;background:${CLINE}"></div><div class="cz-foot" style="margin-top:8px">${av(A, Aink)}<div>${nom}</div></div></div>`);
     CONTENT.slides.forEach((s, i) => { const dk = i % 2 === 0, bg = dk ? NEAR : CREAM, ink = dk ? '#fff' : INKL, acc = dk ? accD : accL, mut = dk ? MUTD : MUTL; out.push(`<div class="cz-slide" style="background:${bg};color:${ink}"><div style="display:flex;justify-content:space-between;font-size:8px;letter-spacing:1px;color:${mut};font-weight:600"><span>IDÉE 0${i + 1}</span><span>0${i + 2} / 0${n}</span></div><div class="cz-grow"></div><div style="font-family:Fraunces,serif;font-weight:500;font-size:24px;color:${acc}">0${i + 1}</div><div style="font-family:Fraunces,serif;font-weight:600;font-size:17px;line-height:1.1;margin-top:2px">${s.t}</div><div style="font-size:9px;color:${mut};margin-top:6px;line-height:1.4">${s.x}</div></div>`); });
     out.push(`<div class="cz-slide" style="background:${CREAM};color:${INKL}"><div style="height:1px;background:${CLINE}"></div><div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center"><div style="font-family:Fraunces,serif;font-weight:600;font-size:20px">${CONTENT.cta.t}</div><span style="align-self:flex-start;border:1.5px solid ${accL};color:${accL};font-size:9px;font-weight:600;padding:7px 13px;border-radius:30px;margin-top:10px">Lien en bio →</span></div><div style="height:1px;background:${CLINE}"></div></div>`);
     return out;
@@ -102,7 +108,7 @@ function renderSlides(tplId, colors) {
   if (tplId === 'pop') {
     // fonds pleins : accent vif ↔ quasi-noir (contraste garanti) ; CTA = secondaire
     const out = [];
-    out.push(`<div class="cz-slide" style="background:${A};color:${Aink}"><div style="display:flex;justify-content:space-between"><span class="cz-tag" style="background:${Aink};color:${A}">Carrousel</span><span style="font-family:Sora,sans-serif;font-weight:800;font-size:8px">SWIPE →</span></div><div class="cz-grow" style="display:flex;align-items:center"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:23px;line-height:1;letter-spacing:-.5px">${CONTENT.hook}</div></div><div style="font-family:Sora,sans-serif;font-weight:700;font-size:9px">A · Ta marque</div></div>`);
+    out.push(`<div class="cz-slide" style="background:${A};color:${Aink}"><div style="display:flex;justify-content:space-between"><span class="cz-tag" style="background:${Aink};color:${A}">Carrousel</span><span style="font-family:Sora,sans-serif;font-weight:800;font-size:8px">SWIPE →</span></div><div class="cz-grow" style="display:flex;align-items:center"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:23px;line-height:1;letter-spacing:-.5px">${CONTENT.hook}</div></div><div style="display:flex;align-items:center;gap:6px;font-family:Sora,sans-serif;font-weight:700;font-size:9px">${av(Aink, A)}<span>${nom}</span></div></div>`);
     CONTENT.slides.forEach((s, i) => { const acc = i % 2 === 0, bg = acc ? A : NEAR, ink = acc ? Aink : '#fff'; out.push(`<div class="cz-slide" style="background:${bg};color:${ink}"><span class="cz-tag" style="background:${acc ? NEAR : A};color:${acc ? '#fff' : Aink}">Étape 0${i + 1}</span><div style="font-family:Sora,sans-serif;font-weight:800;font-size:48px;opacity:.16;line-height:.7;margin-top:auto;letter-spacing:-2px;color:${ink}">0${i + 1}</div><div style="font-family:Sora,sans-serif;font-weight:800;font-size:18px;line-height:1;letter-spacing:-.4px;margin-top:2px">${s.t}</div><div class="cz-pills">${pills(s.pills, acc ? 'rgba(0,0,0,.12)' : 'rgba(255,255,255,.16)', ink, '')}</div></div>`); });
     out.push(`<div class="cz-slide" style="background:${S};color:${Sink}"><span class="cz-tag" style="background:${Sink};color:${S}">À toi</span><div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:18px">${CONTENT.cta.t}</div><span style="align-self:flex-start;background:${Sink};color:${S};font-family:Sora,sans-serif;font-weight:800;font-size:10px;padding:8px 14px;border-radius:9px;margin-top:10px">Lien en bio →</span></div></div>`);
     return out;
@@ -112,9 +118,9 @@ function renderSlides(tplId, colors) {
   const grad = `linear-gradient(165deg,${NEAR},${mix(NEAR, A, 0.5)})`;
   const pbar = (i, lt) => `<div style="position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:6px;padding:0 16px 12px"><div style="flex:1;height:3px;border-radius:9px;overflow:hidden;background:${lt ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.16)'}"><div style="width:${(i + 1) / n * 100}%;height:100%;background:${lt ? accL : '#fff'}"></div></div><span style="font-size:7px;font-weight:700;color:${lt ? 'rgba(0,0,0,.35)' : 'rgba(255,255,255,.5)'}">${i + 1}/${n}</span></div>`;
   const out = [];
-  out.push(`<div class="cz-slide" style="background:${CREAM};color:#181a1f;justify-content:center"><div style="font-size:8px;font-weight:700;letter-spacing:1.5px;color:${accL};text-transform:uppercase;margin-bottom:8px">Carrousel</div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;line-height:1.1">${CONTENT.hook}</div><div class="cz-grow"></div><div class="cz-foot"><span class="cz-av" style="background:${A};color:${Aink};font-family:'Plus Jakarta Sans',sans-serif">A</span><div>Ta marque</div></div>${pbar(0, true)}</div>`);
+  out.push(`<div class="cz-slide" style="background:${CREAM};color:#181a1f;justify-content:center"><div style="font-size:8px;font-weight:700;letter-spacing:1.5px;color:${accL};text-transform:uppercase;margin-bottom:8px">Carrousel</div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;line-height:1.1">${CONTENT.hook}</div><div class="cz-grow"></div><div class="cz-foot">${av(A, Aink)}<div>${nom}</div></div>${pbar(0, true)}</div>`);
   CONTENT.slides.forEach((s, i) => { const dk = i % 2 === 0, bg = dk ? NEAR : CREAM, ink = dk ? '#fff' : '#181a1f', acc = dk ? accD : accL; out.push(`<div class="cz-slide" style="background:${bg};color:${ink};justify-content:flex-end"><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:300;font-size:22px;color:${acc}">0${i + 1}</div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:17px;line-height:1.1;margin-top:2px">${s.t}</div><div class="cz-pills">${pills(s.pills, dk ? 'rgba(255,255,255,.12)' : A, dk ? '#fff' : Aink, '')}</div>${pbar(i + 1, !dk)}</div>`); });
-  out.push(`<div class="cz-slide" style="background:${grad};color:#fff;justify-content:center"><div class="cz-foot"><span class="cz-av" style="background:${A};color:${Aink};font-family:'Plus Jakarta Sans',sans-serif">A</span><div>Ta marque</div></div><div class="cz-grow"></div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px">${CONTENT.cta.t}</div><span style="align-self:flex-start;background:#fff;color:${inkOn('#ffffff')};font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:10px;padding:8px 14px;border-radius:26px;margin-top:10px">Lien en bio →</span>${pbar(n - 1, false)}</div>`);
+  out.push(`<div class="cz-slide" style="background:${grad};color:#fff;justify-content:center"><div class="cz-foot">${av(A, Aink)}<div>${nom}</div></div><div class="cz-grow"></div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px">${CONTENT.cta.t}</div><span style="align-self:flex-start;background:#fff;color:${inkOn('#ffffff')};font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:10px;padding:8px 14px;border-radius:26px;margin-top:10px">Lien en bio →</span>${pbar(n - 1, false)}</div>`);
   return out;
 }
 

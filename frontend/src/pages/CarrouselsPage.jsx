@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronRight, Loader2, Check } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ChevronRight, Loader2, Check, X, Maximize2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUser } from '../context/UserContext';
 import { scheduleService } from '../services/scheduleService';
@@ -7,7 +8,6 @@ import { DEFAULT_SCHEDULE } from '../constants/schedules';
 import { SocialIcon } from '../components/SocialIcon';
 import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides } from '../lib/carrouselPreview';
 
-// Réseaux qui supportent le carrousel (pas YouTube)
 const NETS = [
   { id: 'linkedin', label: 'LinkedIn', bg: '#0A66C2', note: 'Publié en PDF (document)' },
   { id: 'instagram', label: 'Instagram', bg: 'linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)', note: 'Carrousel d’images (jusqu’à 10)' },
@@ -17,14 +17,18 @@ const labelOf = (id) => TEMPLATES.find((t) => t.id === id)?.label || 'Crème';
 
 export default function CarrouselsPage() {
   const { user } = useUser();
-  const colors = useMemo(() => ({ p: user?.couleur_principale, s: user?.couleur_secondaire, a: user?.couleur_accent }), [user]);
+  const colors = useMemo(() => ({
+    p: user?.couleur_principale, s: user?.couleur_secondaire, a: user?.couleur_accent,
+    logo: user?.logo_url, nom: user?.nom || user?.username,
+  }), [user]);
 
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState('linkedin');
-  const [sel, setSel] = useState({});       // sélection en cours (non enregistrée)
-  const [saved, setSaved] = useState({});    // dernière sélection enregistrée
+  const [sel, setSel] = useState({});
+  const [saved, setSaved] = useState({});
   const [saving, setSaving] = useState(null);
+  const [lightbox, setLightbox] = useState(null); // { net, tpl }
 
   useEffect(() => {
     (async () => {
@@ -32,19 +36,21 @@ export default function CarrouselsPage() {
         const data = await scheduleService.getAll();
         setSchedules(data || []);
         const map = {};
-        NETS.forEach((n) => {
-          const row = (data || []).find((r) => r.platform === n.id);
-          map[n.id] = row?.carrousel_template || 'creme';
-        });
+        NETS.forEach((n) => { map[n.id] = (data || []).find((r) => r.platform === n.id)?.carrousel_template || 'creme'; });
         setSel(map); setSaved({ ...map });
       } catch (e) {
         const map = {}; NETS.forEach((n) => { map[n.id] = 'creme'; });
         setSel(map); setSaved({ ...map });
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     })();
   }, []);
+
+  useEffect(() => {
+    if (!lightbox) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setLightbox(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightbox]);
 
   const save = async (net) => {
     setSaving(net);
@@ -59,17 +65,15 @@ export default function CarrouselsPage() {
       toast.success(`Style « ${labelOf(sel[net])} » enregistré pour ${NETS.find((n) => n.id === net)?.label}`);
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Échec de l'enregistrement");
-    } finally {
-      setSaving(null);
-    }
+    } finally { setSaving(null); }
   };
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-4xl">
       <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
       <h1 className="text-2xl font-bold font-sora text-white">Styles de carrousel</h1>
       <p className="text-sm text-slate-400 font-inter mt-1 mb-6">
-        Un style par réseau, dans <span className="text-slate-200">tes couleurs</span>. Déplie un réseau, choisis un style, fais défiler les 5 slides, puis <span className="text-slate-200">enregistre</span>.
+        Un style par réseau, dans <span className="text-slate-200">tes couleurs</span>. Clique un style pour l'agrandir et faire défiler les slides, puis <span className="text-slate-200">enregistre</span>.
       </p>
 
       {loading ? (
@@ -81,7 +85,6 @@ export default function CarrouselsPage() {
             const dirty = sel[nt.id] !== saved[nt.id];
             return (
               <div key={nt.id} className={`rounded-2xl border bg-[#0b1322] overflow-hidden transition-all ${isOpen ? 'border-[#5B6CFF]/40' : 'border-white/8'}`}>
-                {/* header */}
                 <button onClick={() => setOpen(isOpen ? null : nt.id)} data-testid={`carr-net-${nt.id}`}
                   className="w-full flex items-center gap-3.5 px-5 py-4 text-left">
                   <span className="w-9 h-9 rounded-xl grid place-items-center text-white flex-shrink-0" style={{ background: nt.bg }}>
@@ -94,46 +97,34 @@ export default function CarrouselsPage() {
                   <ChevronRight className={`w-5 h-5 text-slate-500 transition-transform flex-shrink-0 ${isOpen ? 'rotate-90 text-white' : ''}`} />
                 </button>
 
-                {/* body */}
                 {isOpen && (
                   <div className="px-5 pb-5 animate-fade-in">
-                    <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-3">Choisis un style</div>
-                    <div className="flex gap-3 overflow-x-auto pb-1.5">
-                      {TEMPLATES.map((t) => {
-                        const on = sel[nt.id] === t.id;
-                        const hero = renderSlides(t.id, colors)[0];
-                        return (
-                          <button key={t.id} type="button" onClick={() => setSel((p) => ({ ...p, [nt.id]: t.id }))}
-                            data-testid={`carr-tpl-${nt.id}-${t.id}`}
-                            className={`flex-shrink-0 w-[122px] rounded-xl p-1.5 border transition-all ${on ? 'border-[#5B6CFF] bg-[#5B6CFF]/10' : 'border-white/8 bg-white/[0.015] hover:border-white/25'}`}>
-                            <div className="w-full h-[134px] overflow-hidden rounded-lg">
-                              <div style={{ transform: 'scale(0.55)', transformOrigin: 'top left', width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: hero }} />
-                            </div>
-                            <div className={`text-center text-[11.5px] mt-1.5 ${on ? 'text-white font-semibold' : 'text-slate-400'}`}>{t.label}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <div className="flex items-center justify-between mt-5 mb-2.5">
-                      <div>
-                        <div className="text-[13px] text-slate-200 font-medium">Aperçu — 5 slides</div>
-                        <div className="text-[11.5px] text-slate-500">Fais défiler horizontalement →</div>
-                      </div>
-                      <button onClick={() => save(nt.id)} disabled={!dirty || saving === nt.id}
-                        data-testid={`carr-save-${nt.id}`}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Choisis un style — clique pour agrandir</div>
+                      <button onClick={() => save(nt.id)} disabled={!dirty || saving === nt.id} data-testid={`carr-save-${nt.id}`}
                         className={`text-[13px] font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${dirty ? 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white' : 'bg-white/5 text-slate-500 cursor-default'}`}>
                         {saving === nt.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (!dirty && <Check className="w-4 h-4" />)}
                         {!dirty ? 'Enregistré' : 'Enregistrer'}
                       </button>
                     </div>
-                    <div className="flex gap-3.5 overflow-x-auto pt-1 pb-3">
-                      {renderSlides(sel[nt.id], colors).map((s, i) => (
-                        <div key={i} className="flex-shrink-0">
-                          <div dangerouslySetInnerHTML={{ __html: s }} />
-                          <div className="text-[11px] text-slate-500 text-center mt-2 font-medium">{SLIDE_LABELS[i] || ''}</div>
-                        </div>
-                      ))}
+                    <div className="flex gap-3 overflow-x-auto pb-1.5">
+                      {TEMPLATES.map((t) => {
+                        const on = sel[nt.id] === t.id;
+                        const hero = renderSlides(t.id, colors)[0];
+                        return (
+                          <button key={t.id} type="button" onClick={() => { setSel((p) => ({ ...p, [nt.id]: t.id })); setLightbox({ net: nt.id, tpl: t.id }); }}
+                            data-testid={`carr-tpl-${nt.id}-${t.id}`}
+                            className={`group relative flex-shrink-0 w-[122px] rounded-xl p-1.5 border transition-all ${on ? 'border-[#5B6CFF] bg-[#5B6CFF]/10' : 'border-white/8 bg-white/[0.015] hover:border-white/25'}`}>
+                            <div className="w-full h-[134px] overflow-hidden rounded-lg relative">
+                              <div style={{ transform: 'scale(0.55)', transformOrigin: 'top left', width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: hero }} />
+                              <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <Maximize2 className="w-5 h-5 text-white" />
+                              </span>
+                            </div>
+                            <div className={`text-center text-[11.5px] mt-1.5 ${on ? 'text-white font-semibold' : 'text-slate-400'}`}>{t.label}</div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -142,6 +133,33 @@ export default function CarrouselsPage() {
           })}
         </div>
       )}
+
+      {/* Lightbox : aperçu agrandi + défilement des slides */}
+      {lightbox && createPortal((
+        <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex flex-col animate-fade-in" onClick={() => setLightbox(null)}>
+          <div className="flex items-center justify-between px-6 py-4" onClick={(e) => e.stopPropagation()}>
+            <div>
+              <div className="text-white font-sora font-bold text-lg">{labelOf(lightbox.tpl)}</div>
+              <div className="text-slate-400 text-xs">{NETS.find((n) => n.id === lightbox.net)?.label} · glisse pour voir les 5 slides</div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={() => { save(lightbox.net); setLightbox(null); }}
+                className="text-[13px] font-semibold px-4 py-2 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white">Enregistrer ce style</button>
+              <button onClick={() => setLightbox(null)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><X className="w-5 h-5" /></button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-x-auto overflow-y-hidden flex items-center gap-6 px-8 pb-8" onClick={(e) => e.stopPropagation()}>
+            {renderSlides(lightbox.tpl, colors).map((s, i) => (
+              <div key={i} className="flex-shrink-0">
+                <div style={{ width: 340, height: 425, overflow: 'hidden', borderRadius: 16, boxShadow: '0 18px 50px rgba(0,0,0,.5)' }}>
+                  <div style={{ transform: 'scale(1.7)', transformOrigin: 'top left' }} dangerouslySetInnerHTML={{ __html: s }} />
+                </div>
+                <div className="text-center text-xs text-white/60 mt-3 font-medium">{SLIDE_LABELS[i] || ''}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ), document.body)}
     </div>
   );
 }
