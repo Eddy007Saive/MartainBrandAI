@@ -5,6 +5,7 @@ Agent Image :
      (+ photo du client en référence si demandé).
   3. Upload Cloudinary → URL.
 """
+import re
 import base64
 import httpx
 import cloudinary
@@ -80,31 +81,66 @@ def inspiration_urls(telegram_id: int, limit: int = 20) -> list:
         return []
 
 
+_DRIVE_FILE_RE = re.compile(r"drive\.google\.com/file/d/([\w-]+)")
+_DRIVE_ID_RE = re.compile(r"[?&]id=([\w-]+)")
+
+
+def _drive_direct(url: str) -> str:
+    """Convertit un lien Google Drive (page /view) en lien de téléchargement direct."""
+    if "drive.google.com" in url:
+        m = _DRIVE_FILE_RE.search(url) or _DRIVE_ID_RE.search(url)
+        if m:
+            return f"https://drive.google.com/uc?export=download&id={m.group(1)}"
+    return url
+
+
+async def _prep_refs(urls: list) -> tuple:
+    """Télécharge + valide les images de référence (convertit Drive, ignore les non-images).
+    Retourne (data_urls_valides, urls_ignorees)."""
+    ok, bad = [], []
+    if not urls:
+        return ok, bad
+    async with httpx.AsyncClient(timeout=25, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"}) as c:
+        for u in urls:
+            try:
+                r = await c.get(_drive_direct(u))
+                ct = r.headers.get("content-type", "").split(";")[0].strip().lower()
+                if r.status_code == 200 and ct.startswith("image/") and len(r.content) > 100:
+                    ok.append(f"data:{ct};base64,{base64.b64encode(r.content).decode()}")
+                else:
+                    bad.append(u)
+                    logger.warning(f"ref image ignorée ({ct or r.status_code}): {u[:90]}")
+            except Exception as e:
+                bad.append(u)
+                logger.warning(f"ref image échec téléchargement: {u[:90]} — {e}")
+    return ok, bad
+
+
 async def generer_image(telegram_id: int, prompt: str, avec_photo: bool = False, model: str = None) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
-    Si l'utilisateur a des images d'inspiration, elles sont passées en référence de STYLE.
-    Si avec_photo, sa photo de profil est intégrée (même visage).
+    Les images de référence (photo + inspirations) sont validées : liens Drive convertis,
+    images invalides ignorées (la génération continue sans elles plutôt que d'échouer).
     """
     if not OPENROUTER_API_KEY:
         return {"error": "no_openrouter_key"}
     u = _charger_marque(telegram_id)
 
-    texte = prompt
-    images = []  # images de référence à joindre
+    refs_in = []
     if avec_photo and u.get("photo_url"):
-        texte += "\n\nIntègre la personne de la photo de référence de façon naturelle et cohérente (même visage)."
-        images.append(u["photo_url"])
+        refs_in.append(u["photo_url"])
+    if u.get("use_inspirations", True):
+        refs_in.extend(inspiration_urls(telegram_id)[:3])
+    refs, _bad = await _prep_refs(refs_in)
 
-    inspis = inspiration_urls(telegram_id)[:3] if u.get("use_inspirations", True) else []  # max 3 références de style
-    if inspis:
+    texte = prompt
+    if refs:
+        if avec_photo and u.get("photo_url"):
+            texte += "\n\nIntègre la personne de la photo de référence de façon naturelle et cohérente (même visage)."
         texte += ("\n\nInspire-toi du STYLE VISUEL (composition, palette de couleurs, ambiance, "
-                  "éclairage, traitement) de ces images de référence, sans en copier le contenu.")
-        images.extend(inspis)
-
-    if images:
+                  "éclairage, traitement) des images de référence, sans en copier le contenu.")
         content = [{"type": "text", "text": texte}]
-        content += [{"type": "image_url", "image_url": {"url": url}} for url in images]
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in refs]
     else:
         content = prompt
 
