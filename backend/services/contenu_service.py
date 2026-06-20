@@ -1,7 +1,44 @@
 import httpx
+import cloudinary
+import cloudinary.uploader
 from datetime import datetime, timezone
-from config import supabase, logger
+from config import supabase, logger, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 from services import planning_service
+from services.user_service import _public_id_from_cloudinary_url
+
+cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
+
+
+def upload_visuel(telegram_id: int, contenu_id: str, file_bytes: bytes) -> dict | None:
+    """Importe une image fournie par l'utilisateur comme visuel du contenu.
+    Upload Cloudinary, met à jour lien_visuel, confirme la planification, remplace l'ancien asset."""
+    cur = get_contenu(contenu_id, telegram_id)
+    if not cur:
+        return None
+    old = cur.get("lien_visuel")
+    up = cloudinary.uploader.upload(file_bytes, resource_type="image", folder=f"contenus/{telegram_id}", invalidate=True)
+    url = up["secure_url"]
+
+    upd = {"lien_visuel": url}
+    if cur.get("statut") in ("A valider", "Valider"):
+        upd["statut"] = "Planifie"
+    if not cur.get("date_publication"):
+        creneau = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"))
+        if creneau:
+            upd["date_publication"] = creneau
+    supabase.table("contenu").update(upd).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+
+    if old and old != url:
+        pid = _public_id_from_cloudinary_url(old)
+        if pid:
+            try:
+                cloudinary.uploader.destroy(pid, invalidate=True)
+            except Exception as e:
+                logger.warning(f"destroy old visuel: {e}")
+
+    return {"lien_visuel": url,
+            "statut": upd.get("statut", cur.get("statut")),
+            "date_publication": upd.get("date_publication") or cur.get("date_publication")}
 
 
 def get_contenus(telegram_id: int, statut: str = None) -> list:

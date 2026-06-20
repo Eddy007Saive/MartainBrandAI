@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -192,6 +192,8 @@ export default function ContenusPage() {
   const [imgModele, setImgModele] = useState('nano2');
   const [imgLoadingPrompt, setImgLoadingPrompt] = useState(false);
   const [imgGenerating, setImgGenerating] = useState(false);
+  const [imgImporting, setImgImporting] = useState(false);
+  const imgImportRef = useRef(null);
 
   const chargerPrompt = async (contenu) => {
     setImgLoadingPrompt(true);
@@ -238,6 +240,25 @@ export default function ContenusPage() {
       else toast.error(e.response?.data?.detail || "Échec de la génération d'image");
     } finally {
       setImgGenerating(false);
+    }
+  };
+
+  const importerImage = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !imageContenu) return;
+    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image (jpg, png, webp).'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    setImgImporting(true);
+    try {
+      const data = await contenuService.uploadImage(imageContenu.id, file);
+      setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, statut: data.statut || c.statut, date_publication: data.date_publication || c.date_publication } : c)));
+      setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel } : prev));
+      toast.success('Image importée ✓');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Échec de l'import de l'image");
+    } finally {
+      setImgImporting(false);
+      if (imgImportRef.current) imgImportRef.current.value = '';
     }
   };
 
@@ -769,13 +790,23 @@ export default function ContenusPage() {
                 </div>
               </div>
             )}
-            <DialogFooter className="gap-2">
-              <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">Fermer</Button>
-              <Button onClick={genererImage} disabled={imgGenerating || imgLoadingPrompt || !imgPrompt.trim()}
-                className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter">
-                {imgGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
-                {imageContenu?.lien_visuel ? 'Régénérer' : 'Générer'} · {IMAGE_MODELES.find((m) => m.id === imgModele)?.cout} cr.
-              </Button>
+            <DialogFooter className="gap-2 sm:justify-between">
+              <div>
+                <input ref={imgImportRef} type="file" accept="image/*" onChange={importerImage} className="hidden" data-testid="input-import-image" />
+                <Button variant="outline" onClick={() => imgImportRef.current?.click()} disabled={imgImporting}
+                  className="border-white/15 bg-white/[0.03] text-slate-200 hover:bg-white/[0.08] font-inter">
+                  {imgImporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ImageIcon className="w-4 h-4 mr-2" />}
+                  Importer une image
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">Fermer</Button>
+                <Button onClick={genererImage} disabled={imgGenerating || imgLoadingPrompt || !imgPrompt.trim()}
+                  className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter">
+                  {imgGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
+                  {imageContenu?.lien_visuel ? 'Régénérer' : 'Générer'} · {IMAGE_MODELES.find((m) => m.id === imgModele)?.cout} cr.
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>

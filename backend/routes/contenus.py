@@ -1,10 +1,31 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from dependencies import verify_token
 from models.contenu import ContenuUpdate
 from services import contenu_service
 from config import logger
 
 router = APIRouter(prefix="/contenus", tags=["contenus"])
+
+
+@router.post("/{contenu_id}/image")
+async def upload_contenu_image(contenu_id: str, file: UploadFile = File(...), payload: dict = Depends(verify_token)):
+    """Importe une image fournie par l'utilisateur comme visuel du contenu."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image (jpg, png, webp…)")
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
+    try:
+        res = contenu_service.upload_visuel(telegram_id, contenu_id, data)
+    except Exception as e:
+        logger.error(f"Upload contenu image error: {e}")
+        raise HTTPException(status_code=500, detail="Échec de l'import de l'image")
+    if not res:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    return res
 
 
 @router.get("")

@@ -14,4 +14,13 @@ export const contenuService = {
 
   remove: (id) =>
     api.delete(`/contenus/${id}`).then(r => r.data),
+
+  // Importe une image (fichier) comme visuel du contenu
+  uploadImage: (id, file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post(`/contenus/${id}/image`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data);
+  },
 };
