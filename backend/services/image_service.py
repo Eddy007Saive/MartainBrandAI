@@ -126,23 +126,36 @@ async def generer_image(telegram_id: int, prompt: str, avec_photo: bool = False,
         return {"error": "no_openrouter_key"}
     u = _charger_marque(telegram_id)
 
-    refs_in = []
+    # Photo de l'utilisateur demandée -> PHOTO RÉALISTE (pas d'illustration)
+    photo_refs = []
     if avec_photo and u.get("photo_url"):
-        refs_in.append(u["photo_url"])
-    if u.get("use_inspirations", True):
-        refs_in.extend(inspiration_urls(telegram_id)[:3])
-    refs, _bad = await _prep_refs(refs_in)
+        photo_refs, _ = await _prep_refs([u["photo_url"]])
 
-    texte = prompt
-    if refs:
-        if avec_photo and u.get("photo_url"):
-            texte += "\n\nIntègre la personne de la photo de référence de façon naturelle et cohérente (même visage)."
-        texte += ("\n\nInspire-toi du STYLE VISUEL (composition, palette de couleurs, ambiance, "
-                  "éclairage, traitement) des images de référence, sans en copier le contenu.")
-        content = [{"type": "text", "text": texte}]
-        content += [{"type": "image_url", "image_url": {"url": url}} for url in refs]
+    if photo_refs:
+        tenue = (u.get("style_vestimentaire") or "").strip()
+        tenue_txt = f" La personne porte la tenue suivante : {tenue}." if tenue else ""
+        texte = (
+            "PHOTOGRAPHIE RÉALISTE et professionnelle — PAS une illustration, PAS un dessin, "
+            "PAS de style cartoon / vectoriel / 3D. Mets en scène la personne EXACTE de la photo "
+            "de référence : même visage, mêmes traits, identité fidèlement préservée, intégrée "
+            "naturellement dans la scène, rendu et éclairage photographiques réalistes." + tenue_txt + " "
+            "Ignore toute mention de style « illustration » ou « dessin » dans la description ci-dessous : "
+            "rends une vraie photo.\n\n" + prompt
+        )
+        content = [{"type": "text", "text": texte},
+                   {"type": "image_url", "image_url": {"url": photo_refs[0]}}]
     else:
-        content = prompt
+        # Pas de photo -> style libre, guidé par les inspirations (illustrations OK)
+        inspi_refs = []
+        if u.get("use_inspirations", True):
+            inspi_refs, _ = await _prep_refs(inspiration_urls(telegram_id)[:3])
+        if inspi_refs:
+            texte = prompt + ("\n\nInspire-toi du STYLE VISUEL (composition, palette de couleurs, "
+                              "ambiance, éclairage, traitement) des images de référence, sans en copier le contenu.")
+            content = [{"type": "text", "text": texte}]
+            content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
+        else:
+            content = prompt
 
     body = {
         "model": model or OPENROUTER_IMAGE_MODEL,
