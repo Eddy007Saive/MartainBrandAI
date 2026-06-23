@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
-  RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid,
+  RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { agentService } from '../services/agentService';
+import { takePhoto, cameraAvailable } from '../lib/photo';
 import { useUser } from '../context/UserContext';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
@@ -233,6 +234,15 @@ export default function StudioIA() {
   };
 
   // --- Génération d'un post à partir d'une photo (vision) ---
+  const prendrePhoto = async () => {
+    try {
+      const f = await takePhoto();
+      if (f) genererPhoto(f);
+    } catch (e) {
+      // annulation utilisateur ou permission refusée -> silencieux
+    }
+  };
+
   const genererPhoto = async (file) => {
     if (!file) return;
     if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
@@ -453,11 +463,18 @@ export default function StudioIA() {
                 </div>
                 <input ref={photoRef} type="file" accept="image/*" className="hidden" data-testid="studio-photo-input"
                   onChange={(e) => genererPhoto(e.target.files?.[0])} />
-                <div className="flex items-center justify-end">
+                <div className="flex items-center justify-end gap-2 flex-wrap">
+                  {cameraAvailable() && (
+                    <Button onClick={prendrePhoto} disabled={!marqueOk || photoLoading}
+                      className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10 disabled:opacity-40">
+                      <Camera className="w-4 h-4" />
+                      <span className="ml-2">Prendre une photo</span>
+                    </Button>
+                  )}
                   <Button onClick={() => photoRef.current?.click()} disabled={!marqueOk || photoLoading}
                     className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
                     {photoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                    <span className="ml-2">Choisir une photo · {QUALITES.find((q) => q.id === photoQualite)?.cout.post} cr.</span>
+                    <span className="ml-2">{cameraAvailable() ? 'Importer' : 'Choisir une photo'} · {QUALITES.find((q) => q.id === photoQualite)?.cout.post} cr.</span>
                   </Button>
                 </div>
               </div>
