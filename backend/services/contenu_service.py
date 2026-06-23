@@ -16,7 +16,9 @@ def upload_visuel(telegram_id: int, contenu_id: str, file_bytes: bytes) -> dict 
     if not cur:
         return None
     old = cur.get("lien_visuel")
-    up = cloudinary.uploader.upload(file_bytes, resource_type="image", folder=f"contenus/{telegram_id}", invalidate=True)
+    # public_id déterministe par contenu -> un ré-import ÉCRASE le même asset (pas d'accumulation)
+    public_id = f"contenus/{telegram_id}/{contenu_id}"
+    up = cloudinary.uploader.upload(file_bytes, resource_type="image", public_id=public_id, overwrite=True, invalidate=True)
     url = up["secure_url"]
 
     upd = {"lien_visuel": url}
@@ -28,9 +30,10 @@ def upload_visuel(telegram_id: int, contenu_id: str, file_bytes: bytes) -> dict 
             upd["date_publication"] = creneau
     supabase.table("contenu").update(upd).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
 
-    if old and old != url:
+    # Supprime l'ancien asset SEULEMENT s'il a un public_id différent (sinon on vient de l'écraser)
+    if old:
         pid = _public_id_from_cloudinary_url(old)
-        if pid:
+        if pid and pid != public_id:
             try:
                 cloudinary.uploader.destroy(pid, invalidate=True)
             except Exception as e:

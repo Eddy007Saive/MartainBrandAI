@@ -116,7 +116,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: int, prompt: str, avec_photo: bool = False, model: str = None) -> dict:
+async def generer_image(telegram_id: int, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     Les images de référence (photo + inspirations) sont validées : liens Drive convertis,
@@ -182,5 +182,11 @@ async def generer_image(telegram_id: int, prompt: str, avec_photo: bool = False,
     b64 = url_data.split(",", 1)[1] if "," in url_data else url_data
     img_bytes = base64.b64decode(b64)
 
-    up = cloudinary.uploader.upload(img_bytes, resource_type="image", folder=f"contenus/{telegram_id}", overwrite=True)
+    # public_id déterministe par contenu -> une régénération ÉCRASE le même asset (pas d'accumulation)
+    if contenu_id:
+        up = cloudinary.uploader.upload(img_bytes, resource_type="image",
+                                        public_id=f"contenus/{telegram_id}/{contenu_id}",
+                                        overwrite=True, invalidate=True)
+    else:
+        up = cloudinary.uploader.upload(img_bytes, resource_type="image", folder=f"contenus/{telegram_id}", overwrite=True)
     return {"lien_visuel": up["secure_url"]}
