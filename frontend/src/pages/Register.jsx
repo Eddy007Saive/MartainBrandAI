@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -9,9 +9,7 @@ import { authService } from '../services/authService';
 
 export default function Register() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
-    telegram_id: '',
     nom: '',
     email: '',
     username: '',
@@ -22,16 +20,6 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [noTelegramId, setNoTelegramId] = useState(false);
-
-  useEffect(() => {
-    const telegramId = searchParams.get('id');
-    if (telegramId) {
-      setFormData(prev => ({ ...prev, telegram_id: telegramId }));
-    } else {
-      setNoTelegramId(true);
-    }
-  }, [searchParams]);
 
   const validate = () => {
     const newErrors = {};
@@ -81,19 +69,14 @@ export default function Register() {
         email: formData.email,
         password: formData.password,
         username: formData.username || undefined,
-        telegram_id: formData.telegram_id ? parseInt(formData.telegram_id) : undefined,
       };
-      
+
       await authService.register(payload);
       toast.success('Inscription réussie ! En attente de validation.');
       navigate('/pending');
     } catch (error) {
       const detail = error.response?.data?.detail;
-      if (detail === 'telegram_id_required') {
-        toast.error('Inscription impossible sans lien Telegram');
-      } else if (detail === 'telegram_id_exists') {
-        toast.error('Ce compte Telegram est déjà inscrit');
-      } else if (detail === 'email_exists') {
+      if (detail === 'email_exists') {
         toast.error('Cet email est déjà utilisé');
       } else {
         toast.error('Erreur lors de l\'inscription');
@@ -111,34 +94,6 @@ export default function Register() {
       {/* Noise overlay */}
       <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
       
-      {noTelegramId ? (
-        <div className="w-full max-w-md bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10 text-center animate-fade-in">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-amber-500/20 flex items-center justify-center">
-            <AlertTriangle className="w-10 h-10 text-amber-400" />
-          </div>
-          
-          <h1 className="text-2xl font-bold font-sora text-white mb-3">
-            Lien d'inscription invalide
-          </h1>
-          
-          <p className="text-slate-400 font-inter mb-6 leading-relaxed">
-            Pour vous inscrire, vous devez utiliser le lien fourni par notre bot Telegram.
-          </p>
-          
-          <p className="text-slate-500 font-inter text-sm mb-8">
-            Le lien doit contenir votre identifiant Telegram unique (paramètre <code className="text-[#5B6CFF]">?id=</code>)
-          </p>
-          
-          <Link to="/" data-testid="back-to-login">
-            <Button
-              variant="outline"
-              className="bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 font-inter"
-            >
-              Retour à la connexion
-            </Button>
-          </Link>
-        </div>
-      ) : (
       <div className="w-full max-w-md bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10 animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold font-sora bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
@@ -150,17 +105,6 @@ export default function Register() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {formData.telegram_id && (
-            <div className="space-y-2">
-              <Label className="text-slate-300 font-inter">Telegram ID</Label>
-              <Input
-                value={formData.telegram_id}
-                readOnly
-                className="bg-slate-950/50 border-slate-800 text-slate-400 opacity-60"
-              />
-            </div>
-          )}
-          
           <div className="space-y-2">
             <Label htmlFor="nom" className="text-slate-300 font-inter">
               Nom <span className="text-red-400">*</span>
@@ -282,7 +226,6 @@ export default function Register() {
           </Link>
         </div>
       </div>
-      )}
     </div>
   );
 }

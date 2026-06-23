@@ -14,11 +14,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register")
 async def register(user_data: UserRegister):
     try:
-        if not user_data.telegram_id:
-            raise HTTPException(status_code=400, detail="telegram_id_required")
-
         result = register_user(
-            telegram_id=user_data.telegram_id,
             nom=user_data.nom,
             email=user_data.email,
             username=user_data.username,

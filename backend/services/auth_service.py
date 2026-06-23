@@ -1,5 +1,6 @@
 import bcrypt
 import jwt
+import uuid
 import hashlib
 from datetime import datetime, timezone, timedelta
 from config import JWT_SECRET, supabase, logger
@@ -27,20 +28,16 @@ def sanitize_user(user: dict) -> dict:
     return user
 
 
-def register_user(telegram_id: int, nom: str, email: str, username: str, password: str) -> dict:
-    # Check if telegram_id already exists
-    existing_id = supabase.table("users").select("telegram_id").eq("telegram_id", telegram_id).execute()
-    if existing_id.data:
-        return {"error": "telegram_id_exists"}
-
-    # Check if email already exists
+def register_user(nom: str, email: str, username: str, password: str) -> dict:
+    # Email unique
     existing = supabase.table("users").select("email").eq("email", email).execute()
     if existing.data:
         return {"error": "email_exists"}
 
+    # Identifiant interne généré (uuid) — plus de dépendance Telegram
     password_hash = hash_password(password)
     new_user = {
-        "telegram_id": telegram_id,
+        "telegram_id": str(uuid.uuid4()),
         "nom": nom,
         "email": email,
         "username": username,

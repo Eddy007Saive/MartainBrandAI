@@ -44,7 +44,7 @@ class UserUpdate(BaseModel):
 
 
 class UserResponse(BaseModel):
-    telegram_id: Optional[int] = None
+    telegram_id: Optional[str] = None  # uuid (anciennement bigint Telegram)
     nom: str
     username: Optional[str] = None
     email: str
