@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
@@ -59,6 +59,26 @@ export default function PlanificationPage() {
   const [selected, setSelected] = useState(null);
   const [dateVal, setDateVal] = useState('');
   const [busy, setBusy] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef(null);
+
+  const importImage = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !selected) return;
+    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image.'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    setImporting(true);
+    try {
+      const d = await contenuService.uploadImage(selected.id, file);
+      patchSel({ lien_visuel: d.lien_visuel, statut: d.statut || selected.statut, date_publication: d.date_publication || selected.date_publication });
+      toast.success('Image importée ✓');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Échec de l'import");
+    } finally {
+      setImporting(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
 
   const openContenu = (c) => { setSelected(c); setDateVal(toLocalInput(c.date_publication)); };
   const patchSel = (patch) => {
@@ -283,7 +303,7 @@ export default function PlanificationPage() {
           {selected && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Visuel */}
-              <div>
+              <div className="space-y-2">
                 {Array.isArray(selected.slides_images) && selected.slides_images.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2">
                     {selected.slides_images.slice(0, 6).map((u, i) => (
@@ -293,9 +313,20 @@ export default function PlanificationPage() {
                 ) : selected.lien_visuel ? (
                   <img src={selected.lien_visuel} alt="" className="w-full rounded-xl object-cover ring-1 ring-white/10" />
                 ) : (
-                  <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 grid place-items-center text-slate-600">
+                  <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 grid place-items-center text-slate-600 gap-2">
                     <ImageIcon className="w-10 h-10" />
+                    <span className="text-xs font-inter">Aucun visuel</span>
                   </div>
+                )}
+                {!(Array.isArray(selected.slides_images) && selected.slides_images.length) && (
+                  <>
+                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={importImage} />
+                    <Button size="sm" onClick={() => fileRef.current?.click()} disabled={importing}
+                      className="w-full bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">
+                      {importing ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <ImageIcon className="w-4 h-4 mr-1.5" />}
+                      {selected.lien_visuel ? "Changer l'image" : 'Importer une image'}
+                    </Button>
+                  </>
                 )}
               </div>
               {/* Infos + actions */}

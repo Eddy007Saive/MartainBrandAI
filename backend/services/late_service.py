@@ -76,7 +76,11 @@ async def publish_contenu(telegram_id: int, contenu: dict) -> dict:
 
     if r.status_code in (200, 201):
         d = r.json()
-        return {"ok": True, "late_post_id": d.get("_id") or d.get("id"), "status": d.get("status") or "scheduled"}
+        p = d.get("post") if isinstance(d.get("post"), dict) else (d.get("data") if isinstance(d.get("data"), dict) else d)
+        late_id = p.get("_id") or p.get("id") or d.get("_id") or d.get("id") or d.get("postId")
+        if not late_id:
+            logger.error(f"Late publish: id introuvable dans la réponse: {str(d)[:300]}")
+        return {"ok": True, "late_post_id": late_id, "status": p.get("status") or d.get("status") or "scheduled"}
     logger.error(f"Late publish error {r.status_code}: {r.text[:300]}")
     return {"ok": False, "error": _err_message(r)}
 
