@@ -79,6 +79,8 @@ const Pill = ({ active, onClick, children }) => (
 export default function StudioIA() {
   const { user, updateUser } = useUser();
   const marqueOk = !!(user?.secteur && String(user.secteur).trim());
+  // On ne propose que les réseaux dont le compte est connecté (Paramètres → Réseaux)
+  const reseaux = RESEAUX.filter((r) => !!user?.[`late_account_${r.id}`]);
 
   const erreurGen = (e) => {
     if (e?.response?.status === 402) toast.error('Crédits insuffisants — rechargez vos crédits.');
@@ -104,6 +106,16 @@ export default function StudioIA() {
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoReseau, setPhotoReseau] = useState('linkedin');
   const [photoQualite, setPhotoQualite] = useState('equilibre');
+
+  // Aligne les réseaux sélectionnés sur ceux réellement connectés
+  useEffect(() => {
+    if (!reseaux.length) return;
+    const ids = reseaux.map((r) => r.id);
+    if (!ids.includes(bReseau)) setBReseau(reseaux[0].id);
+    if (!ids.includes(cfgReseau)) setCfgReseau(reseaux[0].id);
+    if (!ids.includes(photoReseau)) setPhotoReseau(reseaux[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
   const [photoLoading, setPhotoLoading] = useState(false);
   const photoRef = useRef(null);
 
@@ -382,7 +394,9 @@ export default function StudioIA() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-500 font-inter">{bFormat === 'script' ? 'Type' : 'Réseau'}</span>
-                  {(bFormat === 'script' ? TYPES_VIDEO : RESEAUX).map((r) => (
+                  {bFormat !== 'script' && reseaux.length === 0
+                    ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
+                    : (bFormat === 'script' ? TYPES_VIDEO : reseaux).map((r) => (
                     <Pill key={r.id}
                       active={bFormat === 'script' ? bType === r.id : bReseau === r.id}
                       onClick={() => (bFormat === 'script' ? setBType(r.id) : setBReseau(r.id))}>
@@ -429,7 +443,9 @@ export default function StudioIA() {
                 <p className="text-xs text-slate-500 font-inter">Importe une photo : l'IA l'analyse et écrit un post adapté au réseau. La photo devient le visuel.</p>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-500 font-inter">Réseau</span>
-                  {RESEAUX.map((r) => <Pill key={r.id} active={photoReseau === r.id} onClick={() => setPhotoReseau(r.id)}>{r.label}</Pill>)}
+                  {reseaux.length === 0
+                    ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
+                    : reseaux.map((r) => <Pill key={r.id} active={photoReseau === r.id} onClick={() => setPhotoReseau(r.id)}>{r.label}</Pill>)}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-500 font-inter">Qualité</span>
@@ -514,7 +530,9 @@ export default function StudioIA() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-xs text-slate-500 font-inter">{cfgFormat === 'script' ? 'Type' : 'Réseau'}</span>
-                          {(cfgFormat === 'script' ? TYPES_VIDEO : RESEAUX).map((r) => (
+                          {cfgFormat !== 'script' && reseaux.length === 0
+                            ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
+                            : (cfgFormat === 'script' ? TYPES_VIDEO : reseaux).map((r) => (
                             <Pill key={r.id}
                               active={cfgFormat === 'script' ? cfgType === r.id : cfgReseau === r.id}
                               onClick={() => (cfgFormat === 'script' ? setCfgType(r.id) : setCfgReseau(r.id))}>

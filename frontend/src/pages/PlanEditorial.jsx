@@ -89,8 +89,10 @@ export default function PlanEditorial() {
     setMonth(m); setYear(y);
   };
 
-  // Réseaux disponibles (depuis le plan) -> options de chips
-  const networks = plan.map((p) => ({ id: p.platform, label: p.label, format: p.format }));
+  // Un réseau n'est utilisable que si le compte est connecté (Paramètres → Réseaux)
+  const isConnected = (netId) => !!user?.[`late_account_${netId}`];
+  // Réseaux disponibles pour cibler un sujet = ceux du plan ET connectés
+  const networks = plan.filter((p) => isConnected(p.platform)).map((p) => ({ id: p.platform, label: p.label, format: p.format }));
 
   const totals = useMemo(() => {
     const needed = plan.reduce((a, p) => a + p.needed, 0);
@@ -244,18 +246,23 @@ export default function PlanEditorial() {
               const pct = p.needed ? Math.min(100, Math.round((p.filled / p.needed) * 100)) : 0;
               const done = p.remaining === 0;
               const meta = NET_META[p.platform] || { short: '•', cls: 'bg-slate-700' };
+              const conn = isConnected(p.platform);
               return (
-                <div key={p.platform} className={`rounded-2xl border p-4 transition-all ${done ? 'border-[#3AFFA3]/30 bg-gradient-to-b from-[#3AFFA3]/[0.05] to-transparent' : 'border-white/[0.06] bg-[#0f172a]'}`}>
+                <div key={p.platform} className={`rounded-2xl border p-4 transition-all ${!conn ? 'border-white/[0.06] bg-[#0f172a] opacity-55' : done ? 'border-[#3AFFA3]/30 bg-gradient-to-b from-[#3AFFA3]/[0.05] to-transparent' : 'border-white/[0.06] bg-[#0f172a]'}`}>
                   <div className="flex items-center gap-3 mb-3">
                     <div className={`w-8 h-8 rounded-lg grid place-items-center text-white ${meta.cls}`}><SocialIcon network={p.platform} className="w-4 h-4" /></div>
                     <div><div className="font-semibold text-sm">{p.label}</div><div className="text-[11px] text-slate-500">{FORMAT_LABEL[p.format] || p.format}</div></div>
                     <div className="ml-auto text-right">
-                      <div className="text-[15px] font-bold font-sora">{p.filled}<span className="text-slate-500 font-medium text-[13px]">/{p.needed}</span></div>
-                      <div className={`text-[11px] ${done ? 'text-[#3AFFA3]' : 'text-slate-500'}`}>{done ? 'bouclé ✓' : `${p.remaining} à faire`}</div>
+                      {conn ? (<>
+                        <div className="text-[15px] font-bold font-sora">{p.filled}<span className="text-slate-500 font-medium text-[13px]">/{p.needed}</span></div>
+                        <div className={`text-[11px] ${done ? 'text-[#3AFFA3]' : 'text-slate-500'}`}>{done ? 'bouclé ✓' : `${p.remaining} à faire`}</div>
+                      </>) : (
+                        <Link to="/dashboard/parametres" className="text-[11px] text-amber-400 hover:underline whitespace-nowrap">Non connecté →</Link>
+                      )}
                     </div>
                   </div>
                   <div className="h-[7px] rounded-md bg-white/[0.06] overflow-hidden">
-                    <div className={`h-full rounded-md transition-all duration-500 ${done ? 'bg-gradient-to-r from-emerald-500 to-[#3AFFA3]' : 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]'}`} style={{ width: `${pct}%` }} />
+                    <div className={`h-full rounded-md transition-all duration-500 ${done ? 'bg-gradient-to-r from-emerald-500 to-[#3AFFA3]' : 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]'}`} style={{ width: `${conn ? pct : 0}%` }} />
                   </div>
                 </div>
               );
@@ -308,7 +315,7 @@ export default function PlanEditorial() {
                     <div className="px-4 pb-4 pt-3 border-t border-white/[0.06]">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[11px] text-slate-500 mr-0.5">Réseaux :</span>
-                        {networks.length === 0 && <span className="text-[11px] text-slate-600">Configure ta cadence dans Paramètres → Planification</span>}
+                        {networks.length === 0 && <Link to="/dashboard/parametres" className="text-[11px] text-amber-400 hover:underline">Aucun réseau connecté — connecte un compte dans Paramètres →</Link>}
                         {networks.map((n) => {
                           const on = n.id in st.nets;
                           const meta = NET_META[n.id] || { short: '•', cls: 'bg-slate-700' };
