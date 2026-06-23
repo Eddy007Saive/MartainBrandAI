@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
 import { useUser } from '../context/UserContext';
@@ -49,6 +49,17 @@ const NET = {
 const netOf = (r) => NET[r] || { s: '•', style: { background: '#334155' } };
 
 const LEGENDE = ['A valider', 'Valider', 'Planifie', 'Publie', 'Refuse'];
+
+// État de publication (Late) -> icône + couleur
+const PUB = {
+  envoi:       { Icon: Send,          color: '#22d3ee', label: 'En cours d\'envoi' },
+  'programmé': { Icon: Clock,         color: '#22d3ee', label: 'Programmé' },
+  'publié':    { Icon: Check,         color: '#34d399', label: 'Publié' },
+  partiel:     { Icon: AlertTriangle, color: '#fbbf24', label: 'Partiel' },
+  'échec':     { Icon: X,             color: '#f87171', label: 'Échec' },
+  'annulé':    { Icon: Ban,           color: '#94a3b8', label: 'Annulé' },
+};
+const pubOf = (s) => PUB[s] || null;
 
 export default function PlanificationPage() {
   const { user } = useUser();
@@ -165,14 +176,17 @@ export default function PlanificationPage() {
 
   const Pill = ({ c, inCell }) => {
     const st = stOf(c.statut), net = netOf(c.reseau_cible);
+    const pub = pubOf(c.publish_status);
     return (
       <button
         onClick={(e) => { e.stopPropagation(); openContenu(c); }}
+        title={pub ? pub.label : undefined}
         className="w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[11px] border transition-all hover:brightness-125 text-left cursor-pointer"
         style={{ background: st.bg, color: st.co, borderColor: st.bg }}
       >
         <span className="w-[15px] h-[15px] rounded-[4px] grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
         <span className="flex-1 truncate font-medium">{c.titre || c.contenu?.slice(0, 30) || 'Sans titre'}</span>
+        {pub && <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} />}
         {inCell && <span className="text-[9.5px] opacity-70 shrink-0">{hhmm(c.date_publication)}</span>}
       </button>
     );
@@ -233,12 +247,23 @@ export default function PlanificationPage() {
             </div>
           </div>
           {/* Légende */}
-          <div className="flex flex-wrap gap-4 mt-3.5 pt-3.5 border-t border-white/[0.06]">
-            {LEGENDE.map((k) => (
-              <div key={k} className="flex items-center gap-2 text-xs text-slate-400 font-inter">
-                <span className="w-[11px] h-[11px] rounded" style={{ background: stOf(k).sw }} />{stOf(k).label}
-              </div>
-            ))}
+          <div className="mt-3.5 pt-3.5 border-t border-white/[0.06] space-y-2.5">
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-[10px] uppercase tracking-wide text-slate-600 font-inter">Statut</span>
+              {LEGENDE.map((k) => (
+                <div key={k} className="flex items-center gap-2 text-xs text-slate-400 font-inter">
+                  <span className="w-[11px] h-[11px] rounded" style={{ background: stOf(k).sw }} />{stOf(k).label}
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="text-[10px] uppercase tracking-wide text-slate-600 font-inter">Publication</span>
+              {Object.values(PUB).map((p) => (
+                <div key={p.label} className="flex items-center gap-1.5 text-xs text-slate-400 font-inter">
+                  <p.Icon className="w-3.5 h-3.5" style={{ color: p.color }} strokeWidth={2.5} />{p.label}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : (
@@ -259,7 +284,12 @@ export default function PlanificationPage() {
                   <div className="text-[13.5px] text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 50)}</div>
                   <div className="text-[11.5px] text-slate-500 mt-0.5">{c.reseau_cible || '—'} · {hhmm(c.date_publication)}</div>
                 </div>
-                <span className="text-[10.5px] font-semibold px-2.5 py-1 rounded-full" style={{ background: st.bg, color: st.co }}>{st.label}</span>
+                {pubOf(c.publish_status) && (() => { const p = pubOf(c.publish_status); return (
+                  <span className="flex items-center gap-1 text-[10.5px] font-semibold px-2 py-1 rounded-full border shrink-0"
+                    style={{ color: p.color, borderColor: `${p.color}55`, background: `${p.color}14` }}>
+                    <p.Icon className="w-3 h-3" strokeWidth={2.5} />{p.label}
+                  </span>); })()}
+                <span className="text-[10.5px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{ background: st.bg, color: st.co }}>{st.label}</span>
               </div>
             );
           })}
