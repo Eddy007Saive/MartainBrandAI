@@ -388,20 +388,22 @@ def _tpl_neon(content, p, s, a, nom, secteur, logo):
     top = lambda i: f'<div class="top"><div class="brand">{av}<span>{_esc(nom)}</span></div><span class="cnt">{i+1}/{n}</span></div>'
 
     def _illus(sl):
+        # Calque de fond (coin bas-droite, z-index:1) : le texte passe AU-DESSUS (z-index:2)
         ic = _icon_b64(sl.get("icon"))
         if not ic:
             return ""
-        return (f'<div style="position:relative;width:138px;flex-shrink:0">'
-                f'<div style="position:absolute;right:-30px;bottom:-30px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,{acc}40,transparent 70%)"></div>'
-                f'<img src="data:image/png;base64,{ic}" style="position:relative;width:138px;display:block;filter:url(#ic3d) drop-shadow(0 0 18px {acc}aa)"></div>')
+        return (f'<div style="position:absolute;right:20px;bottom:46px;width:150px;z-index:1;pointer-events:none">'
+                f'<div style="position:absolute;right:-30px;bottom:-30px;width:210px;height:210px;border-radius:50%;background:radial-gradient(circle,{acc}40,transparent 70%)"></div>'
+                f'<img src="data:image/png;base64,{ic}" style="position:relative;width:150px;display:block;opacity:.92;filter:url(#ic3d) drop-shadow(0 0 18px {acc}aa)"></div>')
     out = [f'<div class="slide">{top(0)}<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_two_tone(hook, acc)}</h1><div class="line"></div></div></div>']
     for i, sl in enumerate(slides):
-        body = f'<p style="flex:1">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else '<div style="flex:1"></div>'
+        body = f'<p>{_esc(sl.get("texte"))}</p>' if sl.get("texte") else ''
         out.append(
             f'<div class="slide">{top(i+1)}'
+            f'{_illus(sl)}'
             f'<div style="position:relative;z-index:2;margin-top:18px"><div class="num">{i+1:02d}</div>'
             f'<h2 style="margin-top:4px">{_two_tone(sl.get("titre"), acc)}</h2><div class="line"></div></div>'
-            f'<div style="flex:1;display:flex;align-items:flex-end;gap:14px;position:relative;z-index:2">{body}{_illus(sl)}</div>'
+            f'<div style="flex:1;position:relative;z-index:2">{body}</div>'
             '</div>')
     out.append(f'<div class="slide">{top(n-1)}<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_two_tone(cta["titre"], acc)}</h1><div class="line"></div>'
                + (f'<p>{_esc(cta["texte"])}</p>' if cta["texte"] else "") + '<span class="btn">Lien en bio →</span></div></div>')
