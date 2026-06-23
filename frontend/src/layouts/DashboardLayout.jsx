@@ -98,9 +98,9 @@ function DashboardContent() {
 
   return (
     <div className="flex h-screen bg-[#020617] overflow-hidden">
-      {/* Glow + noise */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#5B6CFF]/[0.06] blur-[120px] rounded-full pointer-events-none z-0" />
-      <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.025] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      {/* Glow + noise (desktop uniquement — allégé sur mobile) */}
+      <div className="hidden md:block fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#5B6CFF]/[0.06] blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="hidden md:block fixed inset-0 z-[1] pointer-events-none opacity-[0.025] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r border-white/[0.06] bg-[#080c17]/80 backdrop-blur-xl relative z-10">
