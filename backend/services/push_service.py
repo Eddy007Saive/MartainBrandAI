@@ -22,9 +22,26 @@ def _load():
     _loaded = True
     try:
         from google.oauth2 import service_account
+        import base64
+        info = None
+        b64 = os.getenv("FIREBASE_SERVICE_ACCOUNT_B64")
         raw = os.getenv("FIREBASE_SERVICE_ACCOUNT")
-        if raw:
-            info = json.loads(raw)
+        if b64:
+            info = json.loads(base64.b64decode(b64).decode("utf-8"))
+        elif raw:
+            raw = raw.strip()
+            # tolère une valeur entourée de guillemets
+            if len(raw) >= 2 and raw[0] == raw[-1] == '"':
+                raw = raw[1:-1]
+            try:
+                info = json.loads(raw)
+            except json.JSONDecodeError:
+                # private_key avec de vrais retours à la ligne -> on les ré-échappe en \n
+                import re
+                fixed = re.sub(r'(-----BEGIN [^-]+-----)(.*?)(-----END [^-]+-----)',
+                               lambda m: (m.group(1) + m.group(2).replace("\n", "\\n") + m.group(3)),
+                               raw, flags=re.DOTALL)
+                info = json.loads(fixed)
         else:
             path = os.path.join(os.path.dirname(__file__), "..", "firebase-service-account.json")
             if not os.path.exists(path):
