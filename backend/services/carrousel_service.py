@@ -442,8 +442,10 @@ def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, templa
         if imgs:
             buf = BytesIO()
             imgs[0].save(buf, format="PDF", save_all=True, append_images=imgs[1:], resolution=150.0)
-            up = cloudinary.uploader.upload(buf.getvalue(), resource_type="image", folder=f"carrousels/{telegram_id}",
-                                            public_id=f"{base}_doc", format="pdf", overwrite=True)
+            # resource_type="raw" : Cloudinary bloque la livraison des PDF en "image" (401).
+            # En "raw", le fichier est téléchargeable directement (Late/LinkedIn peut le récupérer).
+            up = cloudinary.uploader.upload(buf.getvalue(), resource_type="raw", folder=f"carrousels/{telegram_id}",
+                                            public_id=f"{base}_doc.pdf", overwrite=True)
             pdf_url = up["secure_url"]
     except Exception as e:
         logger.error(f"carrousel pdf error: {e}")
