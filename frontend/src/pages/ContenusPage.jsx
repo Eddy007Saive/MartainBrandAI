@@ -188,6 +188,7 @@ export default function ContenusPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [filterStatut, setFilterStatut] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
   const [selectedContenu, setSelectedContenu] = useState(null);
   const [editContenu, setEditContenu] = useState(null);
   const [deleteContenu, setDeleteContenu] = useState(null);
@@ -376,6 +377,13 @@ export default function ContenusPage() {
     );
   }, [activeContenus, searchQuery]);
 
+  // Pagination
+  const PAGE_SIZE = 6;
+  const pageCount = Math.max(1, Math.ceil(filteredContenus.length / PAGE_SIZE));
+  const pageSafe = Math.min(page, pageCount);
+  const pagedContenus = filteredContenus.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
+  useEffect(() => { setPage(1); }, [searchQuery, activeTab, filterStatut]);
+
   const handleUpdateStatut = async (id, newStatut) => {
     setActionLoading(id);
     try {
@@ -556,9 +564,9 @@ export default function ContenusPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs text-slate-500 font-inter">{filteredContenus.length} contenu{filteredContenus.length > 1 ? 's' : ''}</p>
+            <p className="text-xs text-slate-500 font-inter">{filteredContenus.length} contenu{filteredContenus.length > 1 ? 's' : ''}{pageCount > 1 ? ` · page ${pageSafe}/${pageCount}` : ''}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredContenus.map((contenu) => (
+              {pagedContenus.map((contenu) => (
                 <ContentCard
                   key={contenu.id}
                   contenu={contenu}
@@ -574,6 +582,24 @@ export default function ContenusPage() {
                 />
               ))}
             </div>
+            {pageCount > 1 && (
+              <div className="flex items-center justify-center gap-1.5 pt-3">
+                <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={pageSafe === 1}
+                  className="h-9 px-3 rounded-lg border border-white/[0.08] bg-slate-900/60 text-slate-300 text-sm font-inter hover:bg-white/[0.06] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  ‹ Précédent
+                </button>
+                {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
+                  <button key={n} onClick={() => setPage(n)}
+                    className={`h-9 w-9 rounded-lg text-sm font-semibold font-inter transition-colors ${n === pageSafe ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'border border-white/[0.08] bg-slate-900/60 text-slate-400 hover:bg-white/[0.06]'}`}>
+                    {n}
+                  </button>
+                ))}
+                <button onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={pageSafe === pageCount}
+                  className="h-9 px-3 rounded-lg border border-white/[0.08] bg-slate-900/60 text-slate-300 text-sm font-inter hover:bg-white/[0.06] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  Suivant ›
+                </button>
+              </div>
+            )}
           </div>
         )}
 
