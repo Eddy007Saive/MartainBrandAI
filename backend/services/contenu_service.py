@@ -107,6 +107,47 @@ async def update_contenu(contenu_id: str, telegram_id: int, update_data: dict) -
     return response
 
 
-def delete_contenu(contenu_id: str, telegram_id: int) -> bool:
+def _raw_public_id(url: str) -> str | None:
+    """public_id (avec extension) d'un asset Cloudinary raw, ex. carrousels/<tg>/<base>_doc.pdf"""
+    import re
+    m = re.search(r"/upload/(?:v\d+/)?(.+)$", url or "")
+    return m.group(1) if m else None
+
+
+def _cleanup_assets(c: dict) -> None:
+    """Supprime les assets Cloudinary liés au contenu (best-effort, pas d'accumulation)."""
+    imgs = []
+    if c.get("lien_visuel"):
+        imgs.append(c["lien_visuel"])
+    if isinstance(c.get("slides_images"), list):
+        imgs += c["slides_images"]
+    for u in imgs:
+        pid = _public_id_from_cloudinary_url(u)
+        if pid:
+            try:
+                cloudinary.uploader.destroy(pid, resource_type="image", invalidate=True)
+            except Exception as e:
+                logger.warning(f"cleanup image {pid}: {e}")
+    if c.get("carrousel_pdf"):
+        pid = _raw_public_id(c["carrousel_pdf"])
+        if pid:
+            try:
+                cloudinary.uploader.destroy(pid, resource_type="raw", invalidate=True)
+            except Exception as e:
+                logger.warning(f"cleanup pdf {pid}: {e}")
+
+
+async def delete_contenu(contenu_id: str, telegram_id: int) -> bool:
+    """Suppression complète : retire le post de Late, nettoie Cloudinary, supprime la ligne."""
+    cur = get_contenu(contenu_id, telegram_id)
+    if not cur:
+        return False
+    if cur.get("late_post_id"):
+        try:
+            from services import late_service
+            await late_service.cancel_post(cur["late_post_id"])  # Zernio deletePost
+        except Exception as e:
+            logger.warning(f"delete: suppression post Late échouée: {e}")
+    _cleanup_assets(cur)
     result = supabase.table("contenu").delete().eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     return bool(result.data)

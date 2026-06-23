@@ -74,7 +74,7 @@ async def update_contenu(contenu_id: str, updates: ContenuUpdate, payload: dict 
 async def delete_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
-        if not contenu_service.delete_contenu(contenu_id, telegram_id):
+        if not await contenu_service.delete_contenu(contenu_id, telegram_id):
             raise HTTPException(status_code=404, detail="Contenu not found")
         return {"success": True}
     except HTTPException:

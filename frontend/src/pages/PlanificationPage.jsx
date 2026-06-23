@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send } from 'lucide-react';
+import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send, Trash2 } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
 import { useUser } from '../context/UserContext';
@@ -126,6 +126,19 @@ export default function PlanificationPage() {
       patchSel({ publish_status: d.publish_status, late_post_id: null });
       toast.success('Envoi annulé — post supprimé de Late');
     } catch (e) { toast.error(e.response?.data?.detail || "Échec de l'annulation"); }
+    finally { setBusy(false); }
+  };
+
+  const supprimer = async () => {
+    if (!selected) return;
+    if (!window.confirm('Supprimer définitivement ce post ?\nIl sera retiré de la file Late et effacé de tes contenus.')) return;
+    setBusy(true);
+    try {
+      await contenuService.remove(selected.id);
+      setContenus((prev) => prev.filter((c) => c.id !== selected.id));
+      setSelected(null);
+      toast.success('Post supprimé');
+    } catch (e) { toast.error(e.response?.data?.detail || 'Échec de la suppression'); }
     finally { setBusy(false); }
   };
 
@@ -496,6 +509,10 @@ export default function PlanificationPage() {
                       </Button>
                     </a>
                   )}
+                  <Button size="sm" onClick={supprimer} disabled={busy}
+                    className="ml-auto bg-transparent text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent">
+                    <Trash2 className="w-4 h-4 mr-1.5" />Supprimer le post
+                  </Button>
                 </div>
               </div>
             </div>
