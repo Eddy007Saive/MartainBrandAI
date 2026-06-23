@@ -216,4 +216,9 @@ def handle_webhook(payload: dict) -> dict:
         supabase.table("contenu").update(upd).eq("id", cid).execute()
     if notif:
         _notify(tg, cid, reseau, event, notif[0], notif[1])
+        try:
+            from services import push_service
+            push_service.send_to_user(tg, notif[0], notif[1], {"contenu_id": str(cid), "event": event})
+        except Exception as e:
+            logger.warning(f"push send error: {e}")
     return {"ok": True, "contenu_id": cid, "event": event}

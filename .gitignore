@@ -140,3 +140,7 @@ backend/_uv.*
 
 # Capacitor Android — distribution Gradle telechargee localement
 frontend/android/gradle-*.zip
+
+# Firebase (secrets — ne jamais committer)
+backend/firebase-service-account.json
+frontend/android/app/google-services.json

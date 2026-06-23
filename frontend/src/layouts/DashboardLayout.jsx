@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { initPush } from '../lib/push';
 import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid } from 'lucide-react';
 import { UserProvider, useUser } from '../context/UserContext';
 import { removeToken } from '../lib/auth';
@@ -61,6 +62,9 @@ function DashboardContent() {
   const { user, logout } = useUser();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Notifications push (mobile) : demande la permission + enregistre le token
+  useEffect(() => { initPush(); }, []);
 
   const handleLogout = () => {
     logout();
