@@ -1,9 +1,26 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Calendar, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
 import { useUser } from '../context/UserContext';
 import { SocialIcon } from '../components/SocialIcon';
+import { Button } from '../components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { toast } from 'sonner';
+
+const PUBLISH_BADGE = {
+  envoi: { label: '⏳ Envoi…', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
+  'programmé': { label: '⏱ Programmé', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
+  'publié': { label: '✅ Publié', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
+  partiel: { label: '⚠️ Partiel', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
+  'échec': { label: '❌ Échec', cls: 'bg-red-500/15 text-red-400 border-red-500/25' },
+  'annulé': { label: 'Annulé', cls: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
+};
+const toLocalInput = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso); const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
@@ -39,7 +56,52 @@ export default function PlanificationPage() {
   const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(new Date());
   const [view, setView] = useState('mois'); // mois | liste
-  const [openId, setOpenId] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [dateVal, setDateVal] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const openContenu = (c) => { setSelected(c); setDateVal(toLocalInput(c.date_publication)); };
+  const patchSel = (patch) => {
+    setContenus((prev) => prev.map((c) => (c.id === selected.id ? { ...c, ...patch } : c)));
+    setSelected((prev) => (prev ? { ...prev, ...patch } : prev));
+  };
+
+  const saveDate = async () => {
+    if (!dateVal || !selected) return;
+    setBusy(true);
+    try {
+      const iso = new Date(dateVal).toISOString();
+      await contenuService.update(selected.id, { date_publication: iso });
+      patchSel({ date_publication: iso });
+      toast.success('Date mise à jour');
+    } catch (e) { toast.error('Échec de la mise à jour de la date'); }
+    finally { setBusy(false); }
+  };
+
+  const programmer = async () => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const d = await contenuService.publier(selected.id);
+      patchSel({ publish_status: d.publish_status, late_post_id: d.late_post_id, publish_error: null });
+      toast.success('Publication programmée ✓ — partira à la date prévue');
+    } catch (e) {
+      const msg = e.response?.data?.detail || 'Échec de la programmation';
+      patchSel({ publish_status: 'échec', publish_error: msg });
+      toast.error(msg);
+    } finally { setBusy(false); }
+  };
+
+  const annuler = async () => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const d = await contenuService.annuler(selected.id);
+      patchSel({ publish_status: d.publish_status, late_post_id: null });
+      toast.success('Envoi annulé — post supprimé de Late');
+    } catch (e) { toast.error(e.response?.data?.detail || "Échec de l'annulation"); }
+    finally { setBusy(false); }
+  };
 
   useEffect(() => {
     contenuService.getAll()
@@ -78,42 +140,26 @@ export default function PlanificationPage() {
     .sort((a, b) => new Date(a.date_publication) - new Date(b.date_publication))
     .slice(0, 5), [contenus]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const changeMonth = (d) => { setCurrent(new Date(year, month + d, 1)); setOpenId(null); };
-  const goToday = () => { setCurrent(new Date()); setOpenId(null); };
+  const changeMonth = (d) => { setCurrent(new Date(year, month + d, 1)); };
+  const goToday = () => { setCurrent(new Date()); };
 
   const Pill = ({ c, inCell }) => {
     const st = stOf(c.statut), net = netOf(c.reseau_cible);
-    const open = openId === c.id;
     return (
-      <div className="relative">
-        <button
-          onClick={(e) => { e.stopPropagation(); setOpenId(open ? null : c.id); }}
-          className="w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[11px] border transition-all hover:brightness-125 text-left"
-          style={{ background: st.bg, color: st.co, borderColor: st.bg }}
-        >
-          <span className="w-[15px] h-[15px] rounded-[4px] grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
-          <span className="flex-1 truncate font-medium">{c.titre || c.contenu?.slice(0, 30) || 'Sans titre'}</span>
-          {inCell && <span className="text-[9.5px] opacity-70 shrink-0">{hhmm(c.date_publication)}</span>}
-        </button>
-        {open && (
-          <div className="absolute z-30 top-9 left-0 w-[230px] rounded-xl border border-white/10 bg-[#111a2e] p-3 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-[22px] h-[22px] rounded-md grid place-items-center text-white" style={net.style}><SocialIcon network={c.reseau_cible} className="w-3.5 h-3.5" /></span>
-              <span className="text-xs font-semibold">{c.reseau_cible || '—'}</span>
-              <span className="text-[11px] text-slate-500 ml-auto">{hhmm(c.date_publication)}</span>
-            </div>
-            <p className="text-[12.5px] text-slate-200 leading-snug mb-2.5 line-clamp-3">{c.titre || c.contenu?.slice(0, 90)}</p>
-            <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-full" style={{ background: st.bg, color: st.co }}>{st.label}</span>
-            </div>
-          </div>
-        )}
-      </div>
+      <button
+        onClick={(e) => { e.stopPropagation(); openContenu(c); }}
+        className="w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[11px] border transition-all hover:brightness-125 text-left cursor-pointer"
+        style={{ background: st.bg, color: st.co, borderColor: st.bg }}
+      >
+        <span className="w-[15px] h-[15px] rounded-[4px] grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
+        <span className="flex-1 truncate font-medium">{c.titre || c.contenu?.slice(0, 30) || 'Sans titre'}</span>
+        {inCell && <span className="text-[9.5px] opacity-70 shrink-0">{hhmm(c.date_publication)}</span>}
+      </button>
     );
   };
 
   return (
-    <div className="w-full space-y-5 pb-10" onClick={() => setOpenId(null)}>
+    <div className="w-full space-y-5 pb-10">
       <PageHeader
         icon={Calendar}
         title="Planification"
@@ -183,7 +229,7 @@ export default function PlanificationPage() {
           ) : moisContenus.map((c) => {
             const st = stOf(c.statut), net = netOf(c.reseau_cible);
             return (
-              <div key={c.id} className="flex items-center gap-4 p-3 rounded-xl border border-white/[0.06] bg-[#0a1120]">
+              <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-4 p-3 rounded-xl border border-white/[0.06] bg-[#0a1120] cursor-pointer hover:border-white/[0.15] transition-colors">
                 <div className="text-center min-w-[46px]">
                   <div className="text-xl font-bold font-sora leading-none">{new Date(c.date_publication).getDate()}</div>
                   <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{MOIS_COURT[new Date(c.date_publication).getMonth()]}</div>
@@ -210,7 +256,7 @@ export default function PlanificationPage() {
             {upcoming.map((c) => {
               const st = stOf(c.statut), net = netOf(c.reseau_cible);
               return (
-                <div key={c.id} className="flex items-center gap-4 p-3 rounded-2xl border border-white/[0.06] bg-[#0f172a]">
+                <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-4 p-3 rounded-2xl border border-white/[0.06] bg-[#0f172a] cursor-pointer hover:border-white/[0.15] transition-colors">
                   <div className="text-center min-w-[46px]">
                     <div className="text-xl font-bold font-sora leading-none">{new Date(c.date_publication).getDate()}</div>
                     <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{MOIS_COURT[new Date(c.date_publication).getMonth()]}</div>
@@ -227,6 +273,87 @@ export default function PlanificationPage() {
           </div>
         )}
       </div>
+
+      {/* Pop-up détail / programmation */}
+      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
+        <DialogContent className="bg-[#0b1322] border-white/10 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-white font-sora pr-6">{selected?.titre || 'Contenu'}</DialogTitle>
+          </DialogHeader>
+          {selected && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Visuel */}
+              <div>
+                {Array.isArray(selected.slides_images) && selected.slides_images.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {selected.slides_images.slice(0, 6).map((u, i) => (
+                      <img key={i} src={u} alt="" className="w-full rounded-lg object-cover ring-1 ring-white/10" />
+                    ))}
+                  </div>
+                ) : selected.lien_visuel ? (
+                  <img src={selected.lien_visuel} alt="" className="w-full rounded-xl object-cover ring-1 ring-white/10" />
+                ) : (
+                  <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 grid place-items-center text-slate-600">
+                    <ImageIcon className="w-10 h-10" />
+                  </div>
+                )}
+              </div>
+              {/* Infos + actions */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-md grid place-items-center text-white" style={netOf(selected.reseau_cible).style}><SocialIcon network={selected.reseau_cible} className="w-3.5 h-3.5" /></span>
+                  <span className="text-sm text-slate-300 font-inter">{selected.reseau_cible || '—'}</span>
+                  {PUBLISH_BADGE[selected.publish_status] && (
+                    <span className={`ml-auto text-[11px] font-medium px-2 py-0.5 rounded-full border ${PUBLISH_BADGE[selected.publish_status].cls}`}>{PUBLISH_BADGE[selected.publish_status].label}</span>
+                  )}
+                </div>
+                <p className="text-[13px] text-slate-300 font-inter whitespace-pre-wrap max-h-40 overflow-y-auto leading-relaxed">{selected.contenu}</p>
+
+                {/* Date picker */}
+                <div className="space-y-1.5">
+                  <label className="text-xs text-slate-400 font-inter">Date de publication</label>
+                  <div className="flex gap-2">
+                    <input type="datetime-local" value={dateVal} onChange={(e) => setDateVal(e.target.value)}
+                      className="flex-1 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 outline-none focus:border-[#5B6CFF]/50" />
+                    <Button size="sm" onClick={saveDate} disabled={busy || !dateVal || toLocalInput(selected.date_publication) === dateVal}
+                      className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">Enregistrer</Button>
+                  </div>
+                </div>
+
+                {selected.publish_status === 'échec' && selected.publish_error && (
+                  <p className="text-[12px] text-red-400 font-inter">⚠ Échec : {selected.publish_error}</p>
+                )}
+
+                {/* Actions publication */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {selected.statut !== 'Publie' && selected.reseau_cible
+                    && ['', null, undefined, 'échec', 'annulé'].includes(selected.publish_status) && (
+                    <Button size="sm" onClick={programmer} disabled={busy}
+                      className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30">
+                      {busy ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
+                      {selected.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}
+                    </Button>
+                  )}
+                  {['envoi', 'programmé'].includes(selected.publish_status) && (
+                    <Button size="sm" onClick={annuler} disabled={busy}
+                      className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30">
+                      {busy ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <X className="w-4 h-4 mr-1.5" />}
+                      Annuler la publication
+                    </Button>
+                  )}
+                  {selected.statut === 'Publie' && selected.lien_publication && (
+                    <a href={selected.lien_publication} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" className="bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30">
+                        <ExternalLink className="w-4 h-4 mr-1.5" />Voir le post
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
