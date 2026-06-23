@@ -44,8 +44,6 @@ const NET = {
 };
 const netOf = (r) => NET[r] || { s: '•', style: { background: '#334155' } };
 
-const LEGENDE = ['A valider', 'Valider', 'Planifie', 'Publie', 'Refuse'];
-
 // État de publication (Late) -> icône + couleur
 const PUB = {
   envoi:       { Icon: Send,          color: '#22d3ee', label: 'En cours d\'envoi' },
@@ -168,23 +166,46 @@ export default function PlanificationPage() {
     .sort((a, b) => new Date(a.date_publication) - new Date(b.date_publication))
     .slice(0, 5), [contenus]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Posts prêts mais pas encore envoyés à la publication (actionnables)
+  const aProgrammer = useMemo(() => contenus
+    .filter((c) => c.reseau_cible && c.statut !== 'Publie'
+      && ['', null, undefined, 'échec', 'annulé'].includes(c.publish_status))
+    .sort((a, b) => new Date(a.date_publication || 0) - new Date(b.date_publication || 0))
+    .slice(0, 4), [contenus]);
+
+  const stats = useMemo(() => ({
+    prog: moisContenus.filter((c) => ['programmé', 'envoi'].includes(c.publish_status)).length,
+    pub: moisContenus.filter((c) => c.publish_status === 'publié' || c.statut === 'Publie').length,
+    valid: moisContenus.filter((c) => c.statut === 'A valider').length,
+  }), [moisContenus]);
+
   const changeMonth = (d) => { setCurrent(new Date(year, month + d, 1)); };
   const goToday = () => { setCurrent(new Date()); };
 
-  const Pill = ({ c, inCell }) => {
-    const st = stOf(c.statut), net = netOf(c.reseau_cible);
+  // Vignette : visuel du post si dispo, sinon icône du réseau social
+  const Thumb = ({ c, className = '' }) => {
+    const visual = c.lien_visuel || (Array.isArray(c.slides_images) && c.slides_images[0]);
+    const net = netOf(c.reseau_cible);
+    if (visual) return (
+      <span className={`relative rounded-lg overflow-hidden bg-cover bg-center shrink-0 ring-1 ring-white/10 ${className}`} style={{ backgroundImage: `url(${visual})` }}>
+        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md grid place-items-center text-white ring-2 ring-[#0f172a]" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2 h-2" /></span>
+      </span>
+    );
+    return <span className={`rounded-lg grid place-items-center text-white shrink-0 ${className}`} style={net.style}><SocialIcon network={c.reseau_cible} className="w-1/2 h-1/2" /></span>;
+  };
+
+  const Pill = ({ c }) => {
     const pub = pubOf(c.publish_status);
     return (
       <button
         onClick={(e) => { e.stopPropagation(); openContenu(c); }}
-        title={pub ? pub.label : undefined}
-        className="w-full flex items-center gap-1.5 px-1.5 py-1 rounded-md text-[11px] border transition-all hover:brightness-125 text-left cursor-pointer"
-        style={{ background: st.bg, color: st.co, borderColor: st.bg }}
+        title={pub ? pub.label : c.statut}
+        className="w-full flex items-center gap-1.5 px-1 py-1 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] transition-colors text-left cursor-pointer"
       >
-        <span className="w-[15px] h-[15px] rounded-[4px] grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
-        <span className="flex-1 truncate font-medium">{c.titre || c.contenu?.slice(0, 30) || 'Sans titre'}</span>
-        {pub && <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} />}
-        {inCell && <span className="text-[9.5px] opacity-70 shrink-0">{hhmm(c.date_publication)}</span>}
+        <Thumb c={c} className="w-[22px] h-[22px]" />
+        <span className="flex-1 truncate text-[10.5px] font-medium text-slate-200">{c.titre || c.contenu?.slice(0, 30) || 'Sans titre'}</span>
+        {pub ? <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} />
+             : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: stOf(c.statut).sw }} />}
       </button>
     );
   };
@@ -222,44 +243,107 @@ export default function PlanificationPage() {
       {loading ? (
         <div className="flex items-center justify-center py-24"><Loader2 className="w-8 h-8 animate-spin text-[#5B6CFF]" /></div>
       ) : view === 'mois' ? (
-        <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-3.5">
-          <div className="overflow-x-auto">
-            <div className="grid grid-cols-7 gap-2 mb-2 min-w-[760px]">
-              {JOURS.map((j) => <div key={j} className="px-2.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-600 font-semibold font-inter">{j}</div>)}
-            </div>
-            <div className="grid grid-cols-7 gap-2 min-w-[760px]">
-              {days.map((d, i) => {
-                const evs = d.out ? [] : forDate(d.date);
-                const isToday = !d.out && d.date.toDateString() === today.toDateString();
-                return (
-                  <div key={i} className={`min-h-[118px] rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${d.out ? 'bg-white/[0.01] border-white/[0.04] opacity-40' : 'bg-[#0a1120] border-white/[0.06] hover:border-white/10'} ${isToday ? 'ring-1 ring-[#5B6CFF]/55 border-[#5B6CFF]/55' : ''}`}>
-                    <div className={`text-[12.5px] font-semibold font-inter ${isToday ? 'text-white' : 'text-slate-500'}`}>
-                      {isToday ? <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center text-white text-[11px] inline-grid">{d.date.getDate()}</span> : d.date.getDate()}
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_322px] gap-5 items-start">
+          {/* CALENDRIER */}
+          <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-3.5">
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-7 gap-2 mb-2 min-w-[640px]">
+                {JOURS.map((j) => <div key={j} className="px-2.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-600 font-semibold font-inter">{j}</div>)}
+              </div>
+              <div className="grid grid-cols-7 gap-2 min-w-[640px]">
+                {days.map((d, i) => {
+                  const evs = d.out ? [] : forDate(d.date);
+                  const isToday = !d.out && d.date.toDateString() === today.toDateString();
+                  return (
+                    <div key={i} className={`min-h-[116px] rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${d.out ? 'bg-white/[0.01] border-white/[0.04] opacity-40' : 'bg-[#0a1120] border-white/[0.06] hover:border-white/10'} ${isToday ? 'ring-1 ring-[#5B6CFF]/55 border-[#5B6CFF]/55' : ''}`}>
+                      <div className={`text-[12.5px] font-semibold font-inter ${isToday ? 'text-white' : 'text-slate-500'}`}>
+                        {isToday ? <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center text-white text-[11px] inline-grid">{d.date.getDate()}</span> : d.date.getDate()}
+                      </div>
+                      {evs.slice(0, 3).map((c) => <Pill key={c.id} c={c} />)}
+                      {evs.length > 3 && <div className="text-[10.5px] text-slate-500 px-1.5 font-medium">+{evs.length - 3} autres</div>}
                     </div>
-                    {evs.slice(0, 3).map((c) => <Pill key={c.id} c={c} inCell />)}
-                    {evs.length > 3 && <div className="text-[10.5px] text-slate-500 px-1.5 font-medium">+{evs.length - 3} autres</div>}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-          {/* Légende */}
-          <div className="mt-3.5 pt-3.5 border-t border-white/[0.06] space-y-2.5">
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-[10px] uppercase tracking-wide text-slate-600 font-inter">Statut</span>
-              {LEGENDE.map((k) => (
-                <div key={k} className="flex items-center gap-2 text-xs text-slate-400 font-inter">
-                  <span className="w-[11px] h-[11px] rounded" style={{ background: stOf(k).sw }} />{stOf(k).label}
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="text-[10px] uppercase tracking-wide text-slate-600 font-inter">Publication</span>
+            {/* Légende publication */}
+            <div className="mt-3.5 pt-3.5 border-t border-white/[0.06] flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="text-[10px] uppercase tracking-wide text-slate-600 font-inter">État</span>
               {Object.values(PUB).map((p) => (
                 <div key={p.label} className="flex items-center gap-1.5 text-xs text-slate-400 font-inter">
                   <p.Icon className="w-3.5 h-3.5" style={{ color: p.color }} strokeWidth={2.5} />{p.label}
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* SIDEBAR */}
+          <div className="space-y-4">
+            {/* Mini-stats */}
+            <div className="grid grid-cols-3 gap-2.5">
+              {[
+                { n: stats.prog, c: '#22d3ee', l: 'Programmés' },
+                { n: stats.pub, c: '#34d399', l: 'Publiés' },
+                { n: stats.valid, c: '#fbbf24', l: 'À valider' },
+              ].map((s) => (
+                <div key={s.l} className="rounded-xl border border-white/[0.06] bg-[#0f172a] px-3 py-3 text-center">
+                  <div className="text-xl font-bold font-sora leading-none" style={{ color: s.c }}>{s.n}</div>
+                  <div className="text-[10.5px] text-slate-500 mt-1.5 font-inter">{s.l}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* À programmer */}
+            {aProgrammer.length > 0 && (
+              <div className="rounded-2xl border border-white/[0.06] bg-[#0b1322] p-4">
+                <h3 className="text-[13.5px] font-semibold font-sora flex items-center gap-2 mb-3">
+                  <AlertTriangle className="w-4 h-4 text-[#fbbf24]" />À programmer
+                  <span className="ml-auto text-[11px] text-slate-500 bg-white/[0.05] px-2 py-0.5 rounded-full">{aProgrammer.length}</span>
+                </h3>
+                <div className="divide-y divide-white/[0.06]">
+                  {aProgrammer.map((c) => (
+                    <div key={c.id} className="flex items-center gap-3 py-2.5 first:pt-0">
+                      <Thumb c={c} className="w-10 h-10" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[12.5px] font-medium text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 40) || 'Sans titre'}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{c.reseau_cible || '—'}{c.date_publication ? ` · ${new Date(c.date_publication).getDate()} ${MOIS_COURT[new Date(c.date_publication).getMonth()]}` : ' · pas de date'}</div>
+                      </div>
+                      <button onClick={() => openContenu(c)} title="Programmer" className="w-8 h-8 rounded-lg border border-white/10 text-cyan-400 hover:bg-cyan-500/15 grid place-items-center shrink-0">
+                        <Calendar className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Prochaines publications */}
+            <div className="rounded-2xl border border-white/[0.06] bg-[#0b1322] p-4">
+              <h3 className="text-[13.5px] font-semibold font-sora flex items-center gap-2 mb-3">
+                <Clock className="w-4 h-4 text-[#8A6CFF]" />Prochaines
+                <span className="ml-auto text-[11px] text-slate-500 bg-white/[0.05] px-2 py-0.5 rounded-full">{upcoming.length}</span>
+              </h3>
+              {upcoming.length === 0 ? (
+                <p className="text-slate-500 font-inter text-[12.5px] py-3 text-center">Aucune publication à venir.</p>
+              ) : (
+                <div className="divide-y divide-white/[0.06]">
+                  {upcoming.map((c) => {
+                    const pub = pubOf(c.publish_status);
+                    return (
+                      <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-3 py-2.5 first:pt-0 cursor-pointer hover:opacity-80">
+                        <Thumb c={c} className="w-10 h-10" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[12.5px] font-medium text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 40) || 'Sans titre'}</div>
+                          <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                            {pub && <pub.Icon className="w-3 h-3" style={{ color: pub.color }} strokeWidth={2.5} />}
+                            {new Date(c.date_publication).getDate()} {MOIS_COURT[new Date(c.date_publication).getMonth()]} · {hhmm(c.date_publication)} · {c.reseau_cible}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -293,7 +377,8 @@ export default function PlanificationPage() {
         </div>
       )}
 
-      {/* Prochaines publications */}
+      {/* Prochaines publications (vue liste uniquement — en mois c'est dans la sidebar) */}
+      {view === 'liste' && (
       <div>
         <h3 className="text-sm font-semibold font-sora mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-[#8A6CFF]" />Prochaines publications</h3>
         {upcoming.length === 0 ? (
@@ -320,6 +405,7 @@ export default function PlanificationPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* Pop-up détail / programmation */}
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
