@@ -1,24 +1,21 @@
 // Helpers de fuseau horaire : on stocke les dates en UTC, mais on les saisit / affiche
 // dans le fuseau de l'utilisateur (et Late publie à l'heure murale de ce fuseau).
 
+// Fuseaux supportés par Late (Zernio)
 export const COMMON_TIMEZONES = [
-  { value: 'Europe/Paris', label: 'Paris (France) — GMT+1/+2' },
+  { value: 'Europe/Paris', label: 'Paris (France)' },
   { value: 'Europe/Brussels', label: 'Bruxelles (Belgique)' },
-  { value: 'Europe/Zurich', label: 'Genève / Zurich (Suisse)' },
-  { value: 'Europe/Luxembourg', label: 'Luxembourg' },
   { value: 'Europe/London', label: 'Londres (UK)' },
-  { value: 'Europe/Lisbon', label: 'Lisbonne (Portugal)' },
-  { value: 'Europe/Madrid', label: 'Madrid (Espagne)' },
   { value: 'Africa/Casablanca', label: 'Casablanca (Maroc)' },
-  { value: 'Africa/Abidjan', label: "Abidjan (Côte d'Ivoire)" },
-  { value: 'Africa/Algiers', label: 'Alger (Algérie)' },
-  { value: 'Africa/Tunis', label: 'Tunis (Tunisie)' },
-  { value: 'America/Montreal', label: 'Montréal / Québec (Canada)' },
+  { value: 'America/Montreal', label: 'Montréal (Canada)' },
   { value: 'America/New_York', label: 'New York (US Est)' },
-  { value: 'America/Chicago', label: 'Chicago (US Centre)' },
   { value: 'America/Los_Angeles', label: 'Los Angeles (US Ouest)' },
+  { value: 'America/Sao_Paulo', label: 'São Paulo (Brésil)' },
   { value: 'Asia/Dubai', label: 'Dubaï (Émirats)' },
-  { value: 'Indian/Reunion', label: 'La Réunion' },
+  { value: 'Asia/Tokyo', label: 'Tokyo (Japon)' },
+  { value: 'Asia/Singapore', label: 'Singapour' },
+  { value: 'Australia/Sydney', label: 'Sydney (Australie)' },
+  { value: 'Pacific/Auckland', label: 'Auckland (Nouvelle-Zélande)' },
 ];
 
 const PAD = (n) => String(n).padStart(2, '0');
