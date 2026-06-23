@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Shield, Sparkles, BarChart3, MessageSquare, Calendar } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -6,10 +6,16 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
-import { setToken, setAdminToken } from '../lib/auth';
+import { setToken, setAdminToken, isAuthenticated, isAdminAuthenticated } from '../lib/auth';
 
 export default function Login() {
   const navigate = useNavigate();
+
+  // Déjà connecté ? -> on évite l'écran de login (l'app mobile démarre toujours sur "/")
+  useEffect(() => {
+    if (isAdminAuthenticated()) navigate('/admin', { replace: true });
+    else if (isAuthenticated()) navigate('/dashboard', { replace: true });
+  }, [navigate]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

@@ -15,12 +15,13 @@ export async function initPush() {
     }
     if (perm.receive !== 'granted') return;
 
-    await PushNotifications.register();
-
-    PushNotifications.addListener('registration', (t) => {
+    // Listeners AVANT register() (sinon l'event 'registration' part avant et le token est perdu)
+    await PushNotifications.addListener('registration', (t) => {
       notificationService.registerDeviceToken(t.value, Capacitor.getPlatform()).catch(() => {});
     });
-    PushNotifications.addListener('registrationError', () => {});
+    await PushNotifications.addListener('registrationError', () => {});
+
+    await PushNotifications.register();
   } catch (e) {
     /* ignore */
   }
