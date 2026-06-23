@@ -196,16 +196,20 @@ export default function PlanificationPage() {
 
   const Pill = ({ c }) => {
     const pub = pubOf(c.publish_status);
+    const net = netOf(c.reseau_cible);
     return (
       <button
         onClick={(e) => { e.stopPropagation(); openContenu(c); }}
-        title={pub ? pub.label : c.statut}
-        className="w-full flex items-center gap-1.5 px-1 py-1 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] transition-colors text-left cursor-pointer"
+        title={`${c.titre || ''}${pub ? ` · ${pub.label}` : ''}`}
+        className="w-full flex flex-col gap-1 px-1.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] transition-colors text-left cursor-pointer"
       >
-        <Thumb c={c} className="w-[22px] h-[22px]" />
-        <span className="flex-1 truncate text-[10.5px] font-medium text-slate-200">{c.titre || c.contenu?.slice(0, 30) || 'Sans titre'}</span>
-        {pub ? <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} />
-             : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: stOf(c.statut).sw }} />}
+        <div className="flex items-center gap-1.5">
+          <span className="w-[16px] h-[16px] rounded grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
+          <span className="flex-1 text-[9px] text-slate-500 truncate">{hhmm(c.date_publication)}</span>
+          {pub ? <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} />
+               : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: stOf(c.statut).sw }} />}
+        </div>
+        <span className="text-[10px] leading-[1.22] font-medium text-slate-200 line-clamp-2">{c.titre || c.contenu?.slice(0, 40) || 'Sans titre'}</span>
       </button>
     );
   };
