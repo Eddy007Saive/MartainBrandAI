@@ -98,7 +98,11 @@ def verify_signature(raw_body: bytes, signature: str) -> bool:
         b64 = base64.b64encode(hmac.new(LATE_WEBHOOK_SECRET.encode(), raw_body, hashlib.sha256).digest()).decode()
         sig = signature.split("=", 1)[-1].strip()
         if not (hmac.compare_digest(hexd, sig) or hmac.compare_digest(b64, sig)):
-            logger.warning("Late webhook: signature présente mais non vérifiée (schéma inconnu) — acceptée")
+            # Diagnostic du format (tronqué, sans exposer le secret) pour pouvoir implémenter le bon schéma
+            logger.info(
+                "Late webhook signature non matchée — format reçu=%r (len=%d) | attendu_hex_prefix=%s | attendu_b64_prefix=%s",
+                signature[:24], len(signature), hexd[:8], b64[:8],
+            )
     except Exception as e:
         logger.warning(f"Late webhook signature check error: {e}")
     return True
