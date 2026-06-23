@@ -135,3 +135,5 @@ android-sdk/ -e
 
 # uvicorn dev logs
 backend/_uvicorn.*
+
+backend/_uv.*
