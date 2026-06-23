@@ -184,10 +184,15 @@ def handle_webhook(payload: dict) -> dict:
     cid, tg, reseau = c["id"], c["telegram_id"], c.get("reseau_cible") or ""
     titre_c = (c.get("titre") or "Ton post")[:60]
 
+    # Late expose l'URL du post publié dans "publishedUrl" (objet platform top-level ou post.platforms[])
+    plat_obj = payload.get("platform") if isinstance(payload.get("platform"), dict) else {}
+    pub_url = (plat_obj.get("publishedUrl") or plat_obj.get("url") or plat_obj.get("platformPostUrl")
+               or plat0.get("publishedUrl") or plat0.get("platformPostUrl") or plat0.get("url")
+               or post.get("publishedUrl") or post.get("platformPostUrl") or post.get("url"))
+
     upd, notif = {}, None
     if "published" in event:                       # post.published / post.platform.published
-        url = (post.get("platformPostUrl") or post.get("url")
-               or plat0.get("platformPostUrl") or plat0.get("url"))
+        url = pub_url
         upd = {"publish_status": "publié", "statut": "Publie", "publish_error": None}
         if url:
             upd["lien_publication"] = url
