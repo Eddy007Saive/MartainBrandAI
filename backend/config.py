@@ -44,6 +44,11 @@ RESEND_FROM = os.environ.get('RESEND_FROM', 'PresenceOS <onboarding@resend.dev>'
 # URL du frontend (pour construire le lien de réinitialisation)
 FRONTEND_URL = (os.environ.get('FRONTEND_URL', 'http://localhost:3000')).rstrip('/')
 
+# Late / Zernio (publication sociale programmée)
+LATE_API_KEY = os.environ.get('LATE_API_KEY') or os.environ.get('api_late', '')
+LATE_API_BASE = (os.environ.get('LATE_API_BASE', 'https://getlate.dev/api/v1')).rstrip('/')
+LATE_WEBHOOK_SECRET = os.environ.get('LATE_WEBHOOK_SECRET', '')  # vérif signature HMAC des webhooks
+
 # Logging
 logging.basicConfig(
     level=logging.INFO,

@@ -23,4 +23,7 @@ export const contenuService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }).then(r => r.data);
   },
+
+  // Programme la publication du contenu via Late (push avec sa date)
+  publier: (id) => api.post(`/late/publier/${id}`).then(r => r.data),
 };

@@ -183,6 +183,7 @@ export default function ContenusPage() {
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [carrouselLoading, setCarrouselLoading] = useState(null);
+  const [publishLoading, setPublishLoading] = useState(null);
   const [lightbox, setLightbox] = useState(null); // { images:[], index:0 }
 
   const { user, updateUser } = useUser();
@@ -283,6 +284,25 @@ export default function ContenusPage() {
       else toast.error(e.response?.data?.detail || 'Échec de la régénération');
     } finally {
       setCarrouselLoading(null);
+    }
+  };
+
+  const programmerPublication = async (contenu) => {
+    if (publishLoading) return;
+    setPublishLoading(contenu.id);
+    try {
+      const d = await contenuService.publier(contenu.id);
+      const patch = { publish_status: d.publish_status, late_post_id: d.late_post_id, publish_error: null };
+      setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
+      setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, ...patch } : prev));
+      toast.success('Publication programmée ✓ — partira à la date prévue');
+    } catch (e) {
+      const msg = e.response?.data?.detail || 'Échec de la programmation';
+      setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, publish_status: 'échec', publish_error: msg } : c)));
+      setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, publish_status: 'échec', publish_error: msg } : prev));
+      toast.error(msg);
+    } finally {
+      setPublishLoading(null);
     }
   };
 
@@ -576,6 +596,22 @@ export default function ContenusPage() {
                       </Button>
                     </>
                   )}
+                  {/* Programmation de la publication (Late) */}
+                  {selectedContenu?.publish_status === 'programmé' && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 font-inter">
+                      <Clock className="w-3.5 h-3.5" /> Programmé
+                    </span>
+                  )}
+                  {selectedContenu?.statut !== 'Publie' && selectedContenu?.reseau_cible
+                    && !['programmé', 'publié'].includes(selectedContenu?.publish_status) && (
+                    <Button size="sm" onClick={() => programmerPublication(selectedContenu)}
+                      disabled={publishLoading === selectedContenu?.id}
+                      title={selectedContenu?.publish_status === 'échec' ? selectedContenu?.publish_error : 'Envoyer dans la file de publication (part à la date prévue)'}
+                      className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 font-inter">
+                      {publishLoading === selectedContenu?.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
+                      {selectedContenu?.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}
+                    </Button>
+                  )}
                   {selectedContenu?.statut === 'Publie' && selectedContenu?.lien_publication && (
                     <a href={selectedContenu.lien_publication} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" className="bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 font-inter">
@@ -585,6 +621,9 @@ export default function ContenusPage() {
                     </a>
                   )}
                 </div>
+                {selectedContenu?.publish_status === 'échec' && selectedContenu?.publish_error && (
+                  <p className="text-[12px] text-red-400 font-inter mt-2">⚠ Échec : {selectedContenu.publish_error}</p>
+                )}
               </div>
             </DialogHeader>
 
