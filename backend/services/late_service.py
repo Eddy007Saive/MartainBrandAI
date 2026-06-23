@@ -163,9 +163,24 @@ def handle_webhook(payload: dict) -> dict:
         return {"ok": False, "error": "no post id"}
 
     q = supabase.table("contenu").select("id, telegram_id, titre, reseau_cible").eq("late_post_id", post_id).execute()
-    if not q.data:
-        return {"ok": False, "error": "contenu introuvable"}
-    c = q.data[0]
+    if q.data:
+        c = q.data[0]
+    else:
+        # Filet de sécurité : retrouver par le TEXTE du post (cas où late_post_id n'a pas pu être stocké),
+        # puis réattacher l'id pour les prochains événements.
+        content = post.get("content") or ""
+        reseau_w = (plat0.get("platform") or post.get("platform") or "").lower()
+        cand = []
+        if content:
+            r = supabase.table("contenu").select("id, telegram_id, titre, reseau_cible, late_post_id").eq("contenu", content).execute()
+            cand = [x for x in (r.data or []) if not x.get("late_post_id")]
+            if reseau_w:
+                cand = [x for x in cand if (x.get("reseau_cible") or "").lower() == reseau_w] or cand
+        if not cand:
+            return {"ok": False, "error": "contenu introuvable"}
+        c = cand[0]
+        supabase.table("contenu").update({"late_post_id": post_id}).eq("id", c["id"]).execute()
+        logger.info(f"Webhook: contenu {c['id']} ré-attaché à late_post_id={post_id} (via texte)")
     cid, tg, reseau = c["id"], c["telegram_id"], c.get("reseau_cible") or ""
     titre_c = (c.get("titre") or "Ton post")[:60]
 
