@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
@@ -101,6 +101,11 @@ export default function StudioIA() {
   const [bReseau, setBReseau] = useState('linkedin');
   const [bType, setBType] = useState('Reel');
   const [bQualite, setBQualite] = useState('equilibre');
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const [photoReseau, setPhotoReseau] = useState('linkedin');
+  const [photoQualite, setPhotoQualite] = useState('equilibre');
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const photoRef = useRef(null);
 
   const [loadingSujets, setLoadingSujets] = useState(false);
   const [logIndex, setLogIndex] = useState(0);
@@ -212,6 +217,29 @@ export default function StudioIA() {
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: fmt === 'carrousel' ? 'carrousel' : 'pret', images: c.images || [] } : c)));
       erreurGen(e);
+    }
+  };
+
+  // --- Génération d'un post à partir d'une photo (vision) ---
+  const genererPhoto = async (file) => {
+    if (!file) return;
+    if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
+    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image (jpg, png, webp).'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    setPhotoLoading(true);
+    const cardId = nextId();
+    setContenus((prev) => [{ id: cardId, sujet: 'Post depuis une photo', statut: 'redaction', format: 'photo', meta: photoReseau, qualite: photoQualite }, ...prev]);
+    setPhotoOpen(false);
+    try {
+      const d = await agentService.redigerPhoto(file, photoReseau, photoQualite);
+      if (d.credits != null) updateUser({ credits: d.credits });
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'photo', texte: d.contenu || '', image: d.lien_visuel } : c)));
+    } catch (e) {
+      setContenus((prev) => prev.filter((c) => c.id !== cardId));
+      erreurGen(e);
+    } finally {
+      setPhotoLoading(false);
+      if (photoRef.current) photoRef.current.value = '';
     }
   };
 
@@ -388,6 +416,38 @@ export default function StudioIA() {
             )}
           </div>
 
+          {/* Depuis une photo (vision) */}
+          <div className="rounded-xl border border-white/5 bg-slate-950/40">
+            <button onClick={() => setPhotoOpen((o) => !o)} data-testid="studio-photo-toggle"
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-inter text-slate-300 hover:text-white transition-colors">
+              <ImageIcon className="w-4 h-4 text-[#3AFFA3]" />
+              <span>Générer depuis une photo</span>
+              <span className="ml-auto text-xs text-slate-500">{photoOpen ? '▲' : '▼'}</span>
+            </button>
+            {photoOpen && (
+              <div className="px-4 pb-4 space-y-3 animate-fade-in">
+                <p className="text-xs text-slate-500 font-inter">Importe une photo : l'IA l'analyse et écrit un post adapté au réseau. La photo devient le visuel.</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 font-inter">Réseau</span>
+                  {RESEAUX.map((r) => <Pill key={r.id} active={photoReseau === r.id} onClick={() => setPhotoReseau(r.id)}>{r.label}</Pill>)}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-slate-500 font-inter">Qualité</span>
+                  {QUALITES.map((q) => <Pill key={q.id} active={photoQualite === q.id} onClick={() => setPhotoQualite(q.id)}>{q.icon} {q.label} · {q.cout.post} cr.</Pill>)}
+                </div>
+                <input ref={photoRef} type="file" accept="image/*" className="hidden" data-testid="studio-photo-input"
+                  onChange={(e) => genererPhoto(e.target.files?.[0])} />
+                <div className="flex items-center justify-end">
+                  <Button onClick={() => photoRef.current?.click()} disabled={!marqueOk || photoLoading}
+                    className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
+                    {photoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                    <span className="ml-2">Choisir une photo · {QUALITES.find((q) => q.id === photoQualite)?.cout.post} cr.</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Logs */}
           {loadingSujets && (
             <div className="space-y-2 rounded-xl bg-slate-950/50 border border-white/5 p-4 animate-fade-in">
@@ -521,7 +581,7 @@ export default function StudioIA() {
                   className="rounded-xl border border-white/[0.06] bg-slate-950/40 p-4 space-y-3 transition-all duration-300 animate-fade-in">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-inter flex-shrink-0">
-                      {c.format === 'script' ? `🎬 ${c.meta}` : c.format === 'carrousel' ? `🖼 ${c.meta}` : c.meta}
+                      {c.format === 'script' ? `🎬 ${c.meta}` : c.format === 'carrousel' ? `🖼 ${c.meta}` : c.format === 'photo' ? `📷 ${c.meta}` : c.meta}
                     </span>
                     <span className="text-xs font-medium text-slate-400 font-inter flex-1 truncate">{c.sujet}</span>
                     <button onClick={() => supprimerContenu(c.id)} title="Retirer" className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
@@ -532,7 +592,15 @@ export default function StudioIA() {
                   {c.statut === 'redaction' ? (
                     <div className="flex items-center gap-2 text-slate-400 py-8 justify-center">
                       <Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" />
-                      <span className="font-inter text-sm">{c.format === 'carrousel' ? 'Création du carrousel… (slides + images)' : c.format === 'script' ? 'Écriture du script…' : 'Rédaction du post…'}</span>
+                      <span className="font-inter text-sm">{c.format === 'carrousel' ? 'Création du carrousel… (slides + images)' : c.format === 'photo' ? 'Analyse de la photo…' : c.format === 'script' ? 'Écriture du script…' : 'Rédaction du post…'}</span>
+                    </div>
+                  ) : c.format === 'photo' ? (
+                    <div className="space-y-3">
+                      {c.image && <img src={c.image} alt="" className="w-full rounded-lg border border-white/10 max-h-60 object-cover" />}
+                      <p className="text-sm text-slate-200 font-inter whitespace-pre-wrap">{c.texte}</p>
+                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-inter">
+                        <Check className="w-3.5 h-3.5" /> Post + photo enregistrés → onglet Contenus
+                      </div>
                     </div>
                   ) : c.format === 'carrousel' ? (
                     <div className="space-y-3">

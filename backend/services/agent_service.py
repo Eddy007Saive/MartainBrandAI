@@ -190,6 +190,41 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
     return {"contenu": _texte(resp), "usage": _usage(resp)}
 
 
+def rediger_depuis_photo(telegram_id: int, img_b64: str, media_type: str,
+                         reseau: str = "linkedin", model: str = None) -> dict:
+    """Vision : analyse une photo fournie et écrit un post adapté au réseau, dans la voix de marque."""
+    if not _client:
+        return {"error": "no_api_key"}
+    u = _charger_marque(telegram_id)
+    if not (u.get("secteur") or "").strip():
+        return {"error": "profil_incomplet"}
+    reseau_label = RESEAUX.get(reseau, "LinkedIn")
+    contexte = _contexte_marque(u)
+    exemples = (u.get(f"exemples_{reseau}") or "").strip()
+    extra = (f"\n\n## EXEMPLES DE POSTS {reseau_label} DU CLIENT (imite ce style)\n\n{exemples}" if exemples else "")
+    role = (
+        "Tu es le rédacteur attitré de la marque ci-dessous. On te donne une PHOTO. "
+        "Observe ce qu'elle montre (sujet, contexte, ambiance, détails) et écris un post prêt à publier "
+        "qui s'APPUIE sur cette photo, dans la voix de la marque — sans décrire la photo platement, "
+        "mais en t'en servant comme point de départ d'un message pertinent pour l'audience. "
+        "Accroche forte, lignes courtes, une idée, un appel à l'engagement. Donne uniquement le texte du post.\n\n"
+    )
+    resp = _client.messages.create(
+        model=model or CLAUDE_MODEL,
+        max_tokens=1200,
+        system=role + contexte + extra,
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
+                {"type": "text", "text": f"Écris UN post {reseau_label} prêt à publier à partir de cette photo, "
+                                         f"dans la voix de la marque. Donne uniquement le texte."},
+            ],
+        }],
+    )
+    return {"contenu": _texte(resp), "usage": _usage(resp)}
+
+
 # ---------------------------------------------------------------------------
 # Agent CARROUSEL (slides)
 # ---------------------------------------------------------------------------

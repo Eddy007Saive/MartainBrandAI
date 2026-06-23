@@ -36,6 +36,15 @@ export const agentService = {
   carrousel: (sujet, reseau = 'linkedin', nb_slides = 5, qualite = 'equilibre', contenu_id = null) =>
     api.post('/agent/carrousel', { sujet, reseau, nb_slides, qualite, contenu_id }).then((r) => r.data),
 
+  // Génère un post à partir d'une photo (vision) -> { contenu_id, contenu, lien_visuel, credits }
+  redigerPhoto: (file, reseau = 'linkedin', qualite = 'equilibre') => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('reseau', reseau);
+    form.append('qualite', qualite);
+    return api.post('/agent/rediger-photo', form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data);
+  },
+
   // Enregistre un script (édité) dans la table studio
   enregistrerScript: (script, titre, type_video = 'Reel') =>
     api.post('/agent/enregistrer-script', { script, titre, type_video }).then((r) => r.data),

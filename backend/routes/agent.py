@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+import base64
+import cloudinary
+import cloudinary.uploader
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from datetime import datetime, timezone
 from dependencies import verify_token
 from services import agent_service, credit_service, usage_service, image_service, planning_service, plan_service, carrousel_service
@@ -249,6 +252,55 @@ async def rediger(body: dict, payload: dict = Depends(verify_token)):
         result["contenu_id"] = ins.data[0]["id"] if ins.data else None
     result["credits"] = solde
     return result
+
+
+@router.post("/rediger-photo")
+async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linkedin"),
+                        qualite: str = Form("equilibre"), payload: dict = Depends(verify_token)):
+    """Vision : génère un post à partir d'une photo (la photo devient aussi le visuel) -> Contenus."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image (jpg, png, webp…)")
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
+    reseau = (reseau or "linkedin").lower()
+    cost = credit_service.cout("post", qualite)
+    solde = credit_service.deduct(telegram_id, cost)
+    if solde < 0:
+        raise HTTPException(status_code=402, detail="Crédits insuffisants")
+    try:
+        r = agent_service.rediger_depuis_photo(
+            telegram_id, base64.b64encode(data).decode(), file.content_type,
+            reseau, agent_service.QUALITE_MODELS.get(qualite))
+    except Exception as e:
+        credit_service.refund(telegram_id, cost)
+        logger.error(f"rediger-photo error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    if r.get("error"):
+        credit_service.refund(telegram_id, cost)
+        _map_agent_error(r)
+    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), r.get("usage"), cost, qualite)
+
+    texte = r["contenu"]
+    lien = None
+    try:  # la photo devient le visuel du post
+        up = cloudinary.uploader.upload(data, resource_type="image", folder=f"contenus/{telegram_id}", invalidate=True)
+        lien = up["secure_url"]
+    except Exception as e:
+        logger.error(f"rediger-photo cloudinary error: {e}")
+    titre = ((texte.split("\n", 1)[0] if texte else "") or "Post photo")[:120]
+    row = {"telegram_id": telegram_id, "titre": titre, "contenu": texte, "statut": "A valider",
+           "created_at": datetime.now(timezone.utc).isoformat()}
+    if reseau in RESEAU_MAP:
+        row["reseau_cible"] = RESEAU_MAP[reseau]
+    if lien:
+        row["lien_visuel"] = lien
+    ins = supabase.table("contenu").insert(row).execute()
+    cid = ins.data[0]["id"] if ins.data else None
+    return {"contenu_id": cid, "contenu": texte, "lien_visuel": lien, "credits": solde}
 
 
 @router.post("/carrousel")
