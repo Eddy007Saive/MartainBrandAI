@@ -30,6 +30,23 @@ def _media_items(contenu: dict, reseau: str) -> list:
     return []
 
 
+def _to_paris_iso(value: str) -> str:
+    """Convertit une date (UTC ou naïve) en ISO 8601 avec le décalage Europe/Paris explicite,
+    pour que Late publie à l'heure murale française sans ambiguïté (ex. 10:42+02:00)."""
+    try:
+        import re
+        from zoneinfo import ZoneInfo
+        s = str(value).strip().replace("Z", "+00:00").replace(" ", "T")
+        s = re.sub(r"([+-]\d{2})$", r"\1:00", s)  # +00 -> +00:00
+        dt = datetime.fromisoformat(s)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(ZoneInfo(DEFAULT_TZ)).isoformat()
+    except Exception as e:
+        logger.warning(f"_to_paris_iso fallback ({e}) pour {value!r}")
+        return str(value)
+
+
 def _err_message(r: httpx.Response) -> str:
     try:
         d = r.json()
@@ -58,7 +75,7 @@ async def publish_contenu(telegram_id: int, contenu: dict) -> dict:
         "timezone": DEFAULT_TZ,
     }
     if contenu.get("date_publication"):
-        body["scheduledFor"] = contenu["date_publication"]
+        body["scheduledFor"] = _to_paris_iso(contenu["date_publication"])
     media = _media_items(contenu, reseau)
     if media:
         body["mediaItems"] = media
