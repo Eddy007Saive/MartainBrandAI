@@ -92,29 +92,74 @@ def verify_signature(raw_body: bytes, signature: str) -> bool:
     return hmac.compare_digest(expected, sig)
 
 
+def _notify(telegram_id, contenu_id, reseau, event, titre, message):
+    try:
+        supabase.table("notifications").insert({
+            "telegram_id": telegram_id, "type": "publication", "event": event,
+            "titre": titre, "message": message, "contenu_id": contenu_id, "reseau": reseau,
+        }).execute()
+    except Exception as e:
+        logger.warning(f"notif insert error: {e}")
+
+
+async def cancel_post(late_post_id: str) -> dict:
+    """Annule un post programmé dans Late."""
+    if not LATE_API_KEY:
+        return {"ok": False, "error": "Clé Late non configurée"}
+    try:
+        async with httpx.AsyncClient(timeout=30) as c:
+            r = await c.delete(f"{LATE_API_BASE}/posts/{late_post_id}",
+                               headers={"Authorization": f"Bearer {LATE_API_KEY}"})
+        if r.status_code in (200, 204):
+            return {"ok": True}
+        return {"ok": False, "error": _err_message(r)}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 def handle_webhook(payload: dict) -> dict:
-    """Traite un événement Late et met à jour le contenu correspondant (par late_post_id)."""
-    event = payload.get("event") or payload.get("type") or ""
+    """Traite TOUS les événements Late : met à jour le statut du contenu + crée une notification."""
+    event = (payload.get("event") or payload.get("type") or "").lower()
     data = payload.get("data") or payload
     post_id = data.get("postId") or data.get("_id") or data.get("id") or (data.get("post") or {}).get("_id")
     if not post_id:
         return {"ok": False, "error": "no post id"}
 
-    q = supabase.table("contenu").select("id, telegram_id").eq("late_post_id", post_id).execute()
+    q = supabase.table("contenu").select("id, telegram_id, titre, reseau_cible").eq("late_post_id", post_id).execute()
     if not q.data:
         return {"ok": False, "error": "contenu introuvable"}
-    cid = q.data[0]["id"]
+    c = q.data[0]
+    cid, tg, reseau = c["id"], c["telegram_id"], c.get("reseau_cible") or ""
+    titre_c = (c.get("titre") or "Ton post")[:60]
 
-    if event.endswith("published"):
-        url = (data.get("platformPostUrl") or data.get("url")
-               or (data.get("post") or {}).get("platformPostUrl"))
+    upd, notif = {}, None
+    if "published" in event:                       # post.published / post.platform.published
+        url = data.get("platformPostUrl") or data.get("url") or (data.get("post") or {}).get("platformPostUrl")
         upd = {"publish_status": "publié", "statut": "Publie", "publish_error": None}
         if url:
             upd["lien_publication"] = url
+        notif = ("Post publié ✅", f"« {titre_c} » a été publié sur {reseau}.")
+    elif "partial" in event:                       # post.partial
+        upd = {"publish_status": "partiel"}
+        notif = ("Publication partielle ⚠️", f"« {titre_c} » a été publié partiellement sur {reseau}.")
+    elif "failed" in event:                        # post.failed / post.platform.failed
+        reason = data.get("error") or data.get("message") or "raison inconnue"
+        upd = {"publish_status": "échec", "publish_error": str(reason)[:400]}
+        notif = ("Échec de publication ❌", f"« {titre_c} » n'a pas pu être publié sur {reseau} : {reason}")
+    elif "scheduled" in event:                     # post.scheduled (confirme la mise en file)
+        upd = {"publish_status": "programmé"}
+        notif = ("Publication programmée ⏱", f"« {titre_c} » est programmé sur {reseau}.")
+    elif "cancelled" in event:                     # post.cancelled
+        upd = {"publish_status": "annulé"}
+        notif = ("Publication annulée", f"La publication de « {titre_c} » sur {reseau} a été annulée.")
+    elif "recycled" in event:                      # post.recycled
+        upd = {"publish_status": "programmé"}
+        notif = ("Post recyclé ♻️", f"« {titre_c} » a été reprogrammé sur {reseau}.")
+    else:
+        return {"ok": True, "ignored": event}
+
+    if upd:
         supabase.table("contenu").update(upd).eq("id", cid).execute()
-    elif event.endswith("failed"):
-        reason = data.get("error") or data.get("message") or "Échec de publication"
-        supabase.table("contenu").update(
-            {"publish_status": "échec", "publish_error": str(reason)[:400]}
-        ).eq("id", cid).execute()
+    if notif:
+        _notify(tg, cid, reseau, event, notif[0], notif[1])
     return {"ok": True, "contenu_id": cid, "event": event}

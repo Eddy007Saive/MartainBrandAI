@@ -51,6 +51,16 @@ const STATUT_CONFIG = {
 };
 const STATUT_DEFAUT = { label: '', bg: 'bg-slate-500/15', text: 'text-slate-400', border: 'border-slate-500/25', dot: 'bg-slate-400', icon: FileText };
 
+// Statut de publication (Late)
+const PUBLISH_BADGE = {
+  envoi: { label: '⏳ Envoi…', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
+  'programmé': { label: '⏱ Programmé', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
+  'publié': { label: '✅ Publié', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
+  partiel: { label: '⚠️ Partiel', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
+  'échec': { label: '❌ Échec', cls: 'bg-red-500/15 text-red-400 border-red-500/25' },
+  'annulé': { label: 'Annulé', cls: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
+};
+
 // Video types = scripts vidéo, le reste = posts
 const VIDEO_TYPES = ['Video', 'Reel', 'Short'];
 const isVideoType = (c) => VIDEO_TYPES.includes(c.type);
@@ -301,6 +311,22 @@ export default function ContenusPage() {
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, publish_status: 'échec', publish_error: msg } : c)));
       setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, publish_status: 'échec', publish_error: msg } : prev));
       toast.error(msg);
+    } finally {
+      setPublishLoading(null);
+    }
+  };
+
+  const annulerPublication = async (contenu) => {
+    if (publishLoading) return;
+    setPublishLoading(contenu.id);
+    try {
+      const d = await contenuService.annuler(contenu.id);
+      const patch = { publish_status: d.publish_status, late_post_id: null };
+      setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
+      setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, ...patch } : prev));
+      toast.success('Envoi annulé');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Échec de l'annulation");
     } finally {
       setPublishLoading(null);
     }
@@ -596,20 +622,30 @@ export default function ContenusPage() {
                       </Button>
                     </>
                   )}
-                  {/* Programmation de la publication (Late) */}
-                  {selectedContenu?.publish_status === 'programmé' && (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 font-inter">
-                      <Clock className="w-3.5 h-3.5" /> Programmé
+                  {/* Statut de publication (Late) */}
+                  {PUBLISH_BADGE[selectedContenu?.publish_status] && (
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium font-inter border ${PUBLISH_BADGE[selectedContenu.publish_status].cls}`}>
+                      {PUBLISH_BADGE[selectedContenu.publish_status].label}
                     </span>
                   )}
+                  {/* Programmer / Réessayer (états non actifs) */}
                   {selectedContenu?.statut !== 'Publie' && selectedContenu?.reseau_cible
-                    && !['programmé', 'publié'].includes(selectedContenu?.publish_status) && (
+                    && ['', null, undefined, 'échec', 'annulé'].includes(selectedContenu?.publish_status) && (
                     <Button size="sm" onClick={() => programmerPublication(selectedContenu)}
                       disabled={publishLoading === selectedContenu?.id}
                       title={selectedContenu?.publish_status === 'échec' ? selectedContenu?.publish_error : 'Envoyer dans la file de publication (part à la date prévue)'}
                       className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 font-inter">
                       {publishLoading === selectedContenu?.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
                       {selectedContenu?.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}
+                    </Button>
+                  )}
+                  {/* Annuler l'envoi (en file) */}
+                  {['envoi', 'programmé'].includes(selectedContenu?.publish_status) && (
+                    <Button size="sm" onClick={() => annulerPublication(selectedContenu)}
+                      disabled={publishLoading === selectedContenu?.id}
+                      className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 font-inter">
+                      {publishLoading === selectedContenu?.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <X className="w-4 h-4 mr-1.5" />}
+                      Annuler l'envoi
                     </Button>
                   )}
                   {selectedContenu?.statut === 'Publie' && selectedContenu?.lien_publication && (

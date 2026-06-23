@@ -21,18 +21,41 @@ async def publier(contenu_id: str, payload: dict = Depends(verify_token)):
 
     res = await late_service.publish_contenu(telegram_id, contenu)
     if res.get("ok"):
+        # 'envoi' : confirmé 'programmé' quand Late renverra l'event post.scheduled
         supabase.table("contenu").update({
             "late_post_id": res.get("late_post_id"),
-            "publish_status": "programmé",
+            "publish_status": "envoi",
             "publish_error": None,
         }).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
-        return {"publish_status": "programmé", "late_post_id": res.get("late_post_id")}
+        return {"publish_status": "envoi", "late_post_id": res.get("late_post_id")}
 
     # échec -> on stocke la raison (visible dans l'app) et on remonte un message clair
     supabase.table("contenu").update({
         "publish_status": "échec", "publish_error": res.get("error"),
     }).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     raise HTTPException(status_code=502, detail=res.get("error") or "Échec de la publication")
+
+
+@router.post("/annuler/{contenu_id}")
+async def annuler(contenu_id: str, payload: dict = Depends(verify_token)):
+    """Annule l'envoi d'un contenu programmé dans Late."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    contenu = contenu_service.get_contenu(contenu_id, telegram_id)
+    if not contenu:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    if contenu.get("publish_status") == "publié":
+        raise HTTPException(status_code=409, detail="Déjà publié — impossible d'annuler.")
+    if not contenu.get("late_post_id"):
+        raise HTTPException(status_code=400, detail="Ce contenu n'a pas été programmé.")
+    res = await late_service.cancel_post(contenu["late_post_id"])
+    if not res.get("ok"):
+        raise HTTPException(status_code=502, detail=res.get("error") or "Échec de l'annulation")
+    supabase.table("contenu").update(
+        {"publish_status": "annulé", "late_post_id": None}
+    ).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+    return {"publish_status": "annulé"}
 
 
 @router.post("/webhook")

@@ -26,4 +26,7 @@ export const contenuService = {
 
   // Programme la publication du contenu via Late (push avec sa date)
   publier: (id) => api.post(`/late/publier/${id}`).then(r => r.data),
+
+  // Annule l'envoi d'un contenu programmé dans Late
+  annuler: (id) => api.post(`/late/annuler/${id}`).then(r => r.data),
 };

@@ -4,6 +4,7 @@ import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut
 import { UserProvider, useUser } from '../context/UserContext';
 import { removeToken } from '../lib/auth';
 import { cn } from '../lib/utils';
+import NotificationsBell from '../components/NotificationsBell';
 
 const navItems = [
   { path: '/dashboard', label: 'Accueil', icon: Home },
@@ -118,9 +119,17 @@ function DashboardContent() {
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#080c17]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
         <Brand />
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-400 hover:text-white">
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationsBell />
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-400 hover:text-white">
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Cloche notifications (desktop) */}
+      <div className="hidden md:block fixed top-5 right-7 z-30">
+        <NotificationsBell />
       </div>
 
       {/* Mobile Menu */}
