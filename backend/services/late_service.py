@@ -7,9 +7,9 @@ Late le met en file et publie tout seul à l'heure, puis envoie un webhook
 """
 import hmac
 import hashlib
-import httpx
 from datetime import datetime, timezone
-from config import supabase, logger, LATE_API_KEY, LATE_API_BASE, LATE_WEBHOOK_SECRET
+from zernio import Zernio, ZernioError
+from config import supabase, logger, LATE_API_KEY, LATE_WEBHOOK_SECRET
 
 PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube"}
 ACCOUNT_COL = {p: f"late_account_{p}" for p in PLATFORMS}
@@ -47,17 +47,12 @@ def _to_tz_iso(value: str, tz: str) -> str:
         return str(value)
 
 
-def _err_message(r: httpx.Response) -> str:
-    try:
-        d = r.json()
-        return (d.get("error", {}).get("message") if isinstance(d.get("error"), dict)
-                else d.get("error") or d.get("message")) or f"Erreur Late {r.status_code}"
-    except Exception:
-        return f"Erreur Late {r.status_code}"
+def _client() -> Zernio:
+    return Zernio(api_key=LATE_API_KEY)
 
 
 async def publish_contenu(telegram_id: int, contenu: dict) -> dict:
-    """Pousse un contenu dans Late. Retourne {ok, late_post_id, status} ou {ok:False, error}."""
+    """Pousse un contenu dans Late via le SDK Zernio. Retourne {ok, late_post_id, status} ou {ok:False, error}."""
     if not LATE_API_KEY:
         return {"ok": False, "error": "Publication indisponible : clé Late non configurée (contacte le support)."}
     reseau = (contenu.get("reseau_cible") or "").lower()
@@ -71,37 +66,39 @@ async def publish_contenu(telegram_id: int, contenu: dict) -> dict:
     if not account_id:
         return {"ok": False, "error": f"Compte {reseau.capitalize()} non connecté. Connecte-le dans Paramètres."}
 
-    body = {
-        "content": contenu.get("contenu") or "",
+    content = contenu.get("contenu") or ""
+    media = _media_items(contenu, reseau)
+    if not content and not media:
+        return {"ok": False, "error": "Le contenu est vide (ni texte ni visuel)."}
+
+    kwargs = {
+        "content": content,
         "platforms": [{"platform": reseau, "accountId": account_id}],
         "timezone": user_tz,
     }
-    if contenu.get("date_publication"):
-        body["scheduledFor"] = _to_tz_iso(contenu["date_publication"], user_tz)
-    media = _media_items(contenu, reseau)
     if media:
-        body["mediaItems"] = media
-    if not body["content"] and not media:
-        return {"ok": False, "error": "Le contenu est vide (ni texte ni visuel)."}
+        kwargs["media_items"] = media
+    if contenu.get("date_publication"):
+        kwargs["scheduled_for"] = _to_tz_iso(contenu["date_publication"], user_tz)
 
     try:
-        async with httpx.AsyncClient(timeout=60) as c:
-            r = await c.post(f"{LATE_API_BASE}/posts",
-                             headers={"Authorization": f"Bearer {LATE_API_KEY}", "Content-Type": "application/json"},
-                             json=body)
+        async with _client() as c:
+            r = await c.posts.acreate(**kwargs)
+    except ZernioError as e:
+        msg = getattr(e, "message", None) or str(e)
+        logger.error(f"Late publish error: {msg}")
+        return {"ok": False, "error": msg}
     except Exception as e:
         logger.error(f"Late publish exception: {e}")
         return {"ok": False, "error": "Late injoignable, réessaie."}
 
-    if r.status_code in (200, 201):
-        d = r.json()
-        p = d.get("post") if isinstance(d.get("post"), dict) else (d.get("data") if isinstance(d.get("data"), dict) else d)
-        late_id = p.get("_id") or p.get("id") or d.get("_id") or d.get("id") or d.get("postId")
-        if not late_id:
-            logger.error(f"Late publish: id introuvable dans la réponse: {str(d)[:300]}")
-        return {"ok": True, "late_post_id": late_id, "status": p.get("status") or d.get("status") or "scheduled"}
-    logger.error(f"Late publish error {r.status_code}: {r.text[:300]}")
-    return {"ok": False, "error": _err_message(r)}
+    post = getattr(r, "post", None)
+    late_id = getattr(post, "field_id", None) if post else None
+    status = getattr(post, "status", None) if post else None
+    status = getattr(status, "value", None) or str(status) if status else "scheduled"
+    if not late_id:
+        logger.error(f"Late publish: id introuvable dans la réponse SDK: {r}")
+    return {"ok": True, "late_post_id": late_id, "status": status}
 
 
 def verify_signature(raw_body: bytes, signature: str) -> bool:
@@ -138,16 +135,15 @@ def _notify(telegram_id, contenu_id, reseau, event, titre, message):
 
 
 async def cancel_post(late_post_id: str) -> dict:
-    """Annule un post programmé dans Late."""
+    """Supprime un post dans Late (Zernio deletePost) — annulation d'envoi ou suppression."""
     if not LATE_API_KEY:
         return {"ok": False, "error": "Clé Late non configurée"}
     try:
-        async with httpx.AsyncClient(timeout=30) as c:
-            r = await c.delete(f"{LATE_API_BASE}/posts/{late_post_id}",
-                               headers={"Authorization": f"Bearer {LATE_API_KEY}"})
-        if r.status_code in (200, 204):
-            return {"ok": True}
-        return {"ok": False, "error": _err_message(r)}
+        async with _client() as c:
+            await c.posts.adelete(post_id=late_post_id)
+        return {"ok": True}
+    except ZernioError as e:
+        return {"ok": False, "error": getattr(e, "message", None) or str(e)}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
