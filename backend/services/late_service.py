@@ -30,9 +30,9 @@ def _media_items(contenu: dict, reseau: str) -> list:
     return []
 
 
-def _to_paris_iso(value: str) -> str:
-    """Convertit une date (UTC ou naïve) en ISO 8601 avec le décalage Europe/Paris explicite,
-    pour que Late publie à l'heure murale française sans ambiguïté (ex. 10:42+02:00)."""
+def _to_tz_iso(value: str, tz: str) -> str:
+    """Convertit une date (UTC ou naïve) en ISO 8601 avec le décalage du fuseau `tz` explicite,
+    pour que Late publie à l'heure murale du client sans ambiguïté (ex. 10:42+02:00)."""
     try:
         import re
         from zoneinfo import ZoneInfo
@@ -41,9 +41,9 @@ def _to_paris_iso(value: str) -> str:
         dt = datetime.fromisoformat(s)
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(ZoneInfo(DEFAULT_TZ)).isoformat()
+        return dt.astimezone(ZoneInfo(tz or DEFAULT_TZ)).isoformat()
     except Exception as e:
-        logger.warning(f"_to_paris_iso fallback ({e}) pour {value!r}")
+        logger.warning(f"_to_tz_iso fallback ({e}) pour {value!r} tz={tz!r}")
         return str(value)
 
 
@@ -64,18 +64,20 @@ async def publish_contenu(telegram_id: int, contenu: dict) -> dict:
     if reseau not in PLATFORMS:
         return {"ok": False, "error": "Aucun réseau cible défini sur ce contenu."}
 
-    res = supabase.table("users").select(ACCOUNT_COL[reseau]).eq("telegram_id", telegram_id).execute()
-    account_id = res.data[0].get(ACCOUNT_COL[reseau]) if res.data else None
+    res = supabase.table("users").select(f"{ACCOUNT_COL[reseau]}, timezone").eq("telegram_id", telegram_id).execute()
+    row = res.data[0] if res.data else {}
+    account_id = row.get(ACCOUNT_COL[reseau])
+    user_tz = row.get("timezone") or DEFAULT_TZ
     if not account_id:
         return {"ok": False, "error": f"Compte {reseau.capitalize()} non connecté. Connecte-le dans Paramètres."}
 
     body = {
         "content": contenu.get("contenu") or "",
         "platforms": [{"platform": reseau, "accountId": account_id}],
-        "timezone": DEFAULT_TZ,
+        "timezone": user_tz,
     }
     if contenu.get("date_publication"):
-        body["scheduledFor"] = _to_paris_iso(contenu["date_publication"])
+        body["scheduledFor"] = _to_tz_iso(contenu["date_publication"], user_tz)
     media = _media_items(contenu, reseau)
     if media:
         body["mediaItems"] = media

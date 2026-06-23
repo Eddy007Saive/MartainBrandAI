@@ -7,6 +7,7 @@ import { SocialIcon } from '../components/SocialIcon';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
+import { utcToInput, inputToUtc, timeInTz, tzAbbrev, browserTz } from '../lib/tz';
 
 const PUBLISH_BADGE = {
   envoi: { label: '⏳ Envoi…', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
@@ -15,11 +16,6 @@ const PUBLISH_BADGE = {
   partiel: { label: '⚠️ Partiel', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
   'échec': { label: '❌ Échec', cls: 'bg-red-500/15 text-red-400 border-red-500/25' },
   'annulé': { label: 'Annulé', cls: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
-};
-const toLocalInput = (iso) => {
-  if (!iso) return '';
-  const d = new Date(iso); const p = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 };
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -91,7 +87,8 @@ export default function PlanificationPage() {
     }
   };
 
-  const openContenu = (c) => { setSelected(c); setDateVal(toLocalInput(c.date_publication)); };
+  const tz = user?.timezone || browserTz();
+  const openContenu = (c) => { setSelected(c); setDateVal(utcToInput(c.date_publication, tz)); };
   const patchSel = (patch) => {
     setContenus((prev) => prev.map((c) => (c.id === selected.id ? { ...c, ...patch } : c)));
     setSelected((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -101,7 +98,7 @@ export default function PlanificationPage() {
     if (!dateVal || !selected) return;
     setBusy(true);
     try {
-      const iso = new Date(dateVal).toISOString();
+      const iso = inputToUtc(dateVal, tz);
       await contenuService.update(selected.id, { date_publication: iso });
       patchSel({ date_publication: iso });
       toast.success('Date mise à jour');
@@ -160,7 +157,7 @@ export default function PlanificationPage() {
     if (!c.date_publication) return false;
     return new Date(c.date_publication).toDateString() === date.toDateString();
   });
-  const hhmm = (iso) => { try { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); } catch { return ''; } };
+  const hhmm = (iso) => timeInTz(iso, tz);
 
   const moisContenus = useMemo(() => contenus
     .filter((c) => { if (!c.date_publication) return false; const d = new Date(c.date_publication); return d.getFullYear() === year && d.getMonth() === month; })
@@ -372,11 +369,11 @@ export default function PlanificationPage() {
 
                 {/* Date picker */}
                 <div className="space-y-1.5">
-                  <label className="text-xs text-slate-400 font-inter">Date de publication</label>
+                  <label className="text-xs text-slate-400 font-inter">Date de publication <span className="text-slate-600">({tz.split('/').pop().replace('_', ' ')} · {tzAbbrev(tz)})</span></label>
                   <div className="flex gap-2">
                     <input type="datetime-local" value={dateVal} onChange={(e) => setDateVal(e.target.value)}
                       className="flex-1 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 outline-none focus:border-[#5B6CFF]/50" />
-                    <Button size="sm" onClick={saveDate} disabled={busy || !dateVal || toLocalInput(selected.date_publication) === dateVal}
+                    <Button size="sm" onClick={saveDate} disabled={busy || !dateVal || utcToInput(selected.date_publication, tz) === dateVal}
                       className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">Enregistrer</Button>
                   </div>
                 </div>

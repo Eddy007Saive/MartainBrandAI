@@ -40,6 +40,7 @@ class UserUpdate(BaseModel):
     gpt_url_default: Optional[str] = None
     telegram_bot_token: Optional[str] = None
     telegram_bot_username: Optional[str] = None
+    timezone: Optional[str] = None
 
 
 class UserResponse(BaseModel):
@@ -69,6 +70,7 @@ class UserResponse(BaseModel):
     gpt_url_default: Optional[str] = None
     telegram_bot_token: Optional[str] = None
     telegram_bot_username: Optional[str] = None
+    timezone: Optional[str] = None
     created_at: Optional[str] = None
 
 

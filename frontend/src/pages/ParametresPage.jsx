@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Field } from '../components/Field';
 import { ColorField } from '../components/ColorField';
+import { COMMON_TIMEZONES } from '../lib/tz';
 import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
 import { scheduleService } from '../services/scheduleService';
@@ -513,6 +514,20 @@ export default function ParametresPage() {
         </div>
         <Field label="Style vestimentaire" name="style_vestimentaire" value={user?.style_vestimentaire} onChange={handleChange}
           hint="Ex: Casual, Business, Sportif, Élégant, Streetwear…" />
+        <div className="space-y-2">
+          <Label className="text-sm font-medium text-slate-300 font-inter">Fuseau horaire</Label>
+          <Select value={user?.timezone || 'Europe/Paris'} onValueChange={(v) => handleChange('timezone', v)}>
+            <SelectTrigger data-testid="field-timezone" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
+              <SelectValue placeholder="Sélectionner" />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-900 border-slate-800 max-h-72">
+              {COMMON_TIMEZONES.map((t) => (
+                <SelectItem key={t.value} value={t.value} className="text-slate-200 focus:bg-slate-800">{t.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-slate-500 font-inter">Vos publications partiront à l'heure de ce fuseau.</p>
+        </div>
       </div>
     </div>
   );
