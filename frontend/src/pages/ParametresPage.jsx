@@ -1095,7 +1095,7 @@ export default function ParametresPage() {
       )}
 
       {/* Two-panel layout */}
-      <div className="flex gap-6 min-h-[calc(100vh-220px)]">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 md:min-h-[calc(100vh-220px)]">
 
         {/* Left sub-nav (carte) */}
         <nav className="w-[220px] flex-shrink-0 hidden md:flex flex-col gap-1 p-2 rounded-2xl border border-white/[0.06] bg-[#0f172a] self-start sticky top-6">

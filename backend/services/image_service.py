@@ -17,7 +17,7 @@ from config import (
     CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
     supabase, logger,
 )
-from services.agent_service import _charger_marque
+from services.agent_service import _charger_marque, _messages_create
 
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
 
@@ -56,7 +56,7 @@ def generer_prompt(telegram_id: int, post_texte: str, reseau: str = "linkedin") 
             "de style au moment de la génération : décris surtout le SUJET et la SCÈNE, et reste "
             "cohérent avec ces références (le style visuel sera guidé par elles)."
         )
-    resp = _client.messages.create(
+    resp = _messages_create(
         model="claude-haiku-4-5",
         max_tokens=400,
         system=ROLE_PROMPT + contexte,

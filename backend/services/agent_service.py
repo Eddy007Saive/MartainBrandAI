@@ -9,10 +9,38 @@ telegram_id. La voix de marque est mise en cache (prompt caching) → coût réd
 """
 
 import json
+import time
 import anthropic
 from config import CLAUDE_API_KEY, CLAUDE_MODEL, supabase, logger
 
 _client = anthropic.Anthropic(api_key=CLAUDE_API_KEY) if CLAUDE_API_KEY else None
+
+
+class GenerationError(Exception):
+    """Erreur de génération présentée à l'utilisateur (message générique, sans fuite du fournisseur)."""
+
+
+def _messages_create(**kwargs):
+    """Appel LLM centralisé : retry sur surcharge/limite (529/429/5xx) + message propre.
+    Ne laisse jamais remonter l'erreur brute du fournisseur (anti-fuite)."""
+    last = None
+    for attempt in range(4):
+        try:
+            return _client.messages.create(**kwargs)
+        except Exception as e:
+            last = e
+            code = getattr(e, "status_code", None)
+            msg = str(getattr(e, "message", "") or e).lower()
+            retryable = (code in (408, 409, 429, 500, 502, 503, 504, 529)
+                         or "overloaded" in msg or "rate" in msg
+                         or isinstance(e, getattr(anthropic, "APIConnectionError", ())))
+            if not retryable or attempt == 3:
+                break
+            time.sleep(0.8 * (2 ** attempt))  # 0.8s, 1.6s, 3.2s
+    logger.error(f"LLM generation error (after retries): {last}")
+    raise GenerationError(
+        "Le service de génération est momentanément surchargé. Réessaie dans quelques secondes."
+    )
 
 RESEAUX = {
     "linkedin": "LinkedIn",
@@ -127,7 +155,7 @@ def generer_sujets(telegram_id: int, nombre: int = 6) -> dict:
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
 
-    resp = _client.messages.create(
+    resp = _messages_create(
         model=SUJETS_MODEL,
         max_tokens=900,
         system=ROLE_SUJETS + contexte,
@@ -173,7 +201,7 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
             f"(imite ce style, cette structure et ce ton — n'invente pas un autre style)\n\n{exemples}"
         )
 
-    resp = _client.messages.create(
+    resp = _messages_create(
         model=model or CLAUDE_MODEL,
         max_tokens=1200,
         system=_system(ROLE_REDACTION, contexte, extra, cache),
@@ -209,7 +237,7 @@ def rediger_depuis_photo(telegram_id: int, img_b64: str, media_type: str,
         "mais en t'en servant comme point de départ d'un message pertinent pour l'audience. "
         "Accroche forte, lignes courtes, une idée, un appel à l'engagement. Donne uniquement le texte du post.\n\n"
     )
-    resp = _client.messages.create(
+    resp = _messages_create(
         model=model or CLAUDE_MODEL,
         max_tokens=1200,
         system=role + contexte + extra,
@@ -262,7 +290,7 @@ def rediger_carrousel(telegram_id: int, sujet: str, nb_slides: int = 5, model: s
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
     nb_idees = max(1, nb_slides - 2)  # hook + idées + cta
-    resp = _client.messages.create(
+    resp = _messages_create(
         model=model or CLAUDE_MODEL,
         max_tokens=1600,
         system=_system(ROLE_CARROUSEL, contexte, "", cache),
@@ -338,7 +366,7 @@ def rediger_script(telegram_id: int, sujet: str, type_video: str = "Reel", model
     contexte = _contexte_marque(u)
     tv = TYPES_VIDEO.get(type_video, type_video)
 
-    resp = _client.messages.create(
+    resp = _messages_create(
         model=model or CLAUDE_MODEL,
         max_tokens=1500,
         system=_system(ROLE_SCRIPT, contexte, "", cache),

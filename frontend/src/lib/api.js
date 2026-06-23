@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getToken } from './auth';
+import { getToken, logout } from './auth';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -24,8 +24,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('adminToken');
+      logout();  // efface localStorage + stockage natif (Preferences)
       window.location.href = '/';
     }
     return Promise.reject(error);
