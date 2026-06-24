@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { initPush } from '../lib/push';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, BarChart3 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { UserProvider, useUser } from '../context/UserContext';
@@ -16,6 +16,7 @@ const navItems = [
   { path: '/dashboard/plan', label: 'Plan éditorial', icon: CalendarDays },
   { path: '/dashboard/contenus', label: 'Contenus', icon: FileText },
   { path: '/dashboard/commentaires', label: 'Commentaires', icon: MessageCircle },
+  { path: '/dashboard/performance', label: 'Performance', icon: BarChart3 },
   { path: '/dashboard/planification', label: 'Planification', icon: Calendar },
   { path: '/dashboard/carrousels', label: 'Carrousels', icon: LayoutGrid },
   { path: '/dashboard/parametres', label: 'Paramètres', icon: Settings },
