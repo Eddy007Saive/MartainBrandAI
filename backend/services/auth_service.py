@@ -43,6 +43,8 @@ def register_user(nom: str, email: str, username: str, password: str) -> dict:
         "username": username,
         "password_hash": password_hash,
         "actif": False,
+        "plan": "gratuit",
+        "credits": 50,
         "couleur_principale": "#003D2E",
         "couleur_secondaire": "#0077FF",
         "couleur_accent": "#3AFFA3",
