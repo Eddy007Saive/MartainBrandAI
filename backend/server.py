@@ -1,6 +1,8 @@
+import asyncio
 from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
-from config import CORS_ORIGINS
+from config import CORS_ORIGINS, ANALYTICS_CRON_HOURS, logger
+from services import analytics_service
 from routes.auth import router as auth_router
 from routes.users import router as users_router
 from routes.admin import router as admin_router
@@ -53,9 +55,34 @@ app.add_middleware(
 )
 
 
+_cron_task = None
+
+
+async def _analytics_cron():
+    """Rafraîchit le cache analytics toutes les ANALYTICS_CRON_HOURS heures."""
+    interval = ANALYTICS_CRON_HOURS * 3600
+    # Petit délai initial pour ne pas charger au boot
+    await asyncio.sleep(60)
+    while True:
+        try:
+            await analytics_service.refresh_all()
+        except Exception as e:
+            logger.error(f"analytics cron loop: {e}")
+        await asyncio.sleep(interval)
+
+
+@app.on_event("startup")
+async def startup():
+    global _cron_task
+    if ANALYTICS_CRON_HOURS and ANALYTICS_CRON_HOURS > 0:
+        _cron_task = asyncio.create_task(_analytics_cron())
+        logger.info(f"Cron analytics activé (toutes les {ANALYTICS_CRON_HOURS} h)")
+
+
 @app.on_event("shutdown")
 async def shutdown():
-    pass
+    if _cron_task:
+        _cron_task.cancel()
 
 
 # Lancement direct (Railway/Docker) : lit le port depuis $PORT, sans dépendre de l'expansion shell.

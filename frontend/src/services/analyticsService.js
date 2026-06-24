@@ -8,6 +8,6 @@ export const analyticsService = {
     api.get('/analytics/performance').then(r => r.data),
 
   // Performances réelles depuis Late (analytics add-on requis)
-  insights: (days = 30, platform) =>
-    api.get('/analytics/insights', { params: { days, ...(platform ? { platform } : {}) } }).then(r => r.data),
+  insights: (days = 30, platform, refresh = false) =>
+    api.get('/analytics/insights', { params: { days, ...(platform ? { platform } : {}), ...(refresh ? { refresh: true } : {}) } }).then(r => r.data),
 };

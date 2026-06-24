@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Eye, Heart, MessageCircle, Share2, TrendingUp, Lock, Plug, BarChart3 } from 'lucide-react';
+import { Loader2, Eye, Heart, MessageCircle, Share2, TrendingUp, Lock, Plug, BarChart3, RefreshCw } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { SocialIcon } from '../components/SocialIcon';
 import { analyticsService } from '../services/analyticsService';
@@ -30,20 +30,30 @@ export default function Performance() {
   const [platform, setPlatform] = useState('');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (refresh = false) => {
+    if (refresh) setRefreshing(true); else setLoading(true);
     try {
-      const d = await analyticsService.insights(days, platform || undefined);
+      const d = await analyticsService.insights(days, platform || undefined, refresh);
       setData(d);
     } catch (e) {
       setData({ ok: false, error: 'Erreur de chargement' });
     } finally {
-      setLoading(false);
+      setLoading(false); setRefreshing(false);
     }
   }, [days, platform]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  const sinceLabel = (iso) => {
+    if (!iso) return null;
+    const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    if (m < 1) return "à l'instant";
+    if (m < 60) return `il y a ${m} min`;
+    const h = Math.round(m / 60);
+    return h < 24 ? `il y a ${h} h` : `il y a ${Math.round(h / 24)} j`;
+  };
 
   const kpis = data?.kpis || {};
   const posts = data?.posts || [];
@@ -70,12 +80,22 @@ export default function Performance() {
             </button>
           ))}
         </div>
-        <div className="flex gap-0.5 p-0.5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-          {[[7, '7 j'], [30, '30 j'], [90, '90 j']].map(([d, l]) => (
-            <button key={d} onClick={() => setDays(d)} className={`px-3.5 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all ${days === d ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>{l}</button>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex gap-0.5 p-0.5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
+            {[[7, '7 j'], [30, '30 j'], [90, '90 j']].map(([d, l]) => (
+              <button key={d} onClick={() => setDays(d)} className={`px-3.5 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all ${days === d ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>{l}</button>
+            ))}
+          </div>
+          <button onClick={() => fetchData(true)} disabled={refreshing || loading} title="Synchroniser maintenant"
+            className="w-9 h-9 grid place-items-center rounded-xl bg-white/[0.04] border border-white/[0.06] text-slate-400 hover:text-white disabled:opacity-50">
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       </div>
+
+      {data?.cached_at && !loading && (
+        <p className="text-[11.5px] text-slate-500 -mt-2">Synchronisé {sinceLabel(data.cached_at)} · maj auto toutes les heures</p>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-24"><Loader2 className="w-8 h-8 animate-spin text-[#5B6CFF]" /></div>

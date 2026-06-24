@@ -49,6 +49,9 @@ LATE_API_KEY = os.environ.get('LATE_API_KEY') or os.environ.get('api_late', '')
 LATE_API_BASE = (os.environ.get('LATE_API_BASE', 'https://getlate.dev/api/v1')).rstrip('/')
 LATE_WEBHOOK_SECRET = os.environ.get('LATE_WEBHOOK_SECRET', '')  # vérif signature HMAC des webhooks
 
+# Cron analytics : rafraîchit le cache toutes les N heures (0 = désactivé)
+ANALYTICS_CRON_HOURS = float(os.environ.get('ANALYTICS_CRON_HOURS', '1'))
+
 # Stripe (abonnements payants)
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')

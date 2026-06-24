@@ -69,6 +69,59 @@ async def performance(telegram_id: str, days: int = 30, platform: str | None = N
     }
 
 
+# --- Cache (alimenté par le cron horaire) ---
+
+def get_cached(telegram_id: str) -> dict | None:
+    """Retourne {'data':..., 'updated_at':...} ou None."""
+    try:
+        res = supabase.table("analytics_cache").select("data, updated_at").eq("telegram_id", telegram_id).execute()
+        return res.data[0] if res.data else None
+    except Exception as e:
+        logger.warning(f"analytics cache read: {e}")
+        return None
+
+
+def store_cache(telegram_id: str, data: dict):
+    try:
+        supabase.table("analytics_cache").upsert({
+            "telegram_id": telegram_id,
+            "data": data,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }).execute()
+    except Exception as e:
+        logger.warning(f"analytics cache write: {e}")
+
+
+async def refresh_user(telegram_id: str) -> dict:
+    """Récupère les analytics (30 j) et les met en cache. Cron + refresh manuel."""
+    data = await performance(telegram_id, days=30)
+    if data.get("ok") and data.get("connected"):
+        store_cache(telegram_id, data)
+    return data
+
+
+async def refresh_all() -> dict:
+    """Cron : rafraîchit le cache analytics de tous les users actifs ayant un profil Late."""
+    if not LATE_API_KEY:
+        return {"ok": False, "skipped": "no_late_key"}
+    try:
+        res = supabase.table("users").select("telegram_id").eq("actif", True).not_.is_("late_profile_id", "null").execute()
+        users = res.data or []
+    except Exception as e:
+        logger.error(f"refresh_all users query: {e}")
+        return {"ok": False, "error": str(e)}
+    done, errors = 0, 0
+    for u in users:
+        try:
+            await refresh_user(u["telegram_id"])
+            done += 1
+        except Exception as e:
+            errors += 1
+            logger.warning(f"refresh_all {u['telegram_id']}: {e}")
+    logger.info(f"analytics cron: {done} users rafraîchis, {errors} erreurs")
+    return {"ok": True, "refreshed": done, "errors": errors}
+
+
 def get_stats(telegram_id: str) -> dict:
     analytics = supabase.table("analytics_performance").select("*").eq("telegram_id", telegram_id).execute()
 
