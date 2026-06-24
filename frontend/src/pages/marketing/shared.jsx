@@ -204,6 +204,37 @@ export const CSS = `
 .lp .ctaband{background:linear-gradient(135deg,rgba(91,108,255,.14),rgba(138,108,255,.10));border:1px solid var(--line2);border-radius:26px;padding:60px;text-align:center;position:relative;overflow:hidden}
 .lp .ctaband h2{font-family:Sora;font-weight:800;font-size:34px;letter-spacing:-.02em}
 .lp .ctaband p{color:var(--muted);margin:14px auto 30px;max-width:480px}
+/* Chiffres clés */
+.lp .statsband{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.lp .stat{text-align:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 14px}
+.lp .stat .sv{font-family:Sora;font-weight:800;font-size:32px;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.lp .stat .sl{color:var(--muted);font-size:13px;margin-top:9px}
+/* Problème -> Solution */
+.lp .ps{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:52px}
+.lp .pscol{border-radius:18px;padding:28px;border:1px solid var(--line);background:var(--card)}
+.lp .pscol.good{border-color:rgba(58,255,163,.25);background:linear-gradient(180deg,rgba(58,255,163,.06),var(--card))}
+.lp .pscol h3{font-family:Sora;font-weight:700;font-size:17px;margin-bottom:18px}
+.lp .pscol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.lp .pscol li{display:flex;gap:11px;font-size:14px;color:var(--muted);line-height:1.5}
+.lp .pscol .mk{width:21px;height:21px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;font-size:13px;font-weight:800;margin-top:1px}
+.lp .pscol.bad .mk{background:rgba(248,113,113,.14);color:#f87171}
+.lp .pscol.good .mk{background:rgba(58,255,163,.14);color:var(--accent)}
+/* Pour qui */
+.lp .aud{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:52px}
+.lp .acard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;transition:.2s}
+.lp .acard:hover{border-color:var(--line2);transform:translateY(-3px)}
+.lp .acard .ab{width:42px;height:42px;border-radius:11px;background:rgba(91,108,255,.12);border:1px solid rgba(91,108,255,.25);display:grid;place-items:center;margin-bottom:16px}
+.lp .acard h3{font-family:Sora;font-weight:700;font-size:16px;margin-bottom:7px}
+.lp .acard p{color:var(--muted);font-size:13.5px;line-height:1.6}
+/* Témoignages */
+.lp .testi{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
+.lp .tcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;display:flex;flex-direction:column;gap:16px}
+.lp .tcard .stars{color:#fcd770;font-size:14px;letter-spacing:3px}
+.lp .tcard .quote{font-size:14.5px;color:var(--ink);line-height:1.65;flex:1}
+.lp .tcard .who{display:flex;align-items:center;gap:11px}
+.lp .tcard .av{width:40px;height:40px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:700;flex-shrink:0}
+.lp .tcard .who b{font-size:13.5px;display:block}
+.lp .tcard .who small{font-size:12px;color:var(--dim)}
 .lp footer{border-top:1px solid var(--line);padding:36px 0}
 .lp footer .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 .lp footer .flinks{display:flex;gap:24px;font-size:13.5px;color:var(--dim)}
@@ -236,6 +267,9 @@ export const CSS = `
   .lp .h2{font-size:27px}.lp .ctaband h2{font-size:25px}
   .lp .features,.lp .pricing{grid-template-columns:1fr;gap:14px;margin-top:32px}
   .lp .steps{grid-template-columns:1fr;gap:28px;margin-top:34px}
+  .lp .statsband,.lp .aud{grid-template-columns:1fr 1fr;gap:12px}
+  .lp .ps,.lp .testi{grid-template-columns:1fr;margin-top:32px}
+  .lp .stat .sv{font-size:26px}
   .lp .ctaband{padding:36px 22px}
   .lp footer .wrap{flex-direction:column;align-items:flex-start;gap:16px}
 }
