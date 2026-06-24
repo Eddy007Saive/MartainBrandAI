@@ -7,6 +7,7 @@ import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
 import { setToken, setAdminToken, isAuthenticated, isAdminAuthenticated } from '../lib/auth';
+import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -221,15 +222,18 @@ export default function Login() {
               </Link>
             </div>
 
-            {/* Télécharger l'app Android */}
-            <a
-              href="https://github.com/Eddy007Saive/MartainBrandAI/releases/latest/download/PresenceOS.apk"
-              data-testid="download-android"
-              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#3AFFA3]/30 bg-[#3AFFA3]/[0.06] text-[#3AFFA3] text-sm font-medium font-inter hover:bg-[#3AFFA3]/[0.12] transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              Télécharger l'app Android
-            </a>
+            {/* Télécharger l'app Android (web uniquement, masqué si déjà téléchargé) */}
+            {!downloadHidden() && (
+              <a
+                href={APK_URL}
+                onClick={markDownloaded}
+                data-testid="download-android"
+                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#3AFFA3]/30 bg-[#3AFFA3]/[0.06] text-[#3AFFA3] text-sm font-medium font-inter hover:bg-[#3AFFA3]/[0.12] transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Télécharger l'app Android
+              </a>
+            )}
 
             {/* Admin login toggle */}
             <div className="mt-8 pt-6 border-t border-white/5">

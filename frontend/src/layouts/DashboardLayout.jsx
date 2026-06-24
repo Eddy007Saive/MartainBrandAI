@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { initPush } from '../lib/push';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download } from 'lucide-react';
 import { UserProvider, useUser } from '../context/UserContext';
 import { removeToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 import NotificationsBell from '../components/NotificationsBell';
+import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 
 const navItems = [
   { path: '/dashboard', label: 'Accueil', icon: Home },
@@ -60,9 +61,12 @@ function DashboardContent() {
   const { user, logout } = useUser();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showDl, setShowDl] = useState(!downloadHidden());
 
   // Notifications push (mobile) : demande la permission + enregistre le token
   useEffect(() => { initPush(); }, []);
+
+  const dismissDl = () => { markDownloaded(); setShowDl(false); };
 
   const handleLogout = () => {
     logout();
@@ -149,6 +153,22 @@ function DashboardContent() {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative z-10 pt-16 md:pt-0">
         <div className="p-5 md:p-8 w-full min-h-full">
+          {showDl && (
+            <div className="mb-5 flex items-center gap-3 p-3 rounded-xl border border-[#3AFFA3]/25 bg-[#3AFFA3]/[0.06]">
+              <Download className="w-5 h-5 text-[#3AFFA3] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white font-inter">Installe l'app mobile</p>
+                <p className="text-xs text-slate-400 font-inter">Notifications push + accès rapide depuis ton téléphone.</p>
+              </div>
+              <a href={APK_URL} onClick={dismissDl}
+                className="shrink-0 px-3 py-2 rounded-lg bg-[#3AFFA3]/15 text-[#3AFFA3] text-[13px] font-semibold hover:bg-[#3AFFA3]/25 transition-colors">
+                Télécharger
+              </a>
+              <button onClick={dismissDl} aria-label="Fermer" className="shrink-0 text-slate-500 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
           <Outlet />
         </div>
       </main>
