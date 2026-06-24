@@ -46,6 +46,9 @@ export const GOODTIME = {
   tagline: "L'OS de la location courte durée",
 };
 
+// Lien de réservation du call de setup — TODO Martin : remplacer par ton Calendly/Cal.com
+export const BOOKING_URL = 'mailto:martindumoulin88@gmail.com?subject=Call%20setup%20Presence%20OS';
+
 // Coordonnées de l'éditeur (à compléter par Martin)
 export const LEGAL = {
   societe: 'GoodTime BNB',
@@ -262,13 +265,29 @@ export const CSS = `
 .lp .pscol.bad .mk{background:rgba(248,113,113,.14);color:#f87171}
 .lp .pscol.good .mk{background:rgba(58,255,163,.14);color:var(--accent)}
 /* Pour qui */
-.lp .aud{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:52px}
+.lp .aud{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px}
 .lp .acard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;transition:.2s}
 .lp .acard:hover{border-color:var(--line2);transform:translateY(-3px)}
 .lp .acard .ab{width:42px;height:42px;border-radius:11px;background:rgba(91,108,255,.12);border:1px solid rgba(91,108,255,.25);display:grid;place-items:center;margin-bottom:16px}
 .lp .acard h3{font-family:Sora;font-weight:700;font-size:16px;margin-bottom:7px}
 .lp .acard p{color:var(--muted);font-size:13.5px;line-height:1.6}
 /* Témoignages */
+/* Comparatif 'Plutôt que…' */
+.lp .cmp{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:52px;align-items:stretch}
+.lp .cmpcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 20px;display:flex;flex-direction:column}
+.lp .cmpcard.win{border-color:rgba(91,108,255,.5);background:linear-gradient(180deg,rgba(91,108,255,.12),var(--card));box-shadow:0 30px 80px -36px rgba(91,108,255,.55);position:relative}
+.lp .cmpcard .badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--grad);color:#fff;font-size:10.5px;font-weight:700;padding:4px 12px;border-radius:999px;white-space:nowrap}
+.lp .cmpcard h4{font-family:Sora;font-weight:700;font-size:15.5px;margin-bottom:4px}
+.lp .cmpcard.win h4{color:#fff}
+.lp .cmpcard .rows{display:flex;flex-direction:column;margin-top:8px}
+.lp .cmpcard .r{padding:10px 0;border-top:1px solid var(--line)}
+.lp .cmpcard .r .k{display:block;color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.lp .cmpcard .r .v{font-size:13px;color:var(--muted);line-height:1.35}
+.lp .cmpcard.win .r .v{color:var(--ink);font-weight:600}
+/* Bandeau partage des rôles */
+.lp .roles{margin-top:32px;background:linear-gradient(135deg,rgba(91,108,255,.12),rgba(58,255,163,.06));border:1px solid var(--line2);border-radius:18px;padding:28px;text-align:center}
+.lp .roles b{font-family:Sora;font-weight:800;font-size:19px;display:block;margin-bottom:8px}
+.lp .roles p{color:var(--muted);font-size:14.5px;max-width:660px;margin:0 auto;line-height:1.65}
 .lp .testi{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
 .lp .tcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;display:flex;flex-direction:column;gap:16px}
 .lp .tcard .stars{color:#fcd770;font-size:14px;letter-spacing:3px}
@@ -316,7 +335,8 @@ export const CSS = `
   .lp .features,.lp .pricing{grid-template-columns:1fr;gap:14px;margin-top:32px}
   .lp .steps{grid-template-columns:1fr;gap:28px;margin-top:34px}
   .lp .statsband,.lp .aud{grid-template-columns:1fr 1fr;gap:12px}
-  .lp .ps,.lp .testi,.lp .flow{grid-template-columns:1fr;margin-top:32px}
+  .lp .ps,.lp .testi,.lp .flow,.lp .cmp{grid-template-columns:1fr;margin-top:32px}
+  .lp .cmpcard.win{order:-1}
   .lp .nets{gap:18px}
   .lp .stat .sv{font-size:26px}
   .lp .ctaband{padding:36px 22px}
