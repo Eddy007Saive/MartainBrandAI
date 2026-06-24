@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { initPush } from '../lib/push';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 import { UserProvider, useUser } from '../context/UserContext';
 import { removeToken } from '../lib/auth';
 import { cn } from '../lib/utils';
@@ -60,11 +62,30 @@ function Brand() {
 function DashboardContent() {
   const { user, logout } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDl, setShowDl] = useState(!downloadHidden());
 
+  const isHome = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
+  const goBack = () => { if (window.history.length > 1) navigate(-1); else navigate('/dashboard'); };
+
   // Notifications push (mobile) : demande la permission + enregistre le token
   useEffect(() => { initPush(); }, []);
+
+  // Bouton retour Android : revenir en arrière dans l'app ; sur l'accueil -> mettre en arrière-plan (ne pas quitter)
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let handle;
+    CapApp.addListener('backButton', () => {
+      const p = window.location.pathname;
+      if (p !== '/dashboard' && p !== '/dashboard/' && window.history.length > 1) {
+        window.history.back();
+      } else {
+        CapApp.minimizeApp();
+      }
+    }).then((h) => { handle = h; });
+    return () => { if (handle) handle.remove(); };
+  }, []);
 
   const dismissDl = () => { markDownloaded(); setShowDl(false); };
 
@@ -124,7 +145,14 @@ function DashboardContent() {
 
       {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#080c17]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
-        <Brand />
+        <div className="flex items-center gap-2 min-w-0">
+          {!isHome && (
+            <button onClick={goBack} aria-label="Retour" className="w-9 h-9 -ml-1 rounded-lg grid place-items-center text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
+          <Brand />
+        </div>
         <div className="flex items-center gap-2">
           <NotificationsBell />
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-400 hover:text-white">
