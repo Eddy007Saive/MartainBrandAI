@@ -37,7 +37,7 @@ def _parse_time(val) -> time:
         return DEFAULT_TIME
 
 
-def _jours_occupes(telegram_id: int, reseau_cible: str) -> set:
+def _jours_occupes(telegram_id: str, reseau_cible: str) -> set:
     """Dates (YYYY-MM-DD) déjà prises par un contenu planifié du même réseau."""
     try:
         r = (supabase.table("contenu")
@@ -50,7 +50,7 @@ def _jours_occupes(telegram_id: int, reseau_cible: str) -> set:
     return {row["date_publication"][:10] for row in (r.data or []) if row.get("date_publication")}
 
 
-def prochain_creneau(telegram_id: int, reseau_cible: str | None) -> str | None:
+def prochain_creneau(telegram_id: str, reseau_cible: str | None) -> str | None:
     """Renvoie une date_publication ISO (UTC) pour le prochain créneau libre, ou None."""
     if not reseau_cible:
         return None

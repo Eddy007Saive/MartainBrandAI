@@ -9,7 +9,7 @@ from services.user_service import _public_id_from_cloudinary_url
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
 
 
-def upload_visuel(telegram_id: int, contenu_id: str, file_bytes: bytes) -> dict | None:
+def upload_visuel(telegram_id: str, contenu_id: str, file_bytes: bytes) -> dict | None:
     """Importe une image fournie par l'utilisateur comme visuel du contenu.
     Upload Cloudinary, met à jour lien_visuel, confirme la planification, remplace l'ancien asset."""
     cur = get_contenu(contenu_id, telegram_id)
@@ -44,7 +44,7 @@ def upload_visuel(telegram_id: int, contenu_id: str, file_bytes: bytes) -> dict 
             "date_publication": upd.get("date_publication") or cur.get("date_publication")}
 
 
-def get_contenus(telegram_id: int, statut: str = None) -> list:
+def get_contenus(telegram_id: str, statut: str = None) -> list:
     query = supabase.table("contenu").select("*").eq("telegram_id", telegram_id)
     if statut:
         query = query.eq("statut", statut)
@@ -52,12 +52,12 @@ def get_contenus(telegram_id: int, statut: str = None) -> list:
     return result.data
 
 
-def get_contenu(contenu_id: str, telegram_id: int) -> dict | None:
+def get_contenu(contenu_id: str, telegram_id: str) -> dict | None:
     result = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     return result.data[0] if result.data else None
 
 
-async def update_contenu(contenu_id: str, telegram_id: int, update_data: dict) -> dict:
+async def update_contenu(contenu_id: str, telegram_id: str, update_data: dict) -> dict:
     # Get current content to check callback_url
     current = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     if not current.data:
@@ -137,7 +137,7 @@ def _cleanup_assets(c: dict) -> None:
                 logger.warning(f"cleanup pdf {pid}: {e}")
 
 
-async def delete_contenu(contenu_id: str, telegram_id: int) -> bool:
+async def delete_contenu(contenu_id: str, telegram_id: str) -> bool:
     """Suppression complète : retire le post de Late, nettoie Cloudinary, supprime la ligne."""
     cur = get_contenu(contenu_id, telegram_id)
     if not cur:

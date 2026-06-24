@@ -12,7 +12,7 @@ FIELD_MAP = {
 }
 
 
-async def connect_platform(telegram_id: int, platform: str) -> dict:
+async def connect_platform(telegram_id: str, platform: str) -> dict:
     webhook_url = f"{N8N_WEBHOOK_BASE}/late-connect"
     webhook_body = {"telegram_id": telegram_id, "platform": platform}
     logger.info(f"Social connect: POST {webhook_url} body={webhook_body}")
@@ -28,7 +28,7 @@ async def connect_platform(telegram_id: int, platform: str) -> dict:
         return {"success": False, "error": result.get("message", "Réponse inattendue du service de connexion")}
 
 
-async def disconnect_platform(telegram_id: int, platform: str) -> dict:
+async def disconnect_platform(telegram_id: str, platform: str) -> dict:
     webhook_url = f"{N8N_WEBHOOK_BASE}/late-disconnect"
     webhook_body = {"telegram_id": telegram_id, "platform": platform}
     logger.info(f"Social disconnect: POST {webhook_url} body={webhook_body}")
@@ -47,7 +47,7 @@ async def disconnect_platform(telegram_id: int, platform: str) -> dict:
     return {"success": True}
 
 
-async def create_late_profile(telegram_id: int, nom: str) -> dict:
+async def create_late_profile(telegram_id: str, nom: str) -> dict:
     webhook_url = f"{N8N_WEBHOOK_BASE}/late-create-profile"
     webhook_body = {"telegram_id": telegram_id, "nom": nom}
     logger.info(f"Calling Late webhook: POST {webhook_url} with body={webhook_body}")

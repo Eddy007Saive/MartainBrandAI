@@ -37,7 +37,7 @@ ROLE_PROMPT = (
 )
 
 
-def generer_prompt(telegram_id: int, post_texte: str, reseau: str = "linkedin") -> dict:
+def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin") -> dict:
     """Claude écrit le prompt d'image (modifiable ensuite par l'utilisateur)."""
     if not _client:
         return {"error": "no_api_key"}
@@ -69,7 +69,7 @@ def generer_prompt(telegram_id: int, post_texte: str, reseau: str = "linkedin") 
     return {"prompt": prompt}
 
 
-def inspiration_urls(telegram_id: int, limit: int = 20) -> list:
+def inspiration_urls(telegram_id: str, limit: int = 20) -> list:
     """Liste les images d'inspiration de l'utilisateur (dossier Cloudinary)."""
     try:
         res = cloudinary.api.resources(
@@ -116,7 +116,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: int, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     Les images de référence (photo + inspirations) sont validées : liens Drive convertis,

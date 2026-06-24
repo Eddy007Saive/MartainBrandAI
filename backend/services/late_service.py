@@ -51,7 +51,7 @@ def _client() -> Zernio:
     return Zernio(api_key=LATE_API_KEY)
 
 
-async def publish_contenu(telegram_id: int, contenu: dict) -> dict:
+async def publish_contenu(telegram_id: str, contenu: dict) -> dict:
     """Pousse un contenu dans Late via le SDK Zernio. Retourne {ok, late_post_id, status} ou {ok:False, error}."""
     if not LATE_API_KEY:
         return {"ok": False, "error": "Publication indisponible : clé Late non configurée (contacte le support)."}

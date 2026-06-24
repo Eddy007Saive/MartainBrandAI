@@ -20,7 +20,17 @@ const adminFetch = async (endpoint, options = {}) => {
 export const adminService = {
   getStats: () => adminFetch('/admin/stats'),
 
-  getUsers: (filter = 'all') => adminFetch(`/admin/users?filter=${filter}`),
+  getUsers: (filter = 'all', q = '') =>
+    adminFetch(`/admin/users?filter=${filter}${q ? `&q=${encodeURIComponent(q)}` : ''}`),
+
+  setCredits: (telegramId, amount, mode = 'set') =>
+    adminFetch(`/admin/users/${telegramId}/credits`, { method: 'PATCH', body: JSON.stringify({ amount, mode }) }),
+
+  setPlan: (telegramId, plan, reset_credits = true) =>
+    adminFetch(`/admin/users/${telegramId}/plan`, { method: 'PATCH', body: JSON.stringify({ plan, reset_credits }) }),
+
+  sendPush: (title, body, telegramId = null) =>
+    adminFetch('/admin/push', { method: 'POST', body: JSON.stringify({ title, body, telegram_id: telegramId }) }),
 
   getUser: (telegramId) => adminFetch(`/admin/users/${telegramId}`),
 

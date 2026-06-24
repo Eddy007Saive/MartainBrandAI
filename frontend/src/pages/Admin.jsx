@@ -4,10 +4,12 @@ import {
   LayoutDashboard, Users, Activity, Settings, LogOut, Search, Download,
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
   Loader2, ChevronRight, Clock, CheckCircle, XCircle, RefreshCw,
-  Video, ExternalLink, Save, AlertCircle
+  Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
+  Plus, Minus, DollarSign, Wifi
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import {
   Dialog,
@@ -33,10 +35,18 @@ import { adminService } from '../services/adminService';
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'users', label: 'Utilisateurs', icon: Users },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'avatars', label: 'Avatars', icon: Video },
   { id: 'activity', label: 'Activité', icon: Activity },
   { id: 'settings', label: 'Paramètres', icon: Settings },
 ];
+
+const PLAN_CFG = {
+  gratuit: { label: 'Gratuit', color: 'text-slate-300', bg: 'bg-slate-500/20' },
+  pro: { label: 'Pro', color: 'text-indigo-300', bg: 'bg-indigo-500/20' },
+  business: { label: 'Business', color: 'text-amber-300', bg: 'bg-amber-500/20' },
+};
+const PLAN_OPTIONS = ['gratuit', 'pro', 'business'];
 
 const AVATAR_STATUS_CONFIG = {
   pending: { label: 'En attente', color: 'text-amber-400', bg: 'bg-amber-500/20' },
@@ -64,6 +74,16 @@ export default function Admin() {
   const [editingAvatar, setEditingAvatar] = useState(null);
   const [avatarForm, setAvatarForm] = useState({});
   const [savingAvatar, setSavingAvatar] = useState(false);
+
+  // Crédits / plan (dans la fiche user)
+  const [creditInput, setCreditInput] = useState('');
+  const [userActionLoading, setUserActionLoading] = useState(false);
+
+  // Notifications push
+  const [pushTitle, setPushTitle] = useState('');
+  const [pushBody, setPushBody] = useState('');
+  const [pushTarget, setPushTarget] = useState(null); // null = tous
+  const [sendingPush, setSendingPush] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -204,6 +224,55 @@ export default function Admin() {
     }
   };
 
+  const refreshSelected = async (telegramId) => {
+    try {
+      const u = await adminService.getUser(telegramId);
+      setSelectedUser(u);
+      setUsers((prev) => prev.map((x) => x.telegram_id === telegramId ? { ...x, ...u } : x));
+    } catch (_) { /* noop */ }
+  };
+
+  const handleSetCredits = async (mode) => {
+    if (!selectedUser) return;
+    const amount = parseInt(creditInput, 10);
+    if (Number.isNaN(amount)) { toast.error('Montant invalide'); return; }
+    setUserActionLoading(true);
+    try {
+      await adminService.setCredits(selectedUser.telegram_id, amount, mode);
+      toast.success(mode === 'add' ? `${amount > 0 ? '+' : ''}${amount} crédits` : `Solde fixé à ${amount}`);
+      setCreditInput('');
+      await refreshSelected(selectedUser.telegram_id);
+    } catch (e) { toast.error('Erreur crédits'); }
+    finally { setUserActionLoading(false); }
+  };
+
+  const handleSetPlan = async (plan) => {
+    if (!selectedUser || plan === selectedUser.plan) return;
+    setUserActionLoading(true);
+    try {
+      await adminService.setPlan(selectedUser.telegram_id, plan, true);
+      toast.success(`Forfait → ${PLAN_CFG[plan]?.label || plan}`);
+      await refreshSelected(selectedUser.telegram_id);
+    } catch (e) { toast.error('Erreur forfait'); }
+    finally { setUserActionLoading(false); }
+  };
+
+  const handleSendPush = async () => {
+    if (!pushTitle.trim() || !pushBody.trim()) { toast.error('Titre et message requis'); return; }
+    setSendingPush(true);
+    try {
+      const r = await adminService.sendPush(pushTitle.trim(), pushBody.trim(), pushTarget?.telegram_id || null);
+      toast.success(`Envoyé à ${r.sent}/${r.targets} appareil(s)`);
+      setPushTitle(''); setPushBody('');
+    } catch (e) { toast.error('Échec de l\'envoi'); }
+    finally { setSendingPush(false); }
+  };
+
+  const pushToUser = (user) => {
+    setPushTarget(user);
+    setActiveTab('notifications');
+  };
+
   const handleLogout = () => {
     removeAdminToken();
     navigate('/login');
@@ -326,6 +395,42 @@ export default function Admin() {
                     </div>
                   </div>
 
+                  {/* Revenus & forfaits */}
+                  {stats.revenus && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-indigo-500/15 to-purple-500/10 border border-indigo-500/20 rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <DollarSign className="w-5 h-5 text-indigo-300" />
+                          <span className="text-xs text-slate-400 font-inter">MRR estimé</span>
+                        </div>
+                        <p className="text-3xl font-bold text-white font-sora">{stats.revenus.mrr}€<span className="text-base text-slate-400 font-inter"> /mois</span></p>
+                        <p className="text-sm text-slate-400 font-inter mt-1">{stats.revenus.abonnes_payants} abonné(s) payant(s)</p>
+                      </div>
+
+                      <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6 lg:col-span-2">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-white font-sora flex items-center gap-2"><Crown className="w-4 h-4 text-amber-300" />Répartition des forfaits</h3>
+                          <span className="text-xs text-slate-400 font-inter flex items-center gap-1"><Coins className="w-3.5 h-3.5" />{stats.revenus.credits_total?.toLocaleString()} crédits en circulation</span>
+                        </div>
+                        <div className="space-y-2.5">
+                          {PLAN_OPTIONS.map((p) => {
+                            const count = stats.revenus.par_plan?.[p] || 0;
+                            const pct = stats.users.total ? Math.round(count / stats.users.total * 100) : 0;
+                            return (
+                              <div key={p} className="flex items-center gap-3">
+                                <span className={cn('text-xs font-inter w-20', PLAN_CFG[p].color)}>{PLAN_CFG[p].label}</span>
+                                <div className="flex-1 h-2.5 rounded-full bg-slate-800 overflow-hidden">
+                                  <div className={cn('h-full rounded-full', p === 'pro' ? 'bg-indigo-500' : p === 'business' ? 'bg-amber-500' : 'bg-slate-500')} style={{ width: `${pct}%` }} />
+                                </div>
+                                <span className="text-sm text-white font-semibold w-10 text-right">{count}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Engagement Stats */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
@@ -397,6 +502,9 @@ export default function Admin() {
                   { id: 'all', label: 'Tous' },
                   { id: 'pending', label: 'En attente' },
                   { id: 'active', label: 'Actifs' },
+                  { id: 'gratuit', label: 'Gratuit' },
+                  { id: 'pro', label: 'Pro' },
+                  { id: 'business', label: 'Business' },
                 ].map((filter) => (
                   <button
                     key={filter.id}
@@ -448,13 +556,24 @@ export default function Admin() {
                             </Badge>
                           </div>
                           <p className="text-slate-400 text-sm truncate">{user.email}</p>
-                          <p className="text-slate-500 text-xs font-mono">ID: {user.telegram_id}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <Badge className={cn('text-[10px] py-0', PLAN_CFG[user.plan || 'gratuit'].bg, PLAN_CFG[user.plan || 'gratuit'].color)}>
+                              {PLAN_CFG[user.plan || 'gratuit'].label}
+                            </Badge>
+                            <span className="text-[11px] text-slate-400 flex items-center gap-1"><Coins className="w-3 h-3" />{user.credits ?? 0}</span>
+                            {user.reseaux_connectes?.length > 0 && (
+                              <span className="text-[11px] text-slate-500 flex items-center gap-1"><Wifi className="w-3 h-3" />{user.reseaux_connectes.length}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
                       <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
                         <Button size="sm" variant="ghost" onClick={() => handleViewUser(user.telegram_id)} className="text-slate-400 hover:text-white">
                           <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => pushToUser(user)} className="text-blue-400 hover:bg-blue-500/20" title="Notifier">
+                          <Bell className="w-4 h-4" />
                         </Button>
                         {user.actif ? (
                           <Button size="sm" variant="ghost" onClick={() => handleDeactivate(user.telegram_id)} disabled={actionLoading === user.telegram_id} className="text-amber-400 hover:bg-amber-500/20">
@@ -473,6 +592,68 @@ export default function Admin() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Notifications Tab */}
+          {activeTab === 'notifications' && (
+            <div className="space-y-6 max-w-2xl">
+              <div>
+                <h2 className="text-2xl font-bold font-sora text-white">Notifications push</h2>
+                <p className="text-sm text-slate-400 font-inter mt-1">Envoie une notification aux utilisateurs ayant l'application mobile installée.</p>
+              </div>
+
+              <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6 space-y-5">
+                {/* Cible */}
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-400 font-inter">Destinataire</label>
+                  {pushTarget ? (
+                    <div className="flex items-center justify-between bg-slate-800/50 rounded-lg px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-xs font-semibold">{getInitials(pushTarget.nom)}</div>
+                        <div>
+                          <p className="text-sm text-white">{pushTarget.nom || 'Sans nom'}</p>
+                          <p className="text-xs text-slate-500">{pushTarget.email}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="ghost" onClick={() => setPushTarget(null)} className="text-slate-400 hover:text-white text-xs">Tous les users</Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-lg px-4 py-3 text-blue-300 text-sm">
+                      <Users className="w-4 h-4" /> Tous les utilisateurs (broadcast)
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-400 font-inter">Titre</label>
+                  <Input value={pushTitle} onChange={(e) => setPushTitle(e.target.value)} maxLength={60}
+                    placeholder="Ex : Nouvelle fonctionnalité 🚀" className="bg-slate-950/50 border-slate-800 text-slate-200" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs text-slate-400 font-inter">Message</label>
+                  <Textarea value={pushBody} onChange={(e) => setPushBody(e.target.value)} maxLength={180} rows={3}
+                    placeholder="Ton message…" className="bg-slate-950/50 border-slate-800 text-slate-200 resize-none" />
+                </div>
+
+                {/* Aperçu */}
+                {(pushTitle || pushBody) && (
+                  <div className="bg-slate-950/60 border border-white/10 rounded-xl p-4 flex gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center text-white shrink-0"><Bell className="w-4 h-4" /></div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white truncate">{pushTitle || 'Titre'}</p>
+                      <p className="text-xs text-slate-400 line-clamp-2">{pushBody || 'Message…'}</p>
+                    </div>
+                  </div>
+                )}
+
+                <Button onClick={handleSendPush} disabled={sendingPush || !pushTitle.trim() || !pushBody.trim()}
+                  className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 text-white">
+                  {sendingPush ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                  {pushTarget ? 'Envoyer la notification' : 'Envoyer à tous'}
+                </Button>
+              </div>
             </div>
           )}
 
@@ -734,25 +915,82 @@ export default function Admin() {
                 </div>
               )}
 
+              {/* Gestion forfait + crédits */}
+              <div className="bg-slate-800/40 border border-white/5 rounded-xl p-4 space-y-4">
+                <h4 className="text-sm font-semibold text-white font-sora flex items-center gap-2"><Crown className="w-4 h-4 text-amber-300" />Forfait & crédits</h4>
+
+                <div className="space-y-1.5">
+                  <p className="text-xs text-slate-500">Forfait (change le solde aux crédits du plan)</p>
+                  <div className="flex gap-2">
+                    {PLAN_OPTIONS.map((p) => (
+                      <button key={p} onClick={() => handleSetPlan(p)} disabled={userActionLoading}
+                        className={cn('flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all disabled:opacity-50',
+                          (selectedUser.plan || 'gratuit') === p
+                            ? cn(PLAN_CFG[p].bg, PLAN_CFG[p].color, 'ring-1 ring-white/20')
+                            : 'bg-slate-900/50 text-slate-400 hover:text-white')}>
+                        {PLAN_CFG[p].label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-xs text-slate-500">Crédits — solde actuel : <span className="text-white font-semibold">{selectedUser.credits ?? 0}</span></p>
+                  <div className="flex gap-2">
+                    <Input type="number" value={creditInput} onChange={(e) => setCreditInput(e.target.value)}
+                      placeholder="Montant" className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm w-28" />
+                    <Button size="sm" onClick={() => handleSetCredits('add')} disabled={userActionLoading} className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30">
+                      <Plus className="w-3.5 h-3.5 mr-1" />Ajouter
+                    </Button>
+                    <Button size="sm" onClick={() => handleSetCredits('set')} disabled={userActionLoading} variant="outline" className="border-slate-700 text-slate-300">
+                      <Save className="w-3.5 h-3.5 mr-1" />Fixer
+                    </Button>
+                    {userActionLoading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 self-center" />}
+                  </div>
+                </div>
+              </div>
+
               {/* User Details */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-slate-500">Telegram ID</p>
-                  <p className="text-white font-mono">{selectedUser.telegram_id}</p>
+                  <p className="text-slate-500">Forfait</p>
+                  <p className="text-white">{PLAN_CFG[selectedUser.plan || 'gratuit'].label}{selectedUser.plan_renews_at ? ` · renouv. ${new Date(selectedUser.plan_renews_at).toLocaleDateString('fr-FR')}` : ''}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500">Abonnement Stripe</p>
+                  <p className="text-white">{selectedUser.stripe_subscription_id ? 'Actif' : '—'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500">Réseaux connectés</p>
+                  <p className="text-white capitalize">{selectedUser.reseaux_connectes?.length ? selectedUser.reseaux_connectes.join(', ') : 'Aucun'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500">Fuseau horaire</p>
+                  <p className="text-white">{selectedUser.timezone || '-'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500">Dernière activité</p>
+                  <p className="text-white">{selectedUser.derniere_activite ? new Date(selectedUser.derniere_activite).toLocaleDateString('fr-FR') : '-'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500">Inscrit le</p>
+                  <p className="text-white">{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('fr-FR') : '-'}</p>
                 </div>
                 <div>
                   <p className="text-slate-500">Username</p>
                   <p className="text-white">{selectedUser.username || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">Sexe</p>
-                  <p className="text-white">{selectedUser.sexe || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">Inscrit le</p>
-                  <p className="text-white">{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('fr-FR') : '-'}</p>
+                  <p className="text-slate-500">ID</p>
+                  <p className="text-white font-mono text-xs">{selectedUser.telegram_id}</p>
                 </div>
               </div>
+
+              {/* Notifier ce user */}
+              <Button variant="outline" onClick={() => { pushToUser(selectedUser); setSelectedUser(null); }}
+                className="border-slate-700 text-slate-300 hover:text-white">
+                <Bell className="w-4 h-4 mr-2" />Envoyer une notification à cet utilisateur
+              </Button>
 
               {/* User Contenus */}
               {userContenus.length > 0 && (

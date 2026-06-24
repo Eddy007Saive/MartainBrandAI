@@ -60,7 +60,7 @@ def _pwd_fingerprint(password_hash: str) -> str:
     return hashlib.sha256((password_hash or "").encode("utf-8")).hexdigest()[:16]
 
 
-def create_reset_token(telegram_id: int, password_hash: str) -> str:
+def create_reset_token(telegram_id: str, password_hash: str) -> str:
     """Token JWT de réinitialisation (1h). Lié au hash courant -> invalide dès que le mdp change."""
     return create_token(
         {"telegram_id": telegram_id, "type": "reset", "fp": _pwd_fingerprint(password_hash)},

@@ -23,14 +23,14 @@ def cout(action: str, qualite: str = "equilibre") -> int:
     return c
 
 
-def get_credits(telegram_id: int) -> int:
+def get_credits(telegram_id: str) -> int:
     r = supabase.table("users").select("credits").eq("telegram_id", telegram_id).execute()
     if not r.data:
         return 0
     return r.data[0].get("credits") or 0
 
 
-def deduct(telegram_id: int, amount: int) -> int:
+def deduct(telegram_id: str, amount: int) -> int:
     """Débit atomique. Retourne le nouveau solde, ou -1 si insuffisant."""
     try:
         res = supabase.rpc("deduct_credits", {"p_telegram_id": telegram_id, "p_amount": amount}).execute()
@@ -41,7 +41,7 @@ def deduct(telegram_id: int, amount: int) -> int:
         return -1
 
 
-def refund(telegram_id: int, amount: int) -> None:
+def refund(telegram_id: str, amount: int) -> None:
     try:
         supabase.rpc("refund_credits", {"p_telegram_id": telegram_id, "p_amount": amount}).execute()
     except Exception as e:

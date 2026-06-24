@@ -68,7 +68,7 @@ SUJETS_MODEL = "claude-haiku-4-5"
 # ---------------------------------------------------------------------------
 # Mémoire de la marque (depuis Supabase)
 # ---------------------------------------------------------------------------
-def _charger_marque(telegram_id: int) -> dict:
+def _charger_marque(telegram_id: str) -> dict:
     res = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
     return res.data[0] if res.data else {}
 
@@ -147,7 +147,7 @@ ROLE_SUJETS = (
 )
 
 
-def generer_sujets(telegram_id: int, nombre: int = 6) -> dict:
+def generer_sujets(telegram_id: str, nombre: int = 6) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -185,7 +185,7 @@ ROLE_REDACTION = (
 )
 
 
-def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: str = None, cache: bool = False) -> dict:
+def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: str = None, cache: bool = False) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     reseau_label = RESEAUX.get(reseau, "LinkedIn")
@@ -218,7 +218,7 @@ def rediger_post(telegram_id: int, sujet: str, reseau: str = "linkedin", model: 
     return {"contenu": _texte(resp), "usage": _usage(resp)}
 
 
-def rediger_depuis_photo(telegram_id: int, img_b64: str, media_type: str,
+def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,
                          reseau: str = "linkedin", model: str = None) -> dict:
     """Vision : analyse une photo fournie et écrit un post adapté au réseau, dans la voix de marque."""
     if not _client:
@@ -282,7 +282,7 @@ ROLE_CARROUSEL = (
 )
 
 
-def rediger_carrousel(telegram_id: int, sujet: str, nb_slides: int = 5, model: str = None, cache: bool = False) -> dict:
+def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: str = None, cache: bool = False) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -357,7 +357,7 @@ ROLE_SCRIPT = (
 )
 
 
-def rediger_script(telegram_id: int, sujet: str, type_video: str = "Reel", model: str = None, cache: bool = False) -> dict:
+def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model: str = None, cache: bool = False) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)

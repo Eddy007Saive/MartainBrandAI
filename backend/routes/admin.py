@@ -13,16 +13,16 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 
 @router.get("/users")
-async def get_users(filter: str = "all", payload: dict = Depends(verify_admin_token)):
+async def get_users(filter: str = "all", q: str = None, payload: dict = Depends(verify_admin_token)):
     try:
-        return admin_service.get_users(filter)
+        return admin_service.get_users(filter, q)
     except Exception as e:
         logger.error(f"Get users error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/users/{telegram_id}")
-async def get_user_detail(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+async def get_user_detail(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         user = admin_service.get_user_detail(telegram_id)
         if not user:
@@ -36,7 +36,7 @@ async def get_user_detail(telegram_id: int, payload: dict = Depends(verify_admin
 
 
 @router.get("/users/{telegram_id}/contenus")
-async def get_user_contenus(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+async def get_user_contenus(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         return admin_service.get_user_contenus(telegram_id)
     except Exception as e:
@@ -77,7 +77,7 @@ async def get_activity_logs(limit: int = 50, payload: dict = Depends(verify_admi
 
 
 @router.patch("/users/{telegram_id}/activate")
-async def activate_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+async def activate_user(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         result = supabase.table("users").update({"actif": True}).eq("telegram_id", telegram_id).execute()
         if not result.data:
@@ -108,7 +108,7 @@ async def activate_user(telegram_id: int, payload: dict = Depends(verify_admin_t
 
 
 @router.post("/users/{telegram_id}/retry-late")
-async def retry_late_profile(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+async def retry_late_profile(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         result = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
         if not result.data:
@@ -132,7 +132,7 @@ async def retry_late_profile(telegram_id: int, payload: dict = Depends(verify_ad
 
 
 @router.patch("/users/{telegram_id}/deactivate")
-async def deactivate_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+async def deactivate_user(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         result = supabase.table("users").update({"actif": False}).eq("telegram_id", telegram_id).execute()
         if not result.data:
@@ -145,8 +145,67 @@ async def deactivate_user(telegram_id: int, payload: dict = Depends(verify_admin
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class CreditsUpdate(BaseModel):
+    amount: int
+    mode: str = "set"  # "set" ou "add"
+
+
+@router.patch("/users/{telegram_id}/credits")
+async def set_credits(telegram_id: str, body: CreditsUpdate, payload: dict = Depends(verify_admin_token)):
+    try:
+        if body.mode not in ("set", "add"):
+            raise HTTPException(status_code=400, detail="mode invalide")
+        user = admin_service.update_credits(telegram_id, body.amount, body.mode)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Set credits error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class PlanUpdate(BaseModel):
+    plan: str
+    reset_credits: bool = True
+
+
+@router.patch("/users/{telegram_id}/plan")
+async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(verify_admin_token)):
+    try:
+        user = admin_service.update_plan(telegram_id, body.plan, body.reset_credits)
+        if not user:
+            raise HTTPException(status_code=404, detail="Plan invalide ou user introuvable")
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Set plan error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class PushBroadcast(BaseModel):
+    title: str
+    body: str
+    telegram_id: Optional[str] = None  # None = tous
+
+
+@router.post("/push")
+async def send_push(body: PushBroadcast, payload: dict = Depends(verify_admin_token)):
+    try:
+        if not body.title.strip() or not body.body.strip():
+            raise HTTPException(status_code=400, detail="Titre et message requis")
+        return admin_service.broadcast_push(body.title.strip(), body.body.strip(), body.telegram_id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Admin push error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.delete("/users/{telegram_id}")
-async def delete_user(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+async def delete_user(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         result = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
         if not result.data:
@@ -181,7 +240,7 @@ async def get_all_avatars(payload: dict = Depends(verify_admin_token)):
 
 @router.patch("/avatars/{telegram_id}")
 async def update_avatar(
-    telegram_id: int,
+    telegram_id: str,
     body: AvatarUpdate,
     payload: dict = Depends(verify_admin_token),
 ):
@@ -204,7 +263,7 @@ async def update_avatar(
 
 
 @router.delete("/avatars/{telegram_id}")
-async def admin_delete_avatar(telegram_id: int, payload: dict = Depends(verify_admin_token)):
+async def admin_delete_avatar(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     """Admin deletes an avatar request."""
     try:
         supabase.table("heygen_avatars").delete().eq("telegram_id", telegram_id).execute()

@@ -5,12 +5,12 @@ VALID_FREQUENCIES = ['daily', '3_per_week', 'weekly', 'biweekly', 'custom']
 VALID_SCHEDULE_PLATFORMS = ['linkedin', 'instagram', 'facebook', 'tiktok', 'youtube']
 
 
-def get_schedules(telegram_id: int) -> list:
+def get_schedules(telegram_id: str) -> list:
     result = supabase.table("publication_schedules").select("*").eq("telegram_id", telegram_id).execute()
     return result.data
 
 
-def update_schedules(telegram_id: int, schedules: list) -> dict:
+def update_schedules(telegram_id: str, schedules: list) -> dict:
     for item in schedules:
         if item.platform not in VALID_SCHEDULE_PLATFORMS:
             return {"error": f"Invalid platform: {item.platform}"}

@@ -69,7 +69,7 @@ async def performance(telegram_id: str, days: int = 30, platform: str | None = N
     }
 
 
-def get_stats(telegram_id: int) -> dict:
+def get_stats(telegram_id: str) -> dict:
     analytics = supabase.table("analytics_performance").select("*").eq("telegram_id", telegram_id).execute()
 
     total_vues = sum(float(a.get("vues", 0) or 0) for a in analytics.data)
@@ -100,6 +100,6 @@ def get_stats(telegram_id: int) -> dict:
     }
 
 
-def get_performance(telegram_id: int) -> list:
+def get_performance(telegram_id: str) -> list:
     result = supabase.table("analytics_performance").select("*").eq("telegram_id", telegram_id).order("created_at", desc=True).limit(20).execute()
     return result.data

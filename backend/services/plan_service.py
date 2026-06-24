@@ -37,7 +37,7 @@ def _parse_time(val) -> time:
         return DEFAULT_TIME
 
 
-def _schedules(telegram_id: int) -> list:
+def _schedules(telegram_id: str) -> list:
     try:
         return (supabase.table("publication_schedules")
                 .select("platform, days_of_week, frequency, is_active, format, preferred_time, carrousel_template")
@@ -61,7 +61,7 @@ def _candidate_days(start: date, end: date, days: set) -> list:
     return out
 
 
-def _dates_occupees(telegram_id: int, reseau: str, start: date, end: date) -> list:
+def _dates_occupees(telegram_id: str, reseau: str, start: date, end: date) -> list:
     """Dates (ISO) déjà prises par un contenu daté du réseau dans le mois (non refusé)."""
     try:
         r = (supabase.table("contenu").select("date_publication, statut")
@@ -76,7 +76,7 @@ def _dates_occupees(telegram_id: int, reseau: str, start: date, end: date) -> li
             if row.get("date_publication") and row.get("statut") != "Refuse"]
 
 
-def compute_plan(telegram_id: int, year: int, month: int) -> list:
+def compute_plan(telegram_id: str, year: int, month: int) -> list:
     start, end = _month_bounds(year, month)
     out = []
     for s in _schedules(telegram_id):
@@ -101,7 +101,7 @@ def compute_plan(telegram_id: int, year: int, month: int) -> list:
     return out
 
 
-def creneaux_libres(telegram_id: int, reseau: str, year: int, month: int, occupied: set) -> list:
+def creneaux_libres(telegram_id: str, reseau: str, year: int, month: int, occupied: set) -> list:
     """Dates libres (ISO datetime UTC) du mois pour ce réseau, hors `occupied` (set de 'YYYY-MM-DD')."""
     start, end = _month_bounds(year, month)
     sched = next((s for s in _schedules(telegram_id)

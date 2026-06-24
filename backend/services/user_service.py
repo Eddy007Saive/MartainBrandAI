@@ -35,7 +35,7 @@ def _delete_old_photo(old_url: str | None, keep_public_id: str) -> None:
         logger.warning(f"Échec suppression ancienne photo Cloudinary ({pid}): {e}")
 
 
-def upload_photo(telegram_id: int, file_bytes: bytes) -> str:
+def upload_photo(telegram_id: str, file_bytes: bytes) -> str:
     """Upload la photo de profil sur Cloudinary et met à jour users.photo_url. Retourne l'URL.
 
     Remplace l'ancienne photo : même public_id + overwrite (pas d'accumulation), et si
@@ -59,7 +59,7 @@ def upload_photo(telegram_id: int, file_bytes: bytes) -> str:
     return url
 
 
-def upload_logo(telegram_id: int, file_bytes: bytes) -> str:
+def upload_logo(telegram_id: str, file_bytes: bytes) -> str:
     """Upload le logo de marque sur Cloudinary et met à jour users.logo_url. Retourne l'URL.
     Remplace l'ancien logo (même public_id + overwrite ; supprime l'orphelin éventuel)."""
     prev = supabase.table("users").select("logo_url").eq("telegram_id", telegram_id).execute()
@@ -75,7 +75,7 @@ def upload_logo(telegram_id: int, file_bytes: bytes) -> str:
     return url
 
 
-def delete_logo(telegram_id: int) -> None:
+def delete_logo(telegram_id: str) -> None:
     """Supprime le logo (Cloudinary + users.logo_url)."""
     prev = supabase.table("users").select("logo_url").eq("telegram_id", telegram_id).execute()
     old_url = prev.data[0].get("logo_url") if prev.data else None
@@ -85,7 +85,7 @@ def delete_logo(telegram_id: int) -> None:
 
 # ---- Inspirations visuelles (stockées dans Cloudinary : inspirations/{telegram_id}/) ----
 
-def list_inspirations(telegram_id: int) -> list:
+def list_inspirations(telegram_id: str) -> list:
     try:
         res = cloudinary.api.resources(
             type="upload", prefix=f"inspirations/{telegram_id}/", max_results=30,
@@ -96,14 +96,14 @@ def list_inspirations(telegram_id: int) -> list:
         return []
 
 
-def add_inspiration(telegram_id: int, file_bytes: bytes) -> list:
+def add_inspiration(telegram_id: str, file_bytes: bytes) -> list:
     cloudinary.uploader.upload(
         file_bytes, resource_type="image", folder=f"inspirations/{telegram_id}",
     )
     return list_inspirations(telegram_id)
 
 
-def remove_inspiration(telegram_id: int, url: str) -> list:
+def remove_inspiration(telegram_id: str, url: str) -> list:
     pid = _public_id_from_cloudinary_url(url or "")
     if pid:
         try:
@@ -113,20 +113,20 @@ def remove_inspiration(telegram_id: int, url: str) -> list:
     return list_inspirations(telegram_id)
 
 
-def get_user(telegram_id: int) -> dict | None:
+def get_user(telegram_id: str) -> dict | None:
     result = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
     if not result.data:
         return None
     return sanitize_user(result.data[0])
 
 
-def update_user(telegram_id: int, update_data: dict) -> dict | None:
+def update_user(telegram_id: str, update_data: dict) -> dict | None:
     result = supabase.table("users").update(update_data).eq("telegram_id", telegram_id).execute()
     if not result.data:
         return None
     return sanitize_user(result.data[0])
 
 
-def delete_user(telegram_id: int) -> bool:
+def delete_user(telegram_id: str) -> bool:
     result = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
     return bool(result.data)

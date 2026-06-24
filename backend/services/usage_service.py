@@ -33,7 +33,7 @@ def cout_reel(model: str, usage: dict) -> float:
     return (inp / 1e6) * p["in"] + (cw / 1e6) * p["in"] * 1.25 + (cr / 1e6) * p["in"] * 0.1 + (out / 1e6) * p["out"]
 
 
-def log(telegram_id: int, action: str, model: str, usage: dict, credits: int, qualite: str = None, cost_override: float = None) -> None:
+def log(telegram_id: str, action: str, model: str, usage: dict, credits: int, qualite: str = None, cost_override: float = None) -> None:
     try:
         u = usage or {}
         cost = cost_override if cost_override is not None else round(cout_reel(model, u), 6)

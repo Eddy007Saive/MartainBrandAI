@@ -78,7 +78,7 @@ async def fetch_preview_images(avatar_id: str):
         return unique
 
 
-async def auto_fill_preview(telegram_id: int, avatar: dict):
+async def auto_fill_preview(telegram_id: str, avatar: dict):
     """If avatar_id exists but preview_image_url is empty, fetch from HeyGen and save."""
     if not avatar.get("avatar_id") or avatar.get("preview_image_url"):
         return avatar
@@ -99,7 +99,7 @@ async def auto_fill_preview(telegram_id: int, avatar: dict):
 
 
 async def save_avatar_request(
-    telegram_id: int,
+    telegram_id: str,
     avatar_name: str,
     description: str,
     training_video_url: str,
@@ -117,7 +117,7 @@ async def save_avatar_request(
     return result.data
 
 
-async def get_avatar_from_db(telegram_id: int):
+async def get_avatar_from_db(telegram_id: str):
     """Get user's avatar from DB."""
     result = supabase.table("heygen_avatars").select("*").eq(
         "telegram_id", telegram_id
@@ -133,7 +133,7 @@ def get_all_avatars():
     return result.data or []
 
 
-def update_avatar_by_admin(telegram_id: int, update_data: dict):
+def update_avatar_by_admin(telegram_id: str, update_data: dict):
     """Admin updates avatar info (avatar_id, status, error_message, consent_url)."""
     allowed_fields = {
         "avatar_id", "status", "error_message", "consent_url",
