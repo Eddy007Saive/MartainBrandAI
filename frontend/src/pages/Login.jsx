@@ -82,9 +82,7 @@ export default function Login() {
         {/* Logo & Name */}
         <div className="relative">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center shadow-lg shadow-[#5B6CFF]/25">
-              <span className="text-2xl font-bold text-white font-sora">P</span>
-            </div>
+            <img src="/logo.png" alt="Presence OS" className="w-14 h-14 object-contain" />
             <div>
               <h1 className="text-3xl font-bold font-sora text-white">PresenceOS</h1>
               <p className="text-slate-400 font-inter text-sm">Votre présence, amplifiée</p>
@@ -137,9 +135,7 @@ export default function Login() {
       <div className="w-full lg:w-1/2 xl:w-[45%] flex items-center justify-center p-6 sm:p-12 relative z-10">
         {/* Mobile logo */}
         <div className="lg:hidden absolute top-6 left-6 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center">
-            <span className="text-lg font-bold text-white font-sora">P</span>
-          </div>
+          <img src="/logo.png" alt="Presence OS" className="w-10 h-10 object-contain" />
           <span className="text-xl font-bold text-white font-sora">PresenceOS</span>
         </div>
         
