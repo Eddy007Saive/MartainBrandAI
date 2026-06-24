@@ -1,7 +1,12 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
-import Landing from "./pages/Landing";
+import MarketingLayout from "./pages/marketing/MarketingLayout";
+import Home from "./pages/marketing/Home";
+import Features from "./pages/marketing/Features";
+import HowItWorks from "./pages/marketing/HowItWorks";
+import Pricing from "./pages/marketing/Pricing";
+import Faq from "./pages/marketing/Faq";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Pending from "./pages/Pending";
@@ -25,7 +30,15 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Landing />} />
+          {/* Site vitrine (pages séparées, layout commun) */}
+          <Route element={<MarketingLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/fonctionnalites" element={<Features />} />
+            <Route path="/comment-ca-marche" element={<HowItWorks />} />
+            <Route path="/tarifs" element={<Pricing />} />
+            <Route path="/faq" element={<Faq />} />
+          </Route>
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/pending" element={<Pending />} />
