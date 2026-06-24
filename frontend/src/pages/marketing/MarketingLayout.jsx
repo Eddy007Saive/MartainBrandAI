@@ -46,11 +46,12 @@ export default function MarketingLayout() {
       <footer><div className="wrap">
         <div className="brand"><img src="/logo.png" alt="" style={{ width: 30, height: 30 }} /><div><b>Presence OS</b><small>© 2026 · Studio de contenu IA</small></div></div>
         <div className="flinks">
-          <Link to="/fonctionnalites">Fonctionnalités</Link>
           <Link to="/tarifs">Tarifs</Link>
           <Link to="/faq">FAQ</Link>
+          <Link to="/cgu">CGU</Link>
+          <Link to="/confidentialite">Confidentialité</Link>
+          <Link to="/mentions-legales">Mentions légales</Link>
           <Link to="/login">Connexion</Link>
-          <Link to="/register">Inscription</Link>
         </div>
       </div></footer>
     </div>

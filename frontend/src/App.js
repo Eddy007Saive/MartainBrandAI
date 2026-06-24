@@ -7,6 +7,9 @@ import Features from "./pages/marketing/Features";
 import HowItWorks from "./pages/marketing/HowItWorks";
 import Pricing from "./pages/marketing/Pricing";
 import Faq from "./pages/marketing/Faq";
+import Cgu from "./pages/marketing/Cgu";
+import Confidentialite from "./pages/marketing/Confidentialite";
+import MentionsLegales from "./pages/marketing/MentionsLegales";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Pending from "./pages/Pending";
@@ -37,6 +40,9 @@ function App() {
             <Route path="/comment-ca-marche" element={<HowItWorks />} />
             <Route path="/tarifs" element={<Pricing />} />
             <Route path="/faq" element={<Faq />} />
+            <Route path="/cgu" element={<Cgu />} />
+            <Route path="/confidentialite" element={<Confidentialite />} />
+            <Route path="/mentions-legales" element={<MentionsLegales />} />
           </Route>
 
           <Route path="/login" element={<Login />} />

@@ -37,6 +37,30 @@ export const FAQ = [
   ['Mes données sont-elles en sécurité ?', 'Tes comptes sociaux sont connectés via OAuth officiel : on ne stocke jamais tes mots de passe, et tu peux déconnecter un réseau à tout moment.'],
 ];
 
+// Coordonnées de l'éditeur (à compléter par Martin)
+export const LEGAL = {
+  societe: '[RAISON SOCIALE]',
+  statut: '[FORME JURIDIQUE – ex. SAS / auto-entrepreneur]',
+  siret: '[SIRET]',
+  adresse: '[ADRESSE POSTALE]',
+  email: 'martindumoulin88@gmail.com',
+  directeur: '[DIRECTEUR DE LA PUBLICATION]',
+  hebergeur: 'Railway (Railway Corp., 548 Market St, San Francisco, CA, USA) — frontend/back-end ; Supabase (bases de données)',
+  maj: '24 juin 2026',
+};
+
+// Bandeau pour valeur à compléter
+export const Ph = ({ children }) => <span className="ph">{children}</span>;
+
+// Wrapper de page légale (titre + prose)
+export const LegalPage = ({ title, children }) => (
+  <section><div className="wrap"><div className="legal">
+    <div className="h2">{title}</div>
+    <p className="updated">Dernière mise à jour : {LEGAL.maj}</p>
+    {children}
+  </div></div></section>
+);
+
 // Titre de section réutilisable
 export const SectionHead = ({ eyebrow, title, lead }) => (
   <>
@@ -146,7 +170,18 @@ export const CSS = `
 .lp footer .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 .lp footer .flinks{display:flex;gap:24px;font-size:13.5px;color:var(--dim)}
 .lp footer .flinks a:hover{color:#fff}
+.lp .legal{max-width:820px;margin:0 auto;padding:60px 0 40px}
+.lp .legal .h2{text-align:left;font-size:34px}
+.lp .legal .updated{color:var(--dim);font-size:13px;margin-top:10px}
+.lp .legal h3{font-family:Sora;font-weight:700;font-size:19px;margin:34px 0 10px;color:#fff}
+.lp .legal p,.lp .legal li{color:var(--muted);font-size:15px;line-height:1.75}
+.lp .legal ul{margin:10px 0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.lp .legal a{color:#8aa0ff}
+.lp .legal a:hover{color:#fff}
+.lp .legal .ph{color:#fcd770}
 @media (max-width:760px){
+  .lp .legal{padding:36px 0}
+  .lp .legal .h2{font-size:25px}
   .lp .navlinks,.lp .nav-cta .login,.lp .brand small{display:none}
   .lp nav .wrap{height:60px}
   .lp .hero{padding:54px 0 46px}
