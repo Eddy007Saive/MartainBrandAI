@@ -488,15 +488,15 @@ export default function ContenusPage() {
             <button
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setSearchQuery(''); setFilterStatut('all'); }}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-inter font-medium transition-all ${
+              className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 sm:px-4 py-2.5 rounded-lg text-[13px] sm:text-sm font-inter font-medium transition-all ${
                 activeTab === tab.id
                   ? 'bg-[#5B6CFF]/20 text-white shadow-[0_0_10px_rgba(91,108,255,0.1)]'
                   : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
               }`}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+              <tab.icon className="w-4 h-4 shrink-0" />
+              <span className="truncate">{tab.label}</span>
+              <span className={`hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded-full ${
                 activeTab === tab.id ? 'bg-[#5B6CFF]/30 text-white' : 'bg-slate-800 text-slate-500'
               }`}>
                 {tab.count}

@@ -84,31 +84,31 @@ export default function CarrouselsPage() {
       ) : (
         <>
           {/* Onglets réseaux */}
-          <div className="flex gap-2 flex-wrap mb-6">
+          <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 mb-5">
             {NETS.map((n) => {
               const on = activeNet === n.id;
               return (
                 <button key={n.id} onClick={() => setActiveNet(n.id)} data-testid={`carr-tab-${n.id}`}
-                  className={`flex items-center gap-2.5 pl-2 pr-4 py-2 rounded-xl border transition-all ${on ? 'border-[#5B6CFF] bg-[#5B6CFF]/12 text-white' : 'border-white/8 bg-white/[0.02] text-slate-400 hover:text-white hover:border-white/20'}`}>
-                  <span className="w-7 h-7 rounded-lg grid place-items-center text-white flex-shrink-0" style={{ background: n.bg }}>
+                  className={`flex items-center justify-center sm:justify-start gap-2 px-2 sm:pl-2 sm:pr-4 py-2 rounded-xl border transition-all min-w-0 ${on ? 'border-[#5B6CFF] bg-[#5B6CFF]/12 text-white' : 'border-white/8 bg-white/[0.02] text-slate-400 hover:text-white hover:border-white/20'}`}>
+                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg grid place-items-center text-white flex-shrink-0" style={{ background: n.bg }}>
                     <SocialIcon network={n.id} className="w-3.5 h-3.5" />
                   </span>
-                  <span className="font-sora font-semibold text-sm">{n.label}</span>
-                  <span className="text-[11px] text-[#3AFFA3] font-medium">· {labelOf(saved[n.id])}</span>
+                  <span className="font-sora font-semibold text-[12.5px] sm:text-sm truncate">{n.label}</span>
+                  <span className="hidden sm:inline text-[11px] text-[#3AFFA3] font-medium">· {labelOf(saved[n.id])}</span>
                 </button>
               );
             })}
           </div>
 
           {/* Panneau du réseau actif */}
-          <div className="rounded-2xl border border-white/8 bg-[#0b1322] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
+          <div className="rounded-2xl border border-white/8 bg-[#0b1322] p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div className="min-w-0">
                 <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{nt.label} — choisis un style</div>
                 <div className="text-xs text-slate-400 mt-0.5">{nt.note}</div>
               </div>
               <button onClick={() => save(activeNet)} disabled={!dirty || saving === activeNet} data-testid={`carr-save-${activeNet}`}
-                className={`text-[13px] font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${dirty ? 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white' : 'bg-white/5 text-slate-500 cursor-default'}`}>
+                className={`self-start sm:self-auto shrink-0 text-[13px] font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${dirty ? 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white' : 'bg-white/5 text-slate-500 cursor-default'}`}>
                 {saving === activeNet ? <Loader2 className="w-4 h-4 animate-spin" /> : (!dirty && <Check className="w-4 h-4" />)}
                 {!dirty ? 'Enregistré' : 'Enregistrer'}
               </button>
