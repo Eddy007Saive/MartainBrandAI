@@ -29,7 +29,7 @@ const STEPS = [
   ['Valide & programme', 'Tu relis, tu ajustes, tu programmes. La publication part toute seule.'],
 ];
 const PLANS = [
-  { name: 'Gratuit', price: '0€', credits: 50, feats: ['1 réseau connecté', 'Génération de posts', 'Support communauté'], cta: 'Commencer', to: '/register' },
+  { name: 'Gratuit', price: '0€', credits: 100, feats: ['1 réseau connecté', 'Génération de posts', 'Support communauté'], cta: 'Commencer', to: '/register' },
   { name: 'Pro', price: '19€', credits: 1000, popular: true, feats: ['Les 5 réseaux', 'Carrousels + planification', 'Notifications push'], cta: 'Choisir Pro', to: '/register' },
   { name: 'Business', price: '49€', credits: 3000, feats: ['Avatar vidéo IA', 'Multi-profils', 'Support prioritaire'], cta: 'Choisir Business', to: '/register' },
 ];

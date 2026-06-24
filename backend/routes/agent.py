@@ -44,7 +44,7 @@ async def sujets(body: dict, payload: dict = Depends(verify_token)):
     cost = credit_service.cout("sujets")
     solde = credit_service.deduct(telegram_id, cost)
     if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits insuffisants")
+        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
     try:
         result = agent_service.generer_sujets(telegram_id, int(body.get("nombre", 6)))
     except Exception as e:
@@ -233,7 +233,7 @@ async def rediger(body: dict, payload: dict = Depends(verify_token)):
     cost = credit_service.cout("post", qualite)
     solde = credit_service.deduct(telegram_id, cost)
     if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits insuffisants")
+        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
     try:
         result = agent_service.rediger_post(telegram_id, sujet, body.get("reseau", "linkedin"),
                                             agent_service.QUALITE_MODELS.get(qualite))
@@ -270,7 +270,7 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
     cost = credit_service.cout("post", qualite)
     solde = credit_service.deduct(telegram_id, cost)
     if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits insuffisants")
+        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
     try:
         r = agent_service.rediger_depuis_photo(
             telegram_id, base64.b64encode(data).decode(), file.content_type,
@@ -323,7 +323,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     cost = credit_service.cout("carrousel", qualite)
     solde = credit_service.deduct(telegram_id, cost)
     if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits insuffisants")
+        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
     try:
         result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.QUALITE_MODELS.get(qualite))
     except Exception as e:
@@ -384,7 +384,7 @@ async def script(body: dict, payload: dict = Depends(verify_token)):
     cost = credit_service.cout("script", qualite)
     solde = credit_service.deduct(telegram_id, cost)
     if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits insuffisants")
+        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
     try:
         result = agent_service.rediger_script(telegram_id, sujet, body.get("type_video", "Reel"),
                                               agent_service.QUALITE_MODELS.get(qualite))
@@ -487,7 +487,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     cost = credit_service.cout("image", modele)
     solde = credit_service.deduct(telegram_id, cost)
     if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits insuffisants")
+        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
     try:
         res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"))
     except Exception as e:

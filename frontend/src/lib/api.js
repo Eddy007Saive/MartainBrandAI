@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'sonner';
 import { getToken, logout } from './auth';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -26,6 +27,13 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       logout();  // efface localStorage + stockage natif (Preferences)
       window.location.href = '/login';
+    } else if (error.response?.status === 402) {
+      // Crédits épuisés -> paywall : toast actionnable vers l'abonnement
+      toast.error(error.response?.data?.detail || 'Crédits épuisés.', {
+        action: { label: 'Passer Pro', onClick: () => { window.location.href = '/dashboard/parametres'; } },
+        duration: 8000,
+      });
+      error.__handled = true;  // évite le double-toast côté composant
     }
     return Promise.reject(error);
   }

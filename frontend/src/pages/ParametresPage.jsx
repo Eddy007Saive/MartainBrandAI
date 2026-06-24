@@ -45,7 +45,7 @@ const SETTINGS_SECTIONS = [
 ];
 
 const PLANS = [
-  { id: 'gratuit', name: 'Gratuit', price: '0€', credits: 50, feats: ['1 réseau', 'Génération de posts', 'Support communauté'] },
+  { id: 'gratuit', name: 'Gratuit', price: '0€', credits: 100, feats: ['1 réseau', 'Génération de posts', 'Support communauté'] },
   { id: 'pro', name: 'Pro', price: '19€', credits: 1000, popular: true, feats: ['Les 5 réseaux', 'Carrousels + planification', 'Notifications push'] },
   { id: 'business', name: 'Business', price: '49€', credits: 3000, feats: ['Avatar vidéo IA', 'Multi-profils', 'Support prioritaire'] },
 ];

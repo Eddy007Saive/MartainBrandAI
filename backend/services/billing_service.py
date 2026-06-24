@@ -12,7 +12,7 @@ from config import (
 )
 
 # plan -> crédits mensuels
-PLAN_CREDITS = {"gratuit": 50, "pro": 1000, "business": 3000}
+PLAN_CREDITS = {"gratuit": 100, "pro": 1000, "business": 3000}
 
 
 def _ready() -> bool:
