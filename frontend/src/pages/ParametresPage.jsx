@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
-  CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings,
+  CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings, CreditCard, Sparkles,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -20,6 +20,7 @@ import { ColorField } from '../components/ColorField';
 import { COMMON_TIMEZONES } from '../lib/tz';
 import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
+import { billingService } from '../services/billingService';
 import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
 import { removeToken } from '../lib/auth';
@@ -38,8 +39,15 @@ const SETTINGS_SECTIONS = [
   { id: 'marque', title: 'Voix de marque', icon: Megaphone },
   { id: 'connections', title: 'Réseaux sociaux', icon: Plug },
   { id: 'schedules', title: 'Planification', icon: Calendar },
+  { id: 'abonnement', title: 'Abonnement', icon: CreditCard },
   { id: 'style', title: 'Style & Couleurs', icon: Palette },
   { id: 'avatar', title: 'Avatar HeyGen', icon: Video },
+];
+
+const PLANS = [
+  { id: 'gratuit', name: 'Gratuit', price: '0€', credits: 50, feats: ['1 réseau', 'Génération de posts', 'Support communauté'] },
+  { id: 'pro', name: 'Pro', price: '19€', credits: 1000, popular: true, feats: ['Les 5 réseaux', 'Carrousels + planification', 'Notifications push'] },
+  { id: 'business', name: 'Business', price: '49€', credits: 3000, feats: ['Avatar vidéo IA', 'Multi-profils', 'Support prioritaire'] },
 ];
 
 const AVATAR_STATUS = {
@@ -1037,11 +1045,77 @@ export default function ParametresPage() {
     );
   };
 
+  const upgrade = async (plan) => {
+    try { await billingService.checkout(plan); }
+    catch (e) { toast.error(e.response?.data?.detail || 'Paiement indisponible pour le moment.'); }
+  };
+  const manageBilling = async () => {
+    try { await billingService.portal(); }
+    catch (e) { toast.error(e.response?.data?.detail || 'Portail indisponible.'); }
+  };
+
+  const renderAbonnement = () => {
+    const current = user?.plan || 'gratuit';
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between flex-wrap gap-3 p-4 rounded-xl bg-slate-950/40 border border-slate-800">
+          <div>
+            <div className="text-xs text-slate-500 font-inter">Ton forfait actuel</div>
+            <div className="text-lg font-semibold text-white font-sora capitalize">{current}</div>
+            <div className="text-xs text-slate-400 mt-0.5 font-inter">
+              {user?.credits ?? 0} crédits{user?.plan_renews_at ? ` · renouvellement le ${new Date(user.plan_renews_at).toLocaleDateString('fr-FR')}` : ''}
+            </div>
+          </div>
+          {current !== 'gratuit' && (
+            <Button size="sm" onClick={manageBilling} className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">
+              <CreditCard className="w-4 h-4 mr-1.5" />Gérer mon abonnement
+            </Button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {PLANS.map((p) => {
+            const isCurrent = current === p.id;
+            return (
+              <div key={p.id} className={`relative rounded-2xl border p-5 flex flex-col ${p.popular ? 'border-[#5B6CFF]/50 bg-[#5B6CFF]/[0.06]' : 'border-white/[0.06] bg-slate-950/40'}`}>
+                {p.popular && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-bold text-white bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] px-2.5 py-0.5 rounded-full">★ POPULAIRE</span>}
+                <div className="font-semibold font-sora text-white">{p.name}</div>
+                <div className="mt-2"><span className="text-2xl font-bold font-sora">{p.price}</span><span className="text-xs text-slate-500"> /mois</span></div>
+                <div className="text-xs text-[#3AFFA3] mt-1 font-inter">{p.credits} crédits / mois</div>
+                <ul className="mt-3 space-y-1.5 flex-1">
+                  {p.feats.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[12.5px] text-slate-400 font-inter">
+                      <Check className="w-3.5 h-3.5 text-[#3AFFA3] shrink-0 mt-0.5" />{f}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4">
+                  {isCurrent ? (
+                    <div className="text-center text-[12.5px] text-slate-500 py-2 border border-white/[0.06] rounded-lg">Ton forfait</div>
+                  ) : p.id === 'gratuit' ? (
+                    <div className="text-center text-[12.5px] text-slate-600 py-2">—</div>
+                  ) : (
+                    <Button size="sm" onClick={() => upgrade(p.id)}
+                      className={`w-full ${p.popular ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90' : 'bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10'}`}>
+                      Passer {p.name}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-xs text-slate-500 font-inter flex items-center gap-1.5"><Info className="w-3.5 h-3.5" />Paiement sécurisé par Stripe · annulable à tout moment.</p>
+      </div>
+    );
+  };
+
   const sectionRenderers = {
     identity: renderIdentity,
     marque: renderMarque,
     connections: renderConnections,
     schedules: renderSchedules,
+    abonnement: renderAbonnement,
     style: renderStyle,
     avatar: renderAvatar,
   };
