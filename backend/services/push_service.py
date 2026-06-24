@@ -93,7 +93,10 @@ def send_to_user(telegram_id: str, title: str, body: str, data: dict | None = No
             "token": tk,
             "notification": {"title": title, "body": body},
             "data": payload_data,
-            "android": {"priority": "high"},
+            "android": {
+                "priority": "high",
+                "notification": {"sound": "default", "channel_id": "presence_default", "default_sound": True},
+            },
         }}
         try:
             r = httpx.post(url, headers=headers, json=msg, timeout=15)

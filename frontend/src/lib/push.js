@@ -15,6 +15,18 @@ export async function initPush() {
     }
     if (perm.receive !== 'granted') return;
 
+    // Canal Android à importance HAUTE -> son + bannière (sinon notif silencieuse)
+    if (Capacitor.getPlatform() === 'android') {
+      await PushNotifications.createChannel({
+        id: 'presence_default',
+        name: 'Publications',
+        description: 'Notifications de publication',
+        importance: 5,
+        visibility: 1,
+        vibration: true,
+      }).catch(() => {});
+    }
+
     // Listeners AVANT register() (sinon l'event 'registration' part avant et le token est perdu)
     await PushNotifications.addListener('registration', (t) => {
       notificationService.registerDeviceToken(t.value, Capacitor.getPlatform()).catch(() => {});
