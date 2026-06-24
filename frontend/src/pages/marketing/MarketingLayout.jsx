@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation, Link, NavLink, Outlet } from 'react-router-dom';
 import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
 import { isNativeApp } from '../../lib/appDownload';
-import { CSS } from './shared';
+import { CSS, GOODTIME } from './shared';
 
 const LINKS = [
   { to: '/fonctionnalites', label: 'Fonctionnalités' },
@@ -44,14 +44,20 @@ export default function MarketingLayout() {
       <div className="pagebody"><Outlet /></div>
 
       <footer><div className="wrap">
-        <div className="brand"><img src="/logo.png" alt="" style={{ width: 30, height: 30 }} /><div><b>Presence OS</b><small>© 2026 · Studio de contenu IA</small></div></div>
+        <div className="brand">
+          <img src="/logo.png" alt="" style={{ width: 30, height: 30 }} />
+          <div>
+            <b>Presence OS</b>
+            <small>Un produit <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a> · © 2026</small>
+          </div>
+        </div>
         <div className="flinks">
           <Link to="/tarifs">Tarifs</Link>
           <Link to="/faq">FAQ</Link>
           <Link to="/cgu">CGU</Link>
           <Link to="/confidentialite">Confidentialité</Link>
           <Link to="/mentions-legales">Mentions légales</Link>
-          <Link to="/login">Connexion</Link>
+          <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a>
         </div>
       </div></footer>
     </div>

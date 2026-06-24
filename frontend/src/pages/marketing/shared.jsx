@@ -39,9 +39,16 @@ export const FAQ = [
   ['Mes données sont-elles en sécurité ?', 'Tes comptes sociaux sont connectés via OAuth officiel : on ne stocke jamais tes mots de passe, et tu peux déconnecter un réseau à tout moment.'],
 ];
 
+// Éditeur : GoodTime BNB (gt-bnb.com)
+export const GOODTIME = {
+  name: 'GoodTime BNB',
+  url: 'https://gt-bnb.com',
+  tagline: "L'OS de la location courte durée",
+};
+
 // Coordonnées de l'éditeur (à compléter par Martin)
 export const LEGAL = {
-  societe: '[RAISON SOCIALE]',
+  societe: 'GoodTime BNB',
   statut: '[FORME JURIDIQUE – ex. SAS / auto-entrepreneur]',
   siret: '[SIRET]',
   adresse: '[ADRESSE POSTALE]',
@@ -182,6 +189,14 @@ export const CSS = `
 .lp .step .n{width:54px;height:54px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:20px;color:#fff;background:var(--grad);box-shadow:0 10px 30px rgba(91,108,255,.3)}
 .lp .step h3{font-family:Sora;font-weight:700;font-size:17px;margin-bottom:8px}
 .lp .step p{color:var(--muted);font-size:14px;line-height:1.6;max-width:300px;margin:0 auto}
+.lp .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
+.lp .fstep{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px}
+.lp .fstep .n{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:18px;color:#fff;background:var(--grad);margin-bottom:16px;box-shadow:0 10px 26px rgba(91,108,255,.3)}
+.lp .fstep h3{font-family:Sora;font-weight:700;font-size:17px;margin-bottom:8px}
+.lp .fstep>p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:15px}
+.lp .fstep ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.lp .fstep li{display:flex;gap:9px;font-size:13px;color:var(--muted);line-height:1.4}
+.lp .fstep li svg{flex-shrink:0;margin-top:1px}
 .lp .nets{display:flex;justify-content:center;gap:30px;flex-wrap:wrap;margin-top:40px;align-items:center}
 .lp .nets .nx{display:flex;align-items:center;gap:10px;color:var(--muted);font-weight:600;font-size:14.5px}
 .lp .nets .nx .b{width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
@@ -235,6 +250,12 @@ export const CSS = `
 .lp .tcard .av{width:40px;height:40px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:700;flex-shrink:0}
 .lp .tcard .who b{font-size:13.5px;display:block}
 .lp .tcard .who small{font-size:12px;color:var(--dim)}
+/* Bandeau éditeur GoodTime */
+.lp .gtband{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 26px}
+.lp .gtband .gt-t{color:var(--muted);font-size:14px}
+.lp .gtband .gt-t b{color:var(--ink)}
+.lp .gtband a{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--accent);background:rgba(58,255,163,.08);border:1px solid rgba(58,255,163,.25);padding:8px 15px;border-radius:10px}
+.lp .gtband a:hover{background:rgba(58,255,163,.16)}
 .lp footer{border-top:1px solid var(--line);padding:36px 0}
 .lp footer .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 .lp footer .flinks{display:flex;gap:24px;font-size:13.5px;color:var(--dim)}
@@ -268,7 +289,8 @@ export const CSS = `
   .lp .features,.lp .pricing{grid-template-columns:1fr;gap:14px;margin-top:32px}
   .lp .steps{grid-template-columns:1fr;gap:28px;margin-top:34px}
   .lp .statsband,.lp .aud{grid-template-columns:1fr 1fr;gap:12px}
-  .lp .ps,.lp .testi{grid-template-columns:1fr;margin-top:32px}
+  .lp .ps,.lp .testi,.lp .flow{grid-template-columns:1fr;margin-top:32px}
+  .lp .nets{gap:18px}
   .lp .stat .sv{font-size:26px}
   .lp .ctaband{padding:36px 22px}
   .lp footer .wrap{flex-direction:column;align-items:flex-start;gap:16px}

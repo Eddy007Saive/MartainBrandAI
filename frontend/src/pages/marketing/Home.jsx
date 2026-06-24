@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { APK_URL } from '../../lib/appDownload';
 import HeroPreview from './HeroPreview';
-import { SectionHead } from './shared';
+import { SectionHead, GOODTIME } from './shared';
 
 const STATS = [
   ['5', 'réseaux connectés'],
@@ -110,6 +110,14 @@ export default function Home() {
               <div className="who"><span className="av">{av}</span><div><b>{name}</b><small>{role}</small></div></div>
             </div>
           ))}
+        </div>
+      </div></section>
+
+      {/* Édité par GoodTime */}
+      <section style={{ paddingTop: 0 }}><div className="wrap">
+        <div className="gtband">
+          <span className="gt-t">Presence OS est un produit <b>{GOODTIME.name}</b> — {GOODTIME.tagline}.</span>
+          <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">Découvrir GoodTime ↗</a>
         </div>
       </div></section>
 
