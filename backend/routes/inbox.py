@@ -1,8 +1,29 @@
-from fastapi import APIRouter, HTTPException, Depends
+import json
+from fastapi import APIRouter, HTTPException, Depends, Request
 from dependencies import verify_token
-from services import inbox_service
+from services import inbox_service, late_service
+from config import logger
 
 router = APIRouter(prefix="/inbox", tags=["inbox"])
+
+
+@router.post("/webhook")
+async def comment_webhook(request: Request):
+    """Webhook Late `comment.received` (public, vérifié par signature) -> push temps réel."""
+    raw = await request.body()
+    sig = request.headers.get("X-Late-Signature", "") or request.headers.get("x-late-signature", "")
+    if not late_service.verify_signature(raw, sig):
+        raise HTTPException(status_code=401, detail="Signature invalide")
+    try:
+        payload = json.loads(raw.decode() or "{}")
+    except Exception:
+        payload = {}
+    try:
+        res = inbox_service.handle_comment_webhook(payload)
+    except Exception as e:
+        logger.error(f"Inbox webhook error: {e}")
+        res = {"ok": False, "error": str(e)}
+    return {"received": True, **res}
 
 
 @router.get("")
