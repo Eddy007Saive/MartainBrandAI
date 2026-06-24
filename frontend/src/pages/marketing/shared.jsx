@@ -16,6 +16,8 @@ export const FEATURES = [
   ['Génération IA', 'Des posts calibrés sur ta voix de marque, ton secteur et tes piliers — en quelques secondes.'],
   ['Multi-réseaux', 'LinkedIn, Instagram, Facebook, TikTok, YouTube — publie partout depuis un seul endroit.'],
   ['Planification', 'Calendrier éditorial, créneaux automatiques, publication à la bonne heure dans ton fuseau.'],
+  ['Commentaires & inbox', 'Réponds, aime, masque tes commentaires depuis un seul endroit — avec notification dès qu’un nouveau arrive.'],
+  ['Analyse des performances', 'Impressions, j’aime, partages et engagement par post, synchronisés automatiquement chaque heure.'],
   ['Carrousels brandés', 'Des carrousels aux couleurs de ta marque, générés et prêts à poster (PDF LinkedIn inclus).'],
   ['Notifications push', 'Sois prévenu quand un post est programmé, publié ou échoue — même app fermée.'],
   ['Avatar vidéo IA', 'Transforme tes scripts en vidéos avec ton avatar digital. Du texte à la vidéo, sans tournage.'],
@@ -128,6 +130,42 @@ export const CSS = `
 .lp .ccard .tag{align-self:flex-start;font-size:9px;font-weight:600;padding:3px 8px;border-radius:6px;background:rgba(58,255,163,.14);color:var(--accent)}
 .lp .ccard .tag.pub{background:rgba(96,165,250,.15);color:#93c5fd}
 .lp .ccard .tag.warn{background:rgba(251,191,36,.14);color:#fcd770}
+/* ---- Aperçu animé multi-écrans ---- */
+.lp .shot .main{position:relative;overflow:hidden}
+.lp .hp-scene{display:flex;flex-direction:column;height:100%}
+@keyframes hpUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes hpScene{from{opacity:0;transform:translateY(6px) scale(.99)}to{opacity:1;transform:none}}
+.lp .hp-scene{animation:hpScene .4s ease both}
+.lp .hp-anim{animation:hpUp .45s ease both}
+.lp .hp-list{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.lp .hp-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.lp .hp-item .hp-spark{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:grid;place-items:center;background:rgba(138,108,255,.14);border:1px solid rgba(138,108,255,.28)}
+.lp .hp-item .hp-itext{flex:1;font-size:12.5px;color:var(--ink);line-height:1.3}
+.lp .hp-item .hp-add{font-size:10.5px;font-weight:700;color:var(--accent);background:rgba(58,255,163,.12);padding:4px 9px;border-radius:7px;white-space:nowrap}
+.lp .hp-chips{display:flex;gap:8px;margin:4px 0 12px}
+.lp .hp-chip{font-size:11px;font-weight:600;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid var(--line);padding:5px 11px;border-radius:999px}
+.lp .hp-chip.on{color:var(--accent);background:rgba(58,255,163,.12);border-color:rgba(58,255,163,.25)}
+.lp .hp-cmts{display:flex;flex-direction:column;gap:10px}
+.lp .hp-cmt{display:flex;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.lp .hp-cmt .hp-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px}
+.lp .hp-cmt .hp-cname{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ink)}
+.lp .hp-cmt .hp-cnet{width:14px;height:14px;border-radius:4px;display:grid;place-items:center}
+.lp .hp-cmt .hp-ctext{font-size:12px;color:var(--muted);margin:3px 0 7px;line-height:1.4}
+.lp .hp-cmt .hp-cact{display:flex;gap:14px;font-size:11px;font-weight:600;color:var(--dim)}
+.lp .hp-cmt .hp-cact .r{color:#8aa0ff}
+.lp .hp-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.lp .hp-cell{aspect-ratio:1;border:1px solid var(--line);border-radius:8px;background:var(--card);padding:5px;display:flex;flex-direction:column;justify-content:space-between}
+.lp .hp-cell .num{font-size:9px;color:var(--dim)}
+.lp .hp-cell .dots{display:flex;gap:3px;flex-wrap:wrap}
+.lp .hp-cell .dot{width:7px;height:7px;border-radius:50%}
+.lp .hp-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:6px}
+.lp .hp-kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+.lp .hp-kpi .kl{font-size:11px;color:var(--muted)}
+.lp .hp-kpi .kv{font-family:Sora;font-weight:800;font-size:21px;margin-top:3px}
+.lp .hp-kpi .kd{font-size:10px;color:var(--accent);font-weight:700;margin-top:2px}
+.lp .hp-dots{display:flex;justify-content:center;gap:7px;padding-top:14px;margin-top:auto}
+.lp .hp-dots button{width:7px;height:7px;border-radius:999px;border:none;background:#2a3550;cursor:pointer;padding:0;transition:.2s}
+.lp .hp-dots button.on{width:22px;background:var(--grad)}
 .lp section{padding:84px 0}
 .lp section.alt{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .lp .eyebrow{text-align:center;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}

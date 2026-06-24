@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { APK_URL } from '../../lib/appDownload';
-import { NET, NetIcon } from './shared';
+import HeroPreview from './HeroPreview';
 
 export default function Home() {
   return (
@@ -15,25 +15,7 @@ export default function Home() {
         </div>
         <div className="note">Gratuit pour démarrer · Sans carte bancaire</div>
 
-        <div className="preview">
-          <div className="pbar"><i /><i /><i /></div>
-          <div className="shot">
-            <div className="sb">
-              <div className="lg"><img src="/logo.png" alt="" /><b>Presence OS</b></div>
-              {['Studio IA', 'Plan éditorial', 'Contenus', 'Planification', 'Carrousels'].map((t, i) => (
-                <div key={t} className={'it' + (i === 0 ? ' on' : '')}><span className="ic" />{t}</div>
-              ))}
-            </div>
-            <div className="main">
-              <div className="t">Tes contenus</div><div className="d">Générés, validés, programmés.</div>
-              <div className="grid3">
-                {[['linkedin', 'Programmé', 'tag'], ['instagram', 'Publié', 'tag pub'], ['facebook', 'À valider', 'tag warn']].map(([n, lbl, cls]) => (
-                  <div className="ccard" key={n}><span className="cnet" style={{ background: NET[n].bg }}><NetIcon id={n} size={13} /></span><div className="ph" /><span className={cls}>{lbl}</span></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <HeroPreview />
       </div></header>
 
       <section><div className="wrap">
