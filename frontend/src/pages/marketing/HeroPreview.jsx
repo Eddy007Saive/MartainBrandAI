@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { NET, NetIcon } from './shared';
 
-const Spark = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="2">
+const Spark = ({ c = '#8A6CFF' }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2">
     <path d="M12 3l1.9 5.8L20 10l-5.1 3.7L16 20l-4-3.6L8 20l1.1-6.3L4 10l6.1-1.2z" />
   </svg>
 );
@@ -107,10 +107,70 @@ function ScenePerf() {
   );
 }
 
+function SceneCarousel() {
+  const slides = [
+    { n: 'SLIDE 01', t: 'Le hook qui arrête le scroll', bg: 'linear-gradient(160deg,#5B6CFF,#8A6CFF)' },
+    { n: 'SLIDE 02', t: '3 idées clés, une par slide', bg: 'linear-gradient(160deg,#0EA5A0,#10b981)' },
+    { n: 'SLIDE 03', t: 'Ton appel à l’action', bg: 'linear-gradient(160deg,#1e293b,#0b1322)' },
+  ];
+  return (
+    <div className="hp-scene">
+      <div className="t">Carrousel brandé</div>
+      <div className="d">Aux couleurs de ta marque, prêt à poster (PDF LinkedIn).</div>
+      <div className="hp-slides">
+        {slides.map((s, i) => (
+          <div className="hp-slide hp-anim" key={s.n} style={{ background: s.bg, animationDelay: `${0.05 + i * 0.1}s` }}>
+            <span className="sn">{s.n}</span>
+            <span className="sttl">{s.t}</span>
+            <span className="sline" /><span className="sline s2" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const ImgGlyph = () => (
+  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" strokeWidth="1.6">
+    <rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9.5" r="1.6" /><path d="M21 16l-5-5L5 20" />
+  </svg>
+);
+
+function SceneContenus() {
+  const cards = [
+    { net: 'linkedin', img: 'linear-gradient(150deg,#5B6CFF,#8A6CFF)', t: '5 erreurs qui plombent ta visibilité', stat: 'Programmé', cls: '' },
+    { net: 'instagram', img: 'linear-gradient(150deg,#0EA5A0,#10b981)', t: 'Le rituel matinal des fondateurs', stat: 'Publié', cls: 'pub' },
+  ];
+  return (
+    <div className="hp-scene">
+      <div className="t">Tes contenus</div>
+      <div className="d">Image générée par l'IA + texte, prêts à publier.</div>
+      <div className="hp-cc-grid">
+        {cards.map((c, i) => (
+          <div className="hp-cc hp-anim" key={c.net} style={{ animationDelay: `${0.05 + i * 0.12}s` }}>
+            <div className="hp-cc-img" style={{ background: c.img }}>
+              <span className="cnet" style={{ background: NET[c.net].bg }}><NetIcon id={c.net} size={12} /></span>
+              <span className="ia"><Spark c="#fff" />IA</span>
+              <span className="glyph"><ImgGlyph /></span>
+            </div>
+            <div className="hp-cc-body">
+              <div className="cttl">{c.t}</div>
+              <div className="cln" /><div className="cln s2" /><div className="cln s3" />
+              <span className={'cstat ' + c.cls}>{c.stat}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const SCENES = [
   { label: 'Studio IA', Comp: SceneStudio },
-  { label: 'Commentaires', Comp: SceneComments },
+  { label: 'Carrousels', Comp: SceneCarousel },
+  { label: 'Contenus', Comp: SceneContenus },
   { label: 'Planification', Comp: ScenePlanning },
+  { label: 'Commentaires', Comp: SceneComments },
   { label: 'Performance', Comp: ScenePerf },
 ];
 
