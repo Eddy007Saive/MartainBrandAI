@@ -90,7 +90,7 @@ export default function ForgotPassword() {
 
           <div className="mt-6 text-center">
             <Link
-              to="/"
+              to="/login"
               className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter"
             >
               <ArrowLeft className="w-4 h-4" />

@@ -13,7 +13,7 @@ export default function Pending() {
   const checkStatus = async () => {
     if (!isAuthenticated()) {
       toast.info('Veuillez vous reconnecter pour vérifier votre statut');
-      navigate('/');
+      navigate('/login');
       return;
     }
     setChecking(true);
@@ -27,7 +27,7 @@ export default function Pending() {
       }
     } catch (error) {
       toast.info('Veuillez vous reconnecter pour vérifier votre statut');
-      navigate('/');
+      navigate('/login');
     } finally {
       setChecking(false);
     }
@@ -70,7 +70,7 @@ export default function Pending() {
             Vérifier mon statut
           </Button>
 
-          <Link to="/" data-testid="back-to-login">
+          <Link to="/login" data-testid="back-to-login">
             <Button
               variant="outline"
               className="w-full bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 font-inter"

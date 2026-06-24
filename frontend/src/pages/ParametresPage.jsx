@@ -359,7 +359,7 @@ export default function ParametresPage() {
       await userService.deleteMe();
       removeToken();
       toast.success('Compte supprimé avec succès');
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       toast.error('Erreur lors de la suppression du compte');
     }

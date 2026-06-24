@@ -71,7 +71,7 @@ function DashboardContent() {
   const handleLogout = () => {
     logout();
     removeToken();
-    navigate('/');
+    navigate('/login');
   };
 
   const initial = (user?.nom || user?.username || 'U').charAt(0).toUpperCase();

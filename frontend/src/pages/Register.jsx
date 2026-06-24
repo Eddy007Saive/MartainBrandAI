@@ -218,7 +218,7 @@ export default function Register() {
 
         <div className="mt-6 text-center">
           <Link 
-            to="/" 
+            to="/login" 
             data-testid="login-link"
             className="text-sm text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter"
           >

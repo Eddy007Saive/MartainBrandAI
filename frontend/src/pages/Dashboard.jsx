@@ -62,7 +62,7 @@ export default function Dashboard() {
       setUser(data);
     } catch (error) {
       toast.error('Erreur lors du chargement du profil');
-      navigate('/');
+      navigate('/login');
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     removeToken();
-    navigate('/');
+    navigate('/login');
   };
 
   const handleDeleteAccount = async () => {
@@ -95,7 +95,7 @@ export default function Dashboard() {
       await userService.deleteMe();
       removeToken();
       toast.success('Compte supprimé avec succès');
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       toast.error('Erreur lors de la suppression du compte');
     }

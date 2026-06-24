@@ -89,7 +89,7 @@ export default function Admin() {
     } catch (error) {
       toast.error('Erreur lors du chargement');
       if (error.message.includes('401') || error.message.includes('403')) {
-        navigate('/');
+        navigate('/login');
       }
     } finally {
       setLoading(false);
@@ -206,7 +206,7 @@ export default function Admin() {
 
   const handleLogout = () => {
     removeAdminToken();
-    navigate('/');
+    navigate('/login');
   };
 
   const filteredUsers = users.filter(user =>

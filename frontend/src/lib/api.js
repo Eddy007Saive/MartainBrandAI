@@ -25,7 +25,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       logout();  // efface localStorage + stockage natif (Preferences)
-      window.location.href = '/';
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

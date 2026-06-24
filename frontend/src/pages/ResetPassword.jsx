@@ -33,7 +33,7 @@ export default function ResetPassword() {
       await authService.resetPassword(token, password);
       setDone(true);
       toast.success('Mot de passe réinitialisé');
-      setTimeout(() => navigate('/'), 2500);
+      setTimeout(() => navigate('/login'), 2500);
     } catch (error) {
       toast.error(error?.response?.data?.detail || 'Lien invalide ou expiré');
     } finally {
@@ -132,7 +132,7 @@ export default function ResetPassword() {
               </form>
 
               <div className="mt-6 text-center">
-                <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter">
+                <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter">
                   <ArrowLeft className="w-4 h-4" />
                   Retour à la connexion
                 </Link>
