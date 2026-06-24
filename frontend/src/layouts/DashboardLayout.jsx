@@ -77,6 +77,17 @@ function DashboardContent() {
     if (!Capacitor.isNativePlatform()) return undefined;
     let handle;
     CapApp.addListener('backButton', () => {
+      // 1) Si une popup / lightbox est ouverte -> la fermer d'abord (Echap)
+      const overlay = document.querySelector(
+        '[role="dialog"][data-state="open"], [data-radix-popper-content-wrapper], [data-cz-lightbox]'
+      );
+      if (overlay) {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true }));
+        const closeBtn = overlay.querySelector('[data-cz-close], [aria-label="Close"], [aria-label="Fermer"]');
+        if (closeBtn) closeBtn.click();
+        return;
+      }
+      // 2) Sinon : revenir en arrière, ou mettre en arrière-plan sur l'accueil
       const p = window.location.pathname;
       if (p !== '/dashboard' && p !== '/dashboard/' && window.history.length > 1) {
         window.history.back();
