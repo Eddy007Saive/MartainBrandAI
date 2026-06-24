@@ -43,12 +43,16 @@ const FAQ = [
 export default function Landing() {
   const navigate = useNavigate();
 
+  // Pas de landing dans l'app native ni pour un utilisateur déjà connecté
+  const skipLanding = isNativeApp() || isAuthenticated() || isAdminAuthenticated();
+
   useEffect(() => {
-    // Déjà connecté ou dans l'app native -> on saute la landing
     if (isAdminAuthenticated()) navigate('/admin', { replace: true });
     else if (isAuthenticated()) navigate('/dashboard', { replace: true });
     else if (isNativeApp()) navigate('/login', { replace: true });
   }, [navigate]);
+
+  if (skipLanding) return null;  // évite tout flash de la landing (mobile / connecté)
 
   return (
     <div className="lp">
