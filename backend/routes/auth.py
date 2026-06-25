@@ -6,6 +6,7 @@ from services.auth_service import (
     find_user_by_email, create_reset_token, reset_password,
 )
 from services import mail_service
+from services.social_service import create_late_profile
 from config import ADMIN_PASSWORD, FRONTEND_URL, logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -24,7 +25,17 @@ async def register(user_data: UserRegister):
         if "error" in result:
             raise HTTPException(status_code=400, detail=result["error"])
 
-        return {"success": True, "message": "Registration successful. Awaiting admin approval."}
+        telegram_id = result["telegram_id"]
+
+        # Compte actif immédiatement -> on crée son profil Late (best-effort)
+        try:
+            await create_late_profile(telegram_id, result.get("nom", ""))
+        except Exception as e:
+            logger.warning(f"Late profile creation failed for {telegram_id}: {e}")
+
+        # Auto-login : on renvoie un token pour aller direct au dashboard
+        token = create_token({"telegram_id": telegram_id, "email": result.get("email"), "is_admin": False})
+        return {"success": True, "token": token, "pending": False}
     except HTTPException:
         raise
     except Exception as e:

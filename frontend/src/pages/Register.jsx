@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
+import { setToken } from '../lib/auth';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -71,9 +72,10 @@ export default function Register() {
         username: formData.username || undefined,
       };
 
-      await authService.register(payload);
-      toast.success('Inscription réussie ! En attente de validation.');
-      navigate('/pending');
+      const data = await authService.register(payload);
+      if (data?.token) setToken(data.token);
+      toast.success('Bienvenue sur Presence OS 🎉');
+      navigate('/dashboard');
     } catch (error) {
       const detail = error.response?.data?.detail;
       if (detail === 'email_exists') {

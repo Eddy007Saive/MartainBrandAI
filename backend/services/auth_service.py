@@ -42,7 +42,7 @@ def register_user(nom: str, email: str, username: str, password: str) -> dict:
         "email": email,
         "username": username,
         "password_hash": password_hash,
-        "actif": False,
+        "actif": True,
         "plan": "gratuit",
         "credits": 100,
         "couleur_principale": "#003D2E",
@@ -52,7 +52,7 @@ def register_user(nom: str, email: str, username: str, password: str) -> dict:
     }
 
     supabase.table("users").insert(new_user).execute()
-    return {"success": True}
+    return {"success": True, "telegram_id": new_user["telegram_id"], "nom": nom, "email": email}
 
 
 def _pwd_fingerprint(password_hash: str) -> str:
