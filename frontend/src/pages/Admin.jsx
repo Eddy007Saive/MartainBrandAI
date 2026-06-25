@@ -79,6 +79,10 @@ export default function Admin() {
   const [creditInput, setCreditInput] = useState('');
   const [userActionLoading, setUserActionLoading] = useState(false);
 
+  // Paramètres (système)
+  const [system, setSystem] = useState(null);
+  const [sysAction, setSysAction] = useState(null);
+
   // Notifications push
   const [pushTitle, setPushTitle] = useState('');
   const [pushBody, setPushBody] = useState('');
@@ -105,6 +109,9 @@ export default function Admin() {
       } else if (activeTab === 'activity') {
         const activityData = await adminService.getActivity(50);
         setActivities(activityData);
+      } else if (activeTab === 'settings') {
+        const sys = await adminService.getSystem();
+        setSystem(sys);
       }
     } catch (error) {
       toast.error('Erreur lors du chargement');
@@ -266,6 +273,26 @@ export default function Admin() {
       setPushTitle(''); setPushBody('');
     } catch (e) { toast.error('Échec de l\'envoi'); }
     finally { setSendingPush(false); }
+  };
+
+  const handleRefreshAnalytics = async () => {
+    setSysAction('analytics');
+    try {
+      const r = await adminService.refreshAnalytics();
+      toast.success(`Analytics : ${r.refreshed ?? 0} user(s) synchronisé(s)`);
+    } catch (e) { toast.error('Erreur synchro analytics'); }
+    finally { setSysAction(null); }
+  };
+
+  const handleResetCredits = async () => {
+    if (!window.confirm('Réinitialiser les crédits de TOUS les utilisateurs au quota de leur forfait ?')) return;
+    setSysAction('credits');
+    try {
+      const r = await adminService.resetMonthlyCredits();
+      const n = Object.values(r.reset || {}).reduce((a, b) => a + b, 0);
+      toast.success(`Crédits réinitialisés pour ${n} utilisateur(s)`);
+    } catch (e) { toast.error('Erreur reset crédits'); }
+    finally { setSysAction(null); }
   };
 
   const pushToUser = (user) => {
@@ -863,10 +890,117 @@ export default function Admin() {
           {/* Settings Tab */}
           {activeTab === 'settings' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold font-sora text-white">Paramètres</h2>
-              <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
-                <p className="text-slate-400 font-inter">Les paramètres globaux de la plateforme seront disponibles prochainement.</p>
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold font-sora text-white">Paramètres</h2>
+                <Button variant="ghost" onClick={loadData} className="text-slate-400 hover:text-white">
+                  <RefreshCw className="w-4 h-4 mr-2" />Actualiser
+                </Button>
               </div>
+
+              {loading || !system ? (
+                <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-red-500" /></div>
+              ) : (
+                <>
+                  {/* Coûts & marges */}
+                  <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white font-sora mb-1">Coûts & marges</h3>
+                    <p className="text-xs text-slate-500 mb-4">Crédits facturés vs coût réel de l'IA (tokens + images). Marge basée sur {system.usage.total.eur_par_credit}€/crédit (tarif Pro).</p>
+                    <div className="grid grid-cols-3 gap-4 mb-5">
+                      <div className="bg-slate-800/40 rounded-lg p-4 text-center">
+                        <p className="text-2xl font-bold text-white font-sora">{system.usage.total.credits.toLocaleString()}</p>
+                        <p className="text-xs text-slate-400">Crédits dépensés</p>
+                      </div>
+                      <div className="bg-slate-800/40 rounded-lg p-4 text-center">
+                        <p className="text-2xl font-bold text-amber-400 font-sora">${system.usage.total.cost_usd}</p>
+                        <p className="text-xs text-slate-400">Coût réel (IA)</p>
+                      </div>
+                      <div className="bg-slate-800/40 rounded-lg p-4 text-center">
+                        <p className="text-2xl font-bold text-emerald-400 font-sora">{system.usage.total.marge}%</p>
+                        <p className="text-xs text-slate-400">Marge brute</p>
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead><tr className="text-left text-xs text-slate-500 border-b border-white/5">
+                          <th className="py-2">Action</th><th className="py-2 text-right">Qté</th><th className="py-2 text-right">Crédits</th><th className="py-2 text-right">Coût $</th><th className="py-2 text-right">Marge</th>
+                        </tr></thead>
+                        <tbody>
+                          {system.usage.par_action.map((r) => (
+                            <tr key={r.action} className="border-b border-white/[0.03]">
+                              <td className="py-2 text-slate-200 capitalize">{r.action}</td>
+                              <td className="py-2 text-right text-slate-400">{r.n}</td>
+                              <td className="py-2 text-right text-slate-300">{r.credits}</td>
+                              <td className="py-2 text-right text-amber-400">${r.cost_usd}</td>
+                              <td className="py-2 text-right text-emerald-400">{r.marge}%</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Intégrations */}
+                    <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-white font-sora mb-4">Intégrations</h3>
+                      <div className="space-y-2.5">
+                        {Object.entries(system.integrations).map(([k, ok]) => (
+                          <div key={k} className="flex items-center justify-between">
+                            <span className="text-sm text-slate-300 font-inter">{k}</span>
+                            <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5', ok ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400')}>
+                              <span className={cn('w-1.5 h-1.5 rounded-full', ok ? 'bg-emerald-400' : 'bg-red-400')} />
+                              {ok ? 'Configuré' : 'Manquant'}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-2">
+                          <span className="text-sm text-slate-300 font-inter">Cron analytics</span>
+                          <span className="text-xs text-slate-400">toutes les {system.cron_analytics_h} h</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Barème crédits */}
+                    <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-white font-sora mb-4">Barème (crédits)</h3>
+                      <div className="space-y-2 text-sm">
+                        {Object.entries(system.bareme).map(([action, val]) => (
+                          <div key={action} className="flex items-center justify-between">
+                            <span className="text-slate-300 capitalize">{action}</span>
+                            <span className="text-slate-400 font-mono text-xs">
+                              {typeof val === 'object' ? Object.entries(val).map(([q, c]) => `${q}:${c}`).join(' · ') : val}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="pt-3 mt-1 border-t border-white/5 space-y-2">
+                          {Object.entries(system.plans.credits).map(([plan, cr]) => (
+                            <div key={plan} className="flex items-center justify-between">
+                              <span className="text-slate-300 capitalize">{plan}</span>
+                              <span className="text-slate-400 text-xs">{cr} cr · {system.plans.prix[plan]}€/mois</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white font-sora mb-4">Actions</h3>
+                    <div className="flex flex-wrap gap-3">
+                      <Button onClick={handleRefreshAnalytics} disabled={sysAction === 'analytics'} className="bg-slate-800 hover:bg-slate-700 text-slate-200">
+                        {sysAction === 'analytics' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                        Synchroniser les analytics
+                      </Button>
+                      <Button onClick={handleResetCredits} disabled={sysAction === 'credits'} variant="outline" className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10">
+                        {sysAction === 'credits' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Coins className="w-4 h-4 mr-2" />}
+                        Réinitialiser les crédits mensuels
+                      </Button>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-3">« Réinitialiser » remet chaque utilisateur au quota de crédits de son forfait.</p>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

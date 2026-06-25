@@ -81,6 +81,81 @@ def update_plan(telegram_id: str, plan: str, reset_credits: bool = True) -> dict
     return sanitize_user(res.data[0]) if res.data else None
 
 
+def reset_monthly_credits() -> dict:
+    """Réinitialise le solde de crédits de chaque user au quota de son forfait."""
+    done = {}
+    for plan, cr in PLAN_CREDITS.items():
+        res = supabase.table("users").update({"credits": cr}).eq("plan", plan).execute()
+        done[plan] = len(res.data or [])
+    return done
+
+
+def system_info() -> dict:
+    """Paramètres globaux : intégrations, barème crédits, coûts & marges (usage_log)."""
+    from config import (
+        LATE_API_KEY, STRIPE_SECRET_KEY, STRIPE_PRICE_PRO, ANALYTICS_CRON_HOURS,
+        CLOUDINARY_CLOUD_NAME, HEYGEN_API_KEY, CLAUDE_API_KEY, OPENROUTER_API_KEY,
+    )
+    from services import credit_service
+
+    firebase_ok = False
+    try:
+        from services import push_service
+        firebase_ok = bool(push_service._load())
+    except Exception:
+        firebase_ok = False
+
+    integrations = {
+        "Publication (Late)": bool(LATE_API_KEY),
+        "Paiements (Stripe)": bool(STRIPE_SECRET_KEY and STRIPE_PRICE_PRO),
+        "Notifications push (Firebase)": firebase_ok,
+        "Médias (Cloudinary)": bool(CLOUDINARY_CLOUD_NAME),
+        "Avatar vidéo (HeyGen)": bool(HEYGEN_API_KEY),
+        "Génération IA": bool(CLAUDE_API_KEY or OPENROUTER_API_KEY),
+    }
+
+    # Coûts & marges depuis usage_log
+    EUR_PER_CREDIT = PLAN_PRICE["pro"] / PLAN_CREDITS["pro"]  # valeur de vente d'un crédit (€)
+    USD_TO_EUR = 0.92
+    rows = supabase.table("usage_log").select("action, credits, cost_usd").execute().data or []
+    per = {}
+    tot_credits, tot_cost = 0, 0.0
+    for r in rows:
+        a = r.get("action") or "?"
+        c = int(r.get("credits") or 0)
+        cost = float(r.get("cost_usd") or 0)
+        d = per.setdefault(a, {"n": 0, "credits": 0, "cost_usd": 0.0})
+        d["n"] += 1; d["credits"] += c; d["cost_usd"] += cost
+        tot_credits += c; tot_cost += cost
+
+    def _margin(credits, cost_usd):
+        revenue = credits * EUR_PER_CREDIT
+        cost_eur = cost_usd * USD_TO_EUR
+        return round((1 - cost_eur / revenue) * 100, 1) if revenue else 0
+
+    usage = {
+        "par_action": [
+            {"action": a, "n": d["n"], "credits": d["credits"],
+             "cost_usd": round(d["cost_usd"], 4), "marge": _margin(d["credits"], d["cost_usd"])}
+            for a, d in sorted(per.items())
+        ],
+        "total": {
+            "credits": tot_credits,
+            "cost_usd": round(tot_cost, 4),
+            "marge": _margin(tot_credits, tot_cost),
+            "eur_par_credit": round(EUR_PER_CREDIT, 4),
+        },
+    }
+
+    return {
+        "integrations": integrations,
+        "cron_analytics_h": ANALYTICS_CRON_HOURS,
+        "bareme": credit_service.COUTS,
+        "plans": {"credits": PLAN_CREDITS, "prix": PLAN_PRICE},
+        "usage": usage,
+    }
+
+
 def broadcast_push(title: str, body: str, telegram_id: str = None) -> dict:
     """Envoie un push à un user (telegram_id) ou à tous ceux ayant un appareil enregistré."""
     from services import push_service

@@ -32,6 +32,10 @@ export const adminService = {
   sendPush: (title, body, telegramId = null) =>
     adminFetch('/admin/push', { method: 'POST', body: JSON.stringify({ title, body, telegram_id: telegramId }) }),
 
+  getSystem: () => adminFetch('/admin/system'),
+  refreshAnalytics: () => adminFetch('/admin/analytics/refresh', { method: 'POST' }),
+  resetMonthlyCredits: () => adminFetch('/admin/credits/reset-monthly', { method: 'POST' }),
+
   getUser: (telegramId) => adminFetch(`/admin/users/${telegramId}`),
 
   getUserContenus: (telegramId) => adminFetch(`/admin/users/${telegramId}/contenus`),

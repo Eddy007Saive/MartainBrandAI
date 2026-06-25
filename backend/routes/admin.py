@@ -185,6 +185,34 @@ async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(v
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/system")
+async def get_system(payload: dict = Depends(verify_admin_token)):
+    try:
+        return admin_service.system_info()
+    except Exception as e:
+        logger.error(f"System info error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/analytics/refresh")
+async def refresh_analytics(payload: dict = Depends(verify_admin_token)):
+    from services import analytics_service
+    try:
+        return await analytics_service.refresh_all()
+    except Exception as e:
+        logger.error(f"Refresh analytics error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/credits/reset-monthly")
+async def reset_monthly(payload: dict = Depends(verify_admin_token)):
+    try:
+        return {"ok": True, "reset": admin_service.reset_monthly_credits()}
+    except Exception as e:
+        logger.error(f"Reset credits error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 class PushBroadcast(BaseModel):
     title: str
     body: str
