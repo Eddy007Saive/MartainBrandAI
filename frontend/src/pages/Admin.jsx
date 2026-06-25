@@ -48,6 +48,10 @@ const PLAN_CFG = {
 };
 const PLAN_OPTIONS = ['gratuit', 'pro', 'business'];
 
+const NET_DOT = { linkedin: '#0a66c2', instagram: '#d62976', facebook: '#1877f2', tiktok: '#e5e7eb', youtube: '#ff0000' };
+
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' }) : '—';
+
 const AVATAR_STATUS_CONFIG = {
   pending: { label: 'En attente', color: 'text-amber-400', bg: 'bg-amber-500/20' },
   in_progress: { label: 'En cours', color: 'text-yellow-400', bg: 'bg-yellow-500/20' },
@@ -514,109 +518,162 @@ export default function Admin() {
 
           {/* Users Tab */}
           {activeTab === 'users' && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <h2 className="text-2xl font-bold font-sora text-white">Utilisateurs</h2>
-                <Button onClick={handleExportCSV} variant="outline" className="border-slate-700 text-slate-300">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export CSV
+            <div className="space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold font-sora text-white">Utilisateurs</h2>
+                  <p className="text-sm text-slate-500 mt-0.5">{filteredUsers.length} compte{filteredUsers.length > 1 ? 's' : ''}{userFilter !== 'all' || searchTerm ? ' (filtré)' : ''}</p>
+                </div>
+                <Button onClick={handleExportCSV} variant="outline" className="border-slate-700 text-slate-300 shrink-0">
+                  <Download className="w-4 h-4 mr-2" />Export CSV
                 </Button>
               </div>
 
-              {/* Filters */}
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { id: 'all', label: 'Tous' },
-                  { id: 'pending', label: 'En attente' },
-                  { id: 'active', label: 'Actifs' },
-                  { id: 'gratuit', label: 'Gratuit' },
-                  { id: 'pro', label: 'Pro' },
-                  { id: 'business', label: 'Business' },
-                ].map((filter) => (
-                  <button
-                    key={filter.id}
-                    onClick={() => setUserFilter(filter.id)}
-                    className={cn(
-                      "px-4 py-2 rounded-lg text-sm font-inter transition-all",
-                      userFilter === filter.id
-                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                        : "bg-slate-900/50 text-slate-400 hover:text-white border border-transparent"
-                    )}
-                  >
-                    {filter.label}
+              {/* Recherche */}
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  placeholder="Rechercher un nom, un email…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-11 bg-slate-900/50 border-slate-800 text-slate-200"
+                />
+              </div>
+
+              {/* Filtres : statut + forfait */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] uppercase tracking-wider text-slate-600 mr-1">Statut</span>
+                {[['all', 'Tous'], ['active', 'Actifs'], ['pending', 'Bloqués']].map(([id, label]) => (
+                  <button key={id} onClick={() => setUserFilter(id)}
+                    className={cn('px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-all',
+                      userFilter === id ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-slate-900/50 text-slate-400 hover:text-white border border-transparent')}>
+                    {label}
+                  </button>
+                ))}
+                <span className="w-px h-5 bg-white/10 mx-1.5" />
+                <span className="text-[11px] uppercase tracking-wider text-slate-600 mr-1">Forfait</span>
+                {PLAN_OPTIONS.map((p) => (
+                  <button key={p} onClick={() => setUserFilter(p)}
+                    className={cn('px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition-all capitalize',
+                      userFilter === p ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-slate-900/50 text-slate-400 hover:text-white border border-transparent')}>
+                    {PLAN_CFG[p].label}
                   </button>
                 ))}
               </div>
 
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <Input
-                  placeholder="Rechercher..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-slate-900/50 border-slate-800 text-slate-200"
-                />
-              </div>
-
-              {/* Users List */}
               {loading ? (
-                <div className="flex items-center justify-center py-20">
-                  <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+                <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-red-500" /></div>
+              ) : filteredUsers.length === 0 ? (
+                <div className="text-center py-20 bg-slate-900/30 border border-white/5 rounded-xl">
+                  <Users className="w-10 h-10 mx-auto text-slate-600 mb-3" />
+                  <p className="text-slate-400 font-inter">Aucun utilisateur pour ce filtre.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredUsers.map((user) => (
-                    <div
-                      key={user.telegram_id}
-                      className="bg-slate-900/40 border border-white/5 rounded-xl p-5 hover:border-red-500/30 transition-all"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-sora font-semibold">
-                          {getInitials(user.nom)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-white font-sora font-semibold truncate">{user.nom || 'Sans nom'}</h3>
-                            <Badge className={user.actif ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}>
-                              {user.actif ? 'Actif' : 'En attente'}
-                            </Badge>
-                          </div>
-                          <p className="text-slate-400 text-sm truncate">{user.email}</p>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <Badge className={cn('text-[10px] py-0', PLAN_CFG[user.plan || 'gratuit'].bg, PLAN_CFG[user.plan || 'gratuit'].color)}>
-                              {PLAN_CFG[user.plan || 'gratuit'].label}
-                            </Badge>
-                            <span className="text-[11px] text-slate-400 flex items-center gap-1"><Coins className="w-3 h-3" />{user.credits ?? 0}</span>
-                            {user.reseaux_connectes?.length > 0 && (
-                              <span className="text-[11px] text-slate-500 flex items-center gap-1"><Wifi className="w-3 h-3" />{user.reseaux_connectes.length}</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                <div className="bg-slate-900/40 border border-white/5 rounded-xl overflow-hidden">
+                  {/* === Tableau (desktop) === */}
+                  <table className="hidden lg:table w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 border-b border-white/5">
+                        <th className="font-medium px-5 py-3">Utilisateur</th>
+                        <th className="font-medium px-3 py-3">Forfait</th>
+                        <th className="font-medium px-3 py-3 text-right">Crédits</th>
+                        <th className="font-medium px-3 py-3">Réseaux</th>
+                        <th className="font-medium px-3 py-3">Statut</th>
+                        <th className="font-medium px-3 py-3">Inscrit</th>
+                        <th className="font-medium px-5 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((user) => (
+                        <tr key={user.telegram_id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-sora font-semibold text-xs shrink-0">{getInitials(user.nom)}</div>
+                              <div className="min-w-0">
+                                <div className="text-slate-100 font-medium truncate max-w-[180px]">{user.nom || 'Sans nom'}</div>
+                                <div className="text-slate-500 text-xs truncate max-w-[180px]">{user.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3">
+                            <Badge className={cn('text-[10.5px] py-0', PLAN_CFG[user.plan || 'gratuit'].bg, PLAN_CFG[user.plan || 'gratuit'].color)}>{PLAN_CFG[user.plan || 'gratuit'].label}</Badge>
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            <span className="inline-flex items-center gap-1 text-slate-300 font-medium"><Coins className="w-3.5 h-3.5 text-slate-500" />{user.credits ?? 0}</span>
+                          </td>
+                          <td className="px-3 py-3">
+                            {user.reseaux_connectes?.length ? (
+                              <span className="flex items-center gap-1" title={user.reseaux_connectes.join(', ')}>
+                                {user.reseaux_connectes.map((n) => <span key={n} className="w-2 h-2 rounded-full" style={{ background: NET_DOT[n] || '#64748b' }} />)}
+                              </span>
+                            ) : <span className="text-slate-600">—</span>}
+                          </td>
+                          <td className="px-3 py-3">
+                            <span className={cn('inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full', user.actif ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400')}>
+                              <span className={cn('w-1.5 h-1.5 rounded-full', user.actif ? 'bg-emerald-400' : 'bg-red-400')} />{user.actif ? 'Actif' : 'Bloqué'}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 text-slate-400 text-xs whitespace-nowrap">{fmtDate(user.created_at)}</td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center justify-end gap-1">
+                              <button onClick={() => handleViewUser(user.telegram_id)} title="Voir" className="w-8 h-8 grid place-items-center rounded-lg text-slate-400 hover:text-white hover:bg-white/5"><Eye className="w-4 h-4" /></button>
+                              <button onClick={() => pushToUser(user)} title="Notifier" className="w-8 h-8 grid place-items-center rounded-lg text-blue-400 hover:bg-blue-500/15"><Bell className="w-4 h-4" /></button>
+                              {user.actif ? (
+                                <button onClick={() => handleDeactivate(user.telegram_id)} disabled={actionLoading === user.telegram_id} title="Bloquer" className="w-8 h-8 grid place-items-center rounded-lg text-amber-400 hover:bg-amber-500/15 disabled:opacity-50">
+                                  {actionLoading === user.telegram_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
+                                </button>
+                              ) : (
+                                <button onClick={() => handleActivate(user.telegram_id)} disabled={actionLoading === user.telegram_id} title="Activer" className="w-8 h-8 grid place-items-center rounded-lg text-emerald-400 hover:bg-emerald-500/15 disabled:opacity-50">
+                                  {actionLoading === user.telegram_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
+                                </button>
+                              )}
+                              <button onClick={() => setDeleteConfirm(user)} title="Supprimer" className="w-8 h-8 grid place-items-center rounded-lg text-red-400 hover:bg-red-500/15"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
 
-                      <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
-                        <Button size="sm" variant="ghost" onClick={() => handleViewUser(user.telegram_id)} className="text-slate-400 hover:text-white">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => pushToUser(user)} className="text-blue-400 hover:bg-blue-500/20" title="Notifier">
-                          <Bell className="w-4 h-4" />
-                        </Button>
-                        {user.actif ? (
-                          <Button size="sm" variant="ghost" onClick={() => handleDeactivate(user.telegram_id)} disabled={actionLoading === user.telegram_id} className="text-amber-400 hover:bg-amber-500/20">
-                            {actionLoading === user.telegram_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
-                          </Button>
-                        ) : (
-                          <Button size="sm" onClick={() => handleActivate(user.telegram_id)} disabled={actionLoading === user.telegram_id} className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30">
-                            {actionLoading === user.telegram_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
-                          </Button>
-                        )}
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteConfirm(user)} className="text-red-400 hover:bg-red-500/20">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                  {/* === Cartes (mobile) === */}
+                  <div className="lg:hidden divide-y divide-white/[0.05]">
+                    {filteredUsers.map((user) => (
+                      <div key={user.telegram_id} className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-sora font-semibold text-sm shrink-0">{getInitials(user.nom)}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-slate-100 font-medium truncate">{user.nom || 'Sans nom'}</div>
+                            <div className="text-slate-500 text-xs truncate">{user.email}</div>
+                          </div>
+                          <span className={cn('shrink-0 inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-full', user.actif ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400')}>
+                            <span className={cn('w-1.5 h-1.5 rounded-full', user.actif ? 'bg-emerald-400' : 'bg-red-400')} />{user.actif ? 'Actif' : 'Bloqué'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-3 text-[12px] text-slate-400">
+                          <Badge className={cn('text-[10px] py-0', PLAN_CFG[user.plan || 'gratuit'].bg, PLAN_CFG[user.plan || 'gratuit'].color)}>{PLAN_CFG[user.plan || 'gratuit'].label}</Badge>
+                          <span className="inline-flex items-center gap-1"><Coins className="w-3 h-3" />{user.credits ?? 0}</span>
+                          {user.reseaux_connectes?.length > 0 && (
+                            <span className="inline-flex items-center gap-1">{user.reseaux_connectes.map((n) => <span key={n} className="w-2 h-2 rounded-full" style={{ background: NET_DOT[n] || '#64748b' }} />)}</span>
+                          )}
+                          <span className="ml-auto text-slate-500">{fmtDate(user.created_at)}</span>
+                        </div>
+                        <div className="flex gap-1.5 mt-3 pt-3 border-t border-white/5">
+                          <button onClick={() => handleViewUser(user.telegram_id)} className="flex-1 h-9 grid place-items-center rounded-lg text-slate-300 bg-white/5 hover:bg-white/10"><Eye className="w-4 h-4" /></button>
+                          <button onClick={() => pushToUser(user)} className="flex-1 h-9 grid place-items-center rounded-lg text-blue-400 bg-blue-500/10 hover:bg-blue-500/20"><Bell className="w-4 h-4" /></button>
+                          {user.actif ? (
+                            <button onClick={() => handleDeactivate(user.telegram_id)} disabled={actionLoading === user.telegram_id} className="flex-1 h-9 grid place-items-center rounded-lg text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 disabled:opacity-50">
+                              {actionLoading === user.telegram_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserX className="w-4 h-4" />}
+                            </button>
+                          ) : (
+                            <button onClick={() => handleActivate(user.telegram_id)} disabled={actionLoading === user.telegram_id} className="flex-1 h-9 grid place-items-center rounded-lg text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 disabled:opacity-50">
+                              {actionLoading === user.telegram_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
+                            </button>
+                          )}
+                          <button onClick={() => setDeleteConfirm(user)} className="flex-1 h-9 grid place-items-center rounded-lg text-red-400 bg-red-500/10 hover:bg-red-500/20"><Trash2 className="w-4 h-4" /></button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
