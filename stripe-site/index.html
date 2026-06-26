@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GoodTime — Автоматизация на маркетинга и привличане на клиенти за малък и среден бизнес</title>
+<meta name="description" content="GoodTime разработва решения за автоматизация на маркетинга и привличане на клиенти за малки и средни предприятия — съдържание с изкуствен интелект, планиране, социални мрежи и анализ." />
+<style>
+  :root{
+    --bg:#020617;--card:#0f172a;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);
+    --ink:#e8edf6;--muted:#93a1b8;--dim:#5b6a82;--grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--accent:#3AFFA3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Arial,sans-serif;line-height:1.65}
+  a{color:#8aa0ff;text-decoration:none}
+  a:hover{color:#fff}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  .btn{display:inline-block;background:var(--grad);color:#fff;font-weight:600;padding:13px 26px;border-radius:12px;box-shadow:0 10px 30px rgba(91,108,255,.35)}
+  nav{position:sticky;top:0;z-index:10;background:rgba(2,6,23,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:800;font-size:18px}
+  .brand .mk{width:34px;height:34px;border-radius:9px;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800}
+  nav .links a{margin-left:24px;color:var(--muted);font-size:14.5px}
+  header.hero{text-align:center;padding:88px 0 64px;position:relative;overflow:hidden}
+  header.hero::before{content:"";position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:720px;height:480px;background:radial-gradient(circle,rgba(91,108,255,.20),transparent 65%)}
+  .hero h1{position:relative;font-size:46px;line-height:1.1;letter-spacing:-.02em;max-width:860px;margin:0 auto}
+  .hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{position:relative;color:var(--muted);font-size:18px;max-width:660px;margin:22px auto 30px}
+  .pill{display:inline-block;font-size:13px;color:var(--accent);background:rgba(58,255,163,.08);border:1px solid rgba(58,255,163,.22);padding:6px 14px;border-radius:999px;margin-bottom:24px}
+  section{padding:64px 0;border-top:1px solid var(--line)}
+  h2{font-size:30px;letter-spacing:-.02em;text-align:center;margin-bottom:10px}
+  .lead{text-align:center;color:var(--muted);max-width:620px;margin:0 auto 44px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+  .card h3{font-size:17px;margin-bottom:8px}
+  .card p{color:var(--muted);font-size:14px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;text-align:center}
+  .step .n{width:48px;height:48px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-weight:800;color:#fff;margin:0 auto 14px}
+  .step h3{font-size:16px;margin-bottom:6px}
+  .step p{color:var(--muted);font-size:14px}
+  .prose{max-width:760px;margin:0 auto}
+  .prose h2{text-align:left}
+  .prose p,.prose li{color:var(--muted);font-size:15px}
+  .prose ul{padding-left:20px;margin:10px 0;display:flex;flex-direction:column;gap:6px}
+  footer{border-top:1px solid var(--line);padding:34px 0;color:var(--dim);font-size:14px}
+  footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px}
+  .ph{color:#fcd770}
+  @media(max-width:760px){
+    .grid3,.steps{grid-template-columns:1fr}
+    .hero h1{font-size:32px}
+    nav .links{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <div class="brand"><span class="mk">G</span><div>GoodTime</div></div>
+  <div class="links">
+    <a href="#uslugi">Услуги</a>
+    <a href="#kak">Как работим</a>
+    <a href="#za-kogo">За кого</a>
+    <a href="#kontakti">Контакти</a>
+  </div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <span class="pill">Маркетинг · Изкуствен интелект · Автоматизация</span>
+  <h1>Автоматизирайте маркетинга си.<br /><span class="g">Привличайте повече клиенти.</span></h1>
+  <p>GoodTime разработва решения за <b>автоматизация на маркетинга и привличане на клиенти</b> за малки и средни предприятия. Помагаме на бизнеса да присъства последователно онлайн и да расте — без да губи време.</p>
+  <a class="btn" href="#kontakti">Свържете се с нас</a>
+</div></header>
+
+<!-- ЗА НАС -->
+<section><div class="wrap prose">
+  <h2>Кои сме ние</h2>
+  <p>GoodTime е технологична компания, която изгражда софтуерни решения за <b>автоматизация на маркетинга и дигитално привличане на клиенти</b>. Създаваме инструменти, които спестяват време на собствениците на малък и среден бизнес и им помагат да поддържат професионално онлайн присъствие в социалните мрежи.</p>
+  <p>Комбинираме изкуствен интелект, автоматизация и аналитика, за да превърнем маркетинга от ежедневна тежест в управляем процес, който носи резултати.</p>
+</div></section>
+
+<!-- УСЛУГИ -->
+<section id="uslugi"><div class="wrap">
+  <h2>Какво предлагаме</h2>
+  <p class="lead">Цялостни решения — от идеята до публикацията и анализа на резултатите.</p>
+  <div class="grid3">
+    <div class="card"><h3>Автоматизация на маркетинга</h3><p>Планиране и автоматично публикуване на съдържание в правилния момент, в няколко социални мрежи едновременно.</p></div>
+    <div class="card"><h3>Съдържание с изкуствен интелект</h3><p>Генериране на публикации, карусели и видео сценарии, съобразени с тона и бранда на клиента.</p></div>
+    <div class="card"><h3>Привличане на клиенти</h3><p>Стратегии и инструменти за дигитално привличане на нови клиенти и повишаване на ангажираността.</p></div>
+    <div class="card"><h3>Управление на социални мрежи</h3><p>LinkedIn, Instagram, Facebook, TikTok и YouTube — управлявани от едно място.</p></div>
+    <div class="card"><h3>Управление на коментари</h3><p>Всички коментари от социалните мрежи в една обединена входяща кутия.</p></div>
+    <div class="card"><h3>Анализ и отчети</h3><p>Проследяване на импресии, харесвания, споделяния и ангажираност за всяка публикация.</p></div>
+  </div>
+</div></section>
+
+<!-- КАК РАБОТИМ -->
+<section id="kak"><div class="wrap">
+  <h2>Как работим</h2>
+  <p class="lead">Прост процес в три стъпки.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h3>Анализираме бизнеса ви</h3><p>Позициониране, цели, целева аудитория и тон на комуникация.</p></div>
+    <div class="step"><div class="n">2</div><h3>Изграждаме системата</h3><p>Настройваме автоматизацията и калибрираме изкуствения интелект според вашата марка.</p></div>
+    <div class="step"><div class="n">3</div><h3>Вие управлявате и растете</h3><p>Генерирате, одобрявате и публикувате — лесно, за минути на месец.</p></div>
+  </div>
+</div></section>
+
+<!-- ЗА КОГО -->
+<section id="za-kogo"><div class="wrap prose">
+  <h2>За кого е предназначено</h2>
+  <ul>
+    <li><b>Малки и средни предприятия</b>, които искат стабилно онлайн присъствие без вътрешен маркетинг екип.</li>
+    <li><b>Фрийлансъри и консултанти</b>, които искат да привличат клиенти, без да губят часове в социалните мрежи.</li>
+    <li><b>Собственици на бизнес</b>, които предпочитат да контролират съдържанието си, вместо да го възлагат изцяло на агенция.</li>
+  </ul>
+</div></section>
+
+<!-- КОНТАКТИ -->
+<section id="kontakti"><div class="wrap prose">
+  <h2>Контакти и фирмени данни</h2>
+  <p><b>Дейност:</b> разработка на софтуерни решения за автоматизация на маркетинга и привличане на клиенти.</p>
+  <p><b>Фирма:</b> <span class="ph">[Име на фирмата]</span></p>
+  <p><b>ЕИК / Булстат:</b> <span class="ph">[да се попълни]</span></p>
+  <p><b>Адрес:</b> <span class="ph">[адрес за кореспонденция]</span></p>
+  <p><b>Имейл:</b> <a href="mailto:martindumoulin88@gmail.com">martindumoulin88@gmail.com</a></p>
+</div></section>
+
+<footer><div class="wrap">
+  <div>© 2026 GoodTime — Всички права запазени.</div>
+  <div><a href="#uslugi">Услуги</a> · <a href="#kontakti">Контакти</a></div>
+</div></footer>
+
+</body>
+</html>
