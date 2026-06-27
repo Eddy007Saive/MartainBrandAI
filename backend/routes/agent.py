@@ -522,8 +522,9 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     solde = credit_service.deduct(telegram_id, cost)
     if solde < 0:
         raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
+    refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"))
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"), refs=refs)
     except Exception as e:
         credit_service.refund(telegram_id, cost)
         logger.error(f"Agent image error: {e}")

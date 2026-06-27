@@ -33,6 +33,7 @@ import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import { contenuService } from '../services/contenuService';
 import { agentService } from '../services/agentService';
+import { userService } from '../services/userService';
 import { useUser } from '../context/UserContext';
 
 const IMAGE_MODELES = [
@@ -206,6 +207,34 @@ export default function ContenusPage() {
   const [imgGenerating, setImgGenerating] = useState(false);
   const [imgImporting, setImgImporting] = useState(false);
   const imgImportRef = useRef(null);
+  // Images de référence (style) choisies à la génération
+  const [inspirations, setInspirations] = useState([]);
+  const [selectedRefs, setSelectedRefs] = useState([]);
+  const [refImporting, setRefImporting] = useState(false);
+  const refInputRef = useRef(null);
+
+  const toggleRef = (url) =>
+    setSelectedRefs((prev) => (prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]));
+
+  const importerRef = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image.'); return; }
+    setRefImporting(true);
+    try {
+      const list = await userService.addInspiration(file);
+      const urls = list?.images || [];
+      setInspirations(urls);
+      const added = urls.find((u) => !inspirations.includes(u));
+      if (added) setSelectedRefs((prev) => [...prev, added]);
+      toast.success('Référence ajoutée');
+    } catch (err) {
+      toast.error("Échec de l'ajout");
+    } finally {
+      setRefImporting(false);
+      if (refInputRef.current) refInputRef.current.value = '';
+    }
+  };
 
   const chargerPrompt = async (contenu) => {
     setImgLoadingPrompt(true);
@@ -230,6 +259,14 @@ export default function ContenusPage() {
     setImageContenu(contenu);
     setImgAvecPhoto(!!user?.use_photo);
     setImgModele('nano2');
+    // Charge la bibliothèque de références (inspirations) — tout sélectionné par défaut
+    userService.listInspirations()
+      .then((d) => {
+        const arr = Array.isArray(d) ? d : (d?.images || []);
+        setInspirations(arr);
+        setSelectedRefs((user?.use_inspirations ?? true) ? arr : []);
+      })
+      .catch(() => { setInspirations([]); setSelectedRefs([]); });
     if (contenu.prompt_image) {
       setImgPrompt(contenu.prompt_image);           // déjà généré → on réutilise (zéro régénération)
     } else {
@@ -242,7 +279,7 @@ export default function ContenusPage() {
     if (!imageContenu || !imgPrompt.trim()) return;
     setImgGenerating(true);
     try {
-      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele);
+      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs);
       if (data.credits != null) updateUser({ credits: data.credits });
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
@@ -880,6 +917,36 @@ export default function ContenusPage() {
                     <Switch checked={imgAvecPhoto} onCheckedChange={setImgAvecPhoto} />
                   </div>
                 )}
+
+                {/* Images de référence (style) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-sm font-medium text-slate-300 font-inter">Images de référence <span className="text-slate-500 font-normal">(style — {selectedRefs.length} sélectionnée{selectedRefs.length > 1 ? 's' : ''})</span></label>
+                    <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
+                    <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
+                      className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50 flex-shrink-0">
+                      {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Ajouter
+                    </button>
+                  </div>
+                  {inspirations.length === 0 ? (
+                    <p className="text-xs text-slate-600 font-inter">Aucune image de référence. Ajoute-en une (ou via Paramètres) pour guider le style.</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {inspirations.map((url) => {
+                        const on = selectedRefs.includes(url);
+                        return (
+                          <button key={url} onClick={() => toggleRef(url)} title={on ? 'Utilisée' : 'Non utilisée'}
+                            className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
+                            <img src={url} alt="" className="w-full h-full object-cover" />
+                            {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <p className="text-[11px] text-slate-600 font-inter">L'IA s'inspire du style (composition, palette, ambiance) des images sélectionnées — 2 à 4 donnent les meilleurs résultats.</p>
+                </div>
+
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-500 font-inter">Modèle</span>
                   {IMAGE_MODELES.map((m) => (

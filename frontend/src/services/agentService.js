@@ -57,7 +57,8 @@ export const agentService = {
   imagePrompt: (texte, reseau = 'linkedin', contenu_id = null) =>
     api.post('/agent/image-prompt', { texte, reseau, contenu_id }).then((r) => r.data),
 
-  // Génère l'image (nano-banana) et l'attache au contenu
-  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2') =>
-    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele }).then((r) => r.data),
+  // Génère l'image (nano-banana) et l'attache au contenu.
+  // refs : images de référence de style choisies à la génération (URLs). null = inspirations auto.
+  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null) =>
+    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}) }).then((r) => r.data),
 };

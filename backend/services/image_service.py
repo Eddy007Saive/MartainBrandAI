@@ -116,10 +116,12 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
-    Les images de référence (photo + inspirations) sont validées : liens Drive convertis,
+    `refs` : images de référence de STYLE choisies à la génération (URLs). Si fourni
+    (même vide), il a priorité ; sinon on retombe sur les inspirations du compte.
+    Les images de référence (photo + style) sont validées : liens Drive convertis,
     images invalides ignorées (la génération continue sans elles plutôt que d'échouer).
     """
     if not OPENROUTER_API_KEY:
@@ -131,10 +133,16 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     if avec_photo and u.get("photo_url"):
         photo_refs, _ = await _prep_refs([u["photo_url"]])
 
-    # Inspirations (STYLE) — utilisées AVEC ou SANS photo
+    # Références de STYLE : explicites (choisies à la génération) sinon inspirations du compte
+    if refs is not None:
+        style_urls = [r for r in refs if r][:4]
+    elif u.get("use_inspirations", True):
+        style_urls = inspiration_urls(telegram_id)[:3]
+    else:
+        style_urls = []
     inspi_refs = []
-    if u.get("use_inspirations", True):
-        inspi_refs, _ = await _prep_refs(inspiration_urls(telegram_id)[:3])
+    if style_urls:
+        inspi_refs, _ = await _prep_refs(style_urls)
 
     if photo_refs:
         tenue = (u.get("style_vestimentaire") or "").strip()
