@@ -52,18 +52,6 @@ const STEPS = [
 let _uid = 0;
 const nextId = () => `c${++_uid}`;
 
-// Clé de persistance des brouillons de contenu (par navigateur)
-const LS_CONTENUS = 'presence_studio_contenus';
-const chargerContenus = () => {
-  try {
-    const raw = localStorage.getItem(LS_CONTENUS);
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr.filter((c) => c.statut !== 'redaction') : [];
-  } catch {
-    return [];
-  }
-};
-
 const Pill = ({ active, onClick, children }) => (
   <button
     onClick={onClick}
@@ -122,7 +110,9 @@ export default function StudioIA() {
 
   const [loadingSujets, setLoadingSujets] = useState(false);
   const [logIndex, setLogIndex] = useState(0);
-  const [contenus, setContenus] = useState(chargerContenus); // restaurés depuis le navigateur
+  const [contenus, setContenus] = useState([]);
+  const draftsLoaded = useRef(false);
+  const saveTimer = useRef(null);
 
   useEffect(() => {
     if (!loadingSujets) { setLogIndex(0); return; }
@@ -134,12 +124,28 @@ export default function StudioIA() {
     agentService.sujetsList().then((data) => setSujets(data || [])).catch(() => {});
   }, []);
 
-  // Persiste les brouillons de contenu (sauf ceux en cours de rédaction)
+  // Charge les brouillons du compte (et recharge si on change de compte sur le même navigateur)
   useEffect(() => {
-    try {
-      localStorage.setItem(LS_CONTENUS, JSON.stringify(contenus.filter((c) => c.statut !== 'redaction')));
-    } catch { /* ignore */ }
-  }, [contenus]);
+    const uid = user?.telegram_id;
+    if (!uid) return;
+    draftsLoaded.current = false;
+    agentService.getDrafts()
+      .then((data) => setContenus(Array.isArray(data) ? data.filter((c) => c.statut !== 'redaction') : []))
+      .catch(() => setContenus([]))
+      .finally(() => { draftsLoaded.current = true; });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.telegram_id]);
+
+  // Sauvegarde auto (debounce) côté compte — uniquement après le chargement initial
+  useEffect(() => {
+    if (!draftsLoaded.current || !user?.telegram_id) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      agentService.saveDrafts(contenus.filter((c) => c.statut !== 'redaction')).catch(() => {});
+    }, 800);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contenus, user?.telegram_id]);
 
   const supprimerContenu = (id) => setContenus((prev) => prev.filter((c) => c.id !== id));
 

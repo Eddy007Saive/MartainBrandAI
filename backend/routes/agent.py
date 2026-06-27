@@ -221,6 +221,40 @@ async def delete_sujet(sujet_id: str, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# --- Brouillons du Studio (persistés côté compte, suivent l'user partout) ---
+@router.get("/drafts")
+async def get_drafts(payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        r = supabase.table("studio_drafts").select("data").eq("telegram_id", telegram_id).execute()
+        return r.data[0]["data"] if r.data else []
+    except Exception as e:
+        logger.error(f"Get drafts error: {e}")
+        return []
+
+
+@router.put("/drafts")
+async def put_drafts(body: dict, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    items = body.get("items")
+    if not isinstance(items, list):
+        raise HTTPException(status_code=400, detail="items (liste) requis")
+    try:
+        supabase.table("studio_drafts").upsert({
+            "telegram_id": telegram_id,
+            "data": items,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }).execute()
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"Put drafts error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/rediger")
 async def rediger(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")

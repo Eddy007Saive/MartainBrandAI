@@ -19,6 +19,10 @@ export const agentService = {
   // Supprime un sujet sauvegardé
   supprimerSujet: (id) => api.delete(`/agent/sujets/${id}`).then((r) => r.data),
 
+  // Brouillons du Studio (persistés par compte, suivent l'utilisateur partout)
+  getDrafts: () => api.get('/agent/drafts').then((r) => r.data),
+  saveDrafts: (items) => api.put('/agent/drafts', { items }).then((r) => r.data),
+
   // Rédige un post sur un sujet ; save=true l'enregistre dans les contenus
   rediger: (sujet, reseau = 'linkedin', save = false, qualite = 'equilibre') =>
     api.post('/agent/rediger', { sujet, reseau, save, qualite }).then((r) => r.data),
