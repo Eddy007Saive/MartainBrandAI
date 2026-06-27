@@ -4,8 +4,11 @@ import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
   CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings, CreditCard, Sparkles,
+  Plus, Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
@@ -23,6 +26,7 @@ import { userService } from '../services/userService';
 import { billingService } from '../services/billingService';
 import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
+import { templateService } from '../services/templateService';
 import { removeToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
@@ -141,6 +145,15 @@ export default function ParametresPage() {
   const [uploadingInspi, setUploadingInspi] = useState(false);
   const inspiInputRef = useRef(null);
 
+  // Templates de marque
+  const [templates, setTemplates] = useState([]);
+  const [tplOpen, setTplOpen] = useState(false);
+  const [tplNom, setTplNom] = useState('');
+  const [tplNote, setTplNote] = useState('');
+  const [tplImages, setTplImages] = useState([]);
+  const [tplSaving, setTplSaving] = useState(false);
+  const toggleTplImage = (url) => setTplImages((p) => (p.includes(url) ? p.filter((u) => u !== url) : [...p, url]));
+
   // Avatar
   const [avatar, setAvatar] = useState(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
@@ -168,15 +181,40 @@ export default function ParametresPage() {
     if (activeSection === 'schedules' && !schedulesLoaded) fetchSchedules();
   }, [activeSection, schedulesLoaded, fetchSchedules]);
 
-  // --- Inspirations visuelles ---
+  // --- Inspirations visuelles + Templates de marque ---
   useEffect(() => {
     if (activeSection === 'style' && !inspiLoaded) {
       userService.listInspirations()
         .then((d) => setInspirations(d.images || []))
         .catch(() => {})
         .finally(() => setInspiLoaded(true));
+      templateService.list().then((d) => setTemplates(d || [])).catch(() => {});
     }
   }, [activeSection, inspiLoaded]);
+
+  const handleCreateTemplate = async () => {
+    if (!tplNom.trim()) { toast.error('Donne un nom au template'); return; }
+    setTplSaving(true);
+    try {
+      const t = await templateService.create({ nom: tplNom.trim(), images: tplImages, note: tplNote.trim() });
+      setTemplates((p) => [t, ...p]);
+      setTplNom(''); setTplNote(''); setTplImages([]); setTplOpen(false);
+      toast.success('Template créé');
+    } catch (err) {
+      toast.error('Échec de la création');
+    } finally {
+      setTplSaving(false);
+    }
+  };
+
+  const handleDeleteTemplate = async (id) => {
+    try {
+      await templateService.remove(id);
+      setTemplates((p) => p.filter((t) => t.id !== id));
+    } catch (err) {
+      toast.error('Échec de la suppression');
+    }
+  };
 
   const handleInspiUpload = async (e) => {
     const files = Array.from(e.target.files || []);
@@ -873,6 +911,82 @@ export default function ParametresPage() {
                   title="Supprimer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Templates de marque */}
+      <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/50 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-white font-sora">Templates de marque</h3>
+            <p className="text-xs text-slate-500 font-inter mt-0.5 leading-relaxed">
+              Un style réutilisable (images de référence + note). Au moment de générer un visuel, choisissez un template pour garder vos posts cohérents.
+            </p>
+          </div>
+          <Button type="button" size="sm" onClick={() => setTplOpen((v) => !v)}
+            className="bg-[#3AFFA3]/15 text-[#3AFFA3] hover:bg-[#3AFFA3]/25 border border-[#3AFFA3]/30 font-inter flex-shrink-0">
+            <Plus className="w-4 h-4 mr-1.5" />{tplOpen ? 'Annuler' : 'Nouveau'}
+          </Button>
+        </div>
+
+        {/* Formulaire de création */}
+        {tplOpen && (
+          <div className="rounded-lg border border-white/10 bg-slate-900/50 p-3 space-y-3">
+            <Input value={tplNom} onChange={(e) => setTplNom(e.target.value)} placeholder="Nom du template (ex. Citation, Promo…)"
+              className="bg-slate-950/60 border-slate-800 text-slate-200 text-sm" maxLength={80} />
+            <Textarea value={tplNote} onChange={(e) => setTplNote(e.target.value)} rows={2}
+              placeholder="Note de style (optionnel) — ex. fond sombre, vert de la marque, texte gros, ambiance minimaliste…"
+              className="bg-slate-950/60 border-slate-800 text-slate-200 text-sm" />
+            <div>
+              <p className="text-xs text-slate-400 font-inter mb-1.5">Images de référence du template ({tplImages.length} choisie{tplImages.length > 1 ? 's' : ''})</p>
+              {inspirations.length === 0 ? (
+                <p className="text-xs text-slate-600 font-inter">Ajoute d'abord des inspirations ci-dessus, puis sélectionne-les ici.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {inspirations.map((url) => {
+                    const on = tplImages.includes(url);
+                    return (
+                      <button key={url} type="button" onClick={() => toggleTplImage(url)}
+                        className={`relative w-12 h-12 rounded-md overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        {on && <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[9px] font-bold">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <Button onClick={handleCreateTemplate} disabled={tplSaving || !tplNom.trim()} size="sm"
+              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter">
+              {tplSaving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Check className="w-4 h-4 mr-1.5" />}Enregistrer le template
+            </Button>
+          </div>
+        )}
+
+        {/* Liste des templates */}
+        {templates.length === 0 ? (
+          <p className="text-xs text-slate-600 font-inter py-3 text-center">Aucun template pour l'instant.</p>
+        ) : (
+          <div className="space-y-2">
+            {templates.map((t) => (
+              <div key={t.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-white/8 bg-slate-900/40">
+                <div className="flex -space-x-2 flex-shrink-0">
+                  {(t.images || []).slice(0, 3).map((u) => (
+                    <img key={u} src={u} alt="" className="w-9 h-9 rounded-md object-cover border border-slate-800" />
+                  ))}
+                  {(!t.images || t.images.length === 0) && <div className="w-9 h-9 rounded-md bg-slate-800 grid place-items-center"><ImageIcon className="w-4 h-4 text-slate-600" /></div>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-slate-200 font-medium truncate">{t.nom}</div>
+                  {t.note && <div className="text-[11px] text-slate-500 truncate">{t.note}</div>}
+                </div>
+                <button onClick={() => handleDeleteTemplate(t.id)} title="Supprimer"
+                  className="w-8 h-8 grid place-items-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0">
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             ))}

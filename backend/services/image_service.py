@@ -116,7 +116,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     `refs` : images de référence de STYLE choisies à la génération (URLs). Si fourni
@@ -127,6 +127,10 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     if not OPENROUTER_API_KEY:
         return {"error": "no_openrouter_key"}
     u = _charger_marque(telegram_id)
+
+    # Directive de style imposée par un template de marque
+    if style_note:
+        prompt = f"{prompt}\n\nDirective de style à respecter : {style_note}"
 
     # Photo de l'utilisateur demandée -> PHOTO RÉALISTE (pas d'illustration)
     photo_refs = []

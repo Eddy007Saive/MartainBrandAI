@@ -255,6 +255,55 @@ async def put_drafts(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# --- Templates de marque (style réutilisable : images de référence + note) ---
+@router.get("/templates")
+async def list_templates(payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        r = (supabase.table("brand_templates")
+             .select("id, nom, images, note, created_at")
+             .eq("telegram_id", telegram_id).order("created_at", desc=True).execute())
+        return r.data or []
+    except Exception as e:
+        logger.error(f"List templates error: {e}")
+        return []
+
+
+@router.post("/templates")
+async def create_template(body: dict, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    nom = (body.get("nom") or "").strip()
+    if not nom:
+        raise HTTPException(status_code=400, detail="Nom requis")
+    images = body.get("images") if isinstance(body.get("images"), list) else []
+    try:
+        r = supabase.table("brand_templates").insert({
+            "telegram_id": telegram_id, "nom": nom[:80],
+            "images": images, "note": (body.get("note") or "").strip() or None,
+        }).execute()
+        return r.data[0] if r.data else {}
+    except Exception as e:
+        logger.error(f"Create template error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/templates/{template_id}")
+async def delete_template(template_id: str, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        supabase.table("brand_templates").delete().eq("id", template_id).eq("telegram_id", telegram_id).execute()
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Delete template error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/rediger")
 async def rediger(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
@@ -523,8 +572,9 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     if solde < 0:
         raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
+    style_note = (body.get("style_note") or "").strip() or None
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"), refs=refs)
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"), refs=refs, style_note=style_note)
     except Exception as e:
         credit_service.refund(telegram_id, cost)
         logger.error(f"Agent image error: {e}")

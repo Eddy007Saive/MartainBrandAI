@@ -34,6 +34,7 @@ import { toast } from 'sonner';
 import { contenuService } from '../services/contenuService';
 import { agentService } from '../services/agentService';
 import { userService } from '../services/userService';
+import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 
 const IMAGE_MODELES = [
@@ -212,9 +213,25 @@ export default function ContenusPage() {
   const [selectedRefs, setSelectedRefs] = useState([]);
   const [refImporting, setRefImporting] = useState(false);
   const refInputRef = useRef(null);
+  // Templates de marque
+  const [templates, setTemplates] = useState([]);
+  const [activeTemplate, setActiveTemplate] = useState(null);
+  const [styleNote, setStyleNote] = useState('');
 
-  const toggleRef = (url) =>
+  const toggleRef = (url) => {
+    setActiveTemplate(null); // sélection manuelle → on n'est plus sur un template
     setSelectedRefs((prev) => (prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]));
+  };
+
+  const appliquerTemplate = (t) => {
+    if (activeTemplate === t.id) { // re-clic → on retire le template
+      setActiveTemplate(null); setStyleNote('');
+      return;
+    }
+    setActiveTemplate(t.id);
+    setStyleNote(t.note || '');
+    setSelectedRefs(Array.isArray(t.images) ? t.images : []);
+  };
 
   const importerRef = async (e) => {
     const file = e.target.files?.[0];
@@ -259,6 +276,7 @@ export default function ContenusPage() {
     setImageContenu(contenu);
     setImgAvecPhoto(!!user?.use_photo);
     setImgModele('nano2');
+    setActiveTemplate(null); setStyleNote('');
     // Charge la bibliothèque de références (inspirations) — tout sélectionné par défaut
     userService.listInspirations()
       .then((d) => {
@@ -267,6 +285,7 @@ export default function ContenusPage() {
         setSelectedRefs((user?.use_inspirations ?? true) ? arr : []);
       })
       .catch(() => { setInspirations([]); setSelectedRefs([]); });
+    templateService.list().then((d) => setTemplates(d || [])).catch(() => {});
     if (contenu.prompt_image) {
       setImgPrompt(contenu.prompt_image);           // déjà généré → on réutilise (zéro régénération)
     } else {
@@ -279,7 +298,7 @@ export default function ContenusPage() {
     if (!imageContenu || !imgPrompt.trim()) return;
     setImgGenerating(true);
     try {
-      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs);
+      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs, styleNote || null);
       if (data.credits != null) updateUser({ credits: data.credits });
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
@@ -915,6 +934,22 @@ export default function ContenusPage() {
                   <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-white/5">
                     <span className="text-sm text-slate-300 font-inter">Inclure ma photo dans le visuel</span>
                     <Switch checked={imgAvecPhoto} onCheckedChange={setImgAvecPhoto} />
+                  </div>
+                )}
+
+                {/* Templates de marque */}
+                {templates.length > 0 && (
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-slate-300 font-inter">Template de marque</label>
+                    <div className="flex flex-wrap gap-2">
+                      {templates.map((t) => (
+                        <button key={t.id} onClick={() => appliquerTemplate(t)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium font-inter border transition-all ${activeTemplate === t.id ? 'bg-[#3AFFA3]/15 text-[#3AFFA3] border-[#3AFFA3]/40' : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'}`}>
+                          {t.nom}
+                        </button>
+                      ))}
+                    </div>
+                    {activeTemplate && styleNote && <p className="text-[11px] text-slate-500 font-inter">Style : {styleNote}</p>}
                   </div>
                 )}
 
