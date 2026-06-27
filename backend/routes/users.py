@@ -169,10 +169,10 @@ async def connect_social(data: SocialConnectRequest, payload: dict = Depends(ver
         return await connect_platform(telegram_id, data.platform)
     except httpx.TimeoutException:
         logger.error(f"Social connect timeout for {telegram_id}/{data.platform}")
-        return {"success": False, "error": "Le service de connexion n'a pas répondu à temps"}
+        return {"success": False, "error": "Le service de connexion n'a pas répondu à temps. Réessaie."}
     except Exception as e:
         logger.error(f"Social connect error: {e}")
-        return {"success": False, "error": f"Erreur de communication: {str(e)}"}
+        return {"success": False, "error": "Une erreur est survenue lors de la connexion. Réessaie dans un instant."}
 
 
 @router.post("/me/disconnect")
@@ -186,10 +186,10 @@ async def disconnect_social(data: SocialConnectRequest, payload: dict = Depends(
         return await disconnect_platform(telegram_id, data.platform)
     except httpx.TimeoutException:
         logger.error(f"Social disconnect timeout for {telegram_id}/{data.platform}")
-        return {"success": False, "error": "Le service de déconnexion n'a pas répondu à temps"}
+        return {"success": False, "error": "Le service de déconnexion n'a pas répondu à temps. Réessaie."}
     except Exception as e:
         logger.error(f"Social disconnect error: {e}")
-        return {"success": False, "error": f"Erreur de communication: {str(e)}"}
+        return {"success": False, "error": "Une erreur est survenue lors de la déconnexion. Réessaie dans un instant."}
 
 
 # ============ SCHEDULES ============
