@@ -1,6 +1,6 @@
-import asyncio
 import httpx
-from config import N8N_WEBHOOK_BASE, supabase, logger
+from zernio import Zernio, ZernioError
+from config import N8N_WEBHOOK_BASE, LATE_API_KEY, supabase, logger
 
 VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube"}
 
@@ -31,22 +31,50 @@ def _err_from_response(resp) -> str:
 
 
 async def create_late_profile(telegram_id: str, nom: str) -> dict:
-    webhook_url = f"{N8N_WEBHOOK_BASE}/late-create-profile"
-    webhook_body = {"telegram_id": telegram_id, "nom": nom}
-    logger.info(f"Calling Late webhook: POST {webhook_url} with body={webhook_body}")
+    """Crée le profil Late directement via le SDK (plus de dépendance n8n) et enregistre
+    late_profile_id en base. Retourne {created: bool, late_profile_id?, error?}."""
+    if not LATE_API_KEY:
+        return {"created": False, "error": "Service de publication non configuré (contacte le support)."}
+    name = (nom or "").strip() or f"Profil {str(telegram_id)[:8]}"
+
+    def _link(pid: str, reused: bool):
+        supabase.table("users").update({"late_profile_id": pid}).eq("telegram_id", telegram_id).execute()
+        logger.info(f"Profil Late {'réutilisé' if reused else 'créé'} pour {telegram_id}: {pid} ({name})")
+        return {"created": True, "late_profile_id": pid, "reused": reused}
+
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.post(webhook_url, json=webhook_body)
-        logger.info(f"Late webhook response: status={resp.status_code} body={resp.text[:300]}")
-        if resp.status_code == 200:
-            return {"created": True}
-        return {"created": False, "error": _err_from_response(resp)}
-    except httpx.TimeoutException:
-        logger.error(f"create_late_profile timeout for {telegram_id}")
-        return {"created": False, "error": "Le service de publication n'a pas répondu à temps. Réessaie dans un instant."}
+        async with Zernio(api_key=LATE_API_KEY) as client:
+            # 1) Réutiliser un profil existant du même nom (évite doublons + limite de profils)
+            try:
+                lst = await client.profiles.alist()
+                ld = lst.model_dump() if hasattr(lst, "model_dump") else (lst or {})
+                for p in (ld.get("profiles") or ld.get("data") or []):
+                    pid = p.get("_id") or p.get("field_id")
+                    if pid and (p.get("name") or "").strip().lower() == name.lower():
+                        return _link(pid, reused=True)
+            except Exception as e:
+                logger.warning(f"create_late_profile: liste profils impossible ({e}) — on tente la création")
+
+            # 2) Sinon, créer un nouveau profil
+            r = await client.profiles.acreate(name=name)
+            pid = getattr(getattr(r, "profile", None), "field_id", None)
+            if not pid:
+                d = r.model_dump() if hasattr(r, "model_dump") else {}
+                prof = d.get("profile") or {}
+                pid = prof.get("_id") or prof.get("field_id")
+            if not pid:
+                logger.error(f"create_late_profile: id absent dans la réponse pour {telegram_id}: {str(r)[:300]}")
+                return {"created": False, "error": "Le profil de publication n'a pas pu être créé (réponse invalide)."}
+            return _link(pid, reused=False)
+    except ZernioError as e:
+        msg = str(getattr(e, "message", "") or e)
+        logger.error(f"create_late_profile ZernioError pour {telegram_id}: {msg}")
+        if getattr(e, "status_code", None) == 403 or "limit" in msg.lower():
+            return {"created": False, "error": "Limite de profils atteinte sur le compte de publication (le plan gratuit n'autorise que 2 profils). Libère un profil inutilisé ou passe à un plan supérieur."}
+        return {"created": False, "error": "Impossible de créer le profil de publication. Réessaie dans un instant."}
     except Exception as e:
-        logger.error(f"create_late_profile error for {telegram_id}: {e}")
-        return {"created": False, "error": "Impossible de joindre le service de publication. Réessaie dans un instant."}
+        logger.error(f"create_late_profile error pour {telegram_id}: {e}")
+        return {"created": False, "error": "Impossible de créer le profil de publication. Réessaie dans un instant."}
 
 
 async def _ensure_late_profile(telegram_id: str) -> tuple:
@@ -63,21 +91,11 @@ async def _ensure_late_profile(telegram_id: str) -> tuple:
     if row.get("late_profile_id"):
         return True, None
 
-    logger.info(f"connect: profil Late manquant pour {telegram_id} -> création automatique")
+    logger.info(f"connect: profil Late manquant pour {telegram_id} -> création automatique (backend/SDK)")
     cr = await create_late_profile(telegram_id, row.get("nom") or "")
-    if not cr.get("created"):
-        return False, cr.get("error") or "Impossible de créer le profil de publication."
-
-    # n8n écrit late_profile_id côté DB : on attend brièvement qu'il apparaisse
-    for _ in range(4):
-        try:
-            chk = supabase.table("users").select("late_profile_id").eq("telegram_id", telegram_id).execute()
-            if chk.data and chk.data[0].get("late_profile_id"):
-                return True, None
-        except Exception as e:
-            logger.warning(f"_ensure_late_profile poll {telegram_id}: {e}")
-        await asyncio.sleep(1.5)
-    return False, "Ton compte de publication est en cours de préparation. Réessaie dans quelques secondes."
+    if cr.get("created") and cr.get("late_profile_id"):
+        return True, None
+    return False, cr.get("error") or "Impossible de créer le profil de publication."
 
 
 async def connect_platform(telegram_id: str, platform: str) -> dict:
