@@ -152,7 +152,35 @@ export default function ParametresPage() {
   const [tplNote, setTplNote] = useState('');
   const [tplImages, setTplImages] = useState([]);
   const [tplSaving, setTplSaving] = useState(false);
+  const [tplUploading, setTplUploading] = useState(false);
+  const tplInputRef = useRef(null);
   const toggleTplImage = (url) => setTplImages((p) => (p.includes(url) ? p.filter((u) => u !== url) : [...p, url]));
+
+  const handleTplUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setTplUploading(true);
+    try {
+      let latest;
+      for (const f of files) {
+        if (!f.type.startsWith('image/')) { toast.error(`${f.name} : pas une image`); continue; }
+        if (f.size > 10 * 1024 * 1024) { toast.error(`${f.name} : trop lourde (10 Mo max)`); continue; }
+        latest = await userService.addInspiration(f);
+      }
+      if (latest) {
+        const urls = latest.images || [];
+        const news = urls.filter((u) => !inspirations.includes(u));
+        setInspirations(urls);
+        setTplImages((prev) => [...prev, ...news]); // auto-sélectionne les nouvelles
+        toast.success('Image ajoutée');
+      }
+    } catch (err) {
+      toast.error("Échec de l'upload");
+    } finally {
+      setTplUploading(false);
+      if (tplInputRef.current) tplInputRef.current.value = '';
+    }
+  };
 
   // Avatar
   const [avatar, setAvatar] = useState(null);
@@ -942,23 +970,29 @@ export default function ParametresPage() {
               placeholder="Note de style (optionnel) — ex. fond sombre, vert de la marque, texte gros, ambiance minimaliste…"
               className="bg-slate-950/60 border-slate-800 text-slate-200 text-sm" />
             <div>
-              <p className="text-xs text-slate-400 font-inter mb-1.5">Images de référence du template ({tplImages.length} choisie{tplImages.length > 1 ? 's' : ''})</p>
-              {inspirations.length === 0 ? (
-                <p className="text-xs text-slate-600 font-inter">Ajoute d'abord des inspirations ci-dessus, puis sélectionne-les ici.</p>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {inspirations.map((url) => {
-                    const on = tplImages.includes(url);
-                    return (
-                      <button key={url} type="button" onClick={() => toggleTplImage(url)}
-                        className={`relative w-12 h-12 rounded-md overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
-                        <img src={url} alt="" className="w-full h-full object-cover" />
-                        {on && <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[9px] font-bold">✓</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <p className="text-xs text-slate-400 font-inter">Images de référence du template ({tplImages.length} choisie{tplImages.length > 1 ? 's' : ''})</p>
+                <input ref={tplInputRef} type="file" accept="image/*" multiple onChange={handleTplUpload} className="hidden" />
+                <button type="button" onClick={() => tplInputRef.current?.click()} disabled={tplUploading}
+                  className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50 flex-shrink-0">
+                  {tplUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} Ajouter une image
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {inspirations.map((url) => {
+                  const on = tplImages.includes(url);
+                  return (
+                    <button key={url} type="button" onClick={() => toggleTplImage(url)}
+                      className={`relative w-12 h-12 rounded-md overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      {on && <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[9px] font-bold">✓</span>}
+                    </button>
+                  );
+                })}
+                {inspirations.length === 0 && (
+                  <p className="text-xs text-slate-600 font-inter">Aucune image. Clique sur « Ajouter une image » pour en importer.</p>
+                )}
+              </div>
             </div>
             <Button onClick={handleCreateTemplate} disabled={tplSaving || !tplNom.trim()} size="sm"
               className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter">
