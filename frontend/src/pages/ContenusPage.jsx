@@ -444,22 +444,29 @@ export default function ContenusPage() {
     setActionLoading(id);
     try {
       const data = await contenuService.update(id, { statut: newStatut });
-      const datePlanif = data?.date_publication
-        ? new Date(data.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
-        : null;
-      if (data.webhook_result) {
-        if (data.webhook_result.success) {
-          toast.success('Contenu validé et webhook déclenché avec succès');
-        } else {
-          toast.warning('Contenu validé mais le webhook a échoué');
+
+      // Validation -> programmation automatique (push vers Late dans la foulée)
+      if (newStatut === 'Valider') {
+        const datePlanif = data?.date_publication
+          ? new Date(data.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+          : null;
+        try {
+          const pub = await contenuService.publier(id);
+          const patch = { statut: 'Valider', date_publication: data.date_publication, publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null };
+          setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+          toast.success(datePlanif ? `Validé et programmé pour le ${datePlanif} ✓` : 'Validé et programmé ✓');
+        } catch (e) {
+          const msg = e.response?.data?.detail || 'Validé, mais la programmation a échoué (réseau connecté ?).';
+          setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'Valider', date_publication: data.date_publication, publish_status: 'échec', publish_error: msg } : c)));
+          toast.error(msg, { duration: 7000 });
         }
-      } else if (newStatut === 'Valider' && datePlanif) {
-        toast.success(`Contenu validé — planifié le ${datePlanif}`);
-      } else if (newStatut === 'Refuse') {
-        toast.success('Contenu refusé');
-      } else {
-        toast.success('Contenu validé');
+        setSelectedContenu(null);
+        fetchContenus();
+        return;
       }
+
+      if (newStatut === 'Refuse') toast.success('Contenu refusé');
+      else toast.success('Contenu mis à jour');
       fetchContenus();
       setSelectedContenu(null);
     } catch (error) {
@@ -691,7 +698,7 @@ export default function ContenusPage() {
                         ) : (
                           <Check className="w-4 h-4 mr-1.5" />
                         )}
-                        Valider
+                        Valider &amp; programmer
                       </Button>
                       <Button
                         size="sm"
@@ -710,8 +717,8 @@ export default function ContenusPage() {
                       {PUBLISH_BADGE[selectedContenu.publish_status].label}
                     </span>
                   )}
-                  {/* Programmer / Réessayer (états non actifs) */}
-                  {selectedContenu?.statut !== 'Publie' && selectedContenu?.reseau_cible
+                  {/* Programmer / Réessayer — seulement APRÈS validation (Valider programme déjà) */}
+                  {selectedContenu?.statut !== 'Publie' && selectedContenu?.statut !== 'A valider' && selectedContenu?.reseau_cible
                     && ['', null, undefined, 'échec', 'annulé'].includes(selectedContenu?.publish_status) && (
                     <Button size="sm" onClick={() => programmerPublication(selectedContenu)}
                       disabled={publishLoading === selectedContenu?.id}

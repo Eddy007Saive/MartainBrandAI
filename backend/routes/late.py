@@ -1,10 +1,33 @@
 import json
 from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi.responses import HTMLResponse
 from dependencies import verify_token
-from services import late_service, contenu_service
-from config import supabase, logger
+from services import late_service, contenu_service, social_service
+from config import supabase, logger, FRONTEND_URL
 
 router = APIRouter(prefix="/late", tags=["late"])
+
+
+@router.get("/oauth-callback")
+async def oauth_callback(telegram_id: str, platform: str, accountId: str = None):
+    """Callback OAuth réseaux (public) : Late a connecté le compte au profil, on enregistre
+    l'accountId puis on ferme le popup. Le front (à la fermeture) rafraîchit l'utilisateur."""
+    ok = False
+    try:
+        res = await social_service.finalize_connection(telegram_id, platform, account_id=accountId)
+        ok = res.get("ok", False)
+    except Exception as e:
+        logger.error(f"oauth-callback error {telegram_id}/{platform}: {e}")
+    titre = "Compte connecté ✅" if ok else "Connexion échouée"
+    detail = "Tu peux fermer cette fenêtre." if ok else "Réessaie depuis l'application."
+    html = f"""<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<title>{titre}</title><style>
+body{{font-family:-apple-system,Segoe UI,sans-serif;background:#020617;color:#e8edf6;display:grid;place-items:center;height:100vh;margin:0;text-align:center}}
+.c{{max-width:360px;padding:24px}}h1{{font-size:20px;margin:0 0 8px}}p{{color:#93a1b8;font-size:14px}}
+</style></head><body><div class="c"><h1>{titre}</h1><p>{detail}</p></div>
+<script>try{{window.close();}}catch(e){{}} setTimeout(function(){{try{{window.close();}}catch(e){{}} location.replace('{FRONTEND_URL}/dashboard/parametres');}}, 1200);</script>
+</body></html>"""
+    return HTMLResponse(content=html)
 
 
 @router.post("/publier/{contenu_id}")
@@ -16,8 +39,16 @@ async def publier(contenu_id: str, payload: dict = Depends(verify_token)):
     contenu = contenu_service.get_contenu(contenu_id, telegram_id)
     if not contenu:
         raise HTTPException(status_code=404, detail="Contenu introuvable")
-    if contenu.get("late_post_id") and contenu.get("publish_status") in ("programmé", "publié"):
-        raise HTTPException(status_code=409, detail="Ce contenu est déjà programmé ou publié.")
+    statut_pub = contenu.get("publish_status")
+    if statut_pub == "publié":
+        raise HTTPException(status_code=409, detail="Ce contenu est déjà publié.")
+    # Re-programmation (ex. changement de date) : on annule l'ancien post Late puis on recrée
+    if contenu.get("late_post_id") and statut_pub in ("programmé", "envoi"):
+        try:
+            await late_service.cancel_post(contenu["late_post_id"])
+            logger.info(f"Re-programmation {contenu_id} : ancien post Late annulé")
+        except Exception as e:
+            logger.warning(f"Re-programmation {contenu_id} : annulation ancien post échouée: {e}")
 
     res = await late_service.publish_contenu(telegram_id, contenu)
     if res.get("ok"):

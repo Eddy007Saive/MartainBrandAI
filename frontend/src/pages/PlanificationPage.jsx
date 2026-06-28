@@ -97,9 +97,28 @@ export default function PlanificationPage() {
     setBusy(true);
     try {
       const iso = inputToUtc(dateVal, tz);
+      if (new Date(iso).getTime() < Date.now()) {
+        toast.error('La date de publication doit être dans le futur');
+        setBusy(false);
+        return;
+      }
       await contenuService.update(selected.id, { date_publication: iso });
       patchSel({ date_publication: iso });
-      toast.success('Date mise à jour');
+      // Re-programmation auto sur Late si le contenu est validé / déjà dans la file
+      const programmable = selected.statut === 'Valider'
+        || ['envoi', 'programmé', 'programme', 'échec', 'annulé'].includes(selected.publish_status);
+      if (programmable && selected.reseau_cible) {
+        try {
+          const pub = await contenuService.publier(selected.id);
+          patchSel({ publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null });
+          toast.success('Date mise à jour et re-programmée ✓');
+        } catch (e) {
+          patchSel({ publish_status: 'échec', publish_error: e.response?.data?.detail });
+          toast.error(e.response?.data?.detail || 'Date enregistrée, mais re-programmation échouée', { duration: 7000 });
+        }
+      } else {
+        toast.success('Date mise à jour');
+      }
     } catch (e) { toast.error('Échec de la mise à jour de la date'); }
     finally { setBusy(false); }
   };
@@ -475,6 +494,7 @@ export default function PlanificationPage() {
                   <label className="text-xs text-slate-400 font-inter">Date de publication <span className="text-slate-600">({tz.split('/').pop().replace('_', ' ')} · {tzAbbrev(tz)})</span></label>
                   <div className="flex gap-2">
                     <input type="datetime-local" value={dateVal} onChange={(e) => setDateVal(e.target.value)}
+                      min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
                       className="flex-1 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 outline-none focus:border-[#5B6CFF]/50" />
                     <Button size="sm" onClick={saveDate} disabled={busy || !dateVal || utcToInput(selected.date_publication, tz) === dateVal}
                       className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">Enregistrer</Button>

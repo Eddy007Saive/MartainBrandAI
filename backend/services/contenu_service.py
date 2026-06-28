@@ -66,14 +66,22 @@ async def update_contenu(contenu_id: str, telegram_id: str, update_data: dict) -
     contenu_data = current.data[0]
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
 
-    # Auto-planification : à la validation, pose une date provisoire si absente
-    if (update_data.get("statut") == "Valider"
-            and not update_data.get("date_publication")
-            and not contenu_data.get("date_publication")):
-        creneau = planning_service.prochain_creneau(telegram_id, contenu_data.get("reseau_cible"))
-        if creneau:
-            update_data["date_publication"] = creneau
-            logger.info(f"Auto-planif contenu {contenu_id} -> {creneau}")
+    # Auto-planification : à la validation, (re)pose une date si absente OU déjà passée
+    # (on ne planifie jamais une publication dans le passé).
+    if update_data.get("statut") == "Valider":
+        eff_date = update_data.get("date_publication") or contenu_data.get("date_publication")
+        today = datetime.now(timezone.utc).date()
+        past = False
+        if eff_date:
+            try:
+                past = datetime.fromisoformat(str(eff_date).replace("Z", "+00:00")).date() < today
+            except Exception:
+                past = False
+        if not eff_date or past:
+            creneau = planning_service.prochain_creneau(telegram_id, contenu_data.get("reseau_cible"))
+            if creneau:
+                update_data["date_publication"] = creneau
+                logger.info(f"Auto-planif contenu {contenu_id} -> {creneau} ({'date passée' if past else 'date absente'})")
 
     # If validating content and callback_url exists, call the webhook
     webhook_result = None

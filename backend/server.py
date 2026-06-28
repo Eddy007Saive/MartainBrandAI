@@ -16,6 +16,7 @@ from routes.late import router as late_router
 from routes.notifications import router as notifications_router
 from routes.billing import router as billing_router
 from routes.inbox import router as inbox_router
+from routes.accounts import router as accounts_router
 
 app = FastAPI()
 
@@ -42,6 +43,7 @@ api_router.include_router(late_router)
 api_router.include_router(notifications_router)
 api_router.include_router(billing_router)
 api_router.include_router(inbox_router)
+api_router.include_router(accounts_router)
 
 app.include_router(api_router)
 

@@ -8,6 +8,7 @@ import { UserProvider, useUser } from '../context/UserContext';
 import { removeToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 import NotificationsBell from '../components/NotificationsBell';
+import AccountSwitcher from '../components/AccountSwitcher';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 
 const navItems = [
@@ -145,6 +146,9 @@ function DashboardContent() {
       <aside className="hidden md:flex w-64 flex-col border-r border-white/[0.06] bg-[#080c17]/80 backdrop-blur-xl relative z-10">
         <div className="px-5 pt-6 pb-5 border-b border-white/[0.06]">
           <Brand />
+        </div>
+        <div className="px-3 pt-3">
+          <AccountSwitcher />
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter px-3 mb-2">Menu</p>

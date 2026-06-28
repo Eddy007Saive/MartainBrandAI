@@ -43,6 +43,8 @@ RESEND_API_KEY = os.environ.get('RESEND_API_KEY') or os.environ.get('api_resend'
 RESEND_FROM = os.environ.get('RESEND_FROM', 'PresenceOS <onboarding@resend.dev>')
 # URL du frontend (pour construire le lien de réinitialisation)
 FRONTEND_URL = (os.environ.get('FRONTEND_URL', 'http://localhost:3000')).rstrip('/')
+# URL publique du backend (pour le callback OAuth des réseaux) — en prod : l'URL Railway
+BACKEND_URL = (os.environ.get('BACKEND_URL', 'http://localhost:8000')).rstrip('/')
 
 # Late / Zernio (publication sociale programmée)
 LATE_API_KEY = os.environ.get('LATE_API_KEY') or os.environ.get('api_late', '')

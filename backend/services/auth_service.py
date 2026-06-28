@@ -28,7 +28,7 @@ def sanitize_user(user: dict) -> dict:
     return user
 
 
-def register_user(nom: str, email: str, username: str, password: str) -> dict:
+def register_user(nom: str, email: str, username: str, password: str, master_id: str = None) -> dict:
     # Email unique
     existing = supabase.table("users").select("email").eq("email", email).execute()
     if existing.data:
@@ -50,6 +50,9 @@ def register_user(nom: str, email: str, username: str, password: str) -> dict:
         "couleur_accent": "#3AFFA3",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
+    # Sous-compte rattaché à un master (pool de crédits partagé du master)
+    if master_id:
+        new_user["master_id"] = master_id
 
     supabase.table("users").insert(new_user).execute()
     return {"success": True, "telegram_id": new_user["telegram_id"], "nom": nom, "email": email}

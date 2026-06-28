@@ -1,6 +1,10 @@
-import httpx
 from zernio import Zernio, ZernioError
-from config import N8N_WEBHOOK_BASE, LATE_API_KEY, supabase, logger
+from config import LATE_API_KEY, BACKEND_URL, supabase, logger
+
+
+def _norm_platform(p) -> str:
+    # p peut être une string ("Platform12.FACEBOOK") ou un enum -> on coerce en str
+    return str(p or "").lower().split(".")[-1]
 
 VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube"}
 
@@ -11,23 +15,6 @@ FIELD_MAP = {
     "youtube": "late_account_youtube",
     "tiktok": "late_account_tiktok",
 }
-
-
-def _err_from_response(resp) -> str:
-    """Extrait un message d'erreur lisible de la réponse n8n (qui renvoie souvent le message
-    de l'erreur levée dans son body), sinon retombe sur le texte brut / le statut."""
-    try:
-        d = resp.json()
-        if isinstance(d, dict):
-            msg = d.get("message") or d.get("error") or (d.get("detail") if isinstance(d.get("detail"), str) else None)
-            if msg:
-                return str(msg)[:300]
-    except Exception:
-        pass
-    txt = (resp.text or "").strip()
-    if txt:
-        return txt[:300]
-    return f"Le service a répondu avec le statut {resp.status_code}."
 
 
 async def create_late_profile(telegram_id: str, nom: str) -> dict:
@@ -99,55 +86,104 @@ async def _ensure_late_profile(telegram_id: str) -> tuple:
 
 
 async def connect_platform(telegram_id: str, platform: str) -> dict:
+    """Génère l'URL OAuth via le SDK Late (plus de n8n). Late héberge l'OAuth puis redirige
+    vers notre callback backend qui enregistre le compte."""
     # Filet de sécurité : garantir l'existence du profil Late avant toute connexion
     ok, err = await _ensure_late_profile(telegram_id)
     if not ok:
         return {"success": False, "error": err}
 
-    webhook_url = f"{N8N_WEBHOOK_BASE}/late-connect"
-    webhook_body = {"telegram_id": telegram_id, "platform": platform}
-    logger.info(f"Social connect: POST {webhook_url} body={webhook_body}")
+    res = supabase.table("users").select("late_profile_id").eq("telegram_id", telegram_id).execute()
+    profile_id = res.data[0].get("late_profile_id") if res.data else None
+    if not profile_id:
+        return {"success": False, "error": "Profil de publication introuvable. Réessaie."}
+
+    redirect_url = f"{BACKEND_URL}/api/late/oauth-callback?telegram_id={telegram_id}&platform={platform}"
     try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            response = await client.post(webhook_url, json=webhook_body)
-        logger.info(f"Social connect response: status={response.status_code} body={response.text[:300]}")
-        if response.status_code != 200:
-            return {"success": False, "error": _err_from_response(response)}
-        result = response.json() if response.text else {}
-        if result.get("success") and result.get("authUrl"):
-            return {"success": True, "authUrl": result["authUrl"]}
-        return {"success": False, "error": result.get("message") or result.get("error") or "Réponse inattendue du service de connexion."}
-    except httpx.TimeoutException:
-        logger.error(f"connect timeout for {telegram_id}/{platform}")
-        return {"success": False, "error": "Le service de connexion n'a pas répondu à temps. Réessaie."}
+        async with Zernio(api_key=LATE_API_KEY) as client:
+            r = await client.connect.aget_connect_url(platform, profile_id, redirect_url=redirect_url)
+        url = (r or {}).get("authUrl") or (r or {}).get("url") or (r or {}).get("connectUrl")
+        if not url:
+            logger.error(f"connect: pas d'authUrl dans la réponse pour {telegram_id}/{platform}: {str(r)[:300]}")
+            return {"success": False, "error": "URL de connexion indisponible. Réessaie."}
+        return {"success": True, "authUrl": url}
+    except ZernioError as e:
+        msg = str(getattr(e, "message", "") or e)
+        code = getattr(e, "status_code", None)
+        logger.error(f"connect ZernioError {telegram_id}/{platform}: [{code}] {msg}")
+        if code == 402 or "payment" in msg.lower() or "more than 2" in msg.lower():
+            return {"success": False, "error": "Limite de comptes connectés atteinte (2 gratuits sur le compte de publication). Ajoute un moyen de paiement sur Late pour en connecter plus."}
+        return {"success": False, "error": msg or "Impossible de démarrer la connexion. Réessaie."}
     except Exception as e:
         logger.error(f"connect error for {telegram_id}/{platform}: {e}")
-        return {"success": False, "error": "Impossible de joindre le service de connexion. Réessaie."}
+        return {"success": False, "error": "Impossible de démarrer la connexion. Réessaie."}
+
+
+async def finalize_connection(telegram_id: str, platform: str, account_id: str = None) -> dict:
+    """Après l'OAuth (Late a connecté le compte au profil), on enregistre l'accountId dans
+    late_account_<platform>. account_id : fourni par Late dans le callback (le plus fiable)."""
+    platform = _norm_platform(platform)
+    field = FIELD_MAP.get(platform)
+    if not field:
+        return {"ok": False, "error": "Plateforme inconnue."}
+
+    # Cas idéal : Late nous a donné l'accountId directement dans le callback
+    if account_id:
+        try:
+            supabase.table("users").update({field: account_id}).eq("telegram_id", telegram_id).execute()
+            logger.info(f"Compte {platform} connecté pour {telegram_id}: {account_id} (via callback)")
+            return {"ok": True, "account_id": account_id}
+        except Exception as e:
+            logger.error(f"finalize_connection store {telegram_id}/{platform}: {e}")
+            return {"ok": False, "error": "Erreur lors de l'enregistrement du compte."}
+
+    res = supabase.table("users").select("late_profile_id").eq("telegram_id", telegram_id).execute()
+    profile_id = res.data[0].get("late_profile_id") if res.data else None
+    if not profile_id:
+        return {"ok": False, "error": "Profil introuvable."}
+    try:
+        async with Zernio(api_key=LATE_API_KEY) as client:
+            acc = await client.accounts.alist(profile_id=profile_id)
+        d = acc.model_dump() if hasattr(acc, "model_dump") else (acc or {})
+        accounts = d.get("accounts") or d.get("data") or []
+        matches = [a for a in accounts if _norm_platform(a.get("platform")) == platform]
+        if not matches:
+            logger.warning(f"finalize_connection: aucun compte {platform} trouvé pour profil {profile_id}")
+            return {"ok": False, "error": "Compte non trouvé après connexion."}
+        chosen = matches[-1]  # le plus récent (modèle 1 compte/réseau)
+        account_id = chosen.get("field_id") or chosen.get("_id")
+        supabase.table("users").update({field: account_id}).eq("telegram_id", telegram_id).execute()
+        logger.info(f"Compte {platform} connecté pour {telegram_id}: {account_id}")
+        return {"ok": True, "account_id": account_id}
+    except Exception as e:
+        logger.error(f"finalize_connection error {telegram_id}/{platform}: {e}")
+        return {"ok": False, "error": "Erreur lors de l'enregistrement du compte."}
 
 
 async def disconnect_platform(telegram_id: str, platform: str) -> dict:
-    webhook_url = f"{N8N_WEBHOOK_BASE}/late-disconnect"
-    webhook_body = {"telegram_id": telegram_id, "platform": platform}
-    logger.info(f"Social disconnect: POST {webhook_url} body={webhook_body}")
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            response = await client.post(webhook_url, json=webhook_body)
-        logger.info(f"Social disconnect response: status={response.status_code} body={response.text[:300]}")
-        if response.status_code != 200:
-            return {"success": False, "error": _err_from_response(response)}
-    except httpx.TimeoutException:
-        logger.error(f"disconnect timeout for {telegram_id}/{platform}")
-        return {"success": False, "error": "Le service de déconnexion n'a pas répondu à temps. Réessaie."}
-    except Exception as e:
-        logger.error(f"disconnect error for {telegram_id}/{platform}: {e}")
-        return {"success": False, "error": "Impossible de joindre le service de déconnexion. Réessaie."}
+    """Déconnecte un réseau via le SDK Late (supprime le compte côté Late -> libère un slot),
+    puis nettoie la colonne en base."""
+    platform_n = _norm_platform(platform)
+    field = FIELD_MAP.get(platform_n)
+    if not field:
+        return {"success": False, "error": "Plateforme inconnue."}
 
-    # Nettoie le champ en base (best-effort)
-    field = FIELD_MAP.get(platform)
-    if field:
+    res = supabase.table("users").select(field).eq("telegram_id", telegram_id).execute()
+    account_id = res.data[0].get(field) if res.data else None
+
+    # Suppression côté Late (libère un slot). Best-effort : on nettoie la base même si ça échoue.
+    if account_id and LATE_API_KEY:
         try:
-            supabase.table("users").update({field: None}).eq("telegram_id", telegram_id).execute()
+            async with Zernio(api_key=LATE_API_KEY) as client:
+                await client.accounts.adelete_account(account_id)
+            logger.info(f"Compte {platform_n} déconnecté côté Late pour {telegram_id} ({account_id})")
         except Exception as e:
-            logger.warning(f"disconnect cleanup {telegram_id}/{platform}: {e}")
+            logger.warning(f"disconnect Late {telegram_id}/{platform_n} ({account_id}): {e}")
+
+    try:
+        supabase.table("users").update({field: None}).eq("telegram_id", telegram_id).execute()
+    except Exception as e:
+        logger.error(f"disconnect cleanup {telegram_id}/{platform_n}: {e}")
+        return {"success": False, "error": "Erreur lors de la déconnexion."}
 
     return {"success": True}

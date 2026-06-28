@@ -117,7 +117,19 @@ def get_user(telegram_id: str) -> dict | None:
     result = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
     if not result.data:
         return None
-    return sanitize_user(result.data[0])
+    user = sanitize_user(result.data[0])
+    # Sous-compte : crédits + plan = ceux du master (pool partagé)
+    master_id = user.get("master_id")
+    if master_id:
+        try:
+            m = supabase.table("users").select("credits, plan").eq("telegram_id", master_id).execute()
+            if m.data:
+                user["credits"] = m.data[0].get("credits")
+                user["plan"] = m.data[0].get("plan")
+                user["is_subaccount"] = True
+        except Exception as e:
+            logger.warning(f"get_user master credits {telegram_id}: {e}")
+    return user
 
 
 def update_user(telegram_id: str, update_data: dict) -> dict | None:
