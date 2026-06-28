@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Variables de MARQUE (injectées par marque) */
+    --bg:#07070e;
+    --ink:#ffffff;
+    --muted:#9aa0b5;
+    --dim:#5a5f74;
+    --accent:#7c5cff;       /* violet de marque */
+    --accent2:#ff2d2d;      /* accent secondaire (mots clés) */
+    --card:#101020;
+    --line:rgba(255,255,255,.08);
+    --brand:"GoodTime";
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#000;font-family:Inter,sans-serif;padding:40px;display:flex;flex-wrap:wrap;gap:22px;justify-content:center}
+  /* ---- Cadre de post 1:1 ---- */
+  .frame{
+    position:relative;width:600px;height:600px;background:
+      radial-gradient(120% 90% at 80% 0%, rgba(124,92,255,.20), transparent 55%),
+      radial-gradient(90% 70% at 0% 100%, rgba(124,92,255,.10), transparent 60%),
+      var(--bg);
+    border-radius:16px;overflow:hidden;color:var(--ink);
+    padding:48px;display:flex;flex-direction:column;
+  }
+  .grain{position:absolute;inset:0;opacity:.5;background:
+    radial-gradient(circle at 50% 120%, rgba(124,92,255,.18), transparent 60%);pointer-events:none}
+  /* top bar */
+  .top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+  .eyebrow{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .logo{display:flex;align-items:center;gap:9px}
+  .logo .g{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:17px;color:#fff;
+    background:radial-gradient(circle at 35% 30%, #b9a6ff, var(--accent) 60%);box-shadow:0 0 22px rgba(124,92,255,.7)}
+  .logo b{font-family:Sora;font-weight:800;font-size:15px;letter-spacing:-.01em}
+  /* titres */
+  .h{font-family:Sora;font-weight:800;letter-spacing:-.02em;line-height:1.05;position:relative;z-index:2}
+  .h.xl{font-size:54px}
+  .h .a{color:var(--accent2)}
+  .h .v{color:var(--accent)}
+  .sub{color:var(--muted);font-size:16px;line-height:1.55;position:relative;z-index:2;max-width:90%}
+  .spacer{flex:1}
+  /* G mascot glow */
+  .orb{position:absolute;width:230px;height:230px;border-radius:50%;right:-30px;top:90px;
+    background:radial-gradient(circle at 38% 32%, #c9bcff, var(--accent) 55%, #2a1c6e 80%);
+    box-shadow:0 0 90px rgba(124,92,255,.6);display:grid;place-items:center;z-index:1}
+  .orb b{font-family:Sora;font-weight:800;font-size:96px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.4)}
+  .orb .eyes{position:absolute;display:flex;gap:30px;top:90px}
+  .orb .eyes i{width:34px;height:46px;border-radius:50%;background:#0a0118;display:block}
+  /* stats row */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;position:relative;z-index:2}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 14px}
+  .stat .k{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+  .stat .n{font-family:Sora;font-weight:800;font-size:26px;margin-top:8px}
+  .stat .n.v{color:var(--accent)}
+  /* big stats */
+  .big{display:grid;grid-template-columns:1fr 1fr;gap:14px;position:relative;z-index:2}
+  .bigc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .bigc .k{font-size:13px;color:var(--muted)}
+  .bigc .n{font-family:Sora;font-weight:800;font-size:40px;margin-top:6px}
+  .bars{display:flex;align-items:flex-end;gap:7px;height:60px;margin-top:14px}
+  .bars i{flex:1;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--accent),rgba(124,92,255,.25))}
+  /* features */
+  .feat{display:flex;flex-direction:column;gap:14px;position:relative;z-index:2}
+  .fi{display:flex;align-items:center;gap:14px}
+  .fi .ic{width:42px;height:42px;border-radius:11px;background:rgba(124,92,255,.14);border:1px solid rgba(124,92,255,.3);display:grid;place-items:center;flex-shrink:0}
+  .fi .ic svg{width:20px;height:20px;stroke:var(--accent)}
+  .fi .t{font-size:16.5px;font-weight:600}
+  .fi .d{font-size:13px;color:var(--muted)}
+  /* photo */
+  .photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center}
+  .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,7,14,.2),rgba(7,7,14,.92))}
+  .quote{font-family:Sora;font-weight:700;font-size:30px;line-height:1.25;position:relative;z-index:2}
+  .who{display:flex;align-items:center;gap:12px;position:relative;z-index:2}
+  .who img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.2)}
+  .who .nm{font-weight:700;font-size:15px}
+  .who .rl{color:var(--muted);font-size:12.5px}
+  .foot{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:12px;position:relative;z-index:2}
+  .label{display:inline-block;background:rgba(124,92,255,.15);border:1px solid rgba(124,92,255,.3);color:#c7b9ff;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
+  .cap{width:100%;text-align:center;color:#777;font-family:Inter;font-size:13px;margin-top:4px}
+  /* phone mockup */
+  .row{display:flex;gap:22px;align-items:center;position:relative;z-index:2}
+  .phone{width:186px;height:372px;border-radius:30px;border:7px solid #1c1c2c;background:#0c0c18;flex-shrink:0;padding:16px 12px 12px;box-shadow:0 20px 60px rgba(124,92,255,.3);overflow:hidden}
+  .phone .notch{width:58px;height:6px;background:#1c1c2c;border-radius:3px;margin:0 auto 16px}
+  .bubble{max-width:82%;padding:9px 12px;border-radius:13px;font-size:11.5px;margin-bottom:9px;line-height:1.3}
+  .bubble.in{background:#1a1a2c;color:#cfd3e6;border-bottom-left-radius:4px}
+  .bubble.out{background:var(--accent);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+  /* logos d'intégrations */
+  .logos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;position:relative;z-index:2}
+  .logos .lg{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 10px;text-align:center;font-weight:700;font-size:13.5px;color:#cfd3e6}
+  /* services + flow */
+  .svc{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;position:relative;z-index:2}
+  .svc .s{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:14px;font-weight:600}
+  .svc .s .d{width:9px;height:9px;border-radius:50%;background:var(--accent);flex-shrink:0}
+  .flow{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 14px;position:relative;z-index:2;margin-top:14px}
+  .flow .step{font-size:12px;color:var(--muted);text-align:center;flex:1}
+  .flow .gmini{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#b9a6ff,var(--accent) 60%);display:grid;place-items:center;font-family:Sora;font-weight:800;color:#fff;box-shadow:0 0 18px rgba(124,92,255,.6);flex-shrink:0}
+  .flow .arr{color:var(--dim);font-size:18px}
+  /* stars + statrow */
+  .stars{color:#ffb020;font-size:22px;letter-spacing:4px;position:relative;z-index:2}
+  .statrow{display:flex;gap:10px;position:relative;z-index:2}
+  .statrow .si{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center}
+  .statrow .si .n{font-family:Sora;font-weight:800;font-size:22px;color:var(--accent)}
+  .statrow .si .k{font-size:10px;color:var(--muted);margin-top:3px}
+  .thumb{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,#2a2440,#14121f);border:1px solid var(--line);display:grid;place-items:center;flex-shrink:0}
+  .thumb svg{width:20px;height:20px;stroke:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- 1. STATEMENT (mascotte) -->
+<div class="frame">
+  <div class="top"><span class="eyebrow">Vision</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="orb"><b>G</b></div>
+  <div class="spacer"></div>
+  <div class="h xl">MOINS<br>DE STRESS.<br><span class="a">PLUS DE<br>RÉSULTATS.</span></div>
+  <p class="sub" style="margin-top:18px">GoodTime automatise ce qui te prend du temps pour te concentrer sur ce qui fait grandir ton entreprise.</p>
+</div>
+
+<!-- 2. ACQUISITION + stats -->
+<div class="frame">
+  <div class="top"><span class="eyebrow">Acquisition</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div style="margin-top:26px" class="h" >
+    <div style="font-size:40px">TON MOTEUR<br>D'ACQUISITION.</div>
+    <div style="font-size:40px;margin-top:6px"><span class="a">CONNECTÉ.</span> <span class="v">PILOTÉ.</span> OPTIMISÉ.</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="stats">
+    <div class="stat"><div class="k">Leads</div><div class="n v">2 782</div></div>
+    <div class="stat"><div class="k">CA généré</div><div class="n">18,4k€</div></div>
+    <div class="stat"><div class="k">Conv.</div><div class="n v">7,6%</div></div>
+    <div class="stat"><div class="k">RDV</div><div class="n">212</div></div>
+  </div>
+</div>
+
+<!-- 3. PHOTO + quote -->
+<div class="frame">
+  <div class="photo" style="background-image:url('https://res.cloudinary.com/dy9gp5pim/image/upload/v1782462179/blackcore/founder.jpg')"></div>
+  <div class="top"><span class="label">Témoignage</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="spacer"></div>
+  <div class="quote">« Libère-toi de<br>l'opérationnel.<br><span class="v">Construis l'essentiel.</span> »</div>
+  <div class="who" style="margin-top:22px">
+    <img src="https://res.cloudinary.com/dy9gp5pim/image/upload/v1782462179/blackcore/founder.jpg" alt="">
+    <div><div class="nm">Martin Kraemer</div><div class="rl">Fondateur de GoodTime</div></div>
+  </div>
+</div>
+
+<!-- 4. BIG STATS -->
+<div class="frame">
+  <div class="top"><span class="eyebrow">Vos données</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="h" style="margin-top:22px;font-size:36px">VOTRE ACTIVITÉ.<br>VOS DONNÉES.<br><span class="v">VOTRE CONTRÔLE.</span></div>
+  <div class="spacer"></div>
+  <div class="big">
+    <div class="bigc"><div class="k">CA du mois</div><div class="n">128 580 €</div>
+      <div class="bars"><i style="height:40%"></i><i style="height:60%"></i><i style="height:50%"></i><i style="height:80%"></i><i style="height:65%"></i><i style="height:100%"></i></div>
+    </div>
+    <div class="bigc"><div class="k">Taux d'occupation</div><div class="n v">72%</div>
+      <div class="bars"><i style="height:55%"></i><i style="height:70%"></i><i style="height:62%"></i><i style="height:85%"></i><i style="height:74%"></i><i style="height:90%"></i></div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. FEATURES -->
+<div class="frame">
+  <div class="top"><span class="eyebrow">Boosté par l'IA</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="h" style="margin-top:22px;font-size:34px">L'INTELLIGENCE<br>AU SERVICE DE<br><span class="a">VOTRE PERFORMANCE.</span></div>
+  <div class="spacer"></div>
+  <div class="feat">
+    <div class="fi"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 3l1.9 5.8L20 10l-5.1 3.7L16 20l-4-3.6L8 20l1.1-6.3L4 10l6.1-1.2z"/></svg></span><div><div class="t">Tarification dynamique</div><div class="d">Optimise tes prix en temps réel.</div></div></div>
+    <div class="fi"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></span><div><div class="t">Détection d'anomalies</div><div class="d">Alertes avant que ça dérape.</div></div></div>
+    <div class="fi"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V5m6 14V9m6 10V3"/></svg></span><div><div class="t">Suivi de performance</div><div class="d">Tes vrais chiffres, en clair.</div></div></div>
+  </div>
+</div>
+
+<!-- 7. PHONE 24/7 -->
+<div class="frame">
+  <div class="top"><span class="eyebrow">Réponse voyageur</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="row" style="margin-top:24px">
+    <div>
+      <div class="h" style="font-size:46px">24/7.<br><span class="v">AUTOMATISÉE.</span></div>
+      <p class="sub" style="margin-top:14px;max-width:100%">Réponses instantanées. De jour comme de nuit. Tes voyageurs ne patientent jamais.</p>
+    </div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="bubble in">Bonjour, à quelle heure le check-in ?</div>
+      <div class="bubble out">Bonjour 👋 Check-in dès 16h, code envoyé par SMS.</div>
+      <div class="bubble in">Parfait, merci !</div>
+      <div class="bubble out">Avec plaisir, bon séjour ✨</div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. SERVICES + FLOW -->
+<div class="frame">
+  <div class="top"><span class="eyebrow">Délégation</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="h" style="margin-top:22px;font-size:38px">LA BONNE PERSONNE.<br><span class="a">AU BON MOMENT.</span></div>
+  <div class="spacer"></div>
+  <div class="svc">
+    <div class="s"><span class="d"></span>Ménage</div>
+    <div class="s"><span class="d"></span>Maintenance</div>
+    <div class="s"><span class="d"></span>Check-in</div>
+    <div class="s"><span class="d"></span>Linge</div>
+  </div>
+  <div class="flow">
+    <div class="step">Réservation</div><span class="arr">→</span>
+    <div class="gmini">G</div><span class="arr">→</span>
+    <div class="step">Action déclenchée</div>
+  </div>
+</div>
+
+<!-- 9. PHOTO PAYSAGE + STATS -->
+<div class="frame">
+  <div class="photo" style="background-image:linear-gradient(160deg,#241a44,#0a0a16)"></div>
+  <div class="top"><span class="label">Notre mission</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="spacer"></div>
+  <div class="h" style="font-size:38px">AIDER LES CONCIERGERIES<br><span class="v">À PASSER UN CAP.</span></div>
+  <p class="sub" style="margin:14px 0 18px">Moins d'outils. Moins de stress. Plus de croissance.</p>
+  <div class="statrow">
+    <div class="si"><div class="n">+300</div><div class="k">conciergeries</div></div>
+    <div class="si"><div class="n">+2k</div><div class="k">biens gérés</div></div>
+    <div class="si"><div class="n">98%</div><div class="k">satisfaction</div></div>
+    <div class="si"><div class="n">24/7</div><div class="k">support</div></div>
+  </div>
+</div>
+
+<!-- 10. INTÉGRATIONS -->
+<div class="frame">
+  <div class="top"><span class="eyebrow">Intégrations natives</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="h" style="margin-top:22px;font-size:36px">TOUT EST CONNECTÉ.<br><span class="v">TOUT EST SYNCHRONISÉ.</span></div>
+  <div class="spacer"></div>
+  <div class="logos">
+    <div class="lg">Airbnb</div><div class="lg">Booking.com</div><div class="lg">Stripe</div>
+    <div class="lg">WhatsApp</div><div class="lg">Smoobu</div><div class="lg">Google</div>
+  </div>
+  <p class="sub" style="margin-top:16px">Plus d'intégrations, moins de friction.</p>
+</div>
+
+<!-- 11. TÉMOIGNAGE CLIENT (étoiles) -->
+<div class="frame">
+  <div class="top"><span class="label">Nos clients</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="spacer"></div>
+  <div class="stars">★★★★★</div>
+  <div class="quote" style="font-size:26px;margin-top:16px">« Depuis qu'on utilise GoodTime, on a gagné un temps fou et notre CA a augmenté de 20%. »</div>
+  <div class="who" style="margin-top:22px">
+    <span class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></span>
+    <div><div class="nm">Julien M.</div><div class="rl">Conciergerie Bleue · Annecy</div></div>
+  </div>
+</div>
+
+<!-- 12. DES HUMAINS -->
+<div class="frame">
+  <div class="photo" style="background-image:url('https://res.cloudinary.com/dy9gp5pim/image/upload/v1782462179/blackcore/founder.jpg');background-position:right center"></div>
+  <div class="top"><span class="eyebrow">GoodTime People</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="spacer"></div>
+  <div class="h" style="font-size:40px">DES HUMAINS.<br>VRAI SERVICE.<br><span class="a">VRAIE DIFFÉRENCE.</span></div>
+  <p class="sub" style="margin-top:14px">Une équipe qui gère tes voyageurs comme si c'était les tiens.</p>
+</div>
+
+<!-- 6. CLOSING -->
+<div class="frame" style="align-items:center;justify-content:center;text-align:center">
+  <div class="orb" style="position:relative;right:auto;top:auto;margin-bottom:30px"><b>G</b></div>
+  <div class="h" style="font-size:42px">CHAQUE JOUR,<br><span class="v">ON BOSSE POUR VOUS.</span></div>
+  <p class="sub" style="margin-top:16px;text-align:center;max-width:80%">Développement, support, mises à jour, optimisation. Ton outil avance pendant que tu te concentres sur ton métier.</p>
+</div>
+
+</body>
+</html>

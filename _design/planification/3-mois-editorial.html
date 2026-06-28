@@ -1,0 +1,172 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<title>Planification · Mois éditorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg:#020617;--panel:#0b1322;--card:#0f172a;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);
+ --ink:#e8edf6;--muted:#93a1b8;--dim:#5b6a82;
+ --grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--accent:#3AFFA3;
+ --cyan:#22d3ee;--emerald:#34d399;--amber:#fbbf24;--red:#f87171;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(900px 420px at 70% -10%,rgba(91,108,255,.10),transparent 60%),var(--bg);color:var(--ink);font-family:Inter,sans-serif;padding:34px 40px 60px;-webkit-font-smoothing:antialiased}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:600}
+h1{font-family:Sora;font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:6px}
+.sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px}
+.btn{border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--ink);font:600 13px Inter;padding:9px 14px;border-radius:10px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.btn.grad{background:var(--grad);border:none;box-shadow:0 8px 24px rgba(91,108,255,.32)}
+.layout{display:grid;grid-template-columns:1fr 312px;gap:20px;align-items:start}
+/* calendar */
+.cal{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px}
+.calhead{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.calhead .m{font-family:Sora;font-weight:700;font-size:19px}
+.nav{display:flex;gap:5px;margin-left:6px}
+.nav button{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.today{margin-left:auto;font:600 12.5px Inter;color:var(--muted);border:1px solid var(--line);background:transparent;padding:7px 13px;border-radius:9px;cursor:pointer}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:8px}
+.dow span{font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;padding-left:4px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.cell{background:var(--card);border:1px solid var(--line);border-radius:12px;min-height:108px;padding:8px;position:relative}
+.cell.out{opacity:.4}
+.cell .dn{font-family:Sora;font-weight:600;font-size:13px;color:var(--muted);margin-bottom:6px}
+.cell.today .dn{color:#020617;background:var(--grad);width:24px;height:24px;border-radius:50%;display:grid;place-items:center}
+.ev{display:flex;align-items:center;gap:6px;border-radius:8px;padding:4px 5px;margin-bottom:4px;background:rgba(255,255,255,.04);border:1px solid var(--line);cursor:pointer}
+.ev:hover{background:rgba(255,255,255,.08)}
+.ev .th{width:22px;height:22px;border-radius:6px;flex:0 0 auto;background-size:cover;position:relative;display:grid;place-items:center}
+.ev .nb{position:absolute;bottom:-3px;right:-3px;width:12px;height:12px;border-radius:4px;display:grid;place-items:center;font:700 7px Inter;color:#fff;border:1.5px solid var(--card)}
+.ev .tx{font-size:10.5px;font-weight:500;line-height:1.15;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;flex:1}
+.ev .st{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+/* sidebar */
+.side{display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px}
+.panel h3{font-family:Sora;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:13px}
+.panel h3 .c{margin-left:auto;font-size:11px;color:var(--dim);background:rgba(255,255,255,.05);padding:2px 8px;border-radius:999px}
+.todo{display:flex;gap:11px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+.todo:first-of-type{border-top:none}
+.todo .th{width:40px;height:40px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;color:#fff;font:700 11px Sora;text-align:center;font-size:8px;line-height:1.1;padding:3px}
+.todo .info{flex:1;min-width:0}
+.todo .info .t{font-size:12.5px;font-weight:500;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.todo .info .m{font-size:11px;color:var(--dim);margin-top:3px;display:flex;align-items:center;gap:5px}
+.todo .go{width:28px;height:28px;border-radius:8px;border:1px solid var(--line2);background:transparent;color:var(--cyan);display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.mini{display:flex;justify-content:space-between;text-align:center;gap:8px}
+.mini .b{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 6px}
+.mini .b .n{font-family:Sora;font-weight:700;font-size:20px}
+.mini .b .l{font-size:10.5px;color:var(--dim);margin-top:3px}
+svg{display:block}
+</style></head><body>
+
+<div class="top">
+ <div><div class="eyebrow">Planification</div><h1>Calendrier éditorial</h1>
+   <div class="sub">Juin 2026 · 9 publications · 1 à programmer</div></div>
+ <div style="display:flex;gap:10px">
+  <button class="btn">Mois</button><button class="btn">Liste</button>
+  <button class="btn grad"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Nouveau post</button>
+ </div>
+</div>
+
+<div class="layout">
+ <!-- CALENDAR -->
+ <div class="cal">
+  <div class="calhead"><span class="m">Juin 2026</span>
+   <div class="nav"><button>‹</button><button>›</button></div>
+   <button class="today">Aujourd'hui</button>
+  </div>
+  <div class="dow"><span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span></div>
+  <div class="grid">
+   <!-- semaine 1 -->
+   <div class="cell"><div class="dn">1</div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#0B1C44,#16306e)"><span class="nb" style="background:#0a66c2">in</span></span><span class="tx">Le jour où tu ne peux plus partir</span><span class="st" style="background:#34d399"></span></div>
+   </div>
+   <div class="cell"><div class="dn">2</div></div>
+   <div class="cell"><div class="dn">3</div></div>
+   <div class="cell"><div class="dn">4</div></div>
+   <div class="cell"><div class="dn">5</div></div>
+   <div class="cell out"><div class="dn">6</div></div>
+   <div class="cell out"><div class="dn">7</div></div>
+   <!-- semaine 2 -->
+   <div class="cell"><div class="dn">8</div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#1e293b,#0f172a)"><span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">◎</span></span><span class="tx">test</span><span class="st" style="background:#22d3ee"></span></div>
+   </div>
+   <div class="cell"><div class="dn">9</div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#0B1C44,#16306e)"><span class="nb" style="background:#1877f2">f</span></span><span class="tx">Être débordé…</span><span class="st" style="background:#34d399"></span></div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#0B1C44,#16306e)"><span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">◎</span></span><span class="tx">Être débordé…</span><span class="st" style="background:#22d3ee"></span></div>
+   </div>
+   <div class="cell"><div class="dn">10</div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#3b1d52,#1a0f2e)"><span class="nb" style="background:#1877f2">f</span></span><span class="tx">Les 3 questions…</span><span class="st" style="background:#34d399"></span></div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#3b1d52,#1a0f2e)"><span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">◎</span></span><span class="tx">Les 3 questions…</span><span class="st" style="background:#22d3ee"></span></div>
+   </div>
+   <div class="cell"><div class="dn">11</div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#003D2E,#0a5f47)"><span class="nb" style="background:#1877f2">f</span></span><span class="tx">Construire sans toi</span><span class="st" style="background:#22d3ee"></span></div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#003D2E,#0a5f47)"><span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">◎</span></span><span class="tx">Commencer petit</span><span class="st" style="background:#fbbf24"></span></div>
+   </div>
+   <div class="cell"><div class="dn">12</div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#0B1C44,#16306e)"><span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">◎</span></span><span class="tx">Le débours…</span><span class="st" style="background:#22d3ee"></span></div>
+   </div>
+   <div class="cell out"><div class="dn">13</div></div>
+   <div class="cell out"><div class="dn">14</div></div>
+   <!-- semaine 3 -->
+   <div class="cell"><div class="dn">15</div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#1e293b,#0f172a)"><span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">◎</span></span><span class="tx">Signer 1 client/sem</span><span class="st" style="background:#5b6a82"></span></div>
+   </div>
+   <div class="cell"><div class="dn">16</div>
+     <div class="ev"><span class="th" style="background:linear-gradient(135deg,#3b1d52,#1a0f2e)"><span class="nb" style="background:#1877f2">f</span></span><span class="tx">Ce que personne ne dit</span><span class="st" style="background:#22d3ee"></span></div>
+   </div>
+   <div class="cell"><div class="dn">17</div></div>
+   <div class="cell"><div class="dn">18</div></div>
+   <div class="cell"><div class="dn">19</div></div>
+   <div class="cell out"><div class="dn">20</div></div>
+   <div class="cell out"><div class="dn">21</div></div>
+   <!-- semaine 4 -->
+   <div class="cell"><div class="dn">22</div></div>
+   <div class="cell today"><div class="dn">23</div></div>
+   <div class="cell"><div class="dn">24</div></div>
+   <div class="cell"><div class="dn">25</div></div>
+   <div class="cell"><div class="dn">26</div></div>
+   <div class="cell out"><div class="dn">27</div></div>
+   <div class="cell out"><div class="dn">28</div></div>
+  </div>
+ </div>
+
+ <!-- SIDEBAR -->
+ <div class="side">
+  <div class="mini">
+   <div class="b"><div class="n" style="color:#22d3ee">5</div><div class="l">Programmés</div></div>
+   <div class="b"><div class="n" style="color:#34d399">2</div><div class="l">Publiés</div></div>
+   <div class="b"><div class="n" style="color:#fbbf24">1</div><div class="l">À valider</div></div>
+  </div>
+
+  <div class="panel">
+   <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>À programmer<span class="c">2</span></h3>
+   <div class="todo">
+     <span class="th" style="background:linear-gradient(135deg,#003D2E,#0a5f47)">COMMENCER PETIT</span>
+     <div class="info"><div class="t">Commencer petit, structurer tôt</div><div class="m">Instagram · 11 juin · à valider</div></div>
+     <button class="go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></button>
+   </div>
+   <div class="todo">
+     <span class="th" style="background:linear-gradient(135deg,#1e293b,#0f172a)">SIGNER 1</span>
+     <div class="info"><div class="t">Signer 1 client par semaine</div><div class="m">Instagram · pas de date</div></div>
+     <button class="go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg></button>
+   </div>
+  </div>
+
+  <div class="panel">
+   <h3><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Prochaines publications<span class="c">3</span></h3>
+   <div class="todo">
+     <span class="th" style="background:linear-gradient(135deg,#0B1C44,#16306e)">DÉBOURS</span>
+     <div class="info"><div class="t">Le débours mal géré</div><div class="m"><span class="st" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22d3ee"></span>12 juin · 12:00 · Insta</div></div>
+   </div>
+   <div class="todo">
+     <span class="th" style="background:linear-gradient(135deg,#003D2E,#0a5f47)">SANS TOI</span>
+     <div class="info"><div class="t">Construire une boîte qui tourne sans toi</div><div class="m"><span class="st" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22d3ee"></span>11 juin · 13:00 · Facebook</div></div>
+   </div>
+   <div class="todo">
+     <span class="th" style="background:linear-gradient(135deg,#3b1d52,#1a0f2e)">CE QUE</span>
+     <div class="info"><div class="t">Ce que personne ne dit sur la délégation</div><div class="m"><span class="st" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#22d3ee"></span>16 juin · 13:00 · Facebook</div></div>
+   </div>
+  </div>
+ </div>
+</div>
+
+</body></html>

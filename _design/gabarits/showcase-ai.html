@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#fff;--muted:#c3c8db;--accent:#7c5cff;--accent2:#ff2d2d;--line:rgba(255,255,255,.12)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#000;font-family:Inter,sans-serif;padding:40px;display:flex;flex-wrap:wrap;gap:22px;justify-content:center}
+  .lbl{width:100%;text-align:center;color:#8a8fa6;font-size:13px;letter-spacing:.1em;text-transform:uppercase;margin:6px 0}
+  .frame{position:relative;width:600px;height:600px;border-radius:16px;overflow:hidden;color:var(--ink);padding:48px;display:flex;flex-direction:column}
+  .photo{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center}
+  .ov{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(5,5,12,.45) 0%,rgba(5,5,12,.15) 35%,rgba(5,5,12,.92) 100%)}
+  .top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:2}
+  .eyebrow{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:#d7d9e6;font-weight:600;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  .label{display:inline-block;background:rgba(124,92,255,.25);border:1px solid rgba(124,92,255,.45);color:#e6e0ff;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px;backdrop-filter:blur(4px)}
+  .logo{display:flex;align-items:center;gap:9px}
+  .logo .g{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:17px;color:#fff;background:radial-gradient(circle at 35% 30%, #b9a6ff, var(--accent) 60%);box-shadow:0 0 22px rgba(124,92,255,.8)}
+  .logo b{font-family:Sora;font-weight:800;font-size:15px;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  .spacer{flex:1}
+  .h{font-family:Sora;font-weight:800;letter-spacing:-.02em;line-height:1.06;position:relative;z-index:2;text-shadow:0 4px 24px rgba(0,0,0,.5)}
+  .h .a{color:var(--accent2)}.h .v{color:#b9a6ff}
+  .sub{color:var(--muted);font-size:16px;line-height:1.55;position:relative;z-index:2;margin-top:14px;max-width:92%;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+  .statrow{display:flex;gap:10px;position:relative;z-index:2;margin-top:18px}
+  .statrow .si{flex:1;background:rgba(255,255,255,.10);border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center;backdrop-filter:blur(6px)}
+  .statrow .si .n{font-family:Sora;font-weight:800;font-size:22px;color:#c9bcff}
+  .statrow .si .k{font-size:10px;color:var(--muted);margin-top:3px}
+</style>
+</head>
+<body>
+
+<div class="lbl">Gabarit + Nano Banana (fond généré par IA)</div>
+
+<!-- 1 abstract -->
+<div class="frame">
+  <div class="photo" style="background-image:url('ai/bg_abstract.png')"></div><div class="ov"></div>
+  <div class="top"><span class="eyebrow">Vision</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="spacer"></div>
+  <div class="h" style="font-size:52px">MOINS<br>DE STRESS.<br><span class="a">PLUS DE<br>RÉSULTATS.</span></div>
+  <p class="sub">GoodTime automatise ce qui te prend du temps pour te concentrer sur ce qui fait grandir ton entreprise.</p>
+</div>
+
+<!-- 2 interior + stats -->
+<div class="frame">
+  <div class="photo" style="background-image:url('ai/bg_interior.png')"></div><div class="ov"></div>
+  <div class="top"><span class="label">Notre mission</span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="spacer"></div>
+  <div class="h" style="font-size:38px">AIDER LES CONCIERGERIES<br><span class="v">À PASSER UN CAP.</span></div>
+  <p class="sub">Moins d'outils. Moins de stress. Plus de croissance.</p>
+  <div class="statrow">
+    <div class="si"><div class="n">+300</div><div class="k">conciergeries</div></div>
+    <div class="si"><div class="n">+2k</div><div class="k">biens</div></div>
+    <div class="si"><div class="n">98%</div><div class="k">satisfaction</div></div>
+    <div class="si"><div class="n">24/7</div><div class="k">support</div></div>
+  </div>
+</div>
+
+<!-- 3 orb closing -->
+<div class="frame" style="text-align:center;align-items:center;justify-content:center">
+  <div class="photo" style="background-image:url('ai/bg_orb.png')"></div><div class="ov" style="background:radial-gradient(circle at 50% 38%,rgba(5,5,12,.1),rgba(5,5,12,.9))"></div>
+  <div class="top" style="position:absolute;top:48px;left:48px;right:48px"><span class="eyebrow"></span><span class="logo"><span class="g">G</span><b>GoodTime</b></span></div>
+  <div class="h" style="font-size:44px">CHAQUE JOUR,<br><span class="v">ON BOSSE POUR VOUS.</span></div>
+  <p class="sub" style="text-align:center;max-width:80%">Ton outil avance pendant que tu te concentres sur ton métier.</p>
+</div>
+
+</body>
+</html>

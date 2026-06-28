@@ -1,0 +1,142 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#020617;--panel:#0b1322;--card:#0f172a;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);--ink:#e8edf6;--muted:#93a1b8;--dim:#5b6a82;--grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--accent:#3AFFA3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(900px 420px at 75% -10%,rgba(91,108,255,.10),transparent 60%),var(--bg);color:var(--ink);font-family:Inter,sans-serif;padding:30px 36px 60px;-webkit-font-smoothing:antialiased}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:600}
+h1{font-family:Sora;font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:6px}
+.sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px;gap:16px;flex-wrap:wrap}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;gap:2px}
+.seg button{border:none;background:transparent;color:var(--muted);font:600 13px Inter;padding:7px 14px;border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--grad);color:#fff}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:7px;font:600 12.5px Inter;color:var(--muted);background:var(--card);border:1px solid var(--line);padding:7px 11px;border-radius:999px;cursor:pointer}
+.chip.on{color:#fff;border-color:var(--line2);background:rgba(255,255,255,.06)}
+.chip .b{width:18px;height:18px;border-radius:5px;display:grid;place-items:center}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.kpi .l{color:var(--muted);font-size:12.5px;display:flex;align-items:center;gap:7px}
+.kpi .n{font-family:Sora;font-weight:800;font-size:26px;letter-spacing:-.02em;margin-top:8px;line-height:1}
+.kpi .d{font-size:11.5px;font-weight:600;margin-top:8px;display:inline-flex;align-items:center;gap:4px}
+.up{color:var(--accent)} .down{color:#f87171}
+.ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;float:right}
+/* grid main */
+.grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}
+.box h3{font-family:Sora;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.box .hint{font-size:12px;color:var(--dim);margin-bottom:14px}
+/* chart */
+.chart{position:relative;height:230px}
+.chart svg{width:100%;height:100%;overflow:visible}
+.legend{display:flex;gap:18px;margin-top:8px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+/* best time */
+.insight{display:flex;gap:13px;align-items:flex-start;padding:14px;border-radius:12px;background:rgba(58,255,163,.06);border:1px solid rgba(58,255,163,.2);margin-bottom:14px}
+.insight .ic{width:34px;height:34px;border-radius:9px;background:rgba(58,255,163,.14);display:grid;place-items:center;flex-shrink:0}
+.insight b{font-family:Sora;font-size:13.5px}
+.insight p{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+.mini{display:flex;flex-direction:column;gap:11px}
+.mini .row{display:flex;align-items:center;gap:11px}
+.mini .row .bar{flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.06);overflow:hidden}
+.mini .row .bar i{display:block;height:100%;border-radius:5px;background:var(--grad)}
+.mini .row .lab{font-size:12px;color:var(--muted);width:74px}
+.mini .row .val{font-size:12px;font-weight:600;width:42px;text-align:right}
+/* table */
+.tbl{background:var(--panel);border:1px solid var(--line);border-radius:18px;margin-top:16px;overflow:hidden}
+.tbl .th,.tbl .tr{display:grid;grid-template-columns:1fr 90px 90px 90px 90px 110px;gap:8px;align-items:center;padding:13px 18px}
+.tbl .th{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line)}
+.tbl .tr{border-top:1px solid rgba(255,255,255,.04)}
+.tbl .tr:hover{background:rgba(255,255,255,.02)}
+.post{display:flex;align-items:center;gap:11px;min-width:0}
+.post .th2{width:38px;height:38px;border-radius:9px;flex-shrink:0;position:relative;display:grid;place-items:center;color:#fff;font-weight:700}
+.post .nb{position:absolute;bottom:-3px;right:-3px;width:16px;height:16px;border-radius:5px;display:grid;place-items:center;border:2px solid var(--panel)}
+.post .ti{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.post .dt{font-size:11px;color:var(--dim);margin-top:2px}
+.met{font-family:Sora;font-weight:600;font-size:14px;text-align:right}
+.eng{text-align:right;font-weight:700;font-size:14px;color:var(--accent)}
+.colh{text-align:right}
+svg.i{display:block}
+@media(max-width:760px){
+ body{padding:22px 16px 50px}
+ h1{font-size:22px}
+ .kpis{grid-template-columns:1fr 1fr;gap:10px}
+ .kpi .n{font-size:22px}
+ .grid{grid-template-columns:1fr;gap:14px}
+ .chart{height:200px}
+ .tbl .th{display:none}
+ .tbl .tr{grid-template-columns:1fr 1fr;gap:8px 14px;padding:14px 16px}
+ .tbl .tr .post{grid-column:1 / -1;margin-bottom:4px}
+ .tbl .tr .met,.tbl .tr .eng{text-align:left;font-size:14px}
+ .tbl .tr>.met:nth-child(2)::before{content:"Impressions"}
+ .tbl .tr>.met:nth-child(3)::before{content:"J'aime"}
+ .tbl .tr>.met:nth-child(4)::before{content:"Commentaires"}
+ .tbl .tr>.met:nth-child(5)::before{content:"Partages"}
+ .tbl .tr>.eng::before{content:"Engagement"}
+ .tbl .tr>.met::before,.tbl .tr>.eng::before{display:block;color:var(--dim);font-size:10.5px;font-weight:500;letter-spacing:.02em;margin-bottom:1px}
+}
+</style></head><body>
+
+<div class="top">
+ <div><div class="eyebrow">Analytics</div><h1>Performance des publications</h1>
+   <div class="sub">Données synchronisées depuis tes réseaux · 30 derniers jours</div></div>
+ <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+  <div class="chips">
+    <span class="chip on">Tous</span>
+    <span class="chip"><span class="b" style="background:#0a66c2"><svg class="i" width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>LinkedIn</span>
+    <span class="chip"><span class="b" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)"><svg class="i" width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></span>Instagram</span>
+    <span class="chip"><span class="b" style="background:#1877f2"><svg class="i" width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>Facebook</span>
+  </div>
+  <div class="seg"><button>7 j</button><button class="on">30 j</button><button>90 j</button></div>
+ </div>
+</div>
+
+<div class="kpis">
+ <div class="kpi"><div class="ico" style="background:rgba(91,108,255,.14)"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><div class="l">Impressions</div><div class="n">48,2k</div><div class="d up">▲ 18%</div></div>
+ <div class="kpi"><div class="ico" style="background:rgba(58,255,163,.12)"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3AFFA3" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg></div><div class="l">Engagement</div><div class="n">5,4%</div><div class="d up">▲ 0,8 pt</div></div>
+ <div class="kpi"><div class="ico" style="background:rgba(239,68,68,.12)"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.8 1-1a5.5 5.5 0 000-7.8z"/></svg></div><div class="l">J'aime</div><div class="n">2 614</div><div class="d up">▲ 23%</div></div>
+ <div class="kpi"><div class="ico" style="background:rgba(96,165,250,.12)"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg></div><div class="l">Commentaires</div><div class="n">312</div><div class="d up">▲ 11%</div></div>
+ <div class="kpi"><div class="ico" style="background:rgba(138,108,255,.14)"><svg class="i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></div><div class="l">Partages</div><div class="n">486</div><div class="d down">▼ 3%</div></div>
+</div>
+
+<div class="grid">
+ <div class="box">
+  <h3>Évolution des impressions <span style="font-size:12px;color:var(--dim);font-weight:500">30 j</span></h3>
+  <div class="hint">Impressions &amp; engagement par jour</div>
+  <div class="chart">
+   <svg viewBox="0 0 600 220" preserveAspectRatio="none">
+     <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B6CFF" stop-opacity=".35"/><stop offset="1" stop-color="#5B6CFF" stop-opacity="0"/></linearGradient></defs>
+     <line x1="0" y1="55" x2="600" y2="55" stroke="rgba(255,255,255,.05)"/><line x1="0" y1="110" x2="600" y2="110" stroke="rgba(255,255,255,.05)"/><line x1="0" y1="165" x2="600" y2="165" stroke="rgba(255,255,255,.05)"/>
+     <path d="M0,170 C60,150 90,120 140,130 C190,140 220,80 280,95 C340,110 360,60 420,70 C480,80 520,40 600,30 L600,220 L0,220 Z" fill="url(#g)"/>
+     <path d="M0,170 C60,150 90,120 140,130 C190,140 220,80 280,95 C340,110 360,60 420,70 C480,80 520,40 600,30" fill="none" stroke="#5B6CFF" stroke-width="3"/>
+     <path d="M0,195 C70,188 110,182 160,184 C220,186 260,168 320,172 C380,176 420,160 470,164 C520,168 560,150 600,150" fill="none" stroke="#3AFFA3" stroke-width="2.5" stroke-dasharray="0"/>
+   </svg>
+  </div>
+  <div class="legend"><span><i style="background:#5B6CFF"></i>Impressions</span><span><i style="background:#3AFFA3"></i>Engagements</span></div>
+ </div>
+
+ <div class="box">
+  <h3>Insights</h3><div class="hint">Recommandations basées sur tes données</div>
+  <div class="insight"><div class="ic"><svg class="i" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3AFFA3" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+    <div><b>Meilleur créneau</b><p>Tes posts du <b>mardi 12h–13h</b> obtiennent +42% d'engagement. Programme-y tes contenus forts.</p></div></div>
+  <div style="font-size:12px;color:var(--dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Engagement par réseau</div>
+  <div class="mini">
+    <div class="row"><span class="lab">LinkedIn</span><span class="bar"><i style="width:82%"></i></span><span class="val">6,1%</span></div>
+    <div class="row"><span class="lab">Instagram</span><span class="bar"><i style="width:64%"></i></span><span class="val">4,8%</span></div>
+    <div class="row"><span class="lab">Facebook</span><span class="bar"><i style="width:38%"></i></span><span class="val">2,9%</span></div>
+  </div>
+ </div>
+</div>
+
+<div class="tbl">
+ <div class="th"><span>Publication</span><span class="colh">Impressions</span><span class="colh">J'aime</span><span class="colh">Comm.</span><span class="colh">Partages</span><span class="colh">Engagement</span></div>
+ <div class="tr"><div class="post"><span class="th2" style="background:linear-gradient(135deg,#0B1C44,#16306e)"><span class="nb" style="background:#0a66c2"><svg class="i" width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg></span></span><div><div class="ti">Être débordé n'est pas un signe de croissance</div><div class="dt">9 juin · LinkedIn</div></div></div><div class="met">12,4k</div><div class="met">842</div><div class="met">96</div><div class="met">71</div><div class="eng">7,3%</div></div>
+ <div class="tr"><div class="post"><span class="th2" style="background:linear-gradient(135deg,#3b1d52,#1a0f2e)"><span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)"><svg class="i" width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg></span></span><div><div class="ti">Les 3 questions avant de déléguer</div><div class="dt">10 juin · Instagram</div></div></div><div class="met">9,8k</div><div class="met">611</div><div class="met">74</div><div class="met">52</div><div class="eng">5,9%</div></div>
+ <div class="tr"><div class="post"><span class="th2" style="background:linear-gradient(135deg,#003D2E,#0a5f47)"><span class="nb" style="background:#1877f2"><svg class="i" width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385z"/></svg></span></span><div><div class="ti">Construire une boîte qui tourne sans toi</div><div class="dt">11 juin · Facebook</div></div></div><div class="met">6,1k</div><div class="met">288</div><div class="met">41</div><div class="met">33</div><div class="eng">3,4%</div></div>
+ <div class="tr"><div class="post"><span class="th2" style="background:linear-gradient(135deg,#0B1C44,#16306e)"><span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)"><svg class="i" width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07z"/></svg></span></span><div><div class="ti">Le débours mal géré, ta marge qui s'évapore</div><div class="dt">12 juin · Instagram</div></div></div><div class="met">5,3k</div><div class="met">204</div><div class="met">29</div><div class="met">18</div><div class="eng">2,8%</div></div>
+</div>
+
+</body></html>

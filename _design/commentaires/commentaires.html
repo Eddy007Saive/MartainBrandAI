@@ -1,0 +1,120 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Commentaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#020617;--panel:#0b1322;--card:#0f172a;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);--ink:#e8edf6;--muted:#93a1b8;--dim:#5b6a82;--grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--accent:#3AFFA3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(900px 420px at 75% -10%,rgba(91,108,255,.10),transparent 60%),var(--bg);color:var(--ink);font-family:Inter,sans-serif;padding:30px 36px 60px;-webkit-font-smoothing:antialiased}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:600}
+h1{font-family:Sora;font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:6px}
+.sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;max-width:560px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi .n{font-family:Sora;font-weight:800;font-size:22px}
+.kpi .l{color:var(--muted);font-size:12px;margin-top:4px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:7px;font:600 12.5px Inter;color:var(--muted);background:var(--card);border:1px solid var(--line);padding:7px 12px;border-radius:999px;cursor:pointer}
+.chip.on{color:#fff;border-color:var(--line2);background:rgba(255,255,255,.06)}
+.chip .b{width:17px;height:17px;border-radius:5px;display:grid;place-items:center}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+/* list */
+.list{display:flex;flex-direction:column;gap:12px;max-width:840px}
+.c{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.c.unread{border-color:rgba(91,108,255,.35);background:linear-gradient(90deg,rgba(91,108,255,.06),var(--panel) 60%)}
+.chead{display:flex;align-items:center;gap:11px}
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-weight:700;font-size:15px;color:#fff;flex-shrink:0;position:relative}
+.av .nb{position:absolute;bottom:-2px;right:-2px;width:17px;height:17px;border-radius:6px;display:grid;place-items:center;border:2px solid var(--panel)}
+.who{flex:1;min-width:0}
+.who .nm{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+.who .meta{font-size:11.5px;color:var(--dim);margin-top:2px}
+.who .meta b{color:var(--muted);font-weight:600}
+.time{font-size:11.5px;color:var(--dim);white-space:nowrap}
+.body{font-size:14px;color:#dfe7f3;line-height:1.55;margin:11px 0 0;padding-left:51px}
+.acts{display:flex;gap:8px;margin-top:13px;padding-left:51px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:7px;font:600 12.5px Inter;padding:8px 13px;border-radius:9px;border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--ink);cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.07)}
+.btn.primary{background:var(--grad);border:none;color:#fff}
+.btn.liked{color:#f87171;border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.08)}
+.btn .ic{width:14px;height:14px}
+/* reply shown */
+.reply{margin:12px 0 0 51px;padding:12px 14px;border-radius:12px;background:rgba(58,255,163,.05);border:1px solid rgba(58,255,163,.18);font-size:13px;color:var(--muted)}
+.reply .you{font-weight:600;color:var(--accent);font-size:11.5px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+/* composer */
+.composer{margin:12px 0 0 51px;display:flex;gap:9px}
+.composer input{flex:1;background:#080c17;border:1px solid var(--line2);border-radius:10px;color:var(--ink);padding:11px 13px;font:500 13px Inter;outline:none}
+.composer input::placeholder{color:var(--dim)}
+svg.i{display:block}
+@media(max-width:760px){
+ body{padding:22px 16px 50px}
+ h1{font-size:22px}
+ .kpis{grid-template-columns:1fr 1fr 1fr;gap:8px}
+ .kpi{padding:11px 12px}
+ .kpi .n{font-size:18px}
+ .kpi .l{font-size:10.5px}
+ .body,.acts,.reply,.composer{padding-left:0;margin-left:0}
+ .body{margin-top:12px}
+ .composer{flex-direction:column}
+ .composer .btn{justify-content:center}
+ .acts{gap:7px}
+ .btn{padding:9px 12px}
+}
+</style></head><body>
+
+<div class="top">
+ <div><div class="eyebrow">Engagement</div><h1>Commentaires</h1>
+   <div class="sub">Réponds à ta communauté depuis un seul endroit · synchronisé avec tes réseaux</div></div>
+ <div class="chips">
+   <span class="chip on">Tous</span>
+   <span class="chip"><span class="dot"></span>Non répondus</span>
+   <span class="chip"><span class="b" style="background:#0a66c2"><svg class="i" width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg></span>LinkedIn</span>
+   <span class="chip"><span class="b" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)"><svg class="i" width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07z"/></svg></span>Instagram</span>
+ </div>
+</div>
+
+<div class="kpis">
+ <div class="kpi"><div class="n">312</div><div class="l">Commentaires (30 j)</div></div>
+ <div class="kpi"><div class="n" style="color:#fcd770">18</div><div class="l">Non répondus</div></div>
+ <div class="kpi"><div class="n" style="color:var(--accent)">94%</div><div class="l">Taux de réponse</div></div>
+</div>
+
+<div class="list">
+
+ <!-- non répondu, avec composer -->
+ <div class="c unread">
+  <div class="chead">
+    <span class="av" style="background:linear-gradient(135deg,#5B6CFF,#8A6CFF)">M<span class="nb" style="background:#0a66c2"><svg class="i" width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg></span></span>
+    <div class="who"><div class="nm">Marie Lefort <span style="font-size:10px;font-weight:600;color:#fcd770;background:rgba(251,191,36,.14);padding:2px 7px;border-radius:5px">À répondre</span></div>
+      <div class="meta">sur <b>« Être débordé n'est pas un signe de croissance »</b></div></div>
+    <span class="time">il y a 2 h</span>
+  </div>
+  <p class="body">Tellement vrai 🙌 Comment tu fais pour déléguer quand t'as l'impression que personne ne fera aussi bien que toi ?</p>
+  <div class="composer"><input placeholder="Écris ta réponse…" value="Excellente question Marie ! La clé c'est de documenter tes process…"><button class="btn primary"><svg class="i ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>Envoyer</button></div>
+  <div class="acts"><button class="btn"><svg class="i ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/></svg>J'aime</button><button class="btn"><svg class="i ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10 10 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M1 1l22 22"/></svg>Masquer</button></div>
+ </div>
+
+ <!-- déjà répondu -->
+ <div class="c">
+  <div class="chead">
+    <span class="av" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">K<span class="nb" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)"><svg class="i" width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07z"/></svg></span></span>
+    <div class="who"><div class="nm">karim.builds</div><div class="meta">sur <b>« Les 3 questions avant de déléguer »</b></div></div>
+    <span class="time">il y a 5 h</span>
+  </div>
+  <p class="body">Ça parle 🔥 t'aurais un exemple de checklist de délégation ?</p>
+  <div class="reply"><div class="you"><svg class="i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3AFFA3" stroke-width="2.4"><path d="M9 17l-5-5 1.4-1.4L9 14.2 18.6 4.6 20 6z"/></svg>Ta réponse</div>Bien sûr ! Je t'envoie ça en DM 👌 Tu peux aussi la retrouver dans mon dernier carrousel.</div>
+  <div class="acts"><button class="btn"><svg class="i ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17H5a2 2 0 01-2-2v-2M3 10l4-4M3 10h11a4 4 0 014 4v0"/></svg>Modifier</button><button class="btn liked"><svg class="i ic" viewBox="0 0 24 24" fill="#f87171" stroke="#f87171" stroke-width="1.5"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/></svg>Aimé</button></div>
+ </div>
+
+ <!-- non répondu -->
+ <div class="c unread">
+  <div class="chead">
+    <span class="av" style="background:linear-gradient(135deg,#1877f2,#0a4db3)">T<span class="nb" style="background:#1877f2"><svg class="i" width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385z"/></svg></span></span>
+    <div class="who"><div class="nm">Thomas R. <span style="font-size:10px;font-weight:600;color:#fcd770;background:rgba(251,191,36,.14);padding:2px 7px;border-radius:5px">À répondre</span></div><div class="meta">sur <b>« Construire une boîte qui tourne sans toi »</b></div></div>
+    <span class="time">il y a 1 j</span>
+  </div>
+  <p class="body">Je bloque exactement là-dessus en ce moment. Un accompagnement est prévu ?</p>
+  <div class="acts"><button class="btn primary"><svg class="i ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>Répondre</button><button class="btn"><svg class="i ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/></svg>J'aime</button><button class="btn"><svg class="i ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 13a2 2 0 002 2h8a2 2 0 002-2l1-13M9 7V4h6v3"/></svg>Supprimer</button></div>
+ </div>
+
+</div>
+</body></html>

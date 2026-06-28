@@ -1,0 +1,121 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<title>Planification · Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg:#020617;--panel:#0b1322;--card:#0f172a;--card2:#111c30;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);
+ --ink:#e8edf6;--muted:#93a1b8;--dim:#5b6a82;
+ --grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--accent:#3AFFA3;
+ --cyan:#22d3ee;--emerald:#34d399;--amber:#fbbf24;--red:#f87171;--violet:#8A6CFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(900px 420px at 75% -10%,rgba(91,108,255,.10),transparent 60%),var(--bg);color:var(--ink);font-family:Inter,sans-serif;padding:34px 40px 60px;-webkit-font-smoothing:antialiased}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);font-weight:600}
+h1{font-family:Sora;font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:6px}
+.sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px}
+.btn{border:1px solid var(--line2);background:rgba(255,255,255,.03);color:var(--ink);font:600 13px Inter;padding:9px 14px;border-radius:10px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.btn.grad{background:var(--grad);border:none;box-shadow:0 8px 24px rgba(91,108,255,.32)}
+.toggle{display:flex;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:4px;gap:2px}
+.toggle button{border:none;background:transparent;color:var(--muted);font:600 13px Inter;padding:7px 15px;border-radius:8px;cursor:pointer}
+.toggle button.on{background:var(--grad);color:#fff}
+/* board */
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;min-height:560px}
+.colh{display:flex;align-items:center;gap:9px;margin-bottom:14px;padding:0 2px}
+.colh .dot{width:9px;height:9px;border-radius:50%}
+.colh .t{font-family:Sora;font-weight:600;font-size:14px}
+.colh .ct{margin-left:auto;font-size:12px;font-weight:600;color:var(--dim);background:rgba(255,255,255,.05);padding:2px 9px;border-radius:999px}
+/* card */
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:11px;cursor:grab;position:relative;transition:.15s}
+.c:hover{border-color:var(--line2);transform:translateY(-2px)}
+.c .thumb{height:96px;border-radius:10px;margin-bottom:11px;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;font-family:Sora;font-weight:700;text-align:center;font-size:13px;line-height:1.2;padding:10px}
+.c .net{position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font:700 10px Inter;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.c .ti{font-size:13px;font-weight:600;line-height:1.3;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.c .ft{display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--dim);font-size:11.5px}
+.c .ft .when{display:flex;align-items:center;gap:5px}
+.c .pub{margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-weight:600;font-size:10.5px;padding:3px 7px;border-radius:6px}
+.add{width:100%;border:1px dashed var(--line2);background:transparent;color:var(--dim);font:600 12.5px Inter;padding:10px;border-radius:11px;cursor:pointer}
+svg{display:block}
+</style></head><body>
+
+<div class="top">
+ <div><div class="eyebrow">Planification</div><h1>Pipeline de publication</h1>
+   <div class="sub">Fais glisser un post d'une colonne à l'autre pour le faire avancer</div></div>
+ <div style="display:flex;gap:10px;align-items:center">
+   <div class="toggle"><button>Mois</button><button>Semaine</button><button class="on">Pipeline</button></div>
+   <button class="btn grad"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Nouveau</button>
+ </div>
+</div>
+
+<div class="board">
+ <!-- BROUILLON -->
+ <div class="col">
+  <div class="colh"><span class="dot" style="background:#5b6a82"></span><span class="t">Brouillon</span><span class="ct">2</span></div>
+  <div class="c">
+    <div class="thumb" style="background:linear-gradient(135deg,#1e293b,#0f172a)"><span class="net" style="background:#0a66c2">in</span>Idée — routine du matin du dirigeant</div>
+    <div class="ti">Idée : la routine matinale qui change ta journée</div>
+    <div class="ft"><span class="when">Pas de date</span></div>
+  </div>
+  <div class="c">
+    <div class="thumb" style="background:linear-gradient(135deg,#1e293b,#0f172a)"><span class="net" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">◎</span>Brouillon visuel</div>
+    <div class="ti">Signer 1 client par semaine sans prospecter</div>
+    <div class="ft"><span class="when">Pas de date</span></div>
+  </div>
+  <button class="add">+ Ajouter</button>
+ </div>
+
+ <!-- À VALIDER -->
+ <div class="col">
+  <div class="colh"><span class="dot" style="background:#fbbf24"></span><span class="t">À valider</span><span class="ct">1</span></div>
+  <div class="c">
+    <div class="thumb" style="background:linear-gradient(135deg,#0B1C44,#16306e)">ZÉRO CRÉNEAU<br>ZÉRO STRUCTURE</div>
+    <div class="ti">Commencer petit, structurer tôt</div>
+    <div class="ft"><span class="when"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5b6a82" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>11 juin · 12:00</span>
+      <span class="pub" style="background:rgba(251,191,36,.14);color:#fcd770">À valider</span></div>
+  </div>
+  <button class="add">+ Ajouter</button>
+ </div>
+
+ <!-- PROGRAMMÉ -->
+ <div class="col">
+  <div class="colh"><span class="dot" style="background:#22d3ee"></span><span class="t">Programmé</span><span class="ct">3</span></div>
+  <div class="c">
+    <div class="thumb" style="background:linear-gradient(135deg,#0B1C44,#16306e)">TU GÈRES,<br>T'AVANCES PAS</div>
+    <div class="ti">Le débours mal géré, c'est ta marge qui s'évapore</div>
+    <div class="ft"><span class="when"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5b6a82" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>12 juin · 12:00</span>
+      <span class="pub" style="background:rgba(34,211,238,.14);color:#67e8f9"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#67e8f9" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Programmé</span></div>
+  </div>
+  <div class="c">
+    <div class="thumb" style="background:linear-gradient(135deg,#003D2E,#0a5f47)">CONSTRUIRE<br>SANS TOI</div>
+    <div class="ti">Construire une boîte qui tourne sans toi</div>
+    <div class="ft"><span class="when"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5b6a82" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>11 juin · 13:00</span>
+      <span class="pub" style="background:rgba(34,211,238,.14);color:#67e8f9">Programmé</span></div>
+  </div>
+  <div class="c">
+    <div class="thumb" style="background:linear-gradient(135deg,#1e293b,#0f172a)"><span class="net" style="background:linear-gradient(135deg,#feda75,#d62976,#962fbf)">◎</span>test</div>
+    <div class="ti">test — accroche IA</div>
+    <div class="ft"><span class="when">8 juin · 12:00</span><span class="pub" style="background:rgba(34,211,238,.14);color:#67e8f9">Programmé</span></div>
+  </div>
+  <button class="add">+ Ajouter</button>
+ </div>
+
+ <!-- PUBLIÉ -->
+ <div class="col">
+  <div class="colh"><span class="dot" style="background:#34d399"></span><span class="t">Publié</span><span class="ct">2</span></div>
+  <div class="c">
+    <div class="thumb" style="background:linear-gradient(135deg,#0B1C44,#16306e)">TON AGENDA<br>RÉVÈLE TOUT</div>
+    <div class="ti">Être débordé n'est pas un signe de croissance</div>
+    <div class="ft"><span class="when">9 juin · 13:00</span>
+      <span class="pub" style="background:rgba(52,211,153,.14);color:#6ee7b7"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.6"><path d="M20 6L9 17l-5-5"/></svg>Publié</span></div>
+  </div>
+  <div class="c">
+    <div class="thumb" style="background:linear-gradient(135deg,#3b1d52,#1a0f2e)"><span class="net" style="background:#1877f2">f</span>Les 3 questions</div>
+    <div class="ti">Les 3 questions à se poser avant de déléguer</div>
+    <div class="ft"><span class="when">10 juin · 13:00</span><span class="pub" style="background:rgba(52,211,153,.14);color:#6ee7b7">Publié</span></div>
+  </div>
+ </div>
+</div>
+
+</body></html>
