@@ -255,6 +255,36 @@ async def put_drafts(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# --- Gabarits de post (rendu HTML brandé -> PNG) ---
+@router.get("/gabarits")
+async def list_gabarits(payload: dict = Depends(verify_token)):
+    from services import gabarit_service
+    return {"gabarits": gabarit_service.GABARITS}
+
+
+@router.post("/gabarit/render")
+async def render_gabarit(body: dict, payload: dict = Depends(verify_token)):
+    from services import gabarit_service
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    gabarit = body.get("gabarit")
+    slots = body.get("slots") or {}
+    if not gabarit:
+        raise HTTPException(status_code=400, detail="gabarit requis")
+    res = await gabarit_service.render_gabarit(telegram_id, gabarit, slots)
+    if not res.get("ok"):
+        raise HTTPException(status_code=502, detail=res.get("error") or "Échec du rendu")
+    # Rattache au contenu si fourni
+    contenu_id = body.get("contenu_id")
+    if contenu_id:
+        try:
+            supabase.table("contenu").update({"lien_visuel": res["url"]}).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+        except Exception as e:
+            logger.warning(f"gabarit attach contenu {contenu_id}: {e}")
+    return res
+
+
 # --- Templates de marque (style réutilisable : images de référence + note) ---
 @router.get("/templates")
 async def list_templates(payload: dict = Depends(verify_token)):
