@@ -37,13 +37,27 @@ def _pro_plan_id():
     return r.data[0]["id"] if r.data else None
 
 
+def _trial_plan_id():
+    r = supabase.table("plans").select("id").eq("name", "Essai").eq("is_active", True).limit(1).execute()
+    return r.data[0]["id"] if r.data else _pro_plan_id()
+
+
+def is_paid(telegram_id: str) -> bool:
+    """True si le compte a un abonnement payant actif (pas un simple essai trialing)."""
+    try:
+        r = supabase.table("subscriptions").select("id").eq("user_id", telegram_id).eq("status", "active").limit(1).execute()
+        return bool(r.data)
+    except Exception:
+        return False
+
+
 def ensure_subscription(telegram_id: str) -> None:
-    """Crée un essai 14 jours (offre Pro) si le compte n'a aucun abonnement."""
+    """Crée un essai 14 jours (plan Essai) si le compte n'a aucun abonnement."""
     try:
         r = supabase.table("subscriptions").select("id").eq("user_id", telegram_id).limit(1).execute()
         if r.data:
             return
-        plan_id = _pro_plan_id()
+        plan_id = _trial_plan_id()
         if not plan_id:
             return
         now = datetime.now(timezone.utc)
@@ -56,14 +70,17 @@ def ensure_subscription(telegram_id: str) -> None:
         logger.warning(f"ensure_subscription {telegram_id}: {e}")
 
 
-def _message(action_type: str, reason: str) -> str:
+def _message(action_type: str, reason: str, limit=None) -> str:
     label = LABELS.get(action_type, "générations")
-    if reason == "quota":
-        return f"Tu as utilisé tous tes {label} de la période."
     if reason in ("no_subscription", "expired"):
-        return "Ton essai est terminé. Choisis une offre pour continuer."
+        return "Ton essai est terminé. Passe à l'offre Pro pour continuer."
     if reason == "not_in_plan":
-        return "Cette action n'est pas incluse dans ton offre."
+        return f"Les {label} sont inclus dans l'offre Pro."
+    if reason == "quota":
+        # limite == 0 -> type réservé au Pro (ex. images HD / carrousels en essai)
+        if limit == 0:
+            return f"Les {label} sont réservés à l'offre Pro — passe Pro pour les débloquer."
+        return f"Tu as utilisé tous tes {label} de la période."
     return "Quota indisponible."
 
 
@@ -79,7 +96,7 @@ def consume(telegram_id: str, action_type: str, qty: int = 1) -> dict:
     data["action_type"] = action_type
     data["qty"] = qty
     if not data.get("ok"):
-        data["message"] = _message(action_type, data.get("reason"))
+        data["message"] = _message(action_type, data.get("reason"), data.get("limit"))
     return data
 
 

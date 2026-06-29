@@ -15,6 +15,18 @@ function joursRestants(end) {
 }
 
 function Bar({ g, onRachat }) {
+  // Type non inclus dans l'offre courante (ex. images HD / carrousels en essai) -> verrou Pro
+  if (g.limit === 0) {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[13px] text-slate-400 font-inter capitalize">{g.label}</span>
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">PRO</span>
+        </div>
+        <div className="h-2 rounded-full bg-white/[0.06] border border-dashed border-white/10" />
+      </div>
+    );
+  }
   const pct = g.limit > 0 ? Math.min(100, Math.round((g.used / g.limit) * 100)) : 0;
   const presqueFini = pct >= 80;
   const fini = g.used >= g.limit;

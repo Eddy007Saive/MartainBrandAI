@@ -88,6 +88,10 @@ async def _ensure_late_profile(telegram_id: str) -> tuple:
 async def connect_platform(telegram_id: str, platform: str) -> dict:
     """Génère l'URL OAuth via le SDK Late (plus de n8n). Late héberge l'OAuth puis redirige
     vers notre callback backend qui enregistre le compte."""
+    # Connexion de réseau = réservée à l'offre Pro (un compte connecté = coût récurrent Late).
+    from services import quota_service
+    if not quota_service.is_paid(telegram_id):
+        return {"success": False, "error": "La connexion des réseaux est réservée à l'offre Pro. Passe Pro pour connecter et publier."}
     # Filet de sécurité : garantir l'existence du profil Late avant toute connexion
     ok, err = await _ensure_late_profile(telegram_id)
     if not ok:
