@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Sparkles, Plus } from 'lucide-react';
+import { Loader2, Sparkles, Plus, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { agentService } from '../services/agentService';
+import { billingService } from '../services/billingService';
 
 // Ordre d'affichage + on ne propose le rachat QUE sur les postes chers (image HD + carrousels)
 const ORDER = ['post', 'image_standard', 'image_pro', 'carousel', 'subject'];
@@ -39,13 +41,36 @@ function Bar({ g, onRachat }) {
   );
 }
 
-export default function QuotaGauge({ onRachat }) {
+export default function QuotaGauge() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [rachat, setRachat] = useState(null); // { label, packs, loading }
+  const [buying, setBuying] = useState(null);
 
   useEffect(() => {
     agentService.usage().then(setData).catch(() => {}).finally(() => setLoading(false));
   }, []);
+
+  const openRachat = async (g) => {
+    setRachat({ label: g.label, packs: [], loading: true });
+    try {
+      const d = await billingService.getPacks(g.action_type);
+      setRachat({ label: g.label, packs: d.packs || [], loading: false });
+    } catch {
+      setRachat(null);
+      toast.error('Packs indisponibles');
+    }
+  };
+
+  const buy = async (pack) => {
+    setBuying(pack.id);
+    try {
+      await billingService.packCheckout(pack.id); // redirige vers Stripe
+    } catch (e) {
+      setBuying(null);
+      toast.error(e.response?.data?.detail || 'Paiement indisponible');
+    }
+  };
 
   if (loading) {
     return (
@@ -80,8 +105,38 @@ export default function QuotaGauge({ onRachat }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5">
-        {gauges.map((g) => <Bar key={g.action_type} g={g} onRachat={onRachat || (() => {})} />)}
+        {gauges.map((g) => <Bar key={g.action_type} g={g} onRachat={openRachat} />)}
       </div>
+
+      {/* Modale de rachat de pack */}
+      {rachat && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setRachat(null)}>
+          <div className="w-full max-w-sm rounded-2xl bg-[#0f172a] border border-white/10 p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <p className="text-white font-semibold font-sora">Ajouter des {rachat.label}</p>
+              <button onClick={() => setRachat(null)} className="text-slate-500 hover:text-white"><X className="w-4.5 h-4.5" /></button>
+            </div>
+            {rachat.loading ? (
+              <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-[#5B6CFF]" /></div>
+            ) : rachat.packs.length === 0 ? (
+              <p className="text-slate-400 text-sm py-3">Aucun pack disponible pour le moment.</p>
+            ) : (
+              <div className="space-y-2">
+                {rachat.packs.map((p) => (
+                  <button key={p.id} onClick={() => buy(p)} disabled={!!buying}
+                    className="w-full flex items-center justify-between gap-3 rounded-xl border border-white/10 hover:border-[#3AFFA3]/50 bg-white/[0.03] px-4 py-3 transition-colors disabled:opacity-50">
+                    <span className="text-white text-sm font-medium">{p.name}</span>
+                    <span className="text-[#3AFFA3] text-sm font-semibold whitespace-nowrap">
+                      {buying === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : `${(p.price_cents / 100).toFixed(0)} €`}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="text-[11px] text-slate-500">Paiement unique, valable jusqu'à la fin de ta période.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

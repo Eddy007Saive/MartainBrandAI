@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2, Sparkles, ArrowRight } from 'lucide-react';
-import { toast } from 'sonner';
 import { analyticsService } from '../services/analyticsService';
 import QuotaGauge from '../components/QuotaGauge';
 
@@ -66,7 +65,7 @@ export default function AccueilPage() {
       </Link>
 
       {/* Jauge de résultats (quotas par type) */}
-      <QuotaGauge onRachat={(g) => toast(`Packs « ${g.label} » bientôt disponibles ✨`)} />
+      <QuotaGauge />
 
       {loading ? (
         <div className="flex items-center justify-center py-20">

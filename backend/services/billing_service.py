@@ -149,6 +149,70 @@ def _apply_subscription(sub: dict):
     logger.info(f"stripe: {uid} -> {status}")
 
 
+# ----------------------------------------------------------------- Packs de rachat
+def list_packs(action_type: str = None) -> list:
+    """Packs actifs (optionnellement filtrés par type), formulés en résultats."""
+    try:
+        q = supabase.table("credit_packs").select("id, action_type, name, quantity, price_cents").eq("is_active", True)
+        if action_type:
+            q = q.eq("action_type", action_type)
+        return q.order("price_cents").execute().data or []
+    except Exception as e:
+        logger.error(f"list_packs error: {e}")
+        return []
+
+
+def create_pack_checkout(telegram_id: str, pack_id: str) -> dict:
+    """Paiement unique (one-time) pour un pack -> à la confirmation, +quota via webhook."""
+    if not _ready():
+        return {"ok": False, "error": "Paiement indisponible : Stripe non configuré (contacte le support)."}
+    r = supabase.table("credit_packs").select("*").eq("id", pack_id).eq("is_active", True).execute()
+    if not r.data:
+        return {"ok": False, "error": "Pack inconnu."}
+    p = r.data[0]
+    u = supabase.table("users").select("stripe_customer_id, email").eq("telegram_id", telegram_id).execute()
+    row = u.data[0] if u.data else {}
+    customer = row.get("stripe_customer_id")
+    try:
+        if not customer:
+            c = stripe.Customer.create(email=row.get("email"), metadata={"telegram_id": telegram_id})
+            customer = c.id
+            supabase.table("users").update({"stripe_customer_id": customer}).eq("telegram_id", telegram_id).execute()
+        sess = stripe.checkout.Session.create(
+            mode="payment",
+            customer=customer,
+            line_items=[{"price_data": {"currency": "eur", "unit_amount": p["price_cents"],
+                                        "product_data": {"name": p["name"]}}, "quantity": 1}],
+            success_url=f"{FRONTEND_URL}/dashboard?pack=ok",
+            cancel_url=f"{FRONTEND_URL}/dashboard?pack=annule",
+            metadata={"telegram_id": telegram_id, "pack_id": p["id"],
+                      "action_type": p["action_type"], "quantity": str(p["quantity"])},
+        )
+        return {"ok": True, "url": sess.url}
+    except Exception as e:
+        logger.error(f"pack checkout error: {e}")
+        return {"ok": False, "error": "Impossible de créer la session de paiement."}
+
+
+def _apply_pack(session: dict):
+    """Crédite le quota acheté (extra) sur la période courante du compte."""
+    meta = session.get("metadata") or {}
+    tg, action = meta.get("telegram_id"), meta.get("action_type")
+    try:
+        qty = int(meta.get("quantity") or 0)
+    except Exception:
+        qty = 0
+    if not (tg and action and qty > 0):
+        return
+    sub = (supabase.table("subscriptions").select("id").eq("user_id", tg)
+           .in_("status", ["trialing", "active", "past_due"]).order("created_at", desc=True).limit(1).execute())
+    if not sub.data:
+        logger.warning(f"pack: aucun abonnement pour {tg}")
+        return
+    supabase.rpc("add_extra_quota", {"p_sub": sub.data[0]["id"], "p_action": action, "p_qty": qty}).execute()
+    logger.info(f"pack: +{qty} {action} pour {tg}")
+
+
 def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     if not _ready():
         return {"ok": False}
@@ -165,9 +229,10 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     obj = event["data"]["object"]
     try:
         if etype == "checkout.session.completed":
-            sub_id = obj.get("subscription")
-            if sub_id:
-                _apply_subscription(stripe.Subscription.retrieve(sub_id))
+            if (obj.get("metadata") or {}).get("pack_id"):
+                _apply_pack(obj)                       # achat de pack (one-time)
+            elif obj.get("subscription"):
+                _apply_subscription(stripe.Subscription.retrieve(obj["subscription"]))
         elif etype in ("customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"):
             _apply_subscription(obj)
     except Exception as e:

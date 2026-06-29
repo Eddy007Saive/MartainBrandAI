@@ -20,6 +20,26 @@ async def checkout(body: dict, payload: dict = Depends(verify_token)):
     return {"url": r["url"]}
 
 
+@router.get("/packs")
+async def packs(action_type: str = None, payload: dict = Depends(verify_token)):
+    """Packs de rachat disponibles (en résultats), optionnellement filtrés par type."""
+    return {"packs": billing_service.list_packs(action_type)}
+
+
+@router.post("/pack-checkout")
+async def pack_checkout(body: dict, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    pack_id = body.get("pack_id")
+    if not pack_id:
+        raise HTTPException(status_code=400, detail="pack_id requis")
+    r = billing_service.create_pack_checkout(telegram_id, pack_id)
+    if not r.get("ok"):
+        raise HTTPException(status_code=400, detail=r.get("error"))
+    return {"url": r["url"]}
+
+
 @router.post("/portal")
 async def portal(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")

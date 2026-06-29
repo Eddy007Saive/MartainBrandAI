@@ -13,4 +13,12 @@ export const billingService = {
     if (data?.url) window.location.href = data.url;
     return data;
   },
+  // Packs de rachat (par type) + achat one-time Stripe
+  getPacks: (action_type) =>
+    api.get('/billing/packs', { params: action_type ? { action_type } : {} }).then((r) => r.data),
+  packCheckout: async (pack_id) => {
+    const { data } = await api.post('/billing/pack-checkout', { pack_id });
+    if (data?.url) window.location.href = data.url;
+    return data;
+  },
 };
