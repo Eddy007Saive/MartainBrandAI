@@ -299,3 +299,107 @@ async def admin_delete_avatar(telegram_id: str, payload: dict = Depends(verify_a
     except Exception as e:
         logger.error(f"Admin delete avatar error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================================
+# Quotas & offres — configuration (tout paramétrable, aucune valeur en dur)
+# =====================================================================
+@router.get("/quota-config")
+async def quota_config(payload: dict = Depends(verify_admin_token)):
+    """Offres + quotas par type + packs de rachat (pour l'écran admin)."""
+    try:
+        plans = supabase.table("plans").select("*").order("price_cents").execute().data or []
+        quotas = supabase.table("plan_quotas").select("*").execute().data or []
+        packs = supabase.table("credit_packs").select("*").order("action_type").execute().data or []
+        by_plan = {}
+        for q in quotas:
+            by_plan.setdefault(q["plan_id"], []).append(q)
+        for p in plans:
+            p["quotas"] = sorted(by_plan.get(p["id"], []), key=lambda x: x.get("action_type", ""))
+        return {"plans": plans, "packs": packs}
+    except Exception as e:
+        logger.error(f"quota_config error: {e}")
+        raise HTTPException(status_code=500, detail="Erreur de chargement de la config")
+
+
+@router.patch("/plans/{plan_id}")
+async def update_plan(plan_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+    upd = {k: body[k] for k in ("name", "price_cents", "billing_period", "is_active") if k in body}
+    if not upd:
+        raise HTTPException(status_code=400, detail="Rien à mettre à jour")
+    try:
+        r = supabase.table("plans").update(upd).eq("id", plan_id).execute()
+        return {"success": True, "plan": (r.data or [None])[0]}
+    except Exception as e:
+        logger.error(f"update_plan error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/plan-quotas/{quota_id}")
+async def update_plan_quota(quota_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+    upd = {k: body[k] for k in ("included_quantity", "internal_unit_cost_cents", "rollover") if k in body}
+    if not upd:
+        raise HTTPException(status_code=400, detail="Rien à mettre à jour")
+    try:
+        r = supabase.table("plan_quotas").update(upd).eq("id", quota_id).execute()
+        return {"success": True, "quota": (r.data or [None])[0]}
+    except Exception as e:
+        logger.error(f"update_plan_quota error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/plan-quotas")
+async def create_plan_quota(body: dict, payload: dict = Depends(verify_admin_token)):
+    if not body.get("plan_id") or not body.get("action_type"):
+        raise HTTPException(status_code=400, detail="plan_id et action_type requis")
+    row = {
+        "plan_id": body["plan_id"], "action_type": body["action_type"],
+        "included_quantity": int(body.get("included_quantity", 0)),
+        "internal_unit_cost_cents": int(body.get("internal_unit_cost_cents", 0)),
+        "rollover": bool(body.get("rollover", False)),
+    }
+    try:
+        r = supabase.table("plan_quotas").upsert(row, on_conflict="plan_id,action_type").execute()
+        return {"success": True, "quota": (r.data or [None])[0]}
+    except Exception as e:
+        logger.error(f"create_plan_quota error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/credit-packs/{pack_id}")
+async def update_pack(pack_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+    upd = {k: body[k] for k in ("action_type", "name", "quantity", "price_cents", "is_active", "stripe_price_id") if k in body}
+    if not upd:
+        raise HTTPException(status_code=400, detail="Rien à mettre à jour")
+    try:
+        r = supabase.table("credit_packs").update(upd).eq("id", pack_id).execute()
+        return {"success": True, "pack": (r.data or [None])[0]}
+    except Exception as e:
+        logger.error(f"update_pack error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/credit-packs")
+async def create_pack(body: dict, payload: dict = Depends(verify_admin_token)):
+    for f in ("action_type", "name", "quantity", "price_cents"):
+        if body.get(f) in (None, ""):
+            raise HTTPException(status_code=400, detail=f"{f} requis")
+    row = {"action_type": body["action_type"], "name": body["name"],
+           "quantity": int(body["quantity"]), "price_cents": int(body["price_cents"]),
+           "is_active": bool(body.get("is_active", True))}
+    try:
+        r = supabase.table("credit_packs").insert(row).execute()
+        return {"success": True, "pack": (r.data or [None])[0]}
+    except Exception as e:
+        logger.error(f"create_pack error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/credit-packs/{pack_id}")
+async def delete_pack(pack_id: str, payload: dict = Depends(verify_admin_token)):
+    try:
+        supabase.table("credit_packs").delete().eq("id", pack_id).execute()
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"delete_pack error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

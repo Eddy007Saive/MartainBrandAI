@@ -11,6 +11,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
+import QuotaConfigTab from '../components/admin/QuotaConfigTab';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ const navItems = [
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'avatars', label: 'Avatars', icon: Video },
+  { id: 'quotas', label: 'Offres & quotas', icon: Coins },
   { id: 'activity', label: 'Activité', icon: Activity },
   { id: 'settings', label: 'Paramètres', icon: Settings },
 ];
@@ -897,6 +899,9 @@ export default function Admin() {
               )}
             </div>
           )}
+
+          {/* Offres & quotas Tab */}
+          {activeTab === 'quotas' && <QuotaConfigTab />}
 
           {/* Activity Tab */}
           {activeTab === 'activity' && (

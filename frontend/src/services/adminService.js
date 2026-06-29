@@ -69,4 +69,13 @@ export const adminService = {
 
   deleteAvatar: (telegramId) =>
     adminFetch(`/admin/avatars/${telegramId}`, { method: 'DELETE' }),
+
+  // Offres & quotas (paramétrable)
+  getQuotaConfig: () => adminFetch('/admin/quota-config'),
+  updatePlan: (id, data) => adminFetch(`/admin/plans/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  updatePlanQuota: (id, data) => adminFetch(`/admin/plan-quotas/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  createPlanQuota: (data) => adminFetch('/admin/plan-quotas', { method: 'POST', body: JSON.stringify(data) }),
+  updatePack: (id, data) => adminFetch(`/admin/credit-packs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  createPack: (data) => adminFetch('/admin/credit-packs', { method: 'POST', body: JSON.stringify(data) }),
+  deletePack: (id) => adminFetch(`/admin/credit-packs/${id}`, { method: 'DELETE' }),
 };
