@@ -66,6 +66,8 @@ export const agentService = {
   gabarits: () => api.get('/agent/gabarits').then((r) => r.data),
   // Vignettes d'aperçu (rendu réel, mises en cache par marque)
   gabaritPreviews: () => api.get('/agent/gabarit/previews').then((r) => r.data),
+  // Jauge de résultats (quotas par type + état de l'abonnement)
+  usage: () => api.get('/agent/usage').then((r) => r.data),
   gabaritAuto: (gabarit, texte, contenu_id, bg_image = null) =>
     api.post('/agent/gabarit/auto', { gabarit, texte, contenu_id, ...(bg_image ? { bg_image } : {}) }).then((r) => r.data),
 };
