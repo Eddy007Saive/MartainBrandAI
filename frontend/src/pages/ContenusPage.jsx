@@ -224,6 +224,57 @@ export default function ContenusPage() {
   useEffect(() => { agentService.gabarits().then((d) => setGabarits(d.gabarits || [])).catch(() => {}); }, []);
 
   const GAB_LABELS = { statement: 'Accroche', citation: 'Citation', stat: 'Chiffres' };
+  const gabAccent = user?.couleur_accent || '#7c5cff';
+  const gabAccent2 = user?.couleur_secondaire || '#ff2d2d';
+  const bar = (w, color, h = '6%') => (
+    <div style={{ width: w, height: h, background: color, borderRadius: 3 }} />
+  );
+  const gabSkeleton = (k) => {
+    if (k === 'citation') {
+      return (
+        <>
+          <div className="absolute" style={{ left: '10%', top: '11%', width: '30%', height: '8%', background: `${gabAccent}66`, borderRadius: 999 }} />
+          <div className="absolute flex flex-col gap-[6px]" style={{ left: '10%', top: '40%', width: '78%' }}>
+            {bar('70%', 'rgba(255,255,255,.85)', '7%')}
+            {bar('80%', 'rgba(255,255,255,.85)', '7%')}
+            {bar('52%', gabAccent, '7%')}
+          </div>
+          <div className="absolute flex items-center gap-[6px]" style={{ left: '10%', bottom: '11%' }}>
+            <div style={{ width: 16, height: 16, borderRadius: 999, background: 'rgba(255,255,255,.3)' }} />
+            <div className="flex flex-col gap-[4px]">{bar('38px', 'rgba(255,255,255,.7)', '5px')}{bar('26px', 'rgba(255,255,255,.4)', '4px')}</div>
+          </div>
+        </>
+      );
+    }
+    if (k === 'stat') {
+      return (
+        <>
+          <div className="absolute flex flex-col gap-[6px]" style={{ left: '10%', top: '16%', width: '74%' }}>
+            {bar('62%', 'rgba(255,255,255,.85)', '8%')}
+            {bar('44%', gabAccent, '8%')}
+          </div>
+          <div className="absolute flex gap-[5px]" style={{ left: '8%', right: '8%', bottom: '12%' }}>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex-1 grid place-items-center" style={{ aspectRatio: '1', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 6 }}>
+                <div style={{ width: '52%', height: '20%', background: gabAccent, borderRadius: 2 }} />
+              </div>
+            ))}
+          </div>
+        </>
+      );
+    }
+    // statement (défaut)
+    return (
+      <>
+        <div className="absolute" style={{ width: '34%', height: '34%', right: '-6%', top: '12%', borderRadius: 999, background: `radial-gradient(circle at 38% 32%, #fff, ${gabAccent} 60%, #1c1340 86%)`, boxShadow: `0 0 18px ${gabAccent}99` }} />
+        <div className="absolute flex flex-col gap-[6px]" style={{ left: '10%', bottom: '14%', width: '70%' }}>
+          {bar('54%', 'rgba(255,255,255,.9)')}
+          {bar('40%', gabAccent2)}
+          {bar('62%', 'rgba(255,255,255,.9)')}
+        </div>
+      </>
+    );
+  };
   const genererGabarit = async (gab) => {
     if (!imageContenu || gabaritBusy) return;
     setGabaritBusy(gab);
@@ -944,20 +995,29 @@ export default function ContenusPage() {
                   <img src={imageContenu.lien_visuel} alt="" className="w-full rounded-xl max-h-72 object-cover ring-1 ring-white/10" />
                 )}
 
-                {/* Gabarits de marque (feed cohérent) */}
+                {/* Gabarits de marque (feed cohérent) — aperçu visuel cliquable */}
                 {gabarits.length > 0 && (
-                  <div className="rounded-xl border border-[#3AFFA3]/20 bg-[#3AFFA3]/[0.04] p-3 space-y-2">
+                  <div className="rounded-xl border border-[#3AFFA3]/20 bg-[#3AFFA3]/[0.04] p-3 space-y-2.5">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-white font-inter">✨ Visuel par gabarit de marque</span>
                       <span className="text-[11px] text-slate-500">feed cohérent</span>
                     </div>
-                    <p className="text-[11.5px] text-slate-500 font-inter">L'IA crée l'accroche depuis ton post et la pose sur ton gabarit (couleurs + logo de ta marque).</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-[11.5px] text-slate-500 font-inter">Choisis une mise en page : l'IA écrit l'accroche depuis ton post et la pose dessus (couleurs + logo de ta marque).</p>
+                    <div className="grid grid-cols-3 gap-2.5">
                       {gabarits.map((g) => (
                         <button key={g} onClick={() => genererGabarit(g)} disabled={!!gabaritBusy}
-                          className="px-3 py-1.5 rounded-lg text-[13px] font-medium border border-[#3AFFA3]/30 text-[#3AFFA3] hover:bg-[#3AFFA3]/10 disabled:opacity-50 inline-flex items-center gap-1.5">
-                          {gabaritBusy === g ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-                          {GAB_LABELS[g] || g}
+                          className="group relative rounded-lg overflow-hidden border border-white/10 hover:border-[#3AFFA3]/60 transition-colors disabled:opacity-60 text-left">
+                          <div className="relative aspect-square" style={{ background: `radial-gradient(120% 90% at 80% 0%, ${gabAccent}40, transparent 55%), #07070e` }}>
+                            {gabSkeleton(g)}
+                            {gabaritBusy === g && (
+                              <div className="absolute inset-0 grid place-items-center bg-black/55">
+                                <Loader2 className="w-5 h-5 animate-spin text-[#3AFFA3]" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="px-2 py-1.5 text-[12px] font-medium text-white flex items-center gap-1 bg-black/30">
+                            <Wand2 className="w-3 h-3 text-[#3AFFA3]" />{GAB_LABELS[g] || g}
+                          </div>
                         </button>
                       ))}
                     </div>
