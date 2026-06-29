@@ -217,6 +217,27 @@ export default function ContenusPage() {
   const [templates, setTemplates] = useState([]);
   const [activeTemplate, setActiveTemplate] = useState(null);
   const [styleNote, setStyleNote] = useState('');
+  // Gabarits de post (feed cohérent)
+  const [gabarits, setGabarits] = useState([]);
+  const [gabaritBusy, setGabaritBusy] = useState(null);
+
+  useEffect(() => { agentService.gabarits().then((d) => setGabarits(d.gabarits || [])).catch(() => {}); }, []);
+
+  const GAB_LABELS = { statement: 'Accroche', citation: 'Citation', stat: 'Chiffres' };
+  const genererGabarit = async (gab) => {
+    if (!imageContenu || gabaritBusy) return;
+    setGabaritBusy(gab);
+    try {
+      const d = await agentService.gabaritAuto(gab, imageContenu.contenu || imageContenu.titre || '', imageContenu.id);
+      setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: d.url } : c)));
+      setImageContenu((prev) => (prev ? { ...prev, lien_visuel: d.url } : prev));
+      toast.success('Visuel créé ✨');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec de la création du visuel');
+    } finally {
+      setGabaritBusy(null);
+    }
+  };
 
   const toggleRef = (url) => {
     setActiveTemplate(null); // sélection manuelle → on n'est plus sur un template
@@ -922,6 +943,27 @@ export default function ContenusPage() {
                 {imageContenu.lien_visuel && (
                   <img src={imageContenu.lien_visuel} alt="" className="w-full rounded-xl max-h-72 object-cover ring-1 ring-white/10" />
                 )}
+
+                {/* Gabarits de marque (feed cohérent) */}
+                {gabarits.length > 0 && (
+                  <div className="rounded-xl border border-[#3AFFA3]/20 bg-[#3AFFA3]/[0.04] p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white font-inter">✨ Visuel par gabarit de marque</span>
+                      <span className="text-[11px] text-slate-500">feed cohérent</span>
+                    </div>
+                    <p className="text-[11.5px] text-slate-500 font-inter">L'IA crée l'accroche depuis ton post et la pose sur ton gabarit (couleurs + logo de ta marque).</p>
+                    <div className="flex flex-wrap gap-2">
+                      {gabarits.map((g) => (
+                        <button key={g} onClick={() => genererGabarit(g)} disabled={!!gabaritBusy}
+                          className="px-3 py-1.5 rounded-lg text-[13px] font-medium border border-[#3AFFA3]/30 text-[#3AFFA3] hover:bg-[#3AFFA3]/10 disabled:opacity-50 inline-flex items-center gap-1.5">
+                          {gabaritBusy === g ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                          {GAB_LABELS[g] || g}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <label className="text-sm font-medium text-slate-300 font-inter">Description de l'image (modifiable)</label>

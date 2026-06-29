@@ -285,6 +285,39 @@ async def render_gabarit(body: dict, payload: dict = Depends(verify_token)):
     return res
 
 
+@router.post("/gabarit/auto")
+async def gabarit_auto(body: dict, payload: dict = Depends(verify_token)):
+    """Compose les slots depuis le texte du post (IA) puis rend le visuel et le rattache."""
+    from services import gabarit_service
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    gabarit = body.get("gabarit")
+    texte = body.get("texte") or ""
+    if not gabarit:
+        raise HTTPException(status_code=400, detail="gabarit requis")
+
+    comp = agent_service.composer_gabarit(telegram_id, gabarit, texte)
+    if comp.get("error"):
+        _map_agent_error(comp)
+        raise HTTPException(status_code=502, detail="Impossible de composer le visuel.")
+    slots = comp["slots"]
+    if body.get("bg_image"):
+        slots["bg_image"] = body["bg_image"]
+
+    res = await gabarit_service.render_gabarit(telegram_id, gabarit, slots)
+    if not res.get("ok"):
+        raise HTTPException(status_code=502, detail=res.get("error") or "Échec du rendu")
+
+    contenu_id = body.get("contenu_id")
+    if contenu_id:
+        try:
+            supabase.table("contenu").update({"lien_visuel": res["url"]}).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+        except Exception as e:
+            logger.warning(f"gabarit auto attach {contenu_id}: {e}")
+    return {"url": res["url"], "slots": slots, "gabarit": gabarit}
+
+
 # --- Templates de marque (style réutilisable : images de référence + note) ---
 @router.get("/templates")
 async def list_templates(payload: dict = Depends(verify_token)):

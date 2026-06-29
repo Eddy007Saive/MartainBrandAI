@@ -383,3 +383,85 @@ def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model
         }],
     )
     return {"script": _texte(resp), "usage": _usage(resp)}
+
+
+# ---------------------------------------------------------------------------
+# Agent GABARIT : transforme un post en slots de visuel (feed cohérent)
+# ---------------------------------------------------------------------------
+ROLE_GABARIT = (
+    "Tu transformes un post en VISUEL court et percutant pour un feed social. "
+    "Tu écris dans la voix de la marque ci-dessous. Réponds UNIQUEMENT en JSON valide, sans texte autour.\n\n"
+)
+
+_GAB_SPECS = {
+    "statement": (
+        '{"eyebrow":"1-2 mots (catégorie)","title_lines":[{"t":"LIGNE TRÈS COURTE EN MAJUSCULES"}],'
+        '"subtitle":"une phrase courte"} . title_lines = 3 à 4 lignes de max 3 mots chacune ; '
+        'marque 1 à 2 lignes fortes avec "c":"a".'
+    ),
+    "citation": (
+        '{"label":"Témoignage","quote_lines":[{"t":"ligne courte"}]} . quote_lines = 2 à 3 lignes '
+        '(une citation percutante tirée du post) ; mets "c":"v" sur la dernière ligne.'
+    ),
+    "stat": (
+        '{"eyebrow":"1-2 mots","title_lines":[{"t":"LIGNE EN MAJUSCULES"}],"stats":[{"n":"valeur","k":"libellé court"}]} . '
+        'title_lines = 3 lignes (1 avec "c":"v") ; stats = EXACTEMENT 4. '
+        'Si le post ne contient pas de chiffres, mets "n":"—" (n\'invente jamais de chiffres faux).'
+    ),
+}
+
+
+def _gab_lines(v):
+    out = []
+    for ln in (v or []):
+        if isinstance(ln, str) and ln.strip():
+            out.append({"t": ln.strip()})
+        elif isinstance(ln, dict) and (ln.get("t") or "").strip():
+            item = {"t": str(ln["t"]).strip()}
+            if ln.get("c") in ("a", "v"):
+                item["c"] = ln["c"]
+            out.append(item)
+    return out[:4]
+
+
+def composer_gabarit(telegram_id: str, gabarit: str, texte: str) -> dict:
+    """À partir du texte d'un post, produit les slots du gabarit (titre/eyebrow/stats/citation)."""
+    if not _client:
+        return {"error": "no_api_key"}
+    u = _charger_marque(telegram_id)
+    contexte = _contexte_marque(u)
+    nom = u.get("nom") or u.get("user_name") or ""
+    spec = _GAB_SPECS.get(gabarit, _GAB_SPECS["statement"])
+    resp = _messages_create(
+        model=CLAUDE_MODEL,
+        max_tokens=600,
+        system=_system(ROLE_GABARIT, contexte),
+        messages=[{
+            "role": "user",
+            "content": f'Post :\n"""{(texte or "")[:1500]}"""\n\nProduis le visuel "{gabarit}" au format JSON : {spec}',
+        }],
+    )
+    txt = _texte(resp)
+    if "{" in txt and "}" in txt:
+        txt = txt[txt.find("{"):txt.rfind("}") + 1]
+    try:
+        data = json.loads(txt)
+    except Exception as e:
+        logger.error(f"gabarit compose parse: {e} | {txt[:200]}")
+        return {"error": "parse"}
+
+    if gabarit == "citation":
+        slots = {
+            "label": (data.get("label") or "Témoignage"),
+            "quote_lines": _gab_lines(data.get("quote_lines")),
+            "author": {"name": nom, "role": ""},
+        }
+    elif gabarit == "stat":
+        stats = []
+        for s in (data.get("stats") or [])[:4]:
+            if isinstance(s, dict):
+                stats.append({"n": str(s.get("n", "—")), "k": str(s.get("k", ""))})
+        slots = {"eyebrow": data.get("eyebrow") or "", "title_lines": _gab_lines(data.get("title_lines")), "stats": stats}
+    else:
+        slots = {"eyebrow": data.get("eyebrow") or "", "title_lines": _gab_lines(data.get("title_lines")), "subtitle": data.get("subtitle") or ""}
+    return {"slots": slots, "usage": _usage(resp)}
