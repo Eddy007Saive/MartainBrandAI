@@ -11,8 +11,12 @@ from config import (
     STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_PRO, STRIPE_PRICE_BUSINESS,
 )
 
-# plan -> crédits mensuels
-PLAN_CREDITS = {"gratuit": 100, "pro": 1000, "business": 3000}
+# Statut Stripe -> statut interne de l'abonnement (pilote les quotas)
+STATUS_MAP = {
+    "active": "active", "trialing": "trialing", "past_due": "past_due",
+    "incomplete": "past_due", "canceled": "canceled", "unpaid": "canceled",
+    "incomplete_expired": "canceled",
+}
 
 
 def _ready() -> bool:
@@ -80,15 +84,43 @@ def create_portal(telegram_id: str) -> dict:
         return {"ok": False, "error": "Portail indisponible."}
 
 
+def _pro_plan_id():
+    r = supabase.table("plans").select("id").eq("name", "Pro").limit(1).execute()
+    return r.data[0]["id"] if r.data else None
+
+
+def _ts(v):
+    return datetime.fromtimestamp(v, tz=timezone.utc).isoformat() if v else None
+
+
+def _upsert_subscription(uid: str, status: str, period_start, period_end, stripe_sub_id):
+    """Écrit l'abonnement dans la table `subscriptions` (source de vérité des quotas).
+    Mettre à jour current_period_start/end = nouvelle période -> compteurs repartis à zéro
+    (les usage_counters sont créés par période ; les packs `extra` ne se reportent pas)."""
+    plan_id = _pro_plan_id()
+    if not plan_id:
+        logger.warning("stripe: offre Pro absente de la table plans")
+        return
+    row = {"plan_id": plan_id, "status": status, "stripe_subscription_id": stripe_sub_id}
+    if period_start:
+        row["current_period_start"] = period_start
+    if period_end:
+        row["current_period_end"] = period_end
+    existing = (supabase.table("subscriptions").select("id").eq("user_id", uid)
+                .order("created_at", desc=True).limit(1).execute())
+    if existing.data:
+        supabase.table("subscriptions").update(row).eq("id", existing.data[0]["id"]).execute()
+    elif period_end:
+        row["user_id"] = uid
+        supabase.table("subscriptions").insert(row).execute()
+
+
 def _apply_subscription(sub: dict):
-    """Met à jour plan + crédits + dates selon l'état de l'abonnement Stripe."""
+    """Reflète l'état de l'abonnement Stripe dans `subscriptions` (pilote les quotas) + users (affichage)."""
     meta = sub.get("metadata") or {}
     tg = meta.get("telegram_id")
     customer = sub.get("customer")
-    status = sub.get("status")
-    items = (sub.get("items") or {}).get("data") or []
-    price_id = items[0]["price"]["id"] if items else None
-    plan = _plan_for_price(price_id) or meta.get("plan")
+    status = STATUS_MAP.get(sub.get("status"), "past_due")
 
     uid = None
     if tg:
@@ -103,16 +135,18 @@ def _apply_subscription(sub: dict):
         logger.warning("stripe webhook: utilisateur introuvable")
         return
 
-    if status in ("active", "trialing") and plan in ("pro", "business"):
-        upd = {"plan": plan, "stripe_subscription_id": sub.get("id"), "credits": PLAN_CREDITS.get(plan, 50)}
-        cpe = sub.get("current_period_end")
-        if cpe:
-            upd["plan_renews_at"] = datetime.fromtimestamp(cpe, tz=timezone.utc).isoformat()
-        supabase.table("users").update(upd).eq("telegram_id", uid).execute()
-        logger.info(f"stripe: {uid} -> {plan} ({status})")
-    elif status in ("canceled", "unpaid", "incomplete_expired"):
-        supabase.table("users").update({"plan": "gratuit", "stripe_subscription_id": None}).eq("telegram_id", uid).execute()
-        logger.info(f"stripe: {uid} -> gratuit ({status})")
+    ps = _ts(sub.get("current_period_start"))
+    pe = _ts(sub.get("current_period_end"))
+    _upsert_subscription(uid, status, ps, pe, sub.get("id"))
+
+    # Compat affichage (ParametresPage) : plan + date de renouvellement
+    actif = status in ("active", "trialing")
+    supabase.table("users").update({
+        "plan": "pro" if actif else "gratuit",
+        "stripe_subscription_id": sub.get("id") if actif else None,
+        "plan_renews_at": pe,
+    }).eq("telegram_id", uid).execute()
+    logger.info(f"stripe: {uid} -> {status}")
 
 
 def handle_webhook(payload_bytes: bytes, signature: str) -> dict:

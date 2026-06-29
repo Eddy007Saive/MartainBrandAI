@@ -11,8 +11,8 @@ async def checkout(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
-    plan = (body.get("plan") or "").lower()
-    if plan not in ("pro", "business"):
+    plan = (body.get("plan") or "pro").lower()  # offre unique pour l'instant
+    if plan != "pro":
         raise HTTPException(status_code=400, detail="Offre invalide")
     r = billing_service.create_checkout(telegram_id, plan)
     if not r.get("ok"):
