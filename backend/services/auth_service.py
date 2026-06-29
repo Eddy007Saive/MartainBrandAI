@@ -120,3 +120,22 @@ def login_user(email: str, password: str) -> dict:
         "user": sanitize_user(user),
         "pending": not user.get("actif", False)
     }
+
+
+def login_admin(email: str, password: str) -> dict:
+    """Connexion admin par email + mot de passe (compte avec is_admin=true)."""
+    result = supabase.table("users").select("*").eq("email", email).execute()
+    if not result.data:
+        return {"error": "invalid"}
+    user = result.data[0]
+    if not verify_password(password, user.get("password_hash", "")):
+        return {"error": "invalid"}
+    if not user.get("is_admin"):
+        return {"error": "not_admin"}
+    token = create_token({
+        "telegram_id": user["telegram_id"],
+        "email": user["email"],
+        "is_admin": True,
+        "role": "admin",
+    }, expires_delta=timedelta(hours=8))
+    return {"token": token}

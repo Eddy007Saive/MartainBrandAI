@@ -7,8 +7,8 @@ export const authService = {
   register: (payload) =>
     api.post('/auth/register', payload).then(r => r.data),
 
-  adminLogin: (password) =>
-    api.post('/auth/admin-login', { password }).then(r => r.data),
+  adminLogin: (email, password) =>
+    api.post('/auth/admin-login', { email, password }).then(r => r.data),
 
   forgotPassword: (email) =>
     api.post('/auth/forgot-password', { email }).then(r => r.data),

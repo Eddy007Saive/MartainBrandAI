@@ -15,4 +15,5 @@ class UserLogin(BaseModel):
 
 
 class AdminLogin(BaseModel):
+    email: EmailStr
     password: str

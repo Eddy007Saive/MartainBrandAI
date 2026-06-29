@@ -1,15 +1,42 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from datetime import timedelta
 from models.auth import UserRegister, UserLogin, AdminLogin
 from services.auth_service import (
-    login_user, register_user, create_token,
+    login_user, login_admin, register_user, create_token,
     find_user_by_email, create_reset_token, reset_password,
 )
-from services import mail_service
+from services import mail_service, rate_limit
 from services.social_service import create_late_profile
-from config import ADMIN_PASSWORD, FRONTEND_URL, logger
+from config import FRONTEND_URL, logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Anti-bruteforce : verrou par (ip+email) après 5 échecs/15 min ; par ip après 20 échecs/15 min.
+_LOGIN = (5, 900, 900)       # max_fails, window, lock (s)
+_LOGIN_IP = (20, 900, 1800)
+
+
+def _client_ip(request: Request) -> str:
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "?"
+
+
+def _guard_login(request: Request, email: str):
+    """Lève 429 si l'ip ou (ip+email) est verrouillé. Retourne les clés pour fail/clear."""
+    ip = _client_ip(request)
+    k = f"login:{ip}:{(email or '').lower()}"
+    ki = f"loginip:{ip}"
+    rem = max(rate_limit.locked_for(k), rate_limit.locked_for(ki))
+    if rem > 0:
+        raise HTTPException(status_code=429, detail=f"Trop de tentatives. Réessaie dans {rem // 60 + 1} min.")
+    return k, ki
+
+
+def _record_login_fail(keys):
+    rate_limit.fail(keys[0], *_LOGIN)
+    rate_limit.fail(keys[1], *_LOGIN_IP)
 
 
 @router.post("/register")
@@ -44,13 +71,14 @@ async def register(user_data: UserRegister):
 
 
 @router.post("/login")
-async def login(credentials: UserLogin):
+async def login(credentials: UserLogin, request: Request):
+    keys = _guard_login(request, credentials.email)
     try:
         result = login_user(credentials.email, credentials.password)
-
         if "error" in result:
-            raise HTTPException(status_code=401, detail=result["error"])
-
+            _record_login_fail(keys)
+            raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect.")
+        rate_limit.clear(keys[0])
         return result
     except HTTPException:
         raise
@@ -103,13 +131,11 @@ async def reset_pw(body: dict):
 
 
 @router.post("/admin-login")
-async def admin_login(credentials: AdminLogin):
-    if credentials.password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=401, detail="Invalid admin password")
-
-    token = create_token({
-        "is_admin": True,
-        "role": "admin"
-    }, expires_delta=timedelta(hours=8))
-
-    return {"token": token}
+async def admin_login(credentials: AdminLogin, request: Request):
+    keys = _guard_login(request, credentials.email)
+    result = login_admin(credentials.email, credentials.password)
+    if "error" in result:
+        _record_login_fail(keys)
+        raise HTTPException(status_code=401, detail="Identifiants administrateur invalides.")
+    rate_limit.clear(keys[0])
+    return result

@@ -22,6 +22,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminLoading, setAdminLoading] = useState(false);
 
@@ -51,12 +52,12 @@ export default function Login() {
     setAdminLoading(true);
     
     try {
-      const data = await authService.adminLogin(adminPassword);
+      const data = await authService.adminLogin(adminEmail, adminPassword);
       setAdminToken(data.token);
       toast.success('Accès administrateur');
       navigate('/admin');
     } catch (error) {
-      toast.error('Mot de passe administrateur incorrect');
+      toast.error(error.response?.data?.detail || 'Identifiants administrateur invalides');
     } finally {
       setAdminLoading(false);
     }
@@ -248,6 +249,14 @@ export default function Login() {
               
               {showAdminLogin && (
                 <form onSubmit={handleAdminLogin} className="mt-4 space-y-3 animate-fade-in">
+                  <Input
+                    type="email"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    placeholder="Email administrateur"
+                    data-testid="admin-email"
+                    className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 text-sm"
+                  />
                   <Input
                     type="password"
                     value={adminPassword}
