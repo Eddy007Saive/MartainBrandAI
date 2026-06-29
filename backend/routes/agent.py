@@ -4,7 +4,7 @@ import cloudinary.uploader
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from datetime import datetime, timezone
 from dependencies import verify_token
-from services import agent_service, credit_service, usage_service, image_service, planning_service, plan_service, carrousel_service
+from services import agent_service, credit_service, quota_service, usage_service, image_service, planning_service, plan_service, carrousel_service
 from config import supabase, logger, CLAUDE_MODEL, OPENROUTER_IMAGE_MODEL
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -41,21 +41,21 @@ async def sujets(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
-    cost = credit_service.cout("sujets")
-    solde = credit_service.deduct(telegram_id, cost)
-    if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
+    q = quota_service.consume(telegram_id, "subject")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail=q.get("message"))
     try:
         result = agent_service.generer_sujets(telegram_id, int(body.get("nombre", 6)))
     except Exception as e:
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         logger.error(f"Agent sujets error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     if result.get("error"):
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         _map_agent_error(result)
+    quota_service.confirm(q)
 
-    usage_service.log(telegram_id, "sujets", agent_service.SUJETS_MODEL, result.get("usage"), cost)
+    usage_service.log(telegram_id, "sujets", agent_service.SUJETS_MODEL, result.get("usage"), q.get("unit_cost", 0))
 
     # Sauvegarde des sujets comme brouillons (sans réseau — choisi à la transformation)
     rows = [{"telegram_id": telegram_id, "titre": s[:200], "statut": "Brouillon"}
@@ -68,7 +68,7 @@ async def sujets(body: dict, payload: dict = Depends(verify_token)):
         except Exception as e:
             logger.error(f"Save sujets error: {e}")
             saved = [{"id": None, "titre": s} for s in result.get("sujets", [])]
-    return {"sujets": saved, "credits": solde}
+    return {"sujets": saved, "quota": {"action": "subject", "used": q.get("used"), "limit": q.get("limit")}}
 
 
 @router.get("/plan")
@@ -110,7 +110,7 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             occupied[reseau_cap] = {dp[:10] for dp in plan_service._dates_occupees(telegram_id, reseau_cap, start, end)}
         return occupied[reseau_cap]
 
-    created, errors, solde = 0, [], None
+    created, errors = 0, []
     for it in items:
         sujet = (it.get("sujet") or "").strip()
         reseau_low = (it.get("reseau") or "").lower()
@@ -122,12 +122,11 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
         # format : choisi par l'utilisateur (par réseau), sinon cadence du réseau
         fmt = (it.get("format") or formats.get(reseau_low) or "post")
         action = "post" if fmt == "post" else "carrousel" if fmt == "carrousel" else "script"
-        cost = credit_service.cout(action, qualite)
-        s = credit_service.deduct(telegram_id, cost)
-        if s < 0:
-            errors.append({"sujet": sujet, "reseau": reseau_low, "err": "credits"})
-            break  # plus de crédits -> on arrête la rafale
-        solde = s
+        qtype = "carousel" if action == "carrousel" else "post"  # script compte comme un post
+        q = quota_service.consume(telegram_id, qtype)
+        if not q.get("ok"):
+            errors.append({"sujet": sujet, "reseau": reseau_low, "err": "quota", "message": q.get("message")})
+            break  # quota atteint -> on arrête la rafale
         try:
             model = agent_service.QUALITE_MODELS.get(qualite)
             ccontent = None
@@ -143,10 +142,10 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 r = agent_service.rediger_script(telegram_id, sujet, tv, model, cache=True)
                 texte = r.get("script", "")
             if r.get("error"):
-                credit_service.refund(telegram_id, cost)
+                quota_service.refund(q)
                 errors.append({"sujet": sujet, "reseau": reseau_low, "err": r["error"]})
                 continue
-            usage_service.log(telegram_id, action, model, r.get("usage"), cost, qualite)
+            usage_service.log(telegram_id, action, model, r.get("usage"), q.get("unit_cost", 0), qualite)
 
             oc = occ_for(reseau_cap)
             slots = plan_service.creneaux_libres(telegram_id, reseau_cap, year, month, oc)
@@ -181,15 +180,14 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 except Exception as e:
                     logger.error(f"rafale carrousel render error: {e}")
                     errors.append({"sujet": sujet, "reseau": reseau_low, "err": "render"})
+            quota_service.confirm(q)
             created += 1
         except Exception as e:
-            credit_service.refund(telegram_id, cost)
+            quota_service.refund(q)
             logger.error(f"rafale item error: {e}")
             errors.append({"sujet": sujet, "reseau": reseau_low, "err": "gen"})
 
-    if solde is None:
-        solde = credit_service.get_credits(telegram_id)
-    return {"created": created, "errors": errors, "credits": solde}
+    return {"created": created, "errors": errors, "usage": quota_service.usage(telegram_id)}
 
 
 @router.get("/sujets")
@@ -260,6 +258,15 @@ async def put_drafts(body: dict, payload: dict = Depends(verify_token)):
 async def list_gabarits(payload: dict = Depends(verify_token)):
     from services import gabarit_service
     return {"gabarits": gabarit_service.GABARITS, "labels": gabarit_service.GAB_LABELS}
+
+
+@router.get("/usage")
+async def usage_gauge(payload: dict = Depends(verify_token)):
+    """Jauge de résultats (par type) + état de l'abonnement, pour le dashboard."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return quota_service.usage(telegram_id)
 
 
 @router.get("/gabarit/previews")
@@ -385,27 +392,27 @@ async def rediger(body: dict, payload: dict = Depends(verify_token)):
     if not sujet:
         raise HTTPException(status_code=400, detail="sujet requis")
     qualite = body.get("qualite", "equilibre")
-    cost = credit_service.cout("post", qualite)
-    solde = credit_service.deduct(telegram_id, cost)
-    if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
+    q = quota_service.consume(telegram_id, "post")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail=q.get("message"))
     try:
         result = agent_service.rediger_post(telegram_id, sujet, body.get("reseau", "linkedin"),
                                             agent_service.QUALITE_MODELS.get(qualite))
     except Exception as e:
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         logger.error(f"Agent rediger error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     if result.get("error"):
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         _map_agent_error(result)
-    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), cost, qualite)
+    quota_service.confirm(q)
+    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite)
     if body.get("save"):
         row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": result["contenu"],
                "created_at": datetime.now(timezone.utc).isoformat()}
         ins = supabase.table("contenu").insert(row).execute()
         result["contenu_id"] = ins.data[0]["id"] if ins.data else None
-    result["credits"] = solde
+    result["quota"] = {"action": "post", "used": q.get("used"), "limit": q.get("limit")}
     return result
 
 
@@ -422,22 +429,22 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
     if len(data) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
     reseau = (reseau or "linkedin").lower()
-    cost = credit_service.cout("post", qualite)
-    solde = credit_service.deduct(telegram_id, cost)
-    if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
+    q = quota_service.consume(telegram_id, "post")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail=q.get("message"))
     try:
         r = agent_service.rediger_depuis_photo(
             telegram_id, base64.b64encode(data).decode(), file.content_type,
             reseau, agent_service.QUALITE_MODELS.get(qualite))
     except Exception as e:
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         logger.error(f"rediger-photo error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     if r.get("error"):
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         _map_agent_error(r)
-    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), r.get("usage"), cost, qualite)
+    quota_service.confirm(q)
+    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), r.get("usage"), q.get("unit_cost", 0), qualite)
 
     texte = r["contenu"]
     lien = None
@@ -455,7 +462,7 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
         row["lien_visuel"] = lien
     ins = supabase.table("contenu").insert(row).execute()
     cid = ins.data[0]["id"] if ins.data else None
-    return {"contenu_id": cid, "contenu": texte, "lien_visuel": lien, "credits": solde}
+    return {"contenu_id": cid, "contenu": texte, "lien_visuel": lien, "quota": {"action": "post", "used": q.get("used"), "limit": q.get("limit")}}
 
 
 @router.post("/carrousel")
@@ -475,22 +482,22 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     if not tmpl:
         tmpl = next((sch.get("carrousel_template") or "bold"
                      for sch in plan_service._schedules(telegram_id) if sch.get("platform") == reseau), "bold")
-    cost = credit_service.cout("carrousel", qualite)
-    solde = credit_service.deduct(telegram_id, cost)
-    if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
+    q = quota_service.consume(telegram_id, "carousel")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail=q.get("message"))
     try:
         result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.QUALITE_MODELS.get(qualite))
     except Exception as e:
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         logger.error(f"Carrousel texte error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     if result.get("error"):
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         if result["error"] == "parse":
             raise HTTPException(status_code=502, detail="Échec de génération des slides")
         _map_agent_error(result)
-    usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), cost, qualite)
+    quota_service.confirm(q)
+    usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite)
 
     content = result["content"]
     texte = _carrousel_texte(content)
@@ -524,7 +531,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
         logger.error(f"Carrousel render error: {e}")
 
     return {"contenu_id": contenu_id, "content": content, "slides_images": slides_images,
-            "carrousel_pdf": pdf_url, "credits": solde}
+            "carrousel_pdf": pdf_url, "quota": {"action": "carousel", "used": q.get("used"), "limit": q.get("limit")}}
 
 
 @router.post("/script")
@@ -536,22 +543,22 @@ async def script(body: dict, payload: dict = Depends(verify_token)):
     if not sujet:
         raise HTTPException(status_code=400, detail="sujet requis")
     qualite = body.get("qualite", "equilibre")
-    cost = credit_service.cout("script", qualite)
-    solde = credit_service.deduct(telegram_id, cost)
-    if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
+    q = quota_service.consume(telegram_id, "post")  # script vidéo compte comme un post
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail=q.get("message"))
     try:
         result = agent_service.rediger_script(telegram_id, sujet, body.get("type_video", "Reel"),
                                               agent_service.QUALITE_MODELS.get(qualite))
     except Exception as e:
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         logger.error(f"Agent script error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     if result.get("error"):
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         _map_agent_error(result)
-    usage_service.log(telegram_id, "script", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), cost, qualite)
-    result["credits"] = solde
+    quota_service.confirm(q)
+    usage_service.log(telegram_id, "script", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite)
+    result["quota"] = {"action": "post", "used": q.get("used"), "limit": q.get("limit")}
     return result
 
 
@@ -639,20 +646,20 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="prompt requis")
     modele = body.get("modele", "nano2")
     model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
-    cost = credit_service.cout("image", modele)
-    solde = credit_service.deduct(telegram_id, cost)
-    if solde < 0:
-        raise HTTPException(status_code=402, detail="Crédits épuisés — passe à une offre supérieure pour continuer.")
+    action_type = quota_service.image_action(modele)  # nano2 -> image_standard, nano3 -> image_pro
+    q = quota_service.consume(telegram_id, action_type)
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail=q.get("message"))
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
     try:
         res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"), refs=refs, style_note=style_note)
     except Exception as e:
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         logger.error(f"Agent image error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     if res.get("error"):
-        credit_service.refund(telegram_id, cost)
+        quota_service.refund(q)
         err = res["error"]
         if err == "no_openrouter_key":
             raise HTTPException(status_code=500, detail="Génération d'image indisponible : clé image non configurée (contacte le support).")
@@ -667,7 +674,8 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
             if code == "400":
                 raise HTTPException(status_code=502, detail="Le générateur a refusé la requête (image de référence invalide ou description non conforme). Vérifie ta photo/inspirations dans Paramètres.")
             raise HTTPException(status_code=502, detail=f"Le générateur d'image a renvoyé une erreur ({code}). Réessaie (crédits remboursés).")
-        raise HTTPException(status_code=502, detail="Échec de la génération d'image. Réessaie (crédits remboursés).")
+        raise HTTPException(status_code=502, detail="Échec de la génération d'image. Réessaie.")
+    quota_service.confirm(q)
 
     contenu_id = body.get("contenu_id")
     if contenu_id:
@@ -685,6 +693,6 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         supabase.table("contenu").update(upd).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
         res["statut"] = upd.get("statut")
         res["date_publication"] = upd.get("date_publication") or c.get("date_publication")
-    usage_service.log(telegram_id, "image", model_id, {}, cost, cost_override=usage_service.IMAGE_PRICES.get(modele, 0.04))
-    res["credits"] = solde
+    usage_service.log(telegram_id, "image", model_id, {}, q.get("unit_cost", 0), cost_override=usage_service.IMAGE_PRICES.get(modele, 0.04))
+    res["quota"] = {"action": action_type, "used": q.get("used"), "limit": q.get("limit")}
     return res
