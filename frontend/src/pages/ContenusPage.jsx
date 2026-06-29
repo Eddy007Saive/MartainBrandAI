@@ -279,7 +279,8 @@ export default function ContenusPage() {
     if (!imageContenu || gabaritBusy) return;
     setGabaritBusy(gab);
     try {
-      const d = await agentService.gabaritAuto(gab, imageContenu.contenu || imageContenu.titre || '', imageContenu.id);
+      const bg = selectedRefs && selectedRefs.length ? selectedRefs[0] : null; // image de référence -> fond du gabarit
+      const d = await agentService.gabaritAuto(gab, imageContenu.contenu || imageContenu.titre || '', imageContenu.id, bg);
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: d.url } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: d.url } : prev));
       toast.success('Visuel créé ✨');
