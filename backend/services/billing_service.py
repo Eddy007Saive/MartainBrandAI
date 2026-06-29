@@ -194,6 +194,26 @@ def create_pack_checkout(telegram_id: str, pack_id: str) -> dict:
         return {"ok": False, "error": "Impossible de créer la session de paiement."}
 
 
+def sync_subscription(telegram_id: str) -> dict:
+    """Filet de sécurité : relit l'abonnement Stripe du compte et l'applique (au retour du checkout
+    ou si un webhook a été manqué). Marche en local sans Stripe CLI."""
+    if not _ready():
+        return {"ok": False, "error": "Stripe non configuré."}
+    u = supabase.table("users").select("stripe_customer_id").eq("telegram_id", telegram_id).execute()
+    cust = u.data[0].get("stripe_customer_id") if u.data else None
+    if not cust:
+        return {"ok": True, "synced": False}
+    try:
+        subs = stripe.Subscription.list(customer=cust, status="all", limit=1)
+        if subs.data:
+            _apply_subscription(subs.data[0])
+            return {"ok": True, "synced": True, "status": subs.data[0].get("status")}
+        return {"ok": True, "synced": False}
+    except Exception as e:
+        logger.error(f"sync_subscription error: {e}")
+        return {"ok": False, "error": "Synchronisation impossible."}
+
+
 def _apply_pack(session: dict):
     """Crédite le quota acheté (extra) sur la période courante du compte."""
     meta = session.get("metadata") or {}

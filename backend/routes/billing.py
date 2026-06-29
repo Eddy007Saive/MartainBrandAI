@@ -40,6 +40,15 @@ async def pack_checkout(body: dict, payload: dict = Depends(verify_token)):
     return {"url": r["url"]}
 
 
+@router.post("/sync")
+async def sync(payload: dict = Depends(verify_token)):
+    """Resynchronise l'abonnement Stripe -> table subscriptions (au retour du paiement / webhook manqué)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return billing_service.sync_subscription(telegram_id)
+
+
 @router.post("/portal")
 async def portal(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")

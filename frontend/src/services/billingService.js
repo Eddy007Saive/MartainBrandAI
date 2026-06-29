@@ -13,6 +13,8 @@ export const billingService = {
     if (data?.url) window.location.href = data.url;
     return data;
   },
+  // Resync de l'abonnement (au retour du paiement / si webhook manqué)
+  sync: () => api.post('/billing/sync').then((r) => r.data),
   // Packs de rachat (par type) + achat one-time Stripe
   getPacks: (action_type) =>
     api.get('/billing/packs', { params: action_type ? { action_type } : {} }).then((r) => r.data),
