@@ -219,11 +219,20 @@ export default function ContenusPage() {
   const [styleNote, setStyleNote] = useState('');
   // Gabarits de post (feed cohérent)
   const [gabarits, setGabarits] = useState([]);
+  const [gabPreviews, setGabPreviews] = useState({});
+  const [gabLabels, setGabLabels] = useState({});
   const [gabaritBusy, setGabaritBusy] = useState(null);
 
-  useEffect(() => { agentService.gabarits().then((d) => setGabarits(d.gabarits || [])).catch(() => {}); }, []);
-
-  const GAB_LABELS = { statement: 'Accroche', citation: 'Citation', stat: 'Chiffres' };
+  useEffect(() => {
+    agentService.gabaritPreviews()
+      .then((d) => {
+        const labels = d.labels || {};
+        setGabLabels(labels);
+        setGabPreviews(d.previews || {});
+        setGabarits(Object.keys(labels).length ? Object.keys(labels) : Object.keys(d.previews || {}));
+      })
+      .catch(() => {});
+  }, []);
   const gabAccent = user?.couleur_accent || '#7c5cff';
   const gabAccent2 = user?.couleur_secondaire || '#ff2d2d';
   const bar = (w, color, h = '6%') => (
@@ -1003,21 +1012,23 @@ export default function ContenusPage() {
                       <span className="text-sm font-medium text-white font-inter">✨ Visuel par gabarit de marque</span>
                       <span className="text-[11px] text-slate-500">feed cohérent</span>
                     </div>
-                    <p className="text-[11.5px] text-slate-500 font-inter">Choisis une mise en page : l'IA écrit l'accroche depuis ton post et la pose dessus (couleurs + logo de ta marque).</p>
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <p className="text-[11.5px] text-slate-500 font-inter">Choisis une mise en page : l'IA écrit le texte depuis ton post et le pose dessus (couleurs + logo de ta marque).</p>
+                    <div className="grid grid-cols-4 gap-2">
                       {gabarits.map((g) => (
-                        <button key={g} onClick={() => genererGabarit(g)} disabled={!!gabaritBusy}
+                        <button key={g} onClick={() => genererGabarit(g)} disabled={!!gabaritBusy} title={gabLabels[g] || g}
                           className="group relative rounded-lg overflow-hidden border border-white/10 hover:border-[#3AFFA3]/60 transition-colors disabled:opacity-60 text-left">
                           <div className="relative aspect-square" style={{ background: `radial-gradient(120% 90% at 80% 0%, ${gabAccent}40, transparent 55%), #07070e` }}>
-                            {gabSkeleton(g)}
+                            {gabPreviews[g]
+                              ? <img src={gabPreviews[g]} alt={gabLabels[g] || g} className="absolute inset-0 w-full h-full object-cover" />
+                              : gabSkeleton(g)}
                             {gabaritBusy === g && (
                               <div className="absolute inset-0 grid place-items-center bg-black/55">
                                 <Loader2 className="w-5 h-5 animate-spin text-[#3AFFA3]" />
                               </div>
                             )}
                           </div>
-                          <div className="px-2 py-1.5 text-[12px] font-medium text-white flex items-center gap-1 bg-black/30">
-                            <Wand2 className="w-3 h-3 text-[#3AFFA3]" />{GAB_LABELS[g] || g}
+                          <div className="px-1.5 py-1 text-[11px] font-medium text-white flex items-center gap-1 bg-black/40 truncate">
+                            <Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" /><span className="truncate">{gabLabels[g] || g}</span>
                           </div>
                         </button>
                       ))}

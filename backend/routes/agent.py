@@ -259,7 +259,16 @@ async def put_drafts(body: dict, payload: dict = Depends(verify_token)):
 @router.get("/gabarits")
 async def list_gabarits(payload: dict = Depends(verify_token)):
     from services import gabarit_service
-    return {"gabarits": gabarit_service.GABARITS}
+    return {"gabarits": gabarit_service.GABARITS, "labels": gabarit_service.GAB_LABELS}
+
+
+@router.get("/gabarit/previews")
+async def gabarit_previews(payload: dict = Depends(verify_token)):
+    from services import gabarit_service
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return await gabarit_service.previews(telegram_id)
 
 
 @router.post("/gabarit/render")

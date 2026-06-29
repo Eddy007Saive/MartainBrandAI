@@ -393,21 +393,40 @@ ROLE_GABARIT = (
     "Tu écris dans la voix de la marque ci-dessous. Réponds UNIQUEMENT en JSON valide, sans texte autour.\n\n"
 )
 
+# Pour chaque gabarit : (description du JSON à produire, liste des champs à appliquer sur les défauts)
 _GAB_SPECS = {
-    "statement": (
-        '{"eyebrow":"1-2 mots (catégorie)","title_lines":[{"t":"LIGNE TRÈS COURTE EN MAJUSCULES"}],'
-        '"subtitle":"une phrase courte"} . title_lines = 3 à 4 lignes de max 3 mots chacune ; '
-        'marque 1 à 2 lignes fortes avec "c":"a".'
-    ),
-    "citation": (
-        '{"label":"Témoignage","quote_lines":[{"t":"ligne courte"}]} . quote_lines = 2 à 3 lignes '
-        '(une citation percutante tirée du post) ; mets "c":"v" sur la dernière ligne.'
-    ),
-    "stat": (
-        '{"eyebrow":"1-2 mots","title_lines":[{"t":"LIGNE EN MAJUSCULES"}],"stats":[{"n":"valeur","k":"libellé court"}]} . '
-        'title_lines = 3 lignes (1 avec "c":"v") ; stats = EXACTEMENT 4. '
-        'Si le post ne contient pas de chiffres, mets "n":"—" (n\'invente jamais de chiffres faux).'
-    ),
+    "statement": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"LIGNE COURTE MAJUSCULES","c":"a (optionnel)"}],"subtitle":"phrase courte"} '
+                  '— title_lines = 3 à 4 lignes de max 3 mots, marque 1-2 lignes avec "c":"a".',
+                  ["eyebrow", "title_lines", "subtitle"]),
+    "acquisition": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"MAJUSCULES","c":"v (optionnel)"}],"stats":[{"k":"libellé","n":"valeur","v":true}]} '
+                    '— title_lines = 2-3 lignes ; stats = 4 (chiffres du post, sinon "n":"—", jamais de faux chiffres).',
+                    ["eyebrow", "title_lines", "stats"]),
+    "citation": ('{"label":"Témoignage","quote_lines":[{"t":"ligne courte","c":"v sur la dernière"}]} '
+                 '— quote_lines = 2-3 lignes, une citation percutante tirée du post.',
+                 ["label", "quote_lines"]),
+    "dashboard": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"MAJUSCULES","c":"v (optionnel)"}]} — title_lines = 3 lignes.',
+                  ["eyebrow", "title_lines"]),
+    "features": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"MAJUSCULES","c":"a (optionnel)"}],"features":[{"t":"titre court","d":"phrase"}]} '
+                 '— title_lines = 2-3 lignes ; features = EXACTEMENT 3.',
+                 ["eyebrow", "title_lines", "features"]),
+    "phone": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"COURT","c":"v (optionnel)"}],"subtitle":"phrase courte","bubbles":[{"side":"in|out","t":"message court"}]} '
+              '— bubbles = 3 à 4 messages d\'une conversation client réaliste.',
+              ["eyebrow", "title_lines", "subtitle", "bubbles"]),
+    "services": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"MAJUSCULES","c":"a (optionnel)"}],"services":["mot","mot"],"flow":["Étape début","Étape fin"]} '
+                 '— title_lines = 2 lignes ; services = 4 mots ; flow = 2 étapes.',
+                 ["eyebrow", "title_lines", "services", "flow"]),
+    "mission": ('{"label":"Notre mission","title_lines":[{"t":"MAJUSCULES","c":"v (optionnel)"}],"subtitle":"phrase","statrow":[{"n":"valeur","k":"libellé"}]} '
+                '— title_lines = 2 lignes ; statrow = 4 (chiffres du post sinon "n":"—").',
+                ["label", "title_lines", "subtitle", "statrow"]),
+    "integrations": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"MAJUSCULES","c":"v (optionnel)"}],"subtitle":"phrase courte"} — title_lines = 2 lignes.',
+                     ["eyebrow", "title_lines", "subtitle"]),
+    "testimonial": ('{"label":"Nos clients","quote_lines":[{"t":"phrase de l\'avis"}],"author":{"name":"Prénom N.","role":"métier · ville"}} '
+                    '— une citation client en 1-2 lignes ; author = client (pas la marque).',
+                    ["label", "quote_lines", "author"]),
+    "people": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"MAJUSCULES","c":"a (optionnel)"}],"subtitle":"phrase courte"} — title_lines = 3 lignes.',
+               ["eyebrow", "title_lines", "subtitle"]),
+    "closing": ('{"title_lines":[{"t":"MAJUSCULES","c":"v (optionnel)"}],"subtitle":"phrase courte"} — title_lines = 2 lignes.',
+                ["title_lines", "subtitle"]),
 }
 
 
@@ -425,16 +444,21 @@ def _gab_lines(v):
 
 
 def composer_gabarit(telegram_id: str, gabarit: str, texte: str) -> dict:
-    """À partir du texte d'un post, produit les slots du gabarit (titre/eyebrow/stats/citation)."""
+    """À partir du texte d'un post, écrit les champs texte du gabarit (titre/eyebrow/citation/etc.)
+    et les pose sur les défauts structurels du gabarit (stats/services/bulles… restent cohérents)."""
     if not _client:
         return {"error": "no_api_key"}
+    import copy
+    from services import gabarit_service  # import tardif (évite le cycle)
+    if gabarit not in _GAB_SPECS:
+        gabarit = "statement"
     u = _charger_marque(telegram_id)
     contexte = _contexte_marque(u)
     nom = u.get("nom") or u.get("user_name") or ""
-    spec = _GAB_SPECS.get(gabarit, _GAB_SPECS["statement"])
+    spec, fields = _GAB_SPECS[gabarit]
     resp = _messages_create(
         model=CLAUDE_MODEL,
-        max_tokens=600,
+        max_tokens=700,
         system=_system(ROLE_GABARIT, contexte),
         messages=[{
             "role": "user",
@@ -450,18 +474,34 @@ def composer_gabarit(telegram_id: str, gabarit: str, texte: str) -> dict:
         logger.error(f"gabarit compose parse: {e} | {txt[:200]}")
         return {"error": "parse"}
 
+    # Base = exemple du gabarit (structure complète, toujours rendable) ; on pose les champs IA dessus.
+    slots = copy.deepcopy(gabarit_service._SAMPLES.get(gabarit, {}))
+    for f in fields:
+        if f not in data or data[f] in (None, "", [], {}):
+            continue
+        v = data[f]
+        if f in ("title_lines", "quote_lines"):
+            lines = _gab_lines(v)
+            if lines:
+                slots[f] = lines
+        elif f == "stats":
+            slots["stats"] = [{"k": str(x.get("k", "")), "n": str(x.get("n", "—")), **({"v": True} if x.get("v") else {})}
+                              for x in v if isinstance(x, dict)][:4]
+        elif f == "statrow":
+            slots["statrow"] = [{"n": str(x.get("n", "—")), "k": str(x.get("k", ""))} for x in v if isinstance(x, dict)][:4]
+        elif f == "features":
+            slots["features"] = [{"t": str(x.get("t", "")), "d": str(x.get("d", ""))} for x in v if isinstance(x, dict)][:3]
+        elif f == "bubbles":
+            slots["bubbles"] = [{"side": ("out" if x.get("side") == "out" else "in"), "t": str(x.get("t", ""))}
+                                for x in v if isinstance(x, dict)][:5]
+        elif f in ("services", "flow"):
+            slots[f] = [str(x) for x in v if str(x).strip()][:(4 if f == "services" else 2)]
+        elif f == "author":
+            slots["author"] = {"name": str((v or {}).get("name", "")), "role": str((v or {}).get("role", ""))}
+        else:  # eyebrow, label, subtitle
+            slots[f] = str(v)
+
+    # Auteur de la citation = la marque (sauf témoignage client)
     if gabarit == "citation":
-        slots = {
-            "label": (data.get("label") or "Témoignage"),
-            "quote_lines": _gab_lines(data.get("quote_lines")),
-            "author": {"name": nom, "role": ""},
-        }
-    elif gabarit == "stat":
-        stats = []
-        for s in (data.get("stats") or [])[:4]:
-            if isinstance(s, dict):
-                stats.append({"n": str(s.get("n", "—")), "k": str(s.get("k", ""))})
-        slots = {"eyebrow": data.get("eyebrow") or "", "title_lines": _gab_lines(data.get("title_lines")), "stats": stats}
-    else:
-        slots = {"eyebrow": data.get("eyebrow") or "", "title_lines": _gab_lines(data.get("title_lines")), "subtitle": data.get("subtitle") or ""}
+        slots["author"] = {"name": nom, "role": ""}
     return {"slots": slots, "usage": _usage(resp)}

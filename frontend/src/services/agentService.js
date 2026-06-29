@@ -64,6 +64,8 @@ export const agentService = {
 
   // Gabarits de post (feed cohérent) : compose le texte du post puis rend le visuel
   gabarits: () => api.get('/agent/gabarits').then((r) => r.data),
+  // Vignettes d'aperçu (rendu réel, mises en cache par marque)
+  gabaritPreviews: () => api.get('/agent/gabarit/previews').then((r) => r.data),
   gabaritAuto: (gabarit, texte, contenu_id, bg_image = null) =>
     api.post('/agent/gabarit/auto', { gabarit, texte, contenu_id, ...(bg_image ? { bg_image } : {}) }).then((r) => r.data),
 };
