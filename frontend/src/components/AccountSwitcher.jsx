@@ -133,7 +133,7 @@ export default function AccountSwitcher() {
                   className="w-full flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white text-[13px] font-medium py-2 disabled:opacity-50">
                   {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Créer la marque
                 </button>
-                <p className="text-[10.5px] text-slate-500 leading-snug">Crédits partagés avec ton compte principal. Elle aura son propre login (email/mot de passe).</p>
+                <p className="text-[10.5px] text-slate-500 leading-snug">Chaque marque a ses propres crédits et son propre forfait. Elle aura son propre login (email/mot de passe).</p>
               </form>
             )}
           </div>

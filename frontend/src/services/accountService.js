@@ -1,6 +1,6 @@
 import api from '../lib/api';
 
-// Comptes liés (master + sous-comptes/marques) — pool de crédits partagé
+// Comptes liés (master + sous-comptes/marques) — facturation par compte (crédits propres)
 export const accountService = {
   list: () => api.get('/accounts').then((r) => r.data),
   create: ({ nom, email, password }) =>

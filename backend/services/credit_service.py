@@ -24,27 +24,21 @@ def cout(action: str, qualite: str = "equilibre") -> int:
 
 
 def billing_id(telegram_id: str) -> str:
-    """Compte de facturation : le master (pool de crédits partagé) si défini, sinon soi-même."""
-    try:
-        r = supabase.table("users").select("master_id").eq("telegram_id", telegram_id).execute()
-        mid = r.data[0].get("master_id") if r.data else None
-        return mid or telegram_id
-    except Exception:
-        # colonne master_id absente (avant migration) -> on retombe sur soi-même
-        return telegram_id
+    """Facturation PAR COMPTE : chaque compte (master comme sous-compte) a ses propres crédits."""
+    return telegram_id
 
 
 def get_credits(telegram_id: str) -> int:
-    r = supabase.table("users").select("credits").eq("telegram_id", billing_id(telegram_id)).execute()
+    r = supabase.table("users").select("credits").eq("telegram_id", telegram_id).execute()
     if not r.data:
         return 0
     return r.data[0].get("credits") or 0
 
 
 def deduct(telegram_id: str, amount: int) -> int:
-    """Débit atomique sur le compte de facturation (master). Retourne le nouveau solde, ou -1 si insuffisant."""
+    """Débit atomique sur le compte. Retourne le nouveau solde, ou -1 si insuffisant."""
     try:
-        res = supabase.rpc("deduct_credits", {"p_telegram_id": billing_id(telegram_id), "p_amount": amount}).execute()
+        res = supabase.rpc("deduct_credits", {"p_telegram_id": telegram_id, "p_amount": amount}).execute()
         val = res.data
         return val if isinstance(val, int) else -1
     except Exception as e:
@@ -54,6 +48,6 @@ def deduct(telegram_id: str, amount: int) -> int:
 
 def refund(telegram_id: str, amount: int) -> None:
     try:
-        supabase.rpc("refund_credits", {"p_telegram_id": billing_id(telegram_id), "p_amount": amount}).execute()
+        supabase.rpc("refund_credits", {"p_telegram_id": telegram_id, "p_amount": amount}).execute()
     except Exception as e:
         logger.error(f"refund_credits error: {e}")

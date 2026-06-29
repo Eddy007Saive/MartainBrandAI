@@ -50,7 +50,8 @@ def register_user(nom: str, email: str, username: str, password: str, master_id:
         "couleur_accent": "#3AFFA3",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
-    # Sous-compte rattaché à un master (pool de crédits partagé du master)
+    # Sous-compte rattaché à un master (regroupement + switch). Facturation PAR COMPTE :
+    # le sous-compte garde ses propres crédits + forfait (définis ci-dessus).
     if master_id:
         new_user["master_id"] = master_id
 
