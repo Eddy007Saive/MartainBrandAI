@@ -41,7 +41,7 @@ pytest                                               # Unit tests (pytest is ins
 
 **The data layering rule:** routes → services → (Supabase / httpx). Keep DB access and webhook calls inside services; keep routes free of business logic. (Some short read-only routes like `brouillons.py` hit `supabase` directly — acceptable for trivial reads, but new write logic belongs in a service.)
 
-- **Auth**: bcrypt password hashing (rounds=12). User tokens last 7 days; admin tokens 8 hours. Admin login is a single shared password (`ADMIN_PASSWORD`), not a user row. The app uses the Supabase Python client directly — it does **not** use Supabase Auth.
+- **Auth**: bcrypt password hashing (rounds=12). User tokens last 7 days; admin tokens 8 hours. Admin login is per-account: a `users` row with `is_admin=true` authenticates via email+password (`/auth/admin-login` → `is_admin` JWT claim). Login endpoints are rate-limited (`services/rate_limit.py`, in-memory: 5 fails/15min per ip+email, 20/15min per ip → 429). The legacy shared `ADMIN_PASSWORD` is no longer used. The app uses the Supabase Python client directly — it does **not** use Supabase Auth.
 - **Identity key**: `telegram_id` (bigint) is the primary key for users and the foreign key threaded through every domain table; it is carried in the JWT and read as `payload.get("telegram_id")` in routes.
 - **n8n integration**: `N8N_WEBHOOK_BASE` + a path (e.g. `/late-connect`, `/late-disconnect`, `/late-create-profile`). Social platforms map to `late_account_<platform>` columns; valid platforms are gated by `VALID_PLATFORMS` in `social_service.py`.
 - **HeyGen avatars**: video uploaded to Cloudinary, request row saved to `heygen_avatars` with a `pending` status for admin review; one active/pending avatar per user.
