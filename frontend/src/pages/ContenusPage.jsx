@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -222,8 +222,19 @@ export default function ContenusPage() {
   const [gabPreviews, setGabPreviews] = useState({});
   const [gabLabels, setGabLabels] = useState({});
   const [gabaritBusy, setGabaritBusy] = useState(null);
+  // Refonte dialog : mode (gabarit | template | ia), gabarit sélectionné, usage pour la pastille de quota
+  const [imgMode, setImgMode] = useState('gabarit');
+  const [selectedGabarit, setSelectedGabarit] = useState(null);
+  const [imgUsage, setImgUsage] = useState(null);
+
+  const setMode = (m) => {
+    setImgMode(m);
+    if (m !== 'template') { setActiveTemplate(null); setStyleNote(''); }
+  };
+  const refreshUsage = () => agentService.usage().then(setImgUsage).catch(() => {});
 
   useEffect(() => {
+    refreshUsage();
     agentService.gabaritPreviews()
       .then((d) => {
         const labels = d.labels || {};
@@ -359,6 +370,8 @@ export default function ContenusPage() {
     setImgAvecPhoto(!!user?.use_photo);
     setImgModele('nano2');
     setActiveTemplate(null); setStyleNote('');
+    setImgMode('gabarit'); setSelectedGabarit(null);
+    refreshUsage();
     // Charge la bibliothèque de références (inspirations) — tout sélectionné par défaut
     userService.listInspirations()
       .then((d) => {
@@ -377,7 +390,8 @@ export default function ContenusPage() {
   };
 
   const genererImage = async () => {
-    if (!imageContenu || !imgPrompt.trim()) return;
+    if (!imageContenu) return;
+    if (!imgPrompt.trim() && !activeTemplate) return; // template = l'IA écrit le texte côté serveur
     setImgGenerating(true);
     try {
       const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs, styleNote || null, !!activeTemplate);
@@ -385,12 +399,27 @@ export default function ContenusPage() {
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
       toast.success('Visuel généré ✨');
+      refreshUsage();
     } catch (e) {
-      if (e.response?.status === 402) toast.error('Crédits insuffisants');
-      else toast.error(e.response?.data?.detail || "Échec de la génération d'image");
+      toast.error(e.response?.data?.detail || "Échec de la génération d'image");
     } finally {
       setImgGenerating(false);
     }
+  };
+
+  // Action unifiée du footer + pastille de quota (selon le mode)
+  const onGenerate = () => {
+    if (imgMode === 'gabarit') { if (selectedGabarit) genererGabarit(selectedGabarit); }
+    else genererImage();
+  };
+  const genBusy = imgMode === 'gabarit' ? !!gabaritBusy : imgGenerating;
+  const genDisabled = imgLoadingPrompt || genBusy ||
+    (imgMode === 'gabarit' ? !selectedGabarit : imgMode === 'template' ? !activeTemplate : !imgPrompt.trim());
+  const quotaInfo = () => {
+    if (imgMode === 'gabarit' || !imgUsage?.gauges) return null;
+    const at = imgModele === 'nano3' ? 'image_pro' : 'image_standard';
+    const g = imgUsage.gauges.find((x) => x.action_type === at);
+    return g ? { label: g.label, remaining: Math.max(0, g.limit - g.used) } : null;
   };
 
   const importerImage = async (e) => {
@@ -995,143 +1024,203 @@ export default function ContenusPage() {
 
         {/* Image Dialog */}
         <Dialog open={!!imageContenu} onOpenChange={() => setImageContenu(null)}>
-          <DialogContent className="bg-[#0f172a] border-slate-800 max-w-xl max-h-[88vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-white font-sora">Créer le visuel</DialogTitle>
-            </DialogHeader>
+          <DialogContent className="bg-[#0b1120] border-white/10 p-0 gap-0 w-[95vw] max-w-[920px] max-h-[90vh] overflow-hidden">
             {imageContenu && (
-              <div className="space-y-4">
-                {imageContenu.lien_visuel && (
-                  <img src={imageContenu.lien_visuel} alt="" className="w-full rounded-xl max-h-72 object-cover ring-1 ring-white/10" />
-                )}
+              <div className="flex flex-col md:flex-row max-h-[90vh] md:max-h-[620px]">
+                {/* ---- APERÇU ---- */}
+                <div className="md:w-[44%] p-5 flex flex-col gap-3 border-b md:border-b-0 md:border-r border-white/10"
+                  style={{ background: 'radial-gradient(120% 90% at 30% 0%, rgba(91,108,255,.08), transparent 55%), #0b1120' }}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10.5px] tracking-[0.18em] uppercase text-slate-500 font-semibold">Aperçu</span>
+                    {imageContenu.lien_visuel && (
+                      <a href={imageContenu.lien_visuel} target="_blank" rel="noreferrer"
+                        className="w-8 h-8 rounded-lg border border-white/10 grid place-items-center text-slate-400 hover:text-white hover:border-white/20" title="Ouvrir / télécharger">
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex-1 grid place-items-center min-h-[230px]">
+                    {imageContenu.lien_visuel ? (
+                      <img src={imageContenu.lien_visuel} alt="" className="w-full max-w-[320px] aspect-square object-cover rounded-2xl ring-1 ring-white/10 shadow-2xl" />
+                    ) : (
+                      <div className="w-full max-w-[300px] aspect-square rounded-2xl border border-dashed border-white/15 grid place-items-center text-center px-8">
+                        <p className="text-slate-500 text-sm font-inter leading-relaxed">
+                          <ImageIcon className="w-7 h-7 mx-auto mb-2.5 opacity-40" />
+                          Choisis un gabarit, un template,<br />ou décris ton image.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-                {/* Gabarits de marque (feed cohérent) — aperçu visuel cliquable */}
-                {gabarits.length > 0 && (
-                  <div className="rounded-xl border border-[#3AFFA3]/20 bg-[#3AFFA3]/[0.04] p-3 space-y-2.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white font-inter">✨ Visuel par gabarit de marque</span>
-                      <span className="text-[11px] text-slate-500">feed cohérent</span>
+                {/* ---- CONTRÔLES ---- */}
+                <div className="flex-1 md:w-[56%] flex flex-col min-h-0">
+                  <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10 space-y-0 text-left">
+                    <DialogTitle className="text-white font-sora text-[17px]">Créer le visuel</DialogTitle>
+                    <p className="text-[12px] text-slate-500 font-inter">{user?.nom || 'Ta marque'} · feed cohérent</p>
+                  </DialogHeader>
+
+                  <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+                    {/* Toggle de mode */}
+                    <div className="grid grid-cols-3 gap-1 p-1 bg-[#0a0f1c] border border-white/10 rounded-xl">
+                      {[['gabarit', 'Gabarit', LayoutGrid], ['template', 'Template', ScrollText], ['ia', 'Image IA', Wand2]].map(([m, lbl, Icon]) => (
+                        <button key={m} onClick={() => setMode(m)}
+                          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-[13px] font-medium font-inter transition-all ${imgMode === m ? 'bg-[#5B6CFF]/15 text-white border border-[#5B6CFF]/40' : 'text-slate-400 border border-transparent hover:text-white'}`}>
+                          <Icon className="w-3.5 h-3.5" />{lbl}
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-[11.5px] text-slate-500 font-inter">Choisis une mise en page : l'IA écrit le texte depuis ton post et le pose dessus (couleurs + logo de ta marque).</p>
-                    <div className="grid grid-cols-4 gap-2">
-                      {gabarits.map((g) => (
-                        <button key={g} onClick={() => genererGabarit(g)} disabled={!!gabaritBusy} title={gabLabels[g] || g}
-                          className="group relative rounded-lg overflow-hidden border border-white/10 hover:border-[#3AFFA3]/60 transition-colors disabled:opacity-60 text-left">
-                          <div className="relative aspect-square" style={{ background: `radial-gradient(120% 90% at 80% 0%, ${gabAccent}40, transparent 55%), #07070e` }}>
-                            {gabPreviews[g]
-                              ? <img src={gabPreviews[g]} alt={gabLabels[g] || g} className="absolute inset-0 w-full h-full object-cover" />
-                              : gabSkeleton(g)}
-                            {gabaritBusy === g && (
-                              <div className="absolute inset-0 grid place-items-center bg-black/55">
-                                <Loader2 className="w-5 h-5 animate-spin text-[#3AFFA3]" />
+
+                    {/* MODE GABARIT */}
+                    {imgMode === 'gabarit' && (
+                      <div className="space-y-2.5">
+                        <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Mise en page</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {gabarits.map((g) => (
+                            <button key={g} onClick={() => setSelectedGabarit(g)} title={gabLabels[g] || g}
+                              className={`group relative rounded-lg overflow-hidden border transition-all ${selectedGabarit === g ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/30' : 'border-white/10 hover:border-white/25'}`}>
+                              <div className="relative aspect-square" style={{ background: `radial-gradient(120% 90% at 80% 0%, ${gabAccent}40, transparent 55%), #07070e` }}>
+                                {gabPreviews[g]
+                                  ? <img src={gabPreviews[g]} alt={gabLabels[g] || g} className="absolute inset-0 w-full h-full object-cover" />
+                                  : gabSkeleton(g)}
+                                {gabaritBusy === g && <div className="absolute inset-0 grid place-items-center bg-black/55"><Loader2 className="w-5 h-5 animate-spin text-[#3AFFA3]" /></div>}
+                                {selectedGabarit === g && <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#3AFFA3] grid place-items-center"><Check className="w-3 h-3 text-[#04130c]" strokeWidth={3} /></span>}
                               </div>
-                            )}
+                              <div className="px-1.5 py-1 text-[10.5px] font-medium text-white bg-black/40 truncate">{gabLabels[g] || g}</div>
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[11.5px] text-slate-500 font-inter flex items-center gap-1.5"><Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" />L'IA écrit le texte depuis ton post et le pose sur le gabarit.</p>
+                      </div>
+                    )}
+
+                    {/* MODE TEMPLATE */}
+                    {imgMode === 'template' && (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Tes templates de marque</p>
+                          <a href="/dashboard/parametres" className="text-[11.5px] text-[#3AFFA3] hover:underline inline-flex items-center gap-1"><Plus className="w-3 h-3" />Nouveau</a>
+                        </div>
+                        {templates.length === 0 ? (
+                          <p className="text-xs text-slate-600 font-inter">Aucun template. Crée-en un dans Paramètres → Style &amp; Couleurs.</p>
+                        ) : (
+                          <div className="grid grid-cols-3 gap-2">
+                            {templates.map((t) => {
+                              const sel = activeTemplate === t.id;
+                              return (
+                                <button key={t.id} onClick={() => appliquerTemplate(t)} title={t.nom}
+                                  className={`group relative rounded-lg overflow-hidden border transition-all ${sel ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/30' : 'border-white/10 hover:border-white/25'}`}>
+                                  <div className="relative aspect-square bg-[#07070e]">
+                                    {t.images?.[0]
+                                      ? <img src={t.images[0]} alt={t.nom} className="absolute inset-0 w-full h-full object-cover" />
+                                      : <div className="absolute inset-0 grid place-items-center text-slate-600"><ImageIcon className="w-5 h-5" /></div>}
+                                    {sel && <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#3AFFA3] grid place-items-center"><Check className="w-3 h-3 text-[#04130c]" strokeWidth={3} /></span>}
+                                  </div>
+                                  <div className="px-1.5 py-1 text-[10.5px] font-medium text-white bg-black/40 truncate">{t.nom}</div>
+                                </button>
+                              );
+                            })}
                           </div>
-                          <div className="px-1.5 py-1 text-[11px] font-medium text-white flex items-center gap-1 bg-black/40 truncate">
-                            <Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" /><span className="truncate">{gabLabels[g] || g}</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* MODE IMAGE IA */}
+                    {imgMode === 'ia' && (
+                      <>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Description de l'image</label>
+                            <button onClick={() => chargerPrompt(imageContenu)} disabled={imgLoadingPrompt}
+                              className="text-xs text-[#8A6CFF] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
+                              <Wand2 className="w-3 h-3" /> Proposer une description
+                            </button>
                           </div>
-                        </button>
-                      ))}
+                          {imgLoadingPrompt ? (
+                            <div className="flex items-center gap-2 text-slate-400 text-sm py-4"><Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" /> L'IA prépare la description…</div>
+                          ) : (
+                            <Textarea value={imgPrompt} onChange={(e) => setImgPrompt(e.target.value)} rows={3}
+                              className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50" />
+                          )}
+                        </div>
+                        {user?.use_photo && (
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-[#0a0f1c] border border-white/10">
+                            <span className="text-sm text-slate-300 font-inter">Inclure ma photo</span>
+                            <Switch checked={imgAvecPhoto} onCheckedChange={setImgAvecPhoto} />
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Images de référence <span className="text-slate-600 normal-case tracking-normal">· {selectedRefs.length} choisie{selectedRefs.length > 1 ? 's' : ''}</span></label>
+                            <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
+                            <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
+                              className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
+                              {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Ajouter
+                            </button>
+                          </div>
+                          {inspirations.length === 0 ? (
+                            <p className="text-xs text-slate-600 font-inter">Aucune image. Ajoute-en une pour guider le style.</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-2">
+                              {inspirations.map((url) => {
+                                const on = selectedRefs.includes(url);
+                                return (
+                                  <button key={url} onClick={() => toggleRef(url)} title={on ? 'Utilisée' : 'Non utilisée'}
+                                    className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
+                                    <img src={url} alt="" className="w-full h-full object-cover" />
+                                    {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Qualité (modèle) — template + image IA */}
+                    {imgMode !== 'gabarit' && (
+                      <div className="space-y-2">
+                        <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Qualité</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {IMAGE_MODELES.map((m) => (
+                            <button key={m.id} onClick={() => setImgModele(m.id)}
+                              className={`px-3 py-2 rounded-lg text-[13px] font-medium font-inter border transition-all ${imgModele === m.id ? 'bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-[#5B6CFF]/50' : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'}`}>
+                              {m.id === 'nano3' ? 'Image HD' : 'Image standard'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ---- FOOTER ---- */}
+                  <div className="border-t border-white/10 px-5 py-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-[12px] text-slate-400 min-w-0">
+                      {imgMode === 'gabarit' ? (
+                        <span className="text-slate-500 truncate">Inclus dans ton offre</span>
+                      ) : quotaInfo() ? (
+                        <><span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3] shrink-0" /><span className="truncate"><b className="text-slate-200 font-semibold">{quotaInfo().remaining}</b> {quotaInfo().label} restantes</span></>
+                      ) : null}
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <input ref={imgImportRef} type="file" accept="image/*" onChange={importerImage} className="hidden" data-testid="input-import-image" />
+                      {imgMode === 'ia' && (
+                        <Button variant="ghost" size="sm" onClick={() => imgImportRef.current?.click()} disabled={imgImporting} className="text-slate-400 hover:text-white font-inter">
+                          {imgImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                        </Button>
+                      )}
+                      <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">Fermer</Button>
+                      <Button onClick={onGenerate} disabled={genDisabled}
+                        className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter shadow-lg shadow-[#5B6CFF]/30">
+                        {genBusy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
+                        {imageContenu.lien_visuel ? 'Régénérer' : 'Générer le visuel'}
+                      </Button>
                     </div>
                   </div>
-                )}
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <label className="text-sm font-medium text-slate-300 font-inter">{activeTemplate ? 'Texte à afficher sur le template' : "Description de l'image (modifiable)"}</label>
-                    <button onClick={() => chargerPrompt(imageContenu)} disabled={imgLoadingPrompt}
-                      className="text-xs text-[#8A6CFF] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50 flex-shrink-0">
-                      <Wand2 className="w-3 h-3" /> Proposer une description
-                    </button>
-                  </div>
-                  {imgLoadingPrompt ? (
-                    <div className="flex items-center gap-2 text-slate-400 text-sm py-4"><Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" /> L'IA prépare la description…</div>
-                  ) : (
-                    <Textarea value={imgPrompt} onChange={(e) => setImgPrompt(e.target.value)} rows={4}
-                      className="bg-slate-900/80 border-slate-800 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50" />
-                  )}
-                </div>
-                {user?.use_photo && (
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-white/5">
-                    <span className="text-sm text-slate-300 font-inter">Inclure ma photo dans le visuel</span>
-                    <Switch checked={imgAvecPhoto} onCheckedChange={setImgAvecPhoto} />
-                  </div>
-                )}
-
-                {/* Templates de marque */}
-                {templates.length > 0 && (
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-300 font-inter">Template de marque</label>
-                    <div className="flex flex-wrap gap-2">
-                      {templates.map((t) => (
-                        <button key={t.id} onClick={() => appliquerTemplate(t)}
-                          className={`px-3 py-1.5 rounded-lg text-sm font-medium font-inter border transition-all ${activeTemplate === t.id ? 'bg-[#3AFFA3]/15 text-[#3AFFA3] border-[#3AFFA3]/40' : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'}`}>
-                          {t.nom}
-                        </button>
-                      ))}
-                    </div>
-                    {activeTemplate && styleNote && <p className="text-[11px] text-slate-500 font-inter">Style : {styleNote}</p>}
-                  </div>
-                )}
-
-                {/* Images de référence (style) */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <label className="text-sm font-medium text-slate-300 font-inter">Images de référence <span className="text-slate-500 font-normal">(style — {selectedRefs.length} sélectionnée{selectedRefs.length > 1 ? 's' : ''})</span></label>
-                    <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
-                    <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
-                      className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50 flex-shrink-0">
-                      {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Ajouter
-                    </button>
-                  </div>
-                  {inspirations.length === 0 ? (
-                    <p className="text-xs text-slate-600 font-inter">Aucune image de référence. Ajoute-en une (ou via Paramètres) pour guider le style.</p>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {inspirations.map((url) => {
-                        const on = selectedRefs.includes(url);
-                        return (
-                          <button key={url} onClick={() => toggleRef(url)} title={on ? 'Utilisée' : 'Non utilisée'}
-                            className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
-                            <img src={url} alt="" className="w-full h-full object-cover" />
-                            {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <p className="text-[11px] text-slate-600 font-inter">L'IA s'inspire du style (composition, palette, ambiance) des images sélectionnées — 2 à 4 donnent les meilleurs résultats.</p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">Modèle</span>
-                  {IMAGE_MODELES.map((m) => (
-                    <button key={m.id} onClick={() => setImgModele(m.id)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium font-inter border transition-all ${imgModele === m.id ? 'bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-[#5B6CFF]/50' : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'}`}>
-                      {m.label} · {m.cout} cr.
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
-            <DialogFooter className="gap-2 sm:justify-between">
-              <div>
-                <input ref={imgImportRef} type="file" accept="image/*" onChange={importerImage} className="hidden" data-testid="input-import-image" />
-                <Button variant="outline" onClick={() => imgImportRef.current?.click()} disabled={imgImporting}
-                  className="border-white/15 bg-white/[0.03] text-slate-200 hover:bg-white/[0.08] font-inter">
-                  {imgImporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ImageIcon className="w-4 h-4 mr-2" />}
-                  Importer une image
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">Fermer</Button>
-                <Button onClick={genererImage} disabled={imgGenerating || imgLoadingPrompt || !imgPrompt.trim()}
-                  className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter">
-                  {imgGenerating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
-                  {imageContenu?.lien_visuel ? 'Régénérer' : 'Générer'} · {IMAGE_MODELES.find((m) => m.id === imgModele)?.cout} cr.
-                </Button>
-              </div>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 

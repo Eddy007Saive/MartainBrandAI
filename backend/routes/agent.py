@@ -642,6 +642,20 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     prompt = (body.get("prompt") or "").strip()
+    template_mode = bool(body.get("template_mode"))  # template de marque = modèle fixe, l'IA ne change que le texte
+    contenu_id = body.get("contenu_id")
+    # En mode template, c'est l'IA qui ÉCRIT le texte depuis le post (pas l'utilisateur).
+    if template_mode and contenu_id:
+        try:
+            row = supabase.table("contenu").select("contenu, titre").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+            texte_post = (row.data[0].get("contenu") or row.data[0].get("titre") or "") if row.data else ""
+            comp = agent_service.composer_gabarit(telegram_id, "statement", texte_post)
+            if not comp.get("error"):
+                accroche = " ".join((l.get("t") or "") for l in (comp["slots"].get("title_lines") or [])).strip()
+                if accroche:
+                    prompt = accroche  # l'accroche écrite par l'IA = le texte posé sur le template
+        except Exception as e:
+            logger.warning(f"template accroche {contenu_id}: {e}")
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt requis")
     modele = body.get("modele", "nano2")
@@ -652,7 +666,6 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=402, detail=q.get("message"))
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
-    template_mode = bool(body.get("template_mode"))  # template de marque = modèle fixe, l'IA ne change que le texte
     try:
         res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"), refs=refs, style_note=style_note, template_mode=template_mode)
     except Exception as e:
