@@ -380,7 +380,7 @@ export default function ContenusPage() {
     if (!imageContenu || !imgPrompt.trim()) return;
     setImgGenerating(true);
     try {
-      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs, styleNote || null);
+      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs, styleNote || null, !!activeTemplate);
       if (data.credits != null) updateUser({ credits: data.credits });
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
@@ -1038,7 +1038,7 @@ export default function ContenusPage() {
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <label className="text-sm font-medium text-slate-300 font-inter">Description de l'image (modifiable)</label>
+                    <label className="text-sm font-medium text-slate-300 font-inter">{activeTemplate ? 'Texte à afficher sur le template' : "Description de l'image (modifiable)"}</label>
                     <button onClick={() => chargerPrompt(imageContenu)} disabled={imgLoadingPrompt}
                       className="text-xs text-[#8A6CFF] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50 flex-shrink-0">
                       <Wand2 className="w-3 h-3" /> Proposer une description

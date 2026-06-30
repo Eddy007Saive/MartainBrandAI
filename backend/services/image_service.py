@@ -116,7 +116,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     `refs` : images de référence de STYLE choisies à la génération (URLs). Si fourni
@@ -165,6 +165,17 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                       "le visage de la personne de la première image.")
         content = [{"type": "text", "text": texte},
                    {"type": "image_url", "image_url": {"url": photo_refs[0]}}]
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
+    elif inspi_refs and template_mode:
+        # Template de marque = MODÈLE FIXE : on reproduit le visuel à l'identique, on ne change QUE le texte.
+        texte = (
+            "Tu reçois un GABARIT de marque (première image de référence). REPRODUIS-LE À L'IDENTIQUE : "
+            "même mise en page, mêmes couleurs, mêmes éléments graphiques, mêmes polices, mêmes positions, "
+            "même fond. NE MODIFIE RIEN du design. Tu ne changes QUE LE TEXTE affiché, en le remplaçant par "
+            "le contenu ci-dessous. Garde le texte au même endroit, même style/typo, parfaitement lisible et "
+            "sans faute.\n\nTexte à mettre :\n" + prompt
+        )
+        content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
     elif inspi_refs:
         # Pas de photo -> style libre, guidé par les inspirations (illustrations OK)

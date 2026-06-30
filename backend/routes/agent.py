@@ -652,8 +652,9 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=402, detail=q.get("message"))
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
+    template_mode = bool(body.get("template_mode"))  # template de marque = modèle fixe, l'IA ne change que le texte
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"), refs=refs, style_note=style_note)
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, body.get("contenu_id"), refs=refs, style_note=style_note, template_mode=template_mode)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent image error: {e}")

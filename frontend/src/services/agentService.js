@@ -59,8 +59,8 @@ export const agentService = {
 
   // Génère l'image (nano-banana) et l'attache au contenu.
   // refs : images de référence de style (URLs) ; style_note : directive de style (template).
-  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null, style_note = null) =>
-    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}), ...(style_note ? { style_note } : {}) }).then((r) => r.data),
+  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null, style_note = null, template_mode = false) =>
+    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}), ...(style_note ? { style_note } : {}), ...(template_mode ? { template_mode: true } : {}) }).then((r) => r.data),
 
   // Gabarits de post (feed cohérent) : compose le texte du post puis rend le visuel
   gabarits: () => api.get('/agent/gabarits').then((r) => r.data),
