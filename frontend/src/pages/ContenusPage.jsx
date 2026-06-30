@@ -300,7 +300,7 @@ export default function ContenusPage() {
     if (!imageContenu || gabaritBusy) return;
     setGabaritBusy(gab);
     try {
-      const bg = selectedRefs && selectedRefs.length ? selectedRefs[0] : null; // image de référence -> fond du gabarit
+      const bg = templateBg || (selectedRefs && selectedRefs.length ? selectedRefs[0] : null); // photo choisie -> zone photo du gabarit
       const d = await agentService.gabaritAuto(gab, imageContenu.contenu || imageContenu.titre || '', imageContenu.id, bg);
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: d.url } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: d.url } : prev));
@@ -395,7 +395,7 @@ export default function ContenusPage() {
     if (!imgPrompt.trim() && !activeTemplate) return; // template = l'IA écrit le texte côté serveur
     setImgGenerating(true);
     try {
-      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs, styleNote || null, !!activeTemplate, imgMode === 'template' ? templateBg : null);
+      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs, styleNote || null, !!activeTemplate);
       if (data.credits != null) updateUser({ credits: data.credits });
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
@@ -1092,6 +1092,38 @@ export default function ContenusPage() {
                           ))}
                         </div>
                         <p className="text-[11.5px] text-slate-500 font-inter flex items-center gap-1.5"><Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" />L'IA écrit le texte depuis ton post et le pose sur le gabarit.</p>
+
+                        {/* Photo (pour les gabarits avec zone photo : Texte+photo, Citation, Humain, Mission…) */}
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Photo <span className="normal-case tracking-normal text-slate-600">· optionnel</span></label>
+                            <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
+                            <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
+                              className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
+                              {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Importer
+                            </button>
+                          </div>
+                          {inspirations.length === 0 ? (
+                            <p className="text-xs text-slate-600 font-inter">Importe une photo : elle ira dans la zone photo du gabarit.</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-2">
+                              <button onClick={() => setTemplateBg(null)} title="Pas de photo"
+                                className={`w-12 h-12 rounded-lg border-2 grid place-items-center text-[10px] font-medium transition-all ${!templateBg ? 'border-[#3AFFA3] text-[#3AFFA3]' : 'border-white/10 text-slate-500 hover:text-white'}`}>
+                                Aucune
+                              </button>
+                              {inspirations.map((url) => {
+                                const on = templateBg === url;
+                                return (
+                                  <button key={url} onClick={() => setTemplateBg(on ? null : url)} title={on ? 'Photo sélectionnée' : 'Utiliser cette photo'}
+                                    className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-60 hover:opacity-90'}`}>
+                                    <img src={url} alt="" className="w-full h-full object-cover" />
+                                    {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -1123,38 +1155,6 @@ export default function ContenusPage() {
                             })}
                           </div>
                         )}
-
-                        {/* Image de fond (optionnelle) — sert de bg comme dans les gabarits */}
-                        <div className="space-y-2 pt-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Image de fond <span className="normal-case tracking-normal text-slate-600">· optionnel</span></label>
-                            <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
-                            <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
-                              className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
-                              {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Importer
-                            </button>
-                          </div>
-                          {inspirations.length === 0 ? (
-                            <p className="text-xs text-slate-600 font-inter">Importe une image pour l'utiliser en fond.</p>
-                          ) : (
-                            <div className="flex flex-wrap gap-2">
-                              <button onClick={() => setTemplateBg(null)} title="Fond d'origine"
-                                className={`w-12 h-12 rounded-lg border-2 grid place-items-center text-[10px] font-medium transition-all ${!templateBg ? 'border-[#3AFFA3] text-[#3AFFA3]' : 'border-white/10 text-slate-500 hover:text-white'}`}>
-                                Aucun
-                              </button>
-                              {inspirations.map((url) => {
-                                const on = templateBg === url;
-                                return (
-                                  <button key={url} onClick={() => setTemplateBg(on ? null : url)} title={on ? 'Fond sélectionné' : 'Utiliser en fond'}
-                                    className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-60 hover:opacity-90'}`}>
-                                    <img src={url} alt="" className="w-full h-full object-cover" />
-                                    {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
                       </div>
                     )}
 

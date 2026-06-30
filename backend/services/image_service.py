@@ -116,7 +116,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, bg_image: str = None) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     `refs` : images de référence de STYLE choisies à la génération (URLs). Si fourni
@@ -148,11 +148,6 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     if style_urls:
         inspi_refs, _ = await _prep_refs(style_urls)
 
-    # Fond fourni par l'utilisateur (mode template) : sert d'arrière-plan au visuel
-    bg_refs = []
-    if bg_image:
-        bg_refs, _ = await _prep_refs([bg_image])
-
     if photo_refs:
         tenue = (u.get("style_vestimentaire") or "").strip()
         tenue_txt = f" La personne porte la tenue suivante : {tenue}." if tenue else ""
@@ -171,17 +166,6 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
         content = [{"type": "text", "text": texte},
                    {"type": "image_url", "image_url": {"url": photo_refs[0]}}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
-    elif inspi_refs and template_mode and bg_refs:
-        # Template + FOND fourni : on garde la mise en page/le cadre du template, on pose le NOUVEAU FOND, on change le texte.
-        texte = (
-            "La PREMIÈRE image est le FOND à utiliser comme arrière-plan du visuel. "
-            "Les images SUIVANTES sont un GABARIT de marque : reprends EXACTEMENT sa mise en page, son cadre, "
-            "ses couleurs, ses éléments graphiques, ses polices et l'emplacement du texte — mais POSE le tout "
-            "par-dessus le nouveau fond (première image). NE MODIFIE RIEN du design du gabarit. Tu ne changes QUE "
-            "LE TEXTE affiché, en le remplaçant par le contenu ci-dessous, lisible et sans faute.\n\nTexte à mettre :\n" + prompt
-        )
-        content = [{"type": "text", "text": texte}]
-        content += [{"type": "image_url", "image_url": {"url": url}} for url in (bg_refs + inspi_refs)]
     elif inspi_refs and template_mode:
         # Template de marque = MODÈLE FIXE : on reproduit le visuel à l'identique, on ne change QUE le texte.
         texte = (

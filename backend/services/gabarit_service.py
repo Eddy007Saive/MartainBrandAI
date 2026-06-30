@@ -24,6 +24,7 @@ DSF = 1.8
 # Ordre d'affichage + libellés
 GAB_LABELS = {
     "statement": "Accroche",
+    "split": "Texte + photo",
     "acquisition": "Acquisition",
     "citation": "Citation",
     "dashboard": "Tableau de bord",
@@ -37,6 +38,11 @@ GAB_LABELS = {
     "closing": "Signature",
 }
 GABARITS = list(GAB_LABELS.keys())
+
+# Vignettes d'aperçu STATIQUES (rendues une fois, neutres) -> chargement instantané du sélecteur.
+# Pour les régénérer après ajout/modif d'un gabarit : relancer scripts/render_static_previews.
+_STATIC_BASE = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/gabarits/_static"
+STATIC_PREVIEWS = {g: f"{_STATIC_BASE}/{g}.png" for g in GABARITS}
 
 _ICONS = {
     "star": '<path d="M12 3l1.9 5.8L20 10l-5.1 3.7L16 20l-4-3.6L8 20l1.1-6.3L4 10l6.1-1.2z"/>',
@@ -177,6 +183,20 @@ def _g_statement(s, b):
             + _sub(s.get("subtitle"), "margin-top:18px"))
 
 
+def _g_split(s, b):
+    # Texte à gauche, ZONE PHOTO à droite (la photo fournie la remplit, position fixe).
+    img = s.get("bg_image")
+    bgimg = f"url('{_esc(img)}')" if img else "linear-gradient(160deg,#241a44,#0a0a16)"
+    photo = (f'<div style="position:absolute;top:0;right:0;bottom:0;width:54%;z-index:0;'
+             f'background-image:{bgimg};background-size:cover;background-position:center"></div>'
+             f'<div style="position:absolute;inset:0;z-index:1;'
+             f'background:linear-gradient(90deg,{b["bg"]} 0%,{b["bg"]} 40%,{b["bg"]}00 74%)"></div>')
+    return (f'{photo}{_brandbar(b, eyebrow=s.get("eyebrow") or "")}'
+            f'<div class="spacer"></div>'
+            f'<div class="h" style="font-size:44px;max-width:60%">{_title_html(s.get("title_lines"))}</div>'
+            + _sub(s.get("subtitle"), "max-width:54%;margin-top:14px"))
+
+
 def _g_acquisition(s, b):
     cells = "".join(f'<div class="stat"><div class="k">{_esc(x.get("k"))}</div><div class="n{" v" if x.get("v") else ""}">{_esc(x.get("n"))}</div></div>'
                     for x in (s.get("stats") or [])[:4])
@@ -285,7 +305,7 @@ def _g_closing(s, b):
 
 
 _BUILDERS = {
-    "statement": _g_statement, "acquisition": _g_acquisition, "citation": _g_citation,
+    "statement": _g_statement, "split": _g_split, "acquisition": _g_acquisition, "citation": _g_citation,
     "dashboard": _g_dashboard, "features": _g_features, "phone": _g_phone,
     "services": _g_services, "mission": _g_mission, "integrations": _g_integrations,
     "testimonial": _g_testimonial, "people": _g_people, "closing": _g_closing,
@@ -294,6 +314,7 @@ _BUILDERS = {
 # Contenu d'exemple pour les vignettes d'aperçu (placeholder par gabarit)
 _SAMPLES = {
     "statement": {"eyebrow": "Vision", "title_lines": [{"t": "MOINS"}, {"t": "DE STRESS."}, {"t": "PLUS DE", "c": "a"}, {"t": "RÉSULTATS.", "c": "a"}], "subtitle": "On automatise ce qui te prend du temps."},
+    "split": {"eyebrow": "Plus de clients", "title_lines": [{"t": "C'EST PAS"}, {"t": "PLUS GRAND,"}, {"t": "C'EST PLUS LOURD.", "c": "a"}], "subtitle": "La traction, pas la taille."},
     "acquisition": {"eyebrow": "Acquisition", "title_lines": [{"t": "TON MOTEUR"}, {"t": "D'ACQUISITION."}, {"t": "CONNECTÉ. PILOTÉ.", "c": "v"}], "stats": [{"k": "Leads", "n": "2 782", "v": True}, {"k": "CA", "n": "18,4k€"}, {"k": "Conv.", "n": "7,6%", "v": True}, {"k": "RDV", "n": "212"}]},
     "citation": {"label": "Témoignage", "quote_lines": [{"t": "Libère-toi de"}, {"t": "l'opérationnel."}, {"t": "Construis l'essentiel.", "c": "v"}], "author": {"name": "Martin K.", "role": "Fondateur"}},
     "dashboard": {"eyebrow": "Vos données", "title_lines": [{"t": "VOTRE ACTIVITÉ."}, {"t": "VOS DONNÉES."}, {"t": "VOTRE CONTRÔLE.", "c": "v"}], "big": [{"k": "CA du mois", "n": "128 580 €", "bars": [40, 60, 50, 80, 65, 100]}, {"k": "Occupation", "n": "72%", "v": True, "bars": [55, 70, 62, 85, 74, 90]}]},
@@ -388,6 +409,17 @@ def _render_previews(telegram_id, brand, sig):
 _PREVIEW_CACHE = {}
 
 
+def _thumb(url: str, size: int = 240) -> str:
+    """URL Cloudinary redimensionnée + optimisée (q_auto + WebP) pour des vignettes légères."""
+    if url and "/upload/" in url:
+        return url.replace("/upload/", f"/upload/c_fill,w_{size},h_{size},q_auto,f_auto/", 1)
+    return url
+
+
+def _thumbs(d: dict) -> dict:
+    return {k: _thumb(v) for k, v in (d or {}).items()}
+
+
 async def render_gabarit(telegram_id: str, gabarit: str, slots: dict) -> dict:
     if gabarit not in _BUILDERS:
         return {"ok": False, "error": "Gabarit inconnu."}
@@ -401,16 +433,6 @@ async def render_gabarit(telegram_id: str, gabarit: str, slots: dict) -> dict:
 
 
 async def previews(telegram_id: str) -> dict:
-    """Vignettes d'aperçu (rendu réel, mises en cache par signature de marque)."""
-    brand = _brand_of(telegram_id)
-    sig = _brand_sig(brand)
-    key = f"{telegram_id}:{sig}"
-    if key in _PREVIEW_CACHE:
-        return {"previews": _PREVIEW_CACHE[key], "labels": GAB_LABELS}
-    try:
-        out = await asyncio.to_thread(_render_previews, telegram_id, brand, sig)
-        _PREVIEW_CACHE[key] = out
-        return {"previews": out, "labels": GAB_LABELS}
-    except Exception as e:
-        logger.error(f"previews error {telegram_id}: {e}")
-        return {"previews": {}, "labels": GAB_LABELS}
+    """Vignettes d'aperçu STATIQUES (instantanées). Elles montrent la mise en page ;
+    le visuel final utilise les vraies couleurs de la marque."""
+    return {"previews": _thumbs(STATIC_PREVIEWS), "labels": GAB_LABELS}

@@ -398,6 +398,9 @@ _GAB_SPECS = {
     "statement": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"LIGNE COURTE MAJUSCULES","c":"a (optionnel)"}],"subtitle":"phrase courte"} '
                   '— title_lines = 3 à 4 lignes de max 3 mots, marque 1-2 lignes avec "c":"a".',
                   ["eyebrow", "title_lines", "subtitle"]),
+    "split": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"LIGNE COURTE MAJUSCULES","c":"a (optionnel)"}],"subtitle":"phrase courte"} '
+              '— title_lines = 3 lignes courtes, marque 1 ligne avec "c":"a".',
+              ["eyebrow", "title_lines", "subtitle"]),
     "acquisition": ('{"eyebrow":"1-2 mots","title_lines":[{"t":"MAJUSCULES","c":"v (optionnel)"}],"stats":[{"k":"libellé","n":"valeur","v":true}]} '
                     '— title_lines = 2-3 lignes ; stats = 4 (chiffres du post, sinon "n":"—", jamais de faux chiffres).',
                     ["eyebrow", "title_lines", "stats"]),

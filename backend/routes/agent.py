@@ -666,9 +666,8 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=402, detail=q.get("message"))
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
-    bg_image = (body.get("bg_image") or "").strip() or None  # fond fourni par l'utilisateur (mode template)
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, bg_image=bg_image)
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent image error: {e}")
