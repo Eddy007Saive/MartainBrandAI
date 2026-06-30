@@ -133,7 +133,7 @@ def _apply_subscription(sub: dict):
             uid = q.data[0]["telegram_id"]
     if not uid:
         logger.warning("stripe webhook: utilisateur introuvable")
-        return
+        return None
 
     ps = _ts(sub.get("current_period_start"))
     pe = _ts(sub.get("current_period_end"))
@@ -147,6 +147,7 @@ def _apply_subscription(sub: dict):
         "plan_renews_at": pe,
     }).eq("telegram_id", uid).execute()
     logger.info(f"stripe: {uid} -> {status}")
+    return {"uid": uid, "status": status}
 
 
 # ----------------------------------------------------------------- Packs de rachat
@@ -247,6 +248,7 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
 
     etype = event["type"]
     obj = event["data"]["object"]
+    canceled_uid = None  # à déconnecter (abo terminé) -> géré async par la route
     try:
         if etype == "checkout.session.completed":
             if (obj.get("metadata") or {}).get("pack_id"):
@@ -254,7 +256,9 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
             elif obj.get("subscription"):
                 _apply_subscription(stripe.Subscription.retrieve(obj["subscription"]))
         elif etype in ("customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"):
-            _apply_subscription(obj)
+            res = _apply_subscription(obj)
+            if res and res.get("status") == "canceled":
+                canceled_uid = res["uid"]              # fin de cycle -> on libère les réseaux Late
     except Exception as e:
         logger.error(f"stripe webhook handle error: {e}")
-    return {"ok": True, "event": etype}
+    return {"ok": True, "event": etype, "canceled_uid": canceled_uid}

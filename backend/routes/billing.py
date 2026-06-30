@@ -65,7 +65,16 @@ async def stripe_webhook(request: Request):
     raw = await request.body()
     sig = request.headers.get("stripe-signature")
     try:
-        return billing_service.handle_webhook(raw, sig)
+        result = billing_service.handle_webhook(raw, sig)
+        # Abonnement terminé (fin de cycle) -> on déconnecte ses réseaux (stoppe le coût Late)
+        uid = result.get("canceled_uid") if isinstance(result, dict) else None
+        if uid:
+            from services import social_service
+            try:
+                await social_service.disconnect_all(uid)
+            except Exception as e:
+                logger.error(f"webhook disconnect_all {uid}: {e}")
+        return result
     except Exception as e:
         logger.error(f"stripe webhook error: {e}")
         return {"ok": False}

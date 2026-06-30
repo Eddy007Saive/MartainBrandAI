@@ -191,3 +191,30 @@ async def disconnect_platform(telegram_id: str, platform: str) -> dict:
         return {"success": False, "error": "Erreur lors de la déconnexion."}
 
     return {"success": True}
+
+
+async def disconnect_all(telegram_id: str) -> int:
+    """Déconnecte TOUS les réseaux du compte (libère les slots Late -> stoppe le coût récurrent).
+    Appelé quand un abonnement se termine définitivement (canceled/unpaid). Retourne le nb déconnectés."""
+    fields = list(FIELD_MAP.values())
+    res = supabase.table("users").select(",".join(fields)).eq("telegram_id", telegram_id).execute()
+    row = res.data[0] if res.data else {}
+    n = 0
+    for field in fields:
+        account_id = row.get(field)
+        if not account_id:
+            continue
+        if LATE_API_KEY:
+            try:
+                async with Zernio(api_key=LATE_API_KEY) as client:
+                    await client.accounts.adelete_account(account_id)
+            except Exception as e:
+                logger.warning(f"disconnect_all Late {telegram_id}/{field} ({account_id}): {e}")
+        try:
+            supabase.table("users").update({field: None}).eq("telegram_id", telegram_id).execute()
+            n += 1
+        except Exception as e:
+            logger.error(f"disconnect_all cleanup {telegram_id}/{field}: {e}")
+    if n:
+        logger.info(f"disconnect_all : {n} réseau(x) déconnecté(s) pour {telegram_id} (abonnement terminé)")
+    return n
