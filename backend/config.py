@@ -34,6 +34,10 @@ OPENROUTER_IMAGE_MODEL = os.environ.get('OPENROUTER_IMAGE_MODEL', 'google/gemini
 HEYGEN_API_KEY = os.environ.get('HEYGEN_API_KEY', '')
 
 # Cloudinary
+# Cloudflare Turnstile (anti-bot sur le formulaire public d'audit)
+# Clés de TEST par défaut (passent toujours) — à remplacer par les vraies en prod.
+TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '1x0000000000000000000000000000000AA')
+
 CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
 CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
 CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
@@ -41,6 +45,8 @@ CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
 # Resend (envoi d'emails — mot de passe oublié)
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY') or os.environ.get('api_resend', '')
 RESEND_FROM = os.environ.get('RESEND_FROM', 'PresenceOS <onboarding@resend.dev>')
+# Email qui reçoit les notifications internes (nouveaux audits de marque, etc.)
+ADMIN_NOTIF_EMAIL = os.environ.get('ADMIN_NOTIF_EMAIL', 'martindumoulin88@gmail.com')
 # URL du frontend (pour construire le lien de réinitialisation)
 FRONTEND_URL = (os.environ.get('FRONTEND_URL', 'http://localhost:3000')).rstrip('/')
 # URL publique du backend (pour le callback OAuth des réseaux) — en prod : l'URL Railway

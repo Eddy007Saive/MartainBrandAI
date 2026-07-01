@@ -78,4 +78,12 @@ export const adminService = {
   updatePack: (id, data) => adminFetch(`/admin/credit-packs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   createPack: (data) => adminFetch('/admin/credit-packs', { method: 'POST', body: JSON.stringify(data) }),
   deletePack: (id) => adminFetch(`/admin/credit-packs/${id}`, { method: 'DELETE' }),
+
+  // Audits de marque (leads onboarding)
+  getAudits: () => adminFetch('/onboarding/audits'),
+  getAudit: (id) => adminFetch(`/onboarding/audits/${id}`),
+  replyAudit: (id, subject, message) =>
+    adminFetch(`/onboarding/audits/${id}/reply`, { method: 'POST', body: JSON.stringify({ subject, message }) }),
+  setAuditStatus: (id, status) =>
+    adminFetch(`/onboarding/audits/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
 };

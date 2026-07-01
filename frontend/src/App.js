@@ -13,6 +13,7 @@ import MentionsLegales from "./pages/marketing/MentionsLegales";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Pending from "./pages/Pending";
+import AuditMarque from "./pages/AuditMarque";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -45,6 +46,7 @@ function App() {
             <Route path="/mentions-legales" element={<MentionsLegales />} />
           </Route>
 
+          <Route path="/audit-marque" element={<AuditMarque />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/pending" element={<Pending />} />

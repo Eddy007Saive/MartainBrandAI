@@ -5,13 +5,14 @@ import {
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
   Loader2, ChevronRight, Clock, CheckCircle, XCircle, RefreshCw,
   Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
-  Plus, Minus, DollarSign, Wifi
+  Plus, Minus, DollarSign, Wifi, Inbox
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import QuotaConfigTab from '../components/admin/QuotaConfigTab';
+import AuditsTab from '../components/admin/AuditsTab';
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ const navItems = [
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'avatars', label: 'Avatars', icon: Video },
+  { id: 'audits', label: 'Audits', icon: Inbox },
   { id: 'quotas', label: 'Offres & quotas', icon: Coins },
   { id: 'activity', label: 'Activité', icon: Activity },
   { id: 'settings', label: 'Paramètres', icon: Settings },
@@ -901,6 +903,7 @@ export default function Admin() {
           )}
 
           {/* Offres & quotas Tab */}
+          {activeTab === 'audits' && <AuditsTab />}
           {activeTab === 'quotas' && <QuotaConfigTab />}
 
           {/* Activity Tab */}
