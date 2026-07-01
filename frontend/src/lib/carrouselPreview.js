@@ -100,7 +100,7 @@ function _renderRaw(tplId, colors) {
   const S = colors?.s || '#0077FF';
   const A = colors?.a || '#3AFFA3';
   const Aink = inkOn(A), Sink = inkOn(S);
-  const CREAM = light(P, 0.93), CLINE = mix(P, '#ffffff', 0.8), NEAR = mix(P, '#0a0c0b', 0.85);
+  const CREAM = light(P, 0.93), CLINE = mix(P, '#ffffff', 0.8), NEAR = mix(P, '#0a0c0b', 0.5);
   const INKL = '#14201b', MUTL = '#5d655e', MUTD = 'rgba(255,255,255,.66)';
   const accL = accOnLight(A), accD = accOnDark(A);
   const n = 2 + CONTENT.slides.length;
@@ -111,7 +111,7 @@ function _renderRaw(tplId, colors) {
   const av = (bg, ink) => avHTML(logo, initial, bg, ink);
 
   if (tplId === 'creme') return refFamily(P, A, { bg: CREAM, bg2: light(P, 0.88), ink: INKL, mut: MUTL, line: CLINE, accentText: accL, pillOutline: false }, ctx);
-  if (tplId === 'sombre') return refFamily(P, A, { bg: NEAR, bg2: mix(P, '#0a0c0b', 0.78), ink: '#fff', mut: MUTD, line: 'rgba(255,255,255,.15)', accentText: accD, pillOutline: true }, ctx);
+  if (tplId === 'sombre') return refFamily(P, A, { bg: NEAR, bg2: mix(P, '#0a0c0b', 0.62), ink: '#fff', mut: MUTD, line: 'rgba(255,255,255,.15)', accentText: accD, pillOutline: true }, ctx);
 
   if (tplId === 'alterne') {
     const out = [];

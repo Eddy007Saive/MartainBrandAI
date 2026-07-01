@@ -77,8 +77,8 @@ def _acc_dark(a):    # accent lisible sur fond sombre
     return a if _lum(a) > 0.34 else _lighten(a, 0.42)
 
 
-def _near(p):        # fond quasi-noir teinté (toujours sombre)
-    return _mix(p, "#0a0c0b", 0.85)
+def _near(p):        # fond sombre teinté par la couleur choisie (reste assez sombre pour le texte blanc)
+    return _mix(p, "#0a0c0b", 0.5)
 
 
 # ---- icônes 3D (banque locale) + recolorage duotone à la couleur d'accent ----
@@ -205,7 +205,7 @@ def _tpl_creme(content, p, s, a, nom, secteur, logo):
 def _tpl_sombre(content, p, s, a, nom, secteur, logo):
     p = p or "#003D2E"
     return _ref(content, p, a or "#3AFFA3", nom, secteur, logo,
-                bg=_near(p), bg2=_mix(p, "#0a0c0b", .78), ink="#ffffff", mut="rgba(255,255,255,.66)",
+                bg=_near(p), bg2=_mix(p, "#0a0c0b", .62), ink="#ffffff", mut="rgba(255,255,255,.66)",
                 line="rgba(255,255,255,.15)", accent_text=_acc_dark(a or "#3AFFA3"))
 
 
