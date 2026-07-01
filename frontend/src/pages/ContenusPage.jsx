@@ -37,7 +37,8 @@ import { userService } from '../services/userService';
 import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 import { ColorField } from '../components/ColorField';
-import { CAROUSEL_FONTS } from '../lib/carrouselPreview';
+import { CAROUSEL_FONTS, renderSlides, SLIDE_CSS } from '../lib/carrouselPreview';
+import { scheduleService } from '../services/scheduleService';
 
 const IMAGE_MODELES = [
   { id: 'nano2', label: 'nano-banana 2.5', cout: 50 },
@@ -194,8 +195,16 @@ export default function ContenusPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedContenu, setSelectedContenu] = useState(null);
-  const [czR, setCzR] = useState(null);     // retouche couleurs/police d'un carrousel
+  const [czR, setCzR] = useState(null);     // retouche couleurs/police d'un carrousel (aperçu live)
   const [czRBusy, setCzRBusy] = useState(false);
+  const [czSlide, setCzSlide] = useState(0); // slide affichée dans l'aperçu
+  const [czTemplates, setCzTemplates] = useState({}); // template de carrousel par réseau
+  useEffect(() => {
+    scheduleService.getAll().then((rows) => {
+      const m = {}; (rows || []).forEach((r) => { m[(r.platform || '').toLowerCase()] = r.carrousel_template || 'creme'; });
+      setCzTemplates(m);
+    }).catch(() => {});
+  }, []);
   const [editContenu, setEditContenu] = useState(null);
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
@@ -208,7 +217,8 @@ export default function ContenusPage() {
 
   // Retouche carrousel : init des couleurs/police depuis la marque quand on ouvre un carrousel
   useEffect(() => {
-    const isCarr = selectedContenu && Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0;
+    const isCarr = selectedContenu && (selectedContenu.carrousel_data || (Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0));
+    setCzSlide(0);
     setCzR(isCarr ? {
       p: user?.carrousel_couleur_principale || user?.couleur_principale || '#003D2E',
       s: user?.carrousel_couleur_secondaire || user?.couleur_secondaire || '#0077FF',
@@ -243,6 +253,26 @@ export default function ContenusPage() {
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Échec de la retouche');
     } finally { setCzRBusy(false); }
+  };
+  // Aperçu LIVE (client-side) du vrai carrousel avec la retouche — instantané, sans backend
+  const czPreviewSlides = () => {
+    if (!selectedContenu || !czR || !selectedContenu.carrousel_data) return null;
+    const tpl = czTemplates[(selectedContenu.reseau_cible || '').toLowerCase()] || 'creme';
+    return renderSlides(tpl, {
+      p: czR.p, s: czR.s, a: czR.a, font: czR.font || '',
+      logo: user?.logo_url, nom: user?.nom || user?.username,
+      content: selectedContenu.carrousel_data,
+    });
+  };
+  // Validation : rendu final des images avec la retouche, PUIS validation
+  const validerContenu = async (id) => {
+    if (czR && selectedContenu?.carrousel_data) {
+      setCzRBusy(true);
+      try { await agentService.recolorCarrousel(id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || ''); }
+      catch (e) { /* on valide quand même avec les images existantes */ }
+      finally { setCzRBusy(false); }
+    }
+    handleUpdateStatut(id, 'Valider');
   };
   const [imgPrompt, setImgPrompt] = useState('');
   const [imgAvecPhoto, setImgAvecPhoto] = useState(false);
@@ -859,8 +889,8 @@ export default function ContenusPage() {
                     <>
                       <Button
                         size="sm"
-                        onClick={() => handleUpdateStatut(selectedContenu.id, 'Valider')}
-                        disabled={actionLoading === selectedContenu?.id}
+                        onClick={() => validerContenu(selectedContenu.id)}
+                        disabled={actionLoading === selectedContenu?.id || czRBusy}
                         className="bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 font-inter"
                       >
                         {actionLoading === selectedContenu?.id ? (
@@ -926,7 +956,35 @@ export default function ContenusPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-1">
                 {/* Colonne gauche : visuel + liens */}
                 <div className="space-y-3">
-                  {Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0 ? (
+                  {selectedContenu.carrousel_data ? (
+                    // Aperçu LIVE (client-side) — reflète la retouche instantanément, sans re-render
+                    <>
+                      <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
+                      {(() => {
+                        const slides = czPreviewSlides() || [];
+                        const idx = Math.min(czSlide, Math.max(0, slides.length - 1));
+                        return (
+                          <div className="space-y-2.5">
+                            <div className="relative mx-auto rounded-xl overflow-hidden ring-1 ring-white/10 shadow-xl" style={{ width: 220, height: 275 }}>
+                              <div className="origin-top-left" style={{ transform: 'scale(1.1)', width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: slides[idx] || '' }} />
+                            </div>
+                            <div className="flex gap-1.5 justify-center flex-wrap">
+                              {slides.map((_, i) => (
+                                <button key={i} onClick={() => setCzSlide(i)} title={`slide ${i + 1}`}
+                                  className={`rounded-md overflow-hidden border transition-all ${i === idx ? 'border-[#3AFFA3] ring-1 ring-[#3AFFA3]/40' : 'border-white/10 opacity-60 hover:opacity-100'}`}
+                                  style={{ width: 32, height: 40 }}>
+                                  <div className="origin-top-left" style={{ transform: 'scale(0.16)', width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: slides[i] }} />
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[11px] text-[#3AFFA3] text-center font-inter flex items-center justify-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3]" />Aperçu live — reflète ta retouche
+                            </p>
+                          </div>
+                        );
+                      })()}
+                    </>
+                  ) : Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2">
                       {selectedContenu.slides_images.map((u, i) => (
                         <button key={i} type="button" onClick={() => setLightbox({ images: selectedContenu.slides_images, index: i })}
@@ -953,11 +1011,8 @@ export default function ContenusPage() {
                   {czR && (
                     <div className="rounded-xl border border-white/10 bg-slate-950/40 p-3 space-y-2.5">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Retoucher les couleurs</span>
-                        <button onClick={retoucherCarrousel} disabled={czRBusy}
-                          className="text-[12.5px] font-semibold px-3 py-1.5 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-60 inline-flex items-center gap-1.5">
-                          {czRBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Régénérer les images
-                        </button>
+                        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Retoucher</span>
+                        <span className="text-[10.5px] text-[#3AFFA3] font-semibold">↑ aperçu instantané</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         <ColorField label="Fond" name="p" value={czR.p} onChange={setCzRColor} />
@@ -968,7 +1023,7 @@ export default function ContenusPage() {
                         className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
                         {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
                       </select>
-                      <p className="text-[11px] text-slate-600 font-inter">Le texte ne change pas — on ré-applique juste les couleurs/police. Gratuit.</p>
+                      <p className="text-[11px] text-slate-600 font-inter">Le texte ne change pas. Les images finales sont rendues à la <b className="text-slate-400">validation</b>.</p>
                     </div>
                   )}
 

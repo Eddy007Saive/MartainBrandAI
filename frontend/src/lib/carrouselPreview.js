@@ -49,7 +49,7 @@ export const SLIDE_CSS = `
 .cz-grow{flex:1}
 `;
 
-const CONTENT = {
+const DEMO_CONTENT = {
   hook: 'Le sujet de ton carrousel',
   slides: [
     { t: 'Idée forte 01', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'chart' },
@@ -58,6 +58,21 @@ const CONTENT = {
   ],
   cta: { t: 'Passe à l’action', x: 'Ton appel à l’action final.' },
 };
+// CONTENT est mutable : renderSlides le remplace par le VRAI carrousel si fourni (colors.content = carrousel_data)
+let CONTENT = DEMO_CONTENT;
+function _mapContent(d) {
+  if (!d || typeof d !== 'object') return DEMO_CONTENT;
+  const slides = (d.slides || []).map((s) => ({
+    t: s.titre || s.t || '', x: s.texte || s.x || '',
+    pills: Array.isArray(s.pills) ? s.pills : [], tip: s.pro_tip || s.protip || s.tip || '', icon: s.icon || '',
+  }));
+  const cta = d.cta || {};
+  return {
+    hook: d.hook || DEMO_CONTENT.hook,
+    slides: slides.length ? slides : DEMO_CONTENT.slides,
+    cta: { t: cta.titre || cta.t || DEMO_CONTENT.cta.t, x: cta.texte || cta.x || DEMO_CONTENT.cta.x },
+  };
+}
 
 // filtre duotone (recolore une icône 3D à la couleur d'accent)
 const duotoneSvg = (a) => {
@@ -168,7 +183,9 @@ export const CAROUSEL_FONTS = [
 ];
 
 function renderSlides(tplId, colors) {
-  const slides = _renderRaw(tplId, colors);
+  CONTENT = colors?.content ? _mapContent(colors.content) : DEMO_CONTENT;  // vrai carrousel si fourni
+  let slides;
+  try { slides = _renderRaw(tplId, colors); } finally { CONTENT = DEMO_CONTENT; }
   const font = colors?.font;
   if (!font) return slides;
   return slides.map((h) => CZ_DISPLAY_FONTS.reduce((acc, f) => acc.split('font-family:' + f).join("font-family:'" + font + "'"), h));

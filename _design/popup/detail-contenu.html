@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Anton&display=swap" rel="stylesheet">
+<title>Détail du contenu — refonte</title>
+<style>
+  :root{
+    --bg:#020617; --panel:#0b1120; --panel2:#0d1424; --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.13);
+    --ink:#f1f5f9; --mut:#94a3b8; --dim:#64748b; --g1:#5B6CFF; --g2:#8A6CFF; --mint:#3AFFA3; --amber:#f5b544;
+    /* couleur de marque du carrousel (éditable dans le panneau) */
+    --cz-bg:#0d0d15; --cz-acc:#ff2d4d; --cz-ink:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#000;font-family:Inter,system-ui,sans-serif;min-height:100vh;display:grid;place-items:center;padding:26px}
+  .stage{position:relative;width:1120px;height:748px;border-radius:20px;overflow:hidden;display:grid;place-items:center;
+    background:radial-gradient(900px 500px at 12% -8%, rgba(91,108,255,.16), transparent 60%),
+      radial-gradient(700px 480px at 100% 110%, rgba(58,255,163,.06), transparent 55%), var(--bg)}
+  .scrim{position:absolute;inset:0;background:rgba(2,6,23,.55);backdrop-filter:blur(3px)}
+
+  .modal{position:relative;width:1040px;height:680px;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,#0d1424,#0a0f1c);border:1px solid var(--line2);
+    box-shadow:0 40px 120px rgba(0,0,0,.65)}
+
+  /* header */
+  .head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .head h2{font-family:Sora;font-weight:700;font-size:18px;color:var(--ink);letter-spacing:-.01em;line-height:1.3;max-width:640px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .chips{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line2)}
+  .chip.st{color:var(--amber);border-color:rgba(245,181,68,.35);background:rgba(245,181,68,.1)}
+  .chip.st .dot{width:6px;height:6px;border-radius:50%;background:var(--amber)}
+  .chip.net{color:#fff;border:0;background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)}
+  .chip.tp{color:var(--mut)}
+  .x{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;color:var(--mut);cursor:pointer;flex-shrink:0}
+  .x:hover{background:rgba(255,255,255,.05);color:#fff}
+  .x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+
+  .body{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0}
+
+  /* ---------- APERÇU (gauche) ---------- */
+  .left{border-right:1px solid var(--line);padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-height:0;
+    background:radial-gradient(120% 80% at 20% 0%, rgba(91,108,255,.06), transparent 55%), var(--panel)}
+  .ey{display:flex;align-items:center;gap:8px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:600}
+  .livedot{display:inline-flex;align-items:center;gap:5px;color:var(--mint);letter-spacing:.04em}
+  .livedot i{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+  .hero{display:grid;place-items:center}
+  /* slide carrousel (reproduction du template sombre) */
+  .slide{width:250px;height:312px;border-radius:14px;overflow:hidden;position:relative;display:flex;flex-direction:column;
+    padding:20px 18px 26px;background:var(--cz-bg);color:var(--cz-ink);box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05)}
+  .tag{align-self:flex-start;font-family:Sora;font-weight:800;font-size:9px;letter-spacing:.05em;padding:5px 10px;border-radius:6px;background:var(--cz-acc);color:#fff;text-transform:uppercase}
+  .sh1{font-family:Anton;font-size:33px;line-height:.94;letter-spacing:.4px;text-transform:uppercase;margin-top:auto}
+  .sfoot{display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+  .sbrand{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:700}
+  .sbrand .av{width:16px;height:16px;border-radius:50%;background:var(--cz-acc);display:grid;place-items:center;font-family:Anton;font-size:8px}
+  .sswipe{font-family:Sora;font-weight:800;font-size:9px;color:var(--cz-acc)}
+  /* strip de slides */
+  .strip{display:flex;gap:7px;justify-content:center}
+  .th{width:38px;height:48px;border-radius:6px;overflow:hidden;border:1.5px solid var(--line);background:var(--cz-bg);cursor:pointer;position:relative;flex-shrink:0}
+  .th.on{border-color:var(--mint)}
+  .th b{position:absolute;bottom:2px;right:3px;font-size:7px;color:#fff9;font-family:Sora}
+  .th .tt{position:absolute;top:4px;left:4px;width:14px;height:3px;border-radius:2px;background:var(--cz-acc)}
+
+  /* panneau retouche */
+  .retouch{border:1px solid var(--line);border-radius:12px;background:#0a0f1c;padding:12px 13px;margin-top:auto}
+  .rt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .rt-top .t{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:600}
+  .rt-top .live{font-size:10.5px;color:var(--mint);font-weight:600}
+  .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .sw{display:flex;align-items:center;gap:8px;background:#0d1424;border:1px solid var(--line);border-radius:9px;padding:7px 8px}
+  .sw .c{width:22px;height:22px;border-radius:6px;flex-shrink:0;border:1px solid rgba(255,255,255,.15)}
+  .sw .l{min-width:0}
+  .sw .l .n{font-size:10px;color:var(--mut)}
+  .sw .l .v{font-size:11px;color:#cbd5e1;font-family:ui-monospace,monospace}
+  .fontrow{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .fontrow select{flex:1;background:#0d1424;border:1px solid var(--line);color:#cbd5e1;font-size:12px;border-radius:8px;padding:7px 9px;font-family:Inter}
+  .fontrow .lab{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:600}
+
+  /* ---------- CONTENU (droite) ---------- */
+  .right{display:flex;flex-direction:column;min-height:0}
+  .rscroll{flex:1;overflow-y:auto;padding:16px 18px;min-height:0}
+  .rscroll::-webkit-scrollbar{width:8px}.rscroll::-webkit-scrollbar-thumb{background:#1e293b;border-radius:4px}
+  .postlbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:10px}
+  .post{color:#cbd5e1;font-size:14px;line-height:1.65;white-space:pre-wrap}
+  .post b{color:#fff;font-weight:600}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .mcard{background:#0a0f1c;border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+  .mcard .k{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:600}
+  .mcard .v{font-size:13.5px;color:#e2e8f0;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+  .mcard .v.ok{color:var(--mint)}
+  /* bandeau erreur discret */
+  .err{display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:10px 12px;border-radius:10px;
+    background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.22)}
+  .err svg{width:15px;height:15px;stroke:#f87171;fill:none;stroke-width:2;flex-shrink:0;margin-top:1px}
+  .err .t{font-size:12px;color:#fca5a5;line-height:1.45}
+  .err .t b{color:#fecaca;font-weight:600}
+
+  /* ---------- FOOTER ---------- */
+  .foot{border-top:1px solid var(--line);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#0a0f1c}
+  .foot .hint{font-size:11.5px;color:var(--dim)}
+  .acts{display:flex;align-items:center;gap:9px}
+  .btn{font-family:Inter;font-weight:600;font-size:13px;padding:10px 14px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;border:1px solid transparent}
+  .btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+  .btn.ghost{border-color:var(--line);color:var(--mut);background:transparent}
+  .btn.ghost:hover{color:#fff;border-color:var(--line2)}
+  .btn.danger{border-color:rgba(239,68,68,.3);color:#f87171;background:rgba(239,68,68,.06)}
+  .btn.prim{color:#04130c;font-weight:700;background:linear-gradient(135deg,var(--mint),#28d98c);box-shadow:0 8px 22px rgba(58,255,163,.28)}
+  .btn.prim:hover{filter:brightness(1.05)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="scrim"></div>
+
+  <div class="modal">
+    <!-- HEADER -->
+    <div class="head">
+      <div>
+        <h2>Signer 10 mandats de plus sans process, c'est juste multiplier le chaos par 10</h2>
+        <div class="chips">
+          <span class="chip st"><span class="dot"></span>À valider</span>
+          <span class="chip net"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff"/></svg>Instagram</span>
+          <span class="chip tp">Carrousel · 5 slides</span>
+        </div>
+      </div>
+      <div class="x"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+    </div>
+
+    <div class="body">
+      <!-- APERÇU LIVE -->
+      <div class="left">
+        <div class="ey">Aperçu <span class="livedot"><i></i>live</span></div>
+        <div class="hero">
+          <div class="slide">
+            <span class="tag">Carrousel</span>
+            <div class="sh1">Plus de biens,<br>plus de<br>problèmes.<br>Pas plus de<br>business.</div>
+            <div class="sfoot">
+              <div class="sbrand"><span class="av">E</span><span>Eddysa</span></div>
+              <span class="sswipe">SWIPE →</span>
+            </div>
+          </div>
+        </div>
+        <div class="strip">
+          <div class="th on"><span class="tt"></span><b>1</b></div>
+          <div class="th"><span class="tt"></span><b>2</b></div>
+          <div class="th"><span class="tt"></span><b>3</b></div>
+          <div class="th"><span class="tt"></span><b>4</b></div>
+          <div class="th"><span class="tt"></span><b>5</b></div>
+        </div>
+
+        <!-- RETOUCHE (aperçu se met à jour instantanément) -->
+        <div class="retouch">
+          <div class="rt-top"><span class="t">Retoucher</span><span class="live">↑ aperçu instantané</span></div>
+          <div class="swatches">
+            <div class="sw"><span class="c" style="background:#0d0d15"></span><div class="l"><div class="n">Fond</div><div class="v">#0D0D15</div></div></div>
+            <div class="sw"><span class="c" style="background:#0077FF"></span><div class="l"><div class="n">Second.</div><div class="v">#0077FF</div></div></div>
+            <div class="sw"><span class="c" style="background:#ff2d4d"></span><div class="l"><div class="n">Accent</div><div class="v">#FF2D4D</div></div></div>
+          </div>
+          <div class="fontrow"><span class="lab">Police</span>
+            <select><option>Anton</option><option>Sora</option><option>Oswald</option><option>Bebas Neue</option><option>Montserrat</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENU -->
+      <div class="right">
+        <div class="rscroll">
+          <div class="postlbl">Texte du post</div>
+          <div class="post"><b>Le process d'abord, le mandat ensuite</b>
+Un bon process de gestion vaut 20 mandats signés trop vite. Il rend chaque nouveau bien prévisible, pas stressant.
+
+<b>Tu vends quoi exactement ?</b>
+Si ta proposition propriétaire repose sur toi, t'as pas une entreprise. T'as un job déguisé en agence. Le process, c'est ce que tu vends réellement.
+
+<b>Avant le prochain mandat.</b>
+Pose-toi une question honnête : est-ce que mon équipe peut gérer ça sans moi ? Si la réponse hésite, commente « PROCESS » et on en parle.</div>
+
+          <div class="meta">
+            <div class="mcard"><div class="k">Créé le</div><div class="v">08/06/2026 · 10:23</div></div>
+            <div class="mcard"><div class="k">Publication</div><div class="v ok">23/06/2026 · 11:40</div></div>
+          </div>
+
+          <div class="err">
+            <svg viewBox="0 0 24 24"><path d="M12 8v5M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg>
+            <div class="t"><b>Publication en échec.</b> Ce contenu est déjà programmé, en cours de publication, ou a été posté sur ce compte dans les dernières 24 h.</div>
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="foot">
+          <span class="hint">Les images seront rendues à la validation.</span>
+          <div class="acts">
+            <button class="btn danger"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Refuser</button>
+            <button class="btn prim"><svg viewBox="0 0 24 24" stroke="#04130c"><path d="M5 13l4 4L19 7"/></svg>Valider &amp; programmer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
