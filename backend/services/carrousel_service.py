@@ -471,16 +471,17 @@ def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, templa
     return {"images": urls, "pdf": pdf_url}
 
 
-async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, template: str = "creme") -> dict:
+async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, template: str = "creme", colors: dict = None, font: str = None) -> dict:
     import asyncio
     u = _charger_marque(telegram_id)
-    # Couleurs propres au carrousel si définies, sinon couleurs de marque
-    p = u.get("carrousel_couleur_principale") or u.get("couleur_principale") or "#003D2E"
-    s = u.get("carrousel_couleur_secondaire") or u.get("couleur_secondaire") or "#0077FF"
-    a = u.get("carrousel_couleur_accent") or u.get("couleur_accent") or "#3AFFA3"
+    co = colors or {}
+    # Override explicite (retouche par carrousel) > couleurs propres au carrousel > couleurs de marque
+    p = co.get("p") or u.get("carrousel_couleur_principale") or u.get("couleur_principale") or "#003D2E"
+    s = co.get("s") or u.get("carrousel_couleur_secondaire") or u.get("couleur_secondaire") or "#0077FF"
+    a = co.get("a") or u.get("carrousel_couleur_accent") or u.get("couleur_accent") or "#3AFFA3"
     nom = u.get("nom") or u.get("username") or ""
     secteur = u.get("secteur") or ""
     logo = u.get("logo_url") or None
-    font = (u.get("carrousel_font") or "").strip() or None
+    font = ((font if font is not None else u.get("carrousel_font")) or "").strip() or None
     base = (contenu_id or "tmp").replace("-", "")[:16]
     return await asyncio.to_thread(_render_and_upload, telegram_id, content, p, s, a, nom, secteur, base, template, logo, font)

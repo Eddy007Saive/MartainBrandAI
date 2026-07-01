@@ -162,6 +162,8 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 row["date_publication"] = date_pub
             if action == "carrousel":
                 row["type"] = "Carrousel"
+                if ccontent:
+                    row["carrousel_data"] = ccontent  # slides structurées -> re-render sans re-générer le texte
             ins = supabase.table("contenu").insert(row).execute()
             cid = ins.data[0]["id"] if ins.data else None
 
@@ -739,3 +741,36 @@ async def generate_photo(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=502, detail="Échec de la génération de la photo. Réessaie ou simplifie la description.")
     quota_service.confirm(q)
     return {"url": res["lien_visuel"], "quota": {"action": action_type, "used": q.get("used"), "limit": q.get("limit")}}
+
+
+@router.post("/carrousel/recolor")
+async def carrousel_recolor(body: dict, payload: dict = Depends(verify_token)):
+    """Re-rend un carrousel à partir de ses slides stockées, avec de nouvelles couleurs/police.
+    Le TEXTE ne change pas (pas de re-génération IA). Gratuit."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    contenu_id = body.get("contenu_id")
+    if not contenu_id:
+        raise HTTPException(status_code=400, detail="contenu_id requis")
+    row = (supabase.table("contenu").select("carrousel_data, reseau_cible")
+           .eq("id", contenu_id).eq("telegram_id", telegram_id).execute())
+    data = row.data[0] if row.data else None
+    if not data or not data.get("carrousel_data"):
+        raise HTTPException(status_code=422, detail="Ce carrousel n'a pas ses slides enregistrées (généré avant cette fonction). Régénère-le une fois pour activer la retouche.")
+    reseau = (data.get("reseau_cible") or "linkedin").lower()
+    scheds = plan_service._schedules(telegram_id) or []
+    template = next((s.get("carrousel_template") for s in scheds if (s.get("platform") or "").lower() == reseau), None) or "creme"
+    colors = body.get("colors") if isinstance(body.get("colors"), dict) else None
+    font = body.get("font")
+    try:
+        res = await carrousel_service.generer_carrousel(telegram_id, data["carrousel_data"], contenu_id, template, colors=colors, font=font)
+    except Exception as e:
+        logger.error(f"carrousel recolor error: {e}")
+        raise HTTPException(status_code=500, detail="Échec du re-rendu du carrousel.")
+    imgs = res.get("images", [])
+    if imgs:
+        supabase.table("contenu").update(
+            {"slides_images": imgs, "lien_visuel": imgs[0], "carrousel_pdf": res.get("pdf")}
+        ).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+    return {"images": imgs, "pdf": res.get("pdf")}

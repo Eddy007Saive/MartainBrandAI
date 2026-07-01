@@ -68,6 +68,8 @@ export const agentService = {
   gabaritPreviews: () => api.get('/agent/gabarit/previews').then((r) => r.data),
   // Génère une photo depuis une description (Nano Banana) -> URL (pour la zone photo d'un gabarit)
   generatePhoto: (description, modele = 'nano2') => api.post('/agent/photo', { description, modele }).then((r) => r.data),
+  // Retouche les couleurs/police d'un carrousel (re-render depuis les slides stockées, texte inchangé)
+  recolorCarrousel: (contenu_id, colors, font) => api.post('/agent/carrousel/recolor', { contenu_id, colors, ...(font !== undefined ? { font } : {}) }).then((r) => r.data),
   // Jauge de résultats (quotas par type + état de l'abonnement)
   usage: () => api.get('/agent/usage').then((r) => r.data),
   gabaritAuto: (gabarit, texte, contenu_id, bg_image = null) =>

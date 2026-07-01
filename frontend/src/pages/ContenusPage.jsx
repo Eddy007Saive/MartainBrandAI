@@ -36,6 +36,8 @@ import { agentService } from '../services/agentService';
 import { userService } from '../services/userService';
 import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
+import { ColorField } from '../components/ColorField';
+import { CAROUSEL_FONTS } from '../lib/carrouselPreview';
 
 const IMAGE_MODELES = [
   { id: 'nano2', label: 'nano-banana 2.5', cout: 50 },
@@ -192,6 +194,8 @@ export default function ContenusPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedContenu, setSelectedContenu] = useState(null);
+  const [czR, setCzR] = useState(null);     // retouche couleurs/police d'un carrousel
+  const [czRBusy, setCzRBusy] = useState(false);
   const [editContenu, setEditContenu] = useState(null);
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
@@ -201,6 +205,45 @@ export default function ContenusPage() {
 
   const { user, updateUser } = useUser();
   const [imageContenu, setImageContenu] = useState(null);
+
+  // Retouche carrousel : init des couleurs/police depuis la marque quand on ouvre un carrousel
+  useEffect(() => {
+    const isCarr = selectedContenu && Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0;
+    setCzR(isCarr ? {
+      p: user?.carrousel_couleur_principale || user?.couleur_principale || '#003D2E',
+      s: user?.carrousel_couleur_secondaire || user?.couleur_secondaire || '#0077FF',
+      a: user?.carrousel_couleur_accent || user?.couleur_accent || '#3AFFA3',
+      font: user?.carrousel_font || '',
+    } : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedContenu]);
+  // Charge la Google Font choisie pour la retouche
+  useEffect(() => {
+    const f = czR?.font;
+    if (!f) return;
+    const id = 'czfont-' + f.replace(/\s/g, '-');
+    if (document.getElementById(id)) return;
+    const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet';
+    l.href = `https://fonts.googleapis.com/css2?family=${f.replace(/\s/g, '+')}:wght@400;500;600;700;800;900&display=swap`;
+    document.head.appendChild(l);
+  }, [czR?.font]);
+  const setCzRColor = (name, val) => setCzR((prev) => ({ ...prev, [name]: val }));
+  const retoucherCarrousel = async () => {
+    if (!selectedContenu || !czR || czRBusy) return;
+    setCzRBusy(true);
+    try {
+      const d = await agentService.recolorCarrousel(selectedContenu.id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '');
+      const imgs = d.images || [];
+      if (imgs.length) {
+        const patch = { slides_images: imgs, lien_visuel: imgs[0], carrousel_pdf: d.pdf };
+        setContenus((prev) => prev.map((c) => (c.id === selectedContenu.id ? { ...c, ...patch } : c)));
+        setSelectedContenu((prev) => (prev ? { ...prev, ...patch } : prev));
+        toast.success('Carrousel retouché ✨');
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec de la retouche');
+    } finally { setCzRBusy(false); }
+  };
   const [imgPrompt, setImgPrompt] = useState('');
   const [imgAvecPhoto, setImgAvecPhoto] = useState(false);
   const [imgModele, setImgModele] = useState('nano2');
@@ -903,6 +946,29 @@ export default function ContenusPage() {
                     <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-600">
                       <ImageIcon className="w-10 h-10" />
                       <span className="text-xs font-inter">Aucun visuel</span>
+                    </div>
+                  )}
+
+                  {/* Retouche couleurs/police du carrousel (re-render, texte inchangé) */}
+                  {czR && (
+                    <div className="rounded-xl border border-white/10 bg-slate-950/40 p-3 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Retoucher les couleurs</span>
+                        <button onClick={retoucherCarrousel} disabled={czRBusy}
+                          className="text-[12.5px] font-semibold px-3 py-1.5 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-60 inline-flex items-center gap-1.5">
+                          {czRBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Régénérer les images
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <ColorField label="Fond" name="p" value={czR.p} onChange={setCzRColor} />
+                        <ColorField label="Secondaire" name="s" value={czR.s} onChange={setCzRColor} />
+                        <ColorField label="Accent" name="a" value={czR.a} onChange={setCzRColor} />
+                      </div>
+                      <select value={czR.font || ''} onChange={(e) => setCzRColor('font', e.target.value)}
+                        className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
+                        {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+                      </select>
+                      <p className="text-[11px] text-slate-600 font-inter">Le texte ne change pas — on ré-applique juste les couleurs/police. Gratuit.</p>
                     </div>
                   )}
 
