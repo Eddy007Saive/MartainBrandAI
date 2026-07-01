@@ -3,9 +3,11 @@ import { createPortal } from 'react-dom';
 import { Loader2, Check, X, Maximize2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useUser } from '../context/UserContext';
+import { userService } from '../services/userService';
 import { scheduleService } from '../services/scheduleService';
 import { DEFAULT_SCHEDULE } from '../constants/schedules';
 import { SocialIcon } from '../components/SocialIcon';
+import { ColorField } from '../components/ColorField';
 import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides } from '../lib/carrouselPreview';
 
 const NETS = [
@@ -15,12 +17,52 @@ const NETS = [
 ];
 const labelOf = (id) => TEMPLATES.find((t) => t.id === id)?.label || 'Crème';
 
+const BRAND_DEFAULTS = { p: '#003D2E', s: '#0077FF', a: '#3AFFA3' };
+
 export default function CarrouselsPage() {
-  const { user } = useUser();
+  const { user, updateUser } = useUser();
+  const brand = {
+    p: user?.couleur_principale || BRAND_DEFAULTS.p,
+    s: user?.couleur_secondaire || BRAND_DEFAULTS.s,
+    a: user?.couleur_accent || BRAND_DEFAULTS.a,
+  };
+  // Couleurs PROPRES au carrousel (override) — défaut = couleurs de marque
+  const [cz, setCz] = useState(null);
+  const [savingCz, setSavingCz] = useState(false);
+  useEffect(() => {
+    if (user && !cz) setCz({
+      p: user.carrousel_couleur_principale || brand.p,
+      s: user.carrousel_couleur_secondaire || brand.s,
+      a: user.carrousel_couleur_accent || brand.a,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const colors = useMemo(() => ({
-    p: user?.couleur_principale, s: user?.couleur_secondaire, a: user?.couleur_accent,
+    p: cz?.p || brand.p, s: cz?.s || brand.s, a: cz?.a || brand.a,
     logo: user?.logo_url, nom: user?.nom || user?.username,
-  }), [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [cz, user]);
+
+  const setColor = (name, val) => setCz((prev) => ({ ...prev, [name]: val }));
+  const resetColors = () => setCz({ ...brand });
+  const czDirty = cz && (
+    cz.p !== (user?.carrousel_couleur_principale || brand.p) ||
+    cz.s !== (user?.carrousel_couleur_secondaire || brand.s) ||
+    cz.a !== (user?.carrousel_couleur_accent || brand.a)
+  );
+  const saveColors = async () => {
+    if (!cz) return;
+    setSavingCz(true);
+    try {
+      const payload = { carrousel_couleur_principale: cz.p, carrousel_couleur_secondaire: cz.s, carrousel_couleur_accent: cz.a };
+      await userService.updateMe(payload);
+      updateUser(payload);
+      toast.success('Couleurs du carrousel enregistrées ✨');
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Échec de l'enregistrement");
+    } finally { setSavingCz(false); }
+  };
 
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,9 +117,34 @@ export default function CarrouselsPage() {
     <div className="max-w-5xl">
       <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
       <h1 className="text-2xl font-bold font-sora text-white">Styles de carrousel</h1>
-      <p className="text-sm text-slate-400 font-inter mt-1 mb-6">
+      <p className="text-sm text-slate-400 font-inter mt-1 mb-5">
         Un style par réseau, dans <span className="text-slate-200">tes couleurs</span>. Choisis un réseau, clique un style pour l'agrandir et faire défiler les slides, puis <span className="text-slate-200">enregistre</span>.
       </p>
+
+      {/* Couleurs propres au carrousel */}
+      {cz && (
+        <div className="rounded-2xl border border-white/8 bg-[#0b1322] p-4 sm:p-5 mb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div>
+              <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Couleurs du carrousel</div>
+              <div className="text-xs text-slate-400 mt-0.5">Par défaut = tes couleurs de marque. Le texte reste auto-lisible. L'aperçu se met à jour en direct.</div>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+              <button onClick={resetColors} className="text-[12.5px] text-slate-400 hover:text-white px-3 py-2 rounded-lg border border-white/10">Réinitialiser</button>
+              <button onClick={saveColors} disabled={!czDirty || savingCz}
+                className={`text-[13px] font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${czDirty ? 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white' : 'bg-white/5 text-slate-500 cursor-default'}`}>
+                {savingCz ? <Loader2 className="w-4 h-4 animate-spin" /> : (!czDirty && <Check className="w-4 h-4" />)}
+                {czDirty ? 'Enregistrer' : 'Enregistré'}
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <ColorField label="Principale (fond)" name="p" value={cz.p} onChange={setColor} />
+            <ColorField label="Secondaire" name="s" value={cz.s} onChange={setColor} />
+            <ColorField label="Accent" name="a" value={cz.a} onChange={setColor} />
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center gap-2 text-slate-400 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#5B6CFF]" /> Chargement…</div>

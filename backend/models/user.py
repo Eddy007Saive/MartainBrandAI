@@ -28,6 +28,9 @@ class UserUpdate(BaseModel):
     couleur_principale: Optional[str] = None
     couleur_secondaire: Optional[str] = None
     couleur_accent: Optional[str] = None
+    carrousel_couleur_principale: Optional[str] = None
+    carrousel_couleur_secondaire: Optional[str] = None
+    carrousel_couleur_accent: Optional[str] = None
     api_key_gemini: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
@@ -58,6 +61,9 @@ class UserResponse(BaseModel):
     couleur_principale: Optional[str] = None
     couleur_secondaire: Optional[str] = None
     couleur_accent: Optional[str] = None
+    carrousel_couleur_principale: Optional[str] = None
+    carrousel_couleur_secondaire: Optional[str] = None
+    carrousel_couleur_accent: Optional[str] = None
     api_key_gemini: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None

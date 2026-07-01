@@ -457,9 +457,10 @@ def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, templa
 async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, template: str = "creme") -> dict:
     import asyncio
     u = _charger_marque(telegram_id)
-    p = u.get("couleur_principale") or "#003D2E"
-    s = u.get("couleur_secondaire") or "#0077FF"
-    a = u.get("couleur_accent") or "#3AFFA3"
+    # Couleurs propres au carrousel si définies, sinon couleurs de marque
+    p = u.get("carrousel_couleur_principale") or u.get("couleur_principale") or "#003D2E"
+    s = u.get("carrousel_couleur_secondaire") or u.get("couleur_secondaire") or "#0077FF"
+    a = u.get("carrousel_couleur_accent") or u.get("couleur_accent") or "#3AFFA3"
     nom = u.get("nom") or u.get("username") or ""
     secteur = u.get("secteur") or ""
     logo = u.get("logo_url") or None
