@@ -276,8 +276,12 @@ ROLE_CARROUSEL = (
     "(une phrase de conseil concret) et un 'icon' (le mot-clé d'illustration le plus pertinent "
     "dans cette liste : " + ", ".join(ICON_HINTS.keys()) + "). "
     "Texte court, percutant, lisible sur une slide. "
+    "La 'legende' est le TEXTE DU POST (la description au-dessus du carrousel) : COURTE (2 à 4 lignes). "
+    "Un hook qui stoppe le scroll + une invitation à swiper/enregistrer + UN SEUL CTA. Elle NE répète PAS "
+    "le contenu des slides — le carrousel porte le fond, la légende ne fait qu'accrocher. "
+    "Tu peux terminer par 2 à 4 hashtags ciblés. "
     "Réponds UNIQUEMENT avec du JSON valide de cette forme :\n"
-    '{"hook":"...","slides":[{"titre":"...","texte":"...","pills":["..",".."],"pro_tip":"...","icon":"chart"}],'
+    '{"hook":"...","legende":"...","slides":[{"titre":"...","texte":"...","pills":["..",".."],"pro_tip":"...","icon":"chart"}],'
     '"cta":{"titre":"...","texte":"..."}}\n\n'
 )
 
@@ -297,8 +301,8 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
         messages=[{
             "role": "user",
             "content": (f"Sujet du carrousel : \"{sujet}\".\n"
-                        f"Donne le hook, EXACTEMENT {nb_idees} idées (avec titre court, texte, pills, pro_tip) "
-                        f"et le cta, en JSON."),
+                        f"Donne le hook, la legende (courte : accroche + invitation à swiper + 1 CTA, sans répéter les slides), "
+                        f"EXACTEMENT {nb_idees} idées (avec titre court, texte, pills, pro_tip) et le cta, en JSON."),
         }],
     )
     txt = _texte(resp)
@@ -330,6 +334,7 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
         cta = {"titre": cta, "texte": ""}
     content = {
         "hook": (data.get("hook") or "").strip(),
+        "legende": (data.get("legende") or "").strip(),
         "slides": slides,
         "cta": {"titre": (cta.get("titre") or "On en parle ?").strip(), "texte": (cta.get("texte") or "").strip()},
     }

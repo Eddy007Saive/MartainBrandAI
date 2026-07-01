@@ -138,6 +138,8 @@ backend/_uvicorn.*
 
 backend/_uv.*
 
+backend/uvicorn.local.log*
+
 # Capacitor Android — distribution Gradle telechargee localement
 frontend/android/gradle-*.zip
 

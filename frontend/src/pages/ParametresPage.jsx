@@ -31,6 +31,7 @@ import { removeToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { FREQUENCIES, DAYS, DEFAULT_SCHEDULE, FORMATS_RESEAU } from '../constants/schedules';
+import QuotaGauge from '../components/QuotaGauge';
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
@@ -1300,6 +1301,9 @@ export default function ParametresPage() {
     const isPro = (user?.plan || 'gratuit') === 'pro';
     return (
       <div className="space-y-5">
+        {/* Jauge des résultats inclus (déplacée depuis l'Accueil) */}
+        <QuotaGauge />
+
         <div className="flex items-center justify-between flex-wrap gap-3 p-4 rounded-xl bg-slate-950/40 border border-slate-800">
           <div>
             <div className="text-xs text-slate-500 font-inter">Ton forfait actuel</div>

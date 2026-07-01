@@ -25,7 +25,7 @@ def _map_agent_error(result: dict):
 
 
 def _carrousel_texte(content: dict) -> str:
-    """Résumé texte du carrousel (pour la colonne contenu, l'édition et la légende)."""
+    """Dump texte complet du carrousel (hook + toutes les slides + cta). Réservé au fallback interne."""
     if not content:
         return ""
     parts = [content.get("hook", "")]
@@ -33,6 +33,23 @@ def _carrousel_texte(content: dict) -> str:
         parts.append((f"{sl.get('titre', '')}\n{sl.get('texte', '')}").strip())
     cta = content.get("cta") or {}
     parts.append((f"{cta.get('titre', '')}\n{cta.get('texte', '')}").strip())
+    return "\n\n".join(x for x in parts if x)
+
+
+def _carrousel_legende(content: dict) -> str:
+    """Légende COURTE du post carrousel (hook + CTA), publiée au-dessus du carrousel.
+
+    C'est le texte du post : il accroche et invite à swiper, sans recopier le contenu
+    des slides (le carrousel porte le fond). L'IA fournit 'legende' ; sinon on retombe
+    sur hook + titre du CTA — jamais le dump complet des slides.
+    """
+    if not content:
+        return ""
+    leg = (content.get("legende") or "").strip()
+    if leg:
+        return leg
+    cta = content.get("cta") or {}
+    parts = [(content.get("hook") or "").strip(), (cta.get("titre") or "").strip()]
     return "\n\n".join(x for x in parts if x)
 
 
@@ -136,7 +153,7 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             elif action == "carrousel":
                 r = agent_service.rediger_carrousel(telegram_id, sujet, 5, model, cache=True)
                 ccontent = r.get("content")
-                texte = _carrousel_texte(ccontent) if ccontent else ""
+                texte = _carrousel_legende(ccontent) if ccontent else ""
             else:
                 tv = "Reel" if fmt == "reel" else "Video"
                 r = agent_service.rediger_script(telegram_id, sujet, tv, model, cache=True)
@@ -502,17 +519,17 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite)
 
     content = result["content"]
-    texte = _carrousel_texte(content)
+    texte = _carrousel_legende(content)
     existing_id = body.get("contenu_id")
     if existing_id:
-        # Régénération : met à jour le contenu existant
+        # Régénération : met à jour le contenu existant (+ slides structurées pour la retouche live)
         supabase.table("contenu").update(
-            {"contenu": texte, "type": "Carrousel"}
+            {"contenu": texte, "type": "Carrousel", "carrousel_data": content}
         ).eq("id", existing_id).eq("telegram_id", telegram_id).execute()
         contenu_id = existing_id
     else:
         row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": texte,
-               "statut": "A valider", "type": "Carrousel",
+               "statut": "A valider", "type": "Carrousel", "carrousel_data": content,
                "created_at": datetime.now(timezone.utc).isoformat()}
         if reseau in RESEAU_MAP:
             row["reseau_cible"] = RESEAU_MAP[reseau]

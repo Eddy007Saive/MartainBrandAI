@@ -441,11 +441,19 @@ def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, templa
         except Exception:
             browser = pw.chromium.launch(channel="chromium", args=args)
         page = browser.new_page(viewport={"width": SLIDE_W, "height": SLIDE_H}, device_scale_factor=DSF)
-        page.set_content(html_str, wait_until="networkidle")
+        # wait_until="load" (pas "networkidle") : on ne se bloque pas si le CDN de polices/le
+        # logo répond lentement — sinon un simple ralentissement réseau => 0 slide rendue.
+        page.set_content(html_str, wait_until="load")
         try:
-            page.evaluate("document.fonts.ready")
+            page.wait_for_selector(".slide", timeout=15000)
         except Exception:
             pass
+        try:
+            # Polices prêtes (borné) : on tolère un échec, on ne bloque jamais le rendu.
+            page.evaluate("() => Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 4000))])")
+        except Exception:
+            pass
+        page.wait_for_timeout(300)  # laisse les polices se peindre
         count = page.locator(".slide").count()
         for i in range(count):
             png = page.locator(".slide").nth(i).screenshot(type="png")
@@ -484,4 +492,15 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     logo = u.get("logo_url") or None
     font = ((font if font is not None else u.get("carrousel_font")) or "").strip() or None
     base = (contenu_id or "tmp").replace("-", "")[:16]
-    return await asyncio.to_thread(_render_and_upload, telegram_id, content, p, s, a, nom, secteur, base, template, logo, font)
+    args = (telegram_id, content, p, s, a, nom, secteur, base, template, logo, font)
+    # Ratés intermittents de Playwright (timeout réseau/police) : jusqu'à 2 essais.
+    res = {"images": [], "pdf": None}
+    for attempt in (1, 2):
+        try:
+            res = await asyncio.to_thread(_render_and_upload, *args)
+            if res.get("images"):
+                break
+            logger.warning(f"Carrousel {base}: 0 slide rendue (essai {attempt})")
+        except Exception as e:
+            logger.error(f"Carrousel render error (essai {attempt}): {e}")
+    return res
