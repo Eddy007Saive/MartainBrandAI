@@ -75,6 +75,20 @@ def upload_logo(telegram_id: str, file_bytes: bytes) -> str:
     return url
 
 
+def upload_avatar(telegram_id: str, file_bytes: bytes) -> str:
+    """Upload l'avatar (photo de profil) sur Cloudinary et met à jour users.avatar_url. Retourne l'URL."""
+    prev = supabase.table("users").select("avatar_url").eq("telegram_id", telegram_id).execute()
+    old_url = prev.data[0].get("avatar_url") if prev.data else None
+    public_id = f"avatars/{telegram_id}/avatar"
+    up = cloudinary.uploader.upload(
+        file_bytes, resource_type="image", public_id=public_id, overwrite=True, invalidate=True,
+    )
+    url = up["secure_url"]
+    supabase.table("users").update({"avatar_url": url}).eq("telegram_id", telegram_id).execute()
+    _delete_old_photo(old_url, keep_public_id=public_id)
+    return url
+
+
 def delete_logo(telegram_id: str) -> None:
     """Supprime le logo (Cloudinary + users.logo_url)."""
     prev = supabase.table("users").select("logo_url").eq("telegram_id", telegram_id).execute()

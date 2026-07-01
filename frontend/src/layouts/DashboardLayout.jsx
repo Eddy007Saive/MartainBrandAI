@@ -113,9 +113,13 @@ function DashboardContent() {
   const UserBlock = () => (
     <div className="p-3 border-t border-white/[0.06] space-y-1">
       <div className="flex items-center gap-3 px-2 py-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
-          {initial}
-        </div>
+        {user?.avatar_url ? (
+          <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-1 ring-white/15" />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+            {initial}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <p className="text-sm text-white font-inter truncate">{user?.nom || user?.username || 'Utilisateur'}</p>
           {user?.email && <p className="text-[11px] text-slate-500 font-inter truncate">{user.email}</p>}

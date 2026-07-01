@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from dependencies import verify_token
 from models.user import UserUpdate, SocialConnectRequest
 from models.schedule import ScheduleUpdate
-from services import user_service, schedule_service
+from services import user_service, schedule_service, auth_service
 from services.social_service import VALID_PLATFORMS, connect_platform, disconnect_platform
 from config import logger
 import httpx
@@ -87,6 +87,41 @@ async def upload_my_photo(file: UploadFile = File(...), payload: dict = Depends(
     except Exception as e:
         logger.error(f"Upload photo error: {e}")
         raise HTTPException(status_code=500, detail="Échec de l'upload de la photo")
+
+
+@router.post("/me/password")
+async def change_my_password(body: dict, payload: dict = Depends(verify_token)):
+    """Change le mot de passe (ancien + nouveau)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    res = auth_service.change_password(telegram_id, body.get("old_password") or "", body.get("new_password") or "")
+    if res.get("error") == "wrong_old":
+        raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect.")
+    if res.get("error") == "too_short":
+        raise HTTPException(status_code=400, detail="Le nouveau mot de passe doit faire au moins 6 caractères.")
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail="Impossible de changer le mot de passe.")
+    return {"success": True}
+
+
+@router.post("/me/avatar")
+async def upload_my_avatar(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
+    """Upload l'avatar (photo de profil) -> Cloudinary -> users.avatar_url."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une image (png, jpg, webp…)")
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
+    try:
+        url = user_service.upload_avatar(telegram_id, data)
+        return {"avatar_url": url}
+    except Exception as e:
+        logger.error(f"Upload avatar error: {e}")
+        raise HTTPException(status_code=500, detail="Échec de l'upload de l'avatar")
 
 
 @router.post("/me/logo")

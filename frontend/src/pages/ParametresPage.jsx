@@ -392,6 +392,46 @@ export default function ParametresPage() {
     }
   };
 
+  // Avatar (photo de profil affichée dans la sidebar)
+  const avatarInputRef = useRef(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image (jpg, png, webp).'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    setUploadingAvatar(true);
+    try {
+      const { avatar_url } = await userService.uploadAvatar(file);
+      handleChange('avatar_url', avatar_url);
+      toast.success('Avatar mis à jour');
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || "Échec de l'upload de l'avatar");
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
+
+  // Changement de mot de passe
+  const [pwdOld, setPwdOld] = useState('');
+  const [pwdNew, setPwdNew] = useState('');
+  const [changingPwd, setChangingPwd] = useState(false);
+  const handleChangePassword = async () => {
+    if (!pwdOld || !pwdNew) { toast.error('Remplis les deux champs.'); return; }
+    if (pwdNew.length < 6) { toast.error('Le nouveau mot de passe doit faire au moins 6 caractères.'); return; }
+    setChangingPwd(true);
+    try {
+      await userService.changePassword(pwdOld, pwdNew);
+      toast.success('Mot de passe changé ✓');
+      setPwdOld(''); setPwdNew('');
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || 'Échec du changement de mot de passe');
+    } finally {
+      setChangingPwd(false);
+    }
+  };
+
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -508,6 +548,27 @@ export default function ParametresPage() {
   // --- Section renderers ---
   const renderIdentity = () => (
     <div className="space-y-6">
+      {/* Avatar (sidebar) */}
+      <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-950/40 border border-slate-800">
+        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center flex-shrink-0 ring-1 ring-white/15">
+          {user?.avatar_url ? (
+            <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-white text-xl font-semibold font-sora">{(user?.nom || user?.username || 'U').charAt(0).toUpperCase()}</span>
+          )}
+          {uploadingAvatar && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white font-sora">Avatar</p>
+          <p className="text-xs text-slate-500 font-inter">Photo affichée dans le menu. JPG/PNG/WebP, 10 Mo max.</p>
+        </div>
+        <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+        <Button type="button" size="sm" onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar}
+          className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter shrink-0">
+          <Upload className="w-4 h-4 mr-1.5" />{user?.avatar_url ? 'Changer' : 'Importer'}
+        </Button>
+      </div>
+
       {/* Photo de profil — en haut */}
       <div className="flex flex-col sm:flex-row items-center gap-5 p-5 rounded-2xl bg-slate-950/40 border border-slate-800">
         <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-slate-800/60 border border-white/10 flex items-center justify-center flex-shrink-0">
@@ -617,6 +678,23 @@ export default function ParametresPage() {
             </SelectContent>
           </Select>
           <p className="text-[11px] text-slate-500 font-inter">Vos publications partiront à l'heure de ce fuseau.</p>
+        </div>
+      </div>
+
+      {/* Mot de passe */}
+      <div className="p-5 rounded-2xl bg-slate-950/40 border border-slate-800 space-y-3">
+        <p className="text-sm font-semibold text-white font-sora">Mot de passe</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input type="password" value={pwdOld} onChange={(e) => setPwdOld(e.target.value)} placeholder="Mot de passe actuel"
+            className="bg-slate-950/50 border-slate-800 text-slate-200 focus:border-[#5B6CFF]" />
+          <Input type="password" value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder="Nouveau (6 car. min.)"
+            className="bg-slate-950/50 border-slate-800 text-slate-200 focus:border-[#5B6CFF]" />
+        </div>
+        <div className="flex justify-end">
+          <Button size="sm" onClick={handleChangePassword} disabled={changingPwd || !pwdOld || !pwdNew}
+            className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter">
+            {changingPwd ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}Changer le mot de passe
+          </Button>
         </div>
       </div>
     </div>

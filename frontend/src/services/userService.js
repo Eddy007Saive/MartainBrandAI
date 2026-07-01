@@ -27,6 +27,19 @@ export const userService = {
 
   deleteLogo: () => api.delete('/users/me/logo').then(r => r.data),
 
+  // Avatar (photo de profil)
+  uploadAvatar: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post('/users/me/avatar', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data);
+  },
+
+  // Changement de mot de passe
+  changePassword: (old_password, new_password) =>
+    api.post('/users/me/password', { old_password, new_password }).then(r => r.data),
+
   deleteMe: () =>
     api.delete('/users/me').then(r => r.data),
 

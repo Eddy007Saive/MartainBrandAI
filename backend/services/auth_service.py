@@ -122,6 +122,19 @@ def login_user(email: str, password: str) -> dict:
     }
 
 
+def change_password(telegram_id: str, old_password: str, new_password: str) -> dict:
+    """Change le mot de passe après vérification de l'ancien."""
+    r = supabase.table("users").select("password_hash").eq("telegram_id", telegram_id).execute()
+    if not r.data:
+        return {"error": "not_found"}
+    if not verify_password(old_password, r.data[0].get("password_hash", "")):
+        return {"error": "wrong_old"}
+    if len(new_password) < 6:
+        return {"error": "too_short"}
+    supabase.table("users").update({"password_hash": hash_password(new_password)}).eq("telegram_id", telegram_id).execute()
+    return {"success": True}
+
+
 def login_admin(email: str, password: str) -> dict:
     """Connexion admin par email + mot de passe (compte avec is_admin=true)."""
     result = supabase.table("users").select("*").eq("email", email).execute()
