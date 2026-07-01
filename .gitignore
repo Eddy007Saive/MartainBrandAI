@@ -144,3 +144,11 @@ frontend/android/gradle-*.zip
 # Firebase (secrets — ne jamais committer)
 backend/firebase-service-account.json
 frontend/android/app/google-services.json
+
+# APK builds
+*.apk
+
+# Build / artefacts a ne pas suivre
+frontend/android/
+backend/qouta
+frontend/Carrousel_insta
