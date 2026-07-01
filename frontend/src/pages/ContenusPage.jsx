@@ -866,96 +866,37 @@ export default function ContenusPage() {
           </div>
         )}
 
-        {/* View Dialog */}
+        {/* View Dialog — refonte 2 panneaux */}
         <Dialog open={!!selectedContenu} onOpenChange={() => setSelectedContenu(null)}>
-          <DialogContent className="bg-[#0f172a] border-slate-800 max-w-4xl max-h-[88vh] overflow-y-auto">
-            <DialogHeader className="space-y-3">
-              <DialogTitle className="text-white font-sora text-lg pr-8 leading-snug">
-                {selectedContenu?.titre || 'Détail du contenu'}
-              </DialogTitle>
-              {/* Barre du haut : badges + actions */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge statut={selectedContenu?.statut} />
-                  {selectedContenu?.reseau_cible && <ReseauBadge reseau={selectedContenu.reseau_cible} />}
-                  {selectedContenu?.type && (
-                    <span className="text-[10px] text-slate-500 font-inter bg-slate-800/80 px-2 py-1 rounded-md border border-white/5">
-                      {selectedContenu.type}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {selectedContenu?.statut === 'A valider' && (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => validerContenu(selectedContenu.id)}
-                        disabled={actionLoading === selectedContenu?.id || czRBusy}
-                        className="bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 font-inter"
-                      >
-                        {actionLoading === selectedContenu?.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-                        ) : (
-                          <Check className="w-4 h-4 mr-1.5" />
-                        )}
-                        Valider &amp; programmer
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => handleUpdateStatut(selectedContenu.id, 'Refuse')}
-                        disabled={actionLoading === selectedContenu?.id}
-                        className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 font-inter"
-                      >
-                        <X className="w-4 h-4 mr-1.5" />
-                        Refuser
-                      </Button>
-                    </>
-                  )}
-                  {/* Statut de publication (Late) */}
-                  {PUBLISH_BADGE[selectedContenu?.publish_status] && (
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium font-inter border ${PUBLISH_BADGE[selectedContenu.publish_status].cls}`}>
-                      {PUBLISH_BADGE[selectedContenu.publish_status].label}
-                    </span>
-                  )}
-                  {/* Programmer / Réessayer — seulement APRÈS validation (Valider programme déjà) */}
-                  {selectedContenu?.statut !== 'Publie' && selectedContenu?.statut !== 'A valider' && selectedContenu?.reseau_cible
-                    && ['', null, undefined, 'échec', 'annulé'].includes(selectedContenu?.publish_status) && (
-                    <Button size="sm" onClick={() => programmerPublication(selectedContenu)}
-                      disabled={publishLoading === selectedContenu?.id}
-                      title={selectedContenu?.publish_status === 'échec' ? selectedContenu?.publish_error : 'Envoyer dans la file de publication (part à la date prévue)'}
-                      className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 font-inter">
-                      {publishLoading === selectedContenu?.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
-                      {selectedContenu?.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}
-                    </Button>
-                  )}
-                  {/* Annuler l'envoi (en file) */}
-                  {['envoi', 'programmé'].includes(selectedContenu?.publish_status) && (
-                    <Button size="sm" onClick={() => annulerPublication(selectedContenu)}
-                      disabled={publishLoading === selectedContenu?.id}
-                      className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 font-inter">
-                      {publishLoading === selectedContenu?.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <X className="w-4 h-4 mr-1.5" />}
-                      Annuler l'envoi
-                    </Button>
-                  )}
-                  {selectedContenu?.statut === 'Publie' && selectedContenu?.lien_publication && (
-                    <a href={selectedContenu.lien_publication} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" className="bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 font-inter">
-                        <ExternalLink className="w-4 h-4 mr-1.5" />
-                        Voir
-                      </Button>
-                    </a>
-                  )}
-                </div>
-                {selectedContenu?.publish_status === 'échec' && selectedContenu?.publish_error && (
-                  <p className="text-[12px] text-red-400 font-inter mt-2">⚠ Échec : {selectedContenu.publish_error}</p>
-                )}
-              </div>
-            </DialogHeader>
-
+          <DialogContent className="bg-[#0b1120] border-white/10 p-0 gap-0 w-[95vw] max-w-[1000px] max-h-[90vh] overflow-hidden">
             {selectedContenu && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-1">
-                {/* Colonne gauche : visuel + liens */}
-                <div className="space-y-3">
+              <div className="flex flex-col max-h-[90vh]">
+                {/* HEADER */}
+                <div className="px-5 py-4 border-b border-white/10 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <DialogTitle className="text-white font-sora text-[17px] leading-snug" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {selectedContenu.titre || 'Détail du contenu'}
+                    </DialogTitle>
+                    <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                      <StatusBadge statut={selectedContenu.statut} />
+                      {selectedContenu.reseau_cible && <ReseauBadge reseau={selectedContenu.reseau_cible} />}
+                      {selectedContenu.type && (
+                        <span className="text-[10px] text-slate-500 font-inter bg-slate-800/80 px-2 py-1 rounded-md border border-white/5">{selectedContenu.type}</span>
+                      )}
+                      {PUBLISH_BADGE[selectedContenu.publish_status] && (
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium font-inter border ${PUBLISH_BADGE[selectedContenu.publish_status].cls}`}>
+                          {PUBLISH_BADGE[selectedContenu.publish_status].label}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* BODY 2 panneaux */}
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 min-h-0 overflow-hidden">
+                  {/* GAUCHE : aperçu + retouche */}
+                  <div className="p-4 border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto space-y-3"
+                    style={{ background: 'radial-gradient(120% 70% at 20% 0%, rgba(91,108,255,.05), transparent 55%)' }}>
                   {selectedContenu.carrousel_data ? (
                     // Aperçu LIVE (client-side) — reflète la retouche instantanément, sans re-render
                     <>
@@ -1075,30 +1016,73 @@ export default function ContenusPage() {
                   )}
                 </div>
 
-                {/* Colonne droite : texte + méta */}
-                <div className="space-y-4">
-                  <div className="bg-slate-800/30 rounded-xl p-5 border border-white/[0.04] max-h-[48vh] overflow-y-auto">
-                    <p className="text-slate-200 font-inter text-sm leading-relaxed whitespace-pre-wrap">
-                      {selectedContenu.contenu}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
-                      <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Créé le</p>
-                      <p className="text-slate-300 text-sm font-inter">{new Date(selectedContenu.created_at).toLocaleString('fr-FR')}</p>
+                  {/* DROITE : texte + méta + erreur discrète */}
+                  <div className="flex flex-col min-h-0">
+                    <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                      <div>
+                        <p className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold mb-2.5">Texte du post</p>
+                        <p className="text-slate-200 font-inter text-[14px] leading-relaxed whitespace-pre-wrap">{selectedContenu.contenu}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div className="bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
+                          <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Créé le</p>
+                          <p className="text-slate-300 text-[13px] font-inter tabular-nums">{new Date(selectedContenu.created_at).toLocaleString('fr-FR')}</p>
+                        </div>
+                        {selectedContenu.date_publication && (
+                          <div className="bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Publication</p>
+                            <p className="text-[#3AFFA3] text-[13px] font-inter tabular-nums">{new Date(selectedContenu.date_publication).toLocaleString('fr-FR')}</p>
+                          </div>
+                        )}
+                        {selectedContenu.callback_url && (
+                          <div className="col-span-2 bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Webhook</p>
+                            <p className="text-emerald-400 text-xs truncate font-inter">{selectedContenu.callback_url}</p>
+                          </div>
+                        )}
+                      </div>
+                      {selectedContenu.publish_status === 'échec' && selectedContenu.publish_error && (
+                        <div className="flex gap-2.5 items-start p-3 rounded-lg bg-red-500/[0.07] border border-red-500/20">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                          <p className="text-[12px] text-red-300/90 leading-relaxed"><b className="text-red-200">Publication en échec.</b> {selectedContenu.publish_error}</p>
+                        </div>
+                      )}
                     </div>
-                    {selectedContenu.date_publication && (
-                      <div className="bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
-                        <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Publication</p>
-                        <p className="text-slate-300 text-sm font-inter">{new Date(selectedContenu.date_publication).toLocaleString('fr-FR')}</p>
-                      </div>
+                  </div>
+                </div>
+
+                {/* FOOTER : actions */}
+                <div className="px-5 py-3 border-t border-white/10 flex items-center justify-between gap-3 bg-[#0a0f1c]">
+                  <span className="text-[11.5px] text-slate-500 font-inter truncate">
+                    {selectedContenu.carrousel_data ? 'Images finales rendues à la validation' : ''}
+                  </span>
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    {selectedContenu.statut === 'A valider' && (
+                      <>
+                        <Button size="sm" onClick={() => handleUpdateStatut(selectedContenu.id, 'Refuse')} disabled={actionLoading === selectedContenu.id}
+                          className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/25 font-inter"><X className="w-4 h-4 mr-1.5" />Refuser</Button>
+                        <Button size="sm" onClick={() => validerContenu(selectedContenu.id)} disabled={actionLoading === selectedContenu.id || czRBusy}
+                          className="bg-gradient-to-r from-[#3AFFA3] to-[#28d98c] text-[#04130c] font-semibold hover:brightness-105 font-inter">
+                          {(actionLoading === selectedContenu.id || czRBusy) ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Check className="w-4 h-4 mr-1.5" />}Valider &amp; programmer</Button>
+                      </>
                     )}
-                    {selectedContenu.callback_url && (
-                      <div className="col-span-2 bg-slate-800/20 rounded-lg p-3 border border-white/[0.03]">
-                        <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Webhook</p>
-                        <p className="text-emerald-400 text-xs truncate font-inter">{selectedContenu.callback_url}</p>
-                      </div>
+                    {selectedContenu.statut !== 'Publie' && selectedContenu.statut !== 'A valider' && selectedContenu.reseau_cible
+                      && ['', null, undefined, 'échec', 'annulé'].includes(selectedContenu.publish_status) && (
+                      <Button size="sm" onClick={() => programmerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
+                        title={selectedContenu.publish_status === 'échec' ? selectedContenu.publish_error : 'Envoyer dans la file de publication'}
+                        className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 font-inter">
+                        {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
+                        {selectedContenu.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}</Button>
+                    )}
+                    {['envoi', 'programmé'].includes(selectedContenu.publish_status) && (
+                      <Button size="sm" onClick={() => annulerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
+                        className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 font-inter">
+                        {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <X className="w-4 h-4 mr-1.5" />}Annuler l'envoi</Button>
+                    )}
+                    {selectedContenu.statut === 'Publie' && selectedContenu.lien_publication && (
+                      <a href={selectedContenu.lien_publication} target="_blank" rel="noopener noreferrer">
+                        <Button size="sm" className="bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 font-inter"><ExternalLink className="w-4 h-4 mr-1.5" />Voir</Button>
+                      </a>
                     )}
                   </div>
                 </div>
