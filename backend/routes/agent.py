@@ -710,3 +710,32 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     usage_service.log(telegram_id, "image", model_id, {}, q.get("unit_cost", 0), cost_override=usage_service.IMAGE_PRICES.get(modele, 0.04))
     res["quota"] = {"action": action_type, "used": q.get("used"), "limit": q.get("limit")}
     return res
+
+
+@router.post("/photo")
+async def generate_photo(body: dict, payload: dict = Depends(verify_token)):
+    """Génère une PHOTO à partir d'une description (Nano Banana) et renvoie son URL —
+    à utiliser comme photo d'un gabarit / template. Consomme un quota image."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    description = (body.get("description") or "").strip()
+    if not description:
+        raise HTTPException(status_code=400, detail="Décris la photo à générer.")
+    modele = body.get("modele", "nano2")
+    model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
+    action_type = quota_service.image_action(modele)
+    q = quota_service.consume(telegram_id, action_type)
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail=q.get("message"))
+    try:
+        res = await image_service.generer_image(telegram_id, description, False, model_id, None)
+    except Exception as e:
+        quota_service.refund(q)
+        logger.error(f"Agent photo error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    if res.get("error"):
+        quota_service.refund(q)
+        raise HTTPException(status_code=502, detail="Échec de la génération de la photo. Réessaie ou simplifie la description.")
+    quota_service.confirm(q)
+    return {"url": res["lien_visuel"], "quota": {"action": action_type, "used": q.get("used"), "limit": q.get("limit")}}

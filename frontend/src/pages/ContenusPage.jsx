@@ -226,7 +226,22 @@ export default function ContenusPage() {
   const [imgMode, setImgMode] = useState('gabarit');
   const [selectedGabarit, setSelectedGabarit] = useState(null);
   const [imgUsage, setImgUsage] = useState(null);
-  const [templateBg, setTemplateBg] = useState(null); // image de fond optionnelle (mode template)
+  const [templateBg, setTemplateBg] = useState(null); // photo optionnelle (zone photo du gabarit)
+  const [photoDesc, setPhotoDesc] = useState('');     // description -> photo générée par l'IA
+  const [photoGenBusy, setPhotoGenBusy] = useState(false);
+
+  const genererPhoto = async () => {
+    if (!photoDesc.trim() || photoGenBusy) return;
+    setPhotoGenBusy(true);
+    try {
+      const d = await agentService.generatePhoto(photoDesc, 'nano2');
+      setTemplateBg(d.url);
+      toast.success('Photo générée ✨');
+      refreshUsage();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec de la génération de la photo');
+    } finally { setPhotoGenBusy(false); }
+  };
 
   const setMode = (m) => {
     setImgMode(m);
@@ -371,7 +386,7 @@ export default function ContenusPage() {
     setImgAvecPhoto(!!user?.use_photo);
     setImgModele('nano2');
     setActiveTemplate(null); setStyleNote('');
-    setImgMode('gabarit'); setSelectedGabarit(null); setTemplateBg(null);
+    setImgMode('gabarit'); setSelectedGabarit(null); setTemplateBg(null); setPhotoDesc('');
     refreshUsage();
     // Charge la bibliothèque de références (inspirations) — tout sélectionné par défaut
     userService.listInspirations()
@@ -1123,6 +1138,24 @@ export default function ContenusPage() {
                               })}
                             </div>
                           )}
+                          {/* Photo générée par l'IA (si pas dans les références) */}
+                          {templateBg && !inspirations.includes(templateBg) && (
+                            <div className="flex items-center gap-2">
+                              <img src={templateBg} alt="" className="w-12 h-12 rounded-lg object-cover ring-2 ring-[#3AFFA3]" />
+                              <span className="text-[11.5px] text-[#3AFFA3]">Photo générée sélectionnée</span>
+                            </div>
+                          )}
+                          {/* Décris la photo -> génération IA (Nano Banana) */}
+                          <div className="flex items-center gap-2 pt-0.5">
+                            <input value={photoDesc} onChange={(e) => setPhotoDesc(e.target.value)}
+                              placeholder="Ou décris la photo à générer…"
+                              className="flex-1 bg-[#0a0f1c] border border-white/10 rounded-lg text-slate-200 text-[13px] px-3 py-2 outline-none focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
+                            <button onClick={genererPhoto} disabled={photoGenBusy || !photoDesc.trim()}
+                              className="shrink-0 inline-flex items-center gap-1.5 text-[12.5px] font-medium px-3 py-2 rounded-lg border border-[#3AFFA3]/40 text-[#3AFFA3] hover:bg-[#3AFFA3]/10 disabled:opacity-50">
+                              {photoGenBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />} Générer
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-slate-600 font-inter">La description est envoyée à l'IA (Nano Banana) — consomme 1 image standard.</p>
                         </div>
                       </div>
                     )}
