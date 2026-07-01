@@ -80,7 +80,7 @@ function refFamily(P, A, { bg, bg2, ink, mut, line, accentText, pillOutline }, c
   return out;
 }
 
-function renderSlides(tplId, colors) {
+function _renderRaw(tplId, colors) {
   const P = colors?.p || '#003D2E';
   const S = colors?.s || '#0077FF';
   const A = colors?.a || '#3AFFA3';
@@ -151,6 +151,27 @@ function renderSlides(tplId, colors) {
   CONTENT.slides.forEach((s, i) => { const dk = i % 2 === 0, bg = dk ? NEAR : CREAM, ink = dk ? '#fff' : '#181a1f', acc = dk ? accD : accL; out.push(`<div class="cz-slide" style="background:${bg};color:${ink};justify-content:flex-end"><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:300;font-size:22px;color:${acc}">0${i + 1}</div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:17px;line-height:1.1;margin-top:2px">${s.t}</div><div class="cz-pills">${pills(s.pills, dk ? 'rgba(255,255,255,.12)' : A, dk ? '#fff' : Aink, '')}</div>${pbar(i + 1, !dk)}</div>`); });
   out.push(`<div class="cz-slide" style="background:${grad};color:#fff;justify-content:center"><div class="cz-foot">${av(A, Aink)}<div>${nom}</div></div><div class="cz-grow"></div><div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:18px">${CONTENT.cta.t}</div><span style="align-self:flex-start;background:#fff;color:${inkOn('#ffffff')};font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:10px;padding:8px 14px;border-radius:26px;margin-top:10px">Lien en bio →</span>${pbar(n - 1, false)}</div>`);
   return out;
+}
+
+// Police d'affichage : liste proposée + application (remplace la police signature du template)
+const CZ_DISPLAY_FONTS = ['Anton', 'Fraunces', 'Sora'];
+export const CAROUSEL_FONTS = [
+  { id: '', label: 'Auto (par style)' },
+  { id: 'Anton', label: 'Anton' },
+  { id: 'Sora', label: 'Sora' },
+  { id: 'Poppins', label: 'Poppins' },
+  { id: 'Montserrat', label: 'Montserrat' },
+  { id: 'Oswald', label: 'Oswald' },
+  { id: 'Bebas Neue', label: 'Bebas Neue' },
+  { id: 'Playfair Display', label: 'Playfair' },
+  { id: 'Fraunces', label: 'Fraunces' },
+];
+
+function renderSlides(tplId, colors) {
+  const slides = _renderRaw(tplId, colors);
+  const font = colors?.font;
+  if (!font) return slides;
+  return slides.map((h) => CZ_DISPLAY_FONTS.reduce((acc, f) => acc.split('font-family:' + f).join("font-family:'" + font + "'"), h));
 }
 
 export { renderSlides };

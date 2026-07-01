@@ -8,7 +8,7 @@ import { scheduleService } from '../services/scheduleService';
 import { DEFAULT_SCHEDULE } from '../constants/schedules';
 import { SocialIcon } from '../components/SocialIcon';
 import { ColorField } from '../components/ColorField';
-import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides } from '../lib/carrouselPreview';
+import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS } from '../lib/carrouselPreview';
 
 const NETS = [
   { id: 'linkedin', label: 'LinkedIn', bg: '#0A66C2', note: 'Publié en PDF (document)' },
@@ -34,28 +34,42 @@ export default function CarrouselsPage() {
       p: user.carrousel_couleur_principale || brand.p,
       s: user.carrousel_couleur_secondaire || brand.s,
       a: user.carrousel_couleur_accent || brand.a,
+      font: user.carrousel_font || '',
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // Charge la Google Font choisie (pour l'aperçu)
+  useEffect(() => {
+    const font = cz?.font;
+    if (!font) return;
+    const id = 'czfont-' + font.replace(/\s/g, '-');
+    if (document.getElementById(id)) return;
+    const l = document.createElement('link');
+    l.id = id; l.rel = 'stylesheet';
+    l.href = `https://fonts.googleapis.com/css2?family=${font.replace(/\s/g, '+')}:wght@400;500;600;700;800;900&display=swap`;
+    document.head.appendChild(l);
+  }, [cz?.font]);
+
   const colors = useMemo(() => ({
-    p: cz?.p || brand.p, s: cz?.s || brand.s, a: cz?.a || brand.a,
+    p: cz?.p || brand.p, s: cz?.s || brand.s, a: cz?.a || brand.a, font: cz?.font || '',
     logo: user?.logo_url, nom: user?.nom || user?.username,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [cz, user]);
 
   const setColor = (name, val) => setCz((prev) => ({ ...prev, [name]: val }));
-  const resetColors = () => setCz({ ...brand });
+  const resetColors = () => setCz({ ...brand, font: '' });
   const czDirty = cz && (
     cz.p !== (user?.carrousel_couleur_principale || brand.p) ||
     cz.s !== (user?.carrousel_couleur_secondaire || brand.s) ||
-    cz.a !== (user?.carrousel_couleur_accent || brand.a)
+    cz.a !== (user?.carrousel_couleur_accent || brand.a) ||
+    (cz.font || '') !== (user?.carrousel_font || '')
   );
   const saveColors = async () => {
     if (!cz) return;
     setSavingCz(true);
     try {
-      const payload = { carrousel_couleur_principale: cz.p, carrousel_couleur_secondaire: cz.s, carrousel_couleur_accent: cz.a };
+      const payload = { carrousel_couleur_principale: cz.p, carrousel_couleur_secondaire: cz.s, carrousel_couleur_accent: cz.a, carrousel_font: cz.font || null };
       await userService.updateMe(payload);
       updateUser(payload);
       toast.success('Couleurs du carrousel enregistrées ✨');
@@ -126,8 +140,8 @@ export default function CarrouselsPage() {
         <div className="rounded-2xl border border-white/8 bg-[#0b1322] p-4 sm:p-5 mb-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div>
-              <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Couleurs du carrousel</div>
-              <div className="text-xs text-slate-400 mt-0.5">Par défaut = tes couleurs de marque. Le texte reste auto-lisible. L'aperçu se met à jour en direct.</div>
+              <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Style du carrousel</div>
+              <div className="text-xs text-slate-400 mt-0.5">Couleurs + police, par défaut = ta marque. Le texte reste auto-lisible. L'aperçu se met à jour en direct.</div>
             </div>
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
               <button onClick={resetColors} className="text-[12.5px] text-slate-400 hover:text-white px-3 py-2 rounded-lg border border-white/10">Réinitialiser</button>
@@ -142,6 +156,13 @@ export default function CarrouselsPage() {
             <ColorField label="Principale (fond)" name="p" value={cz.p} onChange={setColor} />
             <ColorField label="Secondaire" name="s" value={cz.s} onChange={setColor} />
             <ColorField label="Accent" name="a" value={cz.a} onChange={setColor} />
+          </div>
+          <div className="mt-3 max-w-xs">
+            <label className="block text-[12px] font-medium text-slate-300 mb-1.5">Police des titres</label>
+            <select value={cz.font || ''} onChange={(e) => setColor('font', e.target.value)}
+              className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
+              {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+            </select>
           </div>
         </div>
       )}

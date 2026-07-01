@@ -413,9 +413,26 @@ def _tpl_neon(content, p, s, a, nom, secteur, logo):
 # =============================================================================
 # Rendu Playwright + PDF + upload
 # =============================================================================
-def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, template="creme", logo=None):
+# Polices d'affichage utilisées par les templates (remplacées par la police choisie)
+_DISPLAY_FONTS = ["Anton", "Fraunces", "Sora"]
+
+
+def _apply_font(html_str, font):
+    """Remplace la police d'AFFICHAGE (titres) par celle choisie + charge la Google Font.
+    Le corps (Inter) reste inchangé. `font` vide -> police d'origine du template."""
+    if not font:
+        return html_str
+    fam = font.replace(" ", "+")
+    link = f'<link href="https://fonts.googleapis.com/css2?family={fam}:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">'
+    html_str = link + html_str
+    for f in _DISPLAY_FONTS:
+        html_str = html_str.replace(f"font-family:{f}", f"font-family:'{font}'")
+    return html_str
+
+
+def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, template="creme", logo=None, font=None):
     from playwright.sync_api import sync_playwright
-    html_str = build_html(content, p, s, a, nom, secteur, template, logo)
+    html_str = _apply_font(build_html(content, p, s, a, nom, secteur, template, logo), font)
     urls, pngs = [], []
     with sync_playwright() as pw:
         args = ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
@@ -464,5 +481,6 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     nom = u.get("nom") or u.get("username") or ""
     secteur = u.get("secteur") or ""
     logo = u.get("logo_url") or None
+    font = (u.get("carrousel_font") or "").strip() or None
     base = (contenu_id or "tmp").replace("-", "")[:16]
-    return await asyncio.to_thread(_render_and_upload, telegram_id, content, p, s, a, nom, secteur, base, template, logo)
+    return await asyncio.to_thread(_render_and_upload, telegram_id, content, p, s, a, nom, secteur, base, template, logo, font)
