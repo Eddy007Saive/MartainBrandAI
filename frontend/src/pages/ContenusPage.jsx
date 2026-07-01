@@ -217,9 +217,10 @@ export default function ContenusPage() {
 
   // Retouche carrousel : init des couleurs/police depuis la marque quand on ouvre un carrousel
   useEffect(() => {
-    const isCarr = selectedContenu && (selectedContenu.carrousel_data || (Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0));
+    // Retouche/aperçu live seulement AVANT validation ; une fois validé, l'image finale est figée
+    const editable = selectedContenu && selectedContenu.statut === 'A valider' && selectedContenu.carrousel_data;
     setCzSlide(0);
-    setCzR(isCarr ? {
+    setCzR(editable ? {
       p: user?.carrousel_couleur_principale || user?.couleur_principale || '#003D2E',
       s: user?.carrousel_couleur_secondaire || user?.couleur_secondaire || '#0077FF',
       a: user?.carrousel_couleur_accent || user?.couleur_accent || '#3AFFA3',
@@ -897,8 +898,8 @@ export default function ContenusPage() {
                   {/* GAUCHE : aperçu + retouche */}
                   <div className="p-4 border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto space-y-3"
                     style={{ background: 'radial-gradient(120% 70% at 20% 0%, rgba(91,108,255,.05), transparent 55%)' }}>
-                  {selectedContenu.carrousel_data ? (
-                    // Aperçu LIVE (client-side) — reflète la retouche instantanément, sans re-render
+                  {czR && selectedContenu.carrousel_data ? (
+                    // Aperçu LIVE éditable — seulement AVANT validation (reflète la retouche)
                     <>
                       <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
                       {(() => {
@@ -1054,7 +1055,7 @@ export default function ContenusPage() {
                 {/* FOOTER : actions */}
                 <div className="px-5 py-3 border-t border-white/10 flex items-center justify-between gap-3 bg-[#0a0f1c]">
                   <span className="text-[11.5px] text-slate-500 font-inter truncate">
-                    {selectedContenu.carrousel_data ? 'Images finales rendues à la validation' : ''}
+                    {czR ? 'Images finales rendues à la validation' : ''}
                   </span>
                   <div className="flex items-center gap-2 flex-wrap justify-end">
                     {selectedContenu.statut === 'A valider' && (
