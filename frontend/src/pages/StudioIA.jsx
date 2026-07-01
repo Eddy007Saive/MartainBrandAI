@@ -67,13 +67,21 @@ const Pill = ({ active, onClick, children }) => (
 
 export default function StudioIA() {
   const { user, updateUser } = useUser();
+  const [usage, setUsage] = useState(null);
+  const refreshUsage = () => agentService.usage().then(setUsage).catch(() => {});
+  useEffect(() => { refreshUsage(); }, []);
+  const sujetsReste = () => {
+    const g = usage?.gauges?.find((x) => x.action_type === 'subject');
+    return g ? Math.max(0, g.limit - g.used) : null;
+  };
   const marqueOk = !!(user?.secteur && String(user.secteur).trim());
   // On ne propose que les réseaux dont le compte est connecté (Paramètres → Réseaux)
   const reseaux = RESEAUX.filter((r) => !!user?.[`late_account_${r.id}`]);
 
   const erreurGen = (e) => {
-    if (e?.response?.status === 402) toast.error('Crédits insuffisants — rechargez vos crédits.');
+    if (e?.response?.status === 402) toast.error(e?.response?.data?.detail || 'Quota atteint pour ce type ce mois-ci.');
     else toast.error(e?.response?.data?.detail || 'Erreur lors de la génération');
+    refreshUsage();
   };
 
   const [nbSujets, setNbSujets] = useState(6);
@@ -159,7 +167,7 @@ export default function StudioIA() {
       const data = await agentService.sujets(nbSujets);
       const nouveaux = data.sujets || [];
       setSujets((prev) => [...nouveaux, ...prev]);
-      if (data.credits != null) updateUser({ credits: data.credits });
+      refreshUsage();
       if (!nouveaux.length) toast.info('Aucun sujet généré, réessayez.');
     } catch (e) {
       erreurGen(e);
@@ -314,8 +322,9 @@ export default function StudioIA() {
         subtitle="Votre IA génère vos contenus à partir de votre marque"
         actions={
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-            <span className="text-xs text-slate-400 font-inter">Crédits</span>
-            <span className="text-sm font-semibold text-white font-inter">{user?.credits ?? '—'}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3]" />
+            <span className="text-sm font-semibold text-white font-inter">{sujetsReste() ?? '—'}</span>
+            <span className="text-xs text-slate-400 font-inter">sujets restants</span>
           </div>
         }
       />
@@ -432,14 +441,14 @@ export default function StudioIA() {
                   <span className="text-xs text-slate-500 font-inter">Qualité</span>
                   {QUALITES.map((q) => (
                     <Pill key={q.id} active={bQualite === q.id} onClick={() => setBQualite(q.id)}>
-                      {q.icon} {q.label} · {q.cout[bFormat]} cr.
+                      {q.icon} {q.label}
                     </Pill>
                   ))}
                 </div>
                 <div className="flex items-center justify-end">
                   <Button onClick={genererBrief} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer"
                     className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
-                    <Wand2 className="w-4 h-4" /><span className="ml-2">Rédiger · {QUALITES.find((q) => q.id === bQualite)?.cout[bFormat]} cr.</span>
+                    <Wand2 className="w-4 h-4" /><span className="ml-2">Rédiger</span>
                   </Button>
                 </div>
               </div>
@@ -465,7 +474,7 @@ export default function StudioIA() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-slate-500 font-inter">Qualité</span>
-                  {QUALITES.map((q) => <Pill key={q.id} active={photoQualite === q.id} onClick={() => setPhotoQualite(q.id)}>{q.icon} {q.label} · {q.cout.post} cr.</Pill>)}
+                  {QUALITES.map((q) => <Pill key={q.id} active={photoQualite === q.id} onClick={() => setPhotoQualite(q.id)}>{q.icon} {q.label}</Pill>)}
                 </div>
                 <input ref={photoRef} type="file" accept="image/*" className="hidden" data-testid="studio-photo-input"
                   onChange={(e) => genererPhoto(e.target.files?.[0])} />
@@ -480,7 +489,7 @@ export default function StudioIA() {
                   <Button onClick={() => photoRef.current?.click()} disabled={!marqueOk || photoLoading}
                     className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
                     {photoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                    <span className="ml-2">{cameraAvailable() ? 'Importer' : 'Choisir une photo'} · {QUALITES.find((q) => q.id === photoQualite)?.cout.post} cr.</span>
+                    <span className="ml-2">{cameraAvailable() ? 'Importer' : 'Choisir une photo'}</span>
                   </Button>
                 </div>
               </div>
@@ -575,14 +584,14 @@ export default function StudioIA() {
                           <span className="text-xs text-slate-500 font-inter">Qualité</span>
                           {QUALITES.map((q) => (
                             <Pill key={q.id} active={cfgQualite === q.id} onClick={() => setCfgQualite(q.id)}>
-                              {q.icon} {q.label} · {q.cout[cfgFormat]} cr.
+                              {q.icon} {q.label}
                             </Pill>
                           ))}
                         </div>
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => setOpenId(null)} className="text-xs text-slate-400 hover:text-white font-inter px-2">Annuler</button>
                           <Button onClick={() => genererContenu(s)} className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
-                            <Wand2 className="w-4 h-4" /><span className="ml-2">Générer · {QUALITES.find((q) => q.id === cfgQualite)?.cout[cfgFormat]} cr.</span>
+                            <Wand2 className="w-4 h-4" /><span className="ml-2">Générer</span>
                           </Button>
                         </div>
                       </div>
