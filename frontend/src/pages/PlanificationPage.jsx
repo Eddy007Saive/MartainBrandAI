@@ -86,7 +86,17 @@ export default function PlanificationPage() {
   };
 
   const tz = user?.timezone || browserTz();
-  const openContenu = (c) => { setSelected(c); setDateVal(utcToInput(c.date_publication, tz)); };
+  const openContenu = (c) => {
+    setSelected(c); setDateVal(utcToInput(c.date_publication, tz));
+    // Rafraîchit le statut RÉEL : un webhook Late a pu passer le post à « publié »
+    // depuis le chargement de la page → on évite d'afficher un ancien « échec » figé.
+    contenuService.getById(c.id)
+      .then((fresh) => {
+        setSelected((prev) => (prev && prev.id === c.id ? { ...prev, ...fresh } : prev));
+        setContenus((prev) => prev.map((x) => (x.id === c.id ? { ...x, ...fresh } : x)));
+      })
+      .catch(() => { /* on garde l'instantané */ });
+  };
   const patchSel = (patch) => {
     setContenus((prev) => prev.map((c) => (c.id === selected.id ? { ...c, ...patch } : c)));
     setSelected((prev) => (prev ? { ...prev, ...patch } : prev));
