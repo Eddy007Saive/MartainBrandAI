@@ -39,6 +39,10 @@ const REQUIRED_FIELDS = {
   style: ['couleur_principale', 'couleur_secondaire', 'couleur_accent'],
 };
 
+// Avatar vidéo IA (HeyGen) désactivé pour l'instant -> affiché « à venir ».
+// Passer à true pour réactiver toute la section.
+const HEYGEN_AVATAR_ENABLED = false;
+
 const SETTINGS_SECTIONS = [
   { id: 'identity', title: 'Identité', icon: User },
   { id: 'marque', title: 'Voix de marque', icon: Megaphone },
@@ -46,7 +50,7 @@ const SETTINGS_SECTIONS = [
   { id: 'schedules', title: 'Planification', icon: Calendar },
   { id: 'abonnement', title: 'Abonnement', icon: CreditCard },
   { id: 'style', title: 'Style & Couleurs', icon: Palette },
-  { id: 'avatar', title: 'Avatar HeyGen', icon: Video },
+  { id: 'avatar', title: 'Avatar vidéo', icon: Video, soon: true },
 ];
 
 // Offre unique Pro (le détail des quotas est paramétrable en admin)
@@ -1126,6 +1130,23 @@ export default function ParametresPage() {
   );
 
   const renderAvatar = () => {
+    // Avatar vidéo IA (HeyGen) : mis en pause -> présenté comme fonctionnalité à venir.
+    // Pour le réactiver plus tard : passer HEYGEN_AVATAR_ENABLED à true (voir haut du fichier).
+    if (!HEYGEN_AVATAR_ENABLED) return (
+      <div className="flex flex-col items-center justify-center text-center py-14 px-6 rounded-2xl border border-dashed border-white/10 bg-slate-950/30">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center mb-4">
+          <Video className="w-7 h-7 text-white" />
+        </div>
+        <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30 uppercase tracking-wide">
+          Bientôt disponible
+        </span>
+        <h3 className="text-white font-semibold font-sora text-lg mt-3">Avatar vidéo IA</h3>
+        <p className="text-sm text-slate-400 font-inter mt-1.5 max-w-md">
+          Génère des vidéos avec ton avatar IA à partir d'un simple texte. Cette fonctionnalité arrive prochainement — on te préviendra dès qu'elle est prête.
+        </p>
+      </div>
+    );
+
     if (avatarLoading) {
       return (
         <div className="flex items-center justify-center py-8 gap-2">
@@ -1436,6 +1457,7 @@ export default function ParametresPage() {
               >
                 <Icon className={`w-[17px] h-[17px] flex-shrink-0 ${isActive ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300'}`} />
                 <span className="text-[13.5px] font-medium flex-1 truncate">{section.title}</span>
+                {section.soon && <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30 flex-shrink-0">Bientôt</span>}
                 {isIncomplete && <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />}
                 {hasAvatarBadge && avatar.status === 'complete' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />}
                 {hasAvatarBadge && avatar.status === 'in_progress' && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />}

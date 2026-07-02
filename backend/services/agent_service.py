@@ -10,6 +10,7 @@ telegram_id. La voix de marque est mise en cache (prompt caching) → coût réd
 
 import json
 import time
+import unicodedata
 import anthropic
 from config import CLAUDE_API_KEY, CLAUDE_MODEL, supabase, logger
 
@@ -147,6 +148,43 @@ ROLE_SUJETS = (
 )
 
 
+def _norm(s: str) -> str:
+    """Normalise un titre pour comparer (minuscules, sans accents, alphanumérique)."""
+    s = unicodedata.normalize("NFD", (s or "").lower())
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")  # retire les accents
+    s = "".join(c if c.isalnum() else " " for c in s)
+    return " ".join(s.split())
+
+
+def _sujets_historique(telegram_id: str, limit: int = 60) -> list:
+    """Titres des sujets déjà proposés (brouillons) ou publiés (contenus), récents d'abord.
+
+    Sert de MÉMOIRE anti-répétition : on la réinjecte dans le prompt et on filtre la sortie.
+    """
+    titres = []
+    for table, col in (("brouillons", "created_at"), ("contenu", "created_at")):
+        try:
+            rows = (supabase.table(table).select("titre, " + col)
+                    .eq("telegram_id", telegram_id).order(col, desc=True).limit(limit).execute().data or [])
+        except Exception:
+            # Table sans created_at (ou autre) : repli sans tri
+            try:
+                rows = (supabase.table(table).select("titre")
+                        .eq("telegram_id", telegram_id).limit(limit).execute().data or [])
+            except Exception as e:
+                logger.warning(f"historique {table}: {e}")
+                rows = []
+        titres += [r.get("titre") for r in rows if r.get("titre")]
+    # Dédup en gardant l'ordre (récents d'abord)
+    seen, out = set(), []
+    for t in titres:
+        k = _norm(t)
+        if k and k not in seen:
+            seen.add(k)
+            out.append(t.strip())
+    return out
+
+
 def generer_sujets(telegram_id: str, nombre: int = 6) -> dict:
     if not _client:
         return {"error": "no_api_key"}
@@ -155,6 +193,19 @@ def generer_sujets(telegram_id: str, nombre: int = 6) -> dict:
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
 
+    # Mémoire anti-boucle : sujets déjà vus (à éviter dans le prompt + filtrer en sortie)
+    historique = _sujets_historique(telegram_id)
+    consigne = ""
+    if historique:
+        deja = "\n".join(f"- {t}" for t in historique[:20])  # petite liste = coût négligeable
+        consigne = (
+            f"\n\nSujets DÉJÀ proposés ou publiés pour cette marque — tu ne dois NI les répéter, "
+            f"NI les reformuler, NI en proposer de simples variantes :\n{deja}\n"
+            f"Propose des angles VRAIMENT nouveaux et différents de cette liste."
+        )
+
+    # On demande quelques sujets de rab : après filtrage des doublons, il en reste assez.
+    demande = nombre + 4
     resp = _messages_create(
         model=SUJETS_MODEL,
         max_tokens=900,
@@ -162,16 +213,25 @@ def generer_sujets(telegram_id: str, nombre: int = 6) -> dict:
         messages=[{
             "role": "user",
             "content": (
-                f"Propose {nombre} idées de sujets de contenu pertinents pour cette marque "
+                f"Propose {demande} idées de sujets de contenu pertinents pour cette marque "
                 f"(angles concrets, accrocheurs, exploitables aussi bien en post qu'en vidéo). "
                 f"Réponds UNIQUEMENT avec un sujet par ligne — pas de numéro, pas de puce, pas d'intro."
+                + consigne
             ),
         }],
     )
     texte = _texte(resp)
     sujets = [l.strip(" -•\t0123456789.").strip() for l in texte.splitlines() if l.strip()]
-    sujets = [s for s in sujets if s][:nombre]
-    return {"sujets": sujets, "usage": _usage(resp)}
+
+    # Filtre anti-doublon : vs l'historique ET entre eux (sécurité si le modèle répète)
+    existants = {_norm(t) for t in historique}
+    seen, uniques = set(), []
+    for s in sujets:
+        k = _norm(s)
+        if k and k not in existants and k not in seen:
+            seen.add(k)
+            uniques.append(s)
+    return {"sujets": uniques[:nombre], "usage": _usage(resp)}
 
 
 # ---------------------------------------------------------------------------
