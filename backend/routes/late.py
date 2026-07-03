@@ -39,6 +39,10 @@ async def publier(contenu_id: str, payload: dict = Depends(verify_token)):
     contenu = contenu_service.get_contenu(contenu_id, telegram_id)
     if not contenu:
         raise HTTPException(status_code=404, detail="Contenu introuvable")
+    # Garde-fou vidéo : une vidéo/reel doit être MONTÉE (video_url présente) avant publication.
+    is_video = contenu.get("type") in ("Reel", "Video", "Short") or contenu.get("video_status")
+    if is_video and not contenu.get("video_url"):
+        raise HTTPException(status_code=409, detail="La vidéo n'est pas encore montée — attends la fin du montage avant de publier.")
     statut_pub = contenu.get("publish_status")
     if statut_pub == "publié":
         raise HTTPException(status_code=409, detail="Ce contenu est déjà publié.")

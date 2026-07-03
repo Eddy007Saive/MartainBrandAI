@@ -181,6 +181,13 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 row["type"] = "Carrousel"
                 if ccontent:
                     row["carrousel_data"] = ccontent  # slides structurées -> re-render sans re-générer le texte
+            elif action == "script":
+                # Reel/Vidéo : le texte généré est un SCRIPT (téléprompteur), pas un post publiable.
+                # La personne doit d'abord TOURNER la vidéo → statut « À tourner » (route vers Studio Vidéo).
+                row["type"] = "Reel" if fmt == "reel" else "Video"
+                row["statut"] = "A tourner"
+                row["script"] = texte or None
+                row["contenu"] = None  # le post publiable arrivera après le montage
             ins = supabase.table("contenu").insert(row).execute()
             cid = ins.data[0]["id"] if ins.data else None
 

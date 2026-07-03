@@ -103,18 +103,19 @@ export default function PlanEditorial() {
 
   // total posts + coût de la rafale
   const rafale = useMemo(() => {
-    let posts = 0, cost = 0;
+    let posts = 0, videos = 0, cost = 0;
     const items = [];
     for (const s of subjects) {
       const st = sel[s.id];
       if (!st?.checked || !st.nets || !Object.keys(st.nets).length) continue;
       for (const [netId, fmt] of Object.entries(st.nets)) {
         posts += 1;
+        if (fmt === 'reel' || fmt === 'video') videos += 1;  // scripts vidéo → « À tourner »
         cost += COST[costKey(fmt)][quality];
         items.push({ sujet: s.titre, reseau: netId, format: fmt, qualite: quality });
       }
     }
-    return { posts, cost, items };
+    return { posts, videos, cost, items };
   }, [subjects, sel, quality]);
 
   // coche/décoche un sujet ; le décocher vide ses réseaux
@@ -349,8 +350,13 @@ export default function PlanEditorial() {
       {rafale.posts > 0 && (
         <div className="fixed bottom-0 left-0 md:left-64 right-0 z-20 border-t border-white/10 bg-[#090d18]/90 backdrop-blur-xl px-5 md:px-8 py-3.5 flex items-center gap-4 flex-wrap">
           <div className="flex flex-col">
-            <div className="text-sm font-semibold"><span className="text-[#3AFFA3]">{rafale.posts}</span> post{rafale.posts > 1 ? 's' : ''} à générer</div>
-            <div className="text-[12px] text-slate-500">planifiés sur {MOIS[month - 1]} · prêts à valider dans Contenus</div>
+            <div className="text-sm font-semibold"><span className="text-[#3AFFA3]">{rafale.posts}</span> contenu{rafale.posts > 1 ? 's' : ''} à générer</div>
+            <div className="text-[12px] text-slate-500">
+              planifiés sur {MOIS[month - 1]}
+              {rafale.videos > 0
+                ? ` · dont ${rafale.videos} script${rafale.videos > 1 ? 's' : ''} vidéo à tourner (Studio Vidéo)`
+                : ' · prêts à valider dans Contenus'}
+            </div>
           </div>
           <div className="flex gap-0.5 p-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] md:ml-auto">
             {QUALITES.map((q) => (

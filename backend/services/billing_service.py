@@ -3,7 +3,6 @@ Abonnements Stripe -> plan utilisateur + crédits mensuels.
 
 No-op propre si Stripe non configuré (l'app marche en mode gratuit sans Stripe).
 """
-import json
 from datetime import datetime, timezone
 import stripe
 from config import (
@@ -237,11 +236,12 @@ def _apply_pack(session: dict):
 def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     if not _ready():
         return {"ok": False}
+    # Fail-closed : sans secret configuré, on REFUSE (jamais de payload non signé -> pas de faux abo).
+    if not STRIPE_WEBHOOK_SECRET:
+        logger.error("stripe webhook reçu mais STRIPE_WEBHOOK_SECRET absent -> rejeté")
+        return {"ok": False, "error": "webhook non configuré"}
     try:
-        if STRIPE_WEBHOOK_SECRET:
-            event = stripe.Webhook.construct_event(payload_bytes, signature, STRIPE_WEBHOOK_SECRET)
-        else:
-            event = json.loads(payload_bytes)
+        event = stripe.Webhook.construct_event(payload_bytes, signature, STRIPE_WEBHOOK_SECRET)
     except Exception as e:
         logger.warning(f"stripe webhook signature invalide: {e}")
         return {"ok": False, "error": "bad signature"}

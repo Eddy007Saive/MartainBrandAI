@@ -28,9 +28,8 @@ export const STEPS = [
   ['Valide & programme', 'Tu relis, tu ajustes, tu programmes. La publication part toute seule.'],
 ];
 export const PLANS = [
-  { name: 'Gratuit', price: '0€', credits: 100, feats: ['1 réseau connecté', 'Génération de posts', 'Support communauté'], cta: 'Commencer', to: '/register' },
-  { name: 'Pro', price: '19€', credits: 1000, popular: true, feats: ['Les 5 réseaux', 'Carrousels + planification', 'Notifications push'], cta: 'Choisir Pro', to: '/register' },
-  { name: 'Business', price: '49€', credits: 3000, feats: ['Avatar vidéo IA', 'Multi-profils', 'Support prioritaire'], cta: 'Choisir Business', to: '/register' },
+  { name: 'Gratuit', price: '0€', tag: 'Pour tester, sans carte', feats: ['1 réseau connecté', 'Génération de posts', 'Support communauté'], cta: 'Commencer', to: '/register' },
+  { name: 'Pro', price: '279€', popular: true, tag: 'Tout inclus · sans engagement', feats: ['Les 5 réseaux', 'Carrousels + planification', 'Analytics + commentaires', 'Studio vidéo (reels)', 'Notifications push'], cta: 'Choisir Pro', to: '/register' },
 ];
 export const FAQ = [
   ['C’est vraiment gratuit pour démarrer ?', 'Oui — l’offre Gratuite te laisse tester sans carte bancaire. Tu passes à une offre payante seulement si tu as besoin de plus de crédits ou de fonctionnalités.'],

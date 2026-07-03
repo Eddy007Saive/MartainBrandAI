@@ -8,6 +8,10 @@ import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { utcToInput, inputToUtc, timeInTz, tzAbbrev, browserTz } from '../lib/tz';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import { Calendar as DayCalendar } from '../components/ui/calendar';
+import { format, parseISO } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 const PUBLISH_BADGE = {
   envoi: { label: '⏳ Envoi…', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
@@ -502,10 +506,24 @@ export default function PlanificationPage() {
                 {/* Date picker */}
                 <div className="space-y-1.5">
                   <label className="text-xs text-slate-400 font-inter">Date de publication <span className="text-slate-600">({tz.split('/').pop().replace('_', ' ')} · {tzAbbrev(tz)})</span></label>
-                  <div className="flex gap-2">
-                    <input type="datetime-local" value={dateVal} onChange={(e) => setDateVal(e.target.value)}
-                      min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
-                      className="flex-1 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 outline-none focus:border-[#5B6CFF]/50" />
+                  <div className="flex gap-2 flex-wrap items-center">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="flex-1 min-w-[150px] flex items-center gap-2 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 hover:border-[#5B6CFF]/50 transition-colors text-left">
+                          <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                          <span className="truncate">{dateVal?.split('T')[0] ? format(parseISO(dateVal.split('T')[0]), 'EEE d MMM yyyy', { locale: fr }) : 'Choisir une date'}</span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-auto p-0 bg-[#0f172a] border-white/10">
+                        <DayCalendar mode="single" locale={fr} initialFocus
+                          selected={dateVal?.split('T')[0] ? parseISO(dateVal.split('T')[0]) : undefined}
+                          disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                          onSelect={(d) => { if (d) setDateVal(`${format(d, 'yyyy-MM-dd')}T${(dateVal?.split('T')[1]) || '09:00'}`); }} />
+                      </PopoverContent>
+                    </Popover>
+                    <input type="time" step="300" value={dateVal?.split('T')[1] || ''}
+                      onChange={(e) => setDateVal(`${dateVal?.split('T')[0] || format(new Date(), 'yyyy-MM-dd')}T${e.target.value}`)}
+                      className="w-[112px] rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 outline-none focus:border-[#5B6CFF]/50" />
                     <Button size="sm" onClick={saveDate} disabled={busy || !dateVal || utcToInput(selected.date_publication, tz) === dateVal}
                       className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">Enregistrer</Button>
                   </div>

@@ -396,6 +396,21 @@ export default function AuditMarque() {
     <div className="posab">
       <style>{CSS}</style>
 
+      {/* Header / nav du site */}
+      <nav className="topnav"><div className="wrap">
+        <a href="/" className="tn-brand"><img src="/logo.png" alt="Presence OS" /><span>Presence&nbsp;OS</span></a>
+        <div className="tn-links">
+          <a href="/fonctionnalites">Fonctionnalités</a>
+          <a href="/comment-ca-marche">Comment ça marche</a>
+          <a href="/tarifs">Tarifs</a>
+          <a href="/faq">FAQ</a>
+        </div>
+        <div className="tn-cta">
+          <a href="/login" className="tn-login">Se connecter</a>
+          <a href="/register" className="tn-start">Commencer</a>
+        </div>
+      </div></nav>
+
       {/* honeypot anti-bot (invisible) */}
       <input type="text" tabIndex={-1} autoComplete="off" aria-hidden="true"
         style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
@@ -405,7 +420,7 @@ export default function AuditMarque() {
       <header className="top">
         <div className="wrap">
           <div className="brandrow">
-            <div className="glyph">P</div>
+            <img src="/logo.png" alt="Presence OS" className="glyph" />
             <div><b>Presence&nbsp;OS</b><br /><span>Onboarding</span></div>
           </div>
           <h1>Audit de marque.<br />Pour que l'IA parle <em>exactement</em> comme toi.</h1>
@@ -507,13 +522,13 @@ export default function AuditMarque() {
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 .posab{
-  --bg:#080B14; --bg2:#0E1322; --panel:#121829; --input:#0C111F;
-  --border:#212B43; --border2:#2C3A5A;
+  --bg:#020617; --bg2:#0B1120; --panel:#0F172A; --input:#0C111F;
+  --border:#1E293B; --border2:#2C3A5A;
   --text:#EAF0FB; --muted:#8593AE; --faint:#5A6680;
-  --blue:#2B7BFF; --blue-deep:#0A4FCC; --green:#3AFFA3; --warn:#F5A623;
+  --blue:#5B6CFF; --blue-deep:#8A6CFF; --green:#3AFFA3; --warn:#F5A623;
   min-height:100vh; scroll-behavior:smooth;
   background:
-    radial-gradient(900px 500px at 80% -10%, rgba(43,123,255,.14), transparent 60%),
+    radial-gradient(900px 500px at 80% -10%, rgba(91,108,255,.14), transparent 60%),
     radial-gradient(700px 600px at -10% 20%, rgba(58,255,163,.06), transparent 55%),
     var(--bg);
   color:var(--text); font-family:'Inter',system-ui,-apple-system,sans-serif;
@@ -521,19 +536,33 @@ const CSS = `
 }
 .posab *{box-sizing:border-box}
 .posab .wrap{max-width:1180px; margin:0 auto; padding:0 22px}
+.posab .topnav{border-bottom:1px solid var(--border);background:rgba(2,6,23,.55);backdrop-filter:blur(8px)}
+.posab .topnav .wrap{display:flex;align-items:center;gap:20px;padding-top:14px;padding-bottom:14px}
+.posab .tn-brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+.posab .tn-brand img{width:30px;height:30px;object-fit:contain;border-radius:8px}
+.posab .tn-brand span{font-family:'Space Grotesk';font-weight:600;letter-spacing:.12em;font-size:13px;text-transform:uppercase}
+.posab .tn-links{display:flex;gap:22px;margin-left:10px}
+.posab .tn-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:.15s}
+.posab .tn-links a:hover{color:var(--text)}
+.posab .tn-cta{margin-left:auto;display:flex;align-items:center;gap:16px}
+.posab .tn-login{color:var(--text);text-decoration:none;font-size:14px;font-weight:500;white-space:nowrap}
+.posab .tn-login:hover{color:var(--blue)}
+.posab .tn-start{font-family:'Space Grotesk';font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;padding:9px 18px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;box-shadow:0 8px 24px rgba(91,108,255,.35);transition:.18s}
+.posab .tn-start:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(91,108,255,.45)}
+@media(max-width:760px){.posab .tn-links{display:none}}
 .posab header.top{padding:46px 0 30px; border-bottom:1px solid var(--border)}
 .posab .brandrow{display:flex; align-items:center; gap:14px; margin-bottom:26px}
-.posab .glyph{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--blue),var(--blue-deep));display:grid;place-items:center;font-family:'Space Grotesk';font-weight:700;font-size:22px;color:#fff;box-shadow:0 8px 30px rgba(43,123,255,.4)}
+.posab .glyph{width:44px;height:44px;border-radius:10px;object-fit:contain;display:block}
 .posab .brandrow b{font-family:'Space Grotesk';font-weight:600;letter-spacing:.14em;font-size:14px;text-transform:uppercase}
 .posab .brandrow span{color:var(--muted);font-size:13px}
 .posab h1{font-family:'Space Grotesk';font-weight:700;font-size:clamp(28px,4.6vw,46px);line-height:1.08;margin:0 0 16px;letter-spacing:-.02em}
 .posab h1 em{font-style:normal;color:var(--blue)}
 .posab .lead{color:var(--muted);max-width:680px;font-size:16px;margin:0}
 .posab .lead b{color:var(--text);font-weight:600}
-.posab .note{margin-top:22px;display:flex;gap:12px;align-items:flex-start;background:rgba(43,123,255,.08);border:1px solid rgba(43,123,255,.25);border-radius:12px;padding:14px 16px;max-width:760px;font-size:14px}
+.posab .note{margin-top:22px;display:flex;gap:12px;align-items:flex-start;background:rgba(91,108,255,.08);border:1px solid rgba(91,108,255,.25);border-radius:12px;padding:14px 16px;max-width:760px;font-size:14px}
 .posab .note .dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:7px;flex:none;box-shadow:0 0 12px var(--green)}
 .posab .note span{color:var(--muted)} .posab .note b{color:var(--text)}
-.posab .progress-shell{position:sticky;top:0;z-index:40;background:rgba(8,11,20,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.posab .progress-shell{position:sticky;top:0;z-index:40;background:rgba(2,6,23,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
 .posab .progress-shell .wrap{display:flex;align-items:center;gap:16px;padding-top:12px;padding-bottom:12px}
 .posab .pbar{flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden}
 .posab .pfill{height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:99px;transition:width .35s ease}
@@ -560,19 +589,19 @@ const CSS = `
 .posab .field input[type=text], .posab .field textarea, .posab .field select{width:100%;background:var(--input);border:1px solid var(--border);border-radius:11px;color:var(--text);font:inherit;font-size:14.5px;padding:12px 14px;transition:.15s;resize:vertical}
 .posab .field textarea{min-height:96px;line-height:1.5}
 .posab .field input::placeholder,.posab .field textarea::placeholder{color:#4D5A75}
-.posab .field input:focus,.posab .field textarea:focus,.posab .field select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(43,123,255,.18);background:#0A1020}
+.posab .field input:focus,.posab .field textarea:focus,.posab .field select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,108,255,.18);background:#0A1020}
 .posab .pills{display:flex;flex-wrap:wrap;gap:8px}
 .posab .pills label{cursor:pointer;margin:0}
 .posab .pills input{position:absolute;opacity:0;width:0;height:0}
 .posab .pills .pill{display:inline-block;padding:9px 15px;border:1px solid var(--border);border-radius:99px;font-size:13.5px;color:var(--muted);background:var(--input);transition:.15s;user-select:none}
-.posab .pills input:checked + .pill{border-color:var(--blue);color:#fff;background:rgba(43,123,255,.16);box-shadow:inset 0 0 0 1px var(--blue)}
+.posab .pills input:checked + .pill{border-color:var(--blue);color:#fff;background:rgba(91,108,255,.16);box-shadow:inset 0 0 0 1px var(--blue)}
 .posab .pills label:hover .pill{color:var(--text)}
 .posab .color-row{display:flex;align-items:center;gap:12px}
 .posab .color-row input[type=color]{width:48px;height:46px;padding:0;border:1px solid var(--border);border-radius:11px;background:var(--input);cursor:pointer}
 .posab .color-row input[type=text]{flex:1}
 .posab .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .posab .tabs button{font:inherit;font-size:13px;font-weight:500;padding:7px 14px;border-radius:9px;border:1px solid var(--border);background:var(--input);color:var(--muted);cursor:pointer;transition:.15s}
-.posab .tabs button.on{background:rgba(43,123,255,.16);border-color:var(--blue);color:#fff}
+.posab .tabs button.on{background:rgba(91,108,255,.16);border-color:var(--blue);color:#fff}
 .posab .upload{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
 .posab .upload .thumbs{display:flex;flex-wrap:wrap;gap:10px}
 .posab .upload .thumb{position:relative;width:72px;height:72px;border-radius:11px;overflow:hidden;border:1px solid var(--border);background:var(--input)}
@@ -585,11 +614,11 @@ const CSS = `
 .posab .uploadbtn.disabled{opacity:.5;cursor:not-allowed;border-style:solid}
 .posab .upload .cap{font-size:12px;color:var(--faint);font-family:'Space Grotesk'}
 .posab .ts{display:flex;justify-content:center;margin:0 auto 18px;min-height:66px}
-.posab .finish{background:linear-gradient(135deg,rgba(43,123,255,.12),rgba(58,255,163,.05));border:1px solid var(--border2);text-align:center}
+.posab .finish{background:linear-gradient(135deg,rgba(91,108,255,.12),rgba(58,255,163,.05));border:1px solid var(--border2);text-align:center}
 .posab .finish h2{font-size:24px}
 .posab .btn{font-family:'Space Grotesk';font-weight:600;font-size:15px;border:none;cursor:pointer;border-radius:12px;padding:15px 30px;transition:.18s;display:inline-flex;gap:10px;align-items:center}
-.posab .btn.primary{background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;box-shadow:0 10px 30px rgba(43,123,255,.4)}
-.posab .btn.primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(43,123,255,.5)}
+.posab .btn.primary{background:linear-gradient(135deg,var(--blue),var(--blue-deep));color:#fff;box-shadow:0 10px 30px rgba(91,108,255,.4)}
+.posab .btn.primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(91,108,255,.5)}
 .posab .btn.ghost{background:var(--input);color:var(--text);border:1px solid var(--border2)}
 .posab .btn.ghost:hover{border-color:var(--blue)}
 .posab .ov{position:fixed;inset:0;background:rgba(4,6,12,.78);backdrop-filter:blur(6px);z-index:90;display:none;align-items:center;justify-content:center;padding:24px}

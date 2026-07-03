@@ -27,7 +27,7 @@ import { billingService } from '../services/billingService';
 import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
 import { templateService } from '../services/templateService';
-import { removeToken } from '../lib/auth';
+import { removeToken, setToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { FREQUENCIES, DAYS, DEFAULT_SCHEDULE, FORMATS_RESEAU } from '../constants/schedules';
@@ -55,7 +55,7 @@ const SETTINGS_SECTIONS = [
 
 // Offre unique Pro (le détail des quotas est paramétrable en admin)
 const PRO_OFFER = {
-  price: '259€',
+  price: '279€',
   inclus: ['100 sujets / mois', '50 posts / mois', '50 images standard', '20 images HD', '10 carrousels'],
   feats: ['Les 5 réseaux', 'Carrousels + planification', 'Analytics + commentaires', 'Notifications push'],
 };
@@ -427,8 +427,9 @@ export default function ParametresPage() {
     if (pwdNew.length < 6) { toast.error('Le nouveau mot de passe doit faire au moins 6 caractères.'); return; }
     setChangingPwd(true);
     try {
-      await userService.changePassword(pwdOld, pwdNew);
-      toast.success('Mot de passe changé ✓');
+      const data = await userService.changePassword(pwdOld, pwdNew);
+      if (data?.token) setToken(data.token);  // garde CET appareil connecté ; les autres seront déconnectés
+      toast.success('Mot de passe changé ✓ — les autres appareils seront déconnectés.');
       setPwdOld(''); setPwdNew('');
     } catch (err) {
       toast.error(err?.response?.data?.detail || 'Échec du changement de mot de passe');

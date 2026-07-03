@@ -29,15 +29,35 @@ MAX_VIDEO_BYTES = 300 * 1024 * 1024  # 300 Mo
 
 RESEAU_MAP = {"instagram": "Instagram", "tiktok": "TikTok", "youtube": "YouTube", "facebook": "Facebook", "linkedin": "LinkedIn"}
 
-# Bibliothèque de sons : chaque piste est pré-enregistrée dans Submagic (userMediaId).
-# Seed via scripts/seed_submagic_music.py ; "none" = pas de musique.
-# ⚠️ Pistes de démarrage (SoundHelix, libres pour test) — à remplacer par tes pistes sous licence.
+# Bibliothèque de sons : chaque piste est hébergée sur Cloudinary (preview écoutable) et
+# pré-enregistrée dans Submagic (userMediaId). Seed via scripts/seed_submagic_music_drive.py.
+# `category` regroupe les pistes dans le sélecteur (menu 2 niveaux) ; "none" = pas de musique.
+MUSIC_CATEGORIES = [
+    {"id": "calme", "label": "Calme"},
+    {"id": "optimiste", "label": "Optimiste"},
+    {"id": "funky", "label": "Funky / Groove"},
+    {"id": "epique", "label": "Épique"},
+    {"id": "emotion", "label": "Émotion"},
+    {"id": "country", "label": "Country"},
+]
+
+_MUS = "https://res.cloudinary.com/dy9gp5pim/video/upload/submagic_music"
 MUSIC_LIBRARY = [
-    {"id": "none", "label": "Aucune musique", "user_media_id": None, "url": None},
-    {"id": "energique", "label": "Énergique", "user_media_id": "269688cd-313a-4aac-9138-df95ee436f1c", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
-    {"id": "groove", "label": "Groove", "user_media_id": "cc9e6983-66d4-4f10-9044-40d2a25ed11e", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
-    {"id": "epique", "label": "Épique", "user_media_id": "d56246af-16b6-4bc5-ad59-5660f0c5bfac", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
-    {"id": "posay", "label": "Posé", "user_media_id": "d07da952-9c83-42ab-bc02-ffb50b1c91dc", "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"},
+    {"id": "none", "label": "Aucune musique", "category": None, "user_media_id": None, "url": None},
+    {"id": "calme", "label": "Calme", "category": "calme", "user_media_id": "638c9a7f-2cb9-41ff-bb99-fae4e0c73c1d", "url": f"{_MUS}/calme.mp3"},
+    {"id": "in-the-morning", "label": "In The Morning", "category": "calme", "user_media_id": "16624be5-3758-4293-9291-92c3106f4c7d", "url": f"{_MUS}/in-the-morning.mp3"},
+    {"id": "visible-invisible", "label": "Make The Visible Invisible", "category": "calme", "user_media_id": "b9114ed4-d11e-4118-a3af-9a1049fa741e", "url": f"{_MUS}/visible-invisible.mp3"},
+    {"id": "optimiste", "label": "Optimiste", "category": "optimiste", "user_media_id": "ac12a379-88a9-4c99-add1-f826a92c5cd8", "url": f"{_MUS}/optimiste.mp3"},
+    {"id": "butterfly", "label": "Butterfly", "category": "optimiste", "user_media_id": "7c9a8720-84e2-407e-a062-2ca79a44997a", "url": f"{_MUS}/butterfly.mp3"},
+    {"id": "funky", "label": "Funky", "category": "funky", "user_media_id": "be0ae396-bed5-4f8a-b721-d741521c6371", "url": f"{_MUS}/funky.mp3"},
+    {"id": "claim-to-fame", "label": "Claim To Fame", "category": "funky", "user_media_id": "dce42cc3-510c-44f1-83d1-98949f7fa3d9", "url": f"{_MUS}/claim-to-fame.mp3"},
+    {"id": "drop-of-a-hat", "label": "Drop Of A Hat", "category": "funky", "user_media_id": "3ca88017-c9b2-4320-977a-58968ba9d3b7", "url": f"{_MUS}/drop-of-a-hat.mp3"},
+    {"id": "frame-dragging", "label": "Frame-Dragging", "category": "epique", "user_media_id": "8e8fd1f4-0ff6-47c8-9290-c35daf7f3004", "url": f"{_MUS}/frame-dragging.mp3"},
+    {"id": "level", "label": "Level", "category": "epique", "user_media_id": "631d3eb3-21f2-401e-9f86-eac664866bf7", "url": f"{_MUS}/level.mp3"},
+    {"id": "dyin-breed", "label": "A Dyin' Breed", "category": "emotion", "user_media_id": "ec851863-3887-43cd-a0f5-a4ea781caa30", "url": f"{_MUS}/dyin-breed.mp3"},
+    {"id": "missed-my-chance", "label": "Missed My Chance", "category": "emotion", "user_media_id": "8a4ae600-4586-4926-85ae-a7dd16c7ba23", "url": f"{_MUS}/missed-my-chance.mp3"},
+    {"id": "triste", "label": "Triste", "category": "emotion", "user_media_id": "0cfc6fdf-a29e-4f49-8d74-e821b29d2b7a", "url": f"{_MUS}/triste.mp3"},
+    {"id": "country", "label": "Country", "category": "country", "user_media_id": "96d986ed-e831-4f5c-b0fc-7f360eeb2e85", "url": f"{_MUS}/country.mp3"},
 ]
 
 # Thèmes / presets PERSO créés dans l'éditeur Submagic (pas d'API pour les lister → coller les IDs ici).
@@ -47,6 +67,19 @@ CUSTOM_TEMPLATES = [
     # {"id": "brand", "label": "Ma marque", "type": "theme", "value": "<userThemeId>"},
     # {"id": "reel-pro", "label": "Reel Pro (preset)", "type": "preset", "value": "<presetId>"},
 ]
+
+
+def _targets(body: dict) -> list:
+    """Réseaux cibles capitalisés + dédupliqués. Accepte `reseaux` (liste) ou `reseau` (str)."""
+    raw = body.get("reseaux")
+    if not isinstance(raw, list):
+        raw = [body.get("reseau")] if body.get("reseau") else []
+    out = []
+    for r in raw:
+        cap = RESEAU_MAP.get(str(r).lower())
+        if cap and cap not in out:
+            out.append(cap)
+    return out
 
 
 def _music_media_id(music_id: str) -> str | None:
@@ -103,7 +136,8 @@ async def options(payload: dict = Depends(verify_token)):
     return {
         "templates": templates,
         "custom": custom,
-        "music": [{"id": m["id"], "label": m["label"], "url": m.get("url")} for m in MUSIC_LIBRARY],
+        "music_categories": MUSIC_CATEGORIES,
+        "music": [{"id": m["id"], "label": m["label"], "category": m.get("category"), "url": m.get("url")} for m in MUSIC_LIBRARY],
     }
 
 
@@ -168,7 +202,7 @@ async def create(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=402, detail=q.get("message"))
 
     title = (body.get("titre") or "Vidéo")[:120]
-    reseau = (body.get("reseau") or "instagram").lower()
+    targets = _targets(body) or ["Instagram"]
     webhook = f"{BACKEND_URL}/api/video/webhook" if BACKEND_URL.startswith("https://") else None
     # Template : thème de marque du compte (body.custom == "brand"), thème/preset global, ou un des 45.
     custom = _custom(body.get("custom")) if body.get("custom") else None
@@ -202,20 +236,37 @@ async def create(body: dict, payload: dict = Depends(verify_token)):
         quota_service.refund(q)
         raise HTTPException(status_code=502, detail=res.get("error") or "Le montage n'a pas pu démarrer.")
 
-    patch = {"type": "Reel", "statut": "A valider", "submagic_project_id": res["id"],
+    pid = res["id"]
+    patch = {"type": "Reel", "statut": "A valider", "submagic_project_id": pid,
              "video_status": "en_traitement", "video_raw_id": (body.get("raw_public_id") or None)}
     existing_id = (body.get("contenu_id") or "").strip() if isinstance(body.get("contenu_id"), str) else body.get("contenu_id")
+    script_txt = None
     if existing_id:
         # Montage d'un script « À tourner » existant → on met à jour CE contenu.
-        supabase.table("contenu").update(patch).eq("id", existing_id).eq("telegram_id", telegram_id).execute()
+        ex = (supabase.table("contenu").select("script, reseau_cible")
+              .eq("id", existing_id).eq("telegram_id", telegram_id).limit(1).execute().data or [{}])[0]
+        script_txt = ex.get("script")
+        primary_net = ex.get("reseau_cible") or targets[0]
+        p = dict(patch)
+        if not ex.get("reseau_cible"):
+            p["reseau_cible"] = primary_net
+        supabase.table("contenu").update(p).eq("id", existing_id).eq("telegram_id", telegram_id).execute()
         contenu_id = existing_id
     else:
-        row = {"telegram_id": telegram_id, "titre": title, **patch}
-        if reseau in RESEAU_MAP:
-            row["reseau_cible"] = RESEAU_MAP[reseau]
+        primary_net = targets[0]
+        row = {"telegram_id": telegram_id, "titre": title, "reseau_cible": primary_net, **patch}
         ins = supabase.table("contenu").insert(row).execute()
         contenu_id = ins.data[0]["id"] if ins.data else None
-    return {"contenu_id": contenu_id, "submagic_project_id": res["id"], "video_status": "en_traitement"}
+    # Réseaux supplémentaires → contenus « jumeaux » (même montage, publiés/planifiés séparément).
+    for net in targets:
+        if net == primary_net:
+            continue
+        supabase.table("contenu").insert({
+            "telegram_id": telegram_id, "titre": title, "type": "Reel", "statut": "A valider",
+            "submagic_project_id": pid, "video_status": "en_traitement",
+            "reseau_cible": net, "script": script_txt,
+        }).execute()
+    return {"contenu_id": contenu_id, "submagic_project_id": pid, "video_status": "en_traitement"}
 
 
 @router.post("/import")
@@ -231,21 +282,37 @@ async def import_video(body: dict, payload: dict = Depends(verify_token)):
     if not video_url:
         raise HTTPException(status_code=400, detail="video_url requise (upload d'abord).")
     title = (body.get("titre") or "Vidéo")[:120]
-    reseau = (body.get("reseau") or "").lower()
+    targets = _targets(body) or ["Instagram"]
     poster = _poster(video_url)
     patch = {"type": "Reel", "statut": "A valider", "video_status": "pret",
              "video_url": video_url, "video_preview_url": None, "lien_visuel": poster,
              "submagic_project_id": None, "video_raw_id": None}
     existing_id = body.get("contenu_id")
+    script_txt = None
     if existing_id:
-        supabase.table("contenu").update(patch).eq("id", existing_id).eq("telegram_id", telegram_id).execute()
+        ex = (supabase.table("contenu").select("script, reseau_cible")
+              .eq("id", existing_id).eq("telegram_id", telegram_id).limit(1).execute().data or [{}])[0]
+        script_txt = ex.get("script")
+        primary_net = ex.get("reseau_cible") or targets[0]
+        p = dict(patch)
+        if not ex.get("reseau_cible"):
+            p["reseau_cible"] = primary_net
+        supabase.table("contenu").update(p).eq("id", existing_id).eq("telegram_id", telegram_id).execute()
         contenu_id = existing_id
     else:
-        row = {"telegram_id": telegram_id, "titre": title, **patch}
-        if reseau in RESEAU_MAP:
-            row["reseau_cible"] = RESEAU_MAP[reseau]
+        primary_net = targets[0]
+        row = {"telegram_id": telegram_id, "titre": title, "reseau_cible": primary_net, **patch}
         ins = supabase.table("contenu").insert(row).execute()
         contenu_id = ins.data[0]["id"] if ins.data else None
+    # Réseaux supplémentaires → contenus « jumeaux » (même vidéo, publiés séparément).
+    for net in targets:
+        if net == primary_net:
+            continue
+        supabase.table("contenu").insert({
+            "telegram_id": telegram_id, "titre": title, "type": "Reel", "statut": "A valider",
+            "video_status": "pret", "video_url": video_url, "video_preview_url": None,
+            "lien_visuel": poster, "reseau_cible": net, "script": script_txt,
+        }).execute()
     return {"contenu_id": contenu_id, "video_status": "pret", "video_url": video_url}
 
 
@@ -298,7 +365,8 @@ async def _finalize(contenu: dict) -> dict:
 
     st = info.get("status")
     if st == submagic_service.FAILED:
-        supabase.table("contenu").update({"video_status": "echec"}).eq("id", cid).execute()
+        # tous les contenus (jumeaux) de ce montage échouent ; remboursement unique.
+        supabase.table("contenu").update({"video_status": "echec"}).eq("submagic_project_id", pid).execute()
         quota_service.refund_by_user(tid, "video")  # échec async -> on rembourse
         return {"video_status": "echec"}
     if st != submagic_service.DONE:
@@ -310,12 +378,13 @@ async def _finalize(contenu: dict) -> dict:
     # Compression ffmpeg AVANT enregistrement (économie de stockage). Repli : fetch direct si ffmpeg absent.
     local = await asyncio.to_thread(_compress, src)
     try:
+        # nom d'asset déterministe par MONTAGE (pid) → une seule vidéo partagée par les jumeaux.
         if local:
             up = cloudinary.uploader.upload(local, resource_type="video", folder=f"videos/{tid}",
-                                            public_id=str(cid), overwrite=True)
+                                            public_id=str(pid), overwrite=True)
         else:
             up = cloudinary.uploader.upload(src, resource_type="video", folder=f"videos/{tid}",
-                                            public_id=str(cid), overwrite=True)
+                                            public_id=str(pid), overwrite=True)
         video_url = up["secure_url"]
     except Exception as e:
         logger.error(f"finalize cloudinary upload {cid}: {e}")
@@ -330,15 +399,19 @@ async def _finalize(contenu: dict) -> dict:
         "video_preview_url": info.get("preview_url"),
         "lien_visuel": _poster(video_url),  # miniature (frame ~1,5s)
     }
-    # La vidéo est montée : on SUPPRIME la vidéo brute (elle ne sert plus) pour ne pas gaspiller le stockage.
-    raw_id = contenu.get("video_raw_id")
-    if raw_id:
-        try:
-            cloudinary.uploader.destroy(raw_id, resource_type="video", invalidate=True)
-        except Exception as e:
-            logger.warning(f"cleanup vidéo brute {raw_id}: {e}")
-        patch["video_raw_id"] = None
-    supabase.table("contenu").update(patch).eq("id", cid).execute()
+    # Applique à TOUS les contenus de ce montage (multi-réseaux → 1 carte par réseau).
+    supabase.table("contenu").update(patch).eq("submagic_project_id", pid).execute()
+    # La vidéo brute (portée par le contenu primaire) ne sert plus → suppression pour ne pas gaspiller le stockage.
+    raws = (supabase.table("contenu").select("id, video_raw_id")
+            .eq("submagic_project_id", pid).execute().data or [])
+    for rr in raws:
+        rid = rr.get("video_raw_id")
+        if rid:
+            try:
+                cloudinary.uploader.destroy(rid, resource_type="video", invalidate=True)
+            except Exception as e:
+                logger.warning(f"cleanup vidéo brute {rid}: {e}")
+            supabase.table("contenu").update({"video_raw_id": None}).eq("id", rr["id"]).execute()
     return {"video_status": "pret", "video_url": video_url, "video_preview_url": info.get("preview_url")}
 
 

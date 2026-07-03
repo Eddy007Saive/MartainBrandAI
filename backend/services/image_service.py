@@ -217,5 +217,9 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                                         public_id=f"contenus/{telegram_id}/{contenu_id}",
                                         overwrite=True, invalidate=True)
     else:
-        up = cloudinary.uploader.upload(img_bytes, resource_type="image", folder=f"contenus/{telegram_id}", overwrite=True)
+        # Photo « à la volée » (pas encore attachée à un contenu) : slot brouillon UNIQUE par user
+        # → une nouvelle génération écrase la précédente (pas d'accumulation d'orphelins).
+        up = cloudinary.uploader.upload(img_bytes, resource_type="image",
+                                        public_id=f"contenus/{telegram_id}/draft-photo",
+                                        overwrite=True, invalidate=True)
     return {"lien_visuel": up["secure_url"]}

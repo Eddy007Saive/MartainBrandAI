@@ -24,8 +24,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      logout();  // efface localStorage + stockage natif (Preferences)
+    // Un 401 sur une TENTATIVE de connexion = mauvais identifiants (attendu) :
+    // on laisse le composant afficher le toast, sans recharger la page (sinon champs vidés).
+    const url = error.config?.url || '';
+    const isAuthAttempt = url.includes('/auth/login') || url.includes('/auth/admin-login');
+    if (error.response?.status === 401 && !isAuthAttempt) {
+      logout();  // session expirée -> efface localStorage + stockage natif (Preferences)
       window.location.href = '/login';
     } else if (error.response?.status === 402) {
       // Crédits épuisés -> paywall : toast actionnable vers l'abonnement

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { analyticsService } from '../services/analyticsService';
+import PerformanceCurve from '../components/PerformanceCurve';
+import TopPosts from '../components/TopPosts';
 
 export default function AccueilPage() {
   const { user } = useUser();
@@ -88,6 +90,9 @@ export default function AccueilPage() {
             })}
           </div>
 
+          {/* Courbe d'évolution (style Search Console) */}
+          <PerformanceCurve />
+
           {/* Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Contenus à valider */}
@@ -155,6 +160,9 @@ export default function AccueilPage() {
               </div>
             </div>
           )}
+
+          {/* Publications les plus performantes */}
+          <TopPosts />
         </>
       )}
     </div>

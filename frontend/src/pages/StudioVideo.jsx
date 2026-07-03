@@ -37,7 +37,7 @@ export default function StudioVideo() {
   const navigate = useNavigate();
   const contenuId = params.get('contenu_id');
 
-  const [options, setOptions] = useState({ templates: [], music: [] });
+  const [options, setOptions] = useState({ templates: [], music: [], music_categories: [] });
   const [draft, setDraft] = useState(null);        // contenu-script chargé
   const [scriptOpen, setScriptOpen] = useState(true);
   const [file, setFile] = useState(null);
@@ -54,9 +54,10 @@ export default function StudioVideo() {
   const [showAll, setShowAll] = useState(false);
   const [customId, setCustomId] = useState(null);  // thème/preset perso sélectionné
   const [mode, setMode] = useState('montage');     // 'montage' (Submagic) | 'direct' (import tel quel)
-  const [reseau, setReseau] = useState('instagram');
+  const [reseaux, setReseaux] = useState(['instagram']);  // multi-réseaux → 1 carte contenu par réseau
   const [result, setResult] = useState(null);
   const [playing, setPlaying] = useState(null);    // id de la piste en cours d'écoute
+  const [musicCat, setMusicCat] = useState(null);  // catégorie de musique ouverte (menu 2 niveaux)
   const [stage, setStage] = useState(null);        // étape Submagic (processing|transcribing|exporting)
   const pollRef = useRef(null);
   const audioRef = useRef(null);
@@ -69,6 +70,7 @@ export default function StudioVideo() {
     a.play().then(() => setPlaying(m.id)).catch(() => setPlaying(null));
   };
   const stopPreview = () => { if (audioRef.current) audioRef.current.pause(); setPlaying(null); };
+  const selMusic = options.music.find((m) => m.id === form.music) || null;  // piste choisie (menu musique)
 
   useEffect(() => {
     videoService.getOptions().then(setOptions).catch(() => {});
@@ -77,7 +79,7 @@ export default function StudioVideo() {
         .then((c) => {
           setDraft(c);
           if (c.langue) setForm((f) => ({ ...f, langue: c.langue }));
-          if (c.reseau_cible) setReseau(String(c.reseau_cible).toLowerCase());
+          if (c.reseau_cible) setReseaux([String(c.reseau_cible).toLowerCase()]);
           if (c.video_status === 'pret' && c.video_url) { setResult(c); setStep('done'); }
           else if (c.video_status === 'en_traitement') { setStep('processing'); startPolling(contenuId); }
         })
@@ -132,7 +134,7 @@ export default function StudioVideo() {
       const titre = draft?.titre || file?.name?.replace(/\.[^.]+$/, '') || 'Vidéo';
       if (mode === 'direct') {
         // Import tel quel : pas de Submagic, pas de quota.
-        await videoService.importVideo({ video_url: up.video_url, contenu_id: contenuId || undefined, titre, reseau });
+        await videoService.importVideo({ video_url: up.video_url, contenu_id: contenuId || undefined, titre, reseaux });
         setResult({ video_url: up.video_url }); setStep('done');
         return;
       }
@@ -140,7 +142,7 @@ export default function StudioVideo() {
         video_url: up.video_url,
         raw_public_id: up.public_id,
         contenu_id: contenuId || undefined,
-        titre, reseau,
+        titre, reseaux,
         custom: customId || undefined,
         template: customId ? undefined : form.template,
         langue: form.langue,
@@ -162,6 +164,24 @@ export default function StudioVideo() {
     if (pollRef.current) clearInterval(pollRef.current);
     if (localUrl) URL.revokeObjectURL(localUrl);
     setFile(null); setLocalUrl(null); setUploadPct(0); setStep('idle'); setResult(null);
+  };
+
+  // Vidéo déjà montée : (re)définit le(s) réseau(x) sans re-montage (réutilise l'import,
+  // pas de quota), puis renvoie vers Contenus pour valider & publier.
+  const [publishing, setPublishing] = useState(false);
+  const publishMontaged = async () => {
+    const cid = contenuId || result?.id;
+    if (!reseaux.length || !result?.video_url || !cid) return;
+    setPublishing(true);
+    try {
+      await videoService.importVideo({ contenu_id: cid, video_url: result.video_url, titre: result.titre || draft?.titre, reseaux });
+      toast.success('Réseau(x) enregistré(s) ✓ — valide & publie depuis Contenus.');
+      navigate('/dashboard/contenus');
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Échec de l'enregistrement des réseaux.");
+    } finally {
+      setPublishing(false);
+    }
   };
 
   return (
@@ -196,7 +216,8 @@ export default function StudioVideo() {
       )}
 
       {(step === 'done' && result) ? (
-        <ResultCard result={result} onReset={reset} navigate={navigate} />
+        <ResultCard result={result} onReset={reset} navigate={navigate}
+          reseaux={reseaux} setReseaux={setReseaux} onPublish={publishMontaged} publishing={publishing} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* GAUCHE : vidéo */}
@@ -231,14 +252,22 @@ export default function StudioVideo() {
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5">
             <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-3">Réglages</p>
 
-            {/* Réseau de publication (les 2 modes) */}
+            {/* Réseaux de publication (multi — les 2 modes) */}
             <div className="mb-4">
-              <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">Réseau</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">Réseaux</p>
               <div className="flex gap-2 flex-wrap">
-                {RESEAUX.map((r) => (
-                  <button key={r.id} type="button" onClick={() => setReseau(r.id)} className={`sv-chip ${reseau === r.id ? 'on' : ''}`}>{r.label}</button>
-                ))}
+                {RESEAUX.map((r) => {
+                  const on = reseaux.includes(r.id);
+                  return (
+                    <button key={r.id} type="button"
+                      onClick={() => setReseaux((p) => on ? (p.length > 1 ? p.filter((x) => x !== r.id) : p) : [...p, r.id])}
+                      className={`sv-chip ${on ? 'on' : ''}`}>{r.label}</button>
+                  );
+                })}
               </div>
+              {reseaux.length > 1 && (
+                <p className="text-[11px] text-slate-500 font-inter mt-1.5">1 montage → {reseaux.length} publications (une carte par réseau dans Contenus).</p>
+              )}
             </div>
 
             {/* Mode : montage IA (Submagic) ou import direct */}
@@ -352,20 +381,39 @@ export default function StudioVideo() {
             <div className="sv-sec">
               <div className="sv-lab"><Music className="w-[15px] h-[15px] text-[#8A6CFF]" />Musique de fond</div>
               <p className="sv-hint">Ajoutée sous ta voix (mixée et atténuée).</p>
+              {/* Niveau 1 : Aucune + catégories */}
               <div className="flex gap-2 flex-wrap">
-                {options.music.map((m) => (
-                  <div key={m.id} onClick={() => set('music', m.id)}
-                    className={`sv-chip flex items-center gap-1.5 cursor-pointer ${form.music === m.id ? 'on' : ''}`}>
-                    {m.url && (
-                      <button type="button" aria-label="Écouter" onClick={(e) => { e.stopPropagation(); togglePlay(m); }}
-                        className="w-5 h-5 -ml-0.5 rounded-full flex items-center justify-center hover:bg-white/15 transition-colors">
-                        {playing === m.id ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                      </button>
-                    )}
-                    {m.label}
-                  </div>
-                ))}
+                <div onClick={() => { set('music', 'none'); setMusicCat(null); stopPreview(); }}
+                  className={`sv-chip cursor-pointer ${form.music === 'none' ? 'on' : ''}`}>Aucune</div>
+                {(options.music_categories || []).map((c) => {
+                  const open = musicCat === c.id;
+                  const hasSel = selMusic && selMusic.category === c.id;
+                  return (
+                    <div key={c.id} onClick={() => { setMusicCat(open ? null : c.id); stopPreview(); }}
+                      className={`sv-chip cursor-pointer flex items-center gap-1.5 ${open || hasSel ? 'on' : ''}`}>
+                      {c.label}{hasSel ? <span className="text-[#3AFFA3]">· {selMusic.label}</span> : null}
+                      <ChevronDown className={`w-3 h-3 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`} />
+                    </div>
+                  );
+                })}
               </div>
+              {/* Niveau 2 : pistes de la catégorie ouverte */}
+              {musicCat && (
+                <div className="mt-2.5 flex gap-2 flex-wrap rounded-xl border border-white/[0.07] bg-[#0c111f] p-2.5">
+                  {options.music.filter((m) => m.category === musicCat).map((m) => (
+                    <div key={m.id} onClick={() => set('music', m.id)}
+                      className={`sv-chip flex items-center gap-1.5 cursor-pointer ${form.music === m.id ? 'on' : ''}`}>
+                      {m.url && (
+                        <button type="button" aria-label="Écouter" onClick={(e) => { e.stopPropagation(); togglePlay(m); }}
+                          className="w-5 h-5 -ml-0.5 rounded-full flex items-center justify-center hover:bg-white/15 transition-colors">
+                          {playing === m.id ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                        </button>
+                      )}
+                      {m.label}
+                    </div>
+                  ))}
+                </div>
+              )}
               <audio ref={audioRef} onEnded={() => setPlaying(null)} className="hidden" />
               {form.music !== 'none' && (
                 <div className="mt-3.5">
@@ -426,19 +474,38 @@ export default function StudioVideo() {
   );
 }
 
-function ResultCard({ result, onReset, navigate }) {
+function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish, publishing }) {
   return (
     <div className="rounded-2xl border border-[#3AFFA3]/25 bg-[#3AFFA3]/[0.06] p-5 space-y-4">
       <div className="flex items-center gap-2 text-[#3AFFA3]"><Check className="w-5 h-5" /><p className="font-semibold font-sora">Vidéo montée !</p></div>
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4 items-start">
         {result.video_url && <video src={result.video_url} controls className="w-full max-h-[420px] rounded-xl bg-black" />}
         <div className="space-y-3">
-          <p className="text-sm text-slate-300 font-inter">Elle est dans tes <b className="text-white">Contenus</b>, prête à valider puis publier.</p>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => navigate('/dashboard/contenus')} className="bg-white/5 border border-white/10 text-white hover:bg-white/10 gap-2">Voir dans Contenus <ArrowRight className="w-4 h-4" /></Button>
+          {/* Réseaux de publication (multi) */}
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-1.5">Publier sur</p>
+            <div className="flex gap-2 flex-wrap">
+              {RESEAUX.map((r) => {
+                const on = reseaux.includes(r.id);
+                return (
+                  <button key={r.id} type="button"
+                    onClick={() => setReseaux((p) => on ? (p.length > 1 ? p.filter((x) => x !== r.id) : p) : [...p, r.id])}
+                    className={`sv-chip ${on ? 'on' : ''}`}>{r.label}</button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button onClick={onPublish} disabled={publishing || !reseaux.length}
+              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2 disabled:opacity-50">
+              {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+              Enregistrer les réseaux &amp; publier
+            </Button>
+            <Button variant="ghost" onClick={() => navigate('/dashboard/contenus')} className="text-slate-300">Voir dans Contenus</Button>
             {result.video_preview_url && <a href={result.video_preview_url} target="_blank" rel="noreferrer"><Button variant="ghost" className="text-slate-300">Aperçu</Button></a>}
             {onReset && <Button variant="ghost" onClick={onReset} className="text-slate-400">Nouvelle vidéo</Button>}
           </div>
+          <p className="text-[11px] text-slate-500 font-inter">Choisis le(s) réseau(x) puis « Enregistrer &amp; publier » — tu valides ensuite dans <b className="text-slate-300">Contenus</b>.</p>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Eye, Heart, MessageCircle, Share2, TrendingUp, Lock, Plug, BarChart3, RefreshCw } from 'lucide-react';
+import { Loader2, Eye, Heart, MessageCircle, Share2, TrendingUp, Lock, Plug, BarChart3, RefreshCw, Users } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { SocialIcon } from '../components/SocialIcon';
 import { analyticsService } from '../services/analyticsService';
@@ -59,6 +59,7 @@ export default function Performance() {
   const posts = data?.posts || [];
   const KPI = [
     { k: 'impressions', label: 'Impressions', icon: Eye, color: '#8A6CFF', val: fmt(kpis.impressions) },
+    { k: 'reach', label: 'Portée', icon: Users, color: '#E879F9', val: fmt(kpis.reach) },
     { k: 'eng', label: 'Engagement', icon: TrendingUp, color: '#3AFFA3', val: (kpis.engagementRate || 0) + '%' },
     { k: 'likes', label: "J'aime", icon: Heart, color: '#f87171', val: fmt(kpis.likes) },
     { k: 'comments', label: 'Commentaires', icon: MessageCircle, color: '#60a5fa', val: fmt(kpis.comments) },
@@ -117,7 +118,7 @@ export default function Performance() {
       ) : (
         <>
           {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {KPI.map((m) => (
               <div key={m.k} className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-4">
                 <div className="flex items-center justify-between">
@@ -149,12 +150,14 @@ export default function Performance() {
                         <div className="text-[11px] text-slate-500 mt-0.5">{np} · {p.publishedAt ? new Date(p.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : ''}</div>
                       </div>
                       <div className="hidden sm:flex items-center gap-4 text-[12.5px] text-slate-400 shrink-0">
-                        <span title="Impressions" className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" />{fmt(m.impressions)}</span>
-                        <span title="J'aime" className="flex items-center gap-1"><Heart className="w-3.5 h-3.5" />{fmt(m.likes)}</span>
-                        <span title="Commentaires" className="flex items-center gap-1"><MessageCircle className="w-3.5 h-3.5" />{fmt(m.comments)}</span>
-                        <span title="Partages" className="flex items-center gap-1"><Share2 className="w-3.5 h-3.5" />{fmt(m.shares)}</span>
+                        <span title="Impressions — nombre de fois où le post a été affiché" className="flex items-center gap-1 cursor-help"><Eye className="w-3.5 h-3.5" />{fmt(m.impressions)}</span>
+                        <span title="Portée — nombre de comptes uniques qui ont vu le post" className="flex items-center gap-1 cursor-help"><Users className="w-3.5 h-3.5" />{fmt(m.reach)}</span>
+                        <span title="J'aime — nombre de likes" className="flex items-center gap-1 cursor-help"><Heart className="w-3.5 h-3.5" />{fmt(m.likes)}</span>
+                        <span title="Commentaires reçus" className="flex items-center gap-1 cursor-help"><MessageCircle className="w-3.5 h-3.5" />{fmt(m.comments)}</span>
+                        <span title="Partages" className="flex items-center gap-1 cursor-help"><Share2 className="w-3.5 h-3.5" />{fmt(m.shares)}</span>
                       </div>
-                      <span className="text-[13px] font-bold text-[#3AFFA3] w-14 text-right shrink-0">{(p.engagementRate || 0)}%</span>
+                      <span title="Taux d'engagement = (j'aime + commentaires + partages) ÷ impressions"
+                        className="text-[13px] font-bold text-[#3AFFA3] w-14 text-right shrink-0 cursor-help">{(p.engagementRate || 0)}%</span>
                     </div>
                   );
                 })}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import { Loader2, RefreshCw, Mail, Eye, Inbox, Send, CheckCircle, FileDown } from 'lucide-react';
+import { Loader2, RefreshCw, Mail, Eye, Inbox, Send, CheckCircle, FileDown, FolderOpen } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
@@ -10,9 +10,9 @@ import { toast } from 'sonner';
 import { adminService } from '../../services/adminService';
 
 const STATUS = {
-  nouveau: { label: 'Nouveau', cls: 'bg-[#3AFFA3]/15 text-[#3AFFA3] border-[#3AFFA3]/30' },
-  en_cours: { label: 'En cours', cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
-  traite: { label: 'Traité', cls: 'bg-slate-500/15 text-slate-300 border-slate-500/30' },
+  nouveau: { label: 'Nouveau', cls: 'bg-[#3AFFA3]/15 text-[#3AFFA3] border-[#3AFFA3]/30', accent: '#3AFFA3' },
+  en_cours: { label: 'En cours', cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30', accent: '#F59E0B' },
+  traite: { label: 'Traité', cls: 'bg-slate-500/15 text-slate-300 border-slate-500/30', accent: '#64748B' },
 };
 
 const fmtDate = (d) => {
@@ -133,36 +133,34 @@ export default function AuditsTab() {
           <p className="font-inter text-sm">Aucun audit reçu pour le moment.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-white/5 bg-slate-950/40 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-slate-500 border-b border-white/5">
-                <th className="px-4 py-3 font-medium font-inter">Marque</th>
-                <th className="px-4 py-3 font-medium font-inter hidden sm:table-cell">Email</th>
-                <th className="px-4 py-3 font-medium font-inter hidden md:table-cell">Reçu le</th>
-                <th className="px-4 py-3 font-medium font-inter">Statut</th>
-                <th className="px-4 py-3 font-medium font-inter text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {audits.map((a) => {
-                const st = STATUS[a.status] || STATUS.nouveau;
-                return (
-                  <tr key={a.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3 text-white font-medium font-inter">{a.marque || <span className="text-slate-500">—</span>}</td>
-                    <td className="px-4 py-3 text-slate-400 font-inter hidden sm:table-cell">{a.email || '—'}</td>
-                    <td className="px-4 py-3 text-slate-500 font-inter hidden md:table-cell whitespace-nowrap">{fmtDate(a.created_at)}</td>
-                    <td className="px-4 py-3"><Badge className={`${st.cls} border font-inter`}>{st.label}</Badge></td>
-                    <td className="px-4 py-3 text-right">
-                      <Button size="sm" variant="ghost" className="gap-1.5 text-slate-300 hover:text-white" onClick={() => openDetail(a.id)}>
-                        <Eye className="w-4 h-4" /> Voir
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {audits.map((a) => {
+            const st = STATUS[a.status] || STATUS.nouveau;
+            return (
+              <button key={a.id} type="button" onClick={() => openDetail(a.id)}
+                className="group relative text-left pt-2.5 focus:outline-none">
+                {/* onglet du dossier (couleur = statut) */}
+                <span className="absolute left-4 top-0 h-2.5 w-16 rounded-t-md" style={{ backgroundColor: st.accent }} />
+                {/* corps du dossier */}
+                <div className="relative rounded-xl rounded-tl-md border border-white/5 bg-[#0f172a] p-4 transition-all duration-200 group-hover:border-white/15 group-hover:-translate-y-0.5 group-hover:shadow-xl group-hover:shadow-black/30">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="w-9 h-9 rounded-lg grid place-items-center shrink-0" style={{ backgroundColor: `${st.accent}22` }}>
+                      <FolderOpen className="w-[18px] h-[18px]" style={{ color: st.accent }} />
+                    </span>
+                    <Badge className={`${st.cls} border font-inter shrink-0`}>{st.label}</Badge>
+                  </div>
+                  <div className="mt-3 min-w-0">
+                    <div className="text-white font-semibold font-sora truncate">{a.marque || 'Sans nom'}</div>
+                    <div className="text-slate-500 text-xs font-inter truncate mt-0.5">{a.email || '—'}</div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between text-[11px] font-inter text-slate-500">
+                    <span className="truncate">{fmtDate(a.created_at)}</span>
+                    <span className="inline-flex items-center gap-1 text-slate-400 group-hover:text-white transition-colors shrink-0">Ouvrir <Eye className="w-3.5 h-3.5" /></span>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 

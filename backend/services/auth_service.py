@@ -2,6 +2,7 @@ import bcrypt
 import jwt
 import uuid
 import hashlib
+import time
 from datetime import datetime, timezone, timedelta
 from config import JWT_SECRET, supabase, logger
 
@@ -64,6 +65,37 @@ def _pwd_fingerprint(password_hash: str) -> str:
     return hashlib.sha256((password_hash or "").encode("utf-8")).hexdigest()[:16]
 
 
+# --- Invalidation des sessions au changement de mot de passe ---
+# Le token de login embarque l'empreinte `fp` du mdp ; à chaque requête on vérifie qu'elle
+# correspond toujours au mdp actuel. Cache mémoire (TTL court) pour éviter un read DB à chaque
+# appel — un changement de mdp déconnecte les AUTRES appareils en <= _FP_TTL secondes.
+_FP_TTL = 30  # secondes
+_fp_cache: dict = {}  # telegram_id -> (fingerprint, expiry_ts)
+
+
+def _current_fp(telegram_id: str) -> str | None:
+    hit = _fp_cache.get(telegram_id)
+    now = time.time()
+    if hit and hit[1] > now:
+        return hit[0]
+    r = supabase.table("users").select("password_hash").eq("telegram_id", telegram_id).execute()
+    if not r.data:
+        return None
+    fp = _pwd_fingerprint(r.data[0].get("password_hash", ""))
+    _fp_cache[telegram_id] = (fp, now + _FP_TTL)
+    return fp
+
+
+def _invalidate_fp(telegram_id: str):
+    _fp_cache.pop(telegram_id, None)
+
+
+def session_valid(telegram_id: str, fp: str) -> bool:
+    """True si l'empreinte du token correspond au mot de passe actuel du compte."""
+    cur = _current_fp(telegram_id)
+    return bool(cur) and cur == fp
+
+
 def create_reset_token(telegram_id: str, password_hash: str) -> str:
     """Token JWT de réinitialisation (1h). Lié au hash courant -> invalide dès que le mdp change."""
     return create_token(
@@ -95,6 +127,7 @@ def reset_password(token: str, new_password: str) -> dict:
     if payload.get("fp") != _pwd_fingerprint(current_hash):
         return {"error": "used"}
     supabase.table("users").update({"password_hash": hash_password(new_password)}).eq("telegram_id", telegram_id).execute()
+    _invalidate_fp(telegram_id)  # déconnecte les autres sessions
     return {"success": True}
 
 
@@ -112,7 +145,8 @@ def login_user(email: str, password: str) -> dict:
     token = create_token({
         "telegram_id": user["telegram_id"],
         "email": user["email"],
-        "is_admin": False
+        "is_admin": False,
+        "fp": _pwd_fingerprint(user.get("password_hash", "")),
     })
 
     return {
@@ -123,16 +157,29 @@ def login_user(email: str, password: str) -> dict:
 
 
 def change_password(telegram_id: str, old_password: str, new_password: str) -> dict:
-    """Change le mot de passe après vérification de l'ancien."""
-    r = supabase.table("users").select("password_hash").eq("telegram_id", telegram_id).execute()
+    """Change le mot de passe après vérification de l'ancien.
+
+    Renvoie un NOUVEAU token (empreinte à jour) pour l'appareil courant — les AUTRES sessions
+    portent l'ancienne empreinte et seront déconnectées à leur prochaine requête (401).
+    """
+    r = supabase.table("users").select("password_hash, email, is_admin").eq("telegram_id", telegram_id).execute()
     if not r.data:
         return {"error": "not_found"}
-    if not verify_password(old_password, r.data[0].get("password_hash", "")):
+    user = r.data[0]
+    if not verify_password(old_password, user.get("password_hash", "")):
         return {"error": "wrong_old"}
     if len(new_password) < 6:
         return {"error": "too_short"}
-    supabase.table("users").update({"password_hash": hash_password(new_password)}).eq("telegram_id", telegram_id).execute()
-    return {"success": True}
+    new_hash = hash_password(new_password)
+    supabase.table("users").update({"password_hash": new_hash}).eq("telegram_id", telegram_id).execute()
+    _invalidate_fp(telegram_id)
+    is_admin = bool(user.get("is_admin"))
+    claims = {"telegram_id": telegram_id, "email": user.get("email"), "is_admin": is_admin,
+              "fp": _pwd_fingerprint(new_hash)}
+    if is_admin:
+        claims["role"] = "admin"
+    token = create_token(claims, expires_delta=timedelta(hours=8) if is_admin else timedelta(days=7))
+    return {"success": True, "token": token}
 
 
 def login_admin(email: str, password: str) -> dict:
@@ -150,5 +197,6 @@ def login_admin(email: str, password: str) -> dict:
         "email": user["email"],
         "is_admin": True,
         "role": "admin",
+        "fp": _pwd_fingerprint(user.get("password_hash", "")),
     }, expires_delta=timedelta(hours=8))
     return {"token": token}
