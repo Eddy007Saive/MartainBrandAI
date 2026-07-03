@@ -286,14 +286,17 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
                 _apply_pack(obj)                       # achat de pack (one-time)
                 notify = _notify_payload(meta.get("telegram_id"), "pack", meta.get("action_type"))
             elif obj.get("subscription"):
-                res = _apply_subscription(stripe.Subscription.retrieve(obj["subscription"]))
-                if res:
-                    notify = _notify_payload(res["uid"], "new_sub", res.get("status"))
+                # active l'abo tout de suite ; la notif "nouvel abonnement" est gérée
+                # par customer.subscription.created (évite le doublon + ne dépend pas de cet event).
+                _apply_subscription(stripe.Subscription.retrieve(obj["subscription"]))
         elif etype in ("customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"):
             res = _apply_subscription(obj)
-            if res and res.get("status") == "canceled":
-                canceled_uid = res["uid"]              # fin de cycle -> on libère les réseaux Late
-                notify = _notify_payload(res["uid"], "canceled")
+            if res:
+                if etype == "customer.subscription.created" and res.get("status") in ("active", "trialing"):
+                    notify = _notify_payload(res["uid"], "new_sub", res.get("status"))
+                elif res.get("status") == "canceled":
+                    canceled_uid = res["uid"]          # fin de cycle -> on libère les réseaux Late
+                    notify = _notify_payload(res["uid"], "canceled")
         elif etype == "invoice.payment_failed":
             notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed")
     except Exception as e:
