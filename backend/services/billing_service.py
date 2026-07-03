@@ -233,6 +233,28 @@ def _apply_pack(session: dict):
     logger.info(f"pack: +{qty} {action} pour {tg}")
 
 
+def _uid_by_customer(customer: str):
+    if not customer:
+        return None
+    try:
+        r = supabase.table("users").select("telegram_id").eq("stripe_customer_id", customer).limit(1).execute()
+        return r.data[0]["telegram_id"] if r.data else None
+    except Exception:
+        return None
+
+
+def _notify_payload(uid: str, kind: str, extra=None):
+    """Infos pour l'email admin (envoyé par la route, en async)."""
+    if not uid:
+        return None
+    try:
+        r = supabase.table("users").select("nom, email, plan").eq("telegram_id", uid).limit(1).execute()
+        u = r.data[0] if r.data else {}
+    except Exception:
+        u = {}
+    return {"kind": kind, "nom": u.get("nom"), "email": u.get("email"), "plan": u.get("plan"), "extra": extra}
+
+
 def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     if not _ready():
         return {"ok": False}
@@ -249,16 +271,24 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     etype = event["type"]
     obj = event["data"]["object"]
     canceled_uid = None  # à déconnecter (abo terminé) -> géré async par la route
+    notify = None        # {"kind","nom","email",...} -> email admin envoyé par la route (async)
     try:
         if etype == "checkout.session.completed":
-            if (obj.get("metadata") or {}).get("pack_id"):
+            meta = obj.get("metadata") or {}
+            if meta.get("pack_id"):
                 _apply_pack(obj)                       # achat de pack (one-time)
+                notify = _notify_payload(meta.get("telegram_id"), "pack", meta.get("action_type"))
             elif obj.get("subscription"):
-                _apply_subscription(stripe.Subscription.retrieve(obj["subscription"]))
+                res = _apply_subscription(stripe.Subscription.retrieve(obj["subscription"]))
+                if res:
+                    notify = _notify_payload(res["uid"], "new_sub", res.get("status"))
         elif etype in ("customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"):
             res = _apply_subscription(obj)
             if res and res.get("status") == "canceled":
                 canceled_uid = res["uid"]              # fin de cycle -> on libère les réseaux Late
+                notify = _notify_payload(res["uid"], "canceled")
+        elif etype == "invoice.payment_failed":
+            notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed")
     except Exception as e:
         logger.error(f"stripe webhook handle error: {e}")
-    return {"ok": True, "event": etype, "canceled_uid": canceled_uid}
+    return {"ok": True, "event": etype, "canceled_uid": canceled_uid, "notify": notify}

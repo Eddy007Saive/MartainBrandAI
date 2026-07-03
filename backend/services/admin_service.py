@@ -5,7 +5,7 @@ from config import supabase, logger
 from services.auth_service import sanitize_user
 
 PLAN_CREDITS = {"gratuit": 100, "pro": 1000, "business": 3000}
-PLAN_PRICE = {"gratuit": 0, "pro": 19, "business": 49}
+PLAN_PRICE = {"gratuit": 0, "pro": 279, "business": 49}
 _RESEAUX = ["linkedin", "instagram", "facebook", "tiktok", "youtube"]
 
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from dependencies import verify_token
-from services import billing_service
-from config import logger
+from services import billing_service, mail_service
+from config import logger, ADMIN_NOTIF_EMAIL
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -74,6 +74,21 @@ async def stripe_webhook(request: Request):
                 await social_service.disconnect_all(uid)
             except Exception as e:
                 logger.error(f"webhook disconnect_all {uid}: {e}")
+        # Notification admin (email) sur les événements de facturation
+        notify = result.get("notify") if isinstance(result, dict) else None
+        if notify:
+            try:
+                detail = {
+                    "new_sub": "Plan Pro — 279 €/mois",
+                    "pack": f"Pack : {notify.get('extra') or 'crédits'}",
+                    "canceled": "Abonnement terminé — réseaux libérés.",
+                    "payment_failed": "Le prélèvement a échoué (carte ?).",
+                }.get(notify.get("kind"), "")
+                subject, html = mail_service.admin_payment_html(
+                    notify["kind"], notify.get("nom"), notify.get("email"), detail)
+                await mail_service.send_email(ADMIN_NOTIF_EMAIL, subject, html)
+            except Exception as e:
+                logger.error(f"webhook admin notif: {e}")
         return result
     except Exception as e:
         logger.error(f"stripe webhook error: {e}")

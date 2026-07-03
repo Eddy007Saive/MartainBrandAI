@@ -35,6 +35,30 @@ async def send_email(to: str, subject: str, html: str) -> dict:
     return {"id": r.json().get("id")}
 
 
+def admin_payment_html(kind: str, nom: str, email: str, detail: str = "") -> tuple:
+    """(subject, html) pour prévenir l'admin d'un événement de facturation Stripe."""
+    cfg = {
+        "new_sub": ("💳 Nouvel abonnement", "#5B6CFF", "Nouvel abonnement Pro"),
+        "pack": ("🧩 Pack acheté", "#5B6CFF", "Achat de pack"),
+        "canceled": ("❌ Résiliation", "#ef4444", "Abonnement résilié"),
+        "payment_failed": ("⚠️ Paiement échoué", "#f59e0b", "Échec de paiement"),
+    }
+    emoji_subj, color, titre = cfg.get(kind, ("💳 Paiement", "#5B6CFF", "Événement de facturation"))
+    who = _html.escape(nom or "Client")
+    mail = _html.escape(email or "—")
+    extra = f'<p style="margin:8px 0 0;color:#334155;font-size:14px">{_html.escape(detail)}</p>' if detail else ""
+    subject = f"{emoji_subj} — {who}"
+    body = f"""<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px">
+  <div style="border-left:4px solid {color};padding:6px 0 6px 16px">
+    <h2 style="margin:0 0 6px;font-size:18px;color:#0f172a">{titre}</h2>
+    <p style="margin:0;color:#0f172a;font-size:15px"><b>{who}</b> &lt;{mail}&gt;</p>
+    {extra}
+  </div>
+  <p style="margin:22px 0 0;color:#94a3b8;font-size:12px">PresenceOS · notification automatique de facturation</p>
+</div>"""
+    return subject, body
+
+
 def reset_email_html(nom: str, link: str) -> str:
     """Email de réinitialisation, design sobre cohérent avec PresenceOS."""
     salutation = f"Bonjour {nom}," if nom else "Bonjour,"

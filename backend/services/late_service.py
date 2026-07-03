@@ -16,20 +16,32 @@ ACCOUNT_COL = {p: f"late_account_{p}" for p in PLATFORMS}
 DEFAULT_TZ = "Europe/Paris"
 
 
+def _ig_fit(url: str) -> str:
+    """Conforme une image Cloudinary au ratio accepté par Instagram [0.8 ; 1.91] via un
+    PADDING conditionnel : ne touche pas les images déjà dans la plage, ne rogne jamais.
+    (trop haute < 0.8 → padée en 4:5 ; trop large > 1.91 → padée en 1.91.)"""
+    if not url or "res.cloudinary.com" not in url or "/image/upload/" not in url:
+        return url
+    t = "if_ar_lt_0.8/ar_4:5,c_pad,b_auto/if_end/if_ar_gt_1.91/ar_191:100,c_pad,b_auto/if_end"
+    return url.replace("/image/upload/", f"/image/upload/{t}/", 1)
+
+
 def _media_items(contenu: dict, reseau: str) -> list:
     """Construit les médias Late selon le type de contenu et le réseau."""
     # Vidéo / Reel : le montage final est une vidéo → média unique de type "video".
     if contenu.get("video_url"):
         return [{"url": contenu["video_url"], "type": "video"}]
+    ig = reseau == "instagram"  # Instagram impose un ratio 0.8–1.91 → on conforme l'image
     is_carrousel = contenu.get("type") == "Carrousel" or (contenu.get("slides_images") or [])
     if is_carrousel:
         if reseau == "linkedin" and contenu.get("carrousel_pdf"):
             return [{"url": contenu["carrousel_pdf"], "type": "document"}]
         slides = contenu.get("slides_images") or []
         if slides:
-            return [{"url": u, "type": "image"} for u in slides[:10]]
+            return [{"url": (_ig_fit(u) if ig else u), "type": "image"} for u in slides[:10]]
     if contenu.get("lien_visuel"):
-        return [{"url": contenu["lien_visuel"], "type": "image"}]
+        u = contenu["lien_visuel"]
+        return [{"url": (_ig_fit(u) if ig else u), "type": "image"}]
     return []
 
 
