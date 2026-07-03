@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { agentService } from '../services/agentService';
+import { videoService } from '../services/videoService';
 import { takePhoto, cameraAvailable } from '../lib/photo';
 import { useUser } from '../context/UserContext';
 import { PageHeader } from '../components/PageHeader';
@@ -66,6 +67,7 @@ const Pill = ({ active, onClick, children }) => (
 );
 
 export default function StudioIA() {
+  const navigate = useNavigate();
   const { user, updateUser } = useUser();
   const [usage, setUsage] = useState(null);
   const refreshUsage = () => agentService.usage().then(setUsage).catch(() => {});
@@ -304,10 +306,18 @@ export default function StudioIA() {
     if (!card || !card.texte.trim()) return;
     setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: true } : c)));
     try {
-      if (card.format === 'script') await agentService.enregistrerScript(card.texte, card.sujet, card.meta);
-      else await agentService.enregistrer(card.texte, card.sujet, card.meta);
+      if (card.format === 'script') {
+        // Script vidéo → contenu « À tourner » (apparaît dans Contenus, prêt à monter)
+        const d = await videoService.createDraft({ script: card.texte, titre: card.sujet });
+        setContenus((prev) => prev.filter((c) => c.id !== id));
+        toast.success('Script prêt → à monter en vidéo', {
+          action: d?.contenu_id ? { label: 'Monter la vidéo', onClick: () => navigate(`/dashboard/video?contenu_id=${d.contenu_id}`) } : undefined,
+        });
+        return;
+      }
+      await agentService.enregistrer(card.texte, card.sujet, card.meta);
       setContenus((prev) => prev.filter((c) => c.id !== id)); // validé → quitte le Studio
-      toast.success(card.format === 'script' ? 'Script validé → onglet Contenus' : 'Post validé → onglet Contenus');
+      toast.success('Post validé → onglet Contenus');
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false } : c)));
       toast.error(e.response?.data?.detail || 'Erreur lors de la validation');

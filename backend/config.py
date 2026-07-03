@@ -34,6 +34,14 @@ OPENROUTER_IMAGE_MODEL = os.environ.get('OPENROUTER_IMAGE_MODEL', 'google/gemini
 HEYGEN_API_KEY = os.environ.get('HEYGEN_API_KEY', '')
 
 # Cloudinary
+# Submagic (montage vidéo IA : sous-titres, b-roll, zooms, musique) — Studio Vidéo / Reels
+SUBMAGIC_API_KEY = os.environ.get('SUBMAGIC_API_KEY', '')
+SUBMAGIC_BASE = os.environ.get('SUBMAGIC_BASE', 'https://api.submagic.co/v1')
+# Thème GLOBAL de marque (userThemeId créé dans l'éditeur Submagic) appliqué par défaut à TOUS
+# les comptes qui n'ont pas de thème perso. Vide = tout le monde sur les 45 templates.
+SUBMAGIC_DEFAULT_THEME_ID = os.environ.get('SUBMAGIC_DEFAULT_THEME_ID', '')
+SUBMAGIC_DEFAULT_THEME_LABEL = os.environ.get('SUBMAGIC_DEFAULT_THEME_LABEL', 'Thème de marque')
+
 # Cloudflare Turnstile (anti-bot sur le formulaire public d'audit)
 # Clés de TEST par défaut (passent toujours) — à remplacer par les vraies en prod.
 TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '1x0000000000000000000000000000000AA')

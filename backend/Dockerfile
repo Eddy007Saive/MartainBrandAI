@@ -2,6 +2,10 @@
 # La version DOIT correspondre à playwright dans requirements.txt (1.60.0).
 FROM mcr.microsoft.com/playwright/python:v1.60.0-jammy
 
+# ffmpeg : compression des vidéos montées (Studio Vidéo) avant enregistrement Cloudinary.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Dépendances Python (cache séparé)

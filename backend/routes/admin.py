@@ -185,6 +185,26 @@ async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(v
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class SubmagicThemeUpdate(BaseModel):
+    submagic_theme_id: Optional[str] = None
+    submagic_theme_label: Optional[str] = None
+
+
+@router.patch("/users/{telegram_id}/submagic-theme")
+async def set_submagic_theme(telegram_id: str, body: SubmagicThemeUpdate, payload: dict = Depends(verify_admin_token)):
+    """Assigne (ou retire) le thème Submagic de marque d'un compte — userThemeId créé dans l'éditeur."""
+    upd = {
+        "submagic_theme_id": (body.submagic_theme_id or "").strip() or None,
+        "submagic_theme_label": (body.submagic_theme_label or "").strip() or None,
+    }
+    try:
+        supabase.table("users").update(upd).eq("telegram_id", telegram_id).execute()
+        return {"success": True, **upd}
+    except Exception as e:
+        logger.error(f"set_submagic_theme error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/system")
 async def get_system(payload: dict = Depends(verify_admin_token)):
     try:

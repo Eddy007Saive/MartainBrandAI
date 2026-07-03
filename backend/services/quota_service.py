@@ -100,6 +100,19 @@ def consume(telegram_id: str, action_type: str, qty: int = 1) -> dict:
     return data
 
 
+def refund_by_user(telegram_id: str, action_type: str, qty: int = 1) -> None:
+    """Rembourse un quota pour un échec ASYNC (ex. montage vidéo qui échoue plus tard),
+    quand on n'a plus le ctx du consume — on retrouve l'abonnement du compte."""
+    try:
+        r = (supabase.table("subscriptions").select("id").eq("user_id", telegram_id)
+             .in_("status", ["trialing", "active", "past_due"]).order("created_at", desc=True).limit(1).execute())
+        sub_id = r.data[0]["id"] if r.data else None
+        if sub_id:
+            refund({"subscription_id": sub_id, "action_type": action_type, "qty": qty})
+    except Exception as e:
+        logger.warning(f"refund_by_user {telegram_id}/{action_type}: {e}")
+
+
 def confirm(ctx: dict) -> None:
     """Journalise un succès (le débit a déjà été réservé par consume)."""
     try:

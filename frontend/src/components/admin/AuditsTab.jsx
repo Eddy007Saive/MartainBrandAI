@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Loader2, RefreshCw, Mail, Eye, Inbox, Send, CheckCircle } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import { Loader2, RefreshCw, Mail, Eye, Inbox, Send, CheckCircle, FileDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
@@ -82,6 +83,34 @@ export default function AuditsTab() {
     } catch (e) {
       toast.error('Erreur');
     }
+  };
+
+  const downloadPdf = () => {
+    const a = selected;
+    if (!a) return;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const M = 44;
+    const W = doc.internal.pageSize.getWidth() - M * 2;
+    const H = doc.internal.pageSize.getHeight();
+    // En-tête
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.setTextColor(18, 22, 38);
+    doc.text('Audit de marque', M, 56);
+    doc.setFontSize(13); doc.setTextColor(70, 78, 130);
+    doc.text(a.marque || 'Sans nom', M, 76);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(120, 130, 150);
+    doc.text(`${a.email || '—'}   ·   reçu le ${fmtDate(a.created_at)}`, M, 92);
+    doc.setDrawColor(220); doc.line(M, 102, M + W, 102);
+    // Corps (récap) — on assainit les caractères non gérés par la police PDF
+    const clean = (a.recap || '(pas de récapitulatif)').replace(/[═─]/g, '-').replace(/•/g, '-');
+    doc.setFontSize(10); doc.setTextColor(35, 40, 55);
+    const lines = doc.splitTextToSize(clean, W);
+    let y = 122;
+    lines.forEach((ln) => {
+      if (y > H - 40) { doc.addPage(); y = 50; }
+      doc.text(ln, M, y); y += 13.5;
+    });
+    const safe = (a.marque || 'audit').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    doc.save(`audit_${safe}.pdf`);
   };
 
   return (
@@ -177,7 +206,12 @@ export default function AuditsTab() {
 
               {/* Récap complet */}
               <div>
-                <p className="text-xs uppercase tracking-wider text-slate-500 font-inter mb-2">Réponses</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs uppercase tracking-wider text-slate-500 font-inter">Réponses</p>
+                  <Button size="sm" variant="ghost" onClick={downloadPdf} className="h-7 gap-1.5 text-slate-300 hover:text-white">
+                    <FileDown className="w-3.5 h-3.5" /> Télécharger en PDF
+                  </Button>
+                </div>
                 <pre className="bg-[#0b1120] border border-white/5 rounded-xl p-4 text-[12.5px] leading-relaxed text-slate-300 font-mono whitespace-pre-wrap max-h-72 overflow-y-auto">
 {selected.recap || '(pas de récapitulatif)'}
                 </pre>

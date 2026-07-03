@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boutons Valider / Refuser — 4 variantes · Presence OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#020617; --card:#0f172a; --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12);
+    --ink:#e8edf7; --mut:#8593ae; --faint:#5a6680;
+    --g1:#5B6CFF; --g2:#8A6CFF; --acc:#3AFFA3; --red:#f87171;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(800px 400px at 80% -10%, rgba(91,108,255,.08), transparent 60%), var(--bg);
+    color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:40px 24px 70px}
+  .wrap{max-width:760px;margin:0 auto}
+  .head{margin-bottom:30px}
+  .head h1{font-family:'Sora';font-weight:700;font-size:22px;margin:0 0 6px;letter-spacing:-.01em}
+  .head p{color:var(--mut);font-size:14px;margin:0}
+
+  .variant{margin-bottom:24px}
+  .vlabel{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .vlabel .n{font-family:'Sora';font-weight:700;font-size:12px;color:#fff;width:24px;height:24px;border-radius:7px;
+    background:linear-gradient(135deg,var(--g1),var(--g2));display:grid;place-items:center}
+  .vlabel .t{font-family:'Sora';font-weight:600;font-size:14.5px}
+  .vlabel .d{color:var(--faint);font-size:12.5px}
+
+  /* conteneur = pied de dialogue réel */
+  .footer{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .footer .body{padding:16px 18px;color:var(--mut);font-size:12.5px;display:flex;align-items:center;gap:8px}
+  .footer .body .dot{width:6px;height:6px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc)}
+  .bar{display:flex;align-items:center;gap:10px;justify-content:flex-end;padding:13px 18px;border-top:1px solid var(--line)}
+  svg{width:16px;height:16px;flex:none}
+
+  /* base bouton */
+  .btn{font-family:'Sora';font-weight:600;font-size:14px;border:1px solid transparent;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;transition:.16s;line-height:1}
+
+  /* ---------- V1 : Primaire dégradé + secondaire fantôme ---------- */
+  .v1 .refuser{background:transparent;border-color:var(--line2);color:var(--mut);padding:11px 18px;border-radius:11px}
+  .v1 .refuser:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+  .v1 .valider{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;padding:11px 20px;border-radius:11px;
+    box-shadow:0 8px 24px rgba(91,108,255,.35)}
+  .v1 .valider:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(91,108,255,.45)}
+
+  /* ---------- V2 : Accent vert « GO » ---------- */
+  .v2 .refuser{background:transparent;color:var(--mut);padding:11px 16px;border-radius:11px}
+  .v2 .refuser:hover{color:var(--red);background:rgba(248,113,113,.1)}
+  .v2 .valider{background:var(--acc);color:#03271a;padding:11px 20px;border-radius:11px;font-weight:700;
+    box-shadow:0 8px 24px rgba(58,255,163,.28)}
+  .v2 .valider:hover{filter:brightness(1.06);transform:translateY(-1px)}
+
+  /* ---------- V3 : Contours raffinés (léger) ---------- */
+  .v3 .refuser{background:rgba(248,113,113,.06);border-color:rgba(248,113,113,.3);color:var(--red);padding:10px 18px;border-radius:11px}
+  .v3 .refuser:hover{background:rgba(248,113,113,.13)}
+  .v3 .valider{background:rgba(58,255,163,.08);border-color:rgba(58,255,163,.4);color:var(--acc);padding:10px 18px;border-radius:11px}
+  .v3 .valider:hover{background:rgba(58,255,163,.15);box-shadow:inset 0 0 0 1px rgba(58,255,163,.5)}
+
+  /* ---------- V4 : CTA premium (pilule) ---------- */
+  .v4 .bar{gap:14px}
+  .v4 .refuser{background:transparent;color:var(--mut);padding:11px 6px;border-radius:10px;font-weight:500;font-family:'Inter'}
+  .v4 .refuser:hover{color:#fff}
+  .v4 .valider{background:linear-gradient(135deg,var(--g1),var(--g2));color:#fff;padding:12px 24px;border-radius:999px;
+    box-shadow:0 10px 26px rgba(91,108,255,.4)}
+  .v4 .valider:hover{transform:translateY(-1px);box-shadow:0 14px 34px rgba(91,108,255,.5)}
+  .v4 .valider .arw{margin-left:2px;opacity:.85}
+
+  .foot{margin-top:34px;color:var(--faint);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>Boutons « Refuser / Valider & programmer »</h1>
+    <p>4 variantes dans le contexte réel (pied de la fenêtre de contenu). Survole pour voir les états. Dis-moi le numéro.</p>
+  </div>
+
+  <!-- V1 -->
+  <div class="variant v1">
+    <div class="vlabel"><span class="n">1</span><span class="t">Primaire dégradé</span><span class="d">— la plus « SaaS », hiérarchie nette : action principale en avant, refus discret.</span></div>
+    <div class="footer">
+      <div class="body"><span class="dot"></span> Contenu prêt — validation puis programmation automatique.</div>
+      <div class="bar">
+        <button class="btn refuser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Refuser</button>
+        <button class="btn valider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Valider & programmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- V2 -->
+  <div class="variant v2">
+    <div class="vlabel"><span class="n">2</span><span class="t">Accent vert « GO »</span><span class="d">— le vert = publier/valider, énergie positive. Refus en texte, rouge au survol.</span></div>
+    <div class="footer">
+      <div class="body"><span class="dot"></span> Contenu prêt — validation puis programmation automatique.</div>
+      <div class="bar">
+        <button class="btn refuser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Refuser</button>
+        <button class="btn valider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>Valider & programmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- V3 -->
+  <div class="variant v3">
+    <div class="vlabel"><span class="n">3</span><span class="t">Contours raffinés</span><span class="d">— plus léger et « premium », deux boutons contours, code couleur clair (rouge / vert).</span></div>
+    <div class="footer">
+      <div class="body"><span class="dot"></span> Contenu prêt — validation puis programmation automatique.</div>
+      <div class="bar">
+        <button class="btn refuser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Refuser</button>
+        <button class="btn valider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Valider & programmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- V4 -->
+  <div class="variant v4">
+    <div class="vlabel"><span class="n">4</span><span class="t">CTA premium (pilule)</span><span class="d">— refus en lien discret, validation en gros CTA arrondi avec flèche. Maximum d'emphase sur l'action.</span></div>
+    <div class="footer">
+      <div class="body"><span class="dot"></span> Contenu prêt — validation puis programmation automatique.</div>
+      <div class="bar">
+        <button class="btn refuser">Refuser</button>
+        <button class="btn valider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>Valider & programmer <svg class="arw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">Presence OS · design system (Sora / Inter · dégradé #5B6CFF→#8A6CFF · accent #3AFFA3)</div>
+</div>
+</body>
+</html>

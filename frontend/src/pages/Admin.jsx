@@ -85,6 +85,7 @@ export default function Admin() {
 
   // Crédits / plan (dans la fiche user)
   const [creditInput, setCreditInput] = useState('');
+  const [themeForm, setThemeForm] = useState({ id: '', label: '' });
   const [userActionLoading, setUserActionLoading] = useState(false);
 
   // Paramètres (système)
@@ -137,6 +138,7 @@ export default function Admin() {
       const contenusData = await adminService.getUserContenus(telegramId);
       setSelectedUser(userData);
       setUserContenus(contenusData);
+      setThemeForm({ id: userData.submagic_theme_id || '', label: userData.submagic_theme_label || '' });
     } catch (error) {
       toast.error('Erreur lors du chargement du profil');
     }
@@ -269,6 +271,17 @@ export default function Admin() {
       toast.success(`Forfait → ${PLAN_CFG[plan]?.label || plan}`);
       await refreshSelected(selectedUser.telegram_id);
     } catch (e) { toast.error('Erreur forfait'); }
+    finally { setUserActionLoading(false); }
+  };
+
+  const handleSaveTheme = async () => {
+    if (!selectedUser) return;
+    setUserActionLoading(true);
+    try {
+      await adminService.setSubmagicTheme(selectedUser.telegram_id, themeForm.id.trim(), themeForm.label.trim());
+      setSelectedUser((u) => (u ? { ...u, submagic_theme_id: themeForm.id.trim() || null, submagic_theme_label: themeForm.label.trim() || null } : u));
+      toast.success(themeForm.id.trim() ? 'Thème vidéo assigné ✓' : 'Thème vidéo retiré');
+    } catch (e) { toast.error('Erreur thème vidéo'); }
     finally { setUserActionLoading(false); }
   };
 
@@ -1145,6 +1158,23 @@ export default function Admin() {
                       <Save className="w-3.5 h-3.5 mr-1" />Fixer
                     </Button>
                     {userActionLoading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 self-center" />}
+                  </div>
+                </div>
+              </div>
+
+              {/* Thème vidéo Submagic (assigné par l'admin) */}
+              <div className="bg-slate-800/40 border border-white/5 rounded-xl p-4 space-y-3">
+                <h4 className="text-sm font-semibold text-white font-sora flex items-center gap-2"><Video className="w-4 h-4 text-[#8A6CFF]" />Thème vidéo (Submagic)</h4>
+                <p className="text-xs text-slate-500">Crée le thème de la marque dans l'éditeur Submagic, puis colle son <b className="text-slate-300">userThemeId</b> ici. Vide = le client utilise les 45 templates par défaut.</p>
+                <div className="space-y-2">
+                  <Input value={themeForm.label} onChange={(e) => setThemeForm((t) => ({ ...t, label: e.target.value }))}
+                    placeholder="Nom affiché (ex. Thème GoodTime)" className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm" />
+                  <div className="flex gap-2">
+                    <Input value={themeForm.id} onChange={(e) => setThemeForm((t) => ({ ...t, id: e.target.value }))}
+                      placeholder="userThemeId (UUID Submagic)" className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm flex-1" />
+                    <Button size="sm" onClick={handleSaveTheme} disabled={userActionLoading} className="bg-[#5B6CFF]/20 text-[#b9a6ff] hover:bg-[#5B6CFF]/30 border border-[#5B6CFF]/30">
+                      {userActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />}Enregistrer
+                    </Button>
                   </div>
                 </div>
               </div>

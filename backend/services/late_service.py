@@ -18,6 +18,9 @@ DEFAULT_TZ = "Europe/Paris"
 
 def _media_items(contenu: dict, reseau: str) -> list:
     """Construit les médias Late selon le type de contenu et le réseau."""
+    # Vidéo / Reel : le montage final est une vidéo → média unique de type "video".
+    if contenu.get("video_url"):
+        return [{"url": contenu["video_url"], "type": "video"}]
     is_carrousel = contenu.get("type") == "Carrousel" or (contenu.get("slides_images") or [])
     if is_carrousel:
         if reseau == "linkedin" and contenu.get("carrousel_pdf"):
@@ -87,6 +90,11 @@ async def publish_contenu(telegram_id: str, contenu: dict) -> dict:
     except ZernioError as e:
         msg = getattr(e, "message", None) or str(e)
         logger.error(f"Late publish error: {msg}")
+        low = msg.lower()
+        # Doublon anti-spam de la plateforme (Instagram/LinkedIn) : message clair + actionnable.
+        if "already" in low and ("24 hours" in low or "posted to this account" in low or "scheduled" in low):
+            return {"ok": False, "duplicate": True,
+                    "error": "Doublon : ce contenu (texte identique) a déjà été publié ou programmé sur ce compte il y a moins de 24 h. Modifie légèrement le texte pour pouvoir republier."}
         return {"ok": False, "error": msg}
     except Exception as e:
         logger.error(f"Late publish exception: {e}")

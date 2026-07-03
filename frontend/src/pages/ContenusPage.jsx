@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -47,6 +48,7 @@ const IMAGE_MODELES = [
 
 // Clés = valeurs réelles de l'enum statut_contenu en base ; label = affichage
 const STATUT_CONFIG = {
+  'A tourner': { label: 'À tourner', bg: 'bg-[#8A6CFF]/15', text: 'text-[#b9a6ff]', border: 'border-[#8A6CFF]/30', dot: 'bg-[#8A6CFF]', icon: Video },
   'A valider': { label: 'À valider', bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/25', dot: 'bg-amber-400', icon: Clock },
   'Valider': { label: 'Validé', bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/25', dot: 'bg-emerald-400', icon: Check },
   'Planifie': { label: 'Planifié', bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/25', dot: 'bg-purple-400', icon: Calendar },
@@ -130,6 +132,7 @@ function CardAction({ title, onClick, children, className = '' }) {
 function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
+  const isVideo = contenu.type === 'Reel' || !!contenu.video_url || !!contenu.video_status;
   const regenLoading = carrouselLoading === contenu.id;
   const date = contenu.date_publication
     ? new Date(contenu.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
@@ -165,7 +168,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
               className={contenu.slides_images?.length ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
               {regenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LayoutGrid className="w-4 h-4" />}
             </CardAction>
-          ) : (
+          ) : isVideo ? null : (
             <CardAction title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} onClick={() => onImage(contenu)}
               className={contenu.lien_visuel ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
               <ImageIcon className="w-4 h-4" />
@@ -188,6 +191,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
 }
 
 export default function ContenusPage() {
+  const navigate = useNavigate();
   const [contenus, setContenus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
@@ -898,7 +902,27 @@ export default function ContenusPage() {
                   {/* GAUCHE : aperçu + retouche */}
                   <div className="p-4 border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto space-y-3"
                     style={{ background: 'radial-gradient(120% 70% at 20% 0%, rgba(91,108,255,.05), transparent 55%)' }}>
-                  {czR && selectedContenu.carrousel_data ? (
+                  {selectedContenu.statut === 'A tourner' ? (
+                    // Script prêt : à filmer + monter → Studio Vidéo
+                    <div className="flex flex-col gap-4 py-1">
+                      <div className="rounded-xl bg-[#0c111f] border border-white/5 p-4">
+                        <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-2 flex items-center gap-1.5"><ScrollText className="w-3.5 h-3.5" />Ton script</p>
+                        <pre className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-300 font-inter max-h-[44vh] overflow-y-auto">{selectedContenu.script || '—'}</pre>
+                      </div>
+                      <button onClick={() => navigate(`/dashboard/video?contenu_id=${selectedContenu.id}`)}
+                        className="w-full rounded-xl py-3 font-sora font-semibold text-white bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 flex items-center justify-center gap-2 transition-opacity">
+                        <Video className="w-4 h-4" /> Monter la vidéo
+                      </button>
+                    </div>
+                  ) : selectedContenu.video_url ? (
+                    // Vidéo / Reel montée (Studio Vidéo)
+                    <video src={selectedContenu.video_url} controls className="w-full max-h-[70vh] rounded-xl bg-black object-contain" poster={selectedContenu.lien_visuel || undefined} />
+                  ) : selectedContenu.video_status === 'en_traitement' ? (
+                    <div className="w-full aspect-[9/16] max-h-[70vh] rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-400">
+                      <Loader2 className="w-7 h-7 animate-spin text-[#8A6CFF]" />
+                      <span className="text-xs font-inter">Montage vidéo en cours…</span>
+                    </div>
+                  ) : czR && selectedContenu.carrousel_data ? (
                     // Aperçu LIVE éditable — seulement AVANT validation (reflète la retouche)
                     <>
                       <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
@@ -1058,12 +1082,17 @@ export default function ContenusPage() {
                     {czR ? 'Images finales rendues à la validation' : ''}
                   </span>
                   <div className="flex items-center gap-2 flex-wrap justify-end">
+                    {selectedContenu.video_url && selectedContenu.statut !== 'Publie' && (
+                      <Button size="sm" onClick={() => navigate(`/dashboard/video?contenu_id=${selectedContenu.id}`)}
+                        className="bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 font-sora font-semibold rounded-[11px]">
+                        <Video className="w-4 h-4 mr-1.5" />Modifier la vidéo</Button>
+                    )}
                     {selectedContenu.statut === 'A valider' && (
                       <>
                         <Button size="sm" onClick={() => handleUpdateStatut(selectedContenu.id, 'Refuse')} disabled={actionLoading === selectedContenu.id}
-                          className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/25 font-inter"><X className="w-4 h-4 mr-1.5" />Refuser</Button>
+                          className="bg-transparent border border-white/[0.12] text-slate-400 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] px-4 transition-colors"><X className="w-4 h-4 mr-1.5" />Refuser</Button>
                         <Button size="sm" onClick={() => validerContenu(selectedContenu.id)} disabled={actionLoading === selectedContenu.id || czRBusy}
-                          className="bg-gradient-to-r from-[#3AFFA3] to-[#28d98c] text-[#04130c] font-semibold hover:brightness-105 font-inter">
+                          className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] px-5 shadow-[0_8px_24px_rgba(91,108,255,0.35)] hover:-translate-y-px hover:shadow-[0_12px_30px_rgba(91,108,255,0.45)] transition-all">
                           {(actionLoading === selectedContenu.id || czRBusy) ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Check className="w-4 h-4 mr-1.5" />}Valider &amp; programmer</Button>
                       </>
                     )}
