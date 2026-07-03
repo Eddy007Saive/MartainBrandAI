@@ -136,6 +136,13 @@ def _apply_subscription(sub: dict):
 
     ps = _ts(sub.get("current_period_start"))
     pe = _ts(sub.get("current_period_end"))
+    # API Stripe récente : current_period_start/end vit désormais sur les ITEMS de l'abonnement,
+    # plus au niveau racine → on lit en fallback sinon la période (et le reset de quotas) fige.
+    if pe is None:
+        items = (sub.get("items") or {}).get("data") or []
+        if items:
+            ps = _ts(items[0].get("current_period_start")) or ps
+            pe = _ts(items[0].get("current_period_end")) or pe
     _upsert_subscription(uid, status, ps, pe, sub.get("id"))
 
     # Compat affichage (ParametresPage) : plan + date de renouvellement
