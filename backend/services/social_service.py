@@ -209,7 +209,10 @@ async def disconnect_all(telegram_id: str) -> int:
                 async with Zernio(api_key=LATE_API_KEY) as client:
                     await client.accounts.adelete_account(account_id)
             except Exception as e:
-                logger.warning(f"disconnect_all Late {telegram_id}/{field} ({account_id}): {e}")
+                # Late n'a pas pu supprimer (ex. clé d'un AUTRE workspace) -> on GARDE la colonne
+                # pour rester cohérent avec Late (jamais de faux "déconnecté" en base).
+                logger.warning(f"disconnect_all Late {telegram_id}/{field} ({account_id}) -> compte conservé: {e}")
+                continue
         try:
             supabase.table("users").update({field: None}).eq("telegram_id", telegram_id).execute()
             n += 1
