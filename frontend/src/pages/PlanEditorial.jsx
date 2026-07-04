@@ -51,7 +51,7 @@ const QUALITES = [
 const costKey = (fmt) => (fmt === 'post' ? 'post' : fmt === 'carrousel' ? 'carrousel' : 'script');
 
 export default function PlanEditorial() {
-  const { user, updateUser } = useUser();
+  const { user } = useUser();
   const marqueOk = !!(user?.secteur && String(user.secteur).trim());
 
   const now = new Date();
@@ -66,6 +66,7 @@ export default function PlanEditorial() {
   const [nbSujets, setNbSujets] = useState(6);
   const [genSujets, setGenSujets] = useState(false);
   const [running, setRunning] = useState(false);
+  const [usage, setUsage] = useState(null); // jauges de quotas (résultats restants), remplace les crédits
 
   const fetchPlan = useCallback(async (y, m) => {
     setLoadingPlan(true);
@@ -81,6 +82,11 @@ export default function PlanEditorial() {
 
   useEffect(() => { fetchPlan(year, month); }, [year, month, fetchPlan]);
   useEffect(() => { agentService.sujetsList().then((d) => setSubjects(d || [])).catch(() => {}); }, []);
+  useEffect(() => { agentService.usage().then(setUsage).catch(() => {}); }, []);
+
+  // Jauge « post » = les contenus que la rafale consomme réellement (script vidéo compris) -> contenus restants ce mois
+  const postGauge = useMemo(() => (usage?.gauges || []).find((g) => g.action_type === 'post') || null, [usage]);
+  const postsLeft = postGauge ? Math.max(0, postGauge.limit - postGauge.used) : null;
 
   const changeMonth = (delta) => {
     let m = month + delta, y = year;
@@ -144,7 +150,7 @@ export default function PlanEditorial() {
     try {
       const d = await agentService.sujets(nbSujets);
       setSubjects((prev) => [...(d.sujets || []), ...prev]);
-      if (d.credits != null) updateUser({ credits: d.credits });
+      agentService.usage().then(setUsage).catch(() => {}); // rafraîchit les jauges (sujets consommés)
     } catch (e) {
       toast.error(e?.response?.data?.detail || 'Erreur lors de la génération');
     } finally {
@@ -163,7 +169,7 @@ export default function PlanEditorial() {
     setRunning(true);
     try {
       const d = await agentService.rafale(rafale.items, year, month);
-      if (d.credits != null) updateUser({ credits: d.credits });
+      if (d.usage) setUsage(d.usage); // rafraîchit les contenus restants
       const ko = (d.errors || []).length;
       toast.success(`${d.created} contenu${d.created > 1 ? 's' : ''} généré${d.created > 1 ? 's' : ''} → onglet Contenus${ko ? ` (${ko} échec${ko > 1 ? 's' : ''})` : ''}`);
       // retire les sujets utilisés du pool
@@ -173,7 +179,7 @@ export default function PlanEditorial() {
       setSel({});
       fetchPlan(year, month);
     } catch (e) {
-      if (e?.response?.status === 402) toast.error('Crédits insuffisants');
+      if (e?.response?.status === 402) toast.error('Quota atteint — plus de contenus disponibles ce mois');
       else toast.error(e?.response?.data?.detail || 'Échec de la rafale');
     } finally {
       setRunning(false);
@@ -187,10 +193,13 @@ export default function PlanEditorial() {
         title="Plan éditorial"
         subtitle="Remplis ton calendrier du mois, réseau par réseau."
         actions={
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]"
+            title={postGauge ? `${postGauge.used}/${postGauge.limit} contenus utilisés ce mois-ci` : undefined}>
             <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3]" />
-            <span className="text-xs text-slate-400 font-inter">Crédits</span>
-            <span className="text-sm font-semibold text-white font-inter">{user?.credits ?? '—'}</span>
+            <span className="text-xs text-slate-400 font-inter">Contenus restants</span>
+            <span className="text-sm font-semibold text-white font-inter">
+              {postGauge ? `${postsLeft} / ${postGauge.limit}` : '—'}
+            </span>
           </div>
         }
       />
@@ -366,9 +375,13 @@ export default function PlanEditorial() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[13px]">
-            ≈ <span className="font-bold text-[#3AFFA3]">{rafale.cost}</span> crédits
+          {postGauge && (
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[13px]"
+              title={`Il te reste ${postsLeft} contenu${postsLeft > 1 ? 's' : ''} à générer ce mois-ci (${postGauge.used}/${postGauge.limit} utilisés)`}>
+            <span className={`font-bold ${rafale.posts > postsLeft ? 'text-red-400' : 'text-[#3AFFA3]'}`}>{postsLeft}</span>
+            <span className="text-slate-400">contenu{postsLeft > 1 ? 's' : ''} restant{postsLeft > 1 ? 's' : ''}</span>
           </div>
+          )}
           <Button onClick={lancerRafale} disabled={running}
             className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
             {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
