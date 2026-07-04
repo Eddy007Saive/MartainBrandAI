@@ -126,10 +126,19 @@ def admin_payment_html(kind: str, nom: str, email: str, detail: str = "") -> tup
         "canceled": ("❌ Résiliation", "#ef4444", "Abonnement terminé"),
         "payment_failed": ("⚠️ Paiement échoué", "#f59e0b", "Échec de paiement"),
     }
+    # Phrase de contexte par type d'événement (texte utile -> évite aussi le ratio image/texte trop faible).
+    notes = {
+        "new_sub": "Un nouvel abonnement Pro vient d'être activé. Le compte a accès à toutes les fonctionnalités et sera renouvelé automatiquement chaque mois.",
+        "canceling": "L'abonné a demandé la résiliation. Il conserve l'accès Pro jusqu'à la date d'échéance ci-dessous, puis son compte repassera automatiquement en offre gratuite.",
+        "pack": "Un pack de résultats supplémentaires vient d'être acheté. Le quota correspondant a été crédité automatiquement sur le compte.",
+        "canceled": "L'abonnement est arrivé à échéance et a pris fin. Le compte est repassé en offre gratuite ; l'abonné peut se réabonner à tout moment.",
+        "payment_failed": "Le dernier prélèvement a échoué. Stripe va effectuer de nouvelles tentatives ; sans succès, l'abonnement finira par être suspendu.",
+    }
     emoji_subj, color, titre = cfg.get(kind, ("💳 Paiement", "#5B6CFF", "Événement de facturation"))
+    note = notes.get(kind, "Un événement de facturation vient d'être enregistré sur ce compte.")
     who = _html.escape(nom or "Client")
     mail = _html.escape(email or "—")
-    extra = f'<p style="margin:10px 0 0;color:#94a3b8;font-size:14px;line-height:1.6;">{_html.escape(detail)}</p>' if detail else ""
+    extra = f'<p style="margin:10px 0 0;color:#e2e8f0;font-size:14px;line-height:1.6;">{_html.escape(detail)}</p>' if detail else ""
     subject = f"{emoji_subj} — {who}"
     inner = f"""<tr><td style="padding:16px 32px 26px;">
       <div style="border-left:4px solid {color};padding:4px 0 4px 16px;">
@@ -137,6 +146,10 @@ def admin_payment_html(kind: str, nom: str, email: str, detail: str = "") -> tup
         <p style="margin:0;color:#cbd5e1;font-size:15px;"><b style="color:#ffffff;">{who}</b> &lt;{mail}&gt;</p>
         {extra}
       </div>
+      <p style="margin:18px 0 0;color:#94a3b8;font-size:13.5px;line-height:1.7;">{note}</p>
+      <p style="margin:14px 0 0;color:#64748b;font-size:12.5px;line-height:1.6;">
+        Retrouvez le détail complet (montant, dates, historique des paiements) dans votre tableau de bord administrateur PresenceOS, section Facturation.
+      </p>
     </td></tr>"""
     return subject, _shell(inner, width=520, internal=True)
 
