@@ -23,4 +23,6 @@ export const billingService = {
     if (data?.url) window.location.href = data.url;
     return data;
   },
+  // Factures Stripe du compte (date, montant, statut, PDF)
+  invoices: () => api.get('/billing/invoices').then((r) => r.data),
 };

@@ -49,6 +49,14 @@ async def sync(payload: dict = Depends(verify_token)):
     return billing_service.sync_subscription(telegram_id)
 
 
+@router.get("/invoices")
+async def invoices(payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return {"invoices": billing_service.list_invoices(telegram_id)}
+
+
 @router.post("/portal")
 async def portal(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")

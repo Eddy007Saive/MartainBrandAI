@@ -83,6 +83,36 @@ def create_portal(telegram_id: str) -> dict:
         return {"ok": False, "error": "Portail indisponible."}
 
 
+def list_invoices(telegram_id: str) -> list:
+    """Factures Stripe du compte (les plus récentes) : date, montant, statut, PDF, lien."""
+    if not _ready():
+        return []
+    res = supabase.table("users").select("stripe_customer_id").eq("telegram_id", telegram_id).execute()
+    customer = res.data[0].get("stripe_customer_id") if res.data else None
+    if not customer:
+        return []
+    try:
+        invs = stripe.Invoice.list(customer=customer, limit=24)
+    except Exception as e:
+        logger.error(f"list_invoices error: {e}")
+        return []
+    out = []
+    for i in (invs.data or []):
+        # on ignore les brouillons vides
+        if i.get("status") == "draft" and not (i.get("amount_due") or i.get("total")):
+            continue
+        out.append({
+            "number": i.get("number"),
+            "date": _ts(i.get("created")),
+            "amount": (i.get("amount_paid") or i.get("total") or 0) / 100,
+            "currency": (i.get("currency") or "eur").upper(),
+            "status": i.get("status"),               # paid | open | void | uncollectible
+            "pdf": i.get("invoice_pdf"),
+            "url": i.get("hosted_invoice_url"),
+        })
+    return out
+
+
 def _pro_plan_id():
     r = supabase.table("plans").select("id").eq("name", "Pro").limit(1).execute()
     return r.data[0]["id"] if r.data else None

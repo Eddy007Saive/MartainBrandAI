@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Field } from '../components/Field';
 import { ColorField } from '../components/ColorField';
+import InvoicesList from '../components/InvoicesList';
 import { COMMON_TIMEZONES } from '../lib/tz';
 import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
@@ -1374,6 +1375,9 @@ export default function ParametresPage() {
           </div>
         </div>
         <p className="text-xs text-slate-500 font-inter flex items-center gap-1.5"><Info className="w-3.5 h-3.5" />Paiement sécurisé par Stripe · annulable à tout moment.</p>
+
+        {/* Factures */}
+        <InvoicesList />
       </div>
     );
   };
