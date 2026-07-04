@@ -88,6 +88,7 @@ async def stripe_webhook(request: Request):
             try:
                 detail = {
                     "new_sub": "Plan Pro — 279 €/mois",
+                    "canceling": notify.get("extra") or "Se termine en fin de période.",
                     "pack": f"Pack : {notify.get('extra') or 'crédits'}",
                     "canceled": "Abonnement terminé — réseaux libérés.",
                     "payment_failed": "Le prélèvement a échoué (carte ?).",

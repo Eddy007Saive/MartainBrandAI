@@ -39,8 +39,9 @@ def admin_payment_html(kind: str, nom: str, email: str, detail: str = "") -> tup
     """(subject, html) pour prévenir l'admin d'un événement de facturation Stripe."""
     cfg = {
         "new_sub": ("💳 Nouvel abonnement", "#5B6CFF", "Nouvel abonnement Pro"),
+        "canceling": ("⏳ Résiliation programmée", "#f59e0b", "Résiliation programmée (actif jusqu'à l'échéance)"),
         "pack": ("🧩 Pack acheté", "#5B6CFF", "Achat de pack"),
-        "canceled": ("❌ Résiliation", "#ef4444", "Abonnement résilié"),
+        "canceled": ("❌ Résiliation", "#ef4444", "Abonnement terminé"),
         "payment_failed": ("⚠️ Paiement échoué", "#f59e0b", "Échec de paiement"),
     }
     emoji_subj, color, titre = cfg.get(kind, ("💳 Paiement", "#5B6CFF", "Événement de facturation"))

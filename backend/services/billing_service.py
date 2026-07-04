@@ -175,15 +175,27 @@ def _apply_subscription(sub: dict):
             pe = _ts(items[0].get("current_period_end")) or pe
     _upsert_subscription(uid, status, ps, pe, sub.get("id"))
 
-    # Compat affichage (ParametresPage) : plan + date de renouvellement
+    # Résiliation programmée : API Stripe récente -> `cancel_at` (et pas cancel_at_period_end).
+    cancel_ts = sub.get("cancel_at")
+    if not cancel_ts and sub.get("cancel_at_period_end"):
+        items = (sub.get("items") or {}).get("data") or []
+        cancel_ts = sub.get("current_period_end") or (items[0].get("current_period_end") if items else None)
+    cancel_at = _ts(cancel_ts)
+
     actif = status in ("active", "trialing")
+    # Transition None -> date = nouvelle résiliation programmée -> email admin (par la route).
+    prev = supabase.table("users").select("plan_cancel_at").eq("telegram_id", uid).execute().data
+    was_canceling = bool(prev and prev[0].get("plan_cancel_at"))
+    newly_canceling = bool(cancel_at) and actif and not was_canceling
+
     supabase.table("users").update({
         "plan": "pro" if actif else "gratuit",
         "stripe_subscription_id": sub.get("id") if actif else None,
         "plan_renews_at": pe,
+        "plan_cancel_at": cancel_at if actif else None,   # date de fin si résilié, sinon None
     }).eq("telegram_id", uid).execute()
-    logger.info(f"stripe: {uid} -> {status}")
-    return {"uid": uid, "status": status}
+    logger.info(f"stripe: {uid} -> {status}" + (" (résiliation programmée)" if cancel_at else ""))
+    return {"uid": uid, "status": status, "newly_canceling": newly_canceling, "cancel_at": cancel_at}
 
 
 # ----------------------------------------------------------------- Packs de rachat
@@ -327,6 +339,10 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
                 elif res.get("status") == "canceled":
                     canceled_uid = res["uid"]          # fin de cycle -> on libère les réseaux Late
                     notify = _notify_payload(res["uid"], "canceled")
+                elif res.get("newly_canceling"):       # résiliation PROGRAMMÉE (actif jusqu'à la fin)
+                    reason = ((obj.get("cancellation_details") or {}).get("feedback")) or "—"
+                    end = (res.get("cancel_at") or "")[:10]
+                    notify = _notify_payload(res["uid"], "canceling", f"Fin le {end} · raison : {reason}")
         elif etype == "invoice.payment_failed":
             notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed")
     except Exception as e:

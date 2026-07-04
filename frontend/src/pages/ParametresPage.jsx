@@ -1331,9 +1331,11 @@ export default function ParametresPage() {
           <div>
             <div className="text-xs text-slate-500 font-inter">Ton forfait actuel</div>
             <div className="text-lg font-semibold text-white font-sora">{isPro ? 'Pro' : 'Essai / Gratuit'}</div>
-            {isPro && user?.plan_renews_at && (
+            {isPro && user?.plan_cancel_at ? (
+              <div className="text-xs text-amber-400 mt-0.5 font-inter">Résilié — actif jusqu'au {new Date(user.plan_cancel_at).toLocaleDateString('fr-FR')}</div>
+            ) : isPro && user?.plan_renews_at ? (
               <div className="text-xs text-slate-400 mt-0.5 font-inter">Renouvellement le {new Date(user.plan_renews_at).toLocaleDateString('fr-FR')}</div>
-            )}
+            ) : null}
           </div>
           {isPro && (
             <Button size="sm" onClick={manageBilling} className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">
