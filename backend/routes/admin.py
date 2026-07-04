@@ -53,6 +53,17 @@ async def get_admin_stats(payload: dict = Depends(verify_admin_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/invoices")
+async def get_all_invoices(limit: int = 100, payload: dict = Depends(verify_admin_token)):
+    """Toutes les factures Stripe de tous les clients (nom, montant, statut, PDF)."""
+    try:
+        from services import billing_service
+        return {"invoices": billing_service.list_all_invoices(limit)}
+    except Exception as e:
+        logger.error(f"Get all invoices error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/export/users")
 async def export_users_csv(payload: dict = Depends(verify_admin_token)):
     try:

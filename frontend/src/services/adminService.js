@@ -55,6 +55,9 @@ export const adminService = {
 
   getActivity: (limit = 50) => adminFetch(`/admin/activity?limit=${limit}`),
 
+  // Facturation : toutes les factures Stripe des clients
+  getInvoices: (limit = 100) => adminFetch(`/admin/invoices?limit=${limit}`),
+
   exportCSV: async () => {
     const response = await fetch(`${API_URL}/api/admin/export/users`, {
       headers: { Authorization: `Bearer ${getAdminToken()}` },

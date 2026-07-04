@@ -13,6 +13,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import QuotaConfigTab from '../components/admin/QuotaConfigTab';
 import AuditsTab from '../components/admin/AuditsTab';
+import BillingTab from '../components/admin/BillingTab';
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ const navItems = [
   { id: 'avatars', label: 'Avatars', icon: Video },
   { id: 'audits', label: 'Audits', icon: Inbox },
   { id: 'quotas', label: 'Offres & quotas', icon: Coins },
+  { id: 'facturation', label: 'Facturation', icon: FileText },
   { id: 'activity', label: 'Activité', icon: Activity },
   { id: 'settings', label: 'Paramètres', icon: Settings },
 ];
@@ -918,6 +920,7 @@ export default function Admin() {
           {/* Offres & quotas Tab */}
           {activeTab === 'audits' && <AuditsTab />}
           {activeTab === 'quotas' && <QuotaConfigTab />}
+          {activeTab === 'facturation' && <BillingTab />}
 
           {/* Activity Tab */}
           {activeTab === 'activity' && (

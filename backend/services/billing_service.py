@@ -137,6 +137,38 @@ def list_invoices(telegram_id: str) -> list:
     return out
 
 
+def list_all_invoices(limit: int = 100) -> list:
+    """[ADMIN] Toutes les factures récentes du compte Stripe, enrichies du client (nom/email)."""
+    if not _ready():
+        return []
+    try:
+        invs = stripe.Invoice.list(limit=min(max(limit, 1), 100))
+    except Exception as e:
+        logger.error(f"list_all_invoices error: {e}")
+        return []
+    # Map customer_id -> utilisateur (pour afficher le nom du client plutôt que l'id Stripe)
+    rows = supabase.table("users").select("telegram_id, nom, email, stripe_customer_id").execute().data or []
+    by_cust = {r["stripe_customer_id"]: r for r in rows if r.get("stripe_customer_id")}
+    out = []
+    for i in (invs.data or []):
+        if i.get("status") == "draft" and not (i.get("amount_due") or i.get("total")):
+            continue
+        u = by_cust.get(i.get("customer")) or {}
+        out.append({
+            "number": i.get("number"),
+            "date": _ts(i.get("created")),
+            "amount": (i.get("amount_paid") or i.get("total") or 0) / 100,
+            "currency": (i.get("currency") or "eur").upper(),
+            "status": i.get("status"),               # paid | open | void | uncollectible
+            "pdf": i.get("invoice_pdf"),
+            "url": i.get("hosted_invoice_url"),
+            "client": u.get("nom") or i.get("customer_name") or i.get("customer_email") or "—",
+            "email": u.get("email") or i.get("customer_email"),
+            "telegram_id": u.get("telegram_id"),
+        })
+    return out
+
+
 def _pro_plan_id():
     r = supabase.table("plans").select("id").eq("name", "Pro").limit(1).execute()
     return r.data[0]["id"] if r.data else None
