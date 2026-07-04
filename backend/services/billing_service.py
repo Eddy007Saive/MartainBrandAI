@@ -17,6 +17,30 @@ STATUS_MAP = {
     "incomplete_expired": "canceled",
 }
 
+# Motifs de résiliation Stripe -> libellé FR (pour l'email admin)
+CANCEL_FEEDBACK = {
+    "too_expensive": "Trop cher",
+    "missing_features": "Fonctionnalités manquantes",
+    "switched_service": "Passé à un concurrent",
+    "unused": "Pas / peu utilisé",
+    "customer_service": "Service client",
+    "too_complex": "Trop compliqué",
+    "low_quality": "Qualité insuffisante",
+    "other": "Autre",
+}
+
+
+def _cancel_reason(sub: dict) -> str:
+    """Raison de résiliation lisible. Le payload webhook peut ne pas avoir le feedback
+    au moment T -> on re-fetch l'abonnement si besoin."""
+    cd = sub.get("cancellation_details") or {}
+    if not (cd.get("feedback") or cd.get("comment")):
+        try:
+            cd = (stripe.Subscription.retrieve(sub["id"]).get("cancellation_details")) or cd
+        except Exception:
+            pass
+    return CANCEL_FEEDBACK.get(cd.get("feedback")) or cd.get("comment") or "non précisée"
+
 
 def _ready() -> bool:
     if not STRIPE_SECRET_KEY:
@@ -340,9 +364,8 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
                     canceled_uid = res["uid"]          # fin de cycle -> on libère les réseaux Late
                     notify = _notify_payload(res["uid"], "canceled")
                 elif res.get("newly_canceling"):       # résiliation PROGRAMMÉE (actif jusqu'à la fin)
-                    reason = ((obj.get("cancellation_details") or {}).get("feedback")) or "—"
                     end = (res.get("cancel_at") or "")[:10]
-                    notify = _notify_payload(res["uid"], "canceling", f"Fin le {end} · raison : {reason}")
+                    notify = _notify_payload(res["uid"], "canceling", f"Fin le {end} · raison : {_cancel_reason(obj)}")
         elif etype == "invoice.payment_failed":
             notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed")
     except Exception as e:
