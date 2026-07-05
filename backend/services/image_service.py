@@ -167,15 +167,18 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                    {"type": "image_url", "image_url": {"url": photo_refs[0]}}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
     elif inspi_refs and template_mode:
-        # Template de marque : on reproduit le visuel, on change le texte, et on applique les
-        # éventuelles « Consignes de l'utilisateur » (ex. intégrer une image à un endroit précis).
+        # Template de marque : on ÉDITE la 1re image (le gabarit). Les images suivantes = à intégrer.
+        multi = len(inspi_refs) > 1
         texte = (
-            "Tu reçois un GABARIT de marque (première image de référence). Reproduis fidèlement sa mise en "
-            "page, ses couleurs, ses éléments graphiques, ses polices et ses positions. Remplace le texte par "
-            "le contenu indiqué ci-dessous, au même endroit, même style/typo, parfaitement lisible et sans "
-            "faute. Si des « Consignes de l'utilisateur » sont présentes ci-dessous, applique-les précisément "
-            "(par ex. intégrer une image de référence à un endroit donné) tout en respectant l'esprit du "
-            "gabarit.\n\n" + prompt
+            "ÉDITE la PREMIÈRE image de référence (le GABARIT de marque) — ne génère PAS une nouvelle image, "
+            "ne réinvente rien. Conserve À L'IDENTIQUE sa composition : arrière-plan, photo/sujet, couleurs, "
+            "éléments graphiques, disposition, polices et positions. Remplace UNIQUEMENT le texte existant "
+            "par le nouveau contenu ci-dessous, au même emplacement, même style typographique et même taille, "
+            "parfaitement lisible et sans faute d'orthographe. "
+            + ("Les images de référence SUIVANTES sont des éléments à INTÉGRER dans le gabarit en suivant les "
+               "« Consignes de l'utilisateur » ci-dessous (par ex. placer une photo à un endroit précis). "
+               if multi else "")
+            + "En dehors de ça, n'ajoute, ne déplace ni ne supprime aucun élément.\n\n" + prompt
         )
         content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]

@@ -724,12 +724,12 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         if err.startswith("image_failed_"):
             code = err.replace("image_failed_", "")
             if code == "402":
-                raise HTTPException(status_code=502, detail="Quota de génération d'image atteint. Réessaie plus tard (crédits remboursés).")
+                raise HTTPException(status_code=502, detail="Service de génération d'image momentanément indisponible (crédit du fournisseur d'IA épuisé). Contacte le support — ton quota n'a pas été décompté.")
             if code == "429":
                 raise HTTPException(status_code=502, detail="Trop de demandes d'image en même temps. Réessaie dans un instant.")
             if code == "400":
                 raise HTTPException(status_code=502, detail="Le générateur a refusé la requête (image de référence invalide ou description non conforme). Vérifie ta photo/inspirations dans Paramètres.")
-            raise HTTPException(status_code=502, detail=f"Le générateur d'image a renvoyé une erreur ({code}). Réessaie (crédits remboursés).")
+            raise HTTPException(status_code=502, detail=f"Le générateur d'image a renvoyé une erreur ({code}). Réessaie — ton quota n'a pas été décompté.")
         raise HTTPException(status_code=502, detail="Échec de la génération d'image. Réessaie.")
     quota_service.confirm(q)
 

@@ -406,8 +406,8 @@ export default function ContenusPage() {
     }
   };
 
-  const toggleRef = (url) => {
-    setActiveTemplate(null); // sélection manuelle → on n'est plus sur un template
+  const toggleRef = (url, keepTemplate = false) => {
+    if (!keepTemplate) setActiveTemplate(null); // sélection manuelle en mode IA → on n'est plus sur un template
     setSelectedRefs((prev) => (prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]));
   };
 
@@ -1349,6 +1349,37 @@ export default function ContenusPage() {
                               placeholder="Ex : mets la photo de référence dans le cercle, garde le fond bleu…"
                               className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
                             <p className="text-[11px] text-slate-600 font-inter">Laisse vide pour un rendu standard (l'IA reprend le texte du post).</p>
+                          </div>
+                        )}
+                        {activeTemplate && (
+                          <div className="space-y-2 pt-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">
+                                Images de référence <span className="text-slate-600 normal-case tracking-normal">· {selectedRefs.filter((u) => inspirations.includes(u)).length} choisie{selectedRefs.filter((u) => inspirations.includes(u)).length > 1 ? 's' : ''}</span>
+                              </label>
+                              <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
+                              <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
+                                className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
+                                {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Ajouter
+                              </button>
+                            </div>
+                            {inspirations.length === 0 ? (
+                              <p className="text-xs text-slate-600 font-inter">Aucune image. Ajoute-en une à intégrer via tes instructions.</p>
+                            ) : (
+                              <div className="flex flex-wrap gap-2">
+                                {inspirations.map((url) => {
+                                  const on = selectedRefs.includes(url);
+                                  return (
+                                    <button key={url} onClick={() => toggleRef(url, true)} title={on ? 'Utilisée' : 'Non utilisée'}
+                                      className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
+                                      <img src={url} alt="" className="w-full h-full object-cover" />
+                                      {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            <p className="text-[11px] text-slate-600 font-inter">Sélectionne une image, puis dis à l'IA quoi en faire dans « Instructions » (ex. « mets-la dans le cercle »).</p>
                           </div>
                         )}
                       </div>
