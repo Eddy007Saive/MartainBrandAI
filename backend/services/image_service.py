@@ -167,19 +167,32 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                    {"type": "image_url", "image_url": {"url": photo_refs[0]}}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
     elif inspi_refs and template_mode:
-        # Template de marque : on ÉDITE la 1re image (le gabarit). Les images suivantes = à intégrer.
-        multi = len(inspi_refs) > 1
-        texte = (
-            "ÉDITE la PREMIÈRE image de référence (le GABARIT de marque) — ne génère PAS une nouvelle image, "
-            "ne réinvente rien. Conserve À L'IDENTIQUE sa composition : arrière-plan, photo/sujet, couleurs, "
-            "éléments graphiques, disposition, polices et positions. Remplace UNIQUEMENT le texte existant "
-            "par le nouveau contenu ci-dessous, au même emplacement, même style typographique et même taille, "
-            "parfaitement lisible et sans faute d'orthographe. "
-            + ("Les images de référence SUIVANTES sont des éléments à INTÉGRER dans le gabarit en suivant les "
-               "« Consignes de l'utilisateur » ci-dessous (par ex. placer une photo à un endroit précis). "
-               if multi else "")
-            + "En dehors de ça, n'ajoute, ne déplace ni ne supprime aucun élément.\n\n" + prompt
-        )
+        # Rôles explicites : 1re image = le GABARIT à reproduire ; images suivantes = RÉFÉRENCES de l'utilisateur.
+        if len(inspi_refs) > 1:
+            # Prompt validé par tests réels (gemini-3-pro-image) : recrée le design du gabarit et remplace
+            # UNIQUEMENT la zone photo par la référence, sans la laisser envahir le fond.
+            texte = (
+                "Tu reçois PLUSIEURS images. IMAGE 1 = ton GABARIT DE MARQUE. IMAGE(S) suivante(s) = IMAGE(S) DE "
+                "RÉFÉRENCE de l'utilisateur. Recrée EXACTEMENT le design de l'IMAGE 1 : même fond, même mise en "
+                "page, même logo, mêmes typographies, mêmes couleurs, mêmes emplacements et tailles de texte. "
+                "Le gabarit contient une ZONE PHOTO (l'endroit où se trouve une photo/personne) : remplace "
+                "UNIQUEMENT le contenu de CETTE zone par l'image de référence, en gardant EXACTEMENT la même "
+                "position, la même taille et la même forme de découpe que dans le gabarit. IMPÉRATIF : l'image "
+                "de référence ne doit PAS devenir le fond de toute l'image ni déborder de la zone photo ; le "
+                "fond, le texte et la disposition du gabarit restent intacts et priment. Ne reproduis NI la mise "
+                "en page NI le texte de l'image de référence. Remplace le texte du gabarit par le contenu "
+                "ci-dessous en gardant les accents français corrects (é, è, ê…). Texte parfaitement lisible, "
+                "sans faute.\n\n" + prompt
+            )
+        else:
+            texte = (
+                "ÉDITE cette image, c'est ton GABARIT DE MARQUE, et RESPECTE SON DESIGN À LA LETTRE : "
+                "arrière-plan, photo/sujet, couleurs, composition, éléments graphiques, polices et positions "
+                "restent STRICTEMENT IDENTIQUES. Ne génère PAS une nouvelle image. La SEULE modification est de "
+                "REMPLACER le texte existant par le nouveau contenu ci-dessous (même emplacement, même style, "
+                "parfaitement lisible, sans faute). Applique d'éventuelles « Consignes de l'utilisateur » "
+                "seulement si elles ne cassent pas le gabarit.\n\n" + prompt
+            )
         content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
     elif inspi_refs:

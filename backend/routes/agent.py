@@ -668,12 +668,12 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     prompt = (body.get("prompt") or "").strip()
+    user_instr = prompt  # instruction BRUTE de l'utilisateur (avant combinaison template -> pour la sauvegarde)
     template_mode = bool(body.get("template_mode"))  # template de marque = modèle fixe, l'IA ne change que le texte
     contenu_id = body.get("contenu_id")
     # Mode template : l'IA écrit le texte depuis le post (accroche) + on ajoute les instructions
     # optionnelles saisies par l'utilisateur (ex. « mets la photo de référence dans le cercle »).
     if template_mode and contenu_id:
-        user_instr = prompt.strip()  # ce que l'utilisateur a tapé (optionnel)
         accroche = ""
         try:
             row = supabase.table("contenu").select("contenu, titre").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
@@ -698,11 +698,9 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     if template_mode:
         modele = "nano3"
     model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
+    # Template = HD imposée -> décompté sur le quota HD (image_pro). Les offres sans quota HD
+    # (gratuit/essai avec image_pro=0) verront donc les templates réservés à l'offre Pro.
     action_type = quota_service.image_action(modele)  # nano2 -> image_standard, nano3 -> image_pro
-    if template_mode:
-        # La HD est imposée pour la qualité du texte, mais le template reste décompté sur le quota
-        # STANDARD : sinon les offres sans quota HD (image_pro=0) ne pourraient jamais générer de template.
-        action_type = "image_standard"
     q = quota_service.consume(telegram_id, action_type)
     if not q.get("ok"):
         raise HTTPException(status_code=402, detail=q.get("message"))
@@ -735,7 +733,9 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
 
     contenu_id = body.get("contenu_id")
     if contenu_id:
-        upd = {"lien_visuel": res["lien_visuel"], "prompt_image": prompt}  # garde le prompt finalement utilisé
+        # En template on sauvegarde l'instruction BRUTE (pas le prompt combiné accroche+consignes),
+        # sinon elle se réinjecte dans le champ et s'empile à chaque régénération.
+        upd = {"lien_visuel": res["lien_visuel"], "prompt_image": (user_instr if template_mode else prompt)}
         # Le visuel est prêt -> on confirme la planification (statut Planifie + date si absente)
         cur = (supabase.table("contenu").select("statut, reseau_cible, date_publication")
                .eq("id", contenu_id).eq("telegram_id", telegram_id).execute())

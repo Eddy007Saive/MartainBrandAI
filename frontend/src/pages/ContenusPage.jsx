@@ -512,8 +512,8 @@ export default function ContenusPage() {
     (imgMode === 'gabarit' ? !selectedGabarit : imgMode === 'template' ? !activeTemplate : !imgPrompt.trim());
   const quotaInfo = () => {
     if (imgMode === 'gabarit' || !imgUsage?.gauges) return null;
-    // Template = HD mais décompté sur le quota standard ; sinon nano3 -> HD (image_pro).
-    const at = (imgMode !== 'template' && imgModele === 'nano3') ? 'image_pro' : 'image_standard';
+    // Template force nano3 -> décompté sur le quota HD (image_pro), comme l'Image IA en HD.
+    const at = imgModele === 'nano3' ? 'image_pro' : 'image_standard';
     const g = imgUsage.gauges.find((x) => x.action_type === at);
     return g ? { label: g.label, remaining: Math.max(0, g.limit - g.used) } : null;
   };
@@ -1370,11 +1370,15 @@ export default function ContenusPage() {
                                 {inspirations.map((url) => {
                                   const on = selectedRefs.includes(url);
                                   return (
-                                    <button key={url} onClick={() => toggleRef(url, true)} title={on ? 'Utilisée' : 'Non utilisée'}
-                                      className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
+                                    <div key={url} onClick={() => toggleRef(url, true)} title={on ? 'Utilisée' : 'Non utilisée'}
+                                      className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
                                       <img src={url} alt="" className="w-full h-full object-cover" />
                                       {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
-                                    </button>
+                                      <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title="Agrandir"
+                                        className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Search className="w-2.5 h-2.5" />
+                                      </button>
+                                    </div>
                                   );
                                 })}
                               </div>
@@ -1425,11 +1429,15 @@ export default function ContenusPage() {
                               {inspirations.map((url) => {
                                 const on = selectedRefs.includes(url);
                                 return (
-                                  <button key={url} onClick={() => toggleRef(url)} title={on ? 'Utilisée' : 'Non utilisée'}
-                                    className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
+                                  <div key={url} onClick={() => toggleRef(url)} title={on ? 'Utilisée' : 'Non utilisée'}
+                                    className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
                                     <img src={url} alt="" className="w-full h-full object-cover" />
                                     {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
-                                  </button>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title="Agrandir"
+                                      className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Search className="w-2.5 h-2.5" />
+                                    </button>
+                                  </div>
                                 );
                               })}
                             </div>
