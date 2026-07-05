@@ -685,6 +685,10 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt requis")
     modele = body.get("modele", "nano2")
+    # Mode template -> HD obligatoire : le modèle standard (nano banana 2.5) fait des fautes
+    # d'orthographe sur le texte posé dans le gabarit. On force le modèle pro.
+    if template_mode:
+        modele = "nano3"
     model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
     action_type = quota_service.image_action(modele)  # nano2 -> image_standard, nano3 -> image_pro
     q = quota_service.consume(telegram_id, action_type)

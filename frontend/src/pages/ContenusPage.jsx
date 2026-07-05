@@ -323,7 +323,8 @@ export default function ContenusPage() {
 
   const setMode = (m) => {
     setImgMode(m);
-    if (m !== 'template') { setActiveTemplate(null); setStyleNote(''); }
+    if (m === 'template') setImgModele('nano3'); // template -> HD obligatoire (le standard fait des fautes d'orthographe)
+    else { setActiveTemplate(null); setStyleNote(''); }
   };
   const refreshUsage = () => agentService.usage().then(setImgUsage).catch(() => {});
 
@@ -511,7 +512,7 @@ export default function ContenusPage() {
     (imgMode === 'gabarit' ? !selectedGabarit : imgMode === 'template' ? !activeTemplate : !imgPrompt.trim());
   const quotaInfo = () => {
     if (imgMode === 'gabarit' || !imgUsage?.gauges) return null;
-    const at = imgModele === 'nano3' ? 'image_pro' : 'image_standard';
+    const at = (imgMode === 'template' || imgModele === 'nano3') ? 'image_pro' : 'image_standard';
     const g = imgUsage.gauges.find((x) => x.action_type === at);
     return g ? { label: g.label, remaining: Math.max(0, g.limit - g.used) } : null;
   };
@@ -1383,8 +1384,8 @@ export default function ContenusPage() {
                       </>
                     )}
 
-                    {/* Qualité (modèle) — template + image IA */}
-                    {imgMode !== 'gabarit' && (
+                    {/* Qualité (modèle) — Image IA : choix libre */}
+                    {imgMode === 'ia' && (
                       <div className="space-y-2">
                         <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Qualité</p>
                         <div className="grid grid-cols-2 gap-2">
@@ -1395,6 +1396,13 @@ export default function ContenusPage() {
                             </button>
                           ))}
                         </div>
+                      </div>
+                    )}
+                    {/* Template -> HD imposé (le standard fait des fautes d'orthographe sur le texte du gabarit) */}
+                    {imgMode === 'template' && (
+                      <div className="flex items-start gap-2 text-[12px] text-slate-400 bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3] shrink-0 mt-1.5" />
+                        <span>Génération en <b className="text-slate-200">Image HD</b> — imposée pour les templates (évite les fautes d'orthographe sur le texte).</span>
                       </div>
                     )}
                   </div>
