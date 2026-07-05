@@ -512,7 +512,8 @@ export default function ContenusPage() {
     (imgMode === 'gabarit' ? !selectedGabarit : imgMode === 'template' ? !activeTemplate : !imgPrompt.trim());
   const quotaInfo = () => {
     if (imgMode === 'gabarit' || !imgUsage?.gauges) return null;
-    const at = (imgMode === 'template' || imgModele === 'nano3') ? 'image_pro' : 'image_standard';
+    // Template = HD mais décompté sur le quota standard ; sinon nano3 -> HD (image_pro).
+    const at = (imgMode !== 'template' && imgModele === 'nano3') ? 'image_pro' : 'image_standard';
     const g = imgUsage.gauges.find((x) => x.action_type === at);
     return g ? { label: g.label, remaining: Math.max(0, g.limit - g.used) } : null;
   };

@@ -699,6 +699,10 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         modele = "nano3"
     model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
     action_type = quota_service.image_action(modele)  # nano2 -> image_standard, nano3 -> image_pro
+    if template_mode:
+        # La HD est imposée pour la qualité du texte, mais le template reste décompté sur le quota
+        # STANDARD : sinon les offres sans quota HD (image_pro=0) ne pourraient jamais générer de template.
+        action_type = "image_standard"
     q = quota_service.consume(telegram_id, action_type)
     if not q.get("ok"):
         raise HTTPException(status_code=402, detail=q.get("message"))
