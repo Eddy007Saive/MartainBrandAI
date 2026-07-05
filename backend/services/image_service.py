@@ -178,9 +178,16 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
         content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
     elif inspi_refs:
-        # Pas de photo -> style libre, guidé par les inspirations (illustrations OK)
-        texte = prompt + ("\n\nInspire-toi du STYLE VISUEL (composition, palette de couleurs, "
-                          "ambiance, éclairage, traitement) des images de référence, sans en copier le contenu.")
+        # Pas de photo : l'usage des images de référence est PILOTÉ PAR LA DESCRIPTION.
+        # - Si la description demande de les intégrer/réutiliser -> on compose avec leur contenu.
+        # - Sinon -> simple inspiration de style (comportement par défaut).
+        texte = prompt + (
+            "\n\nTu reçois une ou plusieurs images de référence. Si la description ci-dessus demande "
+            "explicitement de les utiliser ou de les intégrer (par ex. « ajoute l'image de référence », "
+            "« mets la photo dans le cercle », « combine les deux images »), alors INTÈGRE fidèlement leur "
+            "contenu dans la composition finale en suivant précisément la description. "
+            "Sinon, contente-toi de t'INSPIRER de leur STYLE VISUEL (composition, palette de couleurs, ambiance, "
+            "éclairage, traitement) sans copier leur contenu.")
         content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
     else:
