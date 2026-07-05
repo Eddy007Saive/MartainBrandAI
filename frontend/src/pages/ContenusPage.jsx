@@ -974,6 +974,16 @@ export default function ContenusPage() {
                     </div>
                   )}
 
+                  {/* Générer / changer le visuel — posts image (pas carrousel, pas vidéo) */}
+                  {!(Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length)
+                    && !selectedContenu.carrousel_pdf && !selectedContenu.video_url
+                    && selectedContenu.type !== 'Reel' && selectedContenu.type !== 'Video' && (
+                    <Button size="sm" onClick={() => { const c = selectedContenu; setSelectedContenu(null); openImage(c); }}
+                      className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] hover:-translate-y-px transition-all">
+                      <Wand2 className="w-4 h-4 mr-1.5" />{selectedContenu.lien_visuel ? 'Changer / régénérer le visuel' : 'Générer une image'}
+                    </Button>
+                  )}
+
                   {/* Retouche couleurs/police du carrousel (re-render, texte inchangé) */}
                   {czR && (
                     <div className="rounded-xl border border-white/10 bg-slate-950/40 p-3 space-y-2.5">
@@ -1083,6 +1093,9 @@ export default function ContenusPage() {
                     {czR ? 'Images finales rendues à la validation' : ''}
                   </span>
                   <div className="flex items-center gap-2 flex-wrap justify-end">
+                    <Button size="sm" onClick={() => { const c = selectedContenu; setSelectedContenu(null); setDeleteContenu(c); }}
+                      className="bg-transparent text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent font-inter mr-auto">
+                      <Trash2 className="w-4 h-4 mr-1.5" />Supprimer</Button>
                     {selectedContenu.video_url && selectedContenu.statut !== 'Publie' && (
                       <Button size="sm" onClick={() => navigate(`/dashboard/video?contenu_id=${selectedContenu.id}`)}
                         className="bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 font-sora font-semibold rounded-[11px]">
