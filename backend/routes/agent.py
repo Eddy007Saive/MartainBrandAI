@@ -670,18 +670,26 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     prompt = (body.get("prompt") or "").strip()
     template_mode = bool(body.get("template_mode"))  # template de marque = modèle fixe, l'IA ne change que le texte
     contenu_id = body.get("contenu_id")
-    # En mode template, c'est l'IA qui ÉCRIT le texte depuis le post (pas l'utilisateur).
+    # Mode template : l'IA écrit le texte depuis le post (accroche) + on ajoute les instructions
+    # optionnelles saisies par l'utilisateur (ex. « mets la photo de référence dans le cercle »).
     if template_mode and contenu_id:
+        user_instr = prompt.strip()  # ce que l'utilisateur a tapé (optionnel)
+        accroche = ""
         try:
             row = supabase.table("contenu").select("contenu, titre").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
             texte_post = (row.data[0].get("contenu") or row.data[0].get("titre") or "") if row.data else ""
             comp = agent_service.composer_gabarit(telegram_id, "statement", texte_post)
             if not comp.get("error"):
                 accroche = " ".join((l.get("t") or "") for l in (comp["slots"].get("title_lines") or [])).strip()
-                if accroche:
-                    prompt = accroche  # l'accroche écrite par l'IA = le texte posé sur le template
         except Exception as e:
             logger.warning(f"template accroche {contenu_id}: {e}")
+        parts = []
+        if accroche:
+            parts.append(f"Texte à afficher : {accroche}")
+        if user_instr:
+            parts.append(f"Consignes de l'utilisateur : {user_instr}")
+        if parts:
+            prompt = "\n".join(parts)
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt requis")
     modele = body.get("modele", "nano2")

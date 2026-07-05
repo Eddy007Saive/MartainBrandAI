@@ -1341,6 +1341,15 @@ export default function ContenusPage() {
                             })}
                           </div>
                         )}
+                        {activeTemplate && (
+                          <div className="space-y-1.5 pt-1">
+                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Instructions (optionnel)</label>
+                            <Textarea value={imgPrompt} onChange={(e) => setImgPrompt(e.target.value)} rows={2}
+                              placeholder="Ex : mets la photo de référence dans le cercle, garde le fond bleu…"
+                              className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
+                            <p className="text-[11px] text-slate-600 font-inter">Laisse vide pour un rendu standard (l'IA reprend le texte du post).</p>
+                          </div>
+                        )}
                       </div>
                     )}
 
