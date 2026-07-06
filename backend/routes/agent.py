@@ -692,14 +692,10 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
             prompt = "\n".join(parts)
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt requis")
+    # En template, le front propose HD par défaut (meilleur texte) mais l'utilisateur peut choisir
+    # standard (moins cher, parfois des fautes d'orthographe). On respecte donc son choix.
     modele = body.get("modele", "nano2")
-    # Mode template -> HD obligatoire : le modèle standard (nano banana 2.5) fait des fautes
-    # d'orthographe sur le texte posé dans le gabarit. On force le modèle pro.
-    if template_mode:
-        modele = "nano3"
     model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
-    # Template = HD imposée -> décompté sur le quota HD (image_pro). Les offres sans quota HD
-    # (gratuit/essai avec image_pro=0) verront donc les templates réservés à l'offre Pro.
     action_type = quota_service.image_action(modele)  # nano2 -> image_standard, nano3 -> image_pro
     q = quota_service.consume(telegram_id, action_type)
     if not q.get("ok"):

@@ -418,7 +418,7 @@ export default function ContenusPage() {
     }
     setActiveTemplate(t.id);
     setStyleNote(t.note || '');
-    setSelectedRefs(Array.isArray(t.images) ? t.images : []);
+    setSelectedRefs([]); // refs user vides ; l'image du template est ajoutée à la génération (voir genererImage)
   };
 
   const importerRef = async (e) => {
@@ -489,7 +489,10 @@ export default function ContenusPage() {
     if (!imgPrompt.trim() && !activeTemplate) return; // template = l'IA écrit le texte côté serveur
     setImgGenerating(true);
     try {
-      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, selectedRefs, styleNote || null, !!activeTemplate);
+      // En template : l'image du GABARIT part TOUJOURS en 1re position, suivie des refs choisies.
+      const tplImgs = activeTemplate ? ((templates.find((t) => t.id === activeTemplate)?.images) || []) : [];
+      const refsToSend = activeTemplate ? [...tplImgs, ...selectedRefs.filter((u) => !tplImgs.includes(u))] : selectedRefs;
+      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate);
       if (data.credits != null) updateUser({ credits: data.credits });
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
@@ -1447,7 +1450,8 @@ export default function ContenusPage() {
                     )}
 
                     {/* Qualité (modèle) — Image IA : choix libre */}
-                    {imgMode === 'ia' && (
+                    {/* Qualité (modèle) — Image IA ET Template : choix HD / standard */}
+                    {imgMode !== 'gabarit' && (
                       <div className="space-y-2">
                         <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Qualité</p>
                         <div className="grid grid-cols-2 gap-2">
@@ -1460,11 +1464,11 @@ export default function ContenusPage() {
                         </div>
                       </div>
                     )}
-                    {/* Template -> HD imposé (le standard fait des fautes d'orthographe sur le texte du gabarit) */}
-                    {imgMode === 'template' && (
-                      <div className="flex items-start gap-2 text-[12px] text-slate-400 bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3] shrink-0 mt-1.5" />
-                        <span>Génération en <b className="text-slate-200">Image HD</b> — imposée pour les templates (évite les fautes d'orthographe sur le texte).</span>
+                    {/* Avertissement : le standard peut faire des fautes d'orthographe sur le texte du gabarit */}
+                    {imgMode === 'template' && imgModele === 'nano2' && (
+                      <div className="flex items-start gap-2 text-[12px] text-amber-300/90 bg-amber-500/[0.06] border border-amber-500/20 rounded-lg px-3 py-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
+                        <span>Mode <b>standard</b> : moins cher, mais peut parfois produire des <b>fautes d'orthographe</b> sur le texte. Passe en <b>Image HD</b> pour un texte fiable.</span>
                       </div>
                     )}
                   </div>

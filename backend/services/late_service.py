@@ -168,9 +168,63 @@ async def cancel_post(late_post_id: str) -> dict:
         return {"ok": False, "error": str(e)}
 
 
+def _notify_account(telegram_id, platform, event, titre, message):
+    """Notification + push pour un événement de compte (déconnexion réseau)."""
+    try:
+        supabase.table("notifications").insert({
+            "telegram_id": telegram_id, "type": "reseau", "event": event,
+            "titre": titre, "message": message, "reseau": platform,
+        }).execute()
+    except Exception as e:
+        logger.warning(f"notif account insert error: {e}")
+    try:
+        from services import push_service
+        push_service.send_to_user(telegram_id, titre, message, {"event": event, "reseau": platform})
+    except Exception as e:
+        logger.warning(f"push account error: {e}")
+
+
+def _handle_account_event(event: str, payload: dict) -> dict:
+    """account.disconnected : vide la colonne late_account_<réseau> + prévient l'utilisateur de reconnecter.
+    (account.connected et autres : gérés par le flux de connexion de l'app, ignorés ici.)"""
+    logger.info(f"Late account event: {event} | payload keys={list(payload.keys())}")
+    if "disconnect" not in event:
+        return {"ok": True, "ignored": event}
+    acc = payload.get("account") or payload.get("data") or {}
+    if not isinstance(acc, dict):
+        acc = {}
+    # L'id du compte peut arriver sous plusieurs formes selon Late (on stocke le field_id).
+    ids = [str(i) for i in (acc.get("field_id"), acc.get("_id"), acc.get("id"),
+                            payload.get("accountId"), payload.get("account_id")) if i]
+    platform = (acc.get("platform") or payload.get("platform") or "")
+    platform = str(platform).lower().split(".")[-1]  # "Platform12.INSTAGRAM" -> "instagram"
+    cols = [platform] if platform in PLATFORMS else list(PLATFORMS)
+    for p in cols:
+        col = f"late_account_{p}"
+        for aid in ids:
+            r = supabase.table("users").select("telegram_id").eq(col, aid).limit(1).execute()
+            if r.data:
+                tg = r.data[0]["telegram_id"]
+                supabase.table("users").update({col: None}).eq("telegram_id", tg).execute()
+                _notify_account(
+                    tg, p, event, "Réseau déconnecté ⚠️",
+                    f"Ton compte {p.capitalize()} a été déconnecté. Reconnecte-le dans "
+                    f"Paramètres → Réseaux pour continuer à publier.",
+                )
+                logger.info(f"account.disconnected: {tg} / {p} -> colonne vidée")
+                return {"ok": True, "telegram_id": tg, "platform": p, "action": "disconnected"}
+    logger.info(f"account.disconnected: compte introuvable (ids={ids} platform={platform})")
+    return {"ok": True, "ignored": event, "reason": "account_not_found"}
+
+
 def handle_webhook(payload: dict) -> dict:
     """Traite TOUS les événements Late : met à jour le statut du contenu + crée une notification."""
     event = (payload.get("event") or payload.get("type") or "").lower()
+
+    # Événements de COMPTE (un réseau se connecte/déconnecte côté Late)
+    if event.startswith("account."):
+        return _handle_account_event(event, payload)
+
     post = payload.get("post") or payload.get("data") or payload
     platforms = post.get("platforms") if isinstance(post.get("platforms"), list) else []
     plat0 = platforms[0] if platforms else {}
