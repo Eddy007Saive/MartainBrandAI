@@ -39,6 +39,9 @@ GAB_LABELS = {
 }
 GABARITS = list(GAB_LABELS.keys())
 
+# Gabarits qui possèdent une ZONE PHOTO (rendent slots["bg_image"]). Les autres ignorent la photo.
+PHOTO_GABARITS = ["statement", "split", "citation", "mission", "testimonial", "people"]
+
 # Vignettes d'aperçu STATIQUES (rendues une fois, neutres) -> chargement instantané du sélecteur.
 # Pour les régénérer après ajout/modif d'un gabarit : relancer scripts/render_static_previews.
 _STATIC_BASE = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/gabarits/_static"
@@ -435,4 +438,4 @@ async def render_gabarit(telegram_id: str, gabarit: str, slots: dict) -> dict:
 async def previews(telegram_id: str) -> dict:
     """Vignettes d'aperçu STATIQUES (instantanées). Elles montrent la mise en page ;
     le visuel final utilise les vraies couleurs de la marque."""
-    return {"previews": _thumbs(STATIC_PREVIEWS), "labels": GAB_LABELS}
+    return {"previews": _thumbs(STATIC_PREVIEWS), "labels": GAB_LABELS, "photo": PHOTO_GABARITS}

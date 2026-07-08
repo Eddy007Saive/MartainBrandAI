@@ -339,17 +339,30 @@ async def gabarit_auto(body: dict, payload: dict = Depends(verify_token)):
     if not gabarit:
         raise HTTPException(status_code=400, detail="gabarit requis")
 
-    comp = agent_service.composer_gabarit(telegram_id, gabarit, texte)
-    if comp.get("error"):
-        _map_agent_error(comp)
-        raise HTTPException(status_code=502, detail="Impossible de composer le visuel.")
-    slots = comp["slots"]
-    if body.get("bg_image"):
-        slots["bg_image"] = body["bg_image"]
-
-    res = await gabarit_service.render_gabarit(telegram_id, gabarit, slots)
-    if not res.get("ok"):
-        raise HTTPException(status_code=502, detail=res.get("error") or "Échec du rendu")
+    # Le gabarit produit un visuel via l'IA (composition du texte) -> décompté comme 1 image standard.
+    q = quota_service.consume(telegram_id, "image_standard")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail=q.get("message"))
+    try:
+        comp = agent_service.composer_gabarit(telegram_id, gabarit, texte)
+        if comp.get("error"):
+            quota_service.refund(q)
+            _map_agent_error(comp)
+            raise HTTPException(status_code=502, detail="Impossible de composer le visuel.")
+        slots = comp["slots"]
+        if body.get("bg_image"):
+            slots["bg_image"] = body["bg_image"]
+        res = await gabarit_service.render_gabarit(telegram_id, gabarit, slots)
+        if not res.get("ok"):
+            quota_service.refund(q)
+            raise HTTPException(status_code=502, detail=res.get("error") or "Échec du rendu")
+    except HTTPException:
+        raise
+    except Exception as e:
+        quota_service.refund(q)
+        logger.error(f"gabarit auto error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    quota_service.confirm(q)
 
     contenu_id = body.get("contenu_id")
     if contenu_id:
@@ -357,7 +370,8 @@ async def gabarit_auto(body: dict, payload: dict = Depends(verify_token)):
             supabase.table("contenu").update({"lien_visuel": res["url"]}).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
         except Exception as e:
             logger.warning(f"gabarit auto attach {contenu_id}: {e}")
-    return {"url": res["url"], "slots": slots, "gabarit": gabarit}
+    return {"url": res["url"], "slots": slots, "gabarit": gabarit,
+            "quota": {"action": "image_standard", "used": q.get("used"), "limit": q.get("limit")}}
 
 
 # --- Templates de marque (style réutilisable : images de référence + note) ---

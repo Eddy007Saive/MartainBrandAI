@@ -299,27 +299,15 @@ export default function ContenusPage() {
   const [gabarits, setGabarits] = useState([]);
   const [gabPreviews, setGabPreviews] = useState({});
   const [gabLabels, setGabLabels] = useState({});
+  const [gabPhoto, setGabPhoto] = useState([]); // gabarits qui ont une zone photo
   const [gabaritBusy, setGabaritBusy] = useState(null);
   // Refonte dialog : mode (gabarit | template | ia), gabarit sélectionné, usage pour la pastille de quota
   const [imgMode, setImgMode] = useState('gabarit');
   const [selectedGabarit, setSelectedGabarit] = useState(null);
   const [imgUsage, setImgUsage] = useState(null);
   const [templateBg, setTemplateBg] = useState(null); // photo optionnelle (zone photo du gabarit)
-  const [photoDesc, setPhotoDesc] = useState('');     // description -> photo générée par l'IA
-  const [photoGenBusy, setPhotoGenBusy] = useState(false);
+  const [photoDesc, setPhotoDesc] = useState('');     // description -> photo générée par l'IA au moment de créer le visuel
 
-  const genererPhoto = async () => {
-    if (!photoDesc.trim() || photoGenBusy) return;
-    setPhotoGenBusy(true);
-    try {
-      const d = await agentService.generatePhoto(photoDesc, 'nano2');
-      setTemplateBg(d.url);
-      toast.success('Photo générée ✨');
-      refreshUsage();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec de la génération de la photo');
-    } finally { setPhotoGenBusy(false); }
-  };
 
   const setMode = (m) => {
     setImgMode(m);
@@ -335,6 +323,7 @@ export default function ContenusPage() {
         const labels = d.labels || {};
         setGabLabels(labels);
         setGabPreviews(d.previews || {});
+        setGabPhoto(d.photo || ['statement', 'split', 'citation', 'mission', 'testimonial', 'people']);
         setGabarits(Object.keys(labels).length ? Object.keys(labels) : Object.keys(d.previews || {}));
       })
       .catch(() => {});
@@ -394,10 +383,18 @@ export default function ContenusPage() {
     if (!imageContenu || gabaritBusy) return;
     setGabaritBusy(gab);
     try {
-      const bg = templateBg || (selectedRefs && selectedRefs.length ? selectedRefs[0] : null); // photo choisie -> zone photo du gabarit
+      let bg = templateBg || (selectedRefs && selectedRefs.length ? selectedRefs[0] : null); // photo choisie -> zone photo du gabarit
+      // Pas de photo choisie mais une description saisie -> l'IA génère la photo à la volée
+      if (!bg && photoDesc.trim()) {
+        const p = await agentService.generatePhoto(photoDesc.trim(), 'nano2');
+        bg = p.url;
+        setTemplateBg(p.url);
+        refreshUsage();
+      }
       const d = await agentService.gabaritAuto(gab, imageContenu.contenu || imageContenu.titre || '', imageContenu.id, bg);
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: d.url } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: d.url } : prev));
+      refreshUsage();
       toast.success('Visuel créé ✨');
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Échec de la création du visuel');
@@ -514,9 +511,9 @@ export default function ContenusPage() {
   const genDisabled = imgLoadingPrompt || genBusy ||
     (imgMode === 'gabarit' ? !selectedGabarit : imgMode === 'template' ? !activeTemplate : !imgPrompt.trim());
   const quotaInfo = () => {
-    if (imgMode === 'gabarit' || !imgUsage?.gauges) return null;
-    // Template force nano3 -> décompté sur le quota HD (image_pro), comme l'Image IA en HD.
-    const at = imgModele === 'nano3' ? 'image_pro' : 'image_standard';
+    if (!imgUsage?.gauges) return null;
+    // Gabarit = 1 image standard ; Template/IA en HD (nano3) = image_pro ; sinon image standard.
+    const at = imgMode === 'gabarit' ? 'image_standard' : (imgModele === 'nano3' ? 'image_pro' : 'image_standard');
     const g = imgUsage.gauges.find((x) => x.action_type === at);
     return g ? { label: g.label, remaining: Math.max(0, g.limit - g.used) } : null;
   };
@@ -1265,7 +1262,8 @@ export default function ContenusPage() {
                         </div>
                         <p className="text-[11.5px] text-slate-500 font-inter flex items-center gap-1.5"><Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" />L'IA écrit le texte depuis ton post et le pose sur le gabarit.</p>
 
-                        {/* Photo (pour les gabarits avec zone photo : Texte+photo, Citation, Humain, Mission…) */}
+                        {/* Photo — uniquement pour les gabarits qui ont une zone photo */}
+                        {selectedGabarit && gabPhoto.includes(selectedGabarit) && (
                         <div className="space-y-2 pt-1">
                           <div className="flex items-center justify-between gap-2">
                             <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Photo <span className="normal-case tracking-normal text-slate-600">· optionnel</span></label>
@@ -1302,18 +1300,13 @@ export default function ContenusPage() {
                               <span className="text-[11.5px] text-[#3AFFA3]">Photo générée sélectionnée</span>
                             </div>
                           )}
-                          {/* Décris la photo -> génération IA (Nano Banana) */}
-                          <div className="flex items-center gap-2 pt-0.5">
-                            <input value={photoDesc} onChange={(e) => setPhotoDesc(e.target.value)}
-                              placeholder="Ou décris la photo à générer…"
-                              className="flex-1 bg-[#0a0f1c] border border-white/10 rounded-lg text-slate-200 text-[13px] px-3 py-2 outline-none focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
-                            <button onClick={genererPhoto} disabled={photoGenBusy || !photoDesc.trim()}
-                              className="shrink-0 inline-flex items-center gap-1.5 text-[12.5px] font-medium px-3 py-2 rounded-lg border border-[#3AFFA3]/40 text-[#3AFFA3] hover:bg-[#3AFFA3]/10 disabled:opacity-50">
-                              {photoGenBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />} Générer
-                            </button>
-                          </div>
-                          <p className="text-[11px] text-slate-600 font-inter">La description est envoyée à l'IA (Nano Banana) — consomme 1 image standard.</p>
+                          {/* Décris la photo -> générée automatiquement au clic sur le bouton principal en bas */}
+                          <input value={photoDesc} onChange={(e) => setPhotoDesc(e.target.value)}
+                            placeholder="Ou décris la photo à générer…"
+                            className="w-full bg-[#0a0f1c] border border-white/10 rounded-lg text-slate-200 text-[13px] px-3 py-2 outline-none focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
+                          <p className="text-[11px] text-slate-600 font-inter">Si tu la décris, la photo est générée automatiquement (IA) au moment de créer le visuel — consomme 1 image standard.</p>
                         </div>
+                        )}
                       </div>
                     )}
 
@@ -1476,9 +1469,7 @@ export default function ContenusPage() {
                   {/* ---- FOOTER ---- */}
                   <div className="border-t border-white/10 px-5 py-3 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-[12px] text-slate-400 min-w-0">
-                      {imgMode === 'gabarit' ? (
-                        <span className="text-slate-500 truncate">Inclus dans ton offre</span>
-                      ) : quotaInfo() ? (
+                      {quotaInfo() ? (
                         <><span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3] shrink-0" /><span className="truncate"><b className="text-slate-200 font-semibold">{quotaInfo().remaining}</b> {quotaInfo().label} restantes</span></>
                       ) : null}
                     </div>
