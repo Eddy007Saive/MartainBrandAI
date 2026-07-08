@@ -454,6 +454,33 @@ def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, templa
         except Exception:
             pass
         page.wait_for_timeout(300)  # laisse les polices se peindre
+        # Auto-ajustement : réduit la taille des titres (puis du sous-texte) tant que le contenu
+        # déborde de la slide -> plus de texte coupé quand l'accroche/le titre est long.
+        try:
+            page.evaluate("""() => {
+              document.querySelectorAll('.slide').forEach(function(sl){
+                var heads = Array.prototype.slice.call(sl.querySelectorAll('h1,h2'));
+                var guard = 0;
+                while (sl.scrollHeight > sl.clientHeight + 1 && guard < 120) {
+                  var shrunk = false;
+                  heads.forEach(function(h){
+                    var c = parseFloat(getComputedStyle(h).fontSize);
+                    if (c > 15) { h.style.fontSize = (c - 1.5) + 'px'; shrunk = true; }
+                  });
+                  if (!shrunk) {
+                    Array.prototype.slice.call(sl.querySelectorAll('.sub, p')).forEach(function(s){
+                      var c = parseFloat(getComputedStyle(s).fontSize);
+                      if (c > 11) { s.style.fontSize = (c - 1) + 'px'; shrunk = true; }
+                    });
+                  }
+                  if (!shrunk) break;
+                  guard++;
+                }
+              });
+            }""")
+        except Exception:
+            pass
+        page.wait_for_timeout(60)
         count = page.locator(".slide").count()
         for i in range(count):
             png = page.locator(".slide").nth(i).screenshot(type="png")

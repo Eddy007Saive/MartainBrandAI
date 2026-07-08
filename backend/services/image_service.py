@@ -236,15 +236,18 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     b64 = url_data.split(",", 1)[1] if "," in url_data else url_data
     img_bytes = base64.b64decode(b64)
 
+    # Format normalisé 4:5 (feed cohérent, compatible Instagram) — recadrage intelligent (sujet préservé).
+    # Le modèle rend parfois du 16:9 / 1:1 / 3:4 : on force un ratio unique à l'upload.
+    fmt = [{"aspect_ratio": "4:5", "crop": "fill", "gravity": "auto"}]
     # public_id déterministe par contenu -> une régénération ÉCRASE le même asset (pas d'accumulation)
     if contenu_id:
         up = cloudinary.uploader.upload(img_bytes, resource_type="image",
                                         public_id=f"contenus/{telegram_id}/{contenu_id}",
-                                        overwrite=True, invalidate=True)
+                                        overwrite=True, invalidate=True, transformation=fmt)
     else:
         # Photo « à la volée » (pas encore attachée à un contenu) : slot brouillon UNIQUE par user
         # → une nouvelle génération écrase la précédente (pas d'accumulation d'orphelins).
         up = cloudinary.uploader.upload(img_bytes, resource_type="image",
                                         public_id=f"contenus/{telegram_id}/draft-photo",
-                                        overwrite=True, invalidate=True)
+                                        overwrite=True, invalidate=True, transformation=fmt)
     return {"lien_visuel": up["secure_url"]}
