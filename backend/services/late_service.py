@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from zernio import Zernio, ZernioError
 from config import supabase, logger, LATE_API_KEY, LATE_WEBHOOK_SECRET
 
-PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube"}
+PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube", "googlebusiness"}
 ACCOUNT_COL = {p: f"late_account_{p}" for p in PLATFORMS}
 DEFAULT_TZ = "Europe/Paris"
 

@@ -20,6 +20,7 @@ const NET_META = {
   facebook:  { short: 'f', cls: 'bg-[#1877f2]' },
   tiktok:    { short: '♪', cls: 'bg-[#111] border border-[#2b2b2b]' },
   youtube:   { short: '▶', cls: 'bg-[#ff0000]' },
+  googlebusiness: { short: 'G', cls: 'bg-[#4285f4]' },
 };
 const FORMAT_LABEL = { post: 'Post écrit', reel: 'Réel', video: 'Vidéo' };
 // coût crédits par (kind × qualité) — kind: post | script
@@ -37,6 +38,7 @@ const FORMATS_BY_NET = {
   facebook:  ['post', 'carrousel', 'reel', 'video'],
   tiktok:    ['reel', 'video'],
   youtube:   ['video', 'reel'],
+  googlebusiness: ['post'],
 };
 const formatsFor = (netId) => FORMATS_BY_NET[netId] || ['post'];
 const defaultFormat = (netId, configFmt) => {

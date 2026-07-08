@@ -21,6 +21,7 @@ RESEAU_TO_PLATFORM = {
     "Facebook": "facebook",
     "TikTok": "tiktok",
     "YouTube": "youtube",
+    "GoogleBusiness": "googlebusiness",
 }
 
 DEFAULT_TIME = time(9, 0)

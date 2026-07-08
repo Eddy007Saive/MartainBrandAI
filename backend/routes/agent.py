@@ -13,6 +13,7 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 RESEAU_MAP = {
     "linkedin": "LinkedIn", "instagram": "Instagram",
     "facebook": "Facebook", "tiktok": "TikTok", "youtube": "YouTube",
+    "googlebusiness": "GoogleBusiness",
 }
 
 

@@ -6,7 +6,7 @@ def _norm_platform(p) -> str:
     # p peut être une string ("Platform12.FACEBOOK") ou un enum -> on coerce en str
     return str(p or "").lower().split(".")[-1]
 
-VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube"}
+VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube", "googlebusiness"}
 
 FIELD_MAP = {
     "instagram": "late_account_instagram",
@@ -14,6 +14,7 @@ FIELD_MAP = {
     "linkedin": "late_account_linkedin",
     "youtube": "late_account_youtube",
     "tiktok": "late_account_tiktok",
+    "googlebusiness": "late_account_googlebusiness",
 }
 
 
@@ -121,6 +122,43 @@ async def connect_platform(telegram_id: str, platform: str) -> dict:
     except Exception as e:
         logger.error(f"connect error for {telegram_id}/{platform}: {e}")
         return {"success": False, "error": "Impossible de démarrer la connexion. Réessaie."}
+
+
+async def list_connected_accounts(telegram_id: str) -> dict:
+    """Métadonnées des comptes connectés (via Zernio), pour afficher QUEL compte est lié à chaque réseau.
+    Retour : {platform: {username, name, avatar, url, followers}}. Scopé au profil de l'utilisateur."""
+    if not LATE_API_KEY:
+        return {}
+    res = supabase.table("users").select("late_profile_id").eq("telegram_id", telegram_id).execute()
+    pid = res.data[0].get("late_profile_id") if res.data else None
+    if not pid:
+        return {}
+    out = {}
+    try:
+        async with Zernio(api_key=LATE_API_KEY) as client:
+            try:
+                r = await client.accounts.alist(profile_id=pid)
+            except TypeError:
+                r = await client.accounts.alist()
+            d = r.model_dump() if hasattr(r, "model_dump") else (r or {})
+            for a in (d.get("accounts") or d.get("data") or []):
+                # Sécurité : ne garder que les comptes de CE profil
+                prof = a.get("profileId") or {}
+                if isinstance(prof, dict) and prof.get("field_id") and prof.get("field_id") != pid:
+                    continue
+                plat = _norm_platform(a.get("platform"))
+                if not plat:
+                    continue
+                out[plat] = {
+                    "username": a.get("username"),
+                    "name": a.get("displayName"),
+                    "avatar": a.get("profilePicture"),
+                    "url": a.get("profileUrl"),
+                    "followers": a.get("followersCount"),
+                }
+    except Exception as e:
+        logger.warning(f"list_connected_accounts {telegram_id}: {e}")
+    return out
 
 
 async def finalize_connection(telegram_id: str, platform: str, account_id: str = None) -> dict:

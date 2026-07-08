@@ -49,6 +49,7 @@ RESEAUX = {
     "facebook": "Facebook",
     "tiktok": "TikTok",
     "youtube": "YouTube",
+    "googlebusiness": "GoogleBusiness",
 }
 
 # Niveaux de qualité (noms neutres côté UI) → modèle réel (jamais exposé)

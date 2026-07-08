@@ -6,7 +6,7 @@ Webhook `comment.received` -> notification push (temps réel, pas de polling).
 from config import supabase, logger, LATE_API_KEY
 from zernio import Zernio, ZernioError
 
-PLATFORMS = ["linkedin", "instagram", "facebook", "tiktok", "youtube"]
+PLATFORMS = ["linkedin", "instagram", "facebook", "tiktok", "youtube", "googlebusiness"]
 
 
 def _client():

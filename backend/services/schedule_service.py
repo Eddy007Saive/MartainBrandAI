@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from config import supabase, logger
 
 VALID_FREQUENCIES = ['daily', '3_per_week', 'weekly', 'biweekly', 'custom']
-VALID_SCHEDULE_PLATFORMS = ['linkedin', 'instagram', 'facebook', 'tiktok', 'youtube']
+VALID_SCHEDULE_PLATFORMS = ['linkedin', 'instagram', 'facebook', 'tiktok', 'youtube', 'googlebusiness']
 
 
 def get_schedules(telegram_id: str) -> list:

@@ -3,7 +3,7 @@ from dependencies import verify_token
 from models.user import UserUpdate, SocialConnectRequest
 from models.schedule import ScheduleUpdate
 from services import user_service, schedule_service, auth_service
-from services.social_service import VALID_PLATFORMS, connect_platform, disconnect_platform
+from services.social_service import VALID_PLATFORMS, connect_platform, disconnect_platform, list_connected_accounts
 from config import logger
 import httpx
 
@@ -225,6 +225,19 @@ async def disconnect_social(data: SocialConnectRequest, payload: dict = Depends(
     except Exception as e:
         logger.error(f"Social disconnect error: {e}")
         return {"success": False, "error": "Une erreur est survenue lors de la déconnexion. Réessaie dans un instant."}
+
+
+@router.get("/me/social-accounts")
+async def get_social_accounts(payload: dict = Depends(verify_token)):
+    """Métadonnées des comptes connectés (nom, @username, avatar) pour l'affichage."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        return {"accounts": await list_connected_accounts(telegram_id)}
+    except Exception as e:
+        logger.error(f"social accounts error: {e}")
+        return {"accounts": {}}
 
 
 # ============ SCHEDULES ============

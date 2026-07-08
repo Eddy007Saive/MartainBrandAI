@@ -63,4 +63,8 @@ export const userService = {
 
   disconnectPlatform: (platform) =>
     api.post('/users/me/disconnect', { platform }).then(r => r.data),
+
+  // Métadonnées des comptes connectés (nom, @username, avatar) via Zernio
+  socialAccounts: () =>
+    api.get('/users/me/social-accounts').then(r => r.data),
 };

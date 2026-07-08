@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
@@ -31,7 +31,7 @@ import { templateService } from '../services/templateService';
 import { removeToken, setToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
-import { FREQUENCIES, DAYS, DEFAULT_SCHEDULE, FORMATS_RESEAU } from '../constants/schedules';
+import { DAYS, DEFAULT_SCHEDULE } from '../constants/schedules';
 import QuotaGauge from '../components/QuotaGauge';
 
 const REQUIRED_FIELDS = {
@@ -136,12 +136,21 @@ export default function ParametresPage() {
   const navigate = useNavigate();
   const { user, setUser, refetchUser } = useUser();
   const [saving, setSaving] = useState(false);
-  const [activeSection, setActiveSection] = useState('identity');
+  // Section active pilotée par l'URL (?s=) -> synchronisée avec la sous-nav du sidebar (DashboardLayout)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeSection = searchParams.get('s') || 'identity';
+  const setActiveSection = (id) => setSearchParams({ s: id });
   const [connecting, setConnecting] = useState(null);
+  const [socialMeta, setSocialMeta] = useState({}); // {platform: {username, name, avatar, url, followers}}
   const [exReseau, setExReseau] = useState('linkedin');
 
   // Schedules
   const connectedPlatforms = SOCIAL_PLATFORMS.filter(p => user?.[p.field]);
+  useEffect(() => {
+    if (activeSection === 'connections' && connectedPlatforms.length) {
+      userService.socialAccounts().then((d) => setSocialMeta(d.accounts || {})).catch(() => {});
+    }
+  }, [activeSection, connectedPlatforms.length]);
   const [schedules, setSchedules] = useState([]);
   const [schedulesLoaded, setSchedulesLoaded] = useState(false);
   const [savingSchedules, setSavingSchedules] = useState(false);
@@ -212,9 +221,11 @@ export default function ParametresPage() {
     }
   }, [user]);
 
+  // Refetch quand on entre dans la section OU quand `user` se peuple (fetchSchedules change d'identité).
+  // Sans ça, un chargement de page directement sur Planification (user pas encore prêt) fige des schedules vides.
   useEffect(() => {
-    if (activeSection === 'schedules' && !schedulesLoaded) fetchSchedules();
-  }, [activeSection, schedulesLoaded, fetchSchedules]);
+    if (activeSection === 'schedules') fetchSchedules();
+  }, [activeSection, fetchSchedules]);
 
   // Retour du paiement Stripe : on resynchronise l'abonnement (filet si webhook manqué)
   useEffect(() => {
@@ -554,143 +565,120 @@ export default function ParametresPage() {
 
   // --- Section renderers ---
   const renderIdentity = () => (
-    <div className="space-y-6">
-      {/* Avatar (sidebar) */}
-      <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-950/40 border border-slate-800">
-        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center flex-shrink-0 ring-1 ring-white/15">
-          {user?.avatar_url ? (
-            <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-white text-xl font-semibold font-sora">{(user?.nom || user?.username || 'U').charAt(0).toUpperCase()}</span>
-          )}
-          {uploadingAvatar && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white font-sora">Avatar</p>
-          <p className="text-xs text-slate-500 font-inter">Photo affichée dans le menu. JPG/PNG/WebP, 10 Mo max.</p>
-        </div>
-        <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-        <Button type="button" size="sm" onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar}
-          className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter shrink-0">
-          <Upload className="w-4 h-4 mr-1.5" />{user?.avatar_url ? 'Changer' : 'Importer'}
-        </Button>
-      </div>
-
-      {/* Photo de profil — en haut */}
-      <div className="flex flex-col sm:flex-row items-center gap-5 p-5 rounded-2xl bg-slate-950/40 border border-slate-800">
-        <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-slate-800/60 border border-white/10 flex items-center justify-center flex-shrink-0">
-          {user?.photo_url ? (
-            <img src={user.photo_url} alt="Photo de profil" className="w-full h-full object-cover" />
-          ) : (
-            <User className="w-10 h-10 text-slate-600" />
-          )}
-          {uploadingPhoto && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-white" />
+    <div className="space-y-5">
+      {/* ---- MÉDIAS : avatar, photo, logo ---- */}
+      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40">
+        <div className="px-5 pt-4 pb-1 text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter">Médias</div>
+        <div className="px-5 divide-y divide-white/[0.06]">
+          {/* Avatar (menu) */}
+          <div className="flex items-center gap-4 py-4">
+            <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center flex-shrink-0 ring-1 ring-white/15">
+              {user?.avatar_url
+                ? <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                : <span className="text-white text-lg font-semibold font-sora">{(user?.nom || user?.username || 'U').charAt(0).toUpperCase()}</span>}
+              {uploadingAvatar && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
             </div>
-          )}
-        </div>
-
-        <div className="flex-1 text-center sm:text-left space-y-2">
-          <p className="text-sm font-semibold text-white font-sora">Photo de profil</p>
-          <p className="text-xs text-slate-500 font-inter leading-relaxed">
-            JPG, PNG ou WebP — 10 Mo max.<br className="hidden sm:block" /> Utilisée dans vos visuels générés si activée.
-          </p>
-          <div className="flex items-center justify-center sm:justify-start gap-3 pt-1">
-            <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" data-testid="input-photo" />
-            <Button
-              type="button" size="sm" onClick={() => photoInputRef.current?.click()} disabled={uploadingPhoto}
-              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter"
-            >
-              <Upload className="w-4 h-4 mr-1.5" />
-              {user?.photo_url ? 'Changer la photo' : 'Téléverser une photo'}
+            <div className="flex-1 min-w-0">
+              <p className="text-[13.5px] font-medium text-white font-sora">Avatar</p>
+              <p className="text-[11.5px] text-slate-500 font-inter">Photo affichée dans le menu · JPG/PNG/WebP, 10 Mo max.</p>
+            </div>
+            <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+            <Button type="button" size="sm" onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar}
+              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter shrink-0">
+              <Upload className="w-4 h-4 mr-1.5" />{user?.avatar_url ? 'Changer' : 'Importer'}
             </Button>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 sm:self-start sm:pt-1">
-          <Label className="text-sm font-medium text-slate-300 font-inter">Utiliser</Label>
-          <Switch checked={user?.use_photo || false} onCheckedChange={(c) => handleChange('use_photo', c)} data-testid="toggle-use-photo" />
-        </div>
-      </div>
-
-      {/* Logo de marque — utilisé dans les carrousels */}
-      <div className="flex flex-col sm:flex-row items-center gap-5 p-5 rounded-2xl bg-slate-950/40 border border-slate-800">
-        <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-white/90 border border-white/10 flex items-center justify-center flex-shrink-0">
-          {user?.logo_url ? (
-            <img src={user.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
-          ) : (
-            <span className="text-xs font-semibold text-slate-400 font-sora">LOGO</span>
-          )}
-          {uploadingLogo && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-white" />
+          {/* Photo de profil + toggle */}
+          <div className="flex items-center gap-4 py-4 flex-wrap">
+            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-800/60 border border-white/10 grid place-items-center flex-shrink-0">
+              {user?.photo_url ? <img src={user.photo_url} alt="Photo de profil" className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-slate-600" />}
+              {uploadingPhoto && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
             </div>
-          )}
-        </div>
-        <div className="flex-1 text-center sm:text-left space-y-2">
-          <p className="text-sm font-semibold text-white font-sora">Logo de marque</p>
-          <p className="text-xs text-slate-500 font-inter leading-relaxed">
-            PNG (fond transparent conseillé), SVG ou WebP — 10 Mo max.<br className="hidden sm:block" />
-            Affiché sur vos carrousels. Sans logo, on utilise l'initiale de votre nom.
-          </p>
-          <div className="flex items-center justify-center sm:justify-start gap-3 pt-1">
-            <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" data-testid="input-logo" />
-            <Button type="button" size="sm" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}
-              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter">
-              <Upload className="w-4 h-4 mr-1.5" />
-              {user?.logo_url ? 'Changer le logo' : 'Téléverser un logo'}
+            <div className="flex-1 min-w-[180px]">
+              <p className="text-[13.5px] font-medium text-white font-sora">Photo de profil</p>
+              <p className="text-[11.5px] text-slate-500 font-inter">Utilisée dans tes visuels générés si activée · 10 Mo max.</p>
+            </div>
+            <div className="flex items-center gap-2 mr-1">
+              <Label className="text-[12.5px] font-medium text-slate-400 font-inter">Utiliser</Label>
+              <Switch checked={user?.use_photo || false} onCheckedChange={(c) => handleChange('use_photo', c)} data-testid="toggle-use-photo" />
+            </div>
+            <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" data-testid="input-photo" />
+            <Button type="button" size="sm" onClick={() => photoInputRef.current?.click()} disabled={uploadingPhoto}
+              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter shrink-0">
+              <Upload className="w-4 h-4 mr-1.5" />{user?.photo_url ? 'Changer' : 'Importer'}
             </Button>
+          </div>
+
+          {/* Logo de marque */}
+          <div className="flex items-center gap-4 py-4 flex-wrap">
+            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-white/90 border border-white/10 grid place-items-center flex-shrink-0">
+              {user?.logo_url ? <img src={user.logo_url} alt="Logo" className="w-full h-full object-contain p-1.5" /> : <span className="text-[10px] font-semibold text-slate-400 font-sora">LOGO</span>}
+              {uploadingLogo && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <p className="text-[13.5px] font-medium text-white font-sora">Logo de marque</p>
+              <p className="text-[11.5px] text-slate-500 font-inter">Posé sur tes carrousels · PNG transparent conseillé. Sans logo → initiale de ton nom.</p>
+            </div>
             {user?.logo_url && (
               <button type="button" onClick={handleLogoDelete} disabled={uploadingLogo}
-                className="text-xs text-slate-400 hover:text-red-400 font-inter transition-colors">Retirer</button>
+                className="text-[12px] text-slate-500 hover:text-red-400 font-inter transition-colors shrink-0">Retirer</button>
             )}
+            <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" data-testid="input-logo" />
+            <Button type="button" size="sm" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}
+              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter shrink-0">
+              <Upload className="w-4 h-4 mr-1.5" />{user?.logo_url ? 'Changer' : 'Importer'}
+            </Button>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <Field label="Nom" name="nom" value={user?.nom} onChange={handleChange}
-          hint="Votre nom complet tel qu'il apparaîtra dans vos contenus générés." />
-        <Field label="Username" name="username" value={user?.username} onChange={handleChange}
-          hint="Votre identifiant unique (sans espaces, ex: martin_dupont)." />
-        <Field label="Email" name="email" value={user?.email} onChange={handleChange} readOnly />
-        <Field label="Nom affiché" name="user_name" value={user?.user_name} onChange={handleChange}
-          hint="Le nom public affiché dans vos posts." />
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-slate-300 font-inter">Sexe</Label>
-          <Select value={user?.sexe || ''} onValueChange={(v) => handleChange('sexe', v)}>
-            <SelectTrigger data-testid="field-sexe" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
-              <SelectValue placeholder="Sélectionner" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-800">
-              <SelectItem value="homme" className="text-slate-200 focus:bg-slate-800">Homme</SelectItem>
-              <SelectItem value="femme" className="text-slate-200 focus:bg-slate-800">Femme</SelectItem>
-              <SelectItem value="autre" className="text-slate-200 focus:bg-slate-800">Autre</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* ---- INFORMATIONS ---- */}
+      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-4">Informations</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-4">
+          <Field label="Nom" name="nom" value={user?.nom} onChange={handleChange}
+            hint="Votre nom complet tel qu'il apparaîtra dans vos contenus générés." />
+          <Field label="Username" name="username" value={user?.username} onChange={handleChange}
+            hint="Votre identifiant unique (sans espaces, ex: martin_dupont)." />
+          <Field label="Email" name="email" value={user?.email} onChange={handleChange} readOnly />
+          <Field label="Nom affiché" name="user_name" value={user?.user_name} onChange={handleChange}
+            hint="Le nom public affiché dans vos posts." />
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-slate-300 font-inter">Sexe</Label>
+            <Select value={user?.sexe || ''} onValueChange={(v) => handleChange('sexe', v)}>
+              <SelectTrigger data-testid="field-sexe" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
+                <SelectValue placeholder="Sélectionner" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-800">
+                <SelectItem value="homme" className="text-slate-200 focus:bg-slate-800">Homme</SelectItem>
+                <SelectItem value="femme" className="text-slate-200 focus:bg-slate-800">Femme</SelectItem>
+                <SelectItem value="autre" className="text-slate-200 focus:bg-slate-800">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Field label="Style vestimentaire" name="style_vestimentaire" value={user?.style_vestimentaire} onChange={handleChange}
+            hint="Ex: Casual, Business, Sportif, Élégant, Streetwear…" />
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-slate-300 font-inter">Fuseau horaire</Label>
+            <Select value={user?.timezone || 'Europe/Paris'} onValueChange={(v) => handleChange('timezone', v)}>
+              <SelectTrigger data-testid="field-timezone" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
+                <SelectValue placeholder="Sélectionner" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-800 max-h-72">
+                {COMMON_TIMEZONES.map((t) => (
+                  <SelectItem key={t.value} value={t.value} className="text-slate-200 focus:bg-slate-800">{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-slate-500 font-inter">Vos publications partiront à l'heure de ce fuseau.</p>
+          </div>
         </div>
-        <Field label="Style vestimentaire" name="style_vestimentaire" value={user?.style_vestimentaire} onChange={handleChange}
-          hint="Ex: Casual, Business, Sportif, Élégant, Streetwear…" />
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-slate-300 font-inter">Fuseau horaire</Label>
-          <Select value={user?.timezone || 'Europe/Paris'} onValueChange={(v) => handleChange('timezone', v)}>
-            <SelectTrigger data-testid="field-timezone" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
-              <SelectValue placeholder="Sélectionner" />
-            </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-800 max-h-72">
-              {COMMON_TIMEZONES.map((t) => (
-                <SelectItem key={t.value} value={t.value} className="text-slate-200 focus:bg-slate-800">{t.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-[11px] text-slate-500 font-inter">Vos publications partiront à l'heure de ce fuseau.</p>
-        </div>
-      </div>
+      </section>
 
-      {/* Mot de passe */}
-      <div className="p-5 rounded-2xl bg-slate-950/40 border border-slate-800 space-y-3">
-        <p className="text-sm font-semibold text-white font-sora">Mot de passe</p>
+      {/* ---- SÉCURITÉ ---- */}
+      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5 space-y-3">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter">Sécurité</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input type="password" value={pwdOld} onChange={(e) => setPwdOld(e.target.value)} placeholder="Mot de passe actuel"
             className="bg-slate-950/50 border-slate-800 text-slate-200 focus:border-[#5B6CFF]" />
@@ -703,59 +691,68 @@ export default function ParametresPage() {
             {changingPwd ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}Changer le mot de passe
           </Button>
         </div>
-      </div>
+      </section>
     </div>
   );
 
   const renderMarque = () => (
     <div className="space-y-5">
-      <div className="flex items-start gap-2 p-3 rounded-lg bg-[#5B6CFF]/5 border border-[#5B6CFF]/20">
+      <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-[#5B6CFF]/[0.06] border border-[#5B6CFF]/20">
         <Info className="w-4 h-4 text-[#5B6CFF] mt-0.5 flex-shrink-0" />
-        <p className="text-xs text-slate-300 font-inter">
+        <p className="text-xs text-slate-300 font-inter leading-relaxed">
           Ces informations nourrissent l'IA du <span className="text-white font-medium">Studio IA</span>.
           Plus elles sont précises, plus les sujets et les posts générés sonnent juste.
         </p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <Field label="Secteur / activité" name="secteur" value={user?.secteur} onChange={handleChange}
-          hint="Ex: Coach business pour entrepreneures, Agence immobilière, Restaurant bistronomique…" />
-        <Field label="Audience cible" name="audience" value={user?.audience} onChange={handleChange}
-          hint="À qui tu t'adresses. Ex: Freelances 28-45 ans en reconversion." />
-      </div>
-      <TextareaField label="Voix & ton" name="voix_marque" value={user?.voix_marque} onChange={handleChange} rows={4}
-        hint="Ton style d'écriture : tutoiement, direct, chaleureux, pas de jargon, etc."
-        placeholder="Ex: Tutoiement, ton chaleureux et direct. Phrases courtes. Honnête (on parle aussi des galères). Zéro promesse magique." />
-      <TextareaField label="Piliers / thèmes" name="piliers" value={user?.piliers} onChange={handleChange} rows={3}
-        hint="Tes grands sujets récurrents (un par ligne)."
-        placeholder={"Mindset & confiance\nMéthode business\nCoulisses & vécu"} />
-      <TextareaField label="À éviter absolument" name="a_eviter" value={user?.a_eviter} onChange={handleChange} rows={3}
-        hint="Mots, promesses ou tons à bannir."
-        placeholder="Ex: pas de promesses chiffrées, pas de jargon corporate, pas de hashtags en pagaille." />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <TextareaField label="Hooks / accroches qui marchent" name="hooks" value={user?.hooks} onChange={handleChange} rows={5}
-          hint="Tes meilleures accroches (une par ligne). L'IA s'en inspire pour les posts et les scripts."
-          placeholder={"Pendant 2 ans, j'ai bradé mes prix…\nPersonne ne te dira ça, mais…\n90% des freelances font cette erreur"} />
-        <TextareaField label="CTA habituels" name="ctas" value={user?.ctas} onChange={handleChange} rows={5}
-          hint="Tes appels à l'action récurrents (un par ligne)."
-          placeholder={"Commente MÉTHODE\nLien en bio\nDM-moi le mot X\nAbonne-toi pour la suite"} />
-      </div>
+      {/* POSITIONNEMENT */}
+      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-4">Positionnement</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+          <Field label="Secteur / activité" name="secteur" value={user?.secteur} onChange={handleChange}
+            hint="Ex: Coach business pour entrepreneures, Agence immobilière, Restaurant bistronomique…" />
+          <Field label="Audience cible" name="audience" value={user?.audience} onChange={handleChange}
+            hint="À qui tu t'adresses. Ex: Freelances 28-45 ans en reconversion." />
+        </div>
+      </section>
 
-      {/* Règles éditoriales (la "bible") */}
-      <div className="rounded-xl border border-[#5B6CFF]/20 bg-[#5B6CFF]/[0.04] p-4">
+      {/* VOIX & CONTENU */}
+      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5 space-y-4">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter">Voix &amp; contenu</div>
+        <TextareaField label="Voix & ton" name="voix_marque" value={user?.voix_marque} onChange={handleChange} rows={4}
+          hint="Ton style d'écriture : tutoiement, direct, chaleureux, pas de jargon, etc."
+          placeholder="Ex: Tutoiement, ton chaleureux et direct. Phrases courtes. Honnête (on parle aussi des galères). Zéro promesse magique." />
+        <TextareaField label="Piliers / thèmes" name="piliers" value={user?.piliers} onChange={handleChange} rows={3}
+          hint="Tes grands sujets récurrents (un par ligne)."
+          placeholder={"Mindset & confiance\nMéthode business\nCoulisses & vécu"} />
+        <TextareaField label="À éviter absolument" name="a_eviter" value={user?.a_eviter} onChange={handleChange} rows={3}
+          hint="Mots, promesses ou tons à bannir."
+          placeholder="Ex: pas de promesses chiffrées, pas de jargon corporate, pas de hashtags en pagaille." />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <TextareaField label="Hooks / accroches qui marchent" name="hooks" value={user?.hooks} onChange={handleChange} rows={5}
+            hint="Tes meilleures accroches (une par ligne). L'IA s'en inspire pour les posts et les scripts."
+            placeholder={"Pendant 2 ans, j'ai bradé mes prix…\nPersonne ne te dira ça, mais…\n90% des freelances font cette erreur"} />
+          <TextareaField label="CTA habituels" name="ctas" value={user?.ctas} onChange={handleChange} rows={5}
+            hint="Tes appels à l'action récurrents (un par ligne)."
+            placeholder={"Commente MÉTHODE\nLien en bio\nDM-moi le mot X\nAbonne-toi pour la suite"} />
+        </div>
+      </section>
+
+      {/* RÈGLES ÉDITORIALES (la "bible") */}
+      <section className="rounded-2xl border border-[#5B6CFF]/25 bg-[#5B6CFF]/[0.05] p-5">
         <TextareaField label="📕 Règles éditoriales (l'IA les respecte à la lettre)" name="regles" value={user?.regles} onChange={handleChange} rows={9}
           hint="Ta « bible » : structure des posts, dosage des CTA, ce qui est interdit, etc. Ces règles priment sur tout le reste. Tu peux coller ton document complet (sections incluses)."
           placeholder={"Ex:\n1. Un seul CTA par post.\n2. Choisis un pilier + un hook de la banque (ou un neuf dans le même esprit).\n3. Respecte la structure et adapte à la plateforme demandée.\n4. Interdits : promesses chiffrées garanties, jargon corporate…\nTu ne violes jamais une règle de la section 4."} />
-      </div>
+      </section>
 
-      {/* Exemples de posts par réseau */}
-      <div className="space-y-2 pt-2 border-t border-white/5">
-        <label className="text-sm font-medium text-slate-300 font-inter">Exemples de posts (par réseau)</label>
+      {/* EXEMPLES DE POSTS PAR RÉSEAU */}
+      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5 space-y-2">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter">Exemples de posts (par réseau)</div>
         <p className="text-xs text-slate-500 font-inter">
           Colle 1 à 3 de tes meilleurs posts pour chaque réseau (sépare-les par une ligne <span className="text-slate-400">---</span>).
           C'est ce qui calibre le mieux le style des contenus générés. Optionnel mais fortement recommandé.
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 pt-1">
           {[
             { id: 'linkedin', label: 'LinkedIn' },
             { id: 'instagram', label: 'Instagram' },
@@ -789,9 +786,18 @@ export default function ParametresPage() {
           className="w-full rounded-lg bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-sm px-3 py-2 outline-none resize-y font-inter placeholder:text-slate-600"
           data-testid={`field-exemples-${exReseau}`}
         />
-      </div>
+      </section>
     </div>
   );
+
+  const CONNECT_HINTS = {
+    instagram: 'Publie tes posts et carrousels sur Instagram.',
+    facebook: 'Publie tes posts et visuels sur ta page Facebook.',
+    linkedin: 'Diffuse tes posts pro sur ton profil LinkedIn.',
+    youtube: 'Programme la sortie de tes vidéos et Shorts.',
+    tiktok: 'Publie tes formats courts et Reels verticaux.',
+    googlebusiness: "Diffuse tes actualités sur ta fiche d'établissement Google.",
+  };
 
   const renderConnections = () => {
     const total = SOCIAL_PLATFORMS.length;
@@ -818,45 +824,72 @@ export default function ParametresPage() {
         </div>
       </div>
 
-      {/* Liste éditoriale */}
-      <div className="rounded-2xl border border-white/[0.07] bg-slate-950/40 overflow-hidden divide-y divide-white/[0.06]">
+      {/* Grille de cards — une carte par réseau */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {SOCIAL_PLATFORMS.map((platform) => {
           const isConnected = !!user?.[platform.field];
           const isLoading = connecting === platform.id;
+          const meta = socialMeta[platform.id] || {};
+          const hint = CONNECT_HINTS[platform.id] || 'Connecte ton compte pour publier automatiquement.';
           return (
             <div key={platform.id} data-testid={`connect-card-${platform.id}`}
-              className="group flex items-center gap-4 px-4 sm:px-5 py-4 transition-colors hover:bg-white/[0.02]">
-              {/* Tuile logo : grisé par défaut, en couleur de marque au survol / si connecté */}
-              <div className="relative w-11 h-11 rounded-xl grid place-items-center shrink-0 bg-[#0a1120] border border-white/[0.07]">
-                {isConnected && <span className="absolute inset-0 rounded-xl pointer-events-none" style={{ boxShadow: `inset 0 0 0 1.5px ${platform.brand}55` }} />}
-                <span className={`transition duration-200 ${isConnected ? '' : 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100'}`} style={{ color: platform.brand }}>
-                  <platform.icon className="w-[22px] h-[22px] block" />
-                </span>
-              </div>
+              className={`group relative overflow-hidden rounded-2xl border bg-[#0f172a] p-5 flex flex-col gap-4 transition-all duration-300 ease-[cubic-bezier(.23,1,.32,1)] hover:-translate-y-0.5 hover:border-white/[0.14] hover:shadow-[0_14px_34px_rgba(0,0,0,0.4)] ${isConnected ? 'border-[#3AFFA3]/20' : 'border-white/[0.07]'}`}>
+              {/* Barre d'accent marque */}
+              <span className="absolute inset-x-0 top-0 h-[3px]" style={{ background: platform.brand }} />
 
-              {/* Nom + statut */}
-              <div className="min-w-0 flex-1">
-                <div className="font-sora font-semibold text-[15px] text-white tracking-tight">{platform.name}</div>
+              {/* En-tête carte : logo + nom + statut */}
+              <div className="flex items-center gap-3">
+                <span className="w-[46px] h-[46px] rounded-[13px] grid place-items-center shrink-0 bg-[#0a1120] border border-white/[0.07]" style={{ color: platform.brand }}>
+                  <platform.icon className="w-[23px] h-[23px] block" />
+                </span>
+                <div className="font-sora font-semibold text-[15.5px] text-white tracking-tight min-w-0 truncate">{platform.name}</div>
                 {isConnected ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="relative flex h-2 w-2">
+                  <span className="ml-auto shrink-0 inline-flex items-center gap-1.5 text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full bg-[#3AFFA3]/[0.12] text-[#3AFFA3] border border-[#3AFFA3]/25">
+                    <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3AFFA3] opacity-60" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3AFFA3]" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3AFFA3]" />
                     </span>
-                    <span className="text-[12.5px] text-[#3AFFA3] font-medium font-inter">Connecté</span>
-                  </div>
+                    Connecté
+                  </span>
                 ) : (
-                  <div className="text-[12.5px] text-slate-500 mt-0.5 font-inter">Non connecté</div>
+                  <span className="ml-auto shrink-0 text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full bg-white/[0.05] text-slate-500 border border-white/[0.07]">Non connecté</span>
                 )}
               </div>
 
+              {/* Corps */}
+              {isConnected ? (
+                <div className="flex items-center gap-3 p-3 rounded-[13px] bg-[#0a1120] border border-white/[0.07]">
+                  {meta.avatar
+                    ? <img src={meta.avatar} alt="" className="w-[42px] h-[42px] rounded-[11px] object-cover shrink-0 border border-white/[0.07]" />
+                    : <span className="w-[42px] h-[42px] rounded-[11px] grid place-items-center shrink-0 border border-white/[0.07] font-sora font-semibold text-sm" style={{ background: `${platform.brand}22`, color: platform.brand }}>{(meta.name || platform.name).charAt(0)}</span>}
+                  <div className="min-w-0">
+                    <span className="block font-sora font-semibold text-[13.5px] text-white truncate">{meta.name || 'Compte connecté'}</span>
+                    {meta.username && (
+                      <span className="block text-[12px] text-slate-500 font-inter truncate mt-0.5">
+                        {meta.url
+                          ? <a href={meta.url} target="_blank" rel="noopener noreferrer" className="hover:text-slate-300">@{meta.username}</a>
+                          : <>@{meta.username}</>}
+                      </span>
+                    )}
+                  </div>
+                  {meta.followers != null && (
+                    <div className="ml-auto text-right shrink-0">
+                      <span className="block font-sora text-sm text-white tabular-nums">{Math.round(meta.followers).toLocaleString('fr-FR')}</span>
+                      <span className="block text-[10.5px] text-slate-500 font-inter">abonné{meta.followers > 1 ? 's' : ''}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-[12.5px] text-slate-400 font-inter leading-relaxed">{hint}</p>
+              )}
+
               {/* Action */}
-              <div className="shrink-0">
+              <div className="mt-auto">
                 {isConnected ? (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <button data-testid={`disconnect-${platform.id}`}
-                        className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-slate-500 hover:text-red-400 transition-colors font-inter">
+                        className="w-full inline-flex items-center justify-center gap-1.5 text-[13px] font-medium text-slate-400 rounded-xl px-4 py-2.5 border border-white/[0.07] bg-transparent transition-all duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] hover:text-white hover:border-white/20 font-inter">
                         <Unplug className="w-3.5 h-3.5" />Déconnecter
                       </button>
                     </AlertDialogTrigger>
@@ -872,11 +905,11 @@ export default function ParametresPage() {
                     </AlertDialogContent>
                   </AlertDialog>
                 ) : (
-                  <Button size="sm" disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`connect-${platform.id}`}
-                    className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:-translate-y-px text-white font-sora font-semibold text-[13px] rounded-xl px-4 shadow-[0_6px_18px_rgba(91,108,255,0.28)] hover:shadow-[0_10px_24px_rgba(91,108,255,0.4)] transition-all disabled:opacity-60 disabled:hover:translate-y-0">
-                    {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <ExternalLink className="w-3.5 h-3.5 mr-1.5" />}
+                  <button disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`connect-${platform.id}`}
+                    className="w-full inline-flex items-center justify-center gap-2 bg-[#e7ecf5] text-[#0b1322] font-inter font-medium text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] hover:bg-white disabled:opacity-60 disabled:active:scale-100">
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
                     Connecter
-                  </Button>
+                  </button>
                 )}
               </div>
             </div>
@@ -885,6 +918,12 @@ export default function ParametresPage() {
       </div>
     </div>
     );
+  };
+
+  const freqSummary = (s) => {
+    const c = (s.days_of_week || []).length;
+    if (!c) return 'Aucun jour';
+    return `${c} post${c > 1 ? 's' : ''} / semaine`;
   };
 
   const renderSchedules = () => (
@@ -906,75 +945,54 @@ export default function ParametresPage() {
           {schedules.map((schedule) => {
             const pi = SOCIAL_PLATFORMS.find(p => p.id === schedule.platform);
             if (!pi) return null;
-            const showDays = schedule.frequency === 'custom' || schedule.frequency === '3_per_week';
             return (
               <div key={schedule.platform} data-testid={`schedule-card-${schedule.platform}`}
-                className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${pi.color}`} />
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <pi.icon className="w-5 h-5 text-white" />
-                    <h3 className="text-white font-semibold font-sora text-sm">{pi.name}</h3>
+                className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="w-[34px] h-[34px] rounded-[11px] grid place-items-center bg-[#0a1120] border border-white/[0.07]" style={{ color: pi.brand }}>
+                      <pi.icon className="w-[17px] h-[17px]" />
+                    </span>
+                    <h3 className="text-white font-semibold font-sora text-[14.5px]">{pi.name}</h3>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs text-slate-400 font-inter">Actif</Label>
+                  <div className="flex items-center gap-3">
+                    {schedule.is_active && (
+                      <span className="text-xs text-slate-500 font-inter tabular-nums hidden sm:inline">{freqSummary(schedule)}</span>
+                    )}
                     <Switch checked={schedule.is_active}
                       onCheckedChange={(c) => handleScheduleChange(schedule.platform, 'is_active', c)}
                       data-testid={`schedule-toggle-${schedule.platform}`} />
                   </div>
                 </div>
                 {schedule.is_active && (
-                  <div className="space-y-3 pt-3 border-t border-slate-800">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-slate-400 font-inter">Fréquence</Label>
-                        <Select value={schedule.frequency} onValueChange={(v) => handleScheduleChange(schedule.platform, 'frequency', v)}>
-                          <SelectTrigger data-testid={`schedule-freq-${schedule.platform}`} className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-xs h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-900 border-slate-800">
-                            {FREQUENCIES.map(f => <SelectItem key={f.value} value={f.value} className="text-slate-200 focus:bg-slate-800 text-xs">{f.label}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-slate-400 font-inter flex items-center gap-1"><Clock className="w-3 h-3" /> Heure</Label>
-                        <input type="time" value={schedule.preferred_time || '09:00'}
-                          onChange={(e) => handleScheduleChange(schedule.platform, 'preferred_time', e.target.value)}
-                          data-testid={`schedule-time-${schedule.platform}`}
-                          className="w-full rounded-md bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-xs px-3 py-1.5 h-8 outline-none" />
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs text-slate-400 font-inter">Format de contenu</Label>
-                      <Select value={schedule.format || 'post'} onValueChange={(v) => handleScheduleChange(schedule.platform, 'format', v)}>
-                        <SelectTrigger data-testid={`schedule-format-${schedule.platform}`} className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-xs h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-slate-900 border-slate-800">
-                          {FORMATS_RESEAU.map(f => <SelectItem key={f.value} value={f.value} className="text-slate-200 focus:bg-slate-800 text-xs">{f.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {showDays && (
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-slate-400 font-inter">Jours</Label>
+                  <div className="pt-3 border-t border-white/[0.06]">
+                    <div className="flex items-end gap-8 flex-wrap">
+                      <div>
+                        <div className="text-xs text-slate-400 font-inter mb-2">Jours de publication</div>
                         <div className="flex gap-1.5">
                           {DAYS.map(day => {
                             const sel = (schedule.days_of_week || []).includes(day.value);
                             return (
                               <button key={day.value} type="button" onClick={() => handleToggleDay(schedule.platform, day.value)}
                                 data-testid={`schedule-day-${schedule.platform}-${day.value}`}
-                                className={`px-2.5 py-1 rounded-md text-xs font-inter font-medium transition-all ${
-                                  sel ? 'bg-[#5B6CFF]/20 text-white border border-[#5B6CFF]/50'
-                                    : 'bg-slate-950/50 text-slate-500 border border-slate-800 hover:border-slate-600'}`}>
-                                {day.label}
+                                title={day.label}
+                                className={`w-[30px] h-[30px] rounded-[9px] grid place-items-center text-xs font-semibold font-inter transition-all duration-150 ${
+                                  sel ? 'text-white border-0 shadow-[0_4px_12px_rgba(91,108,255,0.3)] bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF]'
+                                    : 'bg-slate-950/50 text-slate-500 border border-white/[0.07] hover:border-slate-600'}`}>
+                                {day.label.charAt(0)}
                               </button>
                             );
                           })}
                         </div>
                       </div>
-                    )}
+                      <div>
+                        <div className="text-xs text-slate-400 font-inter mb-2 flex items-center gap-1"><Clock className="w-3 h-3" /> Heure</div>
+                        <input type="time" value={schedule.preferred_time || '09:00'}
+                          onChange={(e) => handleScheduleChange(schedule.platform, 'preferred_time', e.target.value)}
+                          data-testid={`schedule-time-${schedule.platform}`}
+                          className="w-[120px] rounded-lg bg-slate-950/50 border border-white/[0.07] focus:border-[#5B6CFF] text-slate-200 text-sm px-3 py-2 outline-none" />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -985,9 +1003,9 @@ export default function ParametresPage() {
       {schedulesLoaded && connectedPlatforms.length > 0 && (
         <div className="flex justify-end">
           <Button onClick={handleSaveSchedules} disabled={savingSchedules} data-testid="save-schedules-btn"
-            className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter text-xs">
-            {savingSchedules ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
-            Sauvegarder
+            className="bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter text-sm px-5 shadow-[0_8px_20px_rgba(91,108,255,0.35)]">
+            {savingSchedules ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            Enregistrer la planification
           </Button>
         </div>
       )}
@@ -1018,14 +1036,17 @@ export default function ParametresPage() {
   );
 
   const renderStyle = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <ColorField label="Couleur Principale" name="couleur_principale" value={user?.couleur_principale} onChange={handleChange} />
-        <ColorField label="Couleur Secondaire" name="couleur_secondaire" value={user?.couleur_secondaire} onChange={handleChange} />
-        <ColorField label="Couleur Accent" name="couleur_accent" value={user?.couleur_accent} onChange={handleChange} />
-      </div>
-      <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/50">
-        <h3 className="text-xs font-medium text-slate-400 mb-3 font-inter">Aperçu</h3>
+    <div className="space-y-5">
+      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-4">Palette de marque</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <ColorField label="Couleur Principale" name="couleur_principale" value={user?.couleur_principale} onChange={handleChange} />
+          <ColorField label="Couleur Secondaire" name="couleur_secondaire" value={user?.couleur_secondaire} onChange={handleChange} />
+          <ColorField label="Couleur Accent" name="couleur_accent" value={user?.couleur_accent} onChange={handleChange} />
+        </div>
+      </section>
+      <div className="p-5 rounded-2xl border border-white/[0.07] bg-slate-950/40">
+        <h3 className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-3">Aperçu</h3>
         <div className="flex gap-3 items-center">
           <div className="w-16 h-16 rounded-xl shadow-lg transition-all" style={{ backgroundColor: user?.couleur_principale || '#003D2E' }} data-testid="preview-principale" />
           <div className="w-16 h-16 rounded-xl shadow-lg transition-all" style={{ backgroundColor: user?.couleur_secondaire || '#0077FF' }} data-testid="preview-secondaire" />
@@ -1038,7 +1059,7 @@ export default function ParametresPage() {
       </div>
 
       {/* Inspirations visuelles */}
-      <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/50 space-y-3">
+      <div className="p-5 rounded-2xl border border-white/[0.07] bg-slate-950/40 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-white font-sora">Inspirations visuelles</h3>
@@ -1083,7 +1104,7 @@ export default function ParametresPage() {
       </div>
 
       {/* Templates de marque */}
-      <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/50 space-y-3">
+      <div className="p-5 rounded-2xl border border-white/[0.07] bg-slate-950/40 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-white font-sora">Templates de marque</h3>
@@ -1362,19 +1383,25 @@ export default function ParametresPage() {
         {/* Jauge des résultats inclus (déplacée depuis l'Accueil) */}
         <QuotaGauge />
 
-        <div className="flex items-center justify-between flex-wrap gap-3 p-4 rounded-xl bg-slate-950/40 border border-slate-800">
-          <div>
-            <div className="text-xs text-slate-500 font-inter">Ton forfait actuel</div>
-            <div className="text-lg font-semibold text-white font-sora">{isPro ? 'Pro' : 'Essai / Gratuit'}</div>
+        <div className="flex items-center gap-4 flex-wrap p-4 rounded-2xl border border-[#5B6CFF]/25"
+          style={{ background: 'linear-gradient(120deg, rgba(91,108,255,.13), rgba(138,108,255,.05))' }}>
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center shrink-0 shadow-[0_8px_20px_rgba(91,108,255,.35)]">
+            <CreditCard className="w-[21px] h-[21px] text-white" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-sora font-bold text-white text-[15px] flex items-center gap-2">
+              Offre {isPro ? 'Pro' : 'Essai / Gratuit'}
+              {isPro && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#3AFFA3]/12 text-[#3AFFA3] border border-[#3AFFA3]/25">Actif</span>}
+            </div>
             {isPro && user?.plan_cancel_at ? (
-              <div className="text-xs text-amber-400 mt-0.5 font-inter">Résilié — actif jusqu'au {new Date(user.plan_cancel_at).toLocaleDateString('fr-FR')}</div>
+              <div className="text-xs text-amber-400 mt-1 font-inter">Résilié — actif jusqu'au {new Date(user.plan_cancel_at).toLocaleDateString('fr-FR')}</div>
             ) : isPro && user?.plan_renews_at ? (
-              <div className="text-xs text-slate-400 mt-0.5 font-inter">Renouvellement le {new Date(user.plan_renews_at).toLocaleDateString('fr-FR')}</div>
+              <div className="text-xs text-slate-400 mt-1 font-inter">Renouvellement le {new Date(user.plan_renews_at).toLocaleDateString('fr-FR')}</div>
             ) : null}
           </div>
           {isPro && (
-            <Button size="sm" onClick={manageBilling} className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">
-              <CreditCard className="w-4 h-4 mr-1.5" />Gérer mon abonnement
+            <Button size="sm" onClick={manageBilling} className="ml-auto bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">
+              <CreditCard className="w-4 h-4 mr-1.5" />Gérer
             </Button>
           )}
         </div>
@@ -1477,38 +1504,10 @@ export default function ParametresPage() {
         </div>
       )}
 
-      {/* Two-panel layout */}
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 md:min-h-[calc(100vh-220px)]">
+      {/* Contenu — pleine largeur (la navigation des sections vit dans le sidebar du shell) */}
+      <div className="w-full">
 
-        {/* Left sub-nav (carte) */}
-        <nav className="w-[220px] flex-shrink-0 hidden md:flex flex-col gap-1 p-2 rounded-2xl border border-white/[0.06] bg-[#0f172a] self-start sticky top-6">
-          {SETTINGS_SECTIONS.map((section) => {
-            const Icon = section.icon;
-            const isActive = activeSection === section.id;
-            const isIncomplete = incompleteSections.includes(section.id);
-            const hasAvatarBadge = section.id === 'avatar' && avatar?.status;
-
-            return (
-              <button
-                key={section.id}
-                onClick={() => setActiveSection(section.id)}
-                data-testid={`settings-tab-${section.id}`}
-                className={`group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 font-inter border ${
-                  isActive ? 'bg-[#5B6CFF]/[0.12] border-[#5B6CFF]/25 text-white' : 'border-transparent text-slate-400 hover:text-white hover:bg-white/[0.03]'
-                }`}
-              >
-                <Icon className={`w-[17px] h-[17px] flex-shrink-0 ${isActive ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                <span className="text-[13.5px] font-medium flex-1 truncate">{section.title}</span>
-                {section.soon && <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30 flex-shrink-0">Bientôt</span>}
-                {isIncomplete && <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />}
-                {hasAvatarBadge && avatar.status === 'complete' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />}
-                {hasAvatarBadge && avatar.status === 'in_progress' && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" />}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Mobile section selector */}
+        {/* Sélecteur de section (mobile — le sidebar desktop porte la sous-nav) */}
         <div className="md:hidden w-full mb-4">
           <Select value={activeSection} onValueChange={setActiveSection}>
             <SelectTrigger className="bg-slate-950/50 border-slate-800 text-slate-200">
@@ -1522,8 +1521,8 @@ export default function ParametresPage() {
           </Select>
         </div>
 
-        {/* Right content panel */}
-        <div className="flex-1 min-w-0">
+        {/* Panneau de contenu */}
+        <div className="min-w-0">
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-6 md:p-7">
             {/* Section title */}
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/[0.06]">

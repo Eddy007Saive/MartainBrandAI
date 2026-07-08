@@ -6,7 +6,7 @@ from services.auth_service import sanitize_user
 
 PLAN_CREDITS = {"gratuit": 100, "pro": 1000, "business": 3000}
 PLAN_PRICE = {"gratuit": 0, "pro": 279, "business": 49}
-_RESEAUX = ["linkedin", "instagram", "facebook", "tiktok", "youtube"]
+_RESEAUX = ["linkedin", "instagram", "facebook", "tiktok", "youtube", "googlebusiness"]
 
 
 def _reseaux_connectes(user: dict) -> list:

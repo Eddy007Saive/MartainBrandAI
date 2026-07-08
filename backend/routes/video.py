@@ -27,7 +27,7 @@ router = APIRouter(prefix="/video", tags=["video"])
 
 MAX_VIDEO_BYTES = 300 * 1024 * 1024  # 300 Mo
 
-RESEAU_MAP = {"instagram": "Instagram", "tiktok": "TikTok", "youtube": "YouTube", "facebook": "Facebook", "linkedin": "LinkedIn"}
+RESEAU_MAP = {"instagram": "Instagram", "tiktok": "TikTok", "youtube": "YouTube", "facebook": "Facebook", "linkedin": "LinkedIn", "googlebusiness": "GoogleBusiness"}
 
 # Bibliothèque de sons : chaque piste est hébergée sur Cloudinary (preview écoutable) et
 # pré-enregistrée dans Submagic (userMediaId). Seed via scripts/seed_submagic_music_drive.py.

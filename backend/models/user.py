@@ -38,6 +38,7 @@ class UserUpdate(BaseModel):
     late_account_instagram: Optional[str] = None
     late_account_facebook: Optional[str] = None
     late_account_tiktok: Optional[str] = None
+    late_account_googlebusiness: Optional[str] = None
     gpt_url_linkedin: Optional[str] = None
     gpt_url_instagram: Optional[str] = None
     gpt_url_sujets: Optional[str] = None
@@ -72,6 +73,7 @@ class UserResponse(BaseModel):
     late_account_instagram: Optional[str] = None
     late_account_facebook: Optional[str] = None
     late_account_tiktok: Optional[str] = None
+    late_account_googlebusiness: Optional[str] = None
     gpt_url_linkedin: Optional[str] = None
     gpt_url_instagram: Optional[str] = None
     gpt_url_sujets: Optional[str] = None
