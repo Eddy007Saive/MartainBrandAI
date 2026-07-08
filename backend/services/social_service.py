@@ -126,7 +126,8 @@ async def connect_platform(telegram_id: str, platform: str) -> dict:
 
 async def list_connected_accounts(telegram_id: str) -> dict:
     """Métadonnées des comptes connectés (via Zernio), pour afficher QUEL compte est lié à chaque réseau.
-    Retour : {platform: {username, name, avatar, url, followers}}. Scopé au profil de l'utilisateur."""
+    Retour : {platform: {username, name, avatar, url, followers, is_active}}. Scopé au profil de l'utilisateur.
+    is_active=False -> le compte est déconnecté côté plateforme et doit être reconnecté."""
     if not LATE_API_KEY:
         return {}
     res = supabase.table("users").select("late_profile_id").eq("telegram_id", telegram_id).execute()
@@ -155,6 +156,10 @@ async def list_connected_accounts(telegram_id: str) -> dict:
                     "avatar": a.get("profilePicture"),
                     "url": a.get("profileUrl"),
                     "followers": a.get("followersCount"),
+                    # Zernio signale l'état de connexion via isActive : False = token expiré/révoqué
+                    # -> le compte doit être RECONNECTÉ (même flow OAuth que la connexion initiale).
+                    # None/absent = considéré actif (pas de fausse alerte).
+                    "is_active": a.get("isActive") is not False,
                 }
     except Exception as e:
         logger.warning(f"list_connected_accounts {telegram_id}: {e}")

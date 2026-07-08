@@ -830,10 +830,12 @@ export default function ParametresPage() {
           const isConnected = !!user?.[platform.field];
           const isLoading = connecting === platform.id;
           const meta = socialMeta[platform.id] || {};
+          // Zernio signale un token expiré/révoqué via is_active=false -> le compte doit être RECONNECTÉ
+          const needsReconnect = isConnected && meta.is_active === false;
           const hint = CONNECT_HINTS[platform.id] || 'Connecte ton compte pour publier automatiquement.';
           return (
             <div key={platform.id} data-testid={`connect-card-${platform.id}`}
-              className={`group relative overflow-hidden rounded-2xl border bg-[#0f172a] p-5 flex flex-col gap-4 transition-all duration-300 ease-[cubic-bezier(.23,1,.32,1)] hover:-translate-y-0.5 hover:border-white/[0.14] hover:shadow-[0_14px_34px_rgba(0,0,0,0.4)] ${isConnected ? 'border-[#3AFFA3]/20' : 'border-white/[0.07]'}`}>
+              className={`group relative overflow-hidden rounded-2xl border bg-[#0f172a] p-5 flex flex-col gap-4 transition-all duration-300 ease-[cubic-bezier(.23,1,.32,1)] hover:-translate-y-0.5 hover:border-white/[0.14] hover:shadow-[0_14px_34px_rgba(0,0,0,0.4)] ${needsReconnect ? 'border-amber-500/30' : isConnected ? 'border-[#3AFFA3]/20' : 'border-white/[0.07]'}`}>
               {/* Barre d'accent marque */}
               <span className="absolute inset-x-0 top-0 h-[3px]" style={{ background: platform.brand }} />
 
@@ -843,7 +845,12 @@ export default function ParametresPage() {
                   <platform.icon className="w-[23px] h-[23px] block" />
                 </span>
                 <div className="font-sora font-semibold text-[15.5px] text-white tracking-tight min-w-0 truncate">{platform.name}</div>
-                {isConnected ? (
+                {needsReconnect ? (
+                  <span className="ml-auto shrink-0 inline-flex items-center gap-1.5 text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full bg-amber-500/[0.12] text-amber-400 border border-amber-500/30">
+                    <AlertTriangle className="w-3 h-3" />
+                    Reconnexion requise
+                  </span>
+                ) : isConnected ? (
                   <span className="ml-auto shrink-0 inline-flex items-center gap-1.5 text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full bg-[#3AFFA3]/[0.12] text-[#3AFFA3] border border-[#3AFFA3]/25">
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3AFFA3] opacity-60" />
@@ -885,7 +892,33 @@ export default function ParametresPage() {
 
               {/* Action */}
               <div className="mt-auto">
-                {isConnected ? (
+                {needsReconnect ? (
+                  <div className="flex gap-2">
+                    <button disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`reconnect-${platform.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-500/90 text-[#0b1322] font-inter font-semibold text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] hover:bg-amber-400 disabled:opacity-60 disabled:active:scale-100">
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+                      Reconnecter
+                    </button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button data-testid={`disconnect-${platform.id}`} title="Déconnecter"
+                          className="shrink-0 inline-flex items-center justify-center w-[42px] rounded-xl border border-white/[0.07] text-slate-400 transition-all duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] hover:text-white hover:border-white/20">
+                          <Unplug className="w-4 h-4" />
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-slate-900 border-slate-800">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-white font-sora">Déconnecter {platform.name}</AlertDialogTitle>
+                          <AlertDialogDescription className="text-slate-400 font-inter">Vous pourrez le reconnecter à tout moment.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDisconnect(platform.id)} data-testid={`confirm-disconnect-${platform.id}`} className="bg-red-600 hover:bg-red-700 text-white font-inter">Déconnecter</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                ) : isConnected ? (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <button data-testid={`disconnect-${platform.id}`}
