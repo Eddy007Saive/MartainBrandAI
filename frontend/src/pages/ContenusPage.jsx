@@ -459,7 +459,7 @@ export default function ContenusPage() {
 
   const openImage = (contenu) => {
     setImageContenu(contenu);
-    setImgAvecPhoto(!!user?.use_photo);
+    setImgAvecPhoto(false); // opt-in par génération : ta photo n'est incluse QUE si tu coches le toggle
     setImgModele('nano2');
     setActiveTemplate(null); setStyleNote('');
     setImgMode('gabarit'); setSelectedGabarit(null); setTemplateBg(null); setPhotoDesc('');
@@ -1403,12 +1403,26 @@ export default function ContenusPage() {
                               className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50" />
                           )}
                         </div>
-                        {user?.use_photo && (
-                          <div className="flex items-center justify-between p-3 rounded-lg bg-[#0a0f1c] border border-white/10">
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-[#0a0f1c] border border-white/10">
+                          <div>
                             <span className="text-sm text-slate-300 font-inter">Inclure ma photo</span>
-                            <Switch checked={imgAvecPhoto} onCheckedChange={setImgAvecPhoto} />
+                            <p className="text-[11px] text-slate-500 font-inter mt-0.5">
+                              {user?.photo_url
+                                ? 'Décoché = aucun visage/humain ajouté au visuel.'
+                                : 'Ajoute une photo de profil dans Paramètres → Identité pour l’activer.'}
+                            </p>
                           </div>
-                        )}
+                          <Switch
+                            checked={imgAvecPhoto}
+                            onCheckedChange={(v) => {
+                              if (v && !user?.photo_url) {
+                                toast.error('Ajoute d’abord une photo de profil dans Paramètres → Identité.');
+                                return;
+                              }
+                              setImgAvecPhoto(v);
+                            }}
+                          />
+                        </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2">
                             <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Images de référence <span className="text-slate-600 normal-case tracking-normal">· {selectedRefs.length} choisie{selectedRefs.length > 1 ? 's' : ''}</span></label>
