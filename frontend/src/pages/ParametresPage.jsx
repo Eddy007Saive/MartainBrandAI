@@ -793,38 +793,72 @@ export default function ParametresPage() {
     </div>
   );
 
-  const renderConnections = () => (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-400 font-inter">Connectez vos réseaux sociaux via Late pour publier automatiquement.</p>
-      <div className="grid grid-cols-1 gap-3">
+  const renderConnections = () => {
+    const total = SOCIAL_PLATFORMS.length;
+    const nb = connectedPlatforms.length;
+    return (
+    <div className="space-y-5">
+      {/* En-tête + récap de connexion segmenté */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <p className="text-sm text-slate-400 font-inter max-w-md leading-relaxed">
+          Connecte tes comptes pour programmer et publier automatiquement, depuis un seul endroit.
+        </p>
+        <div className="text-right shrink-0">
+          <div className="text-[13px] font-sora font-semibold text-slate-200">
+            <span className="text-[#3AFFA3]">{nb}</span> connecté{nb > 1 ? 's' : ''}
+            <span className="text-slate-600"> · {total - nb} disponible{total - nb > 1 ? 's' : ''}</span>
+          </div>
+          <div className="flex gap-1 mt-2 justify-end">
+            {SOCIAL_PLATFORMS.map((p) => {
+              const on = !!user?.[p.field];
+              return <span key={p.id} className="h-1 w-5 rounded-full"
+                style={{ background: on ? '#3AFFA3' : 'rgba(255,255,255,.09)', boxShadow: on ? '0 0 9px rgba(58,255,163,.5)' : 'none' }} />;
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Liste éditoriale */}
+      <div className="rounded-2xl border border-white/[0.07] bg-slate-950/40 overflow-hidden divide-y divide-white/[0.06]">
         {SOCIAL_PLATFORMS.map((platform) => {
           const isConnected = !!user?.[platform.field];
           const isLoading = connecting === platform.id;
           return (
             <div key={platform.id} data-testid={`connect-card-${platform.id}`}
-              className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950/50 p-4 transition-all duration-300 hover:border-slate-700">
-              <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${platform.color}`} />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <platform.icon className="w-6 h-6 text-white" />
-                  <div>
-                    <h3 className="text-white font-semibold font-sora text-sm">{platform.name}</h3>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      {isConnected ? (
-                        <><Check className="w-3 h-3 text-emerald-400" /><span className="text-xs text-emerald-400 font-inter">Connecté</span></>
-                      ) : (
-                        <span className="text-xs text-slate-500 font-inter">Non connecté</span>
-                      )}
-                    </div>
-                    {isConnected && <p className="text-xs text-slate-500 font-inter mt-0.5 truncate max-w-[200px]">{user[platform.field]}</p>}
+              className="group flex items-center gap-4 px-4 sm:px-5 py-4 transition-colors hover:bg-white/[0.02]">
+              {/* Tuile logo : grisé par défaut, en couleur de marque au survol / si connecté */}
+              <div className="relative w-11 h-11 rounded-xl grid place-items-center shrink-0 bg-[#0a1120] border border-white/[0.07]">
+                {isConnected && <span className="absolute inset-0 rounded-xl pointer-events-none" style={{ boxShadow: `inset 0 0 0 1.5px ${platform.brand}55` }} />}
+                <span className={`transition duration-200 ${isConnected ? '' : 'grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100'}`} style={{ color: platform.brand }}>
+                  <platform.icon className="w-[22px] h-[22px] block" />
+                </span>
+              </div>
+
+              {/* Nom + statut */}
+              <div className="min-w-0 flex-1">
+                <div className="font-sora font-semibold text-[15px] text-white tracking-tight">{platform.name}</div>
+                {isConnected ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3AFFA3] opacity-60" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3AFFA3]" />
+                    </span>
+                    <span className="text-[12.5px] text-[#3AFFA3] font-medium font-inter">Connecté</span>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-[12.5px] text-slate-500 mt-0.5 font-inter">Non connecté</div>
+                )}
+              </div>
+
+              {/* Action */}
+              <div className="shrink-0">
                 {isConnected ? (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm" data-testid={`disconnect-${platform.id}`} className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 font-inter text-xs">
-                        <Unplug className="w-3.5 h-3.5 mr-1" />Déconnecter
-                      </Button>
+                      <button data-testid={`disconnect-${platform.id}`}
+                        className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-slate-500 hover:text-red-400 transition-colors font-inter">
+                        <Unplug className="w-3.5 h-3.5" />Déconnecter
+                      </button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-slate-900 border-slate-800">
                       <AlertDialogHeader>
@@ -839,8 +873,8 @@ export default function ParametresPage() {
                   </AlertDialog>
                 ) : (
                   <Button size="sm" disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`connect-${platform.id}`}
-                    className={`bg-gradient-to-r ${platform.color} hover:opacity-90 text-white font-inter text-xs`}>
-                    {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <ExternalLink className="w-3.5 h-3.5 mr-1" />}
+                    className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:-translate-y-px text-white font-sora font-semibold text-[13px] rounded-xl px-4 shadow-[0_6px_18px_rgba(91,108,255,0.28)] hover:shadow-[0_10px_24px_rgba(91,108,255,0.4)] transition-all disabled:opacity-60 disabled:hover:translate-y-0">
+                    {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <ExternalLink className="w-3.5 h-3.5 mr-1.5" />}
                     Connecter
                   </Button>
                 )}
@@ -850,7 +884,8 @@ export default function ParametresPage() {
         })}
       </div>
     </div>
-  );
+    );
+  };
 
   const renderSchedules = () => (
     <div className="space-y-4">

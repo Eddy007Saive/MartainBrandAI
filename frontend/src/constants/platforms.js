@@ -29,11 +29,11 @@ const YouTubeIcon = ({ className }) => (
 );
 
 export const SOCIAL_PLATFORMS = [
-  { id: 'instagram', name: 'Instagram', field: 'late_account_instagram', color: 'from-pink-500 to-purple-600', icon: InstagramIcon },
-  { id: 'facebook', name: 'Facebook', field: 'late_account_facebook', color: 'from-blue-600 to-blue-700', icon: FacebookIcon },
-  { id: 'linkedin', name: 'LinkedIn', field: 'late_account_linkedin', color: 'from-blue-500 to-cyan-600', icon: LinkedInIcon },
-  { id: 'tiktok', name: 'TikTok', field: 'late_account_tiktok', color: 'from-gray-900 to-gray-800', icon: TikTokIcon },
-  { id: 'youtube', name: 'YouTube', field: 'late_account_youtube', color: 'from-red-600 to-red-700', icon: YouTubeIcon },
+  { id: 'instagram', name: 'Instagram', field: 'late_account_instagram', color: 'from-pink-500 to-purple-600', brand: '#E1306C', icon: InstagramIcon },
+  { id: 'facebook', name: 'Facebook', field: 'late_account_facebook', color: 'from-blue-600 to-blue-700', brand: '#1877F2', icon: FacebookIcon },
+  { id: 'linkedin', name: 'LinkedIn', field: 'late_account_linkedin', color: 'from-blue-500 to-cyan-600', brand: '#0A66C2', icon: LinkedInIcon },
+  { id: 'tiktok', name: 'TikTok', field: 'late_account_tiktok', color: 'from-gray-900 to-gray-800', brand: '#F0F2F5', icon: TikTokIcon },
+  { id: 'youtube', name: 'YouTube', field: 'late_account_youtube', color: 'from-red-600 to-red-700', brand: '#FF0000', icon: YouTubeIcon },
 ];
 
 export { InstagramIcon, FacebookIcon, LinkedInIcon, TikTokIcon, YouTubeIcon };
