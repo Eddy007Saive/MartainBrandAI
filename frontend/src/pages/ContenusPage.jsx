@@ -464,12 +464,12 @@ export default function ContenusPage() {
     setActiveTemplate(null); setStyleNote('');
     setImgMode('gabarit'); setSelectedGabarit(null); setTemplateBg(null); setPhotoDesc('');
     refreshUsage();
-    // Charge la bibliothèque de références (inspirations) — tout sélectionné par défaut
+    // Charge la bibliothèque de références (inspirations) — rien sélectionné par défaut (opt-in)
     userService.listInspirations()
       .then((d) => {
         const arr = Array.isArray(d) ? d : (d?.images || []);
         setInspirations(arr);
-        setSelectedRefs((user?.use_inspirations ?? true) ? arr : []);
+        setSelectedRefs([]);
       })
       .catch(() => { setInspirations([]); setSelectedRefs([]); });
     templateService.list().then((d) => setTemplates(d || [])).catch(() => {});
