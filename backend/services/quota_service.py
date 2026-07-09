@@ -161,7 +161,8 @@ def usage(telegram_id: str) -> dict:
             used = c.get("used_quantity", 0)
             limit = q["included_quantity"] + c.get("extra_quantity", 0)
             gauges.append({"action_type": at, "label": LABELS.get(at, at), "used": used,
-                           "limit": limit, "remaining": max(0, limit - used)})
+                           "limit": limit, "remaining": max(0, limit - used),
+                           "included": q["included_quantity"], "extra": c.get("extra_quantity", 0)})
         return {"subscription": {"status": s["status"], "current_period_end": s["current_period_end"]}, "gauges": gauges}
     except Exception as e:
         logger.error(f"usage {telegram_id}: {e}")

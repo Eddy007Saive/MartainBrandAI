@@ -29,6 +29,11 @@ export const adminService = {
   setPlan: (telegramId, plan, reset_credits = true) =>
     adminFetch(`/admin/users/${telegramId}/plan`, { method: 'PATCH', body: JSON.stringify({ plan, reset_credits }) }),
 
+  // Quotas du client (jauges de la période courante) + bonus individuel par type
+  getUserUsage: (telegramId) => adminFetch(`/admin/users/${telegramId}/usage`),
+  setQuotaBonus: (telegramId, action_type, extra_quantity) =>
+    adminFetch(`/admin/users/${telegramId}/quota-bonus`, { method: 'PATCH', body: JSON.stringify({ action_type, extra_quantity }) }),
+
   // Thème Submagic de marque (userThemeId créé par l'admin dans l'éditeur Submagic)
   setSubmagicTheme: (telegramId, submagic_theme_id, submagic_theme_label) =>
     adminFetch(`/admin/users/${telegramId}/submagic-theme`, { method: 'PATCH', body: JSON.stringify({ submagic_theme_id, submagic_theme_label }) }),

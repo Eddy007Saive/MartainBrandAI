@@ -196,6 +196,67 @@ async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(v
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/users/{telegram_id}/usage")
+async def get_user_usage(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+    """Jauges de quotas du client (utilisé / plafond / restant par type) + plan courant."""
+    try:
+        from services import quota_service
+        u = quota_service.usage(telegram_id)
+        # Nom du plan pour l'affichage admin
+        sub = (supabase.table("subscriptions").select("plan_id").eq("user_id", telegram_id)
+               .in_("status", ["trialing", "active", "past_due"]).order("created_at", desc=True).limit(1).execute())
+        plan_name = None
+        if sub.data:
+            p = supabase.table("plans").select("name").eq("id", sub.data[0]["plan_id"]).limit(1).execute()
+            plan_name = p.data[0]["name"] if p.data else None
+        u["plan_name"] = plan_name
+        return u
+    except Exception as e:
+        logger.error(f"Get user usage error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class QuotaBonus(BaseModel):
+    action_type: str
+    extra_quantity: int  # bonus TOTAL pour la période courante (0 = retirer le bonus)
+
+
+@router.patch("/users/{telegram_id}/quota-bonus")
+async def set_quota_bonus(telegram_id: str, body: QuotaBonus, payload: dict = Depends(verify_admin_token)):
+    """Fixe le bonus de quota (extra_quantity) d'un client pour UN type d'action, sur la période en cours.
+    N'affecte que ce client ; au renouvellement, le compteur repart sur les quotas du plan."""
+    if body.extra_quantity < 0:
+        raise HTTPException(status_code=400, detail="extra_quantity doit être >= 0")
+    try:
+        sub = (supabase.table("subscriptions").select("id, current_period_start, current_period_end")
+               .eq("user_id", telegram_id).in_("status", ["trialing", "active", "past_due"])
+               .order("created_at", desc=True).limit(1).execute())
+        if not sub.data:
+            raise HTTPException(status_code=404, detail="Aucun abonnement actif pour ce client")
+        s = sub.data[0]
+        # Compteur de la période courante : maj s'il existe, sinon création (used=0)
+        rows = (supabase.table("usage_counters").select("id, period_start")
+                .eq("subscription_id", s["id"]).eq("action_type", body.action_type).execute()).data or []
+        from services.quota_service import _parse
+        ps = _parse(s["current_period_start"])
+        current = [r for r in rows if abs((_parse(r["period_start"]) - ps).total_seconds()) < 5]
+        if current:
+            supabase.table("usage_counters").update({"extra_quantity": body.extra_quantity}).eq("id", current[0]["id"]).execute()
+        else:
+            supabase.table("usage_counters").insert({
+                "subscription_id": s["id"], "action_type": body.action_type,
+                "period_start": s["current_period_start"], "period_end": s["current_period_end"],
+                "used_quantity": 0, "extra_quantity": body.extra_quantity,
+            }).execute()
+        from services import quota_service
+        return quota_service.usage(telegram_id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Set quota bonus error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 class SubmagicThemeUpdate(BaseModel):
     submagic_theme_id: Optional[str] = None
     submagic_theme_label: Optional[str] = None

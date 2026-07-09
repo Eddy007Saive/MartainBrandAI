@@ -90,6 +90,10 @@ export default function Admin() {
   const [themeForm, setThemeForm] = useState({ id: '', label: '' });
   const [userActionLoading, setUserActionLoading] = useState(false);
 
+  // Quotas du client (jauges période courante + bonus individuels)
+  const [userUsage, setUserUsage] = useState(null);
+  const [bonusInputs, setBonusInputs] = useState({});
+
   // Paramètres (système)
   const [system, setSystem] = useState(null);
   const [sysAction, setSysAction] = useState(null);
@@ -250,6 +254,36 @@ export default function Admin() {
       setUsers((prev) => prev.map((x) => x.telegram_id === telegramId ? { ...x, ...u } : x));
     } catch (_) { /* noop */ }
   };
+
+  const loadUserUsage = async (telegramId) => {
+    setUserUsage(null);
+    try {
+      const u = await adminService.getUserUsage(telegramId);
+      setUserUsage(u);
+      const inputs = {};
+      for (const g of u.gauges || []) inputs[g.action_type] = String(g.extra ?? 0);
+      setBonusInputs(inputs);
+    } catch (_) { setUserUsage({ gauges: [] }); }
+  };
+
+  const handleSetBonus = async (actionType) => {
+    if (!selectedUser) return;
+    const val = parseInt(bonusInputs[actionType], 10);
+    if (Number.isNaN(val) || val < 0) { toast.error('Bonus invalide'); return; }
+    setUserActionLoading(true);
+    try {
+      const u = await adminService.setQuotaBonus(selectedUser.telegram_id, actionType, val);
+      setUserUsage((prev) => ({ ...(prev || {}), ...u }));
+      toast.success(val > 0 ? `Bonus ${val} appliqué ✓` : 'Bonus retiré');
+    } catch (e) { toast.error('Erreur bonus quota'); }
+    finally { setUserActionLoading(false); }
+  };
+
+  // Charge les jauges de quotas à l'ouverture de la fiche client
+  useEffect(() => {
+    if (selectedUser?.telegram_id) loadUserUsage(selectedUser.telegram_id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedUser?.telegram_id]);
 
   const handleSetCredits = async (mode) => {
     if (!selectedUser) return;
@@ -1163,6 +1197,48 @@ export default function Admin() {
                     {userActionLoading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 self-center" />}
                   </div>
                 </div>
+              </div>
+
+              {/* Quotas (période en cours) — jauges + bonus individuel par type */}
+              <div className="bg-slate-800/40 border border-white/5 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <h4 className="text-sm font-semibold text-white font-sora flex items-center gap-2"><Coins className="w-4 h-4 text-[#3AFFA3]" />Quotas — période en cours</h4>
+                  {userUsage?.plan_name && <Badge className="bg-[#5B6CFF]/15 text-[#b9a6ff] border border-[#5B6CFF]/30">{userUsage.plan_name}</Badge>}
+                </div>
+                {!userUsage ? (
+                  <div className="flex items-center gap-2 text-slate-400 text-xs py-2"><Loader2 className="w-3.5 h-3.5 animate-spin" />Chargement des quotas…</div>
+                ) : !(userUsage.gauges || []).length ? (
+                  <p className="text-xs text-slate-500">Aucun abonnement actif — pas de quotas à afficher.</p>
+                ) : (
+                  <div className="space-y-2.5">
+                    <p className="text-xs text-slate-500">« Bonus » = quantité offerte en plus du plan, pour CE client, sur la période en cours uniquement.</p>
+                    {userUsage.gauges.map((g) => {
+                      const pct = g.limit > 0 ? Math.min(100, Math.round((g.used / g.limit) * 100)) : 0;
+                      return (
+                        <div key={g.action_type} className="flex items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline justify-between text-xs mb-1">
+                              <span className="text-slate-300 capitalize">{g.label}</span>
+                              <span className="text-slate-500 tabular-nums">{g.used}/{g.limit}{g.extra > 0 && <span className="text-[#3AFFA3]"> (+{g.extra})</span>} · reste {g.remaining}</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
+                              <div className={`h-full rounded-full ${pct >= 90 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]'}`} style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <Input type="number" min="0" value={bonusInputs[g.action_type] ?? ''}
+                              onChange={(e) => setBonusInputs((b) => ({ ...b, [g.action_type]: e.target.value }))}
+                              className="bg-slate-950/50 border-slate-800 text-slate-200 text-xs w-20 h-8" title="Bonus (quantité offerte en plus du plan)" />
+                            <Button size="sm" onClick={() => handleSetBonus(g.action_type)} disabled={userActionLoading}
+                              className="h-8 bg-[#3AFFA3]/15 text-[#3AFFA3] hover:bg-[#3AFFA3]/25 border border-[#3AFFA3]/25 text-xs px-2.5">
+                              <Save className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Thème vidéo Submagic (assigné par l'admin) */}
