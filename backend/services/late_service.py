@@ -154,6 +154,108 @@ def _notify(telegram_id, contenu_id, reseau, event, titre, message):
         logger.warning(f"notif insert error: {e}")
 
 
+async def programmer_contenu(telegram_id: str, contenu_id: str) -> dict:
+    """Pousse un contenu PLANIFIÉ vers Zernio (programmé à sa date) et met à jour la ligne.
+    Utilisé par l'auto-push (visuel prêt -> statut Planifie) et par le balayage cron de
+    rattrapage — garantit que « Planifié » dans l'app = réellement programmé sur Zernio.
+    Best-effort : ne lève jamais, retourne {ok, ...} ou {ok: False, skipped?/error?}."""
+    try:
+        r = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+        contenu = r.data[0] if r.data else None
+        if not contenu:
+            return {"ok": False, "skipped": "introuvable"}
+        if contenu.get("publish_status") == "publié":
+            return {"ok": False, "skipped": "déjà publié"}
+        # Déjà programmé sur Zernio -> rien à faire (la re-programmation explicite passe par /late/publier)
+        if contenu.get("late_post_id") and contenu.get("publish_status") in ("programmé", "envoi"):
+            return {"ok": True, "late_post_id": contenu["late_post_id"], "already": True}
+        # Vidéo pas encore montée -> on attend (le montage repassera par ici)
+        is_video = contenu.get("type") in ("Reel", "Video", "Short") or contenu.get("video_status")
+        if is_video and not contenu.get("video_url"):
+            return {"ok": False, "skipped": "vidéo non montée"}
+
+        res = await publish_contenu(telegram_id, contenu)
+        if res.get("ok"):
+            supabase.table("contenu").update({
+                "late_post_id": res.get("late_post_id"),
+                "publish_status": "envoi", "publish_error": None,
+            }).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+            logger.info(f"Auto-programmation Zernio ok: contenu {contenu_id} -> {res.get('late_post_id')}")
+        else:
+            supabase.table("contenu").update({
+                "publish_status": "échec", "publish_error": res.get("error"),
+            }).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+            logger.warning(f"Auto-programmation Zernio échec: contenu {contenu_id}: {res.get('error')}")
+        return res
+    except Exception as e:
+        logger.error(f"programmer_contenu {contenu_id}: {e}")
+        return {"ok": False, "error": str(e)}
+
+
+async def sweep_planifies() -> int:
+    """Filet de sécurité en 2 passes :
+    1) RATTRAPAGE — contenus 'Planifie' à date FUTURE jamais poussés (late_post_id absent) :
+       lignes héritées de l'ancien flux optimiste -> on les programme sur Zernio.
+    2) RÉCONCILIATION — contenus poussés mais restés en publish_status='envoi' (webhook
+       post.scheduled raté) : on lit l'état réel du post chez Zernio et on aligne la base."""
+    n = 0
+    # --- Passe 1 : rattrapage des jamais-poussés ---
+    try:
+        now = datetime.now(timezone.utc).isoformat()
+        r = (supabase.table("contenu")
+             .select("id, telegram_id")
+             .eq("statut", "Planifie")
+             .is_("late_post_id", "null")
+             .is_("publish_status", "null")
+             .gt("date_publication", now)
+             .limit(20).execute())
+        rows = r.data or []
+        for c in rows:
+            res = await programmer_contenu(c["telegram_id"], c["id"])
+            if res.get("ok"):
+                n += 1
+        if rows:
+            logger.info(f"sweep_planifies: {n}/{len(rows)} contenu(s) rattrapé(s) -> Zernio")
+    except Exception as e:
+        logger.error(f"sweep_planifies (rattrapage): {e}")
+
+    # --- Passe 2 : réconciliation des 'envoi' avec l'état réel Zernio ---
+    try:
+        r2 = (supabase.table("contenu")
+              .select("id, late_post_id")
+              .eq("publish_status", "envoi")
+              .not_.is_("late_post_id", "null")
+              .limit(10).execute())
+        for c in (r2.data or []):
+            try:
+                async with _client() as cl:
+                    p = await cl.posts.aget(post_id=c["late_post_id"])
+                post = getattr(p, "post", None) or p
+                status = getattr(post, "status", None)
+                status = (getattr(status, "value", None) or str(status) or "").lower()
+                if "publish" in status:
+                    upd = {"publish_status": "publié", "statut": "Publie"}
+                elif "schedul" in status or "pending" in status or "queue" in status:
+                    upd = {"publish_status": "programmé", "statut": "Planifie"}
+                elif "fail" in status:
+                    upd = {"publish_status": "échec", "publish_error": "Échec côté Zernio (réconciliation)"}
+                else:
+                    continue
+                supabase.table("contenu").update(upd).eq("id", c["id"]).execute()
+                logger.info(f"sweep réconciliation: contenu {c['id']} -> {upd['publish_status']}")
+            except ZernioError as e:
+                msg = (getattr(e, "message", None) or str(e)).lower()
+                if "not found" in msg or "404" in msg:
+                    # Le post n'existe plus côté Zernio -> on libère la ligne pour re-programmation
+                    supabase.table("contenu").update({"late_post_id": None, "publish_status": None}).eq("id", c["id"]).execute()
+                    logger.warning(f"sweep réconciliation: post Zernio disparu, contenu {c['id']} libéré")
+            except Exception as e:
+                logger.warning(f"sweep réconciliation {c['id']}: {e}")
+    except Exception as e:
+        logger.error(f"sweep_planifies (réconciliation): {e}")
+    return n
+
+
 async def cancel_post(late_post_id: str) -> dict:
     """Supprime un post dans Late (Zernio deletePost) — annulation d'envoi ou suppression."""
     if not LATE_API_KEY:
@@ -275,7 +377,9 @@ def handle_webhook(payload: dict) -> dict:
         upd = {"publish_status": "échec", "publish_error": str(reason)[:400]}
         notif = ("Échec de publication ❌", f"« {titre_c} » n'a pas pu être publié sur {reseau} : {reason}")
     elif "scheduled" in event:                     # post.scheduled (confirme la mise en file)
-        upd = {"publish_status": "programmé"}
+        # SEUL endroit qui pose statut=Planifie : la planification est confirmée PAR Zernio
+        # (fini les contenus "Planifié" côté app qui n'existent pas côté Zernio).
+        upd = {"publish_status": "programmé", "statut": "Planifie"}
         notif = ("Publication programmée ⏱", f"« {titre_c} » est programmé sur {reseau}.")
     elif "cancelled" in event:                     # post.cancelled
         upd = {"publish_status": "annulé"}

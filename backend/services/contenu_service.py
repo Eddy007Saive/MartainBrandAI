@@ -22,8 +22,8 @@ def upload_visuel(telegram_id: str, contenu_id: str, file_bytes: bytes) -> dict 
     url = up["secure_url"]
 
     upd = {"lien_visuel": url}
-    if cur.get("statut") in ("A valider", "Valider"):
-        upd["statut"] = "Planifie"
+    # Pas de statut "Planifie" optimiste : la route appelante pousse vers Zernio et c'est
+    # l'event webhook post.scheduled qui confirmera le statut (source de vérité = Zernio).
     if not cur.get("date_publication"):
         creneau = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"))
         if creneau:

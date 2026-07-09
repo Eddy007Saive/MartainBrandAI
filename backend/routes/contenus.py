@@ -25,6 +25,14 @@ async def upload_contenu_image(contenu_id: str, file: UploadFile = File(...), pa
         raise HTTPException(status_code=500, detail="Échec de l'import de l'image")
     if not res:
         raise HTTPException(status_code=404, detail="Contenu introuvable")
+    # Visuel prêt + date -> on programme sur Zernio (le webhook post.scheduled posera le statut Planifie)
+    if res.get("date_publication"):
+        try:
+            from services import late_service
+            pub = await late_service.programmer_contenu(telegram_id, contenu_id)
+            res["publish_status"] = "envoi" if pub.get("ok") else ("ignoré" if pub.get("skipped") else "échec")
+        except Exception as e:
+            logger.warning(f"auto-programmation après import visuel {contenu_id}: {e}")
     return res
 
 

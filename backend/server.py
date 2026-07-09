@@ -62,6 +62,7 @@ app.add_middleware(
 
 
 _cron_task = None
+_sweep_task = None
 
 
 async def _analytics_cron():
@@ -77,18 +78,36 @@ async def _analytics_cron():
         await asyncio.sleep(interval)
 
 
+async def _publish_sweep_cron():
+    """Filet de sécurité : toutes les 10 min, programme sur Zernio les contenus 'Planifie'
+    à date future jamais poussés (late_post_id absent) — un statut Planifié dans l'app
+    doit TOUJOURS correspondre à un post programmé côté Zernio."""
+    from services import late_service
+    await asyncio.sleep(90)
+    while True:
+        try:
+            await late_service.sweep_planifies()
+        except Exception as e:
+            logger.error(f"publish sweep loop: {e}")
+        await asyncio.sleep(600)
+
+
 @app.on_event("startup")
 async def startup():
-    global _cron_task
+    global _cron_task, _sweep_task
     if ANALYTICS_CRON_HOURS and ANALYTICS_CRON_HOURS > 0:
         _cron_task = asyncio.create_task(_analytics_cron())
         logger.info(f"Cron analytics activé (toutes les {ANALYTICS_CRON_HOURS} h)")
+    _sweep_task = asyncio.create_task(_publish_sweep_cron())
+    logger.info("Cron programmation Zernio activé (balayage toutes les 10 min)")
 
 
 @app.on_event("shutdown")
 async def shutdown():
     if _cron_task:
         _cron_task.cancel()
+    if _sweep_task:
+        _sweep_task.cancel()
 
 
 # Lancement direct (Railway/Docker) : lit le port depuis $PORT, sans dépendre de l'expansion shell.

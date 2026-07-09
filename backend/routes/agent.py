@@ -747,19 +747,26 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         # En template on sauvegarde l'instruction BRUTE (pas le prompt combiné accroche+consignes),
         # sinon elle se réinjecte dans le champ et s'empile à chaque régénération.
         upd = {"lien_visuel": res["lien_visuel"], "prompt_image": (user_instr if template_mode else prompt)}
-        # Le visuel est prêt -> on confirme la planification (statut Planifie + date si absente)
+        # Le visuel est prêt -> on fixe la date puis on POUSSE vers Zernio. Le statut ne passe
+        # PLUS à "Planifie" ici : seul l'event webhook post.scheduled le confirme (source de
+        # vérité = Zernio ; fini les posts "Planifié" qui n'existent nulle part).
         cur = (supabase.table("contenu").select("statut, reseau_cible, date_publication")
                .eq("id", contenu_id).eq("telegram_id", telegram_id).execute())
         c = cur.data[0] if cur.data else {}
-        if c.get("statut") in ("A valider", "Valider"):
-            upd["statut"] = "Planifie"
         if not c.get("date_publication"):
             creneau = planning_service.prochain_creneau(telegram_id, c.get("reseau_cible"))
             if creneau:
                 upd["date_publication"] = creneau
         supabase.table("contenu").update(upd).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
-        res["statut"] = upd.get("statut")
+        res["statut"] = c.get("statut")
         res["date_publication"] = upd.get("date_publication") or c.get("date_publication")
+        if c.get("statut") in ("A valider", "Valider", "Planifie") and res["date_publication"]:
+            try:
+                from services import late_service
+                pub = await late_service.programmer_contenu(telegram_id, contenu_id)
+                res["publish_status"] = "envoi" if pub.get("ok") else ("ignoré" if pub.get("skipped") else "échec")
+            except Exception as e:
+                logger.warning(f"auto-programmation après visuel {contenu_id}: {e}")
     usage_service.log(telegram_id, "image", model_id, {}, q.get("unit_cost", 0), cost_override=usage_service.IMAGE_PRICES.get(modele, 0.04))
     res["quota"] = {"action": action_type, "used": q.get("used"), "limit": q.get("limit")}
     return res
