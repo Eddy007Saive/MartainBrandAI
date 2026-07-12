@@ -150,6 +150,11 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
         )}
         {contenu.reseau_cible && <span className="absolute top-2.5 left-2.5"><ReseauBadge reseau={contenu.reseau_cible} /></span>}
         <span className="absolute top-2.5 right-2.5"><StatusBadge statut={contenu.statut} /></span>
+        {contenu.type === 'Story' && (
+          <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
+            Story · 24h
+          </span>
+        )}
       </div>
 
       {/* Corps */}

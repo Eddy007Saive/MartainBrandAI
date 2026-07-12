@@ -55,6 +55,7 @@ export default function StudioVideo() {
   const [customId, setCustomId] = useState(null);  // thème/preset perso sélectionné
   const [mode, setMode] = useState('montage');     // 'montage' (Submagic) | 'direct' (import tel quel)
   const [reseaux, setReseaux] = useState(['instagram']);  // multi-réseaux → 1 carte contenu par réseau
+  const [asStory, setAsStory] = useState(false);          // story 24h (Instagram/Facebook) au lieu de Reel
   const [result, setResult] = useState(null);
   const [playing, setPlaying] = useState(null);    // id de la piste en cours d'écoute
   const [musicCat, setMusicCat] = useState(null);  // catégorie de musique ouverte (menu 2 niveaux)
@@ -134,7 +135,7 @@ export default function StudioVideo() {
       const titre = draft?.titre || file?.name?.replace(/\.[^.]+$/, '') || 'Vidéo';
       if (mode === 'direct') {
         // Import tel quel : pas de Submagic, pas de quota.
-        await videoService.importVideo({ video_url: up.video_url, contenu_id: contenuId || undefined, titre, reseaux });
+        await videoService.importVideo({ video_url: up.video_url, contenu_id: contenuId || undefined, titre, reseaux, as_story: asStory });
         setResult({ video_url: up.video_url }); setStep('done');
         return;
       }
@@ -174,7 +175,7 @@ export default function StudioVideo() {
     if (!reseaux.length || !result?.video_url || !cid) return;
     setPublishing(true);
     try {
-      await videoService.importVideo({ contenu_id: cid, video_url: result.video_url, titre: result.titre || draft?.titre, reseaux });
+      await videoService.importVideo({ contenu_id: cid, video_url: result.video_url, titre: result.titre || draft?.titre, reseaux, as_story: asStory });
       toast.success('Réseau(x) enregistré(s) ✓ — valide & publie depuis Contenus.');
       navigate('/dashboard/contenus');
     } catch (e) {
@@ -267,6 +268,20 @@ export default function StudioVideo() {
               </div>
               {reseaux.length > 1 && (
                 <p className="text-[11px] text-slate-500 font-inter mt-1.5">1 montage → {reseaux.length} publications (une carte par réseau dans Contenus).</p>
+              )}
+              {/* Story 24h — seulement si Instagram/Facebook sélectionné (support Zernio) */}
+              {(reseaux.includes('instagram') || reseaux.includes('facebook')) && (
+                <button type="button" onClick={() => setAsStory((v) => !v)}
+                  className={`mt-2.5 w-full flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all ${
+                    asStory ? 'border-[#8A6CFF]/50 bg-[#5B6CFF]/10' : 'border-white/[0.06] bg-[#0c111f] hover:border-white/[0.12]'}`}>
+                  <span>
+                    <span className={`block text-[12.5px] font-sora font-semibold ${asStory ? 'text-white' : 'text-slate-300'}`}>Publier en Story · 24h</span>
+                    <span className="block text-[11px] text-slate-500 font-inter mt-0.5">Éphémère, plein écran (Instagram/Facebook). Les autres réseaux restent en Reel.</span>
+                  </span>
+                  <span className={`shrink-0 w-9 h-5 rounded-full relative transition-colors ${asStory ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]' : 'bg-white/10'}`}>
+                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${asStory ? 'left-[18px]' : 'left-0.5'}`} />
+                  </span>
+                </button>
               )}
             </div>
 

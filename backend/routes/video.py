@@ -284,7 +284,14 @@ async def import_video(body: dict, payload: dict = Depends(verify_token)):
     title = (body.get("titre") or "Vidéo")[:120]
     targets = _targets(body) or ["Instagram"]
     poster = _poster(video_url)
-    patch = {"type": "Reel", "statut": "A valider", "video_status": "pret",
+    # Story vidéo (éphémère 24h) : Instagram/Facebook uniquement (support Zernio) ;
+    # les autres réseaux de la même rafale restent des Reels classiques.
+    as_story = bool(body.get("as_story"))
+
+    def type_for(net: str) -> str:
+        return "Story" if (as_story and net in ("Instagram", "Facebook")) else "Reel"
+
+    patch = {"statut": "A valider", "video_status": "pret",
              "video_url": video_url, "video_preview_url": None, "lien_visuel": poster,
              "submagic_project_id": None, "video_raw_id": None}
     existing_id = body.get("contenu_id")
@@ -295,13 +302,15 @@ async def import_video(body: dict, payload: dict = Depends(verify_token)):
         script_txt = ex.get("script")
         primary_net = ex.get("reseau_cible") or targets[0]
         p = dict(patch)
+        p["type"] = type_for(primary_net)
         if not ex.get("reseau_cible"):
             p["reseau_cible"] = primary_net
         supabase.table("contenu").update(p).eq("id", existing_id).eq("telegram_id", telegram_id).execute()
         contenu_id = existing_id
     else:
         primary_net = targets[0]
-        row = {"telegram_id": telegram_id, "titre": title, "reseau_cible": primary_net, **patch}
+        row = {"telegram_id": telegram_id, "titre": title, "reseau_cible": primary_net,
+               "type": type_for(primary_net), **patch}
         ins = supabase.table("contenu").insert(row).execute()
         contenu_id = ins.data[0]["id"] if ins.data else None
     # Réseaux supplémentaires → contenus « jumeaux » (même vidéo, publiés séparément).
@@ -309,7 +318,7 @@ async def import_video(body: dict, payload: dict = Depends(verify_token)):
         if net == primary_net:
             continue
         supabase.table("contenu").insert({
-            "telegram_id": telegram_id, "titre": title, "type": "Reel", "statut": "A valider",
+            "telegram_id": telegram_id, "titre": title, "type": type_for(net), "statut": "A valider",
             "video_status": "pret", "video_url": video_url, "video_preview_url": None,
             "lien_visuel": poster, "reseau_cible": net, "script": script_txt,
         }).execute()

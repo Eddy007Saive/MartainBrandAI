@@ -22,7 +22,7 @@ const NET_META = {
   youtube:   { short: '▶', cls: 'bg-[#ff0000]' },
   googlebusiness: { short: 'G', cls: 'bg-[#4285f4]' },
 };
-const FORMAT_LABEL = { post: 'Post écrit', reel: 'Réel', video: 'Vidéo' };
+const FORMAT_LABEL = { post: 'Post écrit', reel: 'Réel', video: 'Vidéo', story: 'Story' };
 // coût crédits par (kind × qualité) — kind: post | script
 const COST = {
   post:      { rapide: 8, equilibre: 20, premium: 40 },
@@ -30,12 +30,12 @@ const COST = {
   carrousel: { rapide: 40, equilibre: 80, premium: 140 },
 };
 // libellés des formats
-const FORMAT_LBL = { post: 'Post', carrousel: 'Carrousel', reel: 'Réel', video: 'Vidéo' };
-// formats acceptés PAR réseau (chaque réseau n'accepte pas tout)
+const FORMAT_LBL = { post: 'Post', carrousel: 'Carrousel', reel: 'Réel', video: 'Vidéo', story: 'Story' };
+// formats acceptés PAR réseau (chaque réseau n'accepte pas tout) — story : Instagram/Facebook (Zernio)
 const FORMATS_BY_NET = {
   linkedin:  ['post', 'carrousel', 'video'],
-  instagram: ['post', 'carrousel', 'reel', 'video'],
-  facebook:  ['post', 'carrousel', 'reel', 'video'],
+  instagram: ['post', 'carrousel', 'reel', 'video', 'story'],
+  facebook:  ['post', 'carrousel', 'reel', 'video', 'story'],
   tiktok:    ['reel', 'video'],
   youtube:   ['video', 'reel'],
   googlebusiness: ['post'],
@@ -50,7 +50,7 @@ const QUALITES = [
   { id: 'equilibre', label: 'Équilibré' },
   { id: 'premium', label: 'Premium' },
 ];
-const costKey = (fmt) => (fmt === 'post' ? 'post' : fmt === 'carrousel' ? 'carrousel' : 'script');
+const costKey = (fmt) => (fmt === 'post' || fmt === 'story' ? 'post' : fmt === 'carrousel' ? 'carrousel' : 'script');
 
 export default function PlanEditorial() {
   const { user } = useUser();

@@ -86,9 +86,16 @@ async def publish_contenu(telegram_id: str, contenu: dict) -> dict:
     if not content and not media:
         return {"ok": False, "error": "Le contenu est vide (ni texte ni visuel)."}
 
+    plat_entry = {"platform": reseau, "accountId": account_id}
+    # Story (Instagram/Facebook) : éphémère 24h, 1 média requis, pas de légende côté plateforme.
+    if (contenu.get("type") == "Story") and reseau in ("instagram", "facebook"):
+        if not media:
+            return {"ok": False, "error": "Une story nécessite un visuel — génère ou importe une image d'abord."}
+        plat_entry["platformSpecificData"] = {"contentType": "story"}
+
     kwargs = {
         "content": content,
-        "platforms": [{"platform": reseau, "accountId": account_id}],
+        "platforms": [plat_entry],
         "timezone": user_tz,
     }
     if media:

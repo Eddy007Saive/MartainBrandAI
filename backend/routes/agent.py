@@ -139,7 +139,8 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             continue
         # format : choisi par l'utilisateur (par réseau), sinon cadence du réseau
         fmt = (it.get("format") or formats.get(reseau_low) or "post")
-        action = "post" if fmt == "post" else "carrousel" if fmt == "carrousel" else "script"
+        # story = texte court (accroche du visuel) -> même pipeline que post ; le visuel 9:16 suit
+        action = "post" if fmt in ("post", "story") else "carrousel" if fmt == "carrousel" else "script"
         qtype = "carousel" if action == "carrousel" else "post"  # script compte comme un post
         q = quota_service.consume(telegram_id, qtype)
         if not q.get("ok"):
@@ -178,6 +179,9 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             }
             if date_pub:
                 row["date_publication"] = date_pub
+            if fmt == "story":
+                # Story : publiée en éphémère 24h (contentType=story chez Zernio), visuel 9:16 requis
+                row["type"] = "Story"
             if action == "carrousel":
                 row["type"] = "Carrousel"
                 if ccontent:
@@ -686,25 +690,24 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     user_instr = prompt  # instruction BRUTE de l'utilisateur (avant combinaison template -> pour la sauvegarde)
     template_mode = bool(body.get("template_mode"))  # template de marque = modèle fixe, l'IA ne change que le texte
     contenu_id = body.get("contenu_id")
-    # Mode template : l'IA écrit le texte depuis le post (accroche) + on ajoute les instructions
-    # optionnelles saisies par l'utilisateur (ex. « mets la photo de référence dans le cercle »).
+    # Mode template : SOIT l'utilisateur donne des consignes (elles pilotent SEULES le rendu),
+    # SOIT on compose l'accroche depuis le post. JAMAIS les deux — sinon le modèle reçoit
+    # « affiche X » + « remplace par Y » et rend les DEUX phrases sur le visuel.
     if template_mode and contenu_id:
-        accroche = ""
-        try:
-            row = supabase.table("contenu").select("contenu, titre").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
-            texte_post = (row.data[0].get("contenu") or row.data[0].get("titre") or "") if row.data else ""
-            comp = agent_service.composer_gabarit(telegram_id, "statement", texte_post)
-            if not comp.get("error"):
-                accroche = " ".join((l.get("t") or "") for l in (comp["slots"].get("title_lines") or [])).strip()
-        except Exception as e:
-            logger.warning(f"template accroche {contenu_id}: {e}")
-        parts = []
-        if accroche:
-            parts.append(f"Texte à afficher : {accroche}")
         if user_instr:
-            parts.append(f"Consignes de l'utilisateur : {user_instr}")
-        if parts:
-            prompt = "\n".join(parts)
+            prompt = f"Consignes de l'utilisateur : {user_instr}"
+        else:
+            accroche = ""
+            try:
+                row = supabase.table("contenu").select("contenu, titre").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+                texte_post = (row.data[0].get("contenu") or row.data[0].get("titre") or "") if row.data else ""
+                comp = agent_service.composer_gabarit(telegram_id, "statement", texte_post)
+                if not comp.get("error"):
+                    accroche = " ".join((l.get("t") or "") for l in (comp["slots"].get("title_lines") or [])).strip()
+            except Exception as e:
+                logger.warning(f"template accroche {contenu_id}: {e}")
+            if accroche:
+                prompt = f"Texte à afficher : {accroche}"
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt requis")
     # En template, le front propose HD par défaut (meilleur texte) mais l'utilisateur peut choisir
@@ -717,8 +720,17 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=402, detail=q.get("message"))
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
+    # Story -> visuel vertical 9:16 (sinon 4:5 feed)
+    ratio = "4:5"
+    if contenu_id:
+        try:
+            t = supabase.table("contenu").select("type").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+            if t.data and t.data[0].get("type") == "Story":
+                ratio = "9:16"
+        except Exception:
+            pass
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode)
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent image error: {e}")

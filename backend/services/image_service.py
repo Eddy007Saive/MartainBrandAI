@@ -116,13 +116,14 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5") -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     `refs` : images de référence de STYLE choisies à la génération (URLs). Si fourni
     (même vide), il a priorité ; sinon on retombe sur les inspirations du compte.
     Les images de référence (photo + style) sont validées : liens Drive convertis,
     images invalides ignorées (la génération continue sans elles plutôt que d'échouer).
+    `ratio` : format de sortie ("4:5" feed par défaut, "9:16" pour les stories).
     """
     if not OPENROUTER_API_KEY:
         return {"error": "no_openrouter_key"}
@@ -131,6 +132,10 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     # Directive de style imposée par un template de marque
     if style_note:
         prompt = f"{prompt}\n\nDirective de style à respecter : {style_note}"
+
+    # Story : composition verticale plein écran (le recadrage Cloudinary suivra en 9:16)
+    if ratio == "9:16":
+        prompt = f"{prompt}\n\nFormat VERTICAL 9:16 plein écran mobile (story Instagram) : composition pensée pour la hauteur, éléments importants centrés (pas collés aux bords hauts/bas)."
 
     # Photo de l'utilisateur demandée -> PHOTO RÉALISTE (pas d'illustration)
     photo_refs = []
@@ -180,18 +185,23 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                 "position, la même taille et la même forme de découpe que dans le gabarit. IMPÉRATIF : l'image "
                 "de référence ne doit PAS devenir le fond de toute l'image ni déborder de la zone photo ; le "
                 "fond, le texte et la disposition du gabarit restent intacts et priment. Ne reproduis NI la mise "
-                "en page NI le texte de l'image de référence. Remplace le texte du gabarit par le contenu "
-                "ci-dessous en gardant les accents français corrects (é, è, ê…). Texte parfaitement lisible, "
-                "sans faute.\n\n" + prompt
+                "en page NI le texte de l'image de référence. Pour le TEXTE : si un « Texte à afficher » est "
+                "fourni ci-dessous, c'est LUI (et lui seul) qui REMPLACE le texte du gabarit ; si des "
+                "« Consignes de l'utilisateur » sont fournies, EXÉCUTE-les — ce sont des ORDRES, pas du texte à "
+                "afficher (ex. « remplace la phrase par X » = afficher UNIQUEMENT X). L'ancien texte du gabarit "
+                "DISPARAÎT : ne montre JAMAIS l'ancien et le nouveau en même temps. Garde les accents français "
+                "corrects (é, è, ê…). Texte parfaitement lisible, sans faute.\n\n" + prompt
             )
         else:
             texte = (
                 "ÉDITE cette image, c'est ton GABARIT DE MARQUE, et RESPECTE SON DESIGN À LA LETTRE : "
                 "arrière-plan, photo/sujet, couleurs, composition, éléments graphiques, polices et positions "
-                "restent STRICTEMENT IDENTIQUES. Ne génère PAS une nouvelle image. La SEULE modification est de "
-                "REMPLACER le texte existant par le nouveau contenu ci-dessous (même emplacement, même style, "
-                "parfaitement lisible, sans faute). Applique d'éventuelles « Consignes de l'utilisateur » "
-                "seulement si elles ne cassent pas le gabarit.\n\n" + prompt
+                "restent STRICTEMENT IDENTIQUES. Ne génère PAS une nouvelle image. La SEULE modification est le "
+                "TEXTE : si un « Texte à afficher » est fourni ci-dessous, c'est LUI (et lui seul) qui REMPLACE "
+                "le texte existant (même emplacement, même style) ; si des « Consignes de l'utilisateur » sont "
+                "fournies, EXÉCUTE-les — ce sont des ORDRES, pas du texte à afficher (ex. « remplace la phrase "
+                "par X » = afficher UNIQUEMENT X). L'ancien texte DISPARAÎT : ne montre JAMAIS l'ancien et le "
+                "nouveau en même temps. Parfaitement lisible, sans faute, accents français corrects.\n\n" + prompt
             )
         content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
@@ -236,9 +246,9 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     b64 = url_data.split(",", 1)[1] if "," in url_data else url_data
     img_bytes = base64.b64decode(b64)
 
-    # Format normalisé 4:5 (feed cohérent, compatible Instagram) — recadrage intelligent (sujet préservé).
+    # Format normalisé (4:5 feed par défaut, 9:16 story) — recadrage intelligent (sujet préservé).
     # Le modèle rend parfois du 16:9 / 1:1 / 3:4 : on force un ratio unique à l'upload.
-    fmt = [{"aspect_ratio": "4:5", "crop": "fill", "gravity": "auto"}]
+    fmt = [{"aspect_ratio": ratio, "crop": "fill", "gravity": "auto"}]
     # public_id déterministe par contenu -> une régénération ÉCRASE le même asset (pas d'accumulation)
     if contenu_id:
         up = cloudinary.uploader.upload(img_bytes, resource_type="image",
