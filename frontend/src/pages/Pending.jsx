@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { Clock, ArrowLeft, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -8,11 +9,12 @@ import { isAuthenticated } from '../lib/auth';
 
 export default function Pending() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [checking, setChecking] = useState(false);
 
   const checkStatus = async () => {
     if (!isAuthenticated()) {
-      toast.info('Veuillez vous reconnecter pour vérifier votre statut');
+      toast.info(t('pending.toastReconnect'));
       navigate('/login');
       return;
     }
@@ -20,13 +22,13 @@ export default function Pending() {
     try {
       const response = await api.get('/users/me');
       if (response.data.actif) {
-        toast.success('Votre compte a été validé !');
+        toast.success(t('pending.toastValidated'));
         navigate('/dashboard');
       } else {
-        toast.info('Votre compte est toujours en attente de validation');
+        toast.info(t('pending.toastStillPending'));
       }
     } catch (error) {
-      toast.info('Veuillez vous reconnecter pour vérifier votre statut');
+      toast.info(t('pending.toastReconnect'));
       navigate('/login');
     } finally {
       setChecking(false);
@@ -47,12 +49,12 @@ export default function Pending() {
         </div>
 
         <h1 className="text-2xl font-bold font-sora text-white mb-3">
-          Compte en attente
+          {t('pending.title')}
         </h1>
 
         <p className="text-slate-400 font-inter mb-8 leading-relaxed">
-          Votre inscription a été enregistrée avec succès.
-          Un administrateur validera votre compte prochainement.
+          {t('pending.body')}
+
         </p>
 
         <div className="flex flex-col gap-3">
@@ -67,7 +69,7 @@ export default function Pending() {
             ) : (
               <RefreshCw className="w-4 h-4 mr-2" />
             )}
-            Vérifier mon statut
+            {t('pending.check')}
           </Button>
 
           <Link to="/login" data-testid="back-to-login">
@@ -76,7 +78,7 @@ export default function Pending() {
               className="w-full bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-200 font-inter"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Retour à la connexion
+              {t('pending.back')}
             </Button>
           </Link>
         </div>

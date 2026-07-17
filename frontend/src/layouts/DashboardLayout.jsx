@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
 import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { UserProvider, useUser } from '../context/UserContext';
@@ -12,29 +13,30 @@ import AccountSwitcher from '../components/AccountSwitcher';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 
 const navItems = [
-  { path: '/dashboard', label: 'Accueil', icon: Home },
-  { path: '/dashboard/studio', label: 'Studio IA', icon: Sparkles },
-  { path: '/dashboard/plan', label: 'Plan éditorial', icon: CalendarDays },
-  { path: '/dashboard/contenus', label: 'Contenus', icon: FileText },
-  { path: '/dashboard/commentaires', label: 'Commentaires', icon: MessageCircle },
-  { path: '/dashboard/performance', label: 'Performance', icon: BarChart3 },
-  { path: '/dashboard/planification', label: 'Planification', icon: Calendar },
-  { path: '/dashboard/carrousels', label: 'Carrousels', icon: LayoutGrid },
-  { path: '/dashboard/parametres', label: 'Paramètres', icon: Settings },
+  { path: '/dashboard', label: 'nav.home', icon: Home },
+  { path: '/dashboard/studio', label: 'nav.studio', icon: Sparkles },
+  { path: '/dashboard/plan', label: 'nav.plan', icon: CalendarDays },
+  { path: '/dashboard/contenus', label: 'nav.contents', icon: FileText },
+  { path: '/dashboard/commentaires', label: 'nav.comments', icon: MessageCircle },
+  { path: '/dashboard/performance', label: 'nav.performance', icon: BarChart3 },
+  { path: '/dashboard/planification', label: 'nav.planning', icon: Calendar },
+  { path: '/dashboard/carrousels', label: 'nav.carousels', icon: LayoutGrid },
+  { path: '/dashboard/parametres', label: 'nav.settings', icon: Settings },
 ];
 
 // Sous-navigation Paramètres : le sidebar principal se transforme en réglages quand on entre dans Paramètres.
 const SETTINGS_NAV = [
-  { id: 'identity', label: 'Identité', icon: User },
-  { id: 'marque', label: 'Voix de marque', icon: Megaphone },
-  { id: 'connections', label: 'Réseaux sociaux', icon: Plug },
-  { id: 'schedules', label: 'Planification', icon: Calendar },
-  { id: 'abonnement', label: 'Abonnement', icon: CreditCard },
-  { id: 'style', label: 'Style & Couleurs', icon: Palette },
-  { id: 'avatar', label: 'Avatar vidéo', icon: Video, soon: true },
+  { id: 'identity', label: 'nav.identity', icon: User },
+  { id: 'marque', label: 'nav.brandVoice', icon: Megaphone },
+  { id: 'connections', label: 'nav.socials', icon: Plug },
+  { id: 'schedules', label: 'nav.planning', icon: Calendar },
+  { id: 'abonnement', label: 'nav.subscription', icon: CreditCard },
+  { id: 'style', label: 'nav.style', icon: Palette },
+  { id: 'avatar', label: 'nav.avatar', icon: Video, soon: true },
 ];
 
 function SettingsNav({ onNavigate }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const active = params.get('s') || 'identity';
@@ -48,8 +50,8 @@ function SettingsNav({ onNavigate }) {
           <ChevronLeft className="w-4 h-4" />
         </span>
         <span className="leading-tight">
-          <span className="block text-[10px] uppercase tracking-[0.14em] text-slate-600 font-inter font-semibold">Réglages</span>
-          <span className="block text-sm font-bold text-white font-sora">Paramètres</span>
+          <span className="block text-[10px] uppercase tracking-[0.14em] text-slate-600 font-inter font-semibold">{t('nav.settingsGroup')}</span>
+          <span className="block text-sm font-bold text-white font-sora">{t('nav.settings')}</span>
         </span>
       </button>
       <div className="space-y-1">
@@ -69,8 +71,8 @@ function SettingsNav({ onNavigate }) {
             >
               {on && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-gradient-to-b from-[#5B6CFF] to-[#8A6CFF]" />}
               <Icon className={cn('w-[18px] h-[18px] transition-colors', on ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300')} />
-              <span className="flex-1 text-left">{s.label}</span>
-              {s.soon && <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">Bientôt</span>}
+              <span className="flex-1 text-left">{t(s.label)}</span>
+              {s.soon && <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">{t('nav.soon')}</span>}
             </button>
           );
         })}
@@ -80,13 +82,14 @@ function SettingsNav({ onNavigate }) {
 }
 
 function NavItem({ item, onClick }) {
+  const { t } = useTranslation();
   const Icon = item.icon;
   return (
     <NavLink
       to={item.path}
       end={item.path === '/dashboard'}
       onClick={onClick}
-      data-testid={`nav-${item.label.toLowerCase().replace(/\s/g, '-')}`}
+      data-testid={`nav-${item.label.split('.').pop()}`}
       className={({ isActive }) =>
         cn(
           'group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium font-inter transition-all duration-150',
@@ -98,7 +101,7 @@ function NavItem({ item, onClick }) {
         <>
           {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-gradient-to-b from-[#5B6CFF] to-[#8A6CFF]" />}
           <Icon className={cn('w-[18px] h-[18px] transition-colors', isActive ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300')} />
-          <span>{item.label}</span>
+          <span>{t(item.label)}</span>
         </>
       )}
     </NavLink>
@@ -118,6 +121,7 @@ function Brand() {
 }
 
 function DashboardContent() {
+  const { t } = useTranslation();
   const { user, logout } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
@@ -188,7 +192,7 @@ function DashboardContent() {
         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150 text-sm font-medium font-inter"
       >
         <LogOut className="w-[18px] h-[18px]" />
-        <span>Déconnexion</span>
+        <span>{t('nav.logout')}</span>
       </button>
     </div>
   );

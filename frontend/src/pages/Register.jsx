@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -10,6 +11,7 @@ import { setToken } from '../lib/auth';
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     nom: '',
     email: '',
@@ -26,23 +28,23 @@ export default function Register() {
     const newErrors = {};
     
     if (!formData.nom.trim()) {
-      newErrors.nom = 'Le nom est requis';
+      newErrors.nom = t('register.errName');
     }
     
     if (!formData.email.trim()) {
-      newErrors.email = 'L\'email est requis';
+      newErrors.email = t('register.errEmailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email invalide';
+      newErrors.email = t('register.errEmailInvalid');
     }
     
     if (!formData.password) {
-      newErrors.password = 'Le mot de passe est requis';
+      newErrors.password = t('register.errPasswordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Minimum 6 caractères';
+      newErrors.password = t('register.errPasswordShort');
     }
     
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
+      newErrors.confirmPassword = t('register.errPasswordMatch');
     }
     
     setErrors(newErrors);
@@ -74,14 +76,14 @@ export default function Register() {
 
       const data = await authService.register(payload);
       if (data?.token) setToken(data.token);
-      toast.success('Bienvenue sur Presence OS 🎉');
+      toast.success(t('register.toastWelcome'));
       navigate('/dashboard');
     } catch (error) {
       const detail = error.response?.data?.detail;
       if (detail === 'email_exists') {
-        toast.error('Cet email est déjà utilisé');
+        toast.error(t('register.toastEmailExists'));
       } else {
-        toast.error('Erreur lors de l\'inscription');
+        toast.error(t('register.toastError'));
       }
     } finally {
       setLoading(false);
@@ -99,24 +101,24 @@ export default function Register() {
       <div className="w-full max-w-md bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10 animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold font-sora bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
-            Inscription
+            {t('register.title')}
           </h1>
           <p className="text-slate-400 mt-2 font-inter">
-            Créez votre compte
+            {t('register.subtitle')}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="nom" className="text-slate-300 font-inter">
-              Nom <span className="text-red-400">*</span>
+              {t('register.name')} <span className="text-red-400">*</span>
             </Label>
             <Input
               id="nom"
               name="nom"
               value={formData.nom}
               onChange={handleChange}
-              placeholder="Votre nom"
+              placeholder={t('register.namePlaceholder')}
               data-testid="register-nom"
               className={`bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 ${errors.nom ? 'border-red-500' : ''}`}
             />
@@ -125,7 +127,7 @@ export default function Register() {
           
           <div className="space-y-2">
             <Label htmlFor="email" className="text-slate-300 font-inter">
-              Email <span className="text-red-400">*</span>
+              {t('auth.email')} <span className="text-red-400">*</span>
             </Label>
             <Input
               id="email"
@@ -141,7 +143,7 @@ export default function Register() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-slate-300 font-inter">Username</Label>
+            <Label htmlFor="username" className="text-slate-300 font-inter">{t('register.username')}</Label>
             <Input
               id="username"
               name="username"
@@ -155,7 +157,7 @@ export default function Register() {
           
           <div className="space-y-2">
             <Label htmlFor="password" className="text-slate-300 font-inter">
-              Mot de passe <span className="text-red-400">*</span>
+              {t('auth.password')} <span className="text-red-400">*</span>
             </Label>
             <div className="relative">
               <Input
@@ -181,7 +183,7 @@ export default function Register() {
           
           <div className="space-y-2">
             <Label htmlFor="confirmPassword" className="text-slate-300 font-inter">
-              Confirmer le mot de passe <span className="text-red-400">*</span>
+              {t('register.confirmPassword')} <span className="text-red-400">*</span>
             </Label>
             <div className="relative">
               <Input
@@ -214,7 +216,7 @@ export default function Register() {
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : null}
-            S'inscrire
+            {t('register.submit')}
           </Button>
         </form>
 
@@ -224,7 +226,7 @@ export default function Register() {
             data-testid="login-link"
             className="text-sm text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter"
           >
-            Déjà un compte ? Se connecter
+            {t('register.haveAccount')}
           </Link>
         </div>
       </div>

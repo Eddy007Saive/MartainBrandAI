@@ -46,6 +46,7 @@ class UserUpdate(BaseModel):
     telegram_bot_token: Optional[str] = None
     telegram_bot_username: Optional[str] = None
     timezone: Optional[str] = None
+    langue: Optional[str] = None  # langue de rédaction du contenu généré : fr (défaut) | en | es
 
 
 class UserResponse(BaseModel):
@@ -81,6 +82,7 @@ class UserResponse(BaseModel):
     telegram_bot_token: Optional[str] = None
     telegram_bot_username: Optional[str] = None
     timezone: Optional[str] = None
+    langue: Optional[str] = None
     created_at: Optional[str] = None
 
 

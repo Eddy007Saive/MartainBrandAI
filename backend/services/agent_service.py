@@ -75,10 +75,23 @@ def _charger_marque(telegram_id: str) -> dict:
     return res.data[0] if res.data else {}
 
 
+LANGUES_CONTENU = {"fr": "français", "en": "anglais (English)", "es": "espagnol (Español)"}
+
+
 def _contexte_marque(u: dict) -> str:
     """Construit le bloc 'voix de marque' à partir des champs disponibles."""
     nom = u.get("nom") or u.get("username") or "le client"
     lignes = [f"# MARQUE : {nom}"]
+    # Langue de rédaction du client (clients étrangers) — s'applique à TOUTES les générations
+    # (sujets, posts, carrousels, scripts, gabarits) car ce contexte est injecté partout.
+    lang = (u.get("langue") or "fr").lower()
+    if lang != "fr":
+        lignes.append(
+            f"LANGUE DE RÉDACTION OBLIGATOIRE : {LANGUES_CONTENU.get(lang, lang)}. "
+            "TOUT le contenu produit (titres, posts, accroches, slides, scripts, CTA, hashtags) "
+            "doit être écrit dans CETTE langue, même si les instructions ci-dessous sont en français. "
+            "Ne mélange jamais les langues dans un même contenu."
+        )
     # Champs optionnels — utilisés s'ils existent (ajoutés via le formulaire "Voix de marque")
     if u.get("secteur"):
         lignes.append(f"Secteur / activité : {u['secteur']}")

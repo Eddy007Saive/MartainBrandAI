@@ -673,6 +673,20 @@ export default function ParametresPage() {
             </Select>
             <p className="text-[11px] text-slate-500 font-inter">Vos publications partiront à l'heure de ce fuseau.</p>
           </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-slate-300 font-inter">Langue du contenu</Label>
+            <Select value={user?.langue || 'fr'} onValueChange={(v) => handleChange('langue', v)}>
+              <SelectTrigger data-testid="field-langue" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
+                <SelectValue placeholder="Sélectionner" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-900 border-slate-800">
+                <SelectItem value="fr" className="text-slate-200 focus:bg-slate-800">🇫🇷 Français</SelectItem>
+                <SelectItem value="en" className="text-slate-200 focus:bg-slate-800">🇬🇧 English</SelectItem>
+                <SelectItem value="es" className="text-slate-200 focus:bg-slate-800">🇪🇸 Español</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-slate-500 font-inter">L'IA rédigera posts, carrousels, scripts et visuels dans cette langue.</p>
+          </div>
         </div>
       </section>
 

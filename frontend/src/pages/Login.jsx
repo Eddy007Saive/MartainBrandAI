@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Loader2, Shield, Sparkles, BarChart3, MessageSquare, Calendar, Download } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -8,9 +9,11 @@ import { toast } from 'sonner';
 import { authService } from '../services/authService';
 import { setToken, setAdminToken, isAuthenticated, isAdminAuthenticated } from '../lib/auth';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
+import LangSwitcher from '../components/LangSwitcher';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Déjà connecté ? -> on évite l'écran de login (l'app mobile démarre toujours sur "/")
   useEffect(() => {
@@ -34,14 +37,14 @@ export default function Login() {
       const data = await authService.login(email, password);
       setToken(data.token);
       if (data.pending) {
-        toast.info('Compte en attente de validation');
+        toast.info(t('auth.toastPending'));
         navigate('/pending');
       } else {
-        toast.success('Connexion réussie');
+        toast.success(t('auth.toastSuccess'));
         navigate('/dashboard');
       }
     } catch (error) {
-      toast.error('Email ou mot de passe incorrect');
+      toast.error(t('auth.toastError'));
     } finally {
       setLoading(false);
     }
@@ -54,20 +57,20 @@ export default function Login() {
     try {
       const data = await authService.adminLogin(adminEmail, adminPassword);
       setAdminToken(data.token);
-      toast.success('Accès administrateur');
+      toast.success(t('auth.toastAdminOk'));
       navigate('/admin');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Identifiants administrateur invalides');
+      toast.error(error.response?.data?.detail || t('auth.toastAdminError'));
     } finally {
       setAdminLoading(false);
     }
   };
 
   const features = [
-    { icon: Sparkles, text: "Génération de contenu IA" },
-    { icon: Calendar, text: "Planification intelligente" },
-    { icon: BarChart3, text: "Analytics & Performance" },
-    { icon: MessageSquare, text: "Gestion des commentaires" },
+    { icon: Sparkles, text: t('auth.feat1') },
+    { icon: Calendar, text: t('auth.feat2') },
+    { icon: BarChart3, text: t('auth.feat3') },
+    { icon: MessageSquare, text: t('auth.feat4') },
   ];
 
   return (
@@ -87,7 +90,7 @@ export default function Login() {
             <img src="/logo.png" alt="Presence OS" className="w-14 h-14 object-contain" />
             <div>
               <h1 className="text-3xl font-bold font-sora text-white">PresenceOS</h1>
-              <p className="text-slate-400 font-inter text-sm">Votre présence, amplifiée</p>
+              <p className="text-slate-400 font-inter text-sm">{t('auth.tagline')}</p>
             </div>
           </div>
         </div>
@@ -96,13 +99,13 @@ export default function Login() {
         <div className="relative space-y-8">
           <div>
             <h2 className="text-4xl xl:text-5xl font-bold font-sora text-white leading-tight">
-              Gérez votre présence<br />
+              {t('auth.heroTitle1')}<br />
               <span className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
-                sur les réseaux sociaux
+                {t('auth.heroTitle2')}
               </span>
             </h2>
             <p className="mt-6 text-lg text-slate-400 font-inter max-w-md leading-relaxed">
-              Automatisez la création de contenu, planifiez vos publications et analysez vos performances. Tout en un seul endroit.
+              {t('auth.heroSub')}
             </p>
           </div>
           
@@ -128,7 +131,7 @@ export default function Login() {
         {/* Footer */}
         <div className="relative">
           <p className="text-slate-500 text-sm font-inter">
-            © 2026 PresenceOS. Tous droits réservés.
+            {t('auth.rights')}
           </p>
         </div>
       </div>
@@ -141,20 +144,25 @@ export default function Login() {
           <span className="text-xl font-bold text-white font-sora">PresenceOS</span>
         </div>
         
+        {/* Sélecteur de langue de l'interface */}
+        <div className="absolute top-6 right-6">
+          <LangSwitcher />
+        </div>
+
         <div className="w-full max-w-md">
           <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold font-sora text-white">
-                Connexion
+                {t('auth.login')}
               </h2>
               <p className="text-slate-400 mt-2 font-inter text-sm">
-                Accédez à votre espace personnel
+                {t('auth.loginSub')}
               </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-300 font-inter">Email</Label>
+                <Label htmlFor="email" className="text-slate-300 font-inter">{t('auth.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -169,13 +177,13 @@ export default function Login() {
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-slate-300 font-inter">Mot de passe</Label>
+                  <Label htmlFor="password" className="text-slate-300 font-inter">{t('auth.password')}</Label>
                   <Link
                     to="/forgot-password"
                     data-testid="forgot-password-link"
                     className="text-xs text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter"
                   >
-                    Mot de passe oublié ?
+                    {t('auth.forgot')}
                   </Link>
                 </div>
                 <div className="relative">
@@ -209,7 +217,7 @@ export default function Login() {
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 ) : null}
-                Se connecter
+                {t('auth.signIn')}
               </Button>
             </form>
 
@@ -219,7 +227,7 @@ export default function Login() {
                 data-testid="register-link"
                 className="text-sm text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter"
               >
-                Pas encore de compte ? S'inscrire
+                {t('auth.noAccount')}
               </Link>
             </div>
 
@@ -232,7 +240,7 @@ export default function Login() {
                 className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#3AFFA3]/30 bg-[#3AFFA3]/[0.06] text-[#3AFFA3] text-sm font-medium font-inter hover:bg-[#3AFFA3]/[0.12] transition-colors"
               >
                 <Download className="w-4 h-4" />
-                Télécharger l'app Android
+                {t('auth.downloadApp')}
               </a>
             )}
 
@@ -244,7 +252,7 @@ export default function Login() {
                 className="w-full flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-slate-400 transition-colors font-inter"
               >
                 <Shield className="w-3 h-3" />
-                Accès administrateur
+                {t('auth.adminAccess')}
               </button>
               
               {showAdminLogin && (
@@ -253,7 +261,7 @@ export default function Login() {
                     type="email"
                     value={adminEmail}
                     onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="Email administrateur"
+                    placeholder={t('auth.adminEmail')}
                     data-testid="admin-email"
                     className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 text-sm"
                   />
@@ -261,7 +269,7 @@ export default function Login() {
                     type="password"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder="Mot de passe admin"
+                    placeholder={t('auth.adminPassword')}
                     data-testid="admin-password"
                     className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 text-sm"
                   />
@@ -274,7 +282,7 @@ export default function Login() {
                     {adminLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : null}
-                    Connexion Admin
+                    {t('auth.adminSignIn')}
                   </Button>
                 </form>
               )}
