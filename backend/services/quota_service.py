@@ -144,6 +144,12 @@ def refund(ctx: dict) -> None:
 def usage(telegram_id: str) -> dict:
     """Jauge de résultats pour la période courante + état de l'abonnement."""
     ensure_subscription(telegram_id)
+    # Matérialise les compteurs de la période (avec REPORT des restes de la période
+    # précédente) pour que la jauge affiche le cumul même avant toute consommation.
+    try:
+        supabase.rpc("ensure_period_counters", {"p_user": telegram_id}).execute()
+    except Exception as e:
+        logger.warning(f"ensure_period_counters {telegram_id}: {e}")
     try:
         sub = (supabase.table("subscriptions").select("*").eq("user_id", telegram_id)
                .in_("status", ["trialing", "active", "past_due"]).order("created_at", desc=True).limit(1).execute())
