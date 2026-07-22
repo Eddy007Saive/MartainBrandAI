@@ -34,6 +34,7 @@ import { toast } from 'sonner';
 import { removeAdminToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { adminService } from '../services/adminService';
+import { enterVision } from '../lib/vision';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -264,6 +265,19 @@ export default function Admin() {
       for (const g of u.gauges || []) inputs[g.action_type] = String(g.extra ?? 0);
       setBonusInputs(inputs);
     } catch (_) { setUserUsage({ gauges: [] }); }
+  };
+
+  const handleStartVision = async () => {
+    if (!selectedUser) return;
+    setUserActionLoading(true);
+    try {
+      const d = await adminService.startVision(selectedUser.telegram_id);
+      enterVision(d.token, { nom: d.user?.nom || selectedUser.nom, email: d.user?.email, expires_at: d.expires_at });
+      // enterVision redirige vers /dashboard — pas de suite ici
+    } catch (e) {
+      toast.error('Impossible de démarrer le Mode Vision');
+      setUserActionLoading(false);
+    }
   };
 
   const handleSetBonus = async (actionType) => {
@@ -1135,13 +1149,18 @@ export default function Admin() {
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-sora font-bold text-xl">
                   {getInitials(selectedUser.nom)}
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <h3 className="text-xl text-white font-sora font-semibold">{selectedUser.nom}</h3>
                   <p className="text-slate-400">{selectedUser.email}</p>
                   <Badge className={selectedUser.actif ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}>
                     {selectedUser.actif ? 'Actif' : 'En attente'}
                   </Badge>
                 </div>
+                <Button size="sm" onClick={handleStartVision} disabled={userActionLoading} data-testid="vision-btn"
+                  className="shrink-0 bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-inter text-xs hover:opacity-90">
+                  {userActionLoading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Eye className="w-3.5 h-3.5 mr-1.5" />}
+                  Mode Vision
+                </Button>
               </div>
 
               {/* User Stats */}

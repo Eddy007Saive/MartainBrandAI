@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -11,6 +11,7 @@ import { cn } from '../lib/utils';
 import NotificationsBell from '../components/NotificationsBell';
 import AccountSwitcher from '../components/AccountSwitcher';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
+import { getVision, exitVision } from '../lib/vision';
 
 const navItems = [
   { path: '/dashboard', label: 'nav.home', icon: Home },
@@ -124,6 +125,23 @@ function DashboardContent() {
   const { t } = useTranslation();
   const { user, logout } = useUser();
   const navigate = useNavigate();
+
+  // Mode Vision (admin -> client) : bandeau permanent + sortie auto à l'expiration
+  const [vision] = useState(() => getVision());
+  const [visionLeft, setVisionLeft] = useState('');
+  useEffect(() => {
+    if (!vision) return;
+    const tick = () => {
+      const ms = new Date(vision.expires_at) - new Date();
+      if (ms <= 0) { exitVision(); return; }
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      setVisionLeft(`${m}:${String(s).padStart(2, '0')}`);
+    };
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [vision]);
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDl, setShowDl] = useState(!downloadHidden());
@@ -198,7 +216,22 @@ function DashboardContent() {
   );
 
   return (
-    <div className="flex h-screen bg-[#020617] overflow-hidden">
+    <div className={`flex bg-[#020617] overflow-hidden ${vision ? 'h-[calc(100vh-40px)] mt-10' : 'h-screen'}`}>
+      {/* Bandeau Mode Vision (impersonation admin) — toujours visible */}
+      {vision && (
+        <div className="fixed top-0 inset-x-0 h-10 z-[100] flex items-center gap-2 px-3 sm:px-4 bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white" data-testid="vision-banner">
+          <Eye className="w-4 h-4 shrink-0" />
+          <span className="text-[12.5px] font-inter font-semibold truncate">
+            Mode Vision — {vision.nom}
+          </span>
+          <span className="hidden sm:inline text-[11px] text-white/70 font-inter truncate">{vision.email}</span>
+          <span className="ml-auto text-[11px] text-white/80 font-inter tabular-nums shrink-0">{visionLeft}</span>
+          <button onClick={exitVision} data-testid="vision-exit"
+            className="shrink-0 text-[12px] font-semibold font-inter px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 transition-colors">
+            Revenir à l'admin
+          </button>
+        </div>
+      )}
       {/* Glow + noise (desktop uniquement — allégé sur mobile) */}
       <div className="hidden md:block fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#5B6CFF]/[0.06] blur-[120px] rounded-full pointer-events-none z-0" />
       <div className="hidden md:block fixed inset-0 z-[1] pointer-events-none opacity-[0.025] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />

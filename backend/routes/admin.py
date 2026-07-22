@@ -196,6 +196,36 @@ async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(v
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/users/{telegram_id}/vision")
+async def start_vision(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+    """Mode Vision : délivre un token UTILISATEUR temporaire (1 h) pour voir/agir comme le client.
+    Les actions consomment les quotas du client. Chaque session est journalisée (audit)."""
+    from datetime import datetime, timezone, timedelta
+    from services.auth_service import create_token
+    try:
+        r = supabase.table("users").select("nom, email").eq("telegram_id", telegram_id).execute()
+        if not r.data:
+            raise HTTPException(status_code=404, detail="Client introuvable")
+        u = r.data[0]
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+        supabase.table("vision_sessions").insert({
+            "admin_telegram_id": payload.get("telegram_id"),
+            "target_telegram_id": telegram_id,
+            "expires_at": expires_at.isoformat(),
+        }).execute()
+        token = create_token(
+            {"telegram_id": telegram_id, "vision": True, "impersonated_by": payload.get("telegram_id")},
+            expires_delta=timedelta(hours=1),
+        )
+        logger.info(f"Mode Vision: admin {payload.get('telegram_id')} -> client {telegram_id} (1h)")
+        return {"token": token, "expires_at": expires_at.isoformat(), "user": {"nom": u.get("nom"), "email": u.get("email")}}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"start_vision error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/users/{telegram_id}/usage")
 async def get_user_usage(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     """Jauges de quotas du client (utilisé / plafond / restant par type) + plan courant."""

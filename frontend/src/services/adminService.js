@@ -29,6 +29,9 @@ export const adminService = {
   setPlan: (telegramId, plan, reset_credits = true) =>
     adminFetch(`/admin/users/${telegramId}/plan`, { method: 'PATCH', body: JSON.stringify({ plan, reset_credits }) }),
 
+  // Mode Vision : token utilisateur temporaire (1 h) pour voir l'app comme le client
+  startVision: (telegramId) => adminFetch(`/admin/users/${telegramId}/vision`, { method: 'POST' }),
+
   // Quotas du client (jauges de la période courante) + bonus individuel par type
   getUserUsage: (telegramId) => adminFetch(`/admin/users/${telegramId}/usage`),
   setQuotaBonus: (telegramId, action_type, extra_quantity) =>
