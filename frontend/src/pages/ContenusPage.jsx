@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -37,6 +37,7 @@ import { agentService } from '../services/agentService';
 import { userService } from '../services/userService';
 import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
+import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
 import { CAROUSEL_FONTS, renderSlides, SLIDE_CSS } from '../lib/carrouselPreview';
 import { scheduleService } from '../services/scheduleService';
@@ -129,7 +130,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, actionLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, actionLoading }) {
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
   const isVideo = contenu.type === 'Reel' || !!contenu.video_url || !!contenu.video_status;
@@ -187,6 +188,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
               <CardAction title="Refuser" onClick={() => onRefuse(contenu.id)} className="hover:text-red-400"><X className="w-4 h-4" /></CardAction>
             </>
           )}
+          <CardAction title="Recycler sur d'autres réseaux" onClick={() => onRecycle(contenu)} className="hover:text-[#3AFFA3]"><Repeat2 className="w-4 h-4" /></CardAction>
           <CardAction title="Modifier" onClick={() => onEdit(contenu)} className="hover:text-white"><Edit2 className="w-3.5 h-3.5" /></CardAction>
           <CardAction title="Supprimer" onClick={() => onDelete(contenu)} className="hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></CardAction>
         </div>
@@ -223,6 +225,29 @@ export default function ContenusPage() {
 
   const { user, updateUser } = useUser();
   const [imageContenu, setImageContenu] = useState(null);
+
+  // Recyclage : republier un post sur d'autres réseaux (une copie par réseau)
+  const [recycleFor, setRecycleFor] = useState(null);   // contenu source
+  const [recycleNets, setRecycleNets] = useState([]);   // réseaux cochés
+  const [recycling, setRecycling] = useState(false);
+  const connectedNets = SOCIAL_PLATFORMS.filter((p) => user?.[p.field]);
+
+  const openRecycle = (contenu) => { setRecycleFor(contenu); setRecycleNets([]); };
+  const doRecycle = async () => {
+    if (!recycleFor || !recycleNets.length) return;
+    setRecycling(true);
+    try {
+      const res = await contenuService.recycler(recycleFor.id, recycleNets);
+      const n = res.created?.length || 0;
+      toast.success(`Post recyclé sur ${n} réseau${n > 1 ? 'x' : ''} ♻️ — les copies sont « À valider »`);
+      setRecycleFor(null);
+      fetchContenus();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec du recyclage');
+    } finally {
+      setRecycling(false);
+    }
+  };
 
   // Retouche carrousel : init des couleurs/police depuis la marque quand on ouvre un carrousel
   useEffect(() => {
@@ -853,6 +878,7 @@ export default function ContenusPage() {
                   onDelete={setDeleteContenu}
                   onValidate={(id) => handleUpdateStatut(id, 'Valider')}
                   onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
+                  onRecycle={openRecycle}
                   actionLoading={actionLoading}
                 />
               ))}
@@ -1172,6 +1198,54 @@ export default function ContenusPage() {
               >
                 {actionLoading === editContenu?.id && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 Enregistrer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Recyclage — republier sur d'autres réseaux */}
+        <Dialog open={!!recycleFor} onOpenChange={() => setRecycleFor(null)}>
+          <DialogContent className="bg-[#0f172a] border-slate-800">
+            <DialogHeader>
+              <DialogTitle className="text-white font-sora flex items-center gap-2">
+                <Repeat2 className="w-4 h-4 text-[#3AFFA3]" />Recycler ce post
+              </DialogTitle>
+            </DialogHeader>
+            {recycleFor && (
+              <div className="space-y-4">
+                <p className="text-sm text-slate-400 font-inter">
+                  Une copie du post sera créée pour chaque réseau coché, avec son propre créneau de
+                  publication. Les copies arrivent en <span className="text-amber-400">« À valider »</span> —
+                  tu peux ajuster le texte avant validation.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {connectedNets
+                    .filter((p) => p.id !== (recycleFor.reseau_cible || '').toLowerCase())
+                    .map((p) => {
+                      const on = recycleNets.includes(p.id);
+                      return (
+                        <button key={p.id} type="button" data-testid={`recycle-net-${p.id}`}
+                          onClick={() => setRecycleNets((prev) => on ? prev.filter((x) => x !== p.id) : [...prev, p.id])}
+                          className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-[13px] font-inter font-medium transition-all active:scale-[0.97] ${
+                            on ? 'border-[#3AFFA3]/50 bg-[#3AFFA3]/10 text-white' : 'border-white/[0.08] bg-slate-950/50 text-slate-400 hover:text-white hover:border-white/20'}`}>
+                          <span style={{ color: p.brand }}><p.icon className="w-4 h-4" /></span>
+                          {p.name}
+                          {on && <Check className="w-3.5 h-3.5 text-[#3AFFA3]" />}
+                        </button>
+                      );
+                    })}
+                </div>
+                {!connectedNets.filter((p) => p.id !== (recycleFor.reseau_cible || '').toLowerCase()).length && (
+                  <p className="text-xs text-slate-500 font-inter">Aucun autre réseau connecté — connecte un réseau dans Paramètres → Réseaux sociaux.</p>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setRecycleFor(null)} className="font-inter text-slate-400">Annuler</Button>
+              <Button onClick={doRecycle} disabled={recycling || !recycleNets.length} data-testid="recycle-submit"
+                className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter">
+                {recycling ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Repeat2 className="w-4 h-4 mr-2" />}
+                Recycler ({recycleNets.length})
               </Button>
             </DialogFooter>
           </DialogContent>

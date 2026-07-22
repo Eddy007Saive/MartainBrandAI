@@ -36,6 +36,23 @@ async def upload_contenu_image(contenu_id: str, file: UploadFile = File(...), pa
     return res
 
 
+@router.post("/{contenu_id}/recycler")
+async def recycler_contenu(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
+    """Recycle un post vers d'autres réseaux (une copie par réseau, créneau propre)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    reseaux = body.get("reseaux") if isinstance(body.get("reseaux"), list) else []
+    try:
+        res = await contenu_service.recycler_contenu(telegram_id, contenu_id, reseaux)
+    except Exception as e:
+        logger.error(f"Recycler contenu error: {e}")
+        raise HTTPException(status_code=500, detail="Échec du recyclage")
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res
+
+
 @router.get("")
 async def get_contenus(statut: str = None, payload: dict = Depends(verify_token)):
     try:
