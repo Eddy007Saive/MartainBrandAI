@@ -36,6 +36,39 @@ async def upload_contenu_image(contenu_id: str, file: UploadFile = File(...), pa
     return res
 
 
+@router.post("/{contenu_id}/replanifier")
+async def replanifier_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
+    """Replanifie le contenu sur le PROCHAIN créneau libre (jours/heure de la planification
+    du réseau + dates déjà occupées), puis le reprogramme sur Zernio. Un clic, zéro saisie."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    cur = contenu_service.get_contenu(contenu_id, telegram_id)
+    if not cur:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    if cur.get("publish_status") == "publié":
+        raise HTTPException(status_code=409, detail="Déjà publié — rien à replanifier.")
+    from services import planning_service, late_service
+    from config import supabase
+    slot = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"))
+    if not slot:
+        raise HTTPException(status_code=409, detail="Aucun créneau libre trouvé — vérifie ta planification (jours actifs) pour ce réseau.")
+    # Nettoie l'ancien post Zernio (échoué ou programmé) avant de reprogrammer
+    if cur.get("late_post_id"):
+        try:
+            await late_service.cancel_post(cur["late_post_id"])
+        except Exception as e:
+            logger.warning(f"replanifier: annulation ancien post Zernio {contenu_id}: {e}")
+    supabase.table("contenu").update({
+        "date_publication": slot, "late_post_id": None,
+        "publish_status": None, "publish_error": None,
+    }).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+    pub = await late_service.programmer_contenu(telegram_id, contenu_id)
+    return {"date_publication": slot,
+            "publish_status": "envoi" if pub.get("ok") else "échec",
+            "error": None if pub.get("ok") else pub.get("error")}
+
+
 @router.post("/{contenu_id}/recycler")
 async def recycler_contenu(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
     """Recycle un post vers d'autres réseaux (une copie par réseau, créneau propre)."""

@@ -27,6 +27,9 @@ export const contenuService = {
   // Recycle un post vers d'autres réseaux (une copie par réseau, créneau propre)
   recycler: (id, reseaux) => api.post(`/contenus/${id}/recycler`, { reseaux }).then(r => r.data),
 
+  // Replanifie sur le prochain créneau libre (algorithme de planification) + reprogramme Zernio
+  replanifier: (id) => api.post(`/contenus/${id}/replanifier`).then(r => r.data),
+
   // Programme la publication du contenu via Late (push avec sa date)
   publier: (id) => api.post(`/late/publier/${id}`).then(r => r.data),
 

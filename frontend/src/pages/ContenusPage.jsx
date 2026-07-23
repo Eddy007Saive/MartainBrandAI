@@ -610,6 +610,26 @@ export default function ContenusPage() {
     }
   };
 
+  // Replanifier : le backend trouve le PROCHAIN créneau libre (planification du réseau
+  // + dates déjà occupées) puis reprogramme sur Zernio — un clic, zéro saisie.
+  const replanifierPublication = async (contenu) => {
+    if (publishLoading) return;
+    setPublishLoading(contenu.id);
+    try {
+      const d = await contenuService.replanifier(contenu.id);
+      const patch = { date_publication: d.date_publication, publish_status: d.publish_status, publish_error: d.error || null };
+      setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
+      setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, ...patch } : prev));
+      const dt = d.date_publication ? new Date(d.date_publication).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      if (d.publish_status === 'envoi') toast.success(`Replanifié → ${dt} ✓`);
+      else toast.error(d.error || "Replanifié, mais l'envoi a échoué — réessaie.");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec de la replanification');
+    } finally {
+      setPublishLoading(null);
+    }
+  };
+
   const annulerPublication = async (contenu) => {
     if (publishLoading) return;
     setPublishLoading(contenu.id);
@@ -1153,6 +1173,15 @@ export default function ContenusPage() {
                         className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 font-inter">
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
                         {selectedContenu.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}</Button>
+                    )}
+                    {selectedContenu.statut !== 'Publie' && selectedContenu.statut !== 'A valider' && selectedContenu.reseau_cible
+                      && selectedContenu.publish_status !== 'publié' && (
+                      <Button size="sm" onClick={() => replanifierPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
+                        title="Trouve automatiquement le prochain créneau libre (selon ta planification) et reprogramme"
+                        data-testid="replanifier-btn"
+                        className="bg-[#3AFFA3]/10 text-[#3AFFA3] hover:bg-[#3AFFA3]/20 border border-[#3AFFA3]/30 font-inter">
+                        {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <RefreshCw className="w-4 h-4 mr-1.5" />}
+                        Replanifier</Button>
                     )}
                     {['envoi', 'programmé'].includes(selectedContenu.publish_status) && (
                       <Button size="sm" onClick={() => annulerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
