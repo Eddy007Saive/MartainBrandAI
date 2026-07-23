@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Activity, Settings, LogOut, Search, Download,
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
-  Loader2, ChevronRight, Clock, CheckCircle, XCircle, RefreshCw,
+  Loader2, ChevronRight, ChevronLeft, Clock, CheckCircle, XCircle, RefreshCw,
   Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
   Plus, Minus, DollarSign, Wifi, Inbox, Copy
 } from 'lucide-react';
@@ -14,12 +14,6 @@ import { Badge } from '../components/ui/badge';
 import QuotaConfigTab from '../components/admin/QuotaConfigTab';
 import AuditsTab from '../components/admin/AuditsTab';
 import BillingTab from '../components/admin/BillingTab';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '../components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,7 +62,12 @@ const AVATAR_STATUS_CONFIG = {
 
 export default function Admin() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Navigation pilotée par l'URL : chaque onglet a sa propre adresse (?tab=users, ?tab=quotas…)
+  // et la fiche client est une PAGE (?tab=users&u=<telegram_id>) — refresh/retour navigateur OK.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewedUser = searchParams.get('u');
+  const activeTab = viewedUser ? 'client' : (searchParams.get('tab') || 'dashboard');
+  const setActiveTab = (t) => setSearchParams(t === 'dashboard' ? {} : { tab: t });
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -139,7 +138,10 @@ export default function Admin() {
     }
   };
 
-  const handleViewUser = async (telegramId) => {
+  // Clic sur un client -> navigation vers sa PAGE (l'effet ci-dessous charge les données)
+  const handleViewUser = (telegramId) => setSearchParams({ tab: 'users', u: telegramId });
+
+  const loadUserDetail = async (telegramId) => {
     try {
       const userData = await adminService.getUser(telegramId);
       const contenusData = await adminService.getUserContenus(telegramId);
@@ -150,6 +152,12 @@ export default function Admin() {
       toast.error('Erreur lors du chargement du profil');
     }
   };
+
+  useEffect(() => {
+    if (viewedUser) loadUserDetail(viewedUser);
+    else { setSelectedUser(null); setUserContenus([]); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewedUser]);
 
   const handleActivate = async (telegramId) => {
     setActionLoading(telegramId);
@@ -410,7 +418,7 @@ export default function Admin() {
                 onClick={() => setActiveTab(item.id)}
                 className={cn(
                   "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 font-inter",
-                  activeTab === item.id
+                  (activeTab === item.id || (item.id === 'users' && activeTab === 'client'))
                     ? "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white border-l-2 border-red-500"
                     : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                 )}
@@ -1132,16 +1140,18 @@ export default function Admin() {
               )}
             </div>
           )}
-        </div>
-      </main>
-
-      {/* User Detail Dialog */}
-      <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent className="bg-slate-900 border-slate-800 w-[calc(100vw-2rem)] max-w-3xl max-h-[85vh] overflow-y-auto overflow-x-hidden">
-          <DialogHeader>
-            <DialogTitle className="text-white font-sora">Profil utilisateur</DialogTitle>
-          </DialogHeader>
-
+          {/* PAGE CLIENT — indépendante, pilotée par l'URL (?tab=users&u=<id>) */}
+          {activeTab === 'client' && (
+            <div className="max-w-3xl mx-auto">
+              <button onClick={() => setSearchParams({ tab: 'users' })} data-testid="back-to-users"
+                className="mb-5 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white font-inter transition-colors">
+                <ChevronLeft className="w-4 h-4" />Retour aux utilisateurs
+              </button>
+              {!selectedUser && (
+                <div className="flex items-center justify-center py-16 gap-2 text-slate-400 font-inter text-sm">
+                  <Loader2 className="w-5 h-5 animate-spin text-red-400" />Chargement du profil…
+                </div>
+              )}
           {selectedUser && (
             <div className="space-y-3.5">
               {/* Identité */}
@@ -1336,8 +1346,10 @@ export default function Admin() {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+            </div>
+          )}
+        </div>
+      </main>
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
