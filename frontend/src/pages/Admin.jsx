@@ -1137,7 +1137,7 @@ export default function Admin() {
 
       {/* User Detail Dialog */}
       <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent className="bg-slate-900 border-slate-800 max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-slate-900 border-slate-800 w-[calc(100vw-2rem)] max-w-3xl max-h-[85vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle className="text-white font-sora">Profil utilisateur</DialogTitle>
           </DialogHeader>
@@ -1165,7 +1165,7 @@ export default function Admin() {
 
               {/* User Stats */}
               {selectedUser.stats && (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="bg-slate-800/50 rounded-lg p-4 text-center">
                     <p className="text-2xl font-bold text-white font-sora">{selectedUser.stats.total_contenus}</p>
                     <p className="text-xs text-slate-400">Contenus</p>
