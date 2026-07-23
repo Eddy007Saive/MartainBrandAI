@@ -5,7 +5,7 @@ import {
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
   Loader2, ChevronRight, Clock, CheckCircle, XCircle, RefreshCw,
   Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
-  Plus, Minus, DollarSign, Wifi, Inbox
+  Plus, Minus, DollarSign, Wifi, Inbox, Copy
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -1143,203 +1143,197 @@ export default function Admin() {
           </DialogHeader>
 
           {selectedUser && (
-            <div className="space-y-6">
-              {/* User Info */}
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-sora font-bold text-xl">
+            <div className="space-y-3.5">
+              {/* Identité */}
+              <div className="flex items-center gap-3.5 pb-3.5 border-b border-white/[0.06]">
+                <div className="w-[46px] h-[46px] rounded-[14px] bg-gradient-to-br from-red-500 to-orange-500 grid place-items-center text-white font-sora font-bold text-base shrink-0">
                   {getInitials(selectedUser.nom)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-xl text-white font-sora font-semibold">{selectedUser.nom}</h3>
-                  <p className="text-slate-400">{selectedUser.email}</p>
-                  <Badge className={selectedUser.actif ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"}>
-                    {selectedUser.actif ? 'Actif' : 'En attente'}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base text-white font-sora font-semibold truncate">{selectedUser.nom}</h3>
+                    <span className={`shrink-0 text-[10.5px] font-semibold px-2 py-0.5 rounded-full border ${selectedUser.actif ? 'bg-[#3AFFA3]/10 text-[#3AFFA3] border-[#3AFFA3]/25' : 'bg-amber-500/10 text-amber-400 border-amber-500/25'}`}>
+                      {selectedUser.actif ? 'Actif' : 'En attente'}
+                    </span>
+                  </div>
+                  <p className="text-[12.5px] text-slate-500 truncate">{selectedUser.email}</p>
                 </div>
                 <Button size="sm" onClick={handleStartVision} disabled={userActionLoading} data-testid="vision-btn"
-                  className="shrink-0 bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-inter text-xs hover:opacity-90">
+                  className="shrink-0 bg-[#5B6CFF]/15 border border-[#8A6CFF]/35 text-[#c4b5fd] hover:bg-[#5B6CFF]/25 hover:text-white font-inter text-xs rounded-[11px] transition-all active:scale-[0.97]">
                   {userActionLoading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Eye className="w-3.5 h-3.5 mr-1.5" />}
                   Mode Vision
                 </Button>
               </div>
 
-              {/* User Stats */}
+              {/* Stats — bande unique, séparateurs hairline */}
               {selectedUser.stats && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="bg-slate-800/50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-white font-sora">{selectedUser.stats.total_contenus}</p>
-                    <p className="text-xs text-slate-400">Contenus</p>
-                  </div>
-                  <div className="bg-slate-800/50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-white font-sora">{selectedUser.stats.total_commentaires}</p>
-                    <p className="text-xs text-slate-400">Commentaires</p>
-                  </div>
-                  <div className="bg-slate-800/50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-white font-sora">
-                      {selectedUser.stats.contenus_par_statut?.['Publié'] || 0}
-                    </p>
-                    <p className="text-xs text-slate-400">Publiés</p>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 rounded-[14px] border border-white/[0.06] bg-[#0a1120] overflow-hidden divide-y sm:divide-y-0 sm:divide-x divide-white/[0.06]">
+                  {[
+                    { v: selectedUser.stats.total_contenus, l: 'Contenus' },
+                    { v: selectedUser.stats.total_commentaires, l: 'Commentaires' },
+                    { v: selectedUser.stats.contenus_par_statut?.['Publié'] || 0, l: 'Publiés' },
+                  ].map((s) => (
+                    <div key={s.l} className="py-3.5 px-4 text-center">
+                      <p className="text-[22px] leading-tight font-bold text-white font-sora tabular-nums">{s.v}</p>
+                      <p className="text-[11px] text-slate-500">{s.l}</p>
+                    </div>
+                  ))}
                 </div>
               )}
 
-              {/* Gestion forfait + crédits */}
-              <div className="bg-slate-800/40 border border-white/5 rounded-xl p-4 space-y-4">
-                <h4 className="text-sm font-semibold text-white font-sora flex items-center gap-2"><Crown className="w-4 h-4 text-amber-300" />Forfait & crédits</h4>
-
-                <div className="space-y-1.5">
-                  <p className="text-xs text-slate-500">Forfait (change le solde aux crédits du plan)</p>
-                  <div className="flex gap-2">
-                    {PLAN_OPTIONS.map((p) => (
-                      <button key={p} onClick={() => handleSetPlan(p)} disabled={userActionLoading}
-                        className={cn('flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all disabled:opacity-50',
-                          (selectedUser.plan || 'gratuit') === p
-                            ? cn(PLAN_CFG[p].bg, PLAN_CFG[p].color, 'ring-1 ring-white/20')
-                            : 'bg-slate-900/50 text-slate-400 hover:text-white')}>
-                        {PLAN_CFG[p].label}
-                      </button>
-                    ))}
-                  </div>
+              {/* Forfait & crédits */}
+              <div className="rounded-[14px] border border-white/[0.06] bg-[#0a1120] p-4 space-y-3">
+                <div className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold">Forfait &amp; crédits</div>
+                <div className="flex gap-1 p-1 bg-[#0c1322] border border-white/[0.06] rounded-[11px]">
+                  {PLAN_OPTIONS.map((p) => (
+                    <button key={p} onClick={() => handleSetPlan(p)} disabled={userActionLoading}
+                      className={cn('flex-1 py-2 rounded-lg text-xs font-medium font-inter transition-all active:scale-[0.97] disabled:opacity-50',
+                        (selectedUser.plan || 'gratuit') === p
+                          ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white'
+                          : 'text-slate-400 hover:text-white')}>
+                      {PLAN_CFG[p].label}
+                    </button>
+                  ))}
                 </div>
-
-                <div className="space-y-1.5">
-                  <p className="text-xs text-slate-500">Crédits — solde actuel : <span className="text-white font-semibold">{selectedUser.credits ?? 0}</span></p>
-                  <div className="flex gap-2">
-                    <Input type="number" value={creditInput} onChange={(e) => setCreditInput(e.target.value)}
-                      placeholder="Montant" className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm w-28" />
-                    <Button size="sm" onClick={() => handleSetCredits('add')} disabled={userActionLoading} className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30">
-                      <Plus className="w-3.5 h-3.5 mr-1" />Ajouter
-                    </Button>
-                    <Button size="sm" onClick={() => handleSetCredits('set')} disabled={userActionLoading} variant="outline" className="border-slate-700 text-slate-300">
-                      <Save className="w-3.5 h-3.5 mr-1" />Fixer
-                    </Button>
-                    {userActionLoading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 self-center" />}
-                  </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[12.5px] text-slate-400 mr-auto">Solde actuel · <b className="text-white font-sora tabular-nums text-[15px]">{selectedUser.credits ?? 0}</b> crédits</span>
+                  <Input type="number" value={creditInput} onChange={(e) => setCreditInput(e.target.value)}
+                    placeholder="Montant" className="bg-[#0c1322] border-white/[0.06] text-slate-200 text-sm w-24 h-9 rounded-[9px]" />
+                  <Button size="sm" onClick={() => handleSetCredits('add')} disabled={userActionLoading}
+                    className="h-9 bg-[#3AFFA3]/10 text-[#3AFFA3] hover:bg-[#3AFFA3]/20 border border-[#3AFFA3]/25 rounded-[9px] transition-all active:scale-[0.97]">
+                    <Plus className="w-3.5 h-3.5 mr-1" />Ajouter
+                  </Button>
+                  <Button size="sm" onClick={() => handleSetCredits('set')} disabled={userActionLoading}
+                    className="h-9 bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] hover:border-white/[0.16] rounded-[9px] transition-all active:scale-[0.97]">
+                    <Save className="w-3.5 h-3.5 mr-1" />Fixer
+                  </Button>
+                  {userActionLoading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 self-center" />}
                 </div>
               </div>
 
               {/* Quotas (période en cours) — jauges + bonus individuel par type */}
-              <div className="bg-slate-800/40 border border-white/5 rounded-xl p-4 space-y-3">
+              <div className="rounded-[14px] border border-white/[0.06] bg-[#0a1120] p-4">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <h4 className="text-sm font-semibold text-white font-sora flex items-center gap-2"><Coins className="w-4 h-4 text-[#3AFFA3]" />Quotas — période en cours</h4>
-                  {userUsage?.plan_name && <Badge className="bg-[#5B6CFF]/15 text-[#b9a6ff] border border-[#5B6CFF]/30">{userUsage.plan_name}</Badge>}
+                  <div className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold">Quotas — période en cours</div>
+                  {userUsage?.plan_name && <span className="text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-[#5B6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">{userUsage.plan_name}</span>}
                 </div>
                 {!userUsage ? (
-                  <div className="flex items-center gap-2 text-slate-400 text-xs py-2"><Loader2 className="w-3.5 h-3.5 animate-spin" />Chargement des quotas…</div>
+                  <div className="flex items-center gap-2 text-slate-400 text-xs py-3"><Loader2 className="w-3.5 h-3.5 animate-spin" />Chargement des quotas…</div>
                 ) : !(userUsage.gauges || []).length ? (
-                  <p className="text-xs text-slate-500">Aucun abonnement actif — pas de quotas à afficher.</p>
+                  <p className="text-xs text-slate-500 py-2">Aucun abonnement actif — pas de quotas à afficher.</p>
                 ) : (
-                  <div className="space-y-2.5">
-                    <p className="text-xs text-slate-500">« Bonus » = quantité offerte en plus du plan, pour CE client, sur la période en cours uniquement.</p>
-                    {userUsage.gauges.map((g) => {
-                      const pct = g.limit > 0 ? Math.min(100, Math.round((g.used / g.limit) * 100)) : 0;
-                      return (
-                        <div key={g.action_type} className="flex items-center gap-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-baseline justify-between text-xs mb-1">
-                              <span className="text-slate-300 capitalize">{g.label}</span>
-                              <span className="text-slate-500 tabular-nums">{g.used}/{g.limit}{g.extra > 0 && <span className="text-[#3AFFA3]"> (+{g.extra})</span>} · reste {g.remaining}</span>
+                  <>
+                    <p className="text-[11px] text-slate-600 mt-1.5 mb-1">« Bonus » = offert en plus du plan, pour ce client, sur la période en cours.</p>
+                    <div className="divide-y divide-white/[0.06]">
+                      {userUsage.gauges.map((g) => {
+                        const pct = g.limit > 0 ? Math.min(100, Math.round((g.used / g.limit) * 100)) : 0;
+                        return (
+                          <div key={g.action_type} className="flex items-center gap-3.5 py-2.5">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-baseline justify-between mb-1.5">
+                                <span className="text-xs text-slate-300 font-medium capitalize">{g.label}</span>
+                                <span className="text-[11.5px] text-slate-500 tabular-nums">{g.used}/{g.limit}{g.extra > 0 && <span className="text-[#3AFFA3]"> (+{g.extra})</span>} · reste {g.remaining}</span>
+                              </div>
+                              <div className="h-[5px] rounded bg-white/[0.06] overflow-hidden">
+                                <div className={`h-full rounded ${pct >= 90 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]'}`} style={{ width: `${pct}%` }} />
+                              </div>
                             </div>
-                            <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
-                              <div className={`h-full rounded-full ${pct >= 90 ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]'}`} style={{ width: `${pct}%` }} />
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <Input type="number" min="0" value={bonusInputs[g.action_type] ?? ''}
+                                onChange={(e) => setBonusInputs((b) => ({ ...b, [g.action_type]: e.target.value }))}
+                                className="bg-[#0c1322] border-white/[0.06] focus:border-[#3AFFA3]/50 text-slate-200 text-xs w-14 h-7 text-center rounded-lg tabular-nums" title="Bonus (quantité offerte en plus du plan)" />
+                              <Button size="sm" onClick={() => handleSetBonus(g.action_type)} disabled={userActionLoading}
+                                className="h-7 w-7 p-0 bg-[#3AFFA3]/10 text-[#3AFFA3] hover:bg-[#3AFFA3]/20 border border-[#3AFFA3]/25 rounded-lg transition-all active:scale-[0.94]">
+                                <Save className="w-3 h-3" />
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <Input type="number" min="0" value={bonusInputs[g.action_type] ?? ''}
-                              onChange={(e) => setBonusInputs((b) => ({ ...b, [g.action_type]: e.target.value }))}
-                              className="bg-slate-950/50 border-slate-800 text-slate-200 text-xs w-20 h-8" title="Bonus (quantité offerte en plus du plan)" />
-                            <Button size="sm" onClick={() => handleSetBonus(g.action_type)} disabled={userActionLoading}
-                              className="h-8 bg-[#3AFFA3]/15 text-[#3AFFA3] hover:bg-[#3AFFA3]/25 border border-[#3AFFA3]/25 text-xs px-2.5">
-                              <Save className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  </>
                 )}
               </div>
 
               {/* Thème vidéo Submagic (assigné par l'admin) */}
-              <div className="bg-slate-800/40 border border-white/5 rounded-xl p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-white font-sora flex items-center gap-2"><Video className="w-4 h-4 text-[#8A6CFF]" />Thème vidéo (Submagic)</h4>
-                <p className="text-xs text-slate-500">Crée le thème de la marque dans l'éditeur Submagic, puis colle son <b className="text-slate-300">userThemeId</b> ici. Vide = le client utilise les 45 templates par défaut.</p>
-                <div className="space-y-2">
+              <div className="rounded-[14px] border border-white/[0.06] bg-[#0a1120] p-4 space-y-2.5">
+                <div className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold">Thème vidéo (Submagic)</div>
+                <p className="text-[11px] text-slate-600">Crée le thème dans l'éditeur Submagic puis colle son <b className="text-slate-400">userThemeId</b>. Vide = 45 templates par défaut.</p>
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input value={themeForm.label} onChange={(e) => setThemeForm((t) => ({ ...t, label: e.target.value }))}
-                    placeholder="Nom affiché (ex. Thème GoodTime)" className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm" />
-                  <div className="flex gap-2">
-                    <Input value={themeForm.id} onChange={(e) => setThemeForm((t) => ({ ...t, id: e.target.value }))}
-                      placeholder="userThemeId (UUID Submagic)" className="bg-slate-950/50 border-slate-800 text-slate-200 text-sm flex-1" />
-                    <Button size="sm" onClick={handleSaveTheme} disabled={userActionLoading} className="bg-[#5B6CFF]/20 text-[#b9a6ff] hover:bg-[#5B6CFF]/30 border border-[#5B6CFF]/30">
-                      {userActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />}Enregistrer
-                    </Button>
+                    placeholder="Nom affiché (ex. Thème GoodTime)" className="bg-[#0c1322] border-white/[0.06] text-slate-200 text-sm h-9 rounded-[9px] sm:w-56" />
+                  <Input value={themeForm.id} onChange={(e) => setThemeForm((t) => ({ ...t, id: e.target.value }))}
+                    placeholder="userThemeId (UUID Submagic)" className="bg-[#0c1322] border-white/[0.06] text-slate-200 text-sm h-9 rounded-[9px] flex-1" />
+                  <Button size="sm" onClick={handleSaveTheme} disabled={userActionLoading}
+                    className="h-9 bg-[#5B6CFF]/15 text-[#b9a6ff] hover:bg-[#5B6CFF]/25 border border-[#8A6CFF]/30 rounded-[9px] transition-all active:scale-[0.97]">
+                    {userActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />}Enregistrer
+                  </Button>
+                </div>
+              </div>
+
+              {/* Détails — liste hairline (plus de grille qui déborde) */}
+              <div className="rounded-[14px] border border-white/[0.06] bg-[#0a1120] p-4">
+                <div className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold mb-1">Détails</div>
+                <div className="divide-y divide-white/[0.06] text-[13px]">
+                  {[
+                    ['Forfait', `${PLAN_CFG[selectedUser.plan || 'gratuit'].label}${selectedUser.plan_renews_at ? ` · renouv. ${new Date(selectedUser.plan_renews_at).toLocaleDateString('fr-FR')}` : ''}`],
+                    ['Abonnement Stripe', selectedUser.stripe_subscription_id ? 'Actif' : '—'],
+                    ['Réseaux connectés', selectedUser.reseaux_connectes?.length ? selectedUser.reseaux_connectes.join(', ') : 'Aucun'],
+                    ['Fuseau horaire', selectedUser.timezone || '—'],
+                    ['Dernière activité', `${selectedUser.derniere_activite ? new Date(selectedUser.derniere_activite).toLocaleDateString('fr-FR') : '—'} · inscrit le ${selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('fr-FR') : '—'}`],
+                    ['Username', selectedUser.username || '—'],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-center gap-3 py-2.5">
+                      <span className="w-[150px] shrink-0 text-slate-500 text-xs">{k}</span>
+                      <span className="text-slate-200 min-w-0 flex-1 truncate capitalize">{v}</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-3 py-2.5">
+                    <span className="w-[150px] shrink-0 text-slate-500 text-xs">ID</span>
+                    <span className="min-w-0 flex-1 flex items-center gap-1.5">
+                      <code className="font-mono text-[11.5px] text-slate-400 bg-[#0c1322] border border-white/[0.06] rounded-[7px] px-2 py-1 truncate">{selectedUser.telegram_id}</code>
+                      <button title="Copier l'ID" data-testid="copy-user-id"
+                        onClick={() => { navigator.clipboard?.writeText(selectedUser.telegram_id); toast.success('ID copié'); }}
+                        className="shrink-0 w-[26px] h-[26px] grid place-items-center rounded-[7px] border border-white/[0.06] text-slate-500 hover:text-white hover:border-white/[0.18] transition-all active:scale-[0.92]">
+                        <Copy className="w-3 h-3" />
+                      </button>
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* User Details */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-slate-500">Forfait</p>
-                  <p className="text-white">{PLAN_CFG[selectedUser.plan || 'gratuit'].label}{selectedUser.plan_renews_at ? ` · renouv. ${new Date(selectedUser.plan_renews_at).toLocaleDateString('fr-FR')}` : ''}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">Abonnement Stripe</p>
-                  <p className="text-white">{selectedUser.stripe_subscription_id ? 'Actif' : '—'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">Réseaux connectés</p>
-                  <p className="text-white capitalize">{selectedUser.reseaux_connectes?.length ? selectedUser.reseaux_connectes.join(', ') : 'Aucun'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">Fuseau horaire</p>
-                  <p className="text-white">{selectedUser.timezone || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">Dernière activité</p>
-                  <p className="text-white">{selectedUser.derniere_activite ? new Date(selectedUser.derniere_activite).toLocaleDateString('fr-FR') : '-'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">Inscrit le</p>
-                  <p className="text-white">{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('fr-FR') : '-'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">Username</p>
-                  <p className="text-white">{selectedUser.username || '-'}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500">ID</p>
-                  <p className="text-white font-mono text-xs">{selectedUser.telegram_id}</p>
-                </div>
-              </div>
-
-              {/* Notifier ce user */}
-              <Button variant="outline" onClick={() => { pushToUser(selectedUser); setSelectedUser(null); }}
-                className="border-slate-700 text-slate-300 hover:text-white">
-                <Bell className="w-4 h-4 mr-2" />Envoyer une notification à cet utilisateur
-              </Button>
-
-              {/* User Contenus */}
+              {/* Derniers contenus */}
               {userContenus.length > 0 && (
-                <div>
-                  <h4 className="text-white font-sora font-semibold mb-3">Derniers contenus</h4>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                <div className="rounded-[14px] border border-white/[0.06] bg-[#0a1120] p-4">
+                  <div className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold mb-1">Derniers contenus</div>
+                  <div className="divide-y divide-white/[0.06] max-h-56 overflow-y-auto">
                     {userContenus.slice(0, 10).map((c) => (
-                      <div key={c.id} className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg">
-                        <Badge className={
-                          c.statut === 'Publié' ? 'bg-blue-500/20 text-blue-400' :
-                          c.statut === 'Validé' ? 'bg-emerald-500/20 text-emerald-400' :
-                          'bg-amber-500/20 text-amber-400'
-                        }>
+                      <div key={c.id} className="flex items-center gap-2.5 py-2.5">
+                        <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                          c.statut === 'Publié' || c.statut === 'Publie' ? 'bg-blue-500/10 text-blue-300 border-blue-500/25' :
+                          c.statut === 'Validé' || c.statut === 'Valider' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25' :
+                          'bg-amber-500/10 text-amber-300 border-amber-500/25'}`}>
                           {c.statut}
-                        </Badge>
-                        <p className="text-slate-300 text-sm truncate flex-1">{c.titre || c.contenu?.substring(0, 50)}</p>
-                        <p className="text-xs text-slate-500">{new Date(c.created_at).toLocaleDateString('fr-FR')}</p>
+                        </span>
+                        <p className="text-slate-300 text-[12.5px] truncate flex-1">{c.titre || c.contenu?.substring(0, 50)}</p>
+                        <p className="text-[10.5px] text-slate-600 tabular-nums shrink-0">{new Date(c.created_at).toLocaleDateString('fr-FR')}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-1">
+                <Button onClick={() => { pushToUser(selectedUser); setSelectedUser(null); }}
+                  className="flex-1 h-9 bg-white/[0.04] text-slate-300 hover:text-white border border-white/[0.06] hover:border-white/[0.16] rounded-[9px] font-inter text-xs transition-all active:scale-[0.98]">
+                  <Bell className="w-3.5 h-3.5 mr-2" />Envoyer une notification
+                </Button>
+                <Button onClick={() => { const u = selectedUser; setSelectedUser(null); setDeleteConfirm(u); }}
+                  className="h-9 bg-transparent text-red-400/80 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/35 rounded-[9px] font-inter text-xs transition-all active:scale-[0.98]">
+                  Supprimer le compte
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
