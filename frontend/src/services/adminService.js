@@ -1,5 +1,5 @@
 import api from '../lib/api';
-import { getAdminToken } from '../lib/auth';
+import { getAdminToken, removeAdminToken } from '../lib/auth';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -13,7 +13,20 @@ const adminFetch = async (endpoint, options = {}) => {
     ...options,
     headers: { ...adminHeaders(), ...options.headers },
   });
-  if (!response.ok) throw new Error(`API Error: ${response.status}`);
+  if (response.status === 401) {
+    // Session admin expirée (le token admin dure 8 h) -> on nettoie et on renvoie au login
+    // au lieu de laisser la page admin cassée avec des erreurs muettes.
+    removeAdminToken();
+    window.location.href = '/';
+    throw new Error('Session admin expirée');
+  }
+  if (!response.ok) {
+    let detail = `API Error: ${response.status}`;
+    try { const d = await response.json(); if (d?.detail) detail = d.detail; } catch { /* réponse non-JSON */ }
+    const err = new Error(detail);
+    err.response = { status: response.status, data: { detail } };
+    throw err;
+  }
   return response.json();
 };
 
