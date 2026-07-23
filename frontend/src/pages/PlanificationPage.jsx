@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send, Trash2 } from 'lucide-react';
+import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send, Trash2, RefreshCw } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
 import { useUser } from '../context/UserContext';
@@ -148,6 +148,21 @@ export default function PlanificationPage() {
       const msg = e.response?.data?.detail || 'Échec de la programmation';
       patchSel({ publish_status: 'échec', publish_error: msg });
       toast.error(msg);
+    } finally { setBusy(false); }
+  };
+
+  // Replanifier : le backend trouve le prochain créneau libre (planification + dates occupées)
+  const replanifier = async () => {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      const d = await contenuService.replanifier(selected.id);
+      patchSel({ date_publication: d.date_publication, publish_status: d.publish_status, publish_error: d.error || null });
+      const dt = d.date_publication ? new Date(d.date_publication).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      if (d.publish_status === 'envoi') toast.success(`Replanifié → ${dt} ✓`);
+      else toast.error(d.error || "Replanifié, mais l'envoi a échoué — réessaie.");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec de la replanification');
     } finally { setBusy(false); }
   };
 
@@ -541,6 +556,14 @@ export default function PlanificationPage() {
                       className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30">
                       {busy ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
                       {selected.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}
+                    </Button>
+                  )}
+                  {selected.statut !== 'Publie' && selected.reseau_cible && selected.publish_status !== 'publié' && (
+                    <Button size="sm" onClick={replanifier} disabled={busy} data-testid="replanifier-btn"
+                      title="Trouve automatiquement le prochain créneau libre (selon ta planification) et reprogramme"
+                      className="bg-[#3AFFA3]/10 text-[#3AFFA3] hover:bg-[#3AFFA3]/20 border border-[#3AFFA3]/30">
+                      {busy ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <RefreshCw className="w-4 h-4 mr-1.5" />}
+                      Replanifier
                     </Button>
                   )}
                   {['envoi', 'programmé'].includes(selected.publish_status) && (
