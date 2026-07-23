@@ -320,6 +320,22 @@ def _handle_account_event(event: str, payload: dict) -> dict:
                     f"Ton compte {p.capitalize()} a été déconnecté. Reconnecte-le dans "
                     f"Paramètres → Réseaux pour continuer à publier.",
                 )
+                # Email d'alerte avec lien de reconnexion : la notification in-app ne suffit pas,
+                # l'utilisateur ne vit pas dans l'app et ses publications échoueraient en silence.
+                try:
+                    u = supabase.table("users").select("email, nom").eq("telegram_id", tg).limit(1).execute()
+                    email = (u.data[0].get("email") if u.data else None)
+                    if email:
+                        import asyncio
+                        from config import FRONTEND_URL
+                        from services import mail_service
+                        html = mail_service.account_disconnected_html(
+                            (u.data[0].get("nom") or ""), p,
+                            f"{FRONTEND_URL}/dashboard/parametres?s=connections")
+                        asyncio.get_running_loop().create_task(mail_service.send_email(
+                            email, f"⚠️ Ton compte {p.capitalize()} est déconnecté — reconnecte-le", html))
+                except Exception as e:
+                    logger.warning(f"email compte déconnecté {tg}/{p}: {e}")
                 logger.info(f"account.disconnected: {tg} / {p} -> colonne vidée")
                 return {"ok": True, "telegram_id": tg, "platform": p, "action": "disconnected"}
     logger.info(f"account.disconnected: compte introuvable (ids={ids} platform={platform})")

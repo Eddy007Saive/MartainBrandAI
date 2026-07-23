@@ -180,6 +180,38 @@ def reset_email_html(nom: str, link: str) -> str:
     return _shell(inner, width=480)
 
 
+def account_disconnected_html(nom: str, reseau: str, link: str) -> str:
+    """Alerte : un réseau social s'est déconnecté — CTA de reconnexion en un clic.
+    Envoyé dès réception du webhook account.disconnected (sinon les publications
+    échouent en silence jusqu'à ce que le client ouvre l'app)."""
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    reseau_cap = _html.escape((reseau or "").capitalize())
+    inner = f"""<tr><td style="padding:16px 32px 24px;">
+      <h1 style="color:#ffffff;font-size:20px;margin:0 0 12px;">⚠️ Ton compte {reseau_cap} est déconnecté</h1>
+      <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 8px;">{salutation}</p>
+      <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 8px;">
+        La connexion entre PresenceOS et ton compte <strong style="color:#cbd5e1;">{reseau_cap}</strong> a expiré
+        — c'est le réseau qui invalide l'accès de temps en temps, rien de grave.
+      </p>
+      <p style="color:#fca5a5;font-size:14px;line-height:1.6;margin:0 0 24px;">
+        <strong>Tes publications prévues sur {reseau_cap} sont en pause</strong> tant que le compte n'est pas reconnecté.
+      </p>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+        <td style="border-radius:10px;background:linear-gradient(135deg,#5B6CFF,#8A6CFF);">
+          <a href="{link}" target="_blank" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;">
+            Reconnecter mon compte
+          </a>
+        </td>
+      </tr></table>
+      <p style="color:#64748b;font-size:12px;line-height:1.6;margin:0 0 4px;">Si le bouton ne fonctionne pas, copie ce lien :</p>
+      <p style="margin:0 0 24px;"><a href="{link}" target="_blank" style="color:#8A6CFF;font-size:12px;word-break:break-all;">{link}</a></p>
+      <p style="color:#64748b;font-size:12px;line-height:1.6;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+        La reconnexion prend 30 secondes : clique, autorise, et tes publications reprennent automatiquement.
+      </p>
+    </td></tr>"""
+    return _shell(inner, width=480)
+
+
 def audit_notification_html(marque: str, email: str, recap: str, admin_url: str) -> str:
     """Notification interne : un nouvel audit de marque vient d'arriver."""
     marque_txt = _html.escape(marque or "Sans nom")
