@@ -1,178 +1,15 @@
 import { useState, useEffect } from 'react';
-import { NET, NetIcon } from './shared';
 
-const Spark = ({ c = '#8A6CFF' }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2">
-    <path d="M12 3l1.9 5.8L20 10l-5.1 3.7L16 20l-4-3.6L8 20l1.1-6.3L4 10l6.1-1.2z" />
-  </svg>
-);
-
-const SIDEBAR = ['Studio IA', 'Contenus', 'Planification', 'Commentaires', 'Performance', 'Carrousels'];
-
-// --- Scènes ---
-function SceneStudio() {
-  const sujets = [
-    '5 erreurs qui plombent ta visibilité LinkedIn',
-    'Le rituel matinal des fondateurs qui scalent',
-    "Pourquoi ton audience ne réagit pas (et le fix)",
-    '3 outils IA pour publier 2× plus vite',
-  ];
-  return (
-    <div className="hp-scene">
-      <div className="t">Génère des sujets</div>
-      <div className="d">Des idées calibrées sur ta marque, en un clic.</div>
-      <div className="hp-list">
-        {sujets.map((s, i) => (
-          <div className="hp-item hp-anim" style={{ animationDelay: `${0.05 + i * 0.09}s` }} key={s}>
-            <span className="hp-spark"><Spark /></span>
-            <span className="hp-itext">{s}</span>
-            <span className="hp-add">+ Créer</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SceneComments() {
-  const cmts = [
-    { i: 'M', n: 'Marie L.', t: "Super post 🔥 t'aurais une ressource là-dessus ?", net: 'linkedin' },
-    { i: 'K', n: 'Karim B.', t: "Exactement ce qu'il me fallait, merci 🙏", net: 'facebook' },
-    { i: 'S', n: 'Sofia', t: 'Je partage à mon équipe !', net: 'instagram' },
-  ];
-  return (
-    <div className="hp-scene">
-      <div className="t">Commentaires</div>
-      <div className="d">Réponds à ta communauté, au même endroit.</div>
-      <div className="hp-chips">
-        <span className="hp-chip on">12 nouveaux</span>
-        <span className="hp-chip">Taux de réponse 92%</span>
-      </div>
-      <div className="hp-cmts">
-        {cmts.map((c, idx) => (
-          <div className="hp-cmt hp-anim" style={{ animationDelay: `${0.05 + idx * 0.1}s` }} key={c.n}>
-            <span className="hp-av" style={{ background: NET[c.net].bg }}>{c.i}</span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="hp-cname">{c.n}<span className="hp-cnet" style={{ background: NET[c.net].bg }}><NetIcon id={c.net} size={9} /></span></div>
-              <div className="hp-ctext">{c.t}</div>
-              <div className="hp-cact"><span className="r">Répondre</span><span>♥ J'aime</span></div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ScenePlanning() {
-  // jour -> réseaux programmés
-  const plan = { 2: ['linkedin'], 5: ['instagram', 'facebook'], 9: ['linkedin'], 12: ['tiktok'], 15: ['instagram'], 18: ['linkedin', 'youtube'], 20: ['facebook'] };
-  return (
-    <div className="hp-scene">
-      <div className="t">Ton mois éditorial</div>
-      <div className="d">Créneaux automatiques, à la bonne heure.</div>
-      <div className="hp-cal">
-        {Array.from({ length: 21 }).map((_, i) => (
-          <div className="hp-cell hp-anim" style={{ animationDelay: `${i * 0.015}s` }} key={i}>
-            <span className="num">{i + 1}</span>
-            <span className="dots">{(plan[i] || []).map((n) => <span className="dot" key={n} style={{ background: NET[n].bg }} />)}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ScenePerf() {
-  const kpis = [
-    { l: 'Impressions', v: '12,4k', d: '+18%' },
-    { l: "J'aime", v: '1 240', d: '+9%' },
-    { l: 'Commentaires', v: '318', d: '+24%' },
-    { l: 'Partages', v: '96', d: '+12%' },
-  ];
-  return (
-    <div className="hp-scene">
-      <div className="t">Performance</div>
-      <div className="d">Impressions, likes, partages — synchronisés tout seuls.</div>
-      <div className="hp-kpis">
-        {kpis.map((k, i) => (
-          <div className="hp-kpi hp-anim" style={{ animationDelay: `${0.05 + i * 0.08}s` }} key={k.l}>
-            <div className="kl">{k.l}</div>
-            <div className="kv">{k.v}</div>
-            <div className="kd">↑ {k.d}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SceneCarousel() {
-  const slides = [
-    { n: 'SLIDE 01', t: 'Le hook qui arrête le scroll', bg: 'linear-gradient(160deg,#5B6CFF,#8A6CFF)' },
-    { n: 'SLIDE 02', t: '3 idées clés, une par slide', bg: 'linear-gradient(160deg,#0EA5A0,#10b981)' },
-    { n: 'SLIDE 03', t: 'Ton appel à l’action', bg: 'linear-gradient(160deg,#1e293b,#0b1322)' },
-  ];
-  return (
-    <div className="hp-scene">
-      <div className="t">Carrousel brandé</div>
-      <div className="d">Aux couleurs de ta marque, prêt à poster (PDF LinkedIn).</div>
-      <div className="hp-slides">
-        {slides.map((s, i) => (
-          <div className="hp-slide hp-anim" key={s.n} style={{ background: s.bg, animationDelay: `${0.05 + i * 0.1}s` }}>
-            <span className="sn">{s.n}</span>
-            <span className="sttl">{s.t}</span>
-            <span className="sline" /><span className="sline s2" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const ImgGlyph = () => (
-  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" strokeWidth="1.6">
-    <rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9.5" r="1.6" /><path d="M21 16l-5-5L5 20" />
-  </svg>
-);
-
-function SceneContenus() {
-  const cards = [
-    { net: 'linkedin', img: 'linear-gradient(150deg,#5B6CFF,#8A6CFF)', t: '5 erreurs qui plombent ta visibilité', stat: 'Programmé', cls: '' },
-    { net: 'instagram', img: 'linear-gradient(150deg,#0EA5A0,#10b981)', t: 'Le rituel matinal des fondateurs', stat: 'Publié', cls: 'pub' },
-  ];
-  return (
-    <div className="hp-scene">
-      <div className="t">Tes contenus</div>
-      <div className="d">Image générée par l'IA + texte, prêts à publier.</div>
-      <div className="hp-cc-grid">
-        {cards.map((c, i) => (
-          <div className="hp-cc hp-anim" key={c.net} style={{ animationDelay: `${0.05 + i * 0.12}s` }}>
-            <div className="hp-cc-img" style={{ background: c.img }}>
-              <span className="cnet" style={{ background: NET[c.net].bg }}><NetIcon id={c.net} size={12} /></span>
-              <span className="ia"><Spark c="#fff" />IA</span>
-              <span className="glyph"><ImgGlyph /></span>
-            </div>
-            <div className="hp-cc-body">
-              <div className="cttl">{c.t}</div>
-              <div className="cln" /><div className="cln s2" /><div className="cln s3" />
-              <span className={'cstat ' + c.cls}>{c.stat}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
+// Fenêtre produit du hero — VRAIES captures de l'app (public/images), en fondu enchaîné.
+// Remplace les anciennes scènes factices (mock sidebar + faux contenus).
 const SCENES = [
-  { label: 'Studio IA', Comp: SceneStudio },
-  { label: 'Carrousels', Comp: SceneCarousel },
-  { label: 'Contenus', Comp: SceneContenus },
-  { label: 'Planification', Comp: ScenePlanning },
-  { label: 'Commentaires', Comp: SceneComments },
-  { label: 'Performance', Comp: ScenePerf },
+  { label: 'Studio IA', src: '/images/studio.jpg' },
+  { label: 'Contenus', src: '/images/contenus.jpg' },
+  { label: 'Planification', src: '/images/planification.jpg' },
+  { label: 'Performance', src: '/images/performance.jpg' },
 ];
+
+const EASE = 'cubic-bezier(.23,1,.32,1)';
 
 export default function HeroPreview() {
   const [i, setI] = useState(0);
@@ -180,30 +17,52 @@ export default function HeroPreview() {
 
   useEffect(() => {
     if (paused) return;
-    const id = setInterval(() => setI((p) => (p + 1) % SCENES.length), 3200);
+    const id = setInterval(() => setI((p) => (p + 1) % SCENES.length), 4000);
     return () => clearInterval(id);
   }, [paused]);
-
-  const active = SCENES[i];
-  const { Comp } = active;
 
   return (
     <div className="preview" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="pbar"><i /><i /><i /></div>
-      <div className="shot">
-        <div className="sb">
-          <div className="lg"><img src="/logo.png" alt="" /><b>Presence OS</b></div>
-          {SIDEBAR.map((t) => (
-            <div key={t} className={'it' + (t === active.label ? ' on' : '')}><span className="ic" />{t}</div>
+      <div className="shot" style={{ display: 'block', padding: 0 }}>
+        {/* Captures — crossfade (transitions CSS, interruptibles) */}
+        <div style={{ position: 'relative', aspectRatio: '1280 / 733', overflow: 'hidden', background: '#0a1120' }}>
+          {SCENES.map((s, idx) => (
+            <img
+              key={s.src}
+              src={s.src}
+              alt={`PresenceOS — ${s.label}`}
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              style={{
+                position: 'absolute', inset: 0, width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'top left',
+                opacity: idx === i ? 1 : 0,
+                transition: `opacity 500ms ${EASE}`,
+              }}
+            />
           ))}
         </div>
-        <div className="main">
-          <Comp key={i} />
-          <div className="hp-dots">
-            {SCENES.map((s, idx) => (
-              <button key={s.label} className={idx === i ? 'on' : ''} onClick={() => setI(idx)} aria-label={s.label} />
-            ))}
-          </div>
+
+        {/* Onglets de navigation */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,.06)' }}>
+          {SCENES.map((s, idx) => (
+            <button
+              key={s.label}
+              type="button"
+              onClick={() => setI(idx)}
+              aria-label={s.label}
+              style={{
+                font: '500 11.5px Inter, system-ui, sans-serif', letterSpacing: '.01em', cursor: 'pointer',
+                padding: '5px 11px', borderRadius: 8,
+                border: `1px solid ${idx === i ? 'rgba(138,108,255,.45)' : 'rgba(255,255,255,.08)'}`,
+                background: idx === i ? 'rgba(91,108,255,.15)' : 'transparent',
+                color: idx === i ? '#fff' : '#8ea0bd',
+                transition: 'color 150ms ease, background 150ms ease, border-color 150ms ease',
+              }}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>
