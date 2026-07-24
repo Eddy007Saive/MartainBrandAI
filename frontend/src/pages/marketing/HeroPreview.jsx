@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 
-// Fenêtre produit du hero — VRAIES captures de l'app (public/images), en fondu enchaîné.
-// Remplace les anciennes scènes factices (mock sidebar + faux contenus).
+const SIDEBAR = ['Studio IA', 'Contenus', 'Planification', 'Commentaires', 'Performance', 'Carrousels'];
+
+// Le shell du hero (fenêtre + sidebar + points) reste factice ; SEULES les images changent :
+// le panneau central affiche de VRAIES captures de l'app (public/images), en fondu enchaîné.
 const SCENES = [
   { label: 'Studio IA', src: '/images/studio.jpg' },
   { label: 'Contenus', src: '/images/contenus.jpg' },
   { label: 'Planification', src: '/images/planification.jpg' },
   { label: 'Performance', src: '/images/performance.jpg' },
 ];
-
-const EASE = 'cubic-bezier(.23,1,.32,1)';
 
 export default function HeroPreview() {
   const [i, setI] = useState(0);
@@ -21,12 +21,19 @@ export default function HeroPreview() {
     return () => clearInterval(id);
   }, [paused]);
 
+  const active = SCENES[i];
+
   return (
     <div className="preview" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <div className="pbar"><i /><i /><i /></div>
-      <div className="shot" style={{ display: 'block', padding: 0 }}>
-        {/* Captures — crossfade (transitions CSS, interruptibles) */}
-        <div style={{ position: 'relative', aspectRatio: '1280 / 733', overflow: 'hidden', background: '#0a1120' }}>
+      <div className="shot">
+        <div className="sb">
+          <div className="lg"><img src="/logo.png" alt="" /><b>Presence OS</b></div>
+          {SIDEBAR.map((t) => (
+            <div key={t} className={'it' + (t === active.label ? ' on' : '')}><span className="ic" />{t}</div>
+          ))}
+        </div>
+        <div className="main" style={{ position: 'relative', padding: 0, overflow: 'hidden' }}>
           {SCENES.map((s, idx) => (
             <img
               key={s.src}
@@ -35,34 +42,17 @@ export default function HeroPreview() {
               loading={idx === 0 ? 'eager' : 'lazy'}
               style={{
                 position: 'absolute', inset: 0, width: '100%', height: '100%',
-                objectFit: 'cover', objectPosition: 'top left',
+                objectFit: 'cover', objectPosition: 'left top',
                 opacity: idx === i ? 1 : 0,
-                transition: `opacity 500ms ${EASE}`,
+                transition: 'opacity 500ms cubic-bezier(.23,1,.32,1)',
               }}
             />
           ))}
-        </div>
-
-        {/* Onglets de navigation */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,.06)' }}>
-          {SCENES.map((s, idx) => (
-            <button
-              key={s.label}
-              type="button"
-              onClick={() => setI(idx)}
-              aria-label={s.label}
-              style={{
-                font: '500 11.5px Inter, system-ui, sans-serif', letterSpacing: '.01em', cursor: 'pointer',
-                padding: '5px 11px', borderRadius: 8,
-                border: `1px solid ${idx === i ? 'rgba(138,108,255,.45)' : 'rgba(255,255,255,.08)'}`,
-                background: idx === i ? 'rgba(91,108,255,.15)' : 'transparent',
-                color: idx === i ? '#fff' : '#8ea0bd',
-                transition: 'color 150ms ease, background 150ms ease, border-color 150ms ease',
-              }}
-            >
-              {s.label}
-            </button>
-          ))}
+          <div className="hp-dots" style={{ position: 'absolute', left: 0, right: 0, bottom: 12, zIndex: 2 }}>
+            {SCENES.map((s, idx) => (
+              <button key={s.label} className={idx === i ? 'on' : ''} onClick={() => setI(idx)} aria-label={s.label} />
+            ))}
+          </div>
         </div>
       </div>
     </div>
