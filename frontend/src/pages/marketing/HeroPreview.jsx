@@ -8,7 +8,9 @@ const SCENES = [
   { label: 'Studio IA', src: '/images/studio.jpg' },
   { label: 'Contenus', src: '/images/contenus.jpg' },
   { label: 'Planification', src: '/images/planification.jpg' },
+  { label: 'Commentaires', src: '/images/commentaires.jpg' },
   { label: 'Performance', src: '/images/performance.jpg' },
+  { label: 'Carrousels', src: '/images/carrousels.jpg' },
 ];
 
 export default function HeroPreview() {
