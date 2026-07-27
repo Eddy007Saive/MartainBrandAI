@@ -50,6 +50,13 @@ const SETUP = [
   ['Tu pilotes — en ~2 h/mois', 'Le système est prêt : tu génères tes sujets, tu valides, tu produis tes visuels et vidéos, tu programmes. C’est ton contenu, ta voix, tes validations — rien ne sort sans toi.'],
 ];
 
+// Témoignages VIDÉO clients (hébergés Cloudinary — q_auto pour le streaming adaptatif).
+const CLD = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
+const VIDEO_TESTIMONIALS = [
+  { id: 'fr', flag: '🇫🇷', lang: 'Français', src: `${CLD}/q_auto/marketing/temoignage-fr.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-fr.jpg` },
+  { id: 'es', flag: '🇪🇸', lang: 'Español', src: `${CLD}/q_auto/marketing/temoignage-es.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-es.jpg` },
+];
+
 // TODO Martin : remplacer par de VRAIS témoignages (dirigeants : nom complet + entreprise + photo).
 const TESTIMONIALS = [
   ['A', 'Aurélie M.', 'Gérante, cabinet de conseil', 'Avant je payais une agence 2 000 €/mois. Là je gère ça moi-même en quelques minutes, et c’est plus à mon image.'],
@@ -153,6 +160,26 @@ export default function Home() {
       {/* Témoignages (accès anticipé) */}
       <section className="alt"><div className="wrap">
         <SectionHead eyebrow="Accès anticipé" title="Les premiers dirigeants à bord" lead="Ils testent Presence OS et reprennent la main sur leur présence." />
+
+        {/* Témoignages vidéo (FR + ES) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 18, margin: '0 auto 26px', maxWidth: 880 }}>
+          {VIDEO_TESTIMONIALS.map((v) => (
+            <figure key={v.id} style={{ margin: 0, borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,.08)', background: '#0b1322' }}>
+              <video
+                src={v.src}
+                poster={v.poster}
+                controls
+                preload="metadata"
+                playsInline
+                style={{ display: 'block', width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', background: '#0a1120' }}
+              />
+              <figcaption style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', font: '500 12.5px Inter, sans-serif', color: '#8ea0bd', borderTop: '1px solid rgba(255,255,255,.06)' }}>
+                <span style={{ fontSize: 15 }}>{v.flag}</span>Témoignage client · {v.lang}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+
         <div className="testi">
           {TESTIMONIALS.map(([av, name, role, quote]) => (
             <div className="tcard" key={name}>

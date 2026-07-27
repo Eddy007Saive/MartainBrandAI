@@ -154,3 +154,6 @@ frontend/android/app/google-services.json
 frontend/android/
 backend/qouta
 frontend/Carrousel_insta
+
+# Vidéos brutes locales (hébergées sur Cloudinary, jamais commitées — trop lourdes)
+frontend/public/Video/
