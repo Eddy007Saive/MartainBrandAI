@@ -162,20 +162,11 @@ export default function Home() {
         <SectionHead eyebrow="Accès anticipé" title="Les premiers dirigeants à bord" lead="Ils testent Presence OS et reprennent la main sur leur présence." />
 
         {/* Témoignages vidéo (FR + ES) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 18, margin: '0 auto 26px', maxWidth: 880 }}>
+        <div className="vids">
           {VIDEO_TESTIMONIALS.map((v) => (
-            <figure key={v.id} style={{ margin: 0, borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,.08)', background: '#0b1322' }}>
-              <video
-                src={v.src}
-                poster={v.poster}
-                controls
-                preload="metadata"
-                playsInline
-                style={{ display: 'block', width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', background: '#0a1120' }}
-              />
-              <figcaption style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', font: '500 12.5px Inter, sans-serif', color: '#8ea0bd', borderTop: '1px solid rgba(255,255,255,.06)' }}>
-                <span style={{ fontSize: 15 }}>{v.flag}</span>Témoignage client · {v.lang}
-              </figcaption>
+            <figure className="vcard" key={v.id}>
+              <video src={v.src} poster={v.poster} controls preload="metadata" playsInline />
+              <figcaption><span style={{ fontSize: 15 }}>{v.flag}</span>Témoignage client · {v.lang}</figcaption>
             </figure>
           ))}
         </div>

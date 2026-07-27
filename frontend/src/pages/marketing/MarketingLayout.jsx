@@ -27,6 +27,26 @@ export default function MarketingLayout() {
   // Remonter en haut à chaque changement de page
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
+  // Reveal au scroll : la gate .anim n'est posée qu'une fois le JS prêt (pas de flash sans JS),
+  // puis chaque bloc de section apparaît à son entrée dans le viewport (une seule fois).
+  useEffect(() => {
+    if (skip) return;
+    const root = document.querySelector('.lp');
+    if (!root) return;
+    root.classList.add('anim');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { rootMargin: '-40px' });
+    const observe = () => document.querySelectorAll('.lp section .wrap > *:not(.in)').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.9) el.classList.add('in'); // déjà visible -> pas d'attente
+      else io.observe(el);
+    });
+    observe();
+    return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, skip]);
+
   if (skip) return null;
 
   return (
