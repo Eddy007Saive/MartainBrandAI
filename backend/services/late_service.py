@@ -7,7 +7,7 @@ Late le met en file et publie tout seul à l'heure, puis envoie un webhook
 """
 import hmac
 import hashlib
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from zernio import Zernio, ZernioError
 from config import supabase, logger, LATE_API_KEY, LATE_WEBHOOK_SECRET
 
@@ -66,7 +66,7 @@ def _client() -> Zernio:
     return Zernio(api_key=LATE_API_KEY)
 
 
-async def publish_contenu(telegram_id: str, contenu: dict) -> dict:
+async def publish_contenu(telegram_id: str, contenu: dict, publish_now: bool = False) -> dict:
     """Pousse un contenu dans Late via le SDK Zernio. Retourne {ok, late_post_id, status} ou {ok:False, error}."""
     if not LATE_API_KEY:
         return {"ok": False, "error": "Publication indisponible : clé Late non configurée (contacte le support)."}
@@ -100,7 +100,11 @@ async def publish_contenu(telegram_id: str, contenu: dict) -> dict:
     }
     if media:
         kwargs["media_items"] = media
-    if contenu.get("date_publication"):
+    if publish_now:
+        # Rattrapage : la date prévue est passée -> on publie TOUT DE SUITE (mieux vaut tard
+        # le même jour que jamais) au lieu de re-programmer dans le passé.
+        kwargs["publish_now"] = True
+    elif contenu.get("date_publication"):
         kwargs["scheduled_for"] = _to_tz_iso(contenu["date_publication"], user_tz)
 
     try:
@@ -161,7 +165,7 @@ def _notify(telegram_id, contenu_id, reseau, event, titre, message):
         logger.warning(f"notif insert error: {e}")
 
 
-async def programmer_contenu(telegram_id: str, contenu_id: str) -> dict:
+async def programmer_contenu(telegram_id: str, contenu_id: str, publish_now: bool = False) -> dict:
     """Pousse un contenu PLANIFIÉ vers Zernio (programmé à sa date) et met à jour la ligne.
     Utilisé par l'auto-push (visuel prêt -> statut Planifie) et par le balayage cron de
     rattrapage — garantit que « Planifié » dans l'app = réellement programmé sur Zernio.
@@ -181,7 +185,7 @@ async def programmer_contenu(telegram_id: str, contenu_id: str) -> dict:
         if is_video and not contenu.get("video_url"):
             return {"ok": False, "skipped": "vidéo non montée"}
 
-        res = await publish_contenu(telegram_id, contenu)
+        res = await publish_contenu(telegram_id, contenu, publish_now=publish_now)
         if res.get("ok"):
             supabase.table("contenu").update({
                 "late_post_id": res.get("late_post_id"),
@@ -199,12 +203,65 @@ async def programmer_contenu(telegram_id: str, contenu_id: str) -> dict:
         return {"ok": False, "error": str(e)}
 
 
+async def _retry_echecs_du_jour() -> int:
+    """Passe 3 — PUBLICATIONS DU JOUR : les posts ÉCHOUÉS des dernières 24 h sont relancés
+    via l'endpoint officiel Zernio POST /v1/posts/{id}/retry (publication immédiate).
+    Garde-fous : compte encore actif chez Zernio (sinon inutile — l'email de reconnexion est
+    déjà parti), et espacement de 2 h entre deux tentatives (pas de spam du retry).
+    Au-delà de 24 h, on ne relance PLUS automatiquement (pas de vieux backlog publié par
+    surprise) — c'est le bouton « Replanifier » qui prend le relais."""
+    n = 0
+    try:
+        now = datetime.now(timezone.utc)
+        r = (supabase.table("contenu")
+             .select("id, telegram_id, reseau_cible, late_post_id, updated_at")
+             .eq("publish_status", "échec")
+             .not_.is_("late_post_id", "null")
+             .gte("date_publication", (now - timedelta(hours=24)).isoformat())
+             .lte("date_publication", now.isoformat())
+             .limit(10).execute())
+        for c in (r.data or []):
+            # Espacement : pas plus d'une tentative toutes les 2 h par post
+            try:
+                upd = datetime.fromisoformat(str(c.get("updated_at")).replace("Z", "+00:00"))
+                if (now - upd) < timedelta(hours=2):
+                    continue
+            except Exception:
+                pass
+            # Compte déconnecté -> le retry échouera forcément, on saute
+            reseau = (c.get("reseau_cible") or "").lower()
+            try:
+                from services.social_service import list_connected_accounts
+                accs = await list_connected_accounts(c["telegram_id"])
+                if accs.get(reseau, {}).get("is_active") is False:
+                    continue
+            except Exception:
+                pass
+            try:
+                async with _client() as cl:
+                    await cl._apost(f"/v1/posts/{c['late_post_id']}/retry", data={})
+                supabase.table("contenu").update({
+                    "publish_status": "envoi", "publish_error": None,
+                    "updated_at": now.isoformat(),
+                }).eq("id", c["id"]).execute()
+                n += 1
+                logger.info(f"sweep retry: contenu {c['id']} relancé via /posts/retry")
+            except Exception as e:
+                supabase.table("contenu").update({"updated_at": now.isoformat()}).eq("id", c["id"]).execute()
+                logger.warning(f"sweep retry {c['id']}: {e}")
+    except Exception as e:
+        logger.error(f"_retry_echecs_du_jour: {e}")
+    return n
+
+
 async def sweep_planifies() -> int:
-    """Filet de sécurité en 2 passes :
+    """Filet de sécurité en 3 passes :
     1) RATTRAPAGE — contenus 'Planifie' à date FUTURE jamais poussés (late_post_id absent) :
        lignes héritées de l'ancien flux optimiste -> on les programme sur Zernio.
     2) RÉCONCILIATION — contenus poussés mais restés en publish_status='envoi' (webhook
-       post.scheduled raté) : on lit l'état réel du post chez Zernio et on aligne la base."""
+       post.scheduled raté) : on lit l'état réel du post chez Zernio et on aligne la base.
+    3) PUBLICATIONS DU JOUR — posts échoués des dernières 24 h relancés via /posts/{id}/retry
+       (la publication se redéclenche de NOTRE côté si le scheduler Zernio a lâché)."""
     n = 0
     # --- Passe 1 : rattrapage des jamais-poussés ---
     try:
@@ -260,6 +317,9 @@ async def sweep_planifies() -> int:
                 logger.warning(f"sweep réconciliation {c['id']}: {e}")
     except Exception as e:
         logger.error(f"sweep_planifies (réconciliation): {e}")
+
+    # --- Passe 3 : publications du jour (retry officiel des échecs < 24 h) ---
+    n += await _retry_echecs_du_jour()
     return n
 
 
