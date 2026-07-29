@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { APK_URL } from '../../lib/appDownload';
 import HeroPreview from './HeroPreview';
 import { SectionHead, GOODTIME, BOOKING_URL } from './shared';
@@ -69,6 +70,12 @@ const AudIcon = ({ d }) => (
 );
 
 export default function Home() {
+  // Témoignage vidéo dans la LANGUE du visiteur (détection i18n : localStorage -> navigateur -> fr).
+  // Espagnol -> vidéo ES ; français et toute autre langue -> vidéo FR.
+  const { i18n } = useTranslation();
+  const lang = (i18n.resolvedLanguage || 'fr').slice(0, 2);
+  const vids = VIDEO_TESTIMONIALS.filter((v) => (lang === 'es' ? v.id === 'es' : v.id === 'fr'));
+
   return (
     <>
       <header className="hero"><div className="wrap">
@@ -161,9 +168,9 @@ export default function Home() {
       <section className="alt"><div className="wrap">
         <SectionHead eyebrow="Accès anticipé" title="Les premiers dirigeants à bord" lead="Ils testent Presence OS et reprennent la main sur leur présence." />
 
-        {/* Témoignages vidéo (FR + ES) */}
-        <div className="vids">
-          {VIDEO_TESTIMONIALS.map((v) => (
+        {/* Témoignage vidéo — un seul, dans la langue du visiteur */}
+        <div className="vids" style={vids.length === 1 ? { gridTemplateColumns: '1fr', maxWidth: 620 } : undefined}>
+          {vids.map((v) => (
             <figure className="vcard" key={v.id}>
               <video src={v.src} poster={v.poster} controls preload="metadata" playsInline />
               <figcaption><span style={{ fontSize: 15 }}>{v.flag}</span>Témoignage client · {v.lang}</figcaption>
