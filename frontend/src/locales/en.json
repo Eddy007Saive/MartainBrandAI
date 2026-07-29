@@ -8,7 +8,7 @@
     "feat2": "Smart scheduling",
     "feat3": "Analytics & Performance",
     "feat4": "Comment management",
-    "rights": "© 2026 PresenceOS. All rights reserved.",
+    "rights": "© 2026 Postorico. All rights reserved.",
     "login": "Sign in",
     "loginSub": "Access your personal workspace",
     "email": "Email",
@@ -42,7 +42,7 @@
     "errPasswordRequired": "Password is required",
     "errPasswordShort": "At least 6 characters",
     "errPasswordMatch": "Passwords do not match",
-    "toastWelcome": "Welcome to Presence OS 🎉",
+    "toastWelcome": "Welcome to Postorico 🎉",
     "toastEmailExists": "This email is already in use",
     "toastError": "Registration failed"
   },

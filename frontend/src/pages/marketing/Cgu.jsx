@@ -6,7 +6,7 @@ export default function Cgu() {
     <LegalPage title="Conditions Générales d'Utilisation">
       <h3>1. Objet</h3>
       <p>
-        Les présentes conditions régissent l'utilisation de <b>Presence OS</b>, une plateforme de
+        Les présentes conditions régissent l'utilisation de <b>Postorico</b>, une plateforme de
         création, planification et publication de contenus pour les réseaux sociaux, assistée par
         intelligence artificielle, éditée par <Ph>{LEGAL.societe}</Ph>. En créant un compte, tu acceptes
         ces conditions.

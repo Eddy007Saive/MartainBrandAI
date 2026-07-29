@@ -101,7 +101,7 @@ async def forgot_password(body: dict):
             nom = user.get("nom") or user.get("username") or ""
             res = await mail_service.send_email(
                 user["email"],
-                "Réinitialisation de votre mot de passe — PresenceOS",
+                "Réinitialisation de votre mot de passe — Postorico",
                 mail_service.reset_email_html(nom, link),
             )
             if res.get("error"):

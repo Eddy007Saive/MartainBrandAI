@@ -52,7 +52,7 @@ CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
 
 # Resend (envoi d'emails — mot de passe oublié)
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY') or os.environ.get('api_resend', '')
-RESEND_FROM = os.environ.get('RESEND_FROM', 'PresenceOS <onboarding@resend.dev>')
+RESEND_FROM = os.environ.get('RESEND_FROM', 'Postorico <onboarding@resend.dev>')
 # Email qui reçoit les notifications internes (nouveaux audits de marque, etc.)
 ADMIN_NOTIF_EMAIL = os.environ.get('ADMIN_NOTIF_EMAIL', 'martindumoulin88@gmail.com')
 # URL du frontend (pour construire le lien de réinitialisation)

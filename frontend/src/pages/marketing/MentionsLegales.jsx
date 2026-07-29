@@ -6,7 +6,7 @@ export default function MentionsLegales() {
     <LegalPage title="Mentions légales">
       <h3>Éditeur du site</h3>
       <p>
-        Le site et l'application <b>Presence OS</b> sont édités par <Ph>{LEGAL.societe}</Ph>,
+        Le site et l'application <b>Postorico</b> sont édités par <Ph>{LEGAL.societe}</Ph>,
         {' '}<Ph>{LEGAL.statut}</Ph>, immatriculée sous le numéro <Ph>{LEGAL.siret}</Ph>,
         dont le siège est situé <Ph>{LEGAL.adresse}</Ph>.
       </p>

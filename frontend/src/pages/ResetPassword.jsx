@@ -51,7 +51,7 @@ export default function ResetPassword() {
           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center shadow-lg shadow-[#5B6CFF]/25">
             <span className="text-xl font-bold text-white font-sora">P</span>
           </div>
-          <span className="text-2xl font-bold text-white font-sora">PresenceOS</span>
+          <span className="text-2xl font-bold text-white font-sora">Postorico</span>
         </div>
 
         <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">

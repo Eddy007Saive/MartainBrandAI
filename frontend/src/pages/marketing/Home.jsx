@@ -30,7 +30,7 @@ const OPTIONS = [
   { name: 'Ne rien faire', vals: ['0 € (réseaux morts)', 'Nul', '—', 'Nulle', '—', '—'] },
   { name: 'Un stagiaire / alternant', vals: ['Un salaire', 'Quelques posts', 'Il l’apprend (ou pas)', 'Variable', 'Tu relis tout', 'Recrutement + formation'] },
   { name: 'Une agence', vals: ['1 500–3 000 €/mois', 'Forfait limité (8-20/mois)', 'Standardisée', 'Bonne', 'Tu attends les retours', 'Onboarding de semaines'] },
-  { name: 'Presence OS', win: true, vals: ['À partir de 0 €', 'Illimité, tous réseaux', 'Calibrée sur ta marque', 'Automatique', 'Tu valides en 1 clic', '2 minutes'] },
+  { name: 'Postorico', win: true, vals: ['À partir de 0 €', 'Illimité, tous réseaux', 'Calibrée sur ta marque', 'Automatique', 'Tu valides en 1 clic', '2 minutes'] },
 ];
 
 const ICONS = {
@@ -40,7 +40,7 @@ const ICONS = {
 };
 // « Pour qui » par SITUATION (pas par secteur)
 const AUDIENCE = [
-  ['clock', '« Je n’ai pas le temps »', 'Tu fais tourner ta boîte, pas un studio de contenu. Presence OS prend le relais — tu gardes la main, sans y passer tes journées.'],
+  ['clock', '« Je n’ai pas le temps »', 'Tu fais tourner ta boîte, pas un studio de contenu. Postorico prend le relais — tu gardes la main, sans y passer tes journées.'],
   ['hands', '« Je délègue… et je croise les doigts »', 'Fini le quitte ou double du stagiaire. L’IA produit dans ta voix, tu valides en un clic. Régulier, sur marque, à chaque fois.'],
   ['building', '« Je paie une agence »', 'Même régularité, sans forfait limité ni facture à 2 000 €. Publie autant que tu veux, sur tous tes réseaux. Tu reprends le contrôle.'],
 ];
@@ -103,14 +103,14 @@ export default function Home() {
 
       {/* Problème -> Solution */}
       <section className="alt"><div className="wrap">
-        <SectionHead eyebrow="Le constat" title="Être présent sur les réseaux quand on dirige une boîte" lead="Entre le manque de temps, l’irrégularité et les outils éparpillés, on lâche vite. Presence OS change la donne." />
+        <SectionHead eyebrow="Le constat" title="Être présent sur les réseaux quand on dirige une boîte" lead="Entre le manque de temps, l’irrégularité et les outils éparpillés, on lâche vite. Postorico change la donne." />
         <div className="ps">
           <div className="pscol bad">
-            <h3>Sans Presence OS</h3>
+            <h3>Sans Postorico</h3>
             <ul>{PAINS.map((p) => <li key={p}><span className="mk">✗</span>{p}</li>)}</ul>
           </div>
           <div className="pscol good">
-            <h3>Avec Presence OS</h3>
+            <h3>Avec Postorico</h3>
             <ul>{GAINS.map((g) => <li key={g}><span className="mk">✓</span>{g}</li>)}</ul>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function Home() {
 
       {/* Plutôt que… (cœur du positionnement) */}
       <section><div className="wrap">
-        <SectionHead eyebrow="Plutôt que…" title="Tu connais déjà tes options. Voilà pourquoi Presence OS gagne." />
+        <SectionHead eyebrow="Plutôt que…" title="Tu connais déjà tes options. Voilà pourquoi Postorico gagne." />
         <div className="cmp">
           {OPTIONS.map((o) => (
             <div className={'cmpcard' + (o.win ? ' win' : '')} key={o.name}>
@@ -166,7 +166,7 @@ export default function Home() {
 
       {/* Témoignages (accès anticipé) */}
       <section className="alt"><div className="wrap">
-        <SectionHead eyebrow="Accès anticipé" title="Les premiers dirigeants à bord" lead="Ils testent Presence OS et reprennent la main sur leur présence." />
+        <SectionHead eyebrow="Accès anticipé" title="Les premiers dirigeants à bord" lead="Ils testent Postorico et reprennent la main sur leur présence." />
 
         {/* Témoignage vidéo — un seul, dans la langue du visiteur */}
         <div className="vids" style={vids.length === 1 ? { gridTemplateColumns: '1fr', maxWidth: 620 } : undefined}>
@@ -192,13 +192,14 @@ export default function Home() {
       {/* Édité par GoodTime */}
       <section style={{ paddingTop: 0 }}><div className="wrap">
         <div className="gtband">
-          <span className="gt-t">Presence OS est un produit <b>{GOODTIME.name}</b> — l’équipe derrière l’OS de la location courte durée. On construit des outils qui font gagner du temps aux pros.</span>
+          <span className="gt-t">Postorico est un produit <b>{GOODTIME.name}</b> — l’équipe derrière l’OS de la location courte durée. On construit des outils qui font gagner du temps aux pros.</span>
           <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">Découvrir GoodTime ↗</a>
         </div>
       </div></section>
 
       <section><div className="wrap">
         <div className="ctaband">
+          <img className="mascot" src="/images/mascotte.png" alt="La mascotte Postorico" />
           <h2>Prêt à reprendre le contrôle de ta présence ?</h2>
           <p>Réserve ton call de setup, crée ton compte en 2 minutes, ou installe l’app pour piloter depuis ton téléphone.</p>
           <div className="cta-row center">

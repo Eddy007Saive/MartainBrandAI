@@ -73,7 +73,7 @@ export default function Pricing() {
       <section><div className="wrap">
         <div className="ctaband">
           <h2>Une agence te coûte 1 500–3 000 € <span style={{ color: 'var(--muted)', fontWeight: 600 }}>chaque mois.</span></h2>
-          <p>Avec Presence OS : un setup une seule fois, puis un abonnement léger que tu pilotes en ~2 h par mois. La régularité d'une agence, sans la facture récurrente.</p>
+          <p>Avec Postorico : un setup une seule fois, puis un abonnement léger que tu pilotes en ~2 h par mois. La régularité d'une agence, sans la facture récurrente.</p>
           <div className="cta-row center">
             <a className="btn btn-grad" href={BOOKING_URL}>Réserve ton call de setup →</a>
             <Link className="btn btn-soft" to="/register">Créer mon compte</Link>

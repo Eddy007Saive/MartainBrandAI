@@ -398,7 +398,7 @@ export default function AuditMarque() {
 
       {/* Header / nav du site */}
       <nav className="topnav"><div className="wrap">
-        <a href="/" className="tn-brand"><img src="/logo.png" alt="Presence OS" /><span>Presence&nbsp;OS</span></a>
+        <a href="/" className="tn-brand"><img src="/logo.png" alt="Postorico" /><span>Presence&nbsp;OS</span></a>
         <div className="tn-links">
           <a href="/fonctionnalites">Fonctionnalités</a>
           <a href="/comment-ca-marche">Comment ça marche</a>
@@ -420,7 +420,7 @@ export default function AuditMarque() {
       <header className="top">
         <div className="wrap">
           <div className="brandrow">
-            <img src="/logo.png" alt="Presence OS" className="glyph" />
+            <img src="/logo.png" alt="Postorico" className="glyph" />
             <div><b>Presence&nbsp;OS</b><br /><span>Onboarding</span></div>
           </div>
           <h1>Audit de marque.<br />Pour que l'IA parle <em>exactement</em> comme toi.</h1>
@@ -484,7 +484,7 @@ export default function AuditMarque() {
       </div>
 
       <footer className="wrap">
-        <div>Presence OS · Questionnaire d'onboarding confidentiel</div>
+        <div>Postorico · Questionnaire d'onboarding confidentiel</div>
         <div className="credit">Propulsé par GT BNB · Produit par Blackcore AI · Kraemer V · 78 bld Vitosha, Sofia</div>
       </footer>
 

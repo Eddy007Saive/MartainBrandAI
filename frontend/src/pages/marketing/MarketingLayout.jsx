@@ -54,7 +54,7 @@ export default function MarketingLayout() {
       <style>{CSS}</style>
 
       <nav><div className="wrap">
-        <Link to="/" className="brand"><img src="/logo.png" alt="Presence OS" /><div><b>Presence OS</b><small>Studio de contenu IA</small></div></Link>
+        <Link to="/" className="brand"><img src="/logo.png" alt="Postorico" /><div><b>Postorico</b><small>Studio de contenu IA</small></div></Link>
         <div className="navlinks">
           {LINKS.map((l) => <NavLink key={l.to} to={l.to}>{l.label}</NavLink>)}
         </div>
@@ -67,7 +67,7 @@ export default function MarketingLayout() {
         <div className="brand">
           <img src="/logo.png" alt="" style={{ width: 30, height: 30 }} />
           <div>
-            <b>Presence OS</b>
+            <b>Postorico</b>
             <small>Un produit <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a> · © 2026</small>
           </div>
         </div>

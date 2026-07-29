@@ -112,9 +112,9 @@ function NavItem({ item, onClick }) {
 function Brand() {
   return (
     <div className="flex items-center gap-2.5">
-      <img src="/logo.png" alt="Presence OS" className="w-9 h-9 object-contain flex-shrink-0" />
+      <img src="/logo.png" alt="Postorico" className="w-9 h-9 object-contain flex-shrink-0" />
       <div className="leading-tight">
-        <p className="text-sm font-bold text-white font-sora">Presence OS</p>
+        <p className="text-sm font-bold text-white font-sora">Postorico</p>
         <p className="text-[11px] text-slate-500 font-inter">Studio de contenu IA</p>
       </div>
     </div>

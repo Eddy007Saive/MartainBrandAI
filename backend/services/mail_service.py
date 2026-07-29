@@ -7,14 +7,14 @@ import re
 import httpx
 from config import RESEND_API_KEY, RESEND_FROM, logger
 
-# Domaine expéditeur extrait de RESEND_FROM ("PresenceOS <noreply@blackcore-ai.com>")
+# Domaine expéditeur extrait de RESEND_FROM ("Postorico <noreply@blackcore-ai.com>")
 _m = re.search(r"@([^\s>]+)", RESEND_FROM or "")
 _DOMAIN = _m.group(1) if _m else "blackcore-ai.com"
 # Adresse de réponse réelle (meilleur signal de délivrabilité que noreply seul).
 REPLY_TO = f"contact@{_DOMAIN}"
 _UNSUB = f"mailto:unsubscribe@{_DOMAIN}?subject=unsubscribe"
 # Logo hébergé (URL absolue https obligatoire dans les emails ; un chemin relatif ne s'affiche pas).
-_LOGO_URL = "https://res.cloudinary.com/dy9gp5pim/image/upload/brand/presenceos-logo.png"
+_LOGO_URL = "https://res.cloudinary.com/dy9gp5pim/image/upload/brand/postorico-logo.png"
 
 
 def _nl2br(text: str) -> str:
@@ -40,9 +40,9 @@ def _header() -> str:
     return f"""<tr><td style="padding:28px 32px 10px;">
       <table role="presentation" cellpadding="0" cellspacing="0"><tr>
         <td style="background:#ffffff;border-radius:12px;padding:6px;line-height:0;">
-          <img src="{_LOGO_URL}" width="38" height="38" alt="PresenceOS" style="display:block;width:38px;height:38px;border:0;">
+          <img src="{_LOGO_URL}" width="38" height="38" alt="Postorico" style="display:block;width:38px;height:38px;border:0;">
         </td>
-        <td style="padding-left:12px;color:#ffffff;font-size:18px;font-weight:bold;letter-spacing:-.01em;">PresenceOS</td>
+        <td style="padding-left:12px;color:#ffffff;font-size:18px;font-weight:bold;letter-spacing:-.01em;">Postorico</td>
       </tr></table>
     </td></tr>"""
 
@@ -51,16 +51,16 @@ def _footer(internal: bool = False) -> str:
     """Pied de page. `internal=True` -> notification admin (footer sobre, pas de désinscription)."""
     if internal:
         return """<tr><td style="padding:20px 32px;border-top:1px solid rgba(255,255,255,0.06);color:#475569;font-size:11px;">
-          © 2026 PresenceOS — notification interne automatique
+          © 2026 Postorico — notification interne automatique
         </td></tr>"""
     return f"""<tr><td style="padding:22px 32px;border-top:1px solid rgba(255,255,255,0.06);">
       <p style="margin:0 0 6px;color:#64748b;font-size:11px;line-height:1.6;">
-        PresenceOS — votre présence sociale, pilotée par l'IA.<br>
+        Postorico — votre présence sociale, pilotée par l'IA.<br>
         Une question&nbsp;? Répondez à cet email ou écrivez-nous à
         <a href="mailto:{REPLY_TO}" style="color:#8A6CFF;text-decoration:none;">{REPLY_TO}</a>.
       </p>
       <p style="margin:0;color:#475569;font-size:11px;">
-        © 2026 PresenceOS · <a href="{_UNSUB}" style="color:#475569;text-decoration:underline;">Se désinscrire</a>
+        © 2026 Postorico · <a href="{_UNSUB}" style="color:#475569;text-decoration:underline;">Se désinscrire</a>
       </p>
     </td></tr>"""
 
@@ -148,14 +148,14 @@ def admin_payment_html(kind: str, nom: str, email: str, detail: str = "") -> tup
       </div>
       <p style="margin:18px 0 0;color:#94a3b8;font-size:13.5px;line-height:1.7;">{note}</p>
       <p style="margin:14px 0 0;color:#64748b;font-size:12.5px;line-height:1.6;">
-        Retrouvez le détail complet (montant, dates, historique des paiements) dans votre tableau de bord administrateur PresenceOS, section Facturation.
+        Retrouvez le détail complet (montant, dates, historique des paiements) dans votre tableau de bord administrateur Postorico, section Facturation.
       </p>
     </td></tr>"""
     return subject, _shell(inner, width=520, internal=True)
 
 
 def reset_email_html(nom: str, link: str) -> str:
-    """Email de réinitialisation, design sobre cohérent avec PresenceOS."""
+    """Email de réinitialisation, design sobre cohérent avec Postorico."""
     salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
     inner = f"""<tr><td style="padding:16px 32px 24px;">
       <h1 style="color:#ffffff;font-size:20px;margin:0 0 12px;">Réinitialisation du mot de passe</h1>
@@ -190,7 +190,7 @@ def account_disconnected_html(nom: str, reseau: str, link: str) -> str:
       <h1 style="color:#ffffff;font-size:20px;margin:0 0 12px;">⚠️ Ton compte {reseau_cap} est déconnecté</h1>
       <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 8px;">{salutation}</p>
       <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin:0 0 8px;">
-        La connexion entre PresenceOS et ton compte <strong style="color:#cbd5e1;">{reseau_cap}</strong> a expiré
+        La connexion entre Postorico et ton compte <strong style="color:#cbd5e1;">{reseau_cap}</strong> a expiré
         — c'est le réseau qui invalide l'accès de temps en temps, rien de grave.
       </p>
       <p style="color:#fca5a5;font-size:14px;line-height:1.6;margin:0 0 24px;">
@@ -246,7 +246,7 @@ def audit_reply_html(marque: str, message: str) -> str:
       <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 14px;">{salutation}</p>
       <div style="color:#e2e8f0;font-size:14.5px;line-height:1.7;">{body_html}</div>
       <p style="color:#64748b;font-size:12px;line-height:1.6;margin:24px 0 0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
-        L'équipe PresenceOS
+        L'équipe Postorico
       </p>
     </td></tr>"""
     return _shell(inner, width=520)

@@ -35,7 +35,7 @@ export const Sidebar = ({ onLogout, userName }) => {
     <aside className="w-64 hidden md:flex flex-col border-r border-white/5 bg-slate-950/50 backdrop-blur-xl">
       <div className="p-6 border-b border-white/5">
         <h1 className="text-xl font-bold font-sora bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
-          Presence OS
+          Postorico
         </h1>
         {userName && (
           <p className="text-sm text-slate-400 mt-1 font-inter truncate">

@@ -8,7 +8,7 @@
     "feat2": "Planification intelligente",
     "feat3": "Analytics & Performance",
     "feat4": "Gestion des commentaires",
-    "rights": "© 2026 PresenceOS. Tous droits réservés.",
+    "rights": "© 2026 Postorico. Tous droits réservés.",
     "login": "Connexion",
     "loginSub": "Accédez à votre espace personnel",
     "email": "Email",
@@ -42,7 +42,7 @@
     "errPasswordRequired": "Le mot de passe est requis",
     "errPasswordShort": "Minimum 6 caractères",
     "errPasswordMatch": "Les mots de passe ne correspondent pas",
-    "toastWelcome": "Bienvenue sur Presence OS 🎉",
+    "toastWelcome": "Bienvenue sur Postorico 🎉",
     "toastEmailExists": "Cet email est déjà utilisé",
     "toastError": "Erreur lors de l'inscription"
   },

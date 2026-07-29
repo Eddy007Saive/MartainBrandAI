@@ -112,7 +112,7 @@ async def reply_audit(audit_id: str, body: dict, payload: dict = Depends(verify_
     to = (audit.get("email") or "").strip()
     if not to:
         raise HTTPException(status_code=400, detail="Ce lead n'a pas d'email.")
-    subject = (body.get("subject") or "").strip() or f"Réponse à ton audit de marque — PresenceOS"
+    subject = (body.get("subject") or "").strip() or f"Réponse à ton audit de marque — Postorico"
     message = (body.get("message") or "").strip()
     if not message:
         raise HTTPException(status_code=400, detail="Le message est vide.")

@@ -30,7 +30,7 @@ export default function HeroPreview() {
       <div className="pbar"><i /><i /><i /></div>
       <div className="shot">
         <div className="sb">
-          <div className="lg"><img src="/logo.png" alt="" /><b>Presence OS</b></div>
+          <div className="lg"><img src="/logo.png" alt="" /><b>Postorico</b></div>
           {SIDEBAR.map((t) => (
             <div key={t} className={'it' + (t === active.label ? ' on' : '')}><span className="ic" />{t}</div>
           ))}
@@ -40,7 +40,7 @@ export default function HeroPreview() {
             <img
               key={s.src}
               src={s.src}
-              alt={`PresenceOS — ${s.label}`}
+              alt={`Postorico — ${s.label}`}
               loading={idx === 0 ? 'eager' : 'lazy'}
               style={{
                 position: 'absolute', inset: 0, width: '100%', height: '100%',

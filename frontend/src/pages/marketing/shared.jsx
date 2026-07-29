@@ -249,6 +249,10 @@ export const CSS = `
 .lp .ctaband{background:radial-gradient(600px 240px at 50% 0%,rgba(91,108,255,.16),transparent),var(--panel);border:1px solid rgba(138,108,255,.3);border-radius:26px;padding:60px;text-align:center;position:relative;overflow:hidden}
 .lp .ctaband h2{font-family:Sora;font-weight:800;font-size:34px;letter-spacing:-.02em}
 .lp .ctaband p{color:var(--muted);margin:14px auto 30px;max-width:480px}
+.lp .ctaband .mascot{position:absolute;right:26px;bottom:-6px;height:210px;width:auto;pointer-events:none;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45));animation:mfloat 5s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes mfloat{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-10px) rotate(1.2deg)}}
+@media (prefers-reduced-motion:reduce){.lp .ctaband .mascot{animation:none}}
+@media (max-width:900px){.lp .ctaband .mascot{display:none}}
 /* Chiffres clés */
 .lp .statsband{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
 .lp .stat{text-align:center;padding:24px 14px}
