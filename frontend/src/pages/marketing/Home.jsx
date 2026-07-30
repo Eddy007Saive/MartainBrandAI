@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { APK_URL } from '../../lib/appDownload';
@@ -68,6 +69,35 @@ const TESTIMONIALS = [
 const AudIcon = ({ d }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
 );
+
+const CLDV = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
+
+// Le coq Postorico marche en bas de page, sa position suit la progression du scroll
+// (rAF, transform seul -> GPU). Masqué sur mobile et si prefers-reduced-motion (CSS).
+function MascotWalker() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const doc = document.documentElement;
+        const p = doc.scrollTop / Math.max(1, doc.scrollHeight - doc.clientHeight);
+        el.style.transform = `translateX(${Math.round(p * (doc.clientWidth - 110))}px)`;
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); cancelAnimationFrame(raf); };
+  }, []);
+  return (
+    <video ref={ref} className="walker" src={`${CLDV}/q_auto/marketing/mascotte-walk.mp4`}
+      autoPlay muted loop playsInline aria-hidden="true" />
+  );
+}
 
 export default function Home() {
   // Témoignage vidéo dans la LANGUE du visiteur (détection i18n : localStorage -> navigateur -> fr).
@@ -199,7 +229,8 @@ export default function Home() {
 
       <section><div className="wrap">
         <div className="ctaband">
-          <img className="mascot" src="/images/mascotte.png" alt="La mascotte Postorico" />
+          <video className="mascot-video" src={`${CLDV}/q_auto/marketing/mascotte-wave.mp4`}
+            poster="/images/mascotte.png" autoPlay muted loop playsInline aria-hidden="true" />
           <h2>Prêt à reprendre le contrôle de ta présence ?</h2>
           <p>Réserve ton call de setup, crée ton compte en 2 minutes, ou installe l’app pour piloter depuis ton téléphone.</p>
           <div className="cta-row center">

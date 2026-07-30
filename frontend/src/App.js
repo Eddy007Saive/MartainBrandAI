@@ -2,7 +2,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import MarketingLayout from "./pages/marketing/MarketingLayout";
-import Home from "./pages/marketing/Home";
+import HomeCine from "./pages/marketing/HomeCine";
 import Features from "./pages/marketing/Features";
 import HowItWorks from "./pages/marketing/HowItWorks";
 import Pricing from "./pages/marketing/Pricing";
@@ -35,9 +35,11 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
+          {/* Home cinématique (plein écran, sa propre nav — hors layout vitrine) */}
+          <Route path="/" element={<HomeCine />} />
+
           {/* Site vitrine (pages séparées, layout commun) */}
           <Route element={<MarketingLayout />}>
-            <Route path="/" element={<Home />} />
             <Route path="/fonctionnalites" element={<Features />} />
             <Route path="/comment-ca-marche" element={<HowItWorks />} />
             <Route path="/tarifs" element={<Pricing />} />

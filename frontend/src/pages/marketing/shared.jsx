@@ -251,6 +251,11 @@ export const CSS = `
 .lp .ctaband p{color:var(--muted);margin:14px auto 30px;max-width:480px}
 .lp .ctaband .mascot{position:absolute;right:26px;bottom:-6px;height:210px;width:auto;pointer-events:none;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45));animation:mfloat 5s ease-in-out infinite;transform-origin:50% 100%}
 @keyframes mfloat{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-10px) rotate(1.2deg)}}
+/* Mascotte animee (videos fond noir + blend lighten = pseudo-transparence sur fond sombre) */
+.lp .ctaband .mascot-video{position:absolute;right:16px;bottom:-8px;height:235px;width:auto;aspect-ratio:1/1;object-fit:cover;pointer-events:none;mix-blend-mode:lighten}
+@media (max-width:900px){.lp .ctaband .mascot-video{display:none}}
+.lp .walker{position:fixed;left:0;bottom:2px;width:96px;height:96px;object-fit:cover;pointer-events:none;z-index:39;mix-blend-mode:lighten;will-change:transform}
+@media (max-width:760px),(prefers-reduced-motion:reduce){.lp .walker{display:none}}
 @media (prefers-reduced-motion:reduce){.lp .ctaband .mascot{animation:none}}
 @media (max-width:900px){.lp .ctaband .mascot{display:none}}
 /* Chiffres clés */
