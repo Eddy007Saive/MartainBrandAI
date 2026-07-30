@@ -87,15 +87,16 @@ export default function HomeCine() {
     const renderImpact = (p) => {
       const N = words.length;
       words.forEach((el, i) => {
-        const o = clamp((p - (i / N) * 0.75) / 0.12);
-        el.style.opacity = 0.12 + o * 0.88;
-        el.style.filter = `blur(${(1 - o) * 8}px)`;
-        el.style.transform = `translateY(${(1 - o) * 18}px)`;
+        // lisible dès l'arrivée (base 0.4), révélation complète sur la 1re moitié du pin
+        const o = clamp((p * 2 - (i / N) * 0.6) / 0.14);
+        el.style.opacity = 0.4 + o * 0.6;
+        el.style.filter = `blur(${(1 - o) * 4}px)`;
+        el.style.transform = `translateY(${(1 - o) * 12}px)`;
       });
     };
     renderImpact(0);
     const st1 = ScrollTrigger.create({
-      trigger: '.cine .impact', start: 'top top', end: () => '+=' + window.innerHeight * 1.4,
+      trigger: '.cine .impact', start: 'top top', end: () => '+=' + window.innerHeight * 0.7,
       pin: true, scrub: 1, onUpdate: (s) => renderImpact(s.progress),
     });
 
