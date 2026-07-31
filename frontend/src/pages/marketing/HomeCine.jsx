@@ -20,7 +20,7 @@ const BG_CLIPS = [
   // recadrage : Hailuo a rendu le coq ~20 % plus petit sur ce clip -> on aligne sur les autres.
   // NB : ce transform inline REMPLACE le scale(.86) du CSS -> on combine (.86 x 1.2 = 1.032).
   { src: '/videos/bg-point.mp4', sel: '.aud', transform: 'scale(1.032) translateY(2.5%)' },  // « Pour qui » : pointe le titre + clin d'œil
-  { src: '/videos/bg-work.mp4', sel: '.flow' },       // « Accompagnement » : il travaille, concentré (sans bulle)
+  { src: '/videos/bg-work.mp4', sel: '.flow', transform: 'scale(1.032) translateY(2.5%)' },  // « Accompagnement » : il travaille, concentré
   { none: true, sel: '.testi' },                      // Témoignages : fond noir, toute l'attention sur la vidéo client
   // { src: '/videos/bg-wave.mp4', sel: '.final' },   // CTA final : il salue (à activer quand le clip sera généré)
 ];
@@ -354,15 +354,11 @@ export default function HomeCine() {
         <section className="testi"><div className="wrap">
           <div className="eyebrow">Accès anticipé</div>
           <h2>Les premiers dirigeants à bord</h2>
-          <div className="tgrid">
+          <div className="tgrid tgrid--solo">
             <figure className="vcard">
               <video src={testi.src} poster={testi.poster} controls preload="metadata" playsInline />
               <figcaption>{testi.flag} {testi.label}</figcaption>
             </figure>
-            <div className="quotes">
-              <div className="tcard"><div className="stars">★★★★★</div><p className="q">« Avant je payais une agence 2 000 €/mois. Là je gère ça moi-même en quelques minutes, et c'est plus à mon image. »</p><div className="who"><span className="av">A</span><div><b>Aurélie M.</b><small>Gérante, cabinet de conseil</small></div></div></div>
-              <div className="tcard"><div className="stars">★★★★★</div><p className="q">« Le setup a tout changé : le système est calibré sur ma voix, je n'ai plus qu'à valider. »</p><div className="who"><span className="av">T</span><div><b>Thomas R.</b><small>Dirigeant PME</small></div></div></div>
-            </div>
           </div>
         </div></section>
 
