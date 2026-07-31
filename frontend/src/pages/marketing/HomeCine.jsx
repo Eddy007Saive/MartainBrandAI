@@ -67,8 +67,15 @@ export default function HomeCine() {
   const impactRef = useRef(null);
   const [scene, setScene] = useState(0);
 
-  // Mobile/tactile : AUCUNE video rendue (sinon elles se telechargent meme masquees) — poster statique a la place
-  const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches);
+  // Mobile : AUCUNE video rendue (sinon elles se telechargent meme masquees) — poster statique a la place.
+  // Critere : tactile OU ecran <= 900px, reevalue au redimensionnement.
+  const mobileQuery = () => window.matchMedia('(hover: none)').matches || window.innerWidth <= 900;
+  const [isTouch, setIsTouch] = useState(() => typeof window !== 'undefined' && mobileQuery());
+  useEffect(() => {
+    const onR = () => setIsTouch(mobileQuery());
+    window.addEventListener('resize', onR, { passive: true });
+    return () => window.removeEventListener('resize', onR);
+  }, []);
 
   // Menu mobile (burger) — bloque le scroll de fond tant qu'il est ouvert
   const [menuOpen, setMenuOpen] = useState(false);
@@ -186,7 +193,8 @@ export default function HomeCine() {
       lenis.destroy();
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, []);
+    // re-cable tout (pins, triggers, stack video) quand on bascule mobile <-> desktop
+  }, [isTouch]);
 
   return (
     <div className="cine" ref={rootRef}>
