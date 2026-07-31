@@ -21,6 +21,7 @@ const BG_CLIPS = [
   // NB : ce transform inline REMPLACE le scale(.86) du CSS -> on combine (.86 x 1.2 = 1.032).
   { src: '/videos/bg-point.mp4', sel: '.aud', transform: 'scale(1.032) translateY(2.5%)' },  // « Pour qui » : pointe le titre + clin d'œil
   { src: '/videos/bg-work.mp4', sel: '.flow' },       // « Accompagnement » : il travaille, concentré (sans bulle)
+  { none: true, sel: '.testi' },                      // Témoignages : fond noir, toute l'attention sur la vidéo client
   // { src: '/videos/bg-wave.mp4', sel: '.final' },   // CTA final : il salue (à activer quand le clip sera généré)
 ];
 
@@ -123,16 +124,21 @@ export default function HomeCine() {
     // Chaque clip = { sel: section qui le déclenche } ; s'il manque (404), on garde le précédent.
     const stack = [...rootRef.current.querySelectorAll('.bg-video')];
     stack.forEach((v, i) => { v.style.opacity = i === 0 ? '1' : '0'; });
+    // vidIdx[i] = index dans `stack` du clip i de BG_CLIPS (null pour les chapitres sans vidéo)
+    let n = 0;
+    const vidIdx = BG_CLIPS.map((c) => (c.src ? n++ : null));
     const ok = stack.map(() => true);
     stack.forEach((v, i) => v.addEventListener('error', () => { ok[i] = false; }, { once: true }));
     let curClip = 0;
     const showClip = (idx) => {
-      while (idx > 0 && !ok[idx]) idx -= 1;      // repli sur le clip précédent dispo
+      // repli sur le chapitre précédent si le fichier du clip manque (les chapitres "none" sont toujours valides)
+      while (idx > 0 && !BG_CLIPS[idx].none && !ok[vidIdx[idx]]) idx -= 1;
       if (idx === curClip) return;
       curClip = idx;
+      const active = BG_CLIPS[idx].none ? -1 : vidIdx[idx];
       stack.forEach((v, i) => {
-        v.style.opacity = i === idx ? 1 : 0;
-        if (i === idx) { if (!touch && !reduced) v.play().catch(() => {}); }
+        v.style.opacity = i === active ? 1 : 0;
+        if (i === active) { if (!touch && !reduced) v.play().catch(() => {}); }
         else v.pause();
       });
     };
@@ -163,7 +169,7 @@ export default function HomeCine() {
       {/* Couches fond — un clip par chapitre, fondu enchaîné au scroll */}
       {/* opacité pilotée UNIQUEMENT en impératif (showClip) — pas dans le style JSX,
           sinon chaque re-render React écrase le fondu en cours */}
-      {BG_CLIPS.map((c, i) => (
+      {BG_CLIPS.filter((c) => c.src).map((c, i) => (
         <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
           muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
           style={{ transition: 'opacity 700ms ease', ...(c.transform ? { transform: c.transform } : {}) }} />
