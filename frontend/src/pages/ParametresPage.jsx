@@ -4,7 +4,7 @@ import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
   CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings, CreditCard, Sparkles,
-  Plus, Image as ImageIcon,
+  Plus, Image as ImageIcon, X,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -1452,6 +1452,23 @@ export default function ParametresPage() {
             </Button>
           )}
         </div>
+
+        {/* Résiliation programmée : le client doit savoir ce qui l'attend à l'échéance */}
+        {isPro && user?.plan_cancel_at && (
+          <div className="p-4 rounded-2xl border border-amber-500/25 bg-amber-500/[0.07]">
+            <div className="font-sora font-semibold text-amber-300 text-[13.5px]">
+              Ce qui se passera le {new Date(user.plan_cancel_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </div>
+            <ul className="mt-2 space-y-1.5 text-[12.5px] text-slate-300 font-inter">
+              <li className="flex items-start gap-2"><X className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />Tes réseaux sociaux seront <b className="text-amber-200">déconnectés</b> — la publication automatique s'arrêtera.</li>
+              <li className="flex items-start gap-2"><X className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />Ton plan repassera en gratuit : génération limitée.</li>
+              <li className="flex items-start gap-2"><Check className="w-3.5 h-3.5 text-[#3AFFA3] shrink-0 mt-0.5" />Tes contenus, ta charte et ton historique restent <b className="text-slate-100">conservés</b> — en te réabonnant, tout redémarre (il suffira de reconnecter tes réseaux).</li>
+            </ul>
+            <div className="text-[12px] text-slate-400 mt-2.5 font-inter">
+              Jusqu'à cette date, tout continue de fonctionner normalement. Tu peux annuler la résiliation à tout moment via « Gérer ».
+            </div>
+          </div>
+        )}
 
         <div className="max-w-md">
           <div className="relative rounded-2xl border border-[#5B6CFF]/50 bg-[#5B6CFF]/[0.06] p-6 flex flex-col">
