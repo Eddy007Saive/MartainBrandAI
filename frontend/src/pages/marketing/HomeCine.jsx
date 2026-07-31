@@ -17,7 +17,9 @@ const CLD = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
 const BG_CLIPS = [
   { src: '/videos/hero-bg.mp4' },                     // hero : le coq tape puis réfléchit (bulle d'idée)
   { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },   // « Plutôt que… » : bras croisés, regard caméra, clin d'œil
-  { src: '/videos/bg-point.mp4', sel: '.aud' },       // « Pour qui » : il pointe le titre à gauche + clin d'œil
+  // recadrage : Hailuo a rendu le coq ~20 % plus petit sur ce clip -> on aligne sur les autres.
+  // NB : ce transform inline REMPLACE le scale(.86) du CSS -> on combine (.86 x 1.2 = 1.032).
+  { src: '/videos/bg-point.mp4', sel: '.aud', transform: 'scale(1.032) translateY(2.5%)' },  // « Pour qui » : pointe le titre + clin d'œil
   { src: '/videos/bg-work.mp4', sel: '.flow' },       // « Accompagnement » : il travaille, concentré (sans bulle)
   // { src: '/videos/bg-wave.mp4', sel: '.final' },   // CTA final : il salue (à activer quand le clip sera généré)
 ];
@@ -164,7 +166,7 @@ export default function HomeCine() {
       {BG_CLIPS.map((c, i) => (
         <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
           muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
-          style={{ transition: 'opacity 700ms ease' }} />
+          style={{ transition: 'opacity 700ms ease', ...(c.transform ? { transform: c.transform } : {}) }} />
       ))}
       <img className="poster-fallback" src="/images/hero-poster.jpg" alt="" />
       <div className="bg-tint" />
