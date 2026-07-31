@@ -18,6 +18,7 @@ const BG_CLIPS = [
   { src: '/videos/hero-bg.mp4' },                     // hero : le coq tape puis réfléchit (bulle d'idée)
   { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },   // « Plutôt que… » : bras croisés, regard caméra, clin d'œil
   { src: '/videos/bg-point.mp4', sel: '.aud' },       // « Pour qui » : il pointe le titre à gauche + clin d'œil
+  { src: '/videos/bg-work.mp4', sel: '.flow' },       // « Accompagnement » : il travaille, concentré (sans bulle)
   // { src: '/videos/bg-wave.mp4', sel: '.final' },   // CTA final : il salue (à activer quand le clip sera généré)
 ];
 
@@ -119,6 +120,7 @@ export default function HomeCine() {
     // Vidéos de fond par chapitre : fondu enchaîné au scroll.
     // Chaque clip = { sel: section qui le déclenche } ; s'il manque (404), on garde le précédent.
     const stack = [...rootRef.current.querySelectorAll('.bg-video')];
+    stack.forEach((v, i) => { v.style.opacity = i === 0 ? '1' : '0'; });
     const ok = stack.map(() => true);
     stack.forEach((v, i) => v.addEventListener('error', () => { ok[i] = false; }, { once: true }));
     let curClip = 0;
@@ -157,10 +159,12 @@ export default function HomeCine() {
   return (
     <div className="cine" ref={rootRef}>
       {/* Couches fond — un clip par chapitre, fondu enchaîné au scroll */}
+      {/* opacité pilotée UNIQUEMENT en impératif (showClip) — pas dans le style JSX,
+          sinon chaque re-render React écrase le fondu en cours */}
       {BG_CLIPS.map((c, i) => (
         <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
           muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
-          style={{ opacity: i === 0 ? 1 : 0, transition: 'opacity 700ms ease' }} />
+          style={{ transition: 'opacity 700ms ease' }} />
       ))}
       <img className="poster-fallback" src="/images/hero-poster.jpg" alt="" />
       <div className="bg-tint" />
