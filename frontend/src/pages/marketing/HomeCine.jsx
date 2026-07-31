@@ -12,6 +12,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 const CLD = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
 
+// Vidéos de fond par chapitre de la page (fondu enchaîné au scroll).
+// `sel` = la section qui déclenche le clip ; un fichier manquant est ignoré (repli sur le précédent).
+const BG_CLIPS = [
+  { src: '/videos/hero-bg.mp4' },                     // hero : le coq tape puis réfléchit (bulle d'idée)
+  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },   // dès « Plutôt que… » : bras croisés, regard caméra, clin d'œil
+  // { src: '/videos/bg-wave.mp4', sel: '.final' },   // à activer quand le clip « salut » sera généré
+];
+
 // Scènes de la galerie (vraies captures produit)
 const SCENES = [
   { label: 'Studio IA', src: '/images/studio.jpg', cap: <><b>Studio IA</b> — <em>ta voix, pas du générique</em> · L'IA rédige dans ton ton, tu valides en un clic.</> },
@@ -107,14 +115,37 @@ export default function HomeCine() {
       onUpdate: (s) => setScene(Math.max(0, Math.min(SCENES.length - 1, Math.round(s.progress * (SCENES.length - 1))))),
     });
 
-    // Vidéo de fond : boucle continue
-    const bgv = videoRef.current;
+    // Vidéos de fond par chapitre : fondu enchaîné au scroll.
+    // Chaque clip = { sel: section qui le déclenche } ; s'il manque (404), on garde le précédent.
+    const stack = [...rootRef.current.querySelectorAll('.bg-video')];
+    const ok = stack.map(() => true);
+    stack.forEach((v, i) => v.addEventListener('error', () => { ok[i] = false; }, { once: true }));
+    let curClip = 0;
+    const showClip = (idx) => {
+      while (idx > 0 && !ok[idx]) idx -= 1;      // repli sur le clip précédent dispo
+      if (idx === curClip) return;
+      curClip = idx;
+      stack.forEach((v, i) => {
+        v.style.opacity = i === idx ? 1 : 0;
+        if (i === idx) { if (!touch && !reduced) v.play().catch(() => {}); }
+        else v.pause();
+      });
+    };
+    const clipTriggers = BG_CLIPS.map((c, i) => (i === 0 || !c.sel) ? null : ScrollTrigger.create({
+      trigger: `.cine ${c.sel}`, start: 'top 55%',
+      onEnter: () => showClip(i),
+      onLeaveBack: () => showClip(i - 1),
+    })).filter(Boolean);
+
+    const bgv = stack[0];
     if (bgv && !touch && !reduced) bgv.play().catch(() => {});
-    const onVis = () => { if (!document.hidden && bgv && bgv.paused) bgv.play().catch(() => {}); };
+    const onVis = () => {
+      if (!document.hidden && stack[curClip] && stack[curClip].paused && !touch && !reduced) stack[curClip].play().catch(() => {});
+    };
     document.addEventListener('visibilitychange', onVis);
 
     return () => {
-      st1.kill(); st2.kill();
+      st1.kill(); st2.kill(); clipTriggers.forEach((t) => t.kill());
       ScrollTrigger.getAll().forEach((t) => t.kill());
       gsap.ticker.remove(raf);
       lenis.destroy();
@@ -124,8 +155,12 @@ export default function HomeCine() {
 
   return (
     <div className="cine" ref={rootRef}>
-      {/* Couches fond */}
-      <video ref={videoRef} className="bg-video" src="/videos/hero-bg.mp4" muted loop playsInline preload="auto" />
+      {/* Couches fond — un clip par chapitre, fondu enchaîné au scroll */}
+      {BG_CLIPS.map((c, i) => (
+        <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
+          muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
+          style={{ opacity: i === 0 ? 1 : 0, transition: 'opacity 700ms ease' }} />
+      ))}
       <img className="poster-fallback" src="/images/hero-poster.jpg" alt="" />
       <div className="bg-tint" />
       <div className="grain" />
