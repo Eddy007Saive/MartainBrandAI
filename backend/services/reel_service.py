@@ -87,8 +87,9 @@ def _props_marque(u: dict, script: dict) -> dict:
     }
 
 
-def _rendre_mp4(props: dict) -> str:
-    """Lance le rendu Remotion en subprocess. Retourne le chemin du MP4."""
+def _rendre_mp4(props: dict, composition: str = "ReelBrand") -> str:
+    """Lance le rendu Remotion en subprocess. Retourne le chemin du MP4.
+    composition : "ReelBrand" (8 s) ou "ReelLong" (22 s)."""
     if not os.path.isdir(os.path.join(REMOTION_DIR, "node_modules")):
         raise RuntimeError(f"Remotion non installe ({REMOTION_DIR}) : lancer `npm ci` dans ce dossier.")
     fd, props_path = tempfile.mkstemp(suffix=".json")
@@ -96,7 +97,7 @@ def _rendre_mp4(props: dict) -> str:
         json.dump(props, f, ensure_ascii=False)
     out_path = os.path.join(tempfile.gettempdir(), f"reel_{next(tempfile._get_candidate_names())}.mp4")
     npx = "npx.cmd" if os.name == "nt" else "npx"
-    cmd = [npx, "remotion", "render", "src/index.ts", "ReelBrand", out_path, f"--props={props_path}"]
+    cmd = [npx, "remotion", "render", "src/index.ts", composition, out_path, f"--props={props_path}"]
     if REMOTION_BROWSER:
         cmd.append(f"--browser-executable={REMOTION_BROWSER}")
     try:
