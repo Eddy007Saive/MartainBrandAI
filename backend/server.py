@@ -19,6 +19,7 @@ from routes.inbox import router as inbox_router
 from routes.accounts import router as accounts_router
 from routes.onboarding import router as onboarding_router
 from routes.video import router as video_router
+from routes.reels import router as reels_router
 
 app = FastAPI()
 
@@ -48,6 +49,7 @@ api_router.include_router(inbox_router)
 api_router.include_router(accounts_router)
 api_router.include_router(onboarding_router)
 api_router.include_router(video_router)
+api_router.include_router(reels_router)
 
 app.include_router(api_router)
 

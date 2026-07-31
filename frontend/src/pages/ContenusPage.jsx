@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2 } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -130,7 +130,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, actionLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onReel, reelLoading, actionLoading }) {
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
   const isVideo = contenu.type === 'Reel' || !!contenu.video_url || !!contenu.video_status;
@@ -188,6 +188,11 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
               <CardAction title="Refuser" onClick={() => onRefuse(contenu.id)} className="hover:text-red-400"><X className="w-4 h-4" /></CardAction>
             </>
           )}
+          {!isCarrousel && !isVideo && (
+            <CardAction title="Générer un reel animé à ta charte (~1 min)" onClick={() => onReel(contenu)} className="hover:text-[#8A6CFF]">
+              {reelLoading === contenu.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clapperboard className="w-4 h-4" />}
+            </CardAction>
+          )}
           <CardAction title="Recycler sur d'autres réseaux" onClick={() => onRecycle(contenu)} className="hover:text-[#3AFFA3]"><Repeat2 className="w-4 h-4" /></CardAction>
           <CardAction title="Modifier" onClick={() => onEdit(contenu)} className="hover:text-white"><Edit2 className="w-3.5 h-3.5" /></CardAction>
           <CardAction title="Supprimer" onClick={() => onDelete(contenu)} className="hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></CardAction>
@@ -231,6 +236,23 @@ export default function ContenusPage() {
   const [recycleNets, setRecycleNets] = useState([]);   // réseaux cochés
   const [recycling, setRecycling] = useState(false);
   const connectedNets = SOCIAL_PLATFORMS.filter((p) => user?.[p.field]);
+
+  // Reel animé (Remotion) : post -> script IA -> MP4 à la charte, en « À valider »
+  const [reelLoading, setReelLoading] = useState(null);
+  const doReel = async (contenu) => {
+    if (reelLoading) return;
+    setReelLoading(contenu.id);
+    toast.info('Génération du reel en cours (~1 min)…');
+    try {
+      await contenuService.genererReel(contenu.id);
+      toast.success('Reel généré 🎬 — il est « À valider »');
+      fetchContenus();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec de la génération du reel');
+    } finally {
+      setReelLoading(null);
+    }
+  };
 
   const openRecycle = (contenu) => { setRecycleFor(contenu); setRecycleNets([]); };
   const doRecycle = async () => {
@@ -899,6 +921,8 @@ export default function ContenusPage() {
                   onValidate={(id) => handleUpdateStatut(id, 'Valider')}
                   onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
                   onRecycle={openRecycle}
+                  onReel={doReel}
+                  reelLoading={reelLoading}
                   actionLoading={actionLoading}
                 />
               ))}

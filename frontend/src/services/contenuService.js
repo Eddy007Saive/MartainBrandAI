@@ -27,6 +27,9 @@ export const contenuService = {
   // Recycle un post vers d'autres réseaux (une copie par réseau, créneau propre)
   recycler: (id, reseaux) => api.post(`/contenus/${id}/recycler`, { reseaux }).then(r => r.data),
 
+  // Génère un reel animé à la charte (Remotion) — rendu long : timeout large
+  genererReel: (id) => api.post('/reels/generer', { contenu_id: id }, { timeout: 300000 }).then(r => r.data),
+
   // Replanifie sur le prochain créneau libre (algorithme de planification) + reprogramme Zernio
   replanifier: (id) => api.post(`/contenus/${id}/replanifier`).then(r => r.data),
 

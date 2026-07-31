@@ -10,3 +10,6 @@ _uvicorn.log
 _uvicorn.out
 agents/js-test/node_modules/
 .pytest_cache/
+remotion/node_modules/
+remotion/out/
+remotion/.remotion/

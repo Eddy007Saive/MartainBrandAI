@@ -1,0 +1,16 @@
+{
+  "name": "postorico-reels",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Rendu des reels animés à la charte client (Remotion). Appelé par backend/services/reel_service.py.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts ReelBrand out/reel.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "remotion": "^4.0.0"
+  }
+}
