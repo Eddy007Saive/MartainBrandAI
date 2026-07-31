@@ -67,6 +67,9 @@ export default function HomeCine() {
   const impactRef = useRef(null);
   const [scene, setScene] = useState(0);
 
+  // Mobile/tactile : AUCUNE video rendue (sinon elles se telechargent meme masquees) — poster statique a la place
+  const [isTouch] = useState(() => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches);
+
   // Menu mobile (burger) — bloque le scroll de fond tant qu'il est ouvert
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
@@ -190,7 +193,7 @@ export default function HomeCine() {
       {/* Couches fond — un clip par chapitre, fondu enchaîné au scroll */}
       {/* opacité pilotée UNIQUEMENT en impératif (showClip) — pas dans le style JSX,
           sinon chaque re-render React écrase le fondu en cours */}
-      {BG_CLIPS.filter((c) => c.src).map((c, i) => (
+      {!isTouch && BG_CLIPS.filter((c) => c.src).map((c, i) => (
         <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
           muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
           style={{ transition: 'opacity 700ms ease', ...(c.transform ? { transform: c.transform } : {}) }} />
@@ -418,7 +421,7 @@ export default function HomeCine() {
         {/* CTA FINAL */}
         <section className="final"><div className="wrap">
           <div className="ctaband">
-            <video className="mascot-wave" src={`${CLD}/q_auto/marketing/mascotte-wave.mp4`} autoPlay muted loop playsInline aria-hidden="true" />
+            {!isTouch && <video className="mascot-wave" src={`${CLD}/q_auto/marketing/mascotte-wave.mp4`} autoPlay muted loop playsInline aria-hidden="true" />}
             <h2>Prêt à reprendre le contrôle de ta présence ?</h2>
             <p>Réserve ton call de setup — on étudie ta boîte, on construit ton système, tu pilotes.</p>
             <div className="cta-row">
