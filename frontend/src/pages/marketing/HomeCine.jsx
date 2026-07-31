@@ -16,8 +16,9 @@ const CLD = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
 // `sel` = la section qui déclenche le clip ; un fichier manquant est ignoré (repli sur le précédent).
 const BG_CLIPS = [
   { src: '/videos/hero-bg.mp4' },                     // hero : le coq tape puis réfléchit (bulle d'idée)
-  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },   // dès « Plutôt que… » : bras croisés, regard caméra, clin d'œil
-  // { src: '/videos/bg-wave.mp4', sel: '.final' },   // à activer quand le clip « salut » sera généré
+  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },   // « Plutôt que… » : bras croisés, regard caméra, clin d'œil
+  { src: '/videos/bg-point.mp4', sel: '.aud' },       // « Pour qui » : il pointe le titre à gauche + clin d'œil
+  // { src: '/videos/bg-wave.mp4', sel: '.final' },   // CTA final : il salue (à activer quand le clip sera généré)
 ];
 
 // Scènes de la galerie (vraies captures produit)
