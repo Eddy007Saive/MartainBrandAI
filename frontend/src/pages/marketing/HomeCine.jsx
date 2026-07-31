@@ -145,11 +145,12 @@ export default function HomeCine() {
     });
 
     // Galerie : la scène active suit le scroll
-    const st2 = ScrollTrigger.create({
+    // Pin de la galerie : desktop uniquement (mobile = carrousel à balayage, pas de shell)
+    const st2 = document.querySelector('.cine .gallery') ? ScrollTrigger.create({
       trigger: '.cine .gallery', start: 'top top', end: () => '+=' + (SCENES.length - 1) * window.innerHeight * 0.62,
       pin: '.cine .gallery-pin', scrub: 1,
       onUpdate: (s) => setScene(Math.max(0, Math.min(SCENES.length - 1, Math.round(s.progress * (SCENES.length - 1))))),
-    });
+    }) : null;
 
     // Vidéos de fond par chapitre : fondu enchaîné au scroll.
     // Chaque clip = { sel: section qui le déclenche } ; s'il manque (404), on garde le précédent.
@@ -187,7 +188,7 @@ export default function HomeCine() {
     document.addEventListener('visibilitychange', onVis);
 
     return () => {
-      st1.kill(); st2.kill(); clipTriggers.forEach((t) => t.kill());
+      st1.kill(); if (st2) st2.kill(); clipTriggers.forEach((t) => t.kill());
       ScrollTrigger.getAll().forEach((t) => t.kill());
       gsap.ticker.remove(raf);
       lenis.destroy();
@@ -304,27 +305,40 @@ export default function HomeCine() {
           </div>
         </div></section>
 
-        {/* GALERIE shell d'app */}
-        <section className="gallery"><div className="gallery-pin">
-          <div className="preview">
-            <div className="pbar"><i /><i /><i /></div>
-            <div className="shot">
-              <div className="sb">
-                <div className="lg"><img src="/logo.png" alt="" /><b>Postorico</b></div>
-                {SCENES.map((s, i) => (
-                  <div key={s.label} className={'it' + (i === scene ? ' on' : '')}><span className="ic" />{s.label}</div>
-                ))}
-              </div>
-              <div className="pmain">
-                {SCENES.map((s, i) => (
-                  <img key={s.src} src={s.src} className={i === scene ? 'on' : ''} alt={`Postorico — ${s.label}`} />
-                ))}
-                <div className="hp-dots">{SCENES.map((s, i) => <i key={s.label} className={i === scene ? 'on' : ''} />)}</div>
-              </div>
+        {/* GALERIE : shell d'app épinglé (desktop) / carrousel à balayage (mobile) */}
+        {isTouch ? (
+          <section className="gallery-mob">
+            <div className="mgal">
+              {SCENES.map((s) => (
+                <figure key={s.label} className="mgal-card">
+                  <img src={s.src} alt={`Postorico — ${s.label}`} loading="lazy" />
+                  <figcaption>{s.cap}</figcaption>
+                </figure>
+              ))}
             </div>
-            <div className="pcap">{SCENES[scene].cap}</div>
-          </div>
-        </div></section>
+          </section>
+        ) : (
+          <section className="gallery"><div className="gallery-pin">
+            <div className="preview">
+              <div className="pbar"><i /><i /><i /></div>
+              <div className="shot">
+                <div className="sb">
+                  <div className="lg"><img src="/logo.png" alt="" /><b>Postorico</b></div>
+                  {SCENES.map((s, i) => (
+                    <div key={s.label} className={'it' + (i === scene ? ' on' : '')}><span className="ic" />{s.label}</div>
+                  ))}
+                </div>
+                <div className="pmain">
+                  {SCENES.map((s, i) => (
+                    <img key={s.src} src={s.src} className={i === scene ? 'on' : ''} alt={`Postorico — ${s.label}`} />
+                  ))}
+                  <div className="hp-dots">{SCENES.map((s, i) => <i key={s.label} className={i === scene ? 'on' : ''} />)}</div>
+                </div>
+              </div>
+              <div className="pcap">{SCENES[scene].cap}</div>
+            </div>
+          </div></section>
+        )}
 
         {/* PLUTÔT QUE… */}
         <section className="sec"><div className="wrap">
