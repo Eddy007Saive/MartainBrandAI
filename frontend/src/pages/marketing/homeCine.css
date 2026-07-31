@@ -283,3 +283,20 @@
   .cine .scroll-cue{animation:none}
   .cine .impact .word{opacity:1!important;filter:none!important;transform:none!important}
 }
+
+/* ===== Carrousel d'avis (remplace la bande GoodTime) ===== */
+.cine .avis{max-width:640px;margin:0 auto;overflow:hidden;border-radius:20px;border:1px solid rgba(255,255,255,.1);
+            background:rgba(11,19,34,.72);backdrop-filter:blur(10px)}
+.cine .avis-track{display:flex;transition:transform 600ms cubic-bezier(.23,1,.32,1)}
+.cine .avis-card{flex:0 0 100%;margin:0;padding:34px 38px 26px;text-align:center}
+.cine .avis-card .stars{color:#fbbf24;font-size:13px;letter-spacing:3px}
+.cine .avis-card blockquote{font-size:15.5px;line-height:1.7;color:#dbe4f2;margin:14px 0 18px;font-family:Inter,sans-serif}
+.cine .avis-card figcaption{display:flex;align-items:center;justify-content:center;gap:10px}
+.cine .avis-card .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5B6CFF,#8A6CFF);
+                     color:#fff;font-weight:700;font-size:13.5px;display:grid;place-items:center}
+.cine .avis-card b{display:block;font-size:13px;color:#fff;text-align:left}
+.cine .avis-card small{color:#5c6b86;font-size:11.5px;display:block;text-align:left}
+.cine .avis-dots{display:flex;justify-content:center;gap:7px;padding:0 0 18px}
+.cine .avis-dots button{width:7px;height:7px;border-radius:999px;border:none;background:#2a3550;cursor:pointer;padding:0;
+                        transition:width 200ms ease,background 200ms ease}
+.cine .avis-dots button.on{width:22px;background:linear-gradient(135deg,#5B6CFF,#8A6CFF)}

@@ -54,11 +54,25 @@ const CMP = [
 ];
 const CRITERIA = ['Coût', 'Volume', 'Ta voix', 'Régularité', 'Contrôle', 'Mise en route'];
 
+// Avis clients (accès anticipé) — TODO Martin : remplacer par de vrais avis nominatifs
+const AVIS = [
+  { nom: 'Aurélie M.', role: 'Gérante, cabinet de conseil', quote: "Avant je payais une agence 2 000 €/mois. Là je gère ça moi-même en quelques minutes, et c'est plus à mon image." },
+  { nom: 'Thomas R.', role: 'Dirigeant PME', quote: "Le setup a tout changé : le système est calibré sur ma voix, je n'ai plus qu'à valider. Un gain de temps énorme." },
+  { nom: 'Léa B.', role: 'Fondatrice de startup', quote: 'Génération, planif et réponses aux commentaires au même endroit. Je ne jongle plus entre dix outils.' },
+];
+
 export default function HomeCine() {
   const rootRef = useRef(null);
   const videoRef = useRef(null);
   const impactRef = useRef(null);
   const [scene, setScene] = useState(0);
+
+  // Carrousel d'avis : avance tout seul, cliquable via les points
+  const [avisIdx, setAvisIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setAvisIdx((i) => (i + 1) % AVIS.length), 5000);
+    return () => clearInterval(id);
+  }, []);
 
   // Témoignage vidéo dans la langue du visiteur
   const { i18n } = useTranslation();
@@ -314,17 +328,17 @@ export default function HomeCine() {
             <div className="acard">
               <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 7v5l3 2M12 21a9 9 0 110-18 9 9 0 010 18z" /></svg></div>
               <h3>« Je n'ai pas le temps »</h3>
-              <p>Tu fais tourner ta boîte, pas un studio de contenu. Postorico prend le relais — tu gardes la main, sans y passer tes journées.</p>
+              <p>Tu fais tourner ta boîte, pas un studio de contenu. Postorico, c'est ton agence marketing de poche : du contenu unique qui colle à ta marque, en seulement 2 à 3 h par mois.</p>
             </div>
             <div className="acard">
               <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div>
               <h3>« Je délègue… et je croise les doigts »</h3>
-              <p>Fini le quitte ou double du stagiaire. L'IA produit dans ta voix, tu valides en un clic. Régulier, sur marque, à chaque fois.</p>
+              <p>Fini le quitte ou double du stagiaire ou de l'alternant. Postorico produit dans ta voix, tu valides en un clic. Régulier sur tous les réseaux — ton ton, ta marque.</p>
             </div>
             <div className="acard">
               <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V5a1 1 0 011-1h7v17M12 9h7a1 1 0 011 1v11M7 8h2M7 12h2M16 13h2M16 17h2" /></svg></div>
               <h3>« Je paie une agence »</h3>
-              <p>Même régularité, sans forfait limité ni facture à 2 000 €. Publie autant que tu veux, sur tous tes réseaux. Tu reprends le contrôle.</p>
+              <p>Pas de forfait limité, ni de facture à 3 000 € par mois. Publie autant que tu veux, sur tous les réseaux, et développe ta présence en ligne pour 10× moins cher.</p>
             </div>
           </div>
         </div></section>
@@ -362,11 +376,23 @@ export default function HomeCine() {
           </div>
         </div></section>
 
-        {/* GOODTIME */}
-        <section className="sec" style={{ paddingTop: 0 }}><div className="wrap">
-          <div className="gtband">
-            <span>Postorico est un produit <b>GoodTime BNB</b> — l'équipe derrière l'OS de la location courte durée. On construit des outils qui font gagner du temps aux pros.</span>
-            <a href="https://gt-bnb.com" target="_blank" rel="noopener noreferrer">Découvrir GoodTime ↗</a>
+        {/* CARROUSEL D'AVIS */}
+        <section className="sec avis-sec" style={{ paddingTop: 0 }}><div className="wrap">
+          <div className="avis">
+            <div className="avis-track" style={{ transform: `translateX(-${avisIdx * 100}%)` }}>
+              {AVIS.map((a) => (
+                <figure className="avis-card" key={a.nom}>
+                  <div className="stars">★★★★★</div>
+                  <blockquote>« {a.quote} »</blockquote>
+                  <figcaption><span className="av">{a.nom[0]}</span><div><b>{a.nom}</b><small>{a.role}</small></div></figcaption>
+                </figure>
+              ))}
+            </div>
+            <div className="avis-dots">
+              {AVIS.map((a, i) => (
+                <button key={a.nom} className={i === avisIdx ? 'on' : ''} onClick={() => setAvisIdx(i)} aria-label={a.nom} />
+              ))}
+            </div>
           </div>
         </div></section>
 
