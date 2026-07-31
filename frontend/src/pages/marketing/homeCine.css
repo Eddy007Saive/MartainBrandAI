@@ -236,9 +236,9 @@
 .cine .gtband a{color:#b9a6ff;font-size:13px;font-weight:600;white-space:nowrap}
 
 /* ===== Galerie shell d'app ===== */
-.cine .gallery{position:relative}
-.cine .gallery-pin{height:100vh;overflow:hidden;position:relative}
-.cine .preview{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(1020px,88vw);
+.cine .gallery{position:relative;padding:10vh 0;display:flex;justify-content:center}
+.cine .gallery-pin{width:100%;display:flex;justify-content:center}
+.cine .preview{width:min(1020px,88vw);
          border-radius:20px;border:1px solid var(--line2);background:linear-gradient(180deg,rgba(15,23,42,.92),rgba(11,19,34,.92));
          backdrop-filter:blur(10px);padding:12px;box-shadow:0 40px 120px -30px rgba(91,108,255,.4)}
 .cine .pbar{display:flex;gap:7px;padding:4px 8px 10px}
@@ -334,7 +334,7 @@
 
 /* ===== Galerie mobile : carrousel de captures a balayage (snap) ===== */
 .cine .gallery-mob{padding:6vh 0}
-.cine .mgal{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+.cine .mgal{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;
             padding:4px 20px 14px;scrollbar-width:none}
 .cine .mgal::-webkit-scrollbar{display:none}
 .cine .mgal-card{flex:0 0 86%;scroll-snap-align:center;margin:0;border-radius:16px;overflow:hidden;
@@ -343,3 +343,7 @@
 .cine .mgal-card figcaption{padding:12px 14px;font-size:12.5px;line-height:1.55;color:#8ea0bd;font-family:Inter,sans-serif}
 .cine .mgal-card figcaption b{color:#fff;font-family:Sora,sans-serif}
 .cine .mgal-card figcaption em{font-style:normal;color:#3AFFA3}
+
+/* Galerie carrousel : sidebar et points cliquables */
+.cine .sb .it{cursor:pointer}
+.cine .hp-dots i{cursor:pointer}

@@ -67,6 +67,14 @@ export default function HomeCine() {
   const impactRef = useRef(null);
   const [scene, setScene] = useState(0);
 
+  // Galerie desktop : carrousel autonome (avance seul, pause au survol, sidebar/points cliquables)
+  const [scenePause, setScenePause] = useState(false);
+  useEffect(() => {
+    if (scenePause) return undefined;
+    const id = setInterval(() => setScene((s) => (s + 1) % SCENES.length), 4000);
+    return () => clearInterval(id);
+  }, [scenePause]);
+
   // Mobile : AUCUNE video rendue (sinon elles se telechargent meme masquees) — poster statique a la place.
   // Critere : tactile OU ecran <= 900px, reevalue au redimensionnement.
   const mobileQuery = () => window.matchMedia('(hover: none)').matches || window.innerWidth <= 900;
@@ -102,12 +110,15 @@ export default function HomeCine() {
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const touch = matchMedia('(hover: none)').matches;
 
-    // Défilement lissé
-    const lenis = new Lenis({ lerp: 0.09 });
-    lenis.on('scroll', ScrollTrigger.update);
-    const raf = (t) => lenis.raf(t * 1000);
-    gsap.ticker.add(raf);
-    gsap.ticker.lagSmoothing(0);
+    // Défilement lissé — DESKTOP uniquement : sur mobile, Lenis capture les gestes
+    // tactiles et bloque le carrousel horizontal (scroll natif = comportement normal).
+    const lenis = isTouch ? null : new Lenis({ lerp: 0.09 });
+    const raf = (t) => { if (lenis) lenis.raf(t * 1000); };
+    if (lenis) {
+      lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add(raf);
+      gsap.ticker.lagSmoothing(0);
+    }
 
     // Entrée du hero en cascade
     if (!reduced) {
@@ -145,12 +156,7 @@ export default function HomeCine() {
     });
 
     // Galerie : la scène active suit le scroll
-    // Pin de la galerie : desktop uniquement (mobile = carrousel à balayage, pas de shell)
-    const st2 = document.querySelector('.cine .gallery') ? ScrollTrigger.create({
-      trigger: '.cine .gallery', start: 'top top', end: () => '+=' + (SCENES.length - 1) * window.innerHeight * 0.62,
-      pin: '.cine .gallery-pin', scrub: 1,
-      onUpdate: (s) => setScene(Math.max(0, Math.min(SCENES.length - 1, Math.round(s.progress * (SCENES.length - 1))))),
-    }) : null;
+    // (galerie : carrousel autonome — plus de pin ScrollTrigger)
 
     // Vidéos de fond par chapitre : fondu enchaîné au scroll.
     // Chaque clip = { sel: section qui le déclenche } ; s'il manque (404), on garde le précédent.
@@ -188,10 +194,10 @@ export default function HomeCine() {
     document.addEventListener('visibilitychange', onVis);
 
     return () => {
-      st1.kill(); if (st2) st2.kill(); clipTriggers.forEach((t) => t.kill());
+      st1.kill(); clipTriggers.forEach((t) => t.kill());
       ScrollTrigger.getAll().forEach((t) => t.kill());
       gsap.ticker.remove(raf);
-      lenis.destroy();
+      if (lenis) lenis.destroy();
       document.removeEventListener('visibilitychange', onVis);
     };
     // re-cable tout (pins, triggers, stack video) quand on bascule mobile <-> desktop
@@ -308,7 +314,7 @@ export default function HomeCine() {
         {/* GALERIE : shell d'app épinglé (desktop) / carrousel à balayage (mobile) */}
         {isTouch ? (
           <section className="gallery-mob">
-            <div className="mgal">
+            <div className="mgal" data-lenis-prevent>
               {SCENES.map((s) => (
                 <figure key={s.label} className="mgal-card">
                   <img src={s.src} alt={`Postorico — ${s.label}`} loading="lazy" />
@@ -319,20 +325,25 @@ export default function HomeCine() {
           </section>
         ) : (
           <section className="gallery"><div className="gallery-pin">
-            <div className="preview">
+            <div className="preview" onMouseEnter={() => setScenePause(true)} onMouseLeave={() => setScenePause(false)}>
               <div className="pbar"><i /><i /><i /></div>
               <div className="shot">
                 <div className="sb">
                   <div className="lg"><img src="/logo.png" alt="" /><b>Postorico</b></div>
                   {SCENES.map((s, i) => (
-                    <div key={s.label} className={'it' + (i === scene ? ' on' : '')}><span className="ic" />{s.label}</div>
+                    <div key={s.label} className={'it' + (i === scene ? ' on' : '')} onClick={() => setScene(i)}
+                      role="button" tabIndex={0}><span className="ic" />{s.label}</div>
                   ))}
                 </div>
                 <div className="pmain">
                   {SCENES.map((s, i) => (
                     <img key={s.src} src={s.src} className={i === scene ? 'on' : ''} alt={`Postorico — ${s.label}`} />
                   ))}
-                  <div className="hp-dots">{SCENES.map((s, i) => <i key={s.label} className={i === scene ? 'on' : ''} />)}</div>
+                  <div className="hp-dots">
+                    {SCENES.map((s, i) => (
+                      <i key={s.label} className={i === scene ? 'on' : ''} onClick={() => setScene(i)} role="button" />
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="pcap">{SCENES[scene].cap}</div>
