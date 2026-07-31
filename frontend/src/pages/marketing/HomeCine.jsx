@@ -67,6 +67,13 @@ export default function HomeCine() {
   const impactRef = useRef(null);
   const [scene, setScene] = useState(0);
 
+  // Menu mobile (burger) — bloque le scroll de fond tant qu'il est ouvert
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
   // Carrousel d'avis : avance tout seul, cliquable via les points
   const [avisIdx, setAvisIdx] = useState(0);
   useEffect(() => {
@@ -156,20 +163,11 @@ export default function HomeCine() {
         else v.pause();
       });
     };
-    // Chapitre actif = la DERNIÈRE section déclencheuse passée sous 55 % de l'écran.
-    // Calcul continu (positions live) : fiable même avec les pins, un scroll rapide
-    // ou un chargement en milieu de page — contrairement aux onEnter/onLeaveBack.
-    const clipEls = BG_CLIPS.map((c) => (c.sel ? document.querySelector(`.cine ${c.sel}`) : null));
-    const pickClip = () => {
-      let idx = 0;
-      clipEls.forEach((el, i) => {
-        if (el && el.getBoundingClientRect().top < window.innerHeight * 0.55) idx = i;
-      });
-      showClip(idx);
-    };
-    lenis.on('scroll', pickClip);
-    window.addEventListener('resize', pickClip, { passive: true });
-    pickClip();
+    const clipTriggers = BG_CLIPS.map((c, i) => (i === 0 || !c.sel) ? null : ScrollTrigger.create({
+      trigger: `.cine ${c.sel}`, start: 'top 55%',
+      onEnter: () => showClip(i),
+      onLeaveBack: () => showClip(i - 1),
+    })).filter(Boolean);
 
     const bgv = stack[0];
     if (bgv && !touch && !reduced) bgv.play().catch(() => {});
@@ -179,8 +177,7 @@ export default function HomeCine() {
     document.addEventListener('visibilitychange', onVis);
 
     return () => {
-      st1.kill(); st2.kill();
-      window.removeEventListener('resize', pickClip);
+      st1.kill(); st2.kill(); clipTriggers.forEach((t) => t.kill());
       ScrollTrigger.getAll().forEach((t) => t.kill());
       gsap.ticker.remove(raf);
       lenis.destroy();
@@ -214,8 +211,20 @@ export default function HomeCine() {
         <div className="nav-right">
           <Link className="nav-link" to="/login">Se connecter</Link>
           <Link className="nav-cta grad" to="/register">Commencer</Link>
+          <button className={`burger${menuOpen ? ' open' : ''}`} aria-label="Menu" aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}><i /><i /><i /></button>
         </div>
       </div></nav>
+
+      {/* Menu mobile plein écran */}
+      <div className={`mmenu${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen(false)}>
+        {[['Fonctionnalités', '/fonctionnalites'], ['Comment ça marche', '/comment-ca-marche'], ['Tarifs', '/tarifs'], ['FAQ', '/faq']].map(([label, to], i) => (
+          <Link key={to} to={to} style={{ transitionDelay: menuOpen ? `${80 + i * 50}ms` : '0ms' }}>{label}</Link>
+        ))}
+        <div className="sep" />
+        <Link className="ghost" to="/login" style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>Se connecter</Link>
+        <Link className="cta" to="/register" style={{ transitionDelay: menuOpen ? '350ms' : '0ms' }}>Commencer</Link>
+      </div>
 
       <div className="page">
         {/* HERO */}

@@ -50,6 +50,30 @@
 @media(hover:hover){.cine .nav-cta.grad:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(91,108,255,.5)}}
 @media(max-width:900px){.cine .nav-links{display:none}.cine .nav-link{display:none}}
 
+/* ===== Burger menu (mobile) ===== */
+.cine .burger{display:none;width:42px;height:42px;border-radius:11px;border:1px solid rgba(255,255,255,.13);
+              background:rgba(255,255,255,.05);backdrop-filter:blur(8px);cursor:pointer;place-items:center;
+              flex-direction:column;gap:5px;transition:transform 150ms cubic-bezier(.23,1,.32,1)}
+.cine .burger:active{transform:scale(.94)}
+.cine .burger i{display:block;width:18px;height:2px;border-radius:2px;background:#fff;transition:transform 250ms cubic-bezier(.23,1,.32,1),opacity 200ms ease}
+.cine .burger.open i:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.cine .burger.open i:nth-child(2){opacity:0}
+.cine .burger.open i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+@media(max-width:900px){.cine .burger{display:grid;grid-auto-flow:row;align-content:center;justify-items:center}}
+
+.cine .mmenu{position:fixed;inset:0;z-index:60;background:rgba(2,6,23,.96);backdrop-filter:blur(14px);
+             display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;
+             opacity:0;pointer-events:none;transition:opacity 250ms ease}
+.cine .mmenu.open{opacity:1;pointer-events:auto}
+.cine .mmenu a{font-family:Sora,sans-serif;font-weight:700;font-size:26px;color:#e7ecf5;padding:12px 20px;
+               opacity:0;transform:translateY(14px);transition:opacity 350ms cubic-bezier(.23,1,.32,1),transform 350ms cubic-bezier(.23,1,.32,1)}
+.cine .mmenu.open a{opacity:1;transform:none}
+.cine .mmenu a:active{transform:scale(.97)}
+.cine .mmenu .sep{width:44px;height:1px;background:rgba(255,255,255,.14);margin:14px 0}
+.cine .mmenu .cta{background:linear-gradient(135deg,#5B6CFF,#8A6CFF);border-radius:99px;color:#fff;font-size:18px;
+                  padding:14px 34px;box-shadow:0 10px 30px rgba(91,108,255,.4)}
+.cine .mmenu .ghost{font-size:16px;color:#cbd5e1;font-family:Inter,sans-serif;font-weight:500}
+
 /* ===== Hero (grille 2 colonnes) ===== */
 .cine .hero{position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(480px,620px) 1fr;align-items:center;
       max-width:1240px;margin:0 auto;padding:92px 32px 40px}
