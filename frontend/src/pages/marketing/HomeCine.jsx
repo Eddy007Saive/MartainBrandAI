@@ -156,11 +156,20 @@ export default function HomeCine() {
         else v.pause();
       });
     };
-    const clipTriggers = BG_CLIPS.map((c, i) => (i === 0 || !c.sel) ? null : ScrollTrigger.create({
-      trigger: `.cine ${c.sel}`, start: 'top 55%',
-      onEnter: () => showClip(i),
-      onLeaveBack: () => showClip(i - 1),
-    })).filter(Boolean);
+    // Chapitre actif = la DERNIÈRE section déclencheuse passée sous 55 % de l'écran.
+    // Calcul continu (positions live) : fiable même avec les pins, un scroll rapide
+    // ou un chargement en milieu de page — contrairement aux onEnter/onLeaveBack.
+    const clipEls = BG_CLIPS.map((c) => (c.sel ? document.querySelector(`.cine ${c.sel}`) : null));
+    const pickClip = () => {
+      let idx = 0;
+      clipEls.forEach((el, i) => {
+        if (el && el.getBoundingClientRect().top < window.innerHeight * 0.55) idx = i;
+      });
+      showClip(idx);
+    };
+    lenis.on('scroll', pickClip);
+    window.addEventListener('resize', pickClip, { passive: true });
+    pickClip();
 
     const bgv = stack[0];
     if (bgv && !touch && !reduced) bgv.play().catch(() => {});
@@ -170,7 +179,8 @@ export default function HomeCine() {
     document.addEventListener('visibilitychange', onVis);
 
     return () => {
-      st1.kill(); st2.kill(); clipTriggers.forEach((t) => t.kill());
+      st1.kill(); st2.kill();
+      window.removeEventListener('resize', pickClip);
       ScrollTrigger.getAll().forEach((t) => t.kill());
       gsap.ticker.remove(raf);
       lenis.destroy();
