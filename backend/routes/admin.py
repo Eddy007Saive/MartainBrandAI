@@ -525,3 +525,28 @@ async def delete_pack(pack_id: str, payload: dict = Depends(verify_admin_token))
     except Exception as e:
         logger.error(f"delete_pack error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ----------------------------------------------------------------- Codes promo (Stripe)
+@router.get("/promos")
+async def list_promos(payload: dict = Depends(verify_admin_token)):
+    from services import promo_service
+    return {"promos": promo_service.list_promos()}
+
+
+@router.post("/promos")
+async def create_promo(body: dict, payload: dict = Depends(verify_admin_token)):
+    from services import promo_service
+    res = promo_service.create_promo(body or {})
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res
+
+
+@router.patch("/promos/{promo_id}")
+async def toggle_promo(promo_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+    from services import promo_service
+    res = promo_service.toggle_promo(promo_id, bool((body or {}).get("active")))
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res

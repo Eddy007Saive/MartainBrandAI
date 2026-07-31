@@ -107,6 +107,11 @@ export const adminService = {
   createPack: (data) => adminFetch('/admin/credit-packs', { method: 'POST', body: JSON.stringify(data) }),
   deletePack: (id) => adminFetch(`/admin/credit-packs/${id}`, { method: 'DELETE' }),
 
+  // Codes promotionnels (Stripe)
+  getPromos: () => adminFetch('/admin/promos'),
+  createPromo: (data) => adminFetch('/admin/promos', { method: 'POST', body: JSON.stringify(data) }),
+  togglePromo: (id, active) => adminFetch(`/admin/promos/${id}`, { method: 'PATCH', body: JSON.stringify({ active }) }),
+
   // Audits de marque (leads onboarding)
   getAudits: () => adminFetch('/onboarding/audits'),
   getAudit: (id) => adminFetch(`/onboarding/audits/${id}`),

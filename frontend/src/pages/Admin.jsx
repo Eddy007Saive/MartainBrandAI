@@ -14,6 +14,7 @@ import { Badge } from '../components/ui/badge';
 import QuotaConfigTab from '../components/admin/QuotaConfigTab';
 import AuditsTab from '../components/admin/AuditsTab';
 import BillingTab from '../components/admin/BillingTab';
+import AdminPromos from './AdminPromos';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +38,7 @@ const navItems = [
   { id: 'avatars', label: 'Avatars', icon: Video },
   { id: 'audits', label: 'Audits', icon: Inbox },
   { id: 'quotas', label: 'Offres & quotas', icon: Coins },
+  { id: 'promos', label: 'Codes promo', icon: DollarSign },
   { id: 'facturation', label: 'Facturation', icon: FileText },
   { id: 'activity', label: 'Activité', icon: Activity },
   { id: 'settings', label: 'Paramètres', icon: Settings },
@@ -976,6 +978,7 @@ export default function Admin() {
           {/* Offres & quotas Tab */}
           {activeTab === 'audits' && <AuditsTab />}
           {activeTab === 'quotas' && <QuotaConfigTab />}
+          {activeTab === 'promos' && <AdminPromos />}
           {activeTab === 'facturation' && <BillingTab />}
 
           {/* Activity Tab */}
