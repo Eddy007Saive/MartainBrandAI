@@ -7,6 +7,7 @@ import {
 import { toast } from 'sonner';
 import { agentService } from '../services/agentService';
 import { videoService } from '../services/videoService';
+import { contenuService } from '../services/contenuService';
 import { takePhoto, cameraAvailable } from '../lib/photo';
 import { useUser } from '../context/UserContext';
 import { PageHeader } from '../components/PageHeader';
@@ -90,16 +91,22 @@ export default function StudioIA() {
   const [sujets, setSujets] = useState([]);
   const [openId, setOpenId] = useState(null); // sujet en cours de configuration
   const [cfgFormat, setCfgFormat] = useState('post');
-  const [cfgReseau, setCfgReseau] = useState('linkedin');
+  // Multi-réseaux : on peut cocher plusieurs réseaux — le 1er devient le post principal,
+  // les autres reçoivent une copie planifiée sur leur propre créneau (même méca que Recycler).
+  const [cfgReseaux, setCfgReseaux] = useState(['linkedin']);
   const [cfgType, setCfgType] = useState('Reel');
   const [cfgQualite, setCfgQualite] = useState('equilibre');
   const [nbSlides, setNbSlides] = useState(5); // carrousel
+
+  // Coche/décoche un réseau (toujours au moins un de coché)
+  const toggleReseau = (setter) => (id) =>
+    setter((arr) => (arr.includes(id) ? (arr.length > 1 ? arr.filter((x) => x !== id) : arr) : [...arr, id]));
 
   // Brief perso (sujet libre écrit par l'utilisateur)
   const [briefOpen, setBriefOpen] = useState(false);
   const [briefText, setBriefText] = useState('');
   const [bFormat, setBFormat] = useState('post');
-  const [bReseau, setBReseau] = useState('linkedin');
+  const [bReseaux, setBReseaux] = useState(['linkedin']);
   const [bType, setBType] = useState('Reel');
   const [bQualite, setBQualite] = useState('equilibre');
   const [photoOpen, setPhotoOpen] = useState(false);
@@ -110,8 +117,9 @@ export default function StudioIA() {
   useEffect(() => {
     if (!reseaux.length) return;
     const ids = reseaux.map((r) => r.id);
-    if (!ids.includes(bReseau)) setBReseau(reseaux[0].id);
-    if (!ids.includes(cfgReseau)) setCfgReseau(reseaux[0].id);
+    const garde = (arr) => { const ok = arr.filter((x) => ids.includes(x)); return ok.length ? ok : [reseaux[0].id]; };
+    setBReseaux(garde);
+    setCfgReseaux(garde);
     if (!ids.includes(photoReseau)) setPhotoReseau(reseaux[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -192,10 +200,11 @@ export default function StudioIA() {
   // --- Transformation d'un sujet en contenu (le sujet RESTE dispo : réutilisable sur plusieurs réseaux) ---
   const genererContenu = async (s) => {
     const fmt = cfgFormat;
-    const meta = fmt === 'script' ? cfgType : cfgReseau;
+    const meta = fmt === 'script' ? cfgType : cfgReseaux[0];
+    const extras = fmt === 'script' ? [] : cfgReseaux.slice(1); // réseaux additionnels cochés
     const qualite = cfgQualite;
     const cardId = nextId();
-    setContenus((prev) => [{ id: cardId, sujet: s.titre, texte: '', statut: 'redaction', format: fmt, meta, qualite }, ...prev]);
+    setContenus((prev) => [{ id: cardId, sujet: s.titre, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
     setOpenId(null);
     // le sujet n'est PAS supprimé : on peut le réutiliser pour un autre réseau
     try {
@@ -203,6 +212,15 @@ export default function StudioIA() {
         const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite);
         if (d.credits != null) updateUser({ credits: d.credits });
         setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        // Réseaux additionnels cochés : copie du carrousel sur chacun (slides re-rendues, créneau propre)
+        if (extras.length && d.contenu_id) {
+          try {
+            await contenuService.recycler(d.contenu_id, extras);
+            toast.success(`Carrousel dupliqué sur ${extras.length} autre${extras.length > 1 ? 's' : ''} réseau${extras.length > 1 ? 'x' : ''} ♻️`);
+          } catch (err) {
+            toast.error('Copies multi-réseaux du carrousel impossibles (tu peux utiliser Recycler dans Contenus)');
+          }
+        }
         return;
       }
       const d = fmt === 'script'
@@ -223,11 +241,12 @@ export default function StudioIA() {
     if (!txt) return;
     if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
     const fmt = bFormat;
-    const meta = fmt === 'script' ? bType : bReseau;
+    const meta = fmt === 'script' ? bType : bReseaux[0];
+    const extras = fmt === 'script' ? [] : bReseaux.slice(1);
     const qualite = bQualite;
     const cardId = nextId();
     const titre = txt.length > 80 ? txt.slice(0, 80) + '…' : txt;
-    setContenus((prev) => [{ id: cardId, sujet: titre, promptFull: txt, texte: '', statut: 'redaction', format: fmt, meta, qualite }, ...prev]);
+    setContenus((prev) => [{ id: cardId, sujet: titre, promptFull: txt, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
     setBriefText('');
     setBriefOpen(false);
     try {
@@ -235,6 +254,14 @@ export default function StudioIA() {
         const d = await agentService.carrousel(txt, meta, nbSlides, qualite);
         if (d.credits != null) updateUser({ credits: d.credits });
         setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        if (extras.length && d.contenu_id) {
+          try {
+            await contenuService.recycler(d.contenu_id, extras);
+            toast.success(`Carrousel dupliqué sur ${extras.length} autre${extras.length > 1 ? 's' : ''} réseau${extras.length > 1 ? 'x' : ''} ♻️`);
+          } catch (err) {
+            toast.error('Copies multi-réseaux du carrousel impossibles (tu peux utiliser Recycler dans Contenus)');
+          }
+        }
         return;
       }
       const d = fmt === 'script'
@@ -315,9 +342,18 @@ export default function StudioIA() {
         });
         return;
       }
-      await agentService.enregistrer(card.texte, card.sujet, card.meta);
+      const d = await agentService.enregistrer(card.texte, card.sujet, card.meta);
+      // Réseaux additionnels cochés à la génération : une copie par réseau, chacune sur son créneau
+      if (card.extras?.length && d?.contenu_id) {
+        try {
+          await contenuService.recycler(d.contenu_id, card.extras);
+        } catch (err) {
+          toast.error('Copies multi-réseaux impossibles (tu peux utiliser Recycler dans Contenus)');
+        }
+      }
       setContenus((prev) => prev.filter((c) => c.id !== id)); // validé → quitte le Studio
-      toast.success('Post validé → onglet Contenus');
+      const n = 1 + (card.extras?.length || 0);
+      toast.success(n > 1 ? `Post validé → planifié sur ${n} réseaux 🎯` : 'Post validé → onglet Contenus');
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false } : c)));
       toast.error(e.response?.data?.detail || 'Erreur lors de la validation');
@@ -428,16 +464,19 @@ export default function StudioIA() {
                   })}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">{bFormat === 'script' ? 'Type' : 'Réseau'}</span>
+                  <span className="text-xs text-slate-500 font-inter">{bFormat === 'script' ? 'Type' : 'Réseaux'}</span>
                   {bFormat !== 'script' && reseaux.length === 0
                     ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
                     : (bFormat === 'script' ? TYPES_VIDEO : reseaux).map((r) => (
                     <Pill key={r.id}
-                      active={bFormat === 'script' ? bType === r.id : bReseau === r.id}
-                      onClick={() => (bFormat === 'script' ? setBType(r.id) : setBReseau(r.id))}>
-                      {r.label}
+                      active={bFormat === 'script' ? bType === r.id : bReseaux.includes(r.id)}
+                      onClick={() => (bFormat === 'script' ? setBType(r.id) : toggleReseau(setBReseaux)(r.id))}>
+                      {bFormat !== 'script' && bReseaux.includes(r.id) ? '✓ ' : ''}{r.label}
                     </Pill>
                   ))}
+                  {bFormat !== 'script' && bReseaux.length > 1 && (
+                    <span className="text-[11px] text-[#3AFFA3] font-inter">1 post → {bReseaux.length} réseaux</span>
+                  )}
                 </div>
                 {bFormat === 'carrousel' && (
                   <div className="flex items-center gap-2">
@@ -571,16 +610,19 @@ export default function StudioIA() {
                           })}
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-slate-500 font-inter">{cfgFormat === 'script' ? 'Type' : 'Réseau'}</span>
+                          <span className="text-xs text-slate-500 font-inter">{cfgFormat === 'script' ? 'Type' : 'Réseaux'}</span>
                           {cfgFormat !== 'script' && reseaux.length === 0
                             ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
                             : (cfgFormat === 'script' ? TYPES_VIDEO : reseaux).map((r) => (
                             <Pill key={r.id}
-                              active={cfgFormat === 'script' ? cfgType === r.id : cfgReseau === r.id}
-                              onClick={() => (cfgFormat === 'script' ? setCfgType(r.id) : setCfgReseau(r.id))}>
-                              {r.label}
+                              active={cfgFormat === 'script' ? cfgType === r.id : cfgReseaux.includes(r.id)}
+                              onClick={() => (cfgFormat === 'script' ? setCfgType(r.id) : toggleReseau(setCfgReseaux)(r.id))}>
+                              {cfgFormat !== 'script' && cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.label}
                             </Pill>
                           ))}
+                          {cfgFormat !== 'script' && cfgReseaux.length > 1 && (
+                            <span className="text-[11px] text-[#3AFFA3] font-inter">1 post → {cfgReseaux.length} réseaux</span>
+                          )}
                         </div>
                         {cfgFormat === 'carrousel' && (
                           <div className="flex items-center gap-2">
