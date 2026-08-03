@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send, Trash2, RefreshCw } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
@@ -70,6 +71,46 @@ export default function PlanificationPage() {
   const [busy, setBusy] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileRef = useRef(null);
+
+  // Drag & drop replanification (Framer Motion) : survol de cellule + sélecteur d'heure au drop
+  const [hoverDate, setHoverDate] = useState(null); // 'yyyy-MM-dd' de la cellule survolée pendant le drag
+  const [dropPending, setDropPending] = useState(null); // { contenu, dateStr, time, point:{x,y} }
+  const [dropBusy, setDropBusy] = useState(false);
+
+  const commitDrop = async () => {
+    if (!dropPending) return;
+    const { contenu, dateStr, time } = dropPending;
+    setDropBusy(true);
+    try {
+      const iso = inputToUtc(`${dateStr}T${time}`, tz);
+      if (new Date(iso).getTime() < Date.now()) {
+        toast.error('La date de publication doit être dans le futur');
+        setDropBusy(false);
+        return;
+      }
+      await contenuService.update(contenu.id, { date_publication: iso });
+      setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, date_publication: iso } : c)));
+      const programmable = contenu.statut === 'Valider'
+        || ['envoi', 'programmé', 'programme', 'échec', 'annulé'].includes(contenu.publish_status);
+      if (programmable && contenu.reseau_cible) {
+        try {
+          const pub = await contenuService.publier(contenu.id);
+          setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null } : c)));
+          toast.success('Replanifié ✓');
+        } catch (e) {
+          setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, publish_status: 'échec', publish_error: e.response?.data?.detail } : c)));
+          toast.error(e.response?.data?.detail || 'Déplacé, mais re-programmation échouée', { duration: 7000 });
+        }
+      } else {
+        toast.success('Post déplacé ✓');
+      }
+      setDropPending(null);
+    } catch (e) {
+      toast.error('Échec du déplacement');
+    } finally {
+      setDropBusy(false);
+    }
+  };
 
   const importImage = async (e) => {
     const file = e.target.files?.[0];
@@ -258,11 +299,43 @@ export default function PlanificationPage() {
   const Pill = ({ c }) => {
     const pub = pubOf(c.publish_status);
     const net = netOf(c.reseau_cible);
+    const justDragged = useRef(false);
     return (
-      <button
-        onClick={(e) => { e.stopPropagation(); openContenu(c); }}
-        title={`${c.titre || ''}${pub ? ` · ${pub.label}` : ''}`}
-        className="w-full flex flex-col gap-1 px-1.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] transition-colors text-left cursor-pointer"
+      <motion.div
+        layout
+        layoutId={`pill-${c.id}`}
+        transition={{ type: 'spring', damping: 24, stiffness: 340 }}
+        drag
+        dragSnapToOrigin
+        dragElastic={0.18}
+        dragMomentum={false}
+        whileDrag={{ scale: 1.1, zIndex: 60, boxShadow: '0 18px 44px rgba(0,0,0,.55)', cursor: 'grabbing' }}
+        onDrag={(e, info) => {
+          const el = document.elementFromPoint(info.point.x, info.point.y);
+          const cell = el?.closest('[data-cal-date]');
+          setHoverDate(cell?.getAttribute('data-cal-date') || null);
+        }}
+        onDragEnd={(e, info) => {
+          setHoverDate(null);
+          const moved = Math.hypot(info.offset.x, info.offset.y) > 6;
+          if (!moved) return;
+          justDragged.current = true;
+          setTimeout(() => { justDragged.current = false; }, 250);
+          const el = document.elementFromPoint(info.point.x, info.point.y);
+          const cell = el?.closest('[data-cal-date]');
+          const newDate = cell?.getAttribute('data-cal-date');
+          if (!newDate) return;
+          const curDate = c.date_publication ? format(new Date(c.date_publication), 'yyyy-MM-dd') : null;
+          if (newDate === curDate) return;
+          const time = c.date_publication ? utcToInput(c.date_publication, tz).split('T')[1] : '09:00';
+          const x = Math.min(Math.max(info.point.x, 130), window.innerWidth - 130);
+          const y = Math.min(info.point.y, window.innerHeight - 200);
+          setDropPending({ contenu: c, dateStr: newDate, time, point: { x, y } });
+        }}
+        onClick={(e) => { if (justDragged.current) return; e.stopPropagation(); openContenu(c); }}
+        role="button" tabIndex={0}
+        title={`${c.titre || ''}${pub ? ` · ${pub.label}` : ''} — glisse pour replanifier`}
+        className="w-full flex flex-col gap-1 px-1.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] transition-colors text-left cursor-grab active:cursor-grabbing"
       >
         <div className="flex items-center gap-1.5">
           <span className="w-[16px] h-[16px] rounded grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
@@ -271,7 +344,7 @@ export default function PlanificationPage() {
                : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: stOf(c.statut).sw }} />}
         </div>
         <span className="text-[10px] leading-[1.22] font-medium text-slate-200 line-clamp-2">{c.titre || c.contenu?.slice(0, 40) || 'Sans titre'}</span>
-      </button>
+      </motion.div>
     );
   };
 
@@ -281,13 +354,6 @@ export default function PlanificationPage() {
         icon={Calendar}
         title="Planification"
         subtitle="Vue calendrier de tes publications."
-        actions={
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3]" />
-            <span className="text-xs text-slate-400 font-inter">Crédits</span>
-            <span className="text-sm font-semibold text-white font-inter">{user?.credits ?? '—'}</span>
-          </div>
-        }
       />
 
       {/* Toolbar */}
@@ -319,8 +385,11 @@ export default function PlanificationPage() {
                 {days.map((d, i) => {
                   const evs = d.out ? [] : forDate(d.date);
                   const isToday = !d.out && d.date.toDateString() === today.toDateString();
+                  const cellDate = format(d.date, 'yyyy-MM-dd');
+                  const isDropHover = hoverDate === cellDate;
                   return (
-                    <div key={i} className={`min-h-[116px] rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${d.out ? 'bg-white/[0.01] border-white/[0.04] opacity-40' : 'bg-[#0a1120] border-white/[0.06] hover:border-white/10'} ${isToday ? 'ring-1 ring-[#5B6CFF]/55 border-[#5B6CFF]/55' : ''}`}>
+                    <div key={i} data-cal-date={cellDate}
+                      className={`min-h-[116px] rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${d.out ? 'bg-white/[0.01] border-white/[0.04] opacity-40' : 'bg-[#0a1120] border-white/[0.06] hover:border-white/10'} ${isToday ? 'ring-1 ring-[#5B6CFF]/55 border-[#5B6CFF]/55' : ''} ${isDropHover ? 'ring-2 ring-[#3AFFA3] border-[#3AFFA3] bg-[#3AFFA3]/[0.06] scale-[1.02]' : ''}`}>
                       <div className={`text-[12.5px] font-semibold font-inter ${isToday ? 'text-white' : 'text-slate-500'}`}>
                         {isToday ? <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center text-white text-[11px] inline-grid">{d.date.getDate()}</span> : d.date.getDate()}
                       </div>
@@ -471,6 +540,47 @@ export default function PlanificationPage() {
         )}
       </div>
       )}
+
+      {/* Sélecteur d'heure — apparaît à l'endroit du drop après un glisser-déposer sur le calendrier */}
+      <AnimatePresence>
+        {dropPending && (
+          <>
+            <motion.div
+              key="drop-backdrop"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => !dropBusy && setDropPending(null)}
+              className="fixed inset-0 z-[90]"
+            />
+            <motion.div
+              key="drop-popover"
+              initial={{ opacity: 0, scale: 0.85, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 6 }}
+              transition={{ type: 'spring', damping: 22, stiffness: 320 }}
+              style={{ position: 'fixed', left: dropPending.point.x - 130, top: dropPending.point.y, zIndex: 91 }}
+              className="w-[260px] rounded-xl border border-[#5B6CFF]/40 bg-[#0f172a] shadow-2xl p-3.5 space-y-3"
+            >
+              <div className="text-[12.5px] font-semibold text-white font-sora flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#8A6CFF]" />
+                Replanifier au {format(parseISO(dropPending.dateStr), 'EEE d MMM', { locale: fr })}
+              </div>
+              <input
+                type="time" step="300" autoFocus value={dropPending.time}
+                onChange={(e) => setDropPending((p) => ({ ...p, time: e.target.value }))}
+                className="w-full rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 outline-none focus:border-[#5B6CFF]/50"
+              />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => setDropPending(null)} disabled={dropBusy}
+                  className="flex-1 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10">Annuler</Button>
+                <Button size="sm" onClick={commitDrop} disabled={dropBusy}
+                  className="flex-1 bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white">
+                  {dropBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Confirmer'}
+                </Button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Pop-up détail / programmation */}
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
