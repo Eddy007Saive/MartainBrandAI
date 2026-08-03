@@ -197,21 +197,26 @@ export default function StudioIA() {
     setCfgFormat('post');
   };
 
-  // --- Transformation d'un sujet en contenu (le sujet RESTE dispo : réutilisable sur plusieurs réseaux) ---
+  // --- Transformation d'un sujet en contenu ---
+  // Le sujet reste dans la réserve tant que rien n'est validé (réutilisable pour un autre réseau/format),
+  // puis en sort automatiquement dès qu'un contenu généré à partir de lui est enregistré (carrousel : à la
+  // génération, qui sauvegarde direct ; post/script : au clic sur "Valider").
   const genererContenu = async (s) => {
     const fmt = cfgFormat;
     const meta = fmt === 'script' ? cfgType : cfgReseaux[0];
     const extras = fmt === 'script' ? [] : cfgReseaux.slice(1); // réseaux additionnels cochés
     const qualite = cfgQualite;
     const cardId = nextId();
-    setContenus((prev) => [{ id: cardId, sujet: s.titre, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
+    setContenus((prev) => [{ id: cardId, sujet: s.titre, sujetId: s.id, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
     setOpenId(null);
-    // le sujet n'est PAS supprimé : on peut le réutiliser pour un autre réseau
+    // le sujet reste dispo tant que rien n'est validé : on peut le réutiliser pour un autre réseau
+    // (il disparaît de la réserve seulement quand un contenu généré à partir de lui est validé — voir `valider`)
     try {
       if (fmt === 'carrousel') {
         const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite);
         if (d.credits != null) updateUser({ credits: d.credits });
         setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        if (s.id) supprimerSujet(s.id); // carrousel enregistré directement → le sujet est traité
         // Réseaux additionnels cochés : copie du carrousel sur chacun (slides re-rendues, créneau propre)
         if (extras.length && d.contenu_id) {
           try {
@@ -337,6 +342,7 @@ export default function StudioIA() {
         // Script vidéo → contenu « À tourner » (apparaît dans Contenus, prêt à monter)
         const d = await videoService.createDraft({ script: card.texte, titre: card.sujet });
         setContenus((prev) => prev.filter((c) => c.id !== id));
+        if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
         toast.success('Script prêt → à monter en vidéo', {
           action: d?.contenu_id ? { label: 'Monter la vidéo', onClick: () => navigate(`/dashboard/video?contenu_id=${d.contenu_id}`) } : undefined,
         });
@@ -352,6 +358,7 @@ export default function StudioIA() {
         }
       }
       setContenus((prev) => prev.filter((c) => c.id !== id)); // validé → quitte le Studio
+      if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
       const n = 1 + (card.extras?.length || 0);
       toast.success(n > 1 ? `Post validé → planifié sur ${n} réseaux 🎯` : 'Post validé → onglet Contenus');
     } catch (e) {
@@ -709,7 +716,9 @@ export default function StudioIA() {
                       {c.images && c.images.length ? (
                         <div className="grid grid-cols-3 gap-2">
                           {c.images.map((u, i) => (
-                            <img key={i} src={u} alt={`slide ${i + 1}`} className="w-full rounded-lg border border-white/10" />
+                            <div key={i} className="w-full aspect-[4/5] rounded-lg border border-white/10 overflow-hidden bg-slate-950/60">
+                              <img src={u} alt={`slide ${i + 1}`} className="w-full h-full object-cover" />
+                            </div>
                           ))}
                         </div>
                       ) : (

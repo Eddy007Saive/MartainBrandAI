@@ -239,12 +239,25 @@ export default function ContenusPage() {
 
   // Reel animé (Remotion) : post -> script IA -> MP4 à la charte, en « À valider »
   const [reelLoading, setReelLoading] = useState(null);
-  const doReel = async (contenu) => {
+  const [reelFor, setReelFor] = useState(null); // contenu en attente du choix de template
+  // Bibliothèque de templates (registre backend) — repli local si l'appel échoue
+  const [reelTemplates, setReelTemplates] = useState([
+    { id: 'affiche', label: 'Affiche', duree: 11, desc: 'La pub premium : titre accentué, 3 arguments à icônes, ton image, CTA brillant.' },
+    { id: 'impact', label: 'Impact', duree: 8, desc: 'Punchy : accroche mot à mot → 3 preuves → CTA. Idéal stories.' },
+    { id: 'stats', label: 'Gros chiffres', duree: 10, desc: 'Un chiffre géant par écran, qui compte en direct. Pour les posts à résultats.' },
+    { id: 'long', label: 'Narratif', duree: 22, desc: 'Accroche → contexte → preuves plein écran → leçon en citation → CTA.' },
+  ]);
+  useEffect(() => {
+    contenuService.reelTemplates().then((t) => { if (t?.length) setReelTemplates(t); }).catch(() => {});
+  }, []);
+  const doReel = async (contenu, duree = 'affiche') => {
     if (reelLoading) return;
+    setReelFor(null);
     setReelLoading(contenu.id);
-    toast.info('Génération du reel en cours (~1 min)…');
+    const tpl = reelTemplates.find((t) => t.id === duree);
+    toast.info(`Génération du reel « ${tpl?.label || 'Affiche'} » en cours (~${(tpl?.duree || 11) > 15 ? 2 : 1} min)…`);
     try {
-      await contenuService.genererReel(contenu.id);
+      await contenuService.genererReel(contenu.id, duree);
       toast.success('Reel généré 🎬 — il est « À valider »');
       fetchContenus();
     } catch (e) {
@@ -921,7 +934,7 @@ export default function ContenusPage() {
                   onValidate={(id) => handleUpdateStatut(id, 'Valider')}
                   onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
                   onRecycle={openRecycle}
-                  onReel={doReel}
+                  onReel={(c) => setReelFor(c)}
                   reelLoading={reelLoading}
                   actionLoading={actionLoading}
                 />
@@ -1301,6 +1314,39 @@ export default function ContenusPage() {
                 Recycler ({recycleNets.length})
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Reel — galerie de templates (registre backend /reels/templates) */}
+        <Dialog open={!!reelFor} onOpenChange={() => setReelFor(null)}>
+          <DialogContent className="bg-[#0f172a] border-slate-800 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-white font-sora flex items-center gap-2">
+                <Clapperboard className="w-4 h-4 text-[#8A6CFF]" />Générer un reel animé
+              </DialogTitle>
+            </DialogHeader>
+            {reelFor && (
+              <div className="space-y-3">
+                <p className="text-sm text-slate-400 font-inter">
+                  Le post est transformé en vidéo verticale animée à ta charte. Choisis le template :
+                </p>
+                <div className="space-y-2.5 max-h-[52vh] overflow-y-auto pr-1">
+                  {reelTemplates.map((t, i) => (
+                    <button key={t.id} type="button" onClick={() => doReel(reelFor, t.id)} data-testid={`reel-${t.id}`}
+                      className="w-full text-left rounded-xl border border-white/[0.08] bg-slate-950/50 hover:border-[#8A6CFF]/50 hover:bg-[#8A6CFF]/5 transition-all active:scale-[0.98] p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-sora font-bold text-white flex items-center gap-2">
+                          {t.label}
+                          {i === 0 && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">★ Nouveau</span>}
+                        </span>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 shrink-0">{t.duree} s</span>
+                      </div>
+                      <p className="text-xs text-slate-400 font-inter mt-1">{t.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
