@@ -349,18 +349,17 @@ export default function StudioIA() {
         return;
       }
       const d = await agentService.enregistrer(card.texte, card.sujet, card.meta);
-      // Réseaux additionnels cochés à la génération : une copie par réseau, chacune sur son créneau
-      if (card.extras?.length && d?.contenu_id) {
-        try {
-          await contenuService.recycler(d.contenu_id, card.extras);
-        } catch (err) {
-          toast.error('Copies multi-réseaux impossibles (tu peux utiliser Recycler dans Contenus)');
-        }
-      }
+      // Réseaux additionnels cochés : on NE duplique PLUS tout de suite (le post n'a pas encore
+      // d'image → ça obligeait à régénérer une image par copie). On duplique seulement une fois
+      // qu'une image existe sur cette fiche, via le bouton ♻️ Recycler dans Contenus — la même
+      // image est alors reprise pour toutes les copies, zéro régénération.
       setContenus((prev) => prev.filter((c) => c.id !== id)); // validé → quitte le Studio
       if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
-      const n = 1 + (card.extras?.length || 0);
-      toast.success(n > 1 ? `Post validé → planifié sur ${n} réseaux 🎯` : 'Post validé → onglet Contenus');
+      if (card.extras?.length) {
+        toast.success('Post validé → ajoute une image dans Contenus, puis clique ♻️ Recycler pour le publier aussi sur les autres réseaux (même image, sans la régénérer).', { duration: 8000 });
+      } else {
+        toast.success('Post validé → onglet Contenus');
+      }
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false } : c)));
       toast.error(e.response?.data?.detail || 'Erreur lors de la validation');
