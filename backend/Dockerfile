@@ -17,14 +17,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Dépendances Remotion (cache séparé, avant COPY . .)
 COPY remotion/package.json remotion/package-lock.json ./remotion/
-RUN cd remotion && npm ci --no-audit --no-fund
+RUN cd remotion && npm ci --no-audit --no-fund \
+    # Navigateur propre a Remotion (decouple de celui de Playwright -> pas de chemin fragile
+    # a deviner). Telecharge et met en cache DANS l'image au build, aucun reseau au runtime.
+    && npx remotion browser ensure
 
 # Code de l'app
 COPY . .
 
-# Remotion réutilise le Chromium de l'image Playwright (pas de re-téléchargement)
-RUN ln -sf $(ls -d /ms-playwright/chromium-*/chrome-linux/chrome | head -1) /usr/local/bin/chromium-remotion
-ENV REMOTION_BROWSER=/usr/local/bin/chromium-remotion
 ENV REMOTION_DIR=/app/remotion
 
 # Railway fournit $PORT dynamiquement ; server.py le lit lui-même (pas d'expansion shell requise)
