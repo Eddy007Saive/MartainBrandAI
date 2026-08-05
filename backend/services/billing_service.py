@@ -85,6 +85,14 @@ def create_checkout(telegram_id: str, plan: str) -> dict:
             metadata={"telegram_id": telegram_id, "plan": plan},
             subscription_data={"metadata": {"telegram_id": telegram_id, "plan": plan}},
             allow_promotion_codes=True,
+            # Societe bulgare facturant des clients pro dans l'UE : la TVA doit etre calculee
+            # (autoliquidation si le client B2B fournit un numero de TVA intracommunautaire
+            # valide, sinon TVA locale du client) et TOUJOURS ajoutee EN PLUS des 279 EUR
+            # (Price.tax_behavior='exclusive') -> la marge n'est jamais rognee par la TVA.
+            automatic_tax={"enabled": True},
+            tax_id_collection={"enabled": True, "required": "if_supported"},
+            billing_address_collection="required",
+            customer_update={"address": "auto", "name": "auto"},
         )
         return {"ok": True, "url": sess.url}
     except Exception as e:
