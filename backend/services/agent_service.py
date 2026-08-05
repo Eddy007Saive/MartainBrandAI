@@ -78,8 +78,14 @@ def _charger_marque(telegram_id: str) -> dict:
 LANGUES_CONTENU = {"fr": "français", "en": "anglais (English)", "es": "espagnol (Español)"}
 
 
-def _contexte_marque(u: dict) -> str:
-    """Construit le bloc 'voix de marque' à partir des champs disponibles."""
+def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
+    """Construit le bloc 'voix de marque' à partir des champs disponibles.
+
+    inclure_hooks=False : omet la liste d'exemples d'accroches du client. À utiliser pour
+    les tâches d'EXTRACTION strictes depuis un texte déjà donné (ex. composer_gabarit) —
+    sinon le modèle pioche une accroche de la liste au lieu de condenser le texte fourni
+    (cause du bug "image hors-sujet", ex. post train en retard -> visuel "panne").
+    """
     nom = u.get("nom") or u.get("username") or "le client"
     lignes = [f"# MARQUE : {nom}"]
     # Langue de rédaction du client (clients étrangers) — s'applique à TOUTES les générations
@@ -103,7 +109,7 @@ def _contexte_marque(u: dict) -> str:
         lignes.append(f"Piliers / thèmes : {u['piliers']}")
     if u.get("a_eviter"):
         lignes.append(f"À éviter absolument : {u['a_eviter']}")
-    if u.get("hooks"):
+    if u.get("hooks") and inclure_hooks:
         lignes.append(f"Hooks/accroches qui marchent (inspire-toi de ce style d'accroche) :\n{u['hooks']}")
     if u.get("ctas"):
         lignes.append(f"CTA habituels (réutilise-en un quand c'est pertinent) :\n{u['ctas']}")
@@ -469,7 +475,11 @@ def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model
 # ---------------------------------------------------------------------------
 ROLE_GABARIT = (
     "Tu transformes un post en VISUEL court et percutant pour un feed social. "
-    "Tu écris dans la voix de la marque ci-dessous. Réponds UNIQUEMENT en JSON valide, sans texte autour.\n\n"
+    "Tu écris dans la voix de la marque ci-dessous. "
+    "IMPORTANT : le contenu (titre, accroche, citation, chiffres...) doit être condensé "
+    "STRICTEMENT à partir du texte du post fourni par l'utilisateur, jamais inventé ni tiré "
+    "d'un autre sujet — même si la voix de marque mentionne d'autres exemples ou thèmes. "
+    "Réponds UNIQUEMENT en JSON valide, sans texte autour.\n\n"
 )
 
 # Pour chaque gabarit : (description du JSON à produire, liste des champs à appliquer sur les défauts)
@@ -535,7 +545,7 @@ def composer_gabarit(telegram_id: str, gabarit: str, texte: str) -> dict:
     if gabarit not in _GAB_SPECS:
         gabarit = "statement"
     u = _charger_marque(telegram_id)
-    contexte = _contexte_marque(u)
+    contexte = _contexte_marque(u, inclure_hooks=False)
     nom = u.get("nom") or u.get("user_name") or ""
     spec, fields = _GAB_SPECS[gabarit]
     resp = _messages_create(
