@@ -184,6 +184,11 @@ async def programmer_contenu(telegram_id: str, contenu_id: str, publish_now: boo
         is_video = contenu.get("type") in ("Reel", "Video", "Short") or contenu.get("video_status")
         if is_video and not contenu.get("video_url"):
             return {"ok": False, "skipped": "vidéo non montée"}
+        # Garde-fou : sans date de publication ET sans demande explicite de "publier maintenant",
+        # on ne pousse JAMAIS vers Zernio — sinon l'appel part sans scheduled_for/publish_now et
+        # se fait publier immediatement selon le comportement par defaut de l'API.
+        if not publish_now and not contenu.get("date_publication"):
+            return {"ok": False, "skipped": "aucune date de publication definie"}
 
         res = await publish_contenu(telegram_id, contenu, publish_now=publish_now)
         if res.get("ok"):

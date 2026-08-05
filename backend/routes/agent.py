@@ -772,7 +772,11 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         supabase.table("contenu").update(upd).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
         res["statut"] = c.get("statut")
         res["date_publication"] = upd.get("date_publication") or c.get("date_publication")
-        if c.get("statut") in ("A valider", "Valider", "Planifie") and res["date_publication"]:
+        # BUG CORRIGE : "A valider" ne doit JAMAIS pousser vers Zernio — sinon un brouillon
+        # part se programmer des qu'on lui genere/regenere une image, avant toute validation
+        # explicite. Seul un contenu deja "Valider" (poste par l'utilisateur) ou deja "Planifie"
+        # (deja pousse, on rafraichit juste) declenche l'auto-programmation ici.
+        if c.get("statut") in ("Valider", "Planifie") and res["date_publication"]:
             try:
                 from services import late_service
                 pub = await late_service.programmer_contenu(telegram_id, contenu_id)
