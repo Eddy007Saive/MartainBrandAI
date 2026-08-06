@@ -5,7 +5,7 @@ import {
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
   Loader2, ChevronRight, ChevronLeft, Clock, CheckCircle, XCircle, RefreshCw,
   Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
-  Plus, Minus, DollarSign, Wifi, Inbox, Copy
+  Plus, Minus, DollarSign, Wifi, Inbox, Copy, BarChart3
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -33,6 +33,7 @@ import { enterVision } from '../lib/vision';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'users', label: 'Utilisateurs', icon: Users },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'avatars', label: 'Avatars', icon: Video },
@@ -973,6 +974,28 @@ export default function Admin() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Analytics Tab — dashboard PostHog embarqué (funnel, contenus, actifs) */}
+          {activeTab === 'analytics' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-white font-sora">Analytics produit</h2>
+                  <p className="text-sm text-slate-400 font-inter">Funnel d'activation, contenus générés, utilisateurs actifs — données PostHog en direct.</p>
+                </div>
+                <a href="https://us.posthog.com/shared/x6aulyqg5IjJ_83ANU5hlR1fLWpA3g" target="_blank" rel="noreferrer"
+                  className="text-xs text-slate-400 hover:text-white font-inter inline-flex items-center gap-1.5">
+                  <ExternalLink className="w-3.5 h-3.5" /> Plein écran
+                </a>
+              </div>
+              <iframe
+                title="Dashboard PostHog"
+                src="https://us.posthog.com/embedded/x6aulyqg5IjJ_83ANU5hlR1fLWpA3g"
+                className="w-full rounded-2xl border border-white/[0.06] bg-[#0f172a]"
+                style={{ height: 'calc(100vh - 220px)', minHeight: 900 }}
+              />
             </div>
           )}
 
