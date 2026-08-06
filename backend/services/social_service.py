@@ -6,7 +6,7 @@ def _norm_platform(p) -> str:
     # p peut être une string ("Platform12.FACEBOOK") ou un enum -> on coerce en str
     return str(p or "").lower().split(".")[-1]
 
-VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube", "googlebusiness"}
+VALID_PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube", "googlebusiness", "twitter"}
 
 FIELD_MAP = {
     "instagram": "late_account_instagram",
@@ -15,6 +15,7 @@ FIELD_MAP = {
     "youtube": "late_account_youtube",
     "tiktok": "late_account_tiktok",
     "googlebusiness": "late_account_googlebusiness",
+    "twitter": "late_account_twitter",
 }
 
 

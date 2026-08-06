@@ -52,7 +52,7 @@ const PLAN_CFG = {
 };
 const PLAN_OPTIONS = ['gratuit', 'pro', 'business', 'boss'];
 
-const NET_DOT = { linkedin: '#0a66c2', instagram: '#d62976', facebook: '#1877f2', tiktok: '#e5e7eb', youtube: '#ff0000' };
+const NET_DOT = { linkedin: '#0a66c2', instagram: '#d62976', facebook: '#1877f2', tiktok: '#e5e7eb', youtube: '#ff0000', googlebusiness: '#4285f4', twitter: '#000000' };
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: '2-digit' }) : '—';
 

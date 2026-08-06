@@ -241,7 +241,7 @@ CREATE TABLE public.planning_editorial (
 CREATE TABLE public.publication_schedules (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   telegram_id bigint NOT NULL,
-  platform text NOT NULL CHECK (platform = ANY (ARRAY['linkedin'::text, 'instagram'::text, 'facebook'::text, 'tiktok'::text, 'youtube'::text])),
+  platform text NOT NULL CHECK (platform = ANY (ARRAY['linkedin'::text, 'instagram'::text, 'facebook'::text, 'tiktok'::text, 'youtube'::text, 'googlebusiness'::text, 'twitter'::text])),
   frequency text NOT NULL DEFAULT 'weekly'::text CHECK (frequency = ANY (ARRAY['daily'::text, '3_per_week'::text, 'weekly'::text, 'biweekly'::text, 'custom'::text])),
   days_of_week ARRAY DEFAULT '{}'::integer[],
   preferred_time time without time zone DEFAULT '09:00:00'::time without time zone,
@@ -319,6 +319,8 @@ CREATE TABLE public.users (
   late_account_facebook text,
   late_account_tiktok text,
   late_account_youtube text,
+  late_account_googlebusiness text,
+  late_account_twitter text,
   heygen_avatar_name text,
   CONSTRAINT users_pkey PRIMARY KEY (telegram_id)
 );

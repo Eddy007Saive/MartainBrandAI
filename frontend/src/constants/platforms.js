@@ -34,6 +34,12 @@ const GoogleBusinessIcon = ({ className }) => (
   </svg>
 );
 
+const TwitterIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+);
+
 export const SOCIAL_PLATFORMS = [
   { id: 'instagram', name: 'Instagram', field: 'late_account_instagram', color: 'from-pink-500 to-purple-600', brand: '#E1306C', icon: InstagramIcon },
   { id: 'facebook', name: 'Facebook', field: 'late_account_facebook', color: 'from-blue-600 to-blue-700', brand: '#1877F2', icon: FacebookIcon },
@@ -41,6 +47,7 @@ export const SOCIAL_PLATFORMS = [
   { id: 'tiktok', name: 'TikTok', field: 'late_account_tiktok', color: 'from-gray-900 to-gray-800', brand: '#F0F2F5', icon: TikTokIcon },
   { id: 'youtube', name: 'YouTube', field: 'late_account_youtube', color: 'from-red-600 to-red-700', brand: '#FF0000', icon: YouTubeIcon },
   { id: 'googlebusiness', name: 'Google Business', field: 'late_account_googlebusiness', color: 'from-blue-500 to-emerald-500', brand: '#4285F4', icon: GoogleBusinessIcon },
+  { id: 'twitter', name: 'Twitter/X', field: 'late_account_twitter', color: 'from-gray-800 to-black', brand: '#000000', icon: TwitterIcon },
 ];
 
-export { InstagramIcon, FacebookIcon, LinkedInIcon, TikTokIcon, YouTubeIcon, GoogleBusinessIcon };
+export { InstagramIcon, FacebookIcon, LinkedInIcon, TikTokIcon, YouTubeIcon, GoogleBusinessIcon, TwitterIcon };

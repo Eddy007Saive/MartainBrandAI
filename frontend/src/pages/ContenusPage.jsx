@@ -82,6 +82,8 @@ const RESEAU_CONFIG = {
   'Instagram': { label: 'Instagram', color: 'from-pink-500 to-purple-600', short: 'IG' },
   'Facebook': { label: 'Facebook', color: 'from-blue-600 to-blue-700', short: 'FB' },
   'TikTok': { label: 'TikTok', color: 'from-gray-800 to-gray-900', short: 'TK' },
+  'twitter': { label: 'Twitter/X', color: 'from-gray-800 to-black', short: 'X' },
+  'Twitter': { label: 'Twitter/X', color: 'from-gray-800 to-black', short: 'X' },
 };
 
 function StatusBadge({ statut }) {
