@@ -994,7 +994,10 @@ export default function Admin() {
                 title="Dashboard PostHog"
                 src="https://us.posthog.com/embedded/x6aulyqg5IjJ_83ANU5hlR1fLWpA3g"
                 className="w-full rounded-2xl border border-white/[0.06] bg-[#0f172a]"
-                style={{ height: 'calc(100vh - 220px)', minHeight: 900 }}
+                // PostHog n'offre pas de thème sombre forçable sur les dashboards partagés
+                // (il suit le thème de l'OS du visiteur) -> inversion CSS + rotation des teintes
+                // pour un rendu sombre cohérent avec l'admin, couleurs des courbes préservées.
+                style={{ height: 'calc(100vh - 220px)', minHeight: 900, filter: 'invert(0.92) hue-rotate(180deg)' }}
               />
             </div>
           )}
