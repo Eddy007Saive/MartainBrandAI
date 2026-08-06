@@ -131,6 +131,19 @@ def _pills(pills):
     return "".join(f'<span class="pill">{_esc(p)}</span>' for p in (pills or [])[:4])
 
 
+def _fit_fs(text, base):
+    """Réduit la taille de police selon la longueur du texte -> évite qu'un hook/titre
+    long déborde de sa zone et chevauche la barre du bas (avatar/swipe/dots)."""
+    n = len(text or "")
+    if n <= 28:
+        return base
+    if n <= 45:
+        return round(base * 0.8)
+    if n <= 65:
+        return round(base * 0.64)
+    return round(base * 0.52)
+
+
 def build_html(content, p, s, a, nom, secteur, template="creme", logo=None):
     secteur = (secteur or "").strip()
     if len(secteur) > 42:
@@ -165,7 +178,7 @@ def _ref(content, p, a, nom, secteur, logo, bg, bg2, ink, mut, line, accent_text
   .slide{{width:{SLIDE_W}px;height:{SLIDE_H}px;background:{bg};color:{ink};overflow:hidden;position:relative;display:flex;flex-direction:column;padding:34px 30px 56px}}
   .cta-slide{{background:{bg2}}}
   .tag{{align-self:flex-start;background:{A};color:{Aink};font-weight:700;font-size:11px;letter-spacing:2px;padding:6px 12px;border-radius:6px;text-transform:uppercase}}
-  .grow{{flex:1}}
+  .grow{{flex:1;overflow:hidden}}
   h1{{font-family:Anton;font-size:50px;line-height:.96;letter-spacing:.3px;text-transform:uppercase;margin-top:16px}}
   h2{{font-family:Anton;font-size:39px;line-height:.97;letter-spacing:.3px;text-transform:uppercase;margin:12px 0}}
   .sub{{font-size:15px;color:{mut};line-height:1.5;margin-top:13px;max-width:90%}}
@@ -183,13 +196,13 @@ def _ref(content, p, a, nom, secteur, logo, bg, bg2, ink, mut, line, accent_text
   .foot .nm{{font-weight:600}} .foot .hd{{font-size:11px;font-weight:500}}
   .cta-btn{{align-self:flex-start;background:{A};color:{Aink};font-weight:700;font-size:14px;padding:13px 24px;border-radius:8px;margin-top:18px;text-transform:uppercase;letter-spacing:.5px}}
 </style>'''
-    out = [f'<div class="slide"><span class="tag">Carrousel</span><div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_esc(hook)}</h1></div><div class="bar">{foot}<span class="swipe">Swipe →</span></div></div>']
+    out = [f'<div class="slide"><span class="tag">Carrousel</span><div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1 style="font-size:{_fit_fs(hook, 50)}px">{_esc(hook)}</h1></div><div class="bar">{foot}<span class="swipe">Swipe →</span></div></div>']
     for i, sl in enumerate(slides):
         pills = f'<div class="pills">{_pills(sl.get("pills"))}</div>' if sl.get("pills") else ""
         protip = f'<div class="protip"><span class="lbl">Pro tip</span><p>{_esc(sl.get("pro_tip"))}</p></div>' if sl.get("pro_tip") else ""
         txt = f'<p class="sub">{_esc(sl.get("texte"))}</p>' if sl.get("texte") and not protip and not pills else ""
-        out.append(f'<div class="slide"><span class="tag">Étape {i+1:02d}</span><div class="grow"></div><h2>{_esc(sl.get("titre"))}</h2>{txt}{pills}{protip}<div class="bar"><div class="dots">{_dots(n, i+1)}</div><span class="cnt">{i+2}/{n}</span></div></div>')
-    out.append(f'<div class="slide cta-slide"><span class="tag">À toi de jouer</span><div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h2>{_esc(cta["titre"])}</h2>'
+        out.append(f'<div class="slide"><span class="tag">Étape {i+1:02d}</span><div class="grow"></div><h2 style="font-size:{_fit_fs(sl.get("titre"), 39)}px">{_esc(sl.get("titre"))}</h2>{txt}{pills}{protip}<div class="bar"><div class="dots">{_dots(n, i+1)}</div><span class="cnt">{i+2}/{n}</span></div></div>')
+    out.append(f'<div class="slide cta-slide"><span class="tag">À toi de jouer</span><div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h2 style="font-size:{_fit_fs(cta["titre"], 39)}px">{_esc(cta["titre"])}</h2>'
                + (f'<p class="sub">{_esc(cta["texte"])}</p>' if cta["texte"] else "")
                + f'<span class="cta-btn">Lien en bio →</span></div><div class="bar">{foot}<div class="dots">{_dots(n, n-1)}</div></div></div>')
     return f'<!DOCTYPE html><html><head><meta charset="utf-8">{css}</head><body>{"".join(out)}</body></html>'
@@ -220,7 +233,7 @@ def _tpl_alterne(content, p, s, a, nom, secteur, logo):
   .slide{{width:{SLIDE_W}px;height:{SLIDE_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:34px 30px 56px}}
   .lt{{background:{CREAM};color:#14201b}} .dk{{background:{NEAR};color:#fff}}
   .tag{{align-self:flex-start;background:{A};color:{Aink};font-weight:700;font-size:11px;letter-spacing:2px;padding:6px 12px;border-radius:6px;text-transform:uppercase}}
-  .grow{{flex:1}}
+  .grow{{flex:1;overflow:hidden}}
   h1{{font-family:Anton;font-size:50px;line-height:.96;text-transform:uppercase;margin-top:16px}}
   h2{{font-family:Anton;font-size:39px;line-height:.97;text-transform:uppercase;margin:12px 0}}
   .pills{{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}}
@@ -238,13 +251,13 @@ def _tpl_alterne(content, p, s, a, nom, secteur, logo):
   .foot small{{font-weight:500;display:block;font-size:11px}} .lt .foot small{{color:#5d655e}} .dk .foot small{{color:rgba(255,255,255,.66)}}
   .cta-btn{{align-self:flex-start;background:{A};color:{Aink};font-weight:700;font-size:14px;padding:13px 24px;border-radius:8px;margin-top:18px;text-transform:uppercase;letter-spacing:.5px}}
 </style>'''
-    out = [f'<div class="slide lt"><span class="tag">Carrousel</span><div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1>{_esc(hook)}</h1></div><div class="bar"><div class="foot">{av}<div>{_esc(nom)}<small>{_esc(secteur)}</small></div></div><span class="swipe">Swipe →</span></div></div>']
+    out = [f'<div class="slide lt"><span class="tag">Carrousel</span><div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h1 style="font-size:{_fit_fs(hook, 50)}px">{_esc(hook)}</h1></div><div class="bar"><div class="foot">{av}<div>{_esc(nom)}<small>{_esc(secteur)}</small></div></div><span class="swipe">Swipe →</span></div></div>']
     for i, sl in enumerate(slides):
         kind = "dk" if i % 2 == 0 else "lt"
         pills = f'<div class="pills">{_pills(sl.get("pills"))}</div>' if sl.get("pills") else ""
         protip = f'<div class="protip"><span class="lbl">Pro tip</span><p>{_esc(sl.get("pro_tip"))}</p></div>' if sl.get("pro_tip") else ""
-        out.append(f'<div class="slide {kind}"><span class="tag">Étape {i+1:02d}</span><div class="grow"></div><h2>{_esc(sl.get("titre"))}</h2>{pills}{protip}<div class="bar"><div class="dots">{_dots(n, i+1)}</div><span class="cnt">{i+2}/{n}</span></div></div>')
-    out.append(f'<div class="slide lt"><span class="tag">À toi de jouer</span><div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h2>{_esc(cta["titre"])}</h2><span class="cta-btn">Lien en bio →</span></div><div class="bar"><div class="foot">{av}<div>{_esc(nom)}<small>{_esc(secteur)}</small></div></div><div class="dots">{_dots(n, n-1)}</div></div></div>')
+        out.append(f'<div class="slide {kind}"><span class="tag">Étape {i+1:02d}</span><div class="grow"></div><h2 style="font-size:{_fit_fs(sl.get("titre"), 39)}px">{_esc(sl.get("titre"))}</h2>{pills}{protip}<div class="bar"><div class="dots">{_dots(n, i+1)}</div><span class="cnt">{i+2}/{n}</span></div></div>')
+    out.append(f'<div class="slide lt"><span class="tag">À toi de jouer</span><div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h2 style="font-size:{_fit_fs(cta["titre"], 39)}px">{_esc(cta["titre"])}</h2><span class="cta-btn">Lien en bio →</span></div><div class="bar"><div class="foot">{av}<div>{_esc(nom)}<small>{_esc(secteur)}</small></div></div><div class="dots">{_dots(n, n-1)}</div></div></div>')
     return f'<!DOCTYPE html><html><head><meta charset="utf-8">{css}</head><body>{"".join(out)}</body></html>'
 
 
@@ -259,7 +272,7 @@ def _tpl_editorial(content, p, s, a, nom, secteur, logo):
   .lt{{background:{CREAM};color:#14201b}} .dk{{background:{NEAR};color:#fff}}
   .rule{{height:1px;background:currentColor;opacity:.18;margin:13px 0}}
   .kick{{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:600;opacity:.6}}
-  .grow{{flex:1}}
+  .grow{{flex:1;overflow:hidden}}
   h1{{font-family:Fraunces;font-weight:600;font-size:36px;line-height:1.08}}
   h2{{font-family:Fraunces;font-weight:600;font-size:27px;line-height:1.13;margin-bottom:10px}}
   p{{font-size:14px;line-height:1.55;opacity:.8}}
@@ -288,7 +301,7 @@ def _tpl_pop(content, p, s, a, nom, secteur, logo):
   .slide{{width:{SLIDE_W}px;height:{SLIDE_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:32px 30px 30px}}
   .top{{display:flex;align-items:center;justify-content:space-between}}
   .badge{{font-family:Sora;font-weight:800;font-size:12px;padding:5px 11px;border-radius:30px}}
-  .grow{{flex:1}}
+  .grow{{flex:1;overflow:hidden}}
   h1{{font-family:Sora;font-weight:800;font-size:37px;line-height:1.04;letter-spacing:-1px}}
   h2{{font-family:Sora;font-weight:800;font-size:26px;line-height:1.08;letter-spacing:-.5px;margin-bottom:10px}}
   p{{font-size:14px;line-height:1.5;font-weight:500;opacity:.92}}
@@ -296,10 +309,12 @@ def _tpl_pop(content, p, s, a, nom, secteur, logo):
   .pills{{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}}
   .pill{{font-size:10px;font-weight:700;text-transform:uppercase;padding:5px 10px;border-radius:30px}}
   .foot{{display:flex;align-items:center;gap:9px;font-family:Sora;font-weight:700;font-size:14px;margin-top:12px}}
+  .av{{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-size:14px}}
   .swipe{{font-family:Sora;font-weight:800;font-size:13px}}
   .cta-btn{{display:inline-flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;font-size:15px;padding:13px 24px;border-radius:14px;margin-top:16px;width:max-content}}
 </style>'''
-    out = [f'<div class="slide" style="background:{A};color:{Aink}"><div class="top"><span class="badge" style="background:{Aink};color:{A}">Carrousel</span><span class="swipe">SWIPE →</span></div><div class="grow" style="display:flex;align-items:center"><h1>{_esc(hook)}</h1></div><div class="foot">{_esc((nom or "?")[:1].upper())} · {_esc(nom)}</div></div>']
+    av = _av_span(logo, (nom or "?")[:1].upper(), Aink, A)
+    out = [f'<div class="slide" style="background:{A};color:{Aink}"><div class="top"><span class="badge" style="background:{Aink};color:{A}">Carrousel</span><span class="swipe">SWIPE →</span></div><div class="grow" style="display:flex;align-items:center"><h1 style="font-size:{_fit_fs(hook, 37)}px">{_esc(hook)}</h1></div><div class="foot">{av}<div>{_esc(nom)}</div></div></div>']
     for i, sl in enumerate(slides):
         acc = i % 2 == 0; bg = A if acc else NEAR; ink = Aink if acc else "#fff"
         bstyle = f"background:{NEAR};color:#fff" if acc else f"background:{A};color:{Aink}"
@@ -374,7 +389,7 @@ def _tpl_neon(content, p, s, a, nom, secteur, logo):
   .brand{{display:flex;align-items:center;gap:9px;font-family:Sora;font-weight:800;font-size:15px;letter-spacing:.4px}}
   .av{{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:14px;overflow:hidden}}
   .cnt{{font-family:Sora;font-weight:800;font-size:14px;color:{acc}}}
-  .grow{{flex:1}}
+  .grow{{flex:1;overflow:hidden}}
   .num{{font-family:Sora;font-weight:800;font-size:96px;line-height:.8;letter-spacing:-4px;color:transparent;-webkit-text-stroke:2.5px {acc}}}
   .row2{{display:flex;align-items:flex-start;gap:16px;position:relative;z-index:2}}
   h1{{font-family:Sora;font-weight:800;font-size:38px;line-height:1.02;letter-spacing:-.5px;text-transform:uppercase;position:relative;z-index:2}}

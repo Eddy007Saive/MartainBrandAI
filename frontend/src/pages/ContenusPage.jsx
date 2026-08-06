@@ -150,7 +150,15 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           <div className="absolute inset-0 grid place-items-center text-slate-700"><ImageIcon className="w-8 h-8" /></div>
         )}
         {contenu.reseau_cible && <span className="absolute top-2.5 left-2.5"><ReseauBadge reseau={contenu.reseau_cible} /></span>}
-        <span className="absolute top-2.5 right-2.5"><StatusBadge statut={contenu.statut} /></span>
+        <span className="absolute top-2.5 right-2.5">
+          {contenu.publish_status === 'échec' ? (
+            <span title={contenu.publish_error || 'Publication en échec'}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter bg-red-500/15 text-red-400 border border-red-500/25">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+              ❌ Échec publication
+            </span>
+          ) : <StatusBadge statut={contenu.statut} />}
+        </span>
         {contenu.type === 'Story' && (
           <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
             Story · 24h
@@ -733,6 +741,15 @@ export default function ContenusPage() {
   useEffect(() => { setPage(1); }, [searchQuery, activeTab, filterStatut]);
 
   const handleUpdateStatut = async (id, newStatut) => {
+    if (newStatut === 'Valider') {
+      const cible = contenus.find((c) => c.id === id);
+      const reseau = (cible?.reseau_cible || '').toLowerCase();
+      const plateforme = SOCIAL_PLATFORMS.find((p) => p.id === reseau);
+      if (plateforme && !user?.[plateforme.field]) {
+        toast.error(`${plateforme.name} n'est pas connecté — connecte le compte dans Paramètres avant de valider ce post.`, { duration: 7000 });
+        return;
+      }
+    }
     setActionLoading(id);
     try {
       const data = await contenuService.update(id, { statut: newStatut });
