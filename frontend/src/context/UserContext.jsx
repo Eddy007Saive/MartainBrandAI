@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { userService } from '../services/userService';
 import { getToken, logout as clearAuth } from '../lib/auth';
+import { identifyUser, resetAnalytics } from '../lib/analytics';
 
 const UserContext = createContext(null);
 
@@ -22,6 +23,7 @@ export function UserProvider({ children }) {
     try {
       const data = await userService.getMe();
       setUser(data);
+      identifyUser(data); // lie la session PostHog au compte (replay filtrable par client)
     } catch (error) {
       // NE PAS déconnecter sur une erreur réseau / serveur transitoire (sinon l'app mobile
       // perd la session à chaque réouverture). Le token n'est effacé que sur un vrai 401
@@ -39,6 +41,7 @@ export function UserProvider({ children }) {
   const logout = () => {
     clearAuth();
     setUser(null);
+    resetAnalytics();
   };
 
   return (

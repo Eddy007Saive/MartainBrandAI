@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Field } from '../components/Field';
 import { ColorField } from '../components/ColorField';
+import { track } from '../lib/analytics';
 import InvoicesList from '../components/InvoicesList';
 import { COMMON_TIMEZONES } from '../lib/tz';
 import { PageHeader } from '../components/PageHeader';
@@ -518,6 +519,7 @@ export default function ParametresPage() {
 
   const handleConnect = async (platform) => {
     setConnecting(platform);
+    track('reseau_connexion_lancee', { reseau: platform });
     try {
       const data = await userService.connectPlatform(platform);
       if (data.success && data.authUrl) openOAuthPopup(data.authUrl, platform);
@@ -1415,6 +1417,7 @@ export default function ParametresPage() {
   };
 
   const upgrade = async (plan) => {
+    track('checkout_ouvert', { plan });
     try { await billingService.checkout(plan); }
     catch (e) { toast.error(e.response?.data?.detail || 'Paiement indisponible pour le moment.'); }
   };

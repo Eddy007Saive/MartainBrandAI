@@ -10,6 +10,7 @@ import { videoService } from '../services/videoService';
 import { contenuService } from '../services/contenuService';
 import { takePhoto, cameraAvailable } from '../lib/photo';
 import { useUser } from '../context/UserContext';
+import { track } from '../lib/analytics';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
@@ -215,6 +216,7 @@ export default function StudioIA() {
       if (fmt === 'carrousel') {
         const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite);
         if (d.credits != null) updateUser({ credits: d.credits });
+        track('contenu_genere', { format: 'carrousel', reseau: meta, qualite });
         setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
         if (s.id) supprimerSujet(s.id); // carrousel enregistré directement → le sujet est traité
         // Réseaux additionnels cochés : copie du carrousel sur chacun (slides re-rendues, créneau propre)
@@ -232,6 +234,7 @@ export default function StudioIA() {
         ? await agentService.script(s.titre, meta, qualite)
         : await agentService.rediger(s.titre, meta, false, qualite);
       if (d.credits != null) updateUser({ credits: d.credits });
+      track('contenu_genere', { format: fmt, reseau: meta, qualite });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
     } catch (e) {
@@ -258,6 +261,7 @@ export default function StudioIA() {
       if (fmt === 'carrousel') {
         const d = await agentService.carrousel(txt, meta, nbSlides, qualite);
         if (d.credits != null) updateUser({ credits: d.credits });
+        track('contenu_genere', { format: 'carrousel', reseau: meta, qualite, source: 'brief' });
         setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
         if (extras.length && d.contenu_id) {
           try {
@@ -273,6 +277,7 @@ export default function StudioIA() {
         ? await agentService.script(txt, meta, qualite)
         : await agentService.rediger(txt, meta, false, qualite);
       if (d.credits != null) updateUser({ credits: d.credits });
+      track('contenu_genere', { format: fmt, reseau: meta, qualite, source: 'brief' });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
     } catch (e) {

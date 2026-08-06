@@ -41,6 +41,7 @@ import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
 import { CAROUSEL_FONTS, renderSlides, SLIDE_CSS } from '../lib/carrouselPreview';
 import { scheduleService } from '../services/scheduleService';
+import { track } from '../lib/analytics';
 
 const IMAGE_MODELES = [
   { id: 'nano2', label: 'nano-banana 2.5', cout: 50 },
@@ -470,6 +471,7 @@ export default function ContenusPage() {
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: d.url } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: d.url } : prev));
       refreshUsage();
+      track('image_generee', { mode: 'gabarit', gabarit: gab });
       toast.success('Visuel créé ✨');
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Échec de la création du visuel');
@@ -568,6 +570,7 @@ export default function ContenusPage() {
       if (data.credits != null) updateUser({ credits: data.credits });
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
+      track('image_generee', { mode: activeTemplate ? 'template' : 'ia', modele: imgModele });
       toast.success('Visuel généré ✨');
       refreshUsage();
     } catch (e) {
@@ -765,6 +768,7 @@ export default function ContenusPage() {
           const pub = await contenuService.publier(id);
           const patch = { statut: 'Valider', date_publication: data.date_publication, publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null };
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+          track('post_valide', { reseau: (contenus.find((c) => c.id === id)?.reseau_cible || '').toLowerCase() });
           toast.success(datePlanif ? `Validé et programmé pour le ${datePlanif} ✓` : 'Validé et programmé ✓');
         } catch (e) {
           const msg = e.response?.data?.detail || 'Validé, mais la programmation a échoué (réseau connecté ?).';

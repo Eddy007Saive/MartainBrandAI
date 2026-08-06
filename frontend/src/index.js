@@ -4,6 +4,9 @@ import "@/index.css";
 import "@/i18n"; // langue de l'interface : localStorage → navigateur → fr
 import App from "@/App";
 import { hydrateAuth } from "@/lib/auth";
+import { initAnalytics } from "@/lib/analytics";
+
+initAnalytics();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 

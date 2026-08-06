@@ -8,6 +8,7 @@ import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
 import { setToken } from '../lib/auth';
+import { track } from '../lib/analytics';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -76,6 +77,7 @@ export default function Register() {
 
       const data = await authService.register(payload);
       if (data?.token) setToken(data.token);
+      track('inscription');
       toast.success(t('register.toastWelcome'));
       navigate('/dashboard');
     } catch (error) {
