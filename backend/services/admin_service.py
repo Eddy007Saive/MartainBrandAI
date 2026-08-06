@@ -4,8 +4,8 @@ from datetime import datetime, timezone, timedelta
 from config import supabase, logger
 from services.auth_service import sanitize_user
 
-PLAN_CREDITS = {"gratuit": 100, "pro": 1000, "business": 3000}
-PLAN_PRICE = {"gratuit": 0, "pro": 279, "business": 49}
+PLAN_CREDITS = {"gratuit": 100, "pro": 1000, "business": 3000, "boss": 9999}
+PLAN_PRICE = {"gratuit": 0, "pro": 279, "business": 49, "boss": 0}
 _RESEAUX = ["linkedin", "instagram", "facebook", "tiktok", "youtube", "googlebusiness"]
 
 
@@ -19,7 +19,7 @@ def get_users(filter: str = "all", q: str = None) -> list:
         query = query.eq("actif", False)
     elif filter == "active":
         query = query.eq("actif", True)
-    elif filter in ("gratuit", "pro", "business"):
+    elif filter in ("gratuit", "pro", "business", "boss"):
         query = query.eq("plan", filter)
     result = query.order("created_at", desc=True).execute()
     users = [sanitize_user(user) for user in result.data]

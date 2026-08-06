@@ -48,8 +48,9 @@ const PLAN_CFG = {
   gratuit: { label: 'Gratuit', color: 'text-slate-300', bg: 'bg-slate-500/20' },
   pro: { label: 'Pro', color: 'text-indigo-300', bg: 'bg-indigo-500/20' },
   business: { label: 'Business', color: 'text-amber-300', bg: 'bg-amber-500/20' },
+  boss: { label: 'Boss', color: 'text-fuchsia-300', bg: 'bg-fuchsia-500/20' },
 };
-const PLAN_OPTIONS = ['gratuit', 'pro', 'business'];
+const PLAN_OPTIONS = ['gratuit', 'pro', 'business', 'boss'];
 
 const NET_DOT = { linkedin: '#0a66c2', instagram: '#d62976', facebook: '#1877f2', tiktok: '#e5e7eb', youtube: '#ff0000' };
 

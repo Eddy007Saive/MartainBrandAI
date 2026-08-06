@@ -235,7 +235,7 @@ export default function StudioIA() {
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
     } catch (e) {
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: fmt === 'carrousel' ? 'carrousel' : 'pret', images: c.images || [] } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
     }
   };
@@ -276,7 +276,7 @@ export default function StudioIA() {
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
     } catch (e) {
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: fmt === 'carrousel' ? 'carrousel' : 'pret', images: c.images || [] } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
     }
   };
@@ -319,6 +319,21 @@ export default function StudioIA() {
     const prompt = card.promptFull || card.sujet;
     setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'redaction' } : c)));
     try {
+      if (card.format === 'carrousel') {
+        const d = await agentService.carrousel(prompt, card.meta, nbSlides, card.qualite);
+        if (d.credits != null) updateUser({ credits: d.credits });
+        setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        const extras = card.extras || [];
+        if (extras.length && d.contenu_id) {
+          try {
+            await contenuService.recycler(d.contenu_id, extras);
+            toast.success(`Carrousel dupliqué sur ${extras.length} autre${extras.length > 1 ? 's' : ''} réseau${extras.length > 1 ? 'x' : ''} ♻️`);
+          } catch (err) {
+            toast.error('Copies multi-réseaux du carrousel impossibles (tu peux utiliser Recycler dans Contenus)');
+          }
+        }
+        return;
+      }
       const d = card.format === 'script'
         ? await agentService.script(prompt, card.meta, card.qualite)
         : await agentService.rediger(prompt, card.meta, false, card.qualite);
@@ -326,7 +341,7 @@ export default function StudioIA() {
       const texte = card.format === 'script' ? (d.script || '') : (d.contenu || '');
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, statut: 'pret' } : c)));
     } catch (e) {
-      setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'pret' } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
     }
   };
@@ -697,7 +712,18 @@ export default function StudioIA() {
                     </button>
                   </div>
 
-                  {c.statut === 'redaction' ? (
+                  {c.statut === 'erreur' ? (
+                    <div className="flex flex-col items-center gap-2 text-center py-6">
+                      <p className="text-xs text-red-400 font-inter">
+                        {c.format === 'carrousel'
+                          ? "Erreur pendant la génération — si elle a quand même abouti côté serveur, retrouve-la dans l'onglet Contenus avant de réessayer (pour éviter un doublon)."
+                          : "Erreur pendant la génération."}
+                      </p>
+                      <Button size="sm" variant="ghost" onClick={() => regenerer(c.id)} className="text-slate-400 hover:text-white">
+                        <RefreshCw className="w-4 h-4" /><span className="ml-2">Réessayer</span>
+                      </Button>
+                    </div>
+                  ) : c.statut === 'redaction' ? (
                     <div className="flex items-center gap-2 text-slate-400 py-8 justify-center">
                       <Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" />
                       <span className="font-inter text-sm">{c.format === 'carrousel' ? 'Création du carrousel… (slides + images)' : c.format === 'photo' ? 'Analyse de la photo…' : c.format === 'script' ? 'Écriture du script…' : 'Rédaction du post…'}</span>
