@@ -12,7 +12,10 @@ const PATHS = {
 };
 
 export function SocialIcon({ network, className = 'w-4 h-4' }) {
-  const d = PATHS[String(network || '').toLowerCase()];
+  // Normalise « Google Business », « Twitter/X », « X »… vers les clés de PATHS
+  let key = String(network || '').toLowerCase().replace(/[^a-z]/g, '');
+  if (key === 'x' || key.startsWith('twitter')) key = 'twitter';
+  const d = PATHS[key];
   if (!d) return null;
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">

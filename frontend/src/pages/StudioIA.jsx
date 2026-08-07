@@ -20,11 +20,15 @@ const FORMATS = [
   { id: 'carrousel', label: 'Carrousel', icon: LayoutGrid },
   { id: 'script', label: 'Script vidéo', icon: Clapperboard },
 ];
+// Réseaux proposés pour un POST écrit (YouTube exclu : il faut une vidéo).
+// La liste affichée est ensuite filtrée sur les comptes réellement connectés.
 const RESEAUX = [
   { id: 'linkedin', label: 'LinkedIn' },
   { id: 'instagram', label: 'Instagram' },
   { id: 'facebook', label: 'Facebook' },
   { id: 'tiktok', label: 'TikTok' },
+  { id: 'googlebusiness', label: 'Google Business' },
+  { id: 'twitter', label: 'X (Twitter)' },
 ];
 const TYPES_VIDEO = [
   { id: 'Reel', label: 'Reel' },

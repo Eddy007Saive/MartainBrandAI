@@ -84,6 +84,10 @@ const RESEAU_CONFIG = {
   'Facebook': { label: 'Facebook', color: 'from-blue-600 to-blue-700', short: 'FB' },
   'TikTok': { label: 'TikTok', color: 'from-gray-800 to-gray-900', short: 'TK' },
   'twitter': { label: 'Twitter/X', color: 'from-gray-800 to-black', short: 'X' },
+  'googlebusiness': { label: 'Google Business', color: 'from-blue-500 to-emerald-500', short: 'GB' },
+  'GoogleBusiness': { label: 'Google Business', color: 'from-blue-500 to-emerald-500', short: 'GB' },
+  'youtube': { label: 'YouTube', color: 'from-red-600 to-red-700', short: 'YT' },
+  'YouTube': { label: 'YouTube', color: 'from-red-600 to-red-700', short: 'YT' },
   'Twitter': { label: 'Twitter/X', color: 'from-gray-800 to-black', short: 'X' },
 };
 
