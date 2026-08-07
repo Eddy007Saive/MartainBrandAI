@@ -316,6 +316,16 @@ async def get_system(payload: dict = Depends(verify_admin_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/api-balances")
+async def get_api_balances(payload: dict = Depends(verify_admin_token)):
+    """Soldes fournisseurs IA : OpenRouter (restant exact) + Anthropic (dépense du mois)."""
+    try:
+        return admin_service.api_balances()
+    except Exception as e:
+        logger.error(f"API balances error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/analytics/refresh")
 async def refresh_analytics(payload: dict = Depends(verify_admin_token)):
     from services import analytics_service

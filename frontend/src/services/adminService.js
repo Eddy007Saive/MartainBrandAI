@@ -58,6 +58,7 @@ export const adminService = {
     adminFetch('/admin/push', { method: 'POST', body: JSON.stringify({ title, body, telegram_id: telegramId }) }),
 
   getSystem: () => adminFetch('/admin/system'),
+  getApiBalances: () => adminFetch('/admin/api-balances'),
   refreshAnalytics: () => adminFetch('/admin/analytics/refresh', { method: 'POST' }),
   resetMonthlyCredits: () => adminFetch('/admin/credits/reset-monthly', { method: 'POST' }),
 

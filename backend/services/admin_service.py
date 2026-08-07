@@ -156,6 +156,69 @@ def system_info() -> dict:
     }
 
 
+def api_balances() -> dict:
+    """Soldes des fournisseurs IA pour l'admin.
+
+    - OpenRouter : solde exact via son API credits (achete / consomme / restant).
+    - Anthropic (Claude) : AUCUNE API de solde n'existe (verifie 2026-08). On affiche la
+      depense du mois : via la cle Admin (env ANTHROPIC_ADMIN_KEY, format sk-ant-admin...)
+      si presente, sinon estimation interne depuis usage_log (modeles claude*).
+    """
+    import os
+    import httpx
+
+    out = {"openrouter": None, "anthropic": None}
+    month_start = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    from config import OPENROUTER_API_KEY
+    if OPENROUTER_API_KEY:
+        try:
+            r = httpx.get("https://openrouter.ai/api/v1/credits",
+                          headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"}, timeout=15)
+            d = (r.json() or {}).get("data") or {}
+            total = float(d.get("total_credits") or 0)
+            used = float(d.get("total_usage") or 0)
+            out["openrouter"] = {"achete_usd": round(total, 2), "consomme_usd": round(used, 2),
+                                 "restant_usd": round(total - used, 2)}
+        except Exception as e:
+            logger.warning(f"openrouter credits: {e}")
+
+    admin_key = os.environ.get("ANTHROPIC_ADMIN_KEY", "")
+    if admin_key:
+        try:
+            spend = 0.0
+            params = {"starting_at": month_start.isoformat().replace("+00:00", "Z"), "limit": 31}
+            headers = {"x-api-key": admin_key, "anthropic-version": "2023-06-01"}
+            while True:
+                r = httpx.get("https://api.anthropic.com/v1/organizations/cost_report",
+                              params=params, headers=headers, timeout=20)
+                r.raise_for_status()
+                data = r.json() or {}
+                for bucket in data.get("data") or []:
+                    for res in bucket.get("results") or []:
+                        try:
+                            spend += float(res.get("amount") or 0)
+                        except (TypeError, ValueError):
+                            pass
+                if not data.get("has_more"):
+                    break
+                params["page"] = data.get("next_page")
+            out["anthropic"] = {"mode": "officiel", "mois_usd": round(spend, 2)}
+        except Exception as e:
+            logger.warning(f"anthropic cost report: {e}")
+    if out["anthropic"] is None:
+        # Estimation interne : cout reel logge a chaque generation Claude (usage_log)
+        try:
+            rows = (supabase.table("usage_log").select("cost_usd, model")
+                    .gte("created_at", month_start.isoformat())
+                    .ilike("model", "claude%").execute().data or [])
+            est = sum(float(r.get("cost_usd") or 0) for r in rows)
+            out["anthropic"] = {"mode": "estimation", "mois_usd": round(est, 2)}
+        except Exception as e:
+            logger.warning(f"anthropic estimation usage_log: {e}")
+    return out
+
+
 def broadcast_push(title: str, body: str, telegram_id: str = None) -> dict:
     """Envoie un push à un user (telegram_id) ou à tous ceux ayant un appareil enregistré."""
     from services import push_service

@@ -100,6 +100,7 @@ export default function Admin() {
 
   // Paramètres (système)
   const [system, setSystem] = useState(null);
+  const [apiBalances, setApiBalances] = useState(null);
   const [sysAction, setSysAction] = useState(null);
 
   // Notifications push
@@ -131,6 +132,8 @@ export default function Admin() {
       } else if (activeTab === 'settings') {
         const sys = await adminService.getSystem();
         setSystem(sys);
+        // Soldes fournisseurs IA (OpenRouter/Anthropic) — non bloquant si un fournisseur rame
+        adminService.getApiBalances().then(setApiBalances).catch(() => setApiBalances(null));
       }
     } catch (error) {
       toast.error('Erreur lors du chargement');
@@ -1068,6 +1071,41 @@ export default function Admin() {
                 <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-red-500" /></div>
               ) : (
                 <>
+                  {/* Soldes fournisseurs IA */}
+                  <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white font-sora mb-1">Soldes API (fournisseurs IA)</h3>
+                    <p className="text-xs text-slate-500 mb-4">OpenRouter = solde prépayé restant (images). Claude = dépense du mois en cours (Anthropic n'expose pas de solde via API).</p>
+                    {!apiBalances ? (
+                      <div className="flex items-center gap-2 text-slate-500 text-sm py-4"><Loader2 className="w-4 h-4 animate-spin" />Interrogation des fournisseurs…</div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="bg-slate-800/40 rounded-lg p-4">
+                          <p className="text-xs text-slate-400 mb-1">OpenRouter (images)</p>
+                          {apiBalances.openrouter ? (
+                            <>
+                              <p className={cn('text-2xl font-bold font-sora', apiBalances.openrouter.restant_usd < 20 ? 'text-red-400' : apiBalances.openrouter.restant_usd < 50 ? 'text-amber-400' : 'text-emerald-400')}>
+                                ${apiBalances.openrouter.restant_usd} <span className="text-sm font-normal text-slate-500">restants</span>
+                              </p>
+                              <p className="text-xs text-slate-500 mt-1">${apiBalances.openrouter.consomme_usd} consommés / ${apiBalances.openrouter.achete_usd} achetés</p>
+                              {apiBalances.openrouter.restant_usd < 20 && <p className="text-xs text-red-400 mt-1.5">⚠ Solde faible — recharge sur openrouter.ai</p>}
+                            </>
+                          ) : <p className="text-sm text-slate-500">Indisponible</p>}
+                        </div>
+                        <div className="bg-slate-800/40 rounded-lg p-4">
+                          <p className="text-xs text-slate-400 mb-1">Claude / Anthropic (textes)</p>
+                          {apiBalances.anthropic ? (
+                            <>
+                              <p className="text-2xl font-bold font-sora text-white">${apiBalances.anthropic.mois_usd} <span className="text-sm font-normal text-slate-500">ce mois-ci</span></p>
+                              <p className="text-xs text-slate-500 mt-1">
+                                {apiBalances.anthropic.mode === 'officiel' ? 'Chiffre officiel (clé Admin Anthropic)' : 'Estimation interne (usage_log) — solde visible sur console.anthropic.com'}
+                              </p>
+                            </>
+                          ) : <p className="text-sm text-slate-500">Indisponible</p>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Coûts & marges */}
                   <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-white font-sora mb-1">Coûts & marges</h3>
