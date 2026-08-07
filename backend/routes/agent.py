@@ -661,10 +661,15 @@ async def enregistrer(body: dict, payload: dict = Depends(verify_token)):
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         reseau = body.get("reseau")
+        # Story (Instagram/Facebook uniquement) : publiée en éphémère 24h chez Zernio
+        if body.get("type") == "Story":
+            if reseau not in ("instagram", "facebook"):
+                raise HTTPException(status_code=400, detail="Les stories ne sont possibles que sur Instagram ou Facebook.")
+            row["type"] = "Story"
         if reseau in RESEAU_MAP:
             row["reseau_cible"] = RESEAU_MAP[reseau]  # enum single value (LinkedIn, Instagram…)
-            # Réservation du créneau DÈS la création (anti-chevauchement)
-            creneau = planning_service.prochain_creneau(telegram_id, row["reseau_cible"])
+            # Réservation du créneau DÈS la création (anti-chevauchement, famille story/feed)
+            creneau = planning_service.prochain_creneau(telegram_id, row["reseau_cible"], row.get("type"))
             if creneau:
                 row["date_publication"] = creneau
         ins = supabase.table("contenu").insert(row).execute()

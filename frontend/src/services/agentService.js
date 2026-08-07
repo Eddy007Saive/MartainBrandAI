@@ -28,8 +28,8 @@ export const agentService = {
     api.post('/agent/rediger', { sujet, reseau, save, qualite }).then((r) => r.data),
 
   // Enregistre le texte (éventuellement édité) dans les contenus
-  enregistrer: (contenu, titre, reseau) =>
-    api.post('/agent/enregistrer', { contenu, titre, reseau }).then((r) => r.data),
+  enregistrer: (contenu, titre, reseau, type = null) =>
+    api.post('/agent/enregistrer', { contenu, titre, reseau, type }).then((r) => r.data),
 
   // Génère un script vidéo
   script: (sujet, type_video = 'Reel', qualite = 'equilibre') =>

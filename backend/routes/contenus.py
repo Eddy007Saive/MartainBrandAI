@@ -69,6 +69,41 @@ async def replanifier_contenu(contenu_id: str, payload: dict = Depends(verify_to
             "error": None if pub.get("ok") else pub.get("error")}
 
 
+@router.post("/{contenu_id}/story")
+async def decliner_story(contenu_id: str, payload: dict = Depends(verify_token)):
+    """Décline un post existant en STORY (Instagram/Facebook) : copie le texte comme
+    accroche et réutilise le visuel (recadré 9:16 à la publication), créneau famille story."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    cur = contenu_service.get_contenu(contenu_id, telegram_id)
+    if not cur:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    if cur.get("reseau_cible") not in ("Instagram", "Facebook"):
+        raise HTTPException(status_code=409, detail="Les stories ne sont possibles que sur Instagram ou Facebook.")
+    if not cur.get("lien_visuel"):
+        raise HTTPException(status_code=409, detail="Ajoute d'abord un visuel à ce post — une story a besoin d'une image.")
+    from services import planning_service
+    from datetime import datetime, timezone
+    from config import supabase as sb
+    row = {
+        "telegram_id": telegram_id,
+        "titre": (cur.get("titre") or "")[:120],
+        "contenu": cur.get("contenu"),
+        "lien_visuel": cur.get("lien_visuel"),
+        "reseau_cible": cur["reseau_cible"],
+        "type": "Story",
+        "statut": "A valider",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    creneau = planning_service.prochain_creneau(telegram_id, cur["reseau_cible"], "Story")
+    if creneau:
+        row["date_publication"] = creneau
+    ins = sb.table("contenu").insert(row).execute()
+    new_id = ins.data[0]["id"] if ins.data else None
+    return {"contenu_id": new_id, "date_publication": row.get("date_publication")}
+
+
 @router.post("/{contenu_id}/recycler")
 async def recycler_contenu(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
     """Recycle un post vers d'autres réseaux (une copie par réseau, créneau propre)."""

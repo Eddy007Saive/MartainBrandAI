@@ -18,8 +18,11 @@ import { Textarea } from '../components/ui/textarea';
 const FORMATS = [
   { id: 'post', label: 'Post écrit', icon: PenLine },
   { id: 'carrousel', label: 'Carrousel', icon: LayoutGrid },
+  { id: 'story', label: 'Story', icon: ImageIcon },
   { id: 'script', label: 'Script vidéo', icon: Clapperboard },
 ];
+// Les stories ne se publient que sur Instagram et Facebook (Zernio)
+const RESEAUX_STORY = ['instagram', 'facebook'];
 // Réseaux proposés pour un POST écrit (YouTube exclu : il faut une vidéo).
 // La liste affichée est ensuite filtrée sur les comptes réellement connectés.
 const RESEAUX = [
@@ -81,6 +84,8 @@ export default function StudioIA() {
   const marqueOk = !!(user?.secteur && String(user.secteur).trim());
   // On ne propose que les réseaux dont le compte est connecté (Paramètres → Réseaux)
   const reseaux = RESEAUX.filter((r) => !!user?.[`late_account_${r.id}`]);
+  // Story : seulement Instagram/Facebook
+  const reseauxPour = (fmt) => (fmt === 'story' ? reseaux.filter((r) => RESEAUX_STORY.includes(r.id)) : reseaux);
 
   const erreurGen = (e) => {
     if (e?.response?.status === 402) toast.error(e?.response?.data?.detail || 'Quota atteint pour ce type ce mois-ci.');
@@ -368,7 +373,7 @@ export default function StudioIA() {
         });
         return;
       }
-      const d = await agentService.enregistrer(card.texte, card.sujet, card.meta);
+      const d = await agentService.enregistrer(card.texte, card.sujet, card.meta, card.format === 'story' ? 'Story' : null);
       // Réseaux additionnels cochés : on NE duplique PLUS tout de suite (le post n'a pas encore
       // d'image → ça obligeait à régénérer une image par copie). On duplique seulement une fois
       // qu'une image existe sur cette fiche, via le bouton ♻️ Recycler dans Contenus — la même
@@ -378,7 +383,9 @@ export default function StudioIA() {
       if (card.extras?.length) {
         toast.success('Post validé → ajoute une image dans Contenus, puis clique ♻️ Recycler pour le publier aussi sur les autres réseaux (même image, sans la régénérer).', { duration: 8000 });
       } else {
-        toast.success('Post validé → onglet Contenus');
+        toast.success(card.format === 'story'
+          ? 'Story validée → ajoute un visuel 9:16 dans Contenus'
+          : 'Post validé → onglet Contenus');
       }
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false } : c)));
@@ -483,7 +490,10 @@ export default function StudioIA() {
                   {FORMATS.map((f) => {
                     const Icon = f.icon;
                     return (
-                      <Pill key={f.id} active={bFormat === f.id} onClick={() => setBFormat(f.id)}>
+                      <Pill key={f.id} active={bFormat === f.id} onClick={() => {
+                        setBFormat(f.id);
+                        if (f.id === 'story') setBReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
+                      }}>
                         <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{f.label}</span>
                       </Pill>
                     );
@@ -493,7 +503,7 @@ export default function StudioIA() {
                   <span className="text-xs text-slate-500 font-inter">{bFormat === 'script' ? 'Type' : 'Réseaux'}</span>
                   {bFormat !== 'script' && reseaux.length === 0
                     ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
-                    : (bFormat === 'script' ? TYPES_VIDEO : reseaux).map((r) => (
+                    : (bFormat === 'script' ? TYPES_VIDEO : reseauxPour(bFormat)).map((r) => (
                     <Pill key={r.id}
                       active={bFormat === 'script' ? bType === r.id : bReseaux.includes(r.id)}
                       onClick={() => (bFormat === 'script' ? setBType(r.id) : toggleReseau(setBReseaux)(r.id))}>
@@ -617,7 +627,10 @@ export default function StudioIA() {
                           {FORMATS.map((f) => {
                             const Icon = f.icon;
                             return (
-                              <Pill key={f.id} active={cfgFormat === f.id} onClick={() => setCfgFormat(f.id)}>
+                              <Pill key={f.id} active={cfgFormat === f.id} onClick={() => {
+                                setCfgFormat(f.id);
+                                if (f.id === 'story') setCfgReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
+                              }}>
                                 <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{f.label}</span>
                               </Pill>
                             );
@@ -627,7 +640,7 @@ export default function StudioIA() {
                           <span className="text-xs text-slate-500 font-inter">{cfgFormat === 'script' ? 'Type' : 'Réseaux'}</span>
                           {cfgFormat !== 'script' && reseaux.length === 0
                             ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
-                            : (cfgFormat === 'script' ? TYPES_VIDEO : reseaux).map((r) => (
+                            : (cfgFormat === 'script' ? TYPES_VIDEO : reseauxPour(cfgFormat)).map((r) => (
                             <Pill key={r.id}
                               active={cfgFormat === 'script' ? cfgType === r.id : cfgReseaux.includes(r.id)}
                               onClick={() => (cfgFormat === 'script' ? setCfgType(r.id) : toggleReseau(setCfgReseaux)(r.id))}>

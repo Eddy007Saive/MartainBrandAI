@@ -39,4 +39,5 @@ export const contenuService = {
 
   // Annule l'envoi d'un contenu programmé dans Late
   annuler: (id) => api.post(`/late/annuler/${id}`).then(r => r.data),
+  declinerStory: (id) => api.post(`/contenus/${id}/story`).then(r => r.data),
 };

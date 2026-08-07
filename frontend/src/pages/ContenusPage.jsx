@@ -137,7 +137,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onReel, reelLoading, actionLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onReel, reelLoading, actionLoading }) {
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
   const isVideo = contenu.type === 'Reel' || !!contenu.video_url || !!contenu.video_status;
@@ -206,6 +206,12 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           {!isCarrousel && !isVideo && (
             <CardAction title="Générer un reel animé à ta charte (~1 min)" onClick={() => onReel(contenu)} className="hover:text-[#8A6CFF]">
               {reelLoading === contenu.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clapperboard className="w-4 h-4" />}
+            </CardAction>
+          )}
+          {!isCarrousel && !isVideo && contenu.type !== 'Story' && contenu.lien_visuel
+            && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
+            <CardAction title="Décliner en story (24 h, même visuel)" onClick={() => onStory(contenu)} className="hover:text-pink-400">
+              <Sparkles className="w-4 h-4" />
             </CardAction>
           )}
           <CardAction title="Recycler sur d'autres réseaux" onClick={() => onRecycle(contenu)} className="hover:text-[#3AFFA3]"><Repeat2 className="w-4 h-4" /></CardAction>
@@ -749,6 +755,17 @@ export default function ContenusPage() {
   const pagedContenus = filteredContenus.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
   useEffect(() => { setPage(1); }, [searchQuery, activeTab, filterStatut]);
 
+  const declinerEnStory = async (contenu) => {
+    try {
+      const d = await contenuService.declinerStory(contenu.id);
+      const dt = d.date_publication ? new Date(d.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : null;
+      toast.success(dt ? `Story créée (À valider) — créneau du ${dt} ✨` : 'Story créée (À valider) ✨');
+      fetchContenus();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec de la déclinaison en story');
+    }
+  };
+
   const handleUpdateStatut = async (id, newStatut) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
@@ -961,6 +978,7 @@ export default function ContenusPage() {
                   onValidate={(id) => handleUpdateStatut(id, 'Valider')}
                   onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
                   onRecycle={openRecycle}
+                  onStory={declinerEnStory}
                   onReel={(c) => setReelFor(c)}
                   reelLoading={reelLoading}
                   actionLoading={actionLoading}
