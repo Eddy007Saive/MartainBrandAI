@@ -1,18 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
 import { SocialIcon } from '../components/SocialIcon';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -113,22 +106,6 @@ function ReseauBadge({ reseau }) {
   );
 }
 
-function StatCard({ value, label, color, borderColor, icon: Icon }) {
-  return (
-    <div className={`relative overflow-hidden rounded-xl border ${borderColor} ${color} p-5 transition-all duration-300 hover:scale-[1.02]`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-3xl font-bold text-white font-sora">{value}</p>
-          <p className="text-xs text-slate-400 font-inter mt-1">{label}</p>
-        </div>
-        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-          <Icon className="w-5 h-5 text-slate-400" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function CardAction({ title, onClick, children, className = '' }) {
   return (
     <button onClick={onClick} title={title}
@@ -138,7 +115,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onReel, reelLoading, actionLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
   const isVideo = contenu.type === 'Reel' || !!contenu.video_url || !!contenu.video_status;
@@ -161,9 +138,16 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           <div className="absolute inset-0 grid place-items-center border-b border-dashed border-[#5B6CFF]/25"
             style={{ background: 'repeating-linear-gradient(45deg, rgba(91,108,255,0.045) 0 10px, transparent 10px 20px)' }}>
             <button
-              onClick={(e) => { e.stopPropagation(); if (isCarrousel) onRegenCarrousel(contenu); else onImage(contenu); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isCarrousel) return onImage(contenu);
+                // Slides déjà conçues mais pas encore rendues -> simple rendu en images (gratuit),
+                // sinon vraie génération (LLM + rendu).
+                if (contenu.carrousel_data) onRenderSlides(contenu); else onRegenCarrousel(contenu);
+              }}
               className="inline-flex items-center gap-1.5 text-[12px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-3.5 py-2 rounded-[10px] transition-colors active:scale-[0.97]">
-              <Sparkles className="w-3.5 h-3.5" />{isCarrousel ? 'Générer les slides' : 'Générer le visuel'}
+              {renderLoading === contenu.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              {isCarrousel ? (contenu.carrousel_data ? 'Créer les images des slides' : 'Générer les slides') : 'Générer le visuel'}
             </button>
           </div>
         )}
@@ -269,7 +253,9 @@ export default function ContenusPage() {
   const [contenus, setContenus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
-  const [filterStatut, setFilterStatut] = useState('all');
+  // Par défaut on montre ce qui ATTEND le client : les contenus à valider.
+  // Les autres statuts (planifiés, publiés…) sont à un clic via les pastilles.
+  const [filterStatut, setFilterStatut] = useState('A valider');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedContenu, setSelectedContenu] = useState(null);
@@ -759,12 +745,12 @@ export default function ContenusPage() {
   useEffect(() => {
     fetchContenus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStatut]);
+  }, []);
 
   const fetchContenus = async () => {
     setLoading(true);
     try {
-      const data = await contenuService.getAll(filterStatut);
+      const data = await contenuService.getAll();
       setContenus(data);
     } catch (error) {
       toast.error('Erreur lors du chargement des contenus');
@@ -780,21 +766,40 @@ export default function ContenusPage() {
   const activeContenus = activeTab === 'scripts' ? scripts : activeTab === 'videos' ? videos : activeTab === 'posts' ? posts : contenus;
 
   const filteredContenus = useMemo(() => {
-    if (!searchQuery.trim()) return activeContenus;
+    let list = activeContenus;
+    if (filterStatut !== 'all') list = list.filter((c) => c.statut === filterStatut);
+    if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
-    return activeContenus.filter(c =>
+    return list.filter(c =>
       (c.titre && c.titre.toLowerCase().includes(q)) ||
       (c.contenu && c.contenu.toLowerCase().includes(q)) ||
       (c.reseau_cible && c.reseau_cible.toLowerCase().includes(q))
     );
-  }, [activeContenus, searchQuery]);
+  }, [activeContenus, searchQuery, filterStatut]);
 
   // Pagination
-  const PAGE_SIZE = 6;
+  const PAGE_SIZE = 12;
   const pageCount = Math.max(1, Math.ceil(filteredContenus.length / PAGE_SIZE));
   const pageSafe = Math.min(page, pageCount);
   const pagedContenus = filteredContenus.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
   useEffect(() => { setPage(1); }, [searchQuery, activeTab, filterStatut]);
+
+  const [renderSlidesLoading, setRenderSlidesLoading] = useState(null);
+  // Slides conçues (carrousel_data) mais images jamais rendues : simple rendu Playwright
+  // depuis les slides stockées — GRATUIT, ne régénère pas le texte.
+  const rendreSlidesEnImages = async (contenu) => {
+    if (renderSlidesLoading) return;
+    setRenderSlidesLoading(contenu.id);
+    try {
+      await agentService.recolorCarrousel(contenu.id);
+      toast.success('Slides rendues en images ✨');
+      fetchContenus();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Échec du rendu des slides');
+    } finally {
+      setRenderSlidesLoading(null);
+    }
+  };
 
   const declinerEnStory = async (contenu) => {
     try {
@@ -890,8 +895,19 @@ export default function ContenusPage() {
     total: activeContenus.length,
     aValider: activeContenus.filter(c => c.statut === 'A valider').length,
     valides: activeContenus.filter(c => c.statut === 'Valider').length,
+    planifies: activeContenus.filter(c => c.statut === 'Planifie').length,
     publies: activeContenus.filter(c => c.statut === 'Publie').length,
   };
+
+  // Pastilles de filtre : le chiffre EST le filtre (remplace stats + menu deroulant)
+  const FILTRES = [
+    { id: 'all', label: 'Tous', n: stats.total, dot: null },
+    { id: 'A valider', label: 'À valider', n: stats.aValider, dot: '#fbbf24' },
+    { id: 'Valider', label: 'Validés', n: stats.valides, dot: '#a5b0ff' },
+    { id: 'Planifie', label: 'Planifiés', n: stats.planifies, dot: '#c084fc' },
+    { id: 'Publie', label: 'Publiés', n: stats.publies, dot: '#60a5fa' },
+    { id: 'Refuse', label: 'Refusés', n: null, dot: '#f87171' },
+  ];
 
   return (
     <div>
@@ -920,10 +936,10 @@ export default function ContenusPage() {
         {/* Tabs: Scripts / Vidéos / Tous */}
         <div className="flex gap-1 p-1 bg-slate-950/60 rounded-xl border border-white/[0.04]">
           {[
+            { id: 'all', label: 'Tous', icon: Sparkles, count: contenus.length },
+            { id: 'posts', label: 'Posts', icon: FileText, count: posts.length },
             { id: 'scripts', label: 'Scripts', icon: ScrollText, count: scripts.length },
             { id: 'videos', label: 'Vidéos', icon: Video, count: videos.length },
-            { id: 'posts', label: 'Posts', icon: FileText, count: posts.length },
-            { id: 'all', label: 'Tous', icon: Sparkles, count: contenus.length },
           ].map(tab => (
             <button
               key={tab.id}
@@ -945,40 +961,35 @@ export default function ContenusPage() {
           ))}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard value={stats.total} label="Total" color="bg-slate-900/60" borderColor="border-white/[0.06]" icon={FileText} />
-          <StatCard value={stats.aValider} label="À valider" color="bg-amber-500/[0.06]" borderColor="border-amber-500/20" icon={Clock} />
-          <StatCard value={stats.valides} label="Validés" color="bg-emerald-500/[0.06]" borderColor="border-emerald-500/20" icon={Check} />
-          <StatCard value={stats.publies} label="Publiés" color="bg-blue-500/[0.06]" borderColor="border-blue-500/20" icon={ExternalLink} />
-        </div>
-
-        {/* Toolbar: search + filter */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+        {/* Filtres par statut (le chiffre EST le filtre) + recherche */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {FILTRES.map((f) => (
+              <button key={f.id} onClick={() => setFilterStatut(f.id)}
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-[12.5px] font-semibold font-inter border transition-all active:scale-[0.97] ${
+                  filterStatut === f.id
+                    ? 'bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-[#5B6CFF]/45'
+                    : 'bg-white/[0.02] text-slate-400 border-white/[0.07] hover:text-white hover:border-white/[0.18]'
+                }`}>
+                {f.dot && <span className="w-1.5 h-1.5 rounded-full" style={{ background: f.dot }} />}
+                {f.label}
+                {f.n !== null && (
+                  <span className={`text-[10.5px] px-1.5 py-px rounded-full ${
+                    filterStatut === f.id ? 'bg-[#5B6CFF]/35 text-white' : 'bg-white/[0.07] text-slate-500'
+                  }`}>{f.n}</span>
+                )}
+              </button>
+            ))}
+          </div>
+          <div className="relative lg:ml-auto lg:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
               placeholder="Rechercher un contenu..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/60 border border-white/[0.06] text-slate-200 text-sm font-inter placeholder:text-slate-600 focus:outline-none focus:border-[#5B6CFF]/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-full bg-slate-900/60 border border-white/[0.06] text-slate-200 text-sm font-inter placeholder:text-slate-600 focus:outline-none focus:border-[#5B6CFF]/50 transition-colors"
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-500" />
-            <Select value={filterStatut} onValueChange={setFilterStatut}>
-              <SelectTrigger className="w-[180px] bg-slate-900/60 border-white/[0.06] text-slate-200 rounded-xl">
-                <SelectValue placeholder="Filtrer par statut" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800">
-                <SelectItem value="all" className="text-slate-200">Tous ({stats.total})</SelectItem>
-                <SelectItem value="A valider" className="text-slate-200">À valider ({stats.aValider})</SelectItem>
-                <SelectItem value="Valider" className="text-slate-200">Validés ({stats.valides})</SelectItem>
-                <SelectItem value="Publie" className="text-slate-200">Publiés ({stats.publies})</SelectItem>
-                <SelectItem value="Refuse" className="text-slate-200">Refusés</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
@@ -987,6 +998,20 @@ export default function ContenusPage() {
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#5B6CFF]" />
             <p className="text-sm text-slate-500 font-inter">Chargement des contenus...</p>
+          </div>
+        ) : filteredContenus.length === 0 && filterStatut === 'A valider' && !searchQuery && stats.total > 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4 bg-slate-900/30 border border-white/[0.04] rounded-2xl">
+            <div className="w-14 h-14 rounded-2xl bg-[#3AFFA3]/10 flex items-center justify-center">
+              <Check className="w-7 h-7 text-[#3AFFA3]" />
+            </div>
+            <div className="text-center">
+              <p className="text-slate-200 font-inter font-medium">Rien à valider — tout est traité ✨</p>
+              <p className="text-slate-500 font-inter text-sm mt-1">Tes contenus planifiés et publiés sont dans les autres filtres.</p>
+            </div>
+            <button onClick={() => setFilterStatut('all')}
+              className="text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-4 py-2 rounded-full transition-colors active:scale-[0.97]">
+              Voir tous les contenus ({stats.total})
+            </button>
           </div>
         ) : filteredContenus.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 bg-slate-900/30 border border-white/[0.04] rounded-2xl">
@@ -1005,7 +1030,7 @@ export default function ContenusPage() {
         ) : (
           <div className="space-y-3">
             <p className="text-xs text-slate-500 font-inter">{filteredContenus.length} contenu{filteredContenus.length > 1 ? 's' : ''}{pageCount > 1 ? ` · page ${pageSafe}/${pageCount}` : ''}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {pagedContenus.map((contenu) => (
                 <ContentCard
                   key={contenu.id}
@@ -1020,6 +1045,8 @@ export default function ContenusPage() {
                   onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
                   onRecycle={openRecycle}
                   onStory={declinerEnStory}
+                  onRenderSlides={rendreSlidesEnImages}
+                  renderLoading={renderSlidesLoading}
                   onReel={(c) => setReelFor(c)}
                   reelLoading={reelLoading}
                   actionLoading={actionLoading}
