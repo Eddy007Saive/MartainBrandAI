@@ -154,8 +154,18 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
       <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden">
         {contenu.lien_visuel ? (
           <img src={contenu.lien_visuel} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+        ) : isVideo ? (
+          <div className="absolute inset-0 grid place-items-center text-slate-700"><Video className="w-8 h-8" /></div>
         ) : (
-          <div className="absolute inset-0 grid place-items-center text-slate-700"><ImageIcon className="w-8 h-8" /></div>
+          /* V3 : pas de visuel = appel à l'action directement sur la carte */
+          <div className="absolute inset-0 grid place-items-center border-b border-dashed border-[#5B6CFF]/25"
+            style={{ background: 'repeating-linear-gradient(45deg, rgba(91,108,255,0.045) 0 10px, transparent 10px 20px)' }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); if (isCarrousel) onRegenCarrousel(contenu); else onImage(contenu); }}
+              className="inline-flex items-center gap-1.5 text-[12px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-3.5 py-2 rounded-[10px] transition-colors active:scale-[0.97]">
+              <Sparkles className="w-3.5 h-3.5" />{isCarrousel ? 'Générer les slides' : 'Générer le visuel'}
+            </button>
+          </div>
         )}
         {contenu.reseau_cible && <span className="absolute top-2.5 left-2.5"><ReseauBadge reseau={contenu.reseau_cible} /></span>}
         <span className="absolute top-2.5 right-2.5">
@@ -1252,15 +1262,15 @@ export default function ContenusPage() {
                   </div>
                 </div>
 
-                {/* FOOTER : actions */}
-                <div className="px-5 py-3 border-t border-white/10 flex items-center justify-between gap-3 bg-[#0a0f1c]">
-                  <span className="text-[11.5px] text-slate-500 font-inter truncate">
+                {/* FOOTER : Supprimer discret à GAUCHE, actions d'état à droite (CTA dégradé unique) */}
+                <div className="px-5 py-3 border-t border-white/10 flex items-center gap-3 bg-[#0a0f1c]">
+                  <Button size="sm" onClick={() => { const c = selectedContenu; setSelectedContenu(null); setDeleteContenu(c); }}
+                    className="bg-transparent text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent font-inter shrink-0 px-2.5">
+                    <Trash2 className="w-4 h-4 mr-1.5" />Supprimer</Button>
+                  <span className="hidden sm:block text-[11.5px] text-slate-600 font-inter truncate">
                     {czR ? 'Images finales rendues à la validation' : ''}
                   </span>
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
-                    <Button size="sm" onClick={() => { const c = selectedContenu; setSelectedContenu(null); setDeleteContenu(c); }}
-                      className="bg-transparent text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent font-inter mr-auto">
-                      <Trash2 className="w-4 h-4 mr-1.5" />Supprimer</Button>
+                  <div className="flex items-center gap-2 flex-wrap justify-end ml-auto">
                     {selectedContenu.video_url && selectedContenu.statut !== 'Publie' && (
                       <Button size="sm" onClick={() => navigate(`/dashboard/video?contenu_id=${selectedContenu.id}`)}
                         className="bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 font-sora font-semibold rounded-[11px]">
