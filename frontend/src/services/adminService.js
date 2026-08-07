@@ -59,6 +59,7 @@ export const adminService = {
 
   getSystem: () => adminFetch('/admin/system'),
   getApiBalances: () => adminFetch('/admin/api-balances'),
+  getAnalyticsProduit: () => adminFetch('/admin/analytics-produit'),
   refreshAnalytics: () => adminFetch('/admin/analytics/refresh', { method: 'POST' }),
   resetMonthlyCredits: () => adminFetch('/admin/credits/reset-monthly', { method: 'POST' }),
 

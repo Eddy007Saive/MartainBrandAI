@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as ChartTooltip, CartesianGrid } from 'recharts';
 import { removeAdminToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { adminService } from '../services/adminService';
@@ -101,6 +102,7 @@ export default function Admin() {
   // Paramètres (système)
   const [system, setSystem] = useState(null);
   const [apiBalances, setApiBalances] = useState(null);
+  const [produit, setProduit] = useState(null); // synthèse Analytics (business + PostHog)
   const [sysAction, setSysAction] = useState(null);
 
   // Notifications push
@@ -129,6 +131,8 @@ export default function Admin() {
       } else if (activeTab === 'activity') {
         const activityData = await adminService.getActivity(50);
         setActivities(activityData);
+      } else if (activeTab === 'analytics') {
+        adminService.getAnalyticsProduit().then(setProduit).catch(() => setProduit(null));
       } else if (activeTab === 'settings') {
         const sys = await adminService.getSystem();
         setSystem(sys);
@@ -980,19 +984,108 @@ export default function Admin() {
             </div>
           )}
 
-          {/* Analytics Tab — dashboard PostHog embarqué (funnel, contenus, actifs) */}
+          {/* Analytics Tab — synthèse chiffrée (business + PostHog) + dashboard embarqué */}
           {activeTab === 'analytics' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-white font-sora">Analytics produit</h2>
-                  <p className="text-sm text-slate-400 font-inter">Funnel d'activation, contenus générés, utilisateurs actifs — données PostHog en direct.</p>
+                  <p className="text-sm text-slate-400 font-inter">Business (base de données) + comportement (PostHog). Cache 10 min.</p>
                 </div>
                 <a href="https://us.posthog.com/shared/x6aulyqg5IjJ_83ANU5hlR1fLWpA3g" target="_blank" rel="noreferrer"
                   className="text-xs text-slate-400 hover:text-white font-inter inline-flex items-center gap-1.5">
                   <ExternalLink className="w-3.5 h-3.5" /> Plein écran
                 </a>
               </div>
+
+              {/* KPIs business — source de vérité : Supabase/Stripe */}
+              {produit?.business && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-slate-900/40 border border-white/5 rounded-xl p-4">
+                    <p className="text-xs text-slate-400">MRR</p>
+                    <p className="text-2xl font-bold text-emerald-400 font-sora">{produit.business.mrr_eur.toLocaleString('fr-FR')} €</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">{produit.business.clients_payants} abonnement{produit.business.clients_payants > 1 ? 's' : ''} actif{produit.business.clients_payants > 1 ? 's' : ''}</p>
+                  </div>
+                  <div className="bg-slate-900/40 border border-white/5 rounded-xl p-4">
+                    <p className="text-xs text-slate-400">Conversion → payant</p>
+                    <p className="text-2xl font-bold text-white font-sora">{produit.business.conversion_payant_pct}%</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">{produit.business.clients_payants} payants / {produit.business.clients_actifs} clients actifs</p>
+                  </div>
+                  <div className="bg-slate-900/40 border border-white/5 rounded-xl p-4">
+                    <p className="text-xs text-slate-400">Contenus publiés</p>
+                    <p className="text-2xl font-bold text-white font-sora">{produit.business.contenus_publies}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">sur {produit.business.contenus_total} générés</p>
+                  </div>
+                  <div className="bg-slate-900/40 border border-white/5 rounded-xl p-4">
+                    <p className="text-xs text-slate-400">Par plan</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {Object.entries(produit.business.par_plan).map(([p, n]) => (
+                        <span key={p} className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 text-slate-300 border border-white/10 capitalize">{p} · {n}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Funnel d'activation chiffré (PostHog) */}
+              {produit?.posthog?.funnel && (
+                <div className="bg-slate-900/40 border border-white/5 rounded-xl p-5">
+                  <h3 className="text-sm font-semibold text-white font-sora mb-3">Funnel d'activation (90 jours)</h3>
+                  <div className="space-y-2">
+                    {produit.posthog.funnel.map((s, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="text-xs text-slate-400 font-inter w-40 shrink-0 truncate">{s.etape}</span>
+                        <div className="flex-1 h-6 bg-slate-800/60 rounded-md overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] rounded-md"
+                            style={{ width: `${Math.max(2, s.pct)}%` }} />
+                        </div>
+                        <span className="text-xs text-slate-300 font-inter w-24 text-right">{s.n} · {s.pct}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Courbes hebdo (PostHog) */}
+              {produit?.posthog?.series && (
+                <div className="bg-slate-900/40 border border-white/5 rounded-xl p-5">
+                  <h3 className="text-sm font-semibold text-white font-sora mb-3">Activité hebdomadaire (60 jours)</h3>
+                  <div className="h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={(() => {
+                        const s = produit.posthog.series;
+                        const keys = Object.keys(s);
+                        const labels = s[keys[0]]?.labels || [];
+                        return labels.map((l, i) => {
+                          const row = { semaine: l };
+                          keys.forEach((k) => { row[k] = s[k]?.data?.[i] ?? 0; });
+                          return row;
+                        });
+                      })()}>
+                        <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
+                        <XAxis dataKey="semaine" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} width={32} />
+                        <ChartTooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }} labelStyle={{ color: '#94a3b8' }} />
+                        <Line type="monotone" dataKey="Contenus générés" stroke="#8A6CFF" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="Posts validés" stroke="#3AFFA3" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="Sessions" stroke="#64748b" strokeWidth={2} dot={false} strokeDasharray="4 3" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex gap-4 mt-2 text-[11px] text-slate-400">
+                    <span><span className="inline-block w-2.5 h-0.5 bg-[#8A6CFF] align-middle mr-1.5" />Contenus générés</span>
+                    <span><span className="inline-block w-2.5 h-0.5 bg-[#3AFFA3] align-middle mr-1.5" />Posts validés</span>
+                    <span><span className="inline-block w-2.5 h-0.5 bg-slate-500 align-middle mr-1.5" />Sessions (dirigeants actifs)</span>
+                  </div>
+                </div>
+              )}
+
+              {/* PostHog non configuré côté serveur */}
+              {produit && !produit.posthog_configure && (
+                <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 text-xs text-amber-300/90 font-inter">
+                  Funnel et courbes désactivés : ajoute la variable <code className="text-amber-200">POSTHOG_API_KEY</code> (Personal API key PostHog) sur Railway pour activer les chiffres de conversion ici.
+                </div>
+              )}
               <iframe
                 title="Dashboard PostHog"
                 src="https://us.posthog.com/embedded/x6aulyqg5IjJ_83ANU5hlR1fLWpA3g"

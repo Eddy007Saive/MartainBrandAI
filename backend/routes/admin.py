@@ -316,6 +316,16 @@ async def get_system(payload: dict = Depends(verify_admin_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/analytics-produit")
+async def get_analytics_produit(payload: dict = Depends(verify_admin_token)):
+    """Synthèse business (Supabase) + comportement (PostHog) pour l'onglet Analytics."""
+    try:
+        return admin_service.analytics_produit()
+    except Exception as e:
+        logger.error(f"Analytics produit error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/api-balances")
 async def get_api_balances(payload: dict = Depends(verify_admin_token)):
     """Soldes fournisseurs IA : OpenRouter (restant exact) + Anthropic (dépense du mois)."""

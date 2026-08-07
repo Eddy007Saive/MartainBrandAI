@@ -219,6 +219,127 @@ def api_balances() -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Analytics produit : chiffres PostHog (comportement) + Supabase (business)
+# ---------------------------------------------------------------------------
+_POSTHOG_HOST = "https://us.posthog.com"
+_POSTHOG_PROJECT = 545489
+_analytics_cache = {"at": None, "data": None}  # cache 10 min (PostHog est lent + rate-limité)
+
+
+def _posthog_query(source: dict, api_key: str):
+    """Exécute une requête PostHog (Query API) et renvoie `results` (None si échec)."""
+    import httpx
+    r = httpx.post(f"{_POSTHOG_HOST}/api/projects/{_POSTHOG_PROJECT}/query",
+                   headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                   json={"query": source}, timeout=30)
+    r.raise_for_status()
+    return (r.json() or {}).get("results")
+
+
+def analytics_produit() -> dict:
+    """Synthèse pour l'onglet Analytics de l'admin.
+
+    - business (Supabase, source de vérité argent) : MRR, conversion essai→payant,
+      répartition par plan, volumes de contenus.
+    - comportement (PostHog, si POSTHOG_API_KEY est définie) : funnel d'activation
+      chiffré + séries hebdo. Dégradé proprement si la clé manque ou si PostHog rame.
+    """
+    import os
+    now = datetime.now(timezone.utc)
+    if _analytics_cache["at"] and (now - _analytics_cache["at"]).total_seconds() < 600:
+        return _analytics_cache["data"]
+
+    # ---- Business (Supabase) ----
+    users = supabase.table("users").select("telegram_id, plan, actif, is_admin, created_at").execute().data or []
+    clients = [u for u in users if not u.get("is_admin")]
+    actifs = [u for u in clients if u.get("actif")]
+    par_plan = {}
+    for u in actifs:
+        p = u.get("plan") or "gratuit"
+        par_plan[p] = par_plan.get(p, 0) + 1
+
+    plans = {p["id"]: p for p in (supabase.table("plans").select("id, name, price_cents").execute().data or [])}
+    subs = (supabase.table("subscriptions").select("plan_id, status")
+            .in_("status", ["active", "trialing"]).execute().data or [])
+    mrr = sum((plans.get(s["plan_id"], {}).get("price_cents") or 0) for s in subs) / 100
+    payants = sum(1 for s in subs if (plans.get(s["plan_id"], {}).get("price_cents") or 0) > 0)
+    conversion = round(payants / len(actifs) * 100, 1) if actifs else 0
+
+    cont = supabase.table("contenu").select("id, statut", count="exact").execute()
+    total_contenus = cont.count or len(cont.data or [])
+    par_statut = {}
+    for c in (cont.data or []):
+        s = c.get("statut") or "?"
+        par_statut[s] = par_statut.get(s, 0) + 1
+    publies = par_statut.get("Publie", 0)
+
+    business = {
+        "mrr_eur": round(mrr, 2),
+        "clients_actifs": len(actifs),
+        "clients_payants": payants,
+        "conversion_payant_pct": conversion,
+        "par_plan": par_plan,
+        "contenus_total": total_contenus,
+        "contenus_publies": publies,
+        "contenus_par_statut": par_statut,
+    }
+
+    # ---- Comportement (PostHog) ----
+    posthog = None
+    api_key = os.environ.get("POSTHOG_API_KEY", "")
+    if api_key:
+        posthog = {"funnel": None, "series": None}
+        try:
+            res = _posthog_query({
+                "kind": "FunnelsQuery",
+                "series": [
+                    {"kind": "EventsNode", "event": "inscription", "name": "Inscription"},
+                    {"kind": "EventsNode", "event": "contenu_genere", "name": "Contenu généré"},
+                    {"kind": "EventsNode", "event": "post_valide", "name": "Post validé"},
+                    {"kind": "EventsNode", "event": "checkout_ouvert", "name": "Checkout ouvert"},
+                ],
+                "dateRange": {"date_from": "-90d"},
+                "funnelsFilter": {"funnelWindowInterval": 30, "funnelWindowIntervalUnit": "day"},
+            }, api_key)
+            steps = res if isinstance(res, list) else []
+            if steps and isinstance(steps[0], list):  # forme avec breakdown -> aplatit
+                steps = steps[0]
+            funnel = []
+            base = None
+            for s in steps:
+                n = int(s.get("count") or 0)
+                base = base if base is not None else (n or 1)
+                funnel.append({"etape": s.get("custom_name") or s.get("name") or "?",
+                               "n": n, "pct": round(n / base * 100, 1) if base else 0})
+            posthog["funnel"] = funnel or None
+        except Exception as e:
+            logger.warning(f"posthog funnel: {e}")
+        try:
+            series = {}
+            for event, label in (("contenu_genere", "Contenus générés"),
+                                 ("post_valide", "Posts validés"),
+                                 ("$pageview", "Sessions")):
+                res = _posthog_query({
+                    "kind": "TrendsQuery",
+                    "series": [{"kind": "EventsNode", "event": event,
+                                "math": "weekly_active" if event == "$pageview" else "total"}],
+                    "interval": "week",
+                    "dateRange": {"date_from": "-60d"},
+                }, api_key)
+                r0 = (res or [{}])[0]
+                series[label] = {"labels": r0.get("labels") or [], "data": r0.get("data") or []}
+            posthog["series"] = series
+        except Exception as e:
+            logger.warning(f"posthog trends: {e}")
+
+    data = {"business": business, "posthog": posthog,
+            "posthog_configure": bool(api_key), "genere_a": now.isoformat()}
+    _analytics_cache["at"] = now
+    _analytics_cache["data"] = data
+    return data
+
+
 def broadcast_push(title: str, body: str, telegram_id: str = None) -> dict:
     """Envoie un push à un user (telegram_id) ou à tous ceux ayant un appareil enregistré."""
     from services import push_service
