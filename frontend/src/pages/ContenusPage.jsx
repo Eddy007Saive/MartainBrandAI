@@ -1274,6 +1274,19 @@ export default function ContenusPage() {
                   rows={10}
                   className="bg-slate-900/80 border-slate-800 text-slate-200 font-inter text-sm rounded-xl focus:border-[#5B6CFF]/50"
                 />
+                {(() => {
+                  // Compteur de caractères vs limite du réseau cible (évite le refus à la programmation)
+                  const LIMITES = { instagram: 2200, tiktok: 2200, googlebusiness: 1500, twitter: 280, linkedin: 3000, facebook: 63000, youtube: 5000 };
+                  const lim = LIMITES[(editContenu.reseau_cible || '').toLowerCase()];
+                  if (!lim) return null;
+                  const n = (editContenu.contenu || '').length;
+                  const over = n > lim;
+                  return (
+                    <p className={`text-[11.5px] font-inter text-right ${over ? 'text-red-400 font-semibold' : n > lim * 0.9 ? 'text-amber-400' : 'text-slate-500'}`}>
+                      {n.toLocaleString('fr-FR')} / {lim.toLocaleString('fr-FR')} caractères{over ? ' — trop long, la publication sera refusée' : ''}
+                    </p>
+                  );
+                })()}
               </div>
             )}
             <DialogFooter>

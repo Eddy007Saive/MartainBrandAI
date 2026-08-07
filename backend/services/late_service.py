@@ -13,6 +13,11 @@ from config import supabase, logger, LATE_API_KEY, LATE_WEBHOOK_SECRET
 
 PLATFORMS = {"instagram", "facebook", "linkedin", "tiktok", "youtube", "googlebusiness", "twitter"}
 ACCOUNT_COL = {p: f"late_account_{p}" for p in PLATFORMS}
+# Limite de légende par plateforme (caractères) — vérifiée AVANT l'envoi à Zernio.
+# TikTok : 2200 en vidéo / 4000 en post photo -> on garde 2200 (la plus stricte).
+# Futur : threads=500, bluesky=300 (limite stricte, cause n°1 d'échec là-bas).
+CAPTION_LIMITS = {"instagram": 2200, "tiktok": 2200, "googlebusiness": 1500,
+                  "twitter": 280, "linkedin": 3000, "facebook": 63000, "youtube": 5000}
 DEFAULT_TZ = "Europe/Paris"
 
 
@@ -85,6 +90,15 @@ async def publish_contenu(telegram_id: str, contenu: dict, publish_now: bool = F
     media = _media_items(contenu, reseau)
     if not content and not media:
         return {"ok": False, "error": "Le contenu est vide (ni texte ni visuel)."}
+
+    # Garde-fou longueur : mieux vaut un message clair ici que le refus (en anglais) de Zernio
+    # après coup. Limites de légende par plateforme (caractères, espaces compris).
+    limite = CAPTION_LIMITS.get(reseau)
+    if limite and len(content) > limite:
+        return {"ok": False, "error": (
+            f"Post trop long pour {reseau.capitalize()} : {len(content)} caractères "
+            f"(limite {limite}). Raccourcis le texte puis revalide."
+        )}
 
     plat_entry = {"platform": reseau, "accountId": account_id}
     # Story (Instagram/Facebook) : éphémère 24h, 1 média requis, pas de légende côté plateforme.

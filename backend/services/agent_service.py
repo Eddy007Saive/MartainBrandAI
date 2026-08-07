@@ -257,6 +257,28 @@ def generer_sujets(telegram_id: str, nombre: int = 6) -> dict:
 # ---------------------------------------------------------------------------
 # Agent RÉDACTION
 # ---------------------------------------------------------------------------
+# Longueur cible par réseau : (cible confortable, limite dure de la plateforme).
+# La cible laisse ~10-15% de marge sous la limite (hashtags, émojis comptent double
+# sur certains réseaux) pour que Zernio n'ait jamais à refuser une légende.
+LONGUEURS = {
+    "instagram": (1800, 2200),
+    "tiktok": (1800, 2200),
+    "googlebusiness": (1200, 1500),
+    "twitter": (250, 280),
+    "linkedin": (2500, 3000),
+    "facebook": (2500, 60000),
+    "youtube": (3500, 5000),
+}
+
+
+def _consigne_longueur(reseau: str) -> str:
+    cible, limite = LONGUEURS.get(reseau, (2500, 3000))
+    return (
+        f" LONGUEUR STRICTE : {cible} caractères MAXIMUM, espaces et hashtags compris "
+        f"(limite {RESEAUX.get(reseau, reseau)} : {limite} — un post trop long est refusé à la publication)."
+    )
+
+
 ROLE_REDACTION = (
     "Tu es le rédacteur attitré de la marque personnelle décrite ci-dessous. "
     "Tu écris EXCLUSIVEMENT dans sa voix. Tu produis un post prêt à publier : "
@@ -290,8 +312,9 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
             "content": (
                 f"Écris UN post {reseau_label} prêt à publier sur le sujet :\n\n\"{sujet}\"\n\n"
                 f"Format {reseau_label} : accroche forte en 1ʳᵉ ligne, lignes courtes et aérées, "
-                f"une seule idée centrale, et une question/appel à l'engagement en fin. "
-                f"Donne uniquement le texte du post."
+                f"une seule idée centrale, et une question/appel à l'engagement en fin."
+                + _consigne_longueur(reseau)
+                + " Donne uniquement le texte du post."
             ),
         }],
     )
@@ -326,7 +349,8 @@ def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,
             "content": [
                 {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
                 {"type": "text", "text": f"Écris UN post {reseau_label} prêt à publier à partir de cette photo, "
-                                         f"dans la voix de la marque. Donne uniquement le texte."},
+                                         f"dans la voix de la marque.{_consigne_longueur(reseau)} "
+                                         f"Donne uniquement le texte."},
             ],
         }],
     )
