@@ -683,7 +683,7 @@ export default function ContenusPage() {
     setPublishLoading(contenu.id);
     try {
       const d = await contenuService.annuler(contenu.id);
-      const patch = { publish_status: d.publish_status, late_post_id: null };
+      const patch = { publish_status: d.publish_status, late_post_id: null, statut: d.statut || 'Valider' };
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
       setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, ...patch } : prev));
       toast.success('Envoi annulé');

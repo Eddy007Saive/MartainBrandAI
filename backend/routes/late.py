@@ -87,10 +87,12 @@ async def annuler(contenu_id: str, payload: dict = Depends(verify_token)):
     res = await late_service.cancel_post(contenu["late_post_id"])
     if not res.get("ok"):
         raise HTTPException(status_code=502, detail=res.get("error") or "Échec de l'annulation")
+    # Retour au statut "Valider" : le contenu reste approuvé mais n'est PLUS planifié
+    # (sinon la base/l'UI continuent d'afficher "Planifié" après l'annulation Zernio).
     supabase.table("contenu").update(
-        {"publish_status": "annulé", "late_post_id": None}
+        {"publish_status": "annulé", "late_post_id": None, "statut": "Valider"}
     ).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
-    return {"publish_status": "annulé"}
+    return {"publish_status": "annulé", "statut": "Valider"}
 
 
 @router.post("/webhook")
