@@ -32,12 +32,8 @@ const TYPES_VIDEO = [
   { id: 'Video', label: 'Vidéo' },
   { id: 'Interview', label: 'Interview' },
 ];
-// Niveaux de qualité (le modèle réel est caché côté serveur) + coût en crédits
-const QUALITES = [
-  { id: 'rapide', label: 'Rapide', icon: '⚡', cout: { post: 8, script: 12, carrousel: 40 } },
-  { id: 'equilibre', label: 'Équilibré', icon: '⚖️', cout: { post: 20, script: 30, carrousel: 80 } },
-  { id: 'premium', label: 'Premium', icon: '💎', cout: { post: 40, script: 60, carrousel: 140 } },
-];
+// Qualité de génération : plus de choix côté client (héritage du système de crédits).
+// Tout passe en 'equilibre' ; le backend garde le paramètre (réactivable par offre si besoin).
 
 const LOGS_SUJETS = [
   'Lecture de votre voix de marque…',
@@ -96,7 +92,7 @@ export default function StudioIA() {
   // les autres reçoivent une copie planifiée sur leur propre créneau (même méca que Recycler).
   const [cfgReseaux, setCfgReseaux] = useState(['linkedin']);
   const [cfgType, setCfgType] = useState('Reel');
-  const [cfgQualite, setCfgQualite] = useState('equilibre');
+  const cfgQualite = 'equilibre'; // qualité unique (sélecteur retiré avec le système de crédits)
   const [nbSlides, setNbSlides] = useState(5); // carrousel
 
   // Coche/décoche un réseau (toujours au moins un de coché)
@@ -109,10 +105,10 @@ export default function StudioIA() {
   const [bFormat, setBFormat] = useState('post');
   const [bReseaux, setBReseaux] = useState(['linkedin']);
   const [bType, setBType] = useState('Reel');
-  const [bQualite, setBQualite] = useState('equilibre');
+  const bQualite = 'equilibre';
   const [photoOpen, setPhotoOpen] = useState(false);
   const [photoReseau, setPhotoReseau] = useState('linkedin');
-  const [photoQualite, setPhotoQualite] = useState('equilibre');
+  const photoQualite = 'equilibre';
 
   // Aligne les réseaux sélectionnés sur ceux réellement connectés
   useEffect(() => {
@@ -512,14 +508,6 @@ export default function StudioIA() {
                       className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
                   </div>
                 )}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">Qualité</span>
-                  {QUALITES.map((q) => (
-                    <Pill key={q.id} active={bQualite === q.id} onClick={() => setBQualite(q.id)}>
-                      {q.icon} {q.label}
-                    </Pill>
-                  ))}
-                </div>
                 <div className="flex items-center justify-end">
                   <Button onClick={genererBrief} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer"
                     className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
@@ -546,10 +534,6 @@ export default function StudioIA() {
                   {reseaux.length === 0
                     ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
                     : reseaux.map((r) => <Pill key={r.id} active={photoReseau === r.id} onClick={() => setPhotoReseau(r.id)}>{r.label}</Pill>)}
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">Qualité</span>
-                  {QUALITES.map((q) => <Pill key={q.id} active={photoQualite === q.id} onClick={() => setPhotoQualite(q.id)}>{q.icon} {q.label}</Pill>)}
                 </div>
                 <input ref={photoRef} type="file" accept="image/*" className="hidden" data-testid="studio-photo-input"
                   onChange={(e) => genererPhoto(e.target.files?.[0])} />
@@ -658,14 +642,6 @@ export default function StudioIA() {
                               className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
                           </div>
                         )}
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-slate-500 font-inter">Qualité</span>
-                          {QUALITES.map((q) => (
-                            <Pill key={q.id} active={cfgQualite === q.id} onClick={() => setCfgQualite(q.id)}>
-                              {q.icon} {q.label}
-                            </Pill>
-                          ))}
-                        </div>
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => setOpenId(null)} className="text-xs text-slate-400 hover:text-white font-inter px-2">Annuler</button>
                           <Button onClick={() => genererContenu(s)} className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
