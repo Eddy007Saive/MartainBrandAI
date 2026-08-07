@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { APK_URL } from '../../lib/appDownload';
+import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
 import { BOOKING_URL } from './shared';
 import './homeCine.css';
 
@@ -66,6 +67,10 @@ export default function HomeCine() {
   const videoRef = useRef(null);
   const impactRef = useRef(null);
   const [scene, setScene] = useState(0);
+
+  // Utilisateur déjà connecté -> « Mon dashboard » remplace Se connecter / Commencer
+  const connecte = isAuthenticated() || isAdminAuthenticated();
+  const dashTo = isAdminAuthenticated() ? '/admin' : '/dashboard';
 
   // Galerie desktop : carrousel autonome (avance seul, pause au survol, sidebar/points cliquables)
   const [scenePause, setScenePause] = useState(false);
@@ -227,8 +232,14 @@ export default function HomeCine() {
           <Link to="/faq">FAQ</Link>
         </div>
         <div className="nav-right">
-          <Link className="nav-link" to="/login">Se connecter</Link>
-          <Link className="nav-cta grad" to="/register">Commencer</Link>
+          {connecte ? (
+            <Link className="nav-cta grad" to={dashTo}>Mon dashboard</Link>
+          ) : (
+            <>
+              <Link className="nav-link" to="/login">Se connecter</Link>
+              <Link className="nav-cta grad" to="/register">Commencer</Link>
+            </>
+          )}
           <button className={`burger${menuOpen ? ' open' : ''}`} aria-label="Menu" aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}><i /><i /><i /></button>
         </div>
@@ -240,8 +251,14 @@ export default function HomeCine() {
           <Link key={to} to={to} style={{ transitionDelay: menuOpen ? `${80 + i * 50}ms` : '0ms' }}>{label}</Link>
         ))}
         <div className="sep" />
-        <Link className="ghost" to="/login" style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>Se connecter</Link>
-        <Link className="cta" to="/register" style={{ transitionDelay: menuOpen ? '350ms' : '0ms' }}>Commencer</Link>
+        {connecte ? (
+          <Link className="cta" to={dashTo} style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>Mon dashboard</Link>
+        ) : (
+          <>
+            <Link className="ghost" to="/login" style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>Se connecter</Link>
+            <Link className="cta" to="/register" style={{ transitionDelay: menuOpen ? '350ms' : '0ms' }}>Commencer</Link>
+          </>
+        )}
       </div>
 
       <div className="page">
@@ -483,8 +500,14 @@ export default function HomeCine() {
           </div>
           <div className="fcol">
             <h4>Compte</h4>
-            <Link to="/login">Se connecter</Link>
-            <Link to="/register">Créer mon compte</Link>
+            {connecte ? (
+              <Link to={dashTo}>Mon dashboard</Link>
+            ) : (
+              <>
+                <Link to="/login">Se connecter</Link>
+                <Link to="/register">Créer mon compte</Link>
+              </>
+            )}
             <a href={APK_URL}>App Android</a>
             <a href={BOOKING_URL}>Réserver un call</a>
           </div>
