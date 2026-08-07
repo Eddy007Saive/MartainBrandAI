@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, Filter, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -42,6 +42,7 @@ import { ColorField } from '../components/ColorField';
 import { CAROUSEL_FONTS, renderSlides, SLIDE_CSS } from '../lib/carrouselPreview';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
 
 const IMAGE_MODELES = [
   { id: 'nano2', label: 'nano-banana 2.5', cout: 50 },
@@ -180,43 +181,73 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           <p className="text-slate-400 font-inter text-[12.5px] leading-relaxed line-clamp-3">{contenu.contenu}</p>
         </div>
 
+        {/* Contrôle segmenté : max 3 cibles (✓ valider · action du format · ⋯ menu) */}
         <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]" onClick={(e) => e.stopPropagation()}>
           <span className="text-[11px] text-slate-500 font-inter mr-auto inline-flex items-center gap-1">
             {contenu.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
           </span>
-          {isCarrousel ? (
-            <CardAction title="Régénérer le carrousel" onClick={() => onRegenCarrousel(contenu)}
-              className={contenu.slides_images?.length ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
-              {regenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LayoutGrid className="w-4 h-4" />}
-            </CardAction>
-          ) : isVideo ? null : (
-            <CardAction title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} onClick={() => onImage(contenu)}
-              className={contenu.lien_visuel ? 'text-emerald-400 hover:text-emerald-300' : 'hover:text-white'}>
-              <ImageIcon className="w-4 h-4" />
-            </CardAction>
-          )}
-          {contenu.statut === 'A valider' && (
-            <>
-              <CardAction title="Valider" onClick={() => onValidate(contenu.id)} className="hover:text-emerald-400">
+          <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+            {contenu.statut === 'A valider' && (
+              <button title="Valider & programmer" onClick={() => onValidate(contenu.id)} disabled={isLoading}
+                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-              </CardAction>
-              <CardAction title="Refuser" onClick={() => onRefuse(contenu.id)} className="hover:text-red-400"><X className="w-4 h-4" /></CardAction>
-            </>
-          )}
-          {!isCarrousel && !isVideo && (
-            <CardAction title="Générer un reel animé à ta charte (~1 min)" onClick={() => onReel(contenu)} className="hover:text-[#8A6CFF]">
-              {reelLoading === contenu.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clapperboard className="w-4 h-4" />}
-            </CardAction>
-          )}
-          {!isCarrousel && !isVideo && contenu.type !== 'Story' && contenu.lien_visuel
-            && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
-            <CardAction title="Décliner en story (24 h, même visuel)" onClick={() => onStory(contenu)} className="hover:text-pink-400">
-              <Sparkles className="w-4 h-4" />
-            </CardAction>
-          )}
-          <CardAction title="Recycler sur d'autres réseaux" onClick={() => onRecycle(contenu)} className="hover:text-[#3AFFA3]"><Repeat2 className="w-4 h-4" /></CardAction>
-          <CardAction title="Modifier" onClick={() => onEdit(contenu)} className="hover:text-white"><Edit2 className="w-3.5 h-3.5" /></CardAction>
-          <CardAction title="Supprimer" onClick={() => onDelete(contenu)} className="hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></CardAction>
+              </button>
+            )}
+            {isCarrousel ? (
+              <button title="Régénérer le carrousel" onClick={() => onRegenCarrousel(contenu)}
+                className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
+                {regenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LayoutGrid className="w-4 h-4" />}
+              </button>
+            ) : isVideo ? (
+              <button title="Modifier le texte" onClick={() => onEdit(contenu)}
+                className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <button title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} onClick={() => onImage(contenu)}
+                className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
+                <ImageIcon className="w-4 h-4" />
+              </button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button title="Plus d'actions"
+                  className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08]">
+                  {reelLoading === contenu.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[210px] bg-[#111c33]/95 backdrop-blur-xl border-white/10 text-slate-200 font-inter">
+                {contenu.statut === 'A valider' && (
+                  <DropdownMenuItem onClick={() => onRefuse(contenu.id)} className="gap-2.5 focus:bg-white/[0.07]">
+                    <X className="w-4 h-4 opacity-70" />Refuser
+                  </DropdownMenuItem>
+                )}
+                {!isVideo && (
+                  <DropdownMenuItem onClick={() => onEdit(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
+                    <Edit2 className="w-4 h-4 opacity-70" />Modifier le texte
+                  </DropdownMenuItem>
+                )}
+                {!isCarrousel && !isVideo && (
+                  <DropdownMenuItem onClick={() => onReel(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
+                    <Clapperboard className="w-4 h-4 opacity-70" />Générer un reel animé
+                  </DropdownMenuItem>
+                )}
+                {!isCarrousel && !isVideo && contenu.type !== 'Story' && contenu.lien_visuel
+                  && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
+                  <DropdownMenuItem onClick={() => onStory(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
+                    <Sparkles className="w-4 h-4 opacity-70" />Décliner en story
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => onRecycle(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
+                  <Repeat2 className="w-4 h-4 opacity-70" />Recycler sur d'autres réseaux
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-white/[0.07]" />
+                <DropdownMenuItem onClick={() => onDelete(contenu)} className="gap-2.5 text-red-400/90 focus:bg-red-500/10 focus:text-red-300">
+                  <Trash2 className="w-4 h-4 opacity-70" />Supprimer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </div>
@@ -1252,7 +1283,7 @@ export default function ContenusPage() {
                       && ['', null, undefined, 'échec', 'annulé'].includes(selectedContenu.publish_status) && (
                       <Button size="sm" onClick={() => programmerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
                         title={selectedContenu.publish_status === 'échec' ? selectedContenu.publish_error : 'Envoyer dans la file de publication'}
-                        className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30 font-inter">
+                        className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] px-4 shadow-[0_8px_24px_rgba(91,108,255,0.35)] hover:-translate-y-px hover:shadow-[0_12px_30px_rgba(91,108,255,0.45)] transition-all">
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
                         {selectedContenu.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}</Button>
                     )}
@@ -1261,18 +1292,18 @@ export default function ContenusPage() {
                       <Button size="sm" onClick={() => replanifierPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
                         title="Trouve automatiquement le prochain créneau libre (selon ta planification) et reprogramme"
                         data-testid="replanifier-btn"
-                        className="bg-[#3AFFA3]/10 text-[#3AFFA3] hover:bg-[#3AFFA3]/20 border border-[#3AFFA3]/30 font-inter">
+                        className="bg-transparent border border-white/[0.12] text-slate-300 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] transition-colors">
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <RefreshCw className="w-4 h-4 mr-1.5" />}
                         Replanifier</Button>
                     )}
                     {['envoi', 'programmé'].includes(selectedContenu.publish_status) && (
                       <Button size="sm" onClick={() => annulerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
-                        className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 font-inter">
+                        className="bg-transparent border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 font-sora font-semibold rounded-[11px] transition-colors">
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <X className="w-4 h-4 mr-1.5" />}Annuler l'envoi</Button>
                     )}
                     {selectedContenu.statut === 'Publie' && selectedContenu.lien_publication && (
                       <a href={selectedContenu.lien_publication} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" className="bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 font-inter"><ExternalLink className="w-4 h-4 mr-1.5" />Voir</Button>
+                        <Button size="sm" className="bg-transparent border border-white/[0.12] text-slate-300 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] transition-colors"><ExternalLink className="w-4 h-4 mr-1.5" />Voir la publication</Button>
                       </a>
                     )}
                   </div>
