@@ -89,3 +89,56 @@ html, body, #root {
   background-color: #020617;
   min-height: 100vh;
 }
+
+/* ===== Toasts Postorico — style « verre dépoli » (sonner) ===== */
+.postorico-toast[data-sonner-toast] {
+  background: rgba(15, 23, 42, 0.72) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45) !important;
+  padding: 13px 15px;
+  gap: 12px;
+  align-items: flex-start;
+}
+.postorico-toast [data-title] {
+  color: #e8edf6;
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+.postorico-toast [data-description] {
+  color: #93a1b8;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+/* Icône en pastille ronde, colorée par type */
+.postorico-toast [data-icon] {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  flex-shrink: 0;
+}
+.postorico-toast[data-type="success"] [data-icon] { background: rgba(58, 255, 163, 0.14); color: #3AFFA3; }
+.postorico-toast[data-type="error"]   [data-icon] { background: rgba(255, 77, 109, 0.14); color: #ff6d87; }
+.postorico-toast[data-type="warning"] [data-icon] { background: rgba(255, 193, 7, 0.14); color: #ffd35c; }
+.postorico-toast[data-type="info"]    [data-icon] { background: rgba(91, 108, 255, 0.16); color: #a5b0ff; }
+.postorico-toast[data-type="loading"] [data-icon] { background: rgba(255, 255, 255, 0.08); color: #93a1b8; }
+/* Croix de fermeture discrète, cohérente avec le verre */
+.postorico-toast [data-close-button] {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #93a1b8 !important;
+}
+.postorico-toast [data-close-button]:hover { color: #e8edf6 !important; }
+/* Boutons d'action éventuels (toast avec action) */
+.postorico-toast [data-button] {
+  background: linear-gradient(90deg, #5B6CFF, #8A6CFF) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
