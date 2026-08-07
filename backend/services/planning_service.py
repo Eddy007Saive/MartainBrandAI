@@ -4,9 +4,16 @@ Planification automatique.
 Pose une date de publication sur un contenu à partir des créneaux préférés
 de l'utilisateur (table publication_schedules).
 
-Règle : on prend le PROCHAIN jour préféré du réseau qui n'a pas déjà un
-contenu planifié (même réseau), à l'heure préférée. Si le réseau n'a pas de
-cadence active, on retombe sur le prochain jour libre à 09:00.
+Règle : on prend le PROCHAIN jour préféré du réseau qui n'a pas déjà un contenu
+de la MÊME FAMILLE (feed / vidéo / story), à l'heure préférée. Les familles
+peuvent cohabiter le même jour (surfaces différentes chez les plateformes),
+avec des heures décalées pour ne pas tout publier à la même minute :
+
+    feed  (Post écrit, Carrousel)  -> 1 max/jour, à l'heure préférée
+    video (Reel, Short, Video)     -> 1 max/jour, heure préférée +6 h
+    story (Story)                  -> 1 max/jour, heure préférée +3 h
+
+Si le réseau n'a pas de cadence active, on retombe sur le prochain jour ouvré à 09:00.
 
 Convention des jours (identique au front, constants/schedules.js) :
     Lun=1, Mar=2, Mer=3, Jeu=4, Ven=5, Sam=6, Dim=0   ==  date.isoweekday() % 7
@@ -22,10 +29,24 @@ RESEAU_TO_PLATFORM = {
     "TikTok": "tiktok",
     "YouTube": "youtube",
     "GoogleBusiness": "googlebusiness",
+    "Twitter": "twitter",
 }
 
 DEFAULT_TIME = time(9, 0)
 HORIZON_DAYS = 120  # on cherche un créneau dans les ~4 prochains mois
+
+# Famille d'un contenu selon son type (contenu.type ; None/Post/autre => feed)
+_TYPE_TO_FAMILLE = {
+    "Carrousel": "feed",
+    "Reel": "video", "Short": "video", "Video": "video",
+    "Story": "story",
+}
+# Décalage horaire de chaque famille par rapport à l'heure préférée du réseau
+_FAMILLE_OFFSET_H = {"feed": 0, "story": 3, "video": 6}
+
+
+def famille_de(type_contenu: str | None) -> str:
+    return _TYPE_TO_FAMILLE.get(type_contenu or "", "feed")
 
 
 def _parse_time(val) -> time:
@@ -38,26 +59,34 @@ def _parse_time(val) -> time:
         return DEFAULT_TIME
 
 
-def _jours_occupes(telegram_id: str, reseau_cible: str) -> set:
-    """Dates (YYYY-MM-DD) déjà prises par un contenu planifié du même réseau."""
+def _jours_occupes(telegram_id: str, reseau_cible: str, famille: str) -> set:
+    """Dates (YYYY-MM-DD) déjà prises par un contenu daté du même réseau ET de la
+    même famille (feed/vidéo/story), hors refusés. Deux familles différentes
+    peuvent partager un jour — c'est voulu."""
     try:
         r = (supabase.table("contenu")
-             .select("date_publication")
+             .select("date_publication, type, statut")
              .eq("telegram_id", telegram_id).eq("reseau_cible", reseau_cible)
              .not_.is_("date_publication", "null").execute())
     except Exception as e:
         logger.error(f"planning _jours_occupes error: {e}")
         return set()
-    return {row["date_publication"][:10] for row in (r.data or []) if row.get("date_publication")}
+    return {row["date_publication"][:10] for row in (r.data or [])
+            if row.get("date_publication")
+            and row.get("statut") != "Refuse"
+            and famille_de(row.get("type")) == famille}
 
 
-def prochain_creneau(telegram_id: str, reseau_cible: str | None) -> str | None:
-    """Renvoie une date_publication ISO (UTC) pour le prochain créneau libre, ou None."""
+def prochain_creneau(telegram_id: str, reseau_cible: str | None,
+                     type_contenu: str | None = None) -> str | None:
+    """Renvoie une date_publication ISO (UTC) pour le prochain créneau libre de la
+    famille du contenu (feed par défaut), ou None."""
     if not reseau_cible:
         return None
     platform = RESEAU_TO_PLATFORM.get(reseau_cible)
     if not platform:
         return None
+    famille = famille_de(type_contenu)
 
     # Créneau préféré du réseau
     try:
@@ -72,7 +101,10 @@ def prochain_creneau(telegram_id: str, reseau_cible: str | None) -> str | None:
     ptime = _parse_time(row.get("preferred_time")) if row else DEFAULT_TIME
     days = set(row.get("days_of_week") or []) if row else set()
 
-    occ = _jours_occupes(telegram_id, reseau_cible)
+    # Heure décalée selon la famille (cohabitation le même jour sans collision d'heure)
+    heure = (ptime.hour + _FAMILLE_OFFSET_H[famille]) % 24
+
+    occ = _jours_occupes(telegram_id, reseau_cible, famille)
     today = datetime.now(timezone.utc).date()
 
     for i in range(1, HORIZON_DAYS + 1):
@@ -88,8 +120,8 @@ def prochain_creneau(telegram_id: str, reseau_cible: str | None) -> str | None:
                 continue
         if d.isoformat() in occ:
             continue
-        dt = datetime(d.year, d.month, d.day, ptime.hour, ptime.minute, tzinfo=timezone.utc)
+        dt = datetime(d.year, d.month, d.day, heure, ptime.minute, tzinfo=timezone.utc)
         return dt.isoformat()
 
-    logger.warning(f"planning: aucun créneau libre trouvé pour {reseau_cible} (tg {telegram_id})")
+    logger.warning(f"planning: aucun créneau libre trouvé pour {reseau_cible}/{famille} (tg {telegram_id})")
     return None

@@ -123,10 +123,13 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
     start, end = plan_service._month_bounds(year, month)
     occupied: dict = {}
 
-    def occ_for(reseau_cap: str):
-        if reseau_cap not in occupied:
-            occupied[reseau_cap] = {dp[:10] for dp in plan_service._dates_occupees(telegram_id, reseau_cap, start, end)}
-        return occupied[reseau_cap]
+    def occ_for(reseau_cap: str, famille: str = "feed"):
+        # Occupation PAR FAMILLE (feed/video/story) : un reel peut partager le jour d'un post,
+        # mais jamais deux contenus feed (post/carrousel) le même jour sur le même réseau.
+        key = (reseau_cap, famille)
+        if key not in occupied:
+            occupied[key] = {dp[:10] for dp in plan_service._dates_occupees(telegram_id, reseau_cap, start, end, famille)}
+        return occupied[key]
 
     created, errors = 0, []
     for it in items:
@@ -166,7 +169,8 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 continue
             usage_service.log(telegram_id, action, model, r.get("usage"), q.get("unit_cost", 0), qualite)
 
-            oc = occ_for(reseau_cap)
+            famille = "video" if action == "script" else ("story" if fmt == "story" else "feed")
+            oc = occ_for(reseau_cap, famille)
             slots = plan_service.creneaux_libres(telegram_id, reseau_cap, year, month, oc)
             date_pub = slots[0] if slots else None
             if date_pub:
@@ -503,6 +507,9 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
            "created_at": datetime.now(timezone.utc).isoformat()}
     if reseau in RESEAU_MAP:
         row["reseau_cible"] = RESEAU_MAP[reseau]
+        creneau = planning_service.prochain_creneau(telegram_id, row["reseau_cible"])
+        if creneau:
+            row["date_publication"] = creneau
     if lien:
         row["lien_visuel"] = lien
     ins = supabase.table("contenu").insert(row).execute()
@@ -559,6 +566,11 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
                "created_at": datetime.now(timezone.utc).isoformat()}
         if reseau in RESEAU_MAP:
             row["reseau_cible"] = RESEAU_MAP[reseau]
+            # Réservation du créneau DÈS la création : évite que deux contenus non
+            # encore datés calculent le même "prochain jour libre" (chevauchements).
+            creneau = planning_service.prochain_creneau(telegram_id, row["reseau_cible"], "Carrousel")
+            if creneau:
+                row["date_publication"] = creneau
         ins = supabase.table("contenu").insert(row).execute()
         contenu_id = ins.data[0]["id"] if ins.data else None
 
@@ -651,6 +663,10 @@ async def enregistrer(body: dict, payload: dict = Depends(verify_token)):
         reseau = body.get("reseau")
         if reseau in RESEAU_MAP:
             row["reseau_cible"] = RESEAU_MAP[reseau]  # enum single value (LinkedIn, Instagram…)
+            # Réservation du créneau DÈS la création (anti-chevauchement)
+            creneau = planning_service.prochain_creneau(telegram_id, row["reseau_cible"])
+            if creneau:
+                row["date_publication"] = creneau
         ins = supabase.table("contenu").insert(row).execute()
         return {"success": True, "contenu_id": ins.data[0]["id"] if ins.data else None}
     except Exception as e:
@@ -762,11 +778,11 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         # Le visuel est prêt -> on fixe la date puis on POUSSE vers Zernio. Le statut ne passe
         # PLUS à "Planifie" ici : seul l'event webhook post.scheduled le confirme (source de
         # vérité = Zernio ; fini les posts "Planifié" qui n'existent nulle part).
-        cur = (supabase.table("contenu").select("statut, reseau_cible, date_publication")
+        cur = (supabase.table("contenu").select("statut, reseau_cible, date_publication, type")
                .eq("id", contenu_id).eq("telegram_id", telegram_id).execute())
         c = cur.data[0] if cur.data else {}
         if not c.get("date_publication"):
-            creneau = planning_service.prochain_creneau(telegram_id, c.get("reseau_cible"))
+            creneau = planning_service.prochain_creneau(telegram_id, c.get("reseau_cible"), c.get("type"))
             if creneau:
                 upd["date_publication"] = creneau
         supabase.table("contenu").update(upd).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()

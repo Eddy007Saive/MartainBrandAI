@@ -25,7 +25,7 @@ def upload_visuel(telegram_id: str, contenu_id: str, file_bytes: bytes) -> dict 
     # Pas de statut "Planifie" optimiste : la route appelante pousse vers Zernio et c'est
     # l'event webhook post.scheduled qui confirmera le statut (source de vérité = Zernio).
     if not cur.get("date_publication"):
-        creneau = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"))
+        creneau = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"), cur.get("type"))
         if creneau:
             upd["date_publication"] = creneau
     supabase.table("contenu").update(upd).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
@@ -78,7 +78,7 @@ async def update_contenu(contenu_id: str, telegram_id: str, update_data: dict) -
             except Exception:
                 past = False
         if not eff_date or past:
-            creneau = planning_service.prochain_creneau(telegram_id, contenu_data.get("reseau_cible"))
+            creneau = planning_service.prochain_creneau(telegram_id, contenu_data.get("reseau_cible"), contenu_data.get("type"))
             if creneau:
                 update_data["date_publication"] = creneau
                 logger.info(f"Auto-planif contenu {contenu_id} -> {creneau} ({'date passée' if past else 'date absente'})")
@@ -160,7 +160,7 @@ async def recycler_contenu(telegram_id: str, contenu_id: str, reseaux: list) -> 
             row.pop("lien_visuel", None)  # re-rendu ci-dessous avec les assets de la copie
         row.update({"telegram_id": telegram_id, "reseau_cible": net, "statut": "A valider",
                     "created_at": datetime.now(timezone.utc).isoformat()})
-        creneau = planning_service.prochain_creneau(telegram_id, net)
+        creneau = planning_service.prochain_creneau(telegram_id, net, cur.get("type"))
         if creneau:
             row["date_publication"] = creneau
         ins = supabase.table("contenu").insert(row).execute()

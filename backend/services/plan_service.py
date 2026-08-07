@@ -61,10 +61,14 @@ def _candidate_days(start: date, end: date, days: set) -> list:
     return out
 
 
-def _dates_occupees(telegram_id: str, reseau: str, start: date, end: date) -> list:
-    """Dates (ISO) déjà prises par un contenu daté du réseau dans le mois (non refusé)."""
+def _dates_occupees(telegram_id: str, reseau: str, start: date, end: date,
+                    famille: str | None = None) -> list:
+    """Dates (ISO) déjà prises par un contenu daté du réseau dans le mois (non refusé).
+    Si `famille` est fournie (feed/video/story), ne compte que les contenus de cette
+    famille — deux familles différentes peuvent partager un jour (cf. planning_service)."""
+    from services import planning_service
     try:
-        r = (supabase.table("contenu").select("date_publication, statut")
+        r = (supabase.table("contenu").select("date_publication, statut, type")
              .eq("telegram_id", telegram_id).eq("reseau_cible", reseau)
              .gte("date_publication", start.isoformat())
              .lt("date_publication", (end + timedelta(days=1)).isoformat())
@@ -73,7 +77,8 @@ def _dates_occupees(telegram_id: str, reseau: str, start: date, end: date) -> li
         logger.warning(f"plan _dates_occupees error: {e}")
         return []
     return [row["date_publication"] for row in (r.data or [])
-            if row.get("date_publication") and row.get("statut") != "Refuse"]
+            if row.get("date_publication") and row.get("statut") != "Refuse"
+            and (famille is None or planning_service.famille_de(row.get("type")) == famille)]
 
 
 def compute_plan(telegram_id: str, year: int, month: int) -> list:

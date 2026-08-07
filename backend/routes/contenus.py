@@ -50,7 +50,7 @@ async def replanifier_contenu(contenu_id: str, payload: dict = Depends(verify_to
         raise HTTPException(status_code=409, detail="Déjà publié — rien à replanifier.")
     from services import planning_service, late_service
     from config import supabase
-    slot = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"))
+    slot = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"), cur.get("type"))
     if not slot:
         raise HTTPException(status_code=409, detail="Aucun créneau libre trouvé — vérifie ta planification (jours actifs) pour ce réseau.")
     # Nettoie l'ancien post Zernio (échoué ou programmé) avant de reprogrammer

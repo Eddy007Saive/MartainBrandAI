@@ -255,7 +255,7 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact") ->
         "statut": "A valider",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    creneau = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"))
+    creneau = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"), cur.get("type") or "Reel")
     if creneau:
         row["date_publication"] = creneau
     ins = supabase.table("contenu").insert(row).execute()
