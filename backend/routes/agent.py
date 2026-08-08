@@ -711,24 +711,31 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     user_instr = prompt  # instruction BRUTE de l'utilisateur (avant combinaison template -> pour la sauvegarde)
     template_mode = bool(body.get("template_mode"))  # template de marque = modèle fixe, l'IA ne change que le texte
     contenu_id = body.get("contenu_id")
-    # Mode template : SOIT l'utilisateur donne des consignes (elles pilotent SEULES le rendu),
-    # SOIT on compose l'accroche depuis le post. JAMAIS les deux — sinon le modèle reçoit
-    # « affiche X » + « remplace par Y » et rend les DEUX phrases sur le visuel.
+    # Mode template : le TEXTE vient TOUJOURS du post (accroche composée) ; les consignes de
+    # l'utilisateur pilotent le VISUEL (fond, décor, ambiance) et s'y AJOUTENT. Elles ne
+    # remplacent le texte que si elles le demandent explicitement (« écris plutôt… »).
+    # Historique : avant, consignes = rendu seul → le texte n'avait plus rien à voir avec le post.
     if template_mode and contenu_id:
-        if user_instr:
+        accroche = ""
+        try:
+            row = supabase.table("contenu").select("contenu, titre").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+            texte_post = (row.data[0].get("contenu") or row.data[0].get("titre") or "") if row.data else ""
+            comp = agent_service.composer_gabarit(telegram_id, "statement", texte_post)
+            if not comp.get("error"):
+                accroche = " ".join((l.get("t") or "") for l in (comp["slots"].get("title_lines") or [])).strip()
+        except Exception as e:
+            logger.warning(f"template accroche {contenu_id}: {e}")
+        if user_instr and accroche:
+            prompt = (
+                f"Texte à afficher : {accroche}\n"
+                f"Consignes de l'utilisateur (elles concernent le VISUEL — fond, décor, ambiance — et "
+                f"s'appliquent EN PLUS du « Texte à afficher », qui reste affiché tel quel, SAUF si elles "
+                f"demandent explicitement un autre texte) : {user_instr}"
+            )
+        elif user_instr:
             prompt = f"Consignes de l'utilisateur : {user_instr}"
-        else:
-            accroche = ""
-            try:
-                row = supabase.table("contenu").select("contenu, titre").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
-                texte_post = (row.data[0].get("contenu") or row.data[0].get("titre") or "") if row.data else ""
-                comp = agent_service.composer_gabarit(telegram_id, "statement", texte_post)
-                if not comp.get("error"):
-                    accroche = " ".join((l.get("t") or "") for l in (comp["slots"].get("title_lines") or [])).strip()
-            except Exception as e:
-                logger.warning(f"template accroche {contenu_id}: {e}")
-            if accroche:
-                prompt = f"Texte à afficher : {accroche}"
+        elif accroche:
+            prompt = f"Texte à afficher : {accroche}"
     if not prompt:
         raise HTTPException(status_code=400, detail="prompt requis")
     # En template, le front propose HD par défaut (meilleur texte) mais l'utilisateur peut choisir
