@@ -25,6 +25,7 @@ import {
 } from '../components/ui/alert-dialog';
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { contenuService } from '../services/contenuService';
 import { agentService } from '../services/agentService';
 import { userService } from '../services/userService';
@@ -42,26 +43,26 @@ const IMAGE_MODELES = [
   { id: 'nano3', label: 'nano-banana 3 (Pro)', cout: 150 },
 ];
 
-// Clés = valeurs réelles de l'enum statut_contenu en base ; label = affichage
+// Clés = valeurs réelles de l'enum statut_contenu en base ; labelKey = clé i18n d'affichage
 const STATUT_CONFIG = {
-  'A tourner': { label: 'À tourner', bg: 'bg-[#8A6CFF]/15', text: 'text-[#b9a6ff]', border: 'border-[#8A6CFF]/30', dot: 'bg-[#8A6CFF]', icon: Video },
-  'A valider': { label: 'À valider', bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/25', dot: 'bg-amber-400', icon: Clock },
-  'Valider': { label: 'Validé', bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/25', dot: 'bg-emerald-400', icon: Check },
-  'Planifie': { label: 'Planifié', bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/25', dot: 'bg-purple-400', icon: Calendar },
-  'Pret a publier': { label: 'Prêt à publier', bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/25', dot: 'bg-cyan-400', icon: Check },
-  'Publie': { label: 'Publié', bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/25', dot: 'bg-blue-400', icon: ExternalLink },
-  'Refuse': { label: 'Refusé', bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/25', dot: 'bg-red-400', icon: X },
+  'A tourner': { labelKey: 'contenus.statut.aTourner', bg: 'bg-[#8A6CFF]/15', text: 'text-[#b9a6ff]', border: 'border-[#8A6CFF]/30', dot: 'bg-[#8A6CFF]', icon: Video },
+  'A valider': { labelKey: 'contenus.statut.aValider', bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/25', dot: 'bg-amber-400', icon: Clock },
+  'Valider': { labelKey: 'contenus.statut.valide', bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/25', dot: 'bg-emerald-400', icon: Check },
+  'Planifie': { labelKey: 'contenus.statut.planifie', bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/25', dot: 'bg-purple-400', icon: Calendar },
+  'Pret a publier': { labelKey: 'contenus.statut.pretAPublier', bg: 'bg-cyan-500/15', text: 'text-cyan-400', border: 'border-cyan-500/25', dot: 'bg-cyan-400', icon: Check },
+  'Publie': { labelKey: 'contenus.statut.publie', bg: 'bg-blue-500/15', text: 'text-blue-400', border: 'border-blue-500/25', dot: 'bg-blue-400', icon: ExternalLink },
+  'Refuse': { labelKey: 'contenus.statut.refuse', bg: 'bg-red-500/15', text: 'text-red-400', border: 'border-red-500/25', dot: 'bg-red-400', icon: X },
 };
-const STATUT_DEFAUT = { label: '', bg: 'bg-slate-500/15', text: 'text-slate-400', border: 'border-slate-500/25', dot: 'bg-slate-400', icon: FileText };
+const STATUT_DEFAUT = { labelKey: null, bg: 'bg-slate-500/15', text: 'text-slate-400', border: 'border-slate-500/25', dot: 'bg-slate-400', icon: FileText };
 
 // Statut de publication (Late)
 const PUBLISH_BADGE = {
-  envoi: { label: '⏳ Envoi…', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
-  'programmé': { label: '⏱ Programmé', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
-  'publié': { label: '✅ Publié', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
-  partiel: { label: '⚠️ Partiel', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
-  'échec': { label: '❌ Échec', cls: 'bg-red-500/15 text-red-400 border-red-500/25' },
-  'annulé': { label: 'Annulé', cls: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
+  envoi: { labelKey: 'contenus.publishBadge.envoi', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
+  'programmé': { labelKey: 'contenus.publishBadge.programme', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
+  'publié': { labelKey: 'contenus.publishBadge.publie', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
+  partiel: { labelKey: 'contenus.publishBadge.partiel', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
+  'échec': { labelKey: 'contenus.publishBadge.echec', cls: 'bg-red-500/15 text-red-400 border-red-500/25' },
+  'annulé': { labelKey: 'contenus.publishBadge.annule', cls: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
 };
 
 // Video types = scripts vidéo, le reste = posts
@@ -86,11 +87,12 @@ const RESEAU_CONFIG = {
 };
 
 function StatusBadge({ statut }) {
+  const { t } = useTranslation();
   const config = STATUT_CONFIG[statut] || STATUT_DEFAUT;
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter ${config.bg} ${config.text} border ${config.border}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-      {config.label || statut}
+      {config.labelKey ? t(config.labelKey) : statut}
     </span>
   );
 }
@@ -116,6 +118,7 @@ function CardAction({ title, onClick, children, className = '' }) {
 }
 
 function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
+  const { t } = useTranslation();
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
   const isVideo = contenu.type === 'Reel' || !!contenu.video_url || !!contenu.video_status;
@@ -147,23 +150,23 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
               }}
               className="inline-flex items-center gap-1.5 text-[12px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-3.5 py-2 rounded-[10px] transition-colors active:scale-[0.97]">
               {renderLoading === contenu.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-              {isCarrousel ? (contenu.carrousel_data ? 'Créer les images des slides' : 'Générer les slides') : 'Générer le visuel'}
+              {isCarrousel ? (contenu.carrousel_data ? t('contenus.carte.creerImagesSlides') : t('contenus.carte.genererSlides')) : t('contenus.carte.genererVisuel')}
             </button>
           </div>
         )}
         {contenu.reseau_cible && <span className="absolute top-2.5 left-2.5"><ReseauBadge reseau={contenu.reseau_cible} /></span>}
         <span className="absolute top-2.5 right-2.5">
           {contenu.publish_status === 'échec' ? (
-            <span title={contenu.publish_error || 'Publication en échec'}
+            <span title={contenu.publish_error || t('contenus.carte.publicationEchec')}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter bg-red-500/15 text-red-400 border border-red-500/25">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-              ❌ Échec publication
+              {t('contenus.carte.echecPublication')}
             </span>
           ) : <StatusBadge statut={contenu.statut} />}
         </span>
         {contenu.type === 'Story' && (
           <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
-            Story · 24h
+            {t('contenus.carte.story24h')}
           </span>
         )}
       </div>
@@ -182,30 +185,30 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
             {contenu.statut === 'A valider' && (
-              <button title="Valider & programmer" onClick={() => onValidate(contenu.id)} disabled={isLoading}
+              <button title={t('contenus.actions.validerProgrammer')} onClick={() => onValidate(contenu.id)} disabled={isLoading}
                 className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               </button>
             )}
             {isCarrousel ? (
-              <button title="Régénérer le carrousel" onClick={() => onRegenCarrousel(contenu)}
+              <button title={t('contenus.carte.regenererCarrousel')} onClick={() => onRegenCarrousel(contenu)}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
                 {regenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LayoutGrid className="w-4 h-4" />}
               </button>
             ) : isVideo ? (
-              <button title="Modifier le texte" onClick={() => onEdit(contenu)}
+              <button title={t('contenus.carte.modifierTexte')} onClick={() => onEdit(contenu)}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <button title={contenu.lien_visuel ? 'Visuel — modifier' : 'Créer le visuel'} onClick={() => onImage(contenu)}
+              <button title={contenu.lien_visuel ? t('contenus.carte.visuelModifier') : t('contenus.carte.creerVisuel')} onClick={() => onImage(contenu)}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
                 <ImageIcon className="w-4 h-4" />
               </button>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button title="Plus d'actions"
+                <button title={t('contenus.carte.plusActions')}
                   className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08]">
                   {reelLoading === contenu.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
                 </button>
@@ -213,31 +216,31 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
               <DropdownMenuContent align="end" className="min-w-[210px] bg-[#111c33]/95 backdrop-blur-xl border-white/10 text-slate-200 font-inter">
                 {contenu.statut === 'A valider' && (
                   <DropdownMenuItem onClick={() => onRefuse(contenu.id)} className="gap-2.5 focus:bg-white/[0.07]">
-                    <X className="w-4 h-4 opacity-70" />Refuser
+                    <X className="w-4 h-4 opacity-70" />{t('contenus.actions.refuser')}
                   </DropdownMenuItem>
                 )}
                 {!isVideo && (
                   <DropdownMenuItem onClick={() => onEdit(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
-                    <Edit2 className="w-4 h-4 opacity-70" />Modifier le texte
+                    <Edit2 className="w-4 h-4 opacity-70" />{t('contenus.carte.modifierTexte')}
                   </DropdownMenuItem>
                 )}
                 {!isCarrousel && !isVideo && (
                   <DropdownMenuItem onClick={() => onReel(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
-                    <Clapperboard className="w-4 h-4 opacity-70" />Générer un reel animé
+                    <Clapperboard className="w-4 h-4 opacity-70" />{t('contenus.reel.generer')}
                   </DropdownMenuItem>
                 )}
                 {!isCarrousel && !isVideo && contenu.type !== 'Story' && contenu.lien_visuel
                   && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
                   <DropdownMenuItem onClick={() => onStory(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
-                    <Sparkles className="w-4 h-4 opacity-70" />Décliner en story
+                    <Sparkles className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStory')}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={() => onRecycle(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
-                  <Repeat2 className="w-4 h-4 opacity-70" />Recycler sur d'autres réseaux
+                  <Repeat2 className="w-4 h-4 opacity-70" />{t('contenus.carte.recycler')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-white/[0.07]" />
                 <DropdownMenuItem onClick={() => onDelete(contenu)} className="gap-2.5 text-red-400/90 focus:bg-red-500/10 focus:text-red-300">
-                  <Trash2 className="w-4 h-4 opacity-70" />Supprimer
+                  <Trash2 className="w-4 h-4 opacity-70" />{t('contenus.actions.supprimer')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -249,6 +252,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
 }
 
 export default function ContenusPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [contenus, setContenus] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -289,12 +293,12 @@ export default function ContenusPage() {
   const [reelLoading, setReelLoading] = useState(null);
   const [reelFor, setReelFor] = useState(null); // contenu en attente du choix de template
   // Bibliothèque de templates (registre backend) — repli local si l'appel échoue
-  const [reelTemplates, setReelTemplates] = useState([
-    { id: 'affiche', label: 'Affiche', duree: 11, desc: 'La pub premium : titre accentué, 3 arguments à icônes, ton image, CTA brillant.' },
-    { id: 'impact', label: 'Impact', duree: 8, desc: 'Punchy : accroche mot à mot → 3 preuves → CTA. Idéal stories.' },
-    { id: 'stats', label: 'Gros chiffres', duree: 10, desc: 'Un chiffre géant par écran, qui compte en direct. Pour les posts à résultats.' },
-    { id: 'long', label: 'Narratif', duree: 22, desc: 'Accroche → contexte → preuves plein écran → leçon en citation → CTA.' },
-  ]);
+  const [reelTemplates, setReelTemplates] = useState(() => ([
+    { id: 'affiche', label: t('contenus.reelTpl.afficheLabel'), duree: 11, desc: t('contenus.reelTpl.afficheDesc') },
+    { id: 'impact', label: t('contenus.reelTpl.impactLabel'), duree: 8, desc: t('contenus.reelTpl.impactDesc') },
+    { id: 'stats', label: t('contenus.reelTpl.statsLabel'), duree: 10, desc: t('contenus.reelTpl.statsDesc') },
+    { id: 'long', label: t('contenus.reelTpl.longLabel'), duree: 22, desc: t('contenus.reelTpl.longDesc') },
+  ]));
   useEffect(() => {
     contenuService.reelTemplates().then((t) => { if (t?.length) setReelTemplates(t); }).catch(() => {});
   }, []);
@@ -302,14 +306,14 @@ export default function ContenusPage() {
     if (reelLoading) return;
     setReelFor(null);
     setReelLoading(contenu.id);
-    const tpl = reelTemplates.find((t) => t.id === duree);
-    toast.info(`Génération du reel « ${tpl?.label || 'Affiche'} » en cours (~${(tpl?.duree || 11) > 15 ? 2 : 1} min)…`);
+    const tpl = reelTemplates.find((x) => x.id === duree);
+    toast.info(t('contenus.toast.reelEnCours', { label: tpl?.label || t('contenus.reelTpl.afficheLabel'), min: (tpl?.duree || 11) > 15 ? 2 : 1 }));
     try {
       await contenuService.genererReel(contenu.id, duree);
-      toast.success('Reel généré 🎬 — il est « À valider »');
+      toast.success(t('contenus.toast.reelGenere'));
       fetchContenus();
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec de la génération du reel');
+      toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));
     } finally {
       setReelLoading(null);
     }
@@ -322,11 +326,11 @@ export default function ContenusPage() {
     try {
       const res = await contenuService.recycler(recycleFor.id, recycleNets);
       const n = res.created?.length || 0;
-      toast.success(`Post recyclé sur ${n} réseau${n > 1 ? 'x' : ''} ♻️ — les copies sont « À valider »`);
+      toast.success(n > 1 ? t('contenus.toast.recycleOkPluriel', { n }) : t('contenus.toast.recycleOk', { n }));
       setRecycleFor(null);
       fetchContenus();
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec du recyclage');
+      toast.error(e.response?.data?.detail || t('contenus.toast.recycleEchec'));
     } finally {
       setRecycling(false);
     }
@@ -366,10 +370,10 @@ export default function ContenusPage() {
         const patch = { slides_images: imgs, lien_visuel: imgs[0], carrousel_pdf: d.pdf };
         setContenus((prev) => prev.map((c) => (c.id === selectedContenu.id ? { ...c, ...patch } : c)));
         setSelectedContenu((prev) => (prev ? { ...prev, ...patch } : prev));
-        toast.success('Carrousel retouché ✨');
+        toast.success(t('contenus.toast.carrouselRetouche'));
       }
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec de la retouche');
+      toast.error(e.response?.data?.detail || t('contenus.toast.retoucheEchec'));
     } finally { setCzRBusy(false); }
   };
   // Aperçu LIVE (client-side) du vrai carrousel avec la retouche — instantané, sans backend
@@ -509,9 +513,9 @@ export default function ContenusPage() {
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: d.url } : prev));
       refreshUsage();
       track('image_generee', { mode: 'gabarit', gabarit: gab });
-      toast.success('Visuel créé ✨');
+      toast.success(t('contenus.toast.visuelCree'));
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec de la création du visuel');
+      toast.error(e.response?.data?.detail || t('contenus.toast.visuelCreationEchec'));
     } finally {
       setGabaritBusy(null);
     }
@@ -535,7 +539,7 @@ export default function ContenusPage() {
   const importerRef = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image.'); return; }
+    if (!file.type.startsWith('image/')) { toast.error(t('contenus.toast.choisissezImage')); return; }
     setRefImporting(true);
     try {
       const list = await userService.addInspiration(file);
@@ -543,9 +547,9 @@ export default function ContenusPage() {
       setInspirations(urls);
       const added = urls.find((u) => !inspirations.includes(u));
       if (added) setSelectedRefs((prev) => [...prev, added]);
-      toast.success('Référence ajoutée');
+      toast.success(t('contenus.toast.refAjoutee'));
     } catch (err) {
-      toast.error("Échec de l'ajout");
+      toast.error(t('contenus.toast.ajoutEchec'));
     } finally {
       setRefImporting(false);
       if (refInputRef.current) refInputRef.current.value = '';
@@ -565,7 +569,7 @@ export default function ContenusPage() {
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, prompt_image: data.prompt } : c)));
       setImageContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, prompt_image: data.prompt } : prev));
     } catch (e) {
-      toast.error('Erreur lors de la préparation du prompt');
+      toast.error(t('contenus.toast.promptErreur'));
     } finally {
       setImgLoadingPrompt(false);
     }
@@ -608,10 +612,10 @@ export default function ContenusPage() {
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
       track('image_generee', { mode: activeTemplate ? 'template' : 'ia', modele: imgModele });
-      toast.success('Visuel généré ✨');
+      toast.success(t('contenus.toast.visuelGenere'));
       refreshUsage();
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Échec de la génération d'image");
+      toast.error(e.response?.data?.detail || t('contenus.toast.imageEchec'));
     } finally {
       setImgGenerating(false);
     }
@@ -636,16 +640,16 @@ export default function ContenusPage() {
   const importerImage = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !imageContenu) return;
-    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image (jpg, png, webp).'); return; }
-    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    if (!file.type.startsWith('image/')) { toast.error(t('contenus.toast.choisissezImageFormats')); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error(t('contenus.toast.imageTropLourde')); return; }
     setImgImporting(true);
     try {
       const data = await contenuService.uploadImage(imageContenu.id, file);
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, statut: data.statut || c.statut, date_publication: data.date_publication || c.date_publication } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel } : prev));
-      toast.success('Image importée ✓');
+      toast.success(t('contenus.toast.imageImportee'));
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Échec de l'import de l'image");
+      toast.error(err.response?.data?.detail || t('contenus.toast.importEchec'));
     } finally {
       setImgImporting(false);
       if (imgImportRef.current) imgImportRef.current.value = '';
@@ -666,11 +670,11 @@ export default function ContenusPage() {
       if (d.credits != null) updateUser({ credits: d.credits });
       const imgs = d.slides_images || [];
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, slides_images: imgs, lien_visuel: imgs[0] || c.lien_visuel } : c)));
-      if (imgs.length) toast.success('Carrousel régénéré ✨');
-      else toast.warning('Slides non rendues — réessaie');
+      if (imgs.length) toast.success(t('contenus.toast.carrouselRegenere'));
+      else toast.warning(t('contenus.toast.slidesNonRendues'));
     } catch (e) {
-      if (e.response?.status === 402) toast.error('Crédits insuffisants');
-      else toast.error(e.response?.data?.detail || 'Échec de la régénération');
+      if (e.response?.status === 402) toast.error(t('contenus.toast.creditsInsuffisants'));
+      else toast.error(e.response?.data?.detail || t('contenus.toast.regenerationEchec'));
     } finally {
       setCarrouselLoading(null);
     }
@@ -684,9 +688,9 @@ export default function ContenusPage() {
       const patch = { publish_status: d.publish_status, late_post_id: d.late_post_id, publish_error: null };
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
       setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, ...patch } : prev));
-      toast.success('Publication programmée ✓ — partira à la date prévue');
+      toast.success(t('contenus.toast.publicationProgrammee'));
     } catch (e) {
-      const msg = e.response?.data?.detail || 'Échec de la programmation';
+      const msg = e.response?.data?.detail || t('contenus.toast.programmationEchec');
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, publish_status: 'échec', publish_error: msg } : c)));
       setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, publish_status: 'échec', publish_error: msg } : prev));
       toast.error(msg);
@@ -706,10 +710,10 @@ export default function ContenusPage() {
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
       setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, ...patch } : prev));
       const dt = d.date_publication ? new Date(d.date_publication).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
-      if (d.publish_status === 'envoi') toast.success(`Replanifié → ${dt} ✓`);
-      else toast.error(d.error || "Replanifié, mais l'envoi a échoué — réessaie.");
+      if (d.publish_status === 'envoi') toast.success(t('contenus.toast.replanifie', { date: dt }));
+      else toast.error(d.error || t('contenus.toast.replanifieEchecEnvoi'));
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec de la replanification');
+      toast.error(e.response?.data?.detail || t('contenus.toast.replanificationEchec'));
     } finally {
       setPublishLoading(null);
     }
@@ -723,9 +727,9 @@ export default function ContenusPage() {
       const patch = { publish_status: d.publish_status, late_post_id: null, statut: d.statut || 'Valider' };
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
       setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, ...patch } : prev));
-      toast.success('Envoi annulé');
+      toast.success(t('contenus.toast.envoiAnnule'));
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Échec de l'annulation");
+      toast.error(e.response?.data?.detail || t('contenus.toast.annulationEchec'));
     } finally {
       setPublishLoading(null);
     }
@@ -753,7 +757,7 @@ export default function ContenusPage() {
       const data = await contenuService.getAll();
       setContenus(data);
     } catch (error) {
-      toast.error('Erreur lors du chargement des contenus');
+      toast.error(t('contenus.toast.chargementErreur'));
     } finally {
       setLoading(false);
     }
@@ -792,10 +796,10 @@ export default function ContenusPage() {
     setRenderSlidesLoading(contenu.id);
     try {
       await agentService.recolorCarrousel(contenu.id);
-      toast.success('Slides rendues en images ✨');
+      toast.success(t('contenus.toast.slidesRendues'));
       fetchContenus();
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec du rendu des slides');
+      toast.error(e.response?.data?.detail || t('contenus.toast.renduSlidesEchec'));
     } finally {
       setRenderSlidesLoading(null);
     }
@@ -805,10 +809,10 @@ export default function ContenusPage() {
     try {
       const d = await contenuService.declinerStory(contenu.id);
       const dt = d.date_publication ? new Date(d.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : null;
-      toast.success(dt ? `Story créée (À valider) — créneau du ${dt} ✨` : 'Story créée (À valider) ✨');
+      toast.success(dt ? t('contenus.toast.storyCreeeDate', { date: dt }) : t('contenus.toast.storyCreee'));
       fetchContenus();
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec de la déclinaison en story');
+      toast.error(e.response?.data?.detail || t('contenus.toast.storyEchec'));
     }
   };
 
@@ -818,7 +822,7 @@ export default function ContenusPage() {
       const reseau = (cible?.reseau_cible || '').toLowerCase();
       const plateforme = SOCIAL_PLATFORMS.find((p) => p.id === reseau);
       if (plateforme && !user?.[plateforme.field]) {
-        toast.error(`${plateforme.name} n'est pas connecté — connecte le compte dans Paramètres avant de valider ce post.`, { duration: 7000 });
+        toast.error(t('contenus.toast.reseauNonConnecte', { reseau: plateforme.name }), { duration: 7000 });
         return;
       }
     }
@@ -836,9 +840,9 @@ export default function ContenusPage() {
           const patch = { statut: 'Valider', date_publication: data.date_publication, publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null };
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
           track('post_valide', { reseau: (contenus.find((c) => c.id === id)?.reseau_cible || '').toLowerCase() });
-          toast.success(datePlanif ? `Validé et programmé pour le ${datePlanif} ✓` : 'Validé et programmé ✓');
+          toast.success(datePlanif ? t('contenus.toast.valideProgrammeDate', { date: datePlanif }) : t('contenus.toast.valideProgramme'));
         } catch (e) {
-          const msg = e.response?.data?.detail || 'Validé, mais la programmation a échoué (réseau connecté ?).';
+          const msg = e.response?.data?.detail || t('contenus.toast.valideProgrammationEchec');
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'Valider', date_publication: data.date_publication, publish_status: 'échec', publish_error: msg } : c)));
           toast.error(msg, { duration: 7000 });
         }
@@ -847,12 +851,12 @@ export default function ContenusPage() {
         return;
       }
 
-      if (newStatut === 'Refuse') toast.success('Contenu refusé');
-      else toast.success('Contenu mis à jour');
+      if (newStatut === 'Refuse') toast.success(t('contenus.toast.contenuRefuse'));
+      else toast.success(t('contenus.toast.contenuMisAJour'));
       fetchContenus();
       setSelectedContenu(null);
     } catch (error) {
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(t('contenus.toast.majErreur'));
     } finally {
       setActionLoading(null);
     }
@@ -866,11 +870,11 @@ export default function ContenusPage() {
         contenu: editContenu.contenu,
         titre: editContenu.titre,
       });
-      toast.success('Contenu modifié');
+      toast.success(t('contenus.toast.contenuModifie'));
       fetchContenus();
       setEditContenu(null);
     } catch (error) {
-      toast.error('Erreur lors de la modification');
+      toast.error(t('contenus.toast.modificationErreur'));
     } finally {
       setActionLoading(null);
     }
@@ -881,11 +885,11 @@ export default function ContenusPage() {
     setActionLoading(deleteContenu.id);
     try {
       await contenuService.remove(deleteContenu.id);
-      toast.success('Contenu supprimé');
+      toast.success(t('contenus.toast.contenuSupprime'));
       fetchContenus();
       setDeleteContenu(null);
     } catch (error) {
-      toast.error('Erreur lors de la suppression');
+      toast.error(t('contenus.toast.suppressionErreur'));
     } finally {
       setActionLoading(null);
     }
@@ -901,12 +905,12 @@ export default function ContenusPage() {
 
   // Pastilles de filtre : le chiffre EST le filtre (remplace stats + menu deroulant)
   const FILTRES = [
-    { id: 'all', label: 'Tous', n: stats.total, dot: null },
-    { id: 'A valider', label: 'À valider', n: stats.aValider, dot: '#fbbf24' },
-    { id: 'Valider', label: 'Validés', n: stats.valides, dot: '#a5b0ff' },
-    { id: 'Planifie', label: 'Planifiés', n: stats.planifies, dot: '#c084fc' },
-    { id: 'Publie', label: 'Publiés', n: stats.publies, dot: '#60a5fa' },
-    { id: 'Refuse', label: 'Refusés', n: null, dot: '#f87171' },
+    { id: 'all', label: t('contenus.filtres.tous'), n: stats.total, dot: null },
+    { id: 'A valider', label: t('contenus.filtres.aValider'), n: stats.aValider, dot: '#fbbf24' },
+    { id: 'Valider', label: t('contenus.filtres.valides'), n: stats.valides, dot: '#a5b0ff' },
+    { id: 'Planifie', label: t('contenus.filtres.planifies'), n: stats.planifies, dot: '#c084fc' },
+    { id: 'Publie', label: t('contenus.filtres.publies'), n: stats.publies, dot: '#60a5fa' },
+    { id: 'Refuse', label: t('contenus.filtres.refuses'), n: null, dot: '#f87171' },
   ];
 
   return (
@@ -916,9 +920,9 @@ export default function ContenusPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-sora text-white">Contenus</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-sora text-white">{t('contenus.titre')}</h1>
             <p className="text-slate-400 font-inter text-sm mt-1">
-              Gérez, validez et suivez vos publications
+              {t('contenus.sousTitre')}
             </p>
           </div>
           <Button
@@ -929,17 +933,17 @@ export default function ContenusPage() {
             className="text-slate-400 hover:text-white self-start sm:self-auto"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Actualiser
+            {t('contenus.actions.actualiser')}
           </Button>
         </div>
 
         {/* Tabs: Scripts / Vidéos / Tous */}
         <div className="flex gap-1 p-1 bg-slate-950/60 rounded-xl border border-white/[0.04]">
           {[
-            { id: 'all', label: 'Tous', icon: Sparkles, count: contenus.length },
-            { id: 'posts', label: 'Posts', icon: FileText, count: posts.length },
-            { id: 'scripts', label: 'Scripts', icon: ScrollText, count: scripts.length },
-            { id: 'videos', label: 'Vidéos', icon: Video, count: videos.length },
+            { id: 'all', label: t('contenus.onglets.tous'), icon: Sparkles, count: contenus.length },
+            { id: 'posts', label: t('contenus.onglets.posts'), icon: FileText, count: posts.length },
+            { id: 'scripts', label: t('contenus.onglets.scripts'), icon: ScrollText, count: scripts.length },
+            { id: 'videos', label: t('contenus.onglets.videos'), icon: Video, count: videos.length },
           ].map(tab => (
             <button
               key={tab.id}
@@ -985,7 +989,7 @@ export default function ContenusPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Rechercher un contenu..."
+              placeholder={t('contenus.recherche.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-full bg-slate-900/60 border border-white/[0.06] text-slate-200 text-sm font-inter placeholder:text-slate-600 focus:outline-none focus:border-[#5B6CFF]/50 transition-colors"
@@ -997,7 +1001,7 @@ export default function ContenusPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#5B6CFF]" />
-            <p className="text-sm text-slate-500 font-inter">Chargement des contenus...</p>
+            <p className="text-sm text-slate-500 font-inter">{t('contenus.etat.chargement')}</p>
           </div>
         ) : filteredContenus.length === 0 && filterStatut === 'A valider' && !searchQuery && stats.total > 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 bg-slate-900/30 border border-white/[0.04] rounded-2xl">
@@ -1005,12 +1009,12 @@ export default function ContenusPage() {
               <Check className="w-7 h-7 text-[#3AFFA3]" />
             </div>
             <div className="text-center">
-              <p className="text-slate-200 font-inter font-medium">Rien à valider — tout est traité ✨</p>
-              <p className="text-slate-500 font-inter text-sm mt-1">Tes contenus planifiés et publiés sont dans les autres filtres.</p>
+              <p className="text-slate-200 font-inter font-medium">{t('contenus.etat.rienAValider')}</p>
+              <p className="text-slate-500 font-inter text-sm mt-1">{t('contenus.etat.rienAValiderSous')}</p>
             </div>
             <button onClick={() => setFilterStatut('all')}
               className="text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-4 py-2 rounded-full transition-colors active:scale-[0.97]">
-              Voir tous les contenus ({stats.total})
+              {t('contenus.etat.voirTous', { n: stats.total })}
             </button>
           </div>
         ) : filteredContenus.length === 0 ? (
@@ -1020,16 +1024,16 @@ export default function ContenusPage() {
             </div>
             <div className="text-center">
               <p className="text-slate-400 font-inter font-medium">
-                {activeTab === 'scripts' ? 'Aucun script vidéo' : activeTab === 'videos' ? 'Aucune vidéo trouvée' : activeTab === 'posts' ? 'Aucun post trouvé' : 'Aucun contenu trouvé'}
+                {activeTab === 'scripts' ? t('contenus.etat.aucunScript') : activeTab === 'videos' ? t('contenus.etat.aucuneVideo') : activeTab === 'posts' ? t('contenus.etat.aucunPost') : t('contenus.etat.aucunContenu')}
               </p>
               <p className="text-slate-600 font-inter text-sm mt-1">
-                {searchQuery ? 'Essayez avec d\'autres termes de recherche' : activeTab === 'scripts' ? 'Les scripts vidéo à valider ou tourner apparaîtront ici' : activeTab === 'videos' ? 'Les vidéos tournées avec lien Dropbox apparaîtront ici' : activeTab === 'posts' ? 'Vos posts générés apparaîtront ici' : 'Vos contenus générés apparaîtront ici'}
+                {searchQuery ? t('contenus.etat.essayezAutresTermes') : activeTab === 'scripts' ? t('contenus.etat.scriptsIci') : activeTab === 'videos' ? t('contenus.etat.videosIci') : activeTab === 'posts' ? t('contenus.etat.postsIci') : t('contenus.etat.contenusIci')}
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs text-slate-500 font-inter">{filteredContenus.length} contenu{filteredContenus.length > 1 ? 's' : ''}{pageCount > 1 ? ` · page ${pageSafe}/${pageCount}` : ''}</p>
+            <p className="text-xs text-slate-500 font-inter">{filteredContenus.length > 1 ? t('contenus.compteur.contenusPluriel', { n: filteredContenus.length }) : t('contenus.compteur.contenus', { n: filteredContenus.length })}{pageCount > 1 ? t('contenus.compteur.page', { page: pageSafe, total: pageCount }) : ''}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {pagedContenus.map((contenu) => (
                 <ContentCard
@@ -1057,7 +1061,7 @@ export default function ContenusPage() {
               <div className="flex items-center justify-center gap-1.5 pt-3">
                 <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={pageSafe === 1}
                   className="h-9 px-3 rounded-lg border border-white/[0.08] bg-slate-900/60 text-slate-300 text-sm font-inter hover:bg-white/[0.06] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                  ‹ Précédent
+                  {t('contenus.pagination.precedent')}
                 </button>
                 {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
                   <button key={n} onClick={() => setPage(n)}
@@ -1067,7 +1071,7 @@ export default function ContenusPage() {
                 ))}
                 <button onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={pageSafe === pageCount}
                   className="h-9 px-3 rounded-lg border border-white/[0.08] bg-slate-900/60 text-slate-300 text-sm font-inter hover:bg-white/[0.06] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                  Suivant ›
+                  {t('contenus.pagination.suivant')}
                 </button>
               </div>
             )}
@@ -1083,7 +1087,7 @@ export default function ContenusPage() {
                 <div className="px-5 py-4 border-b border-white/10 flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <DialogTitle className="text-white font-sora text-[17px] leading-snug" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {selectedContenu.titre || 'Détail du contenu'}
+                      {selectedContenu.titre || t('contenus.detail.titre')}
                     </DialogTitle>
                     <div className="flex flex-wrap items-center gap-2 mt-2.5">
                       <StatusBadge statut={selectedContenu.statut} />
@@ -1093,7 +1097,7 @@ export default function ContenusPage() {
                       )}
                       {PUBLISH_BADGE[selectedContenu.publish_status] && (
                         <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium font-inter border ${PUBLISH_BADGE[selectedContenu.publish_status].cls}`}>
-                          {PUBLISH_BADGE[selectedContenu.publish_status].label}
+                          {t(PUBLISH_BADGE[selectedContenu.publish_status].labelKey)}
                         </span>
                       )}
                     </div>
@@ -1109,12 +1113,12 @@ export default function ContenusPage() {
                     // Script prêt : à filmer + monter → Studio Vidéo
                     <div className="flex flex-col gap-4 py-1">
                       <div className="rounded-xl bg-[#0c111f] border border-white/5 p-4">
-                        <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-2 flex items-center gap-1.5"><ScrollText className="w-3.5 h-3.5" />Ton script</p>
+                        <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-2 flex items-center gap-1.5"><ScrollText className="w-3.5 h-3.5" />{t('contenus.detail.tonScript')}</p>
                         <pre className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-300 font-inter max-h-[44vh] overflow-y-auto">{selectedContenu.script || '—'}</pre>
                       </div>
                       <button onClick={() => navigate(`/dashboard/video?contenu_id=${selectedContenu.id}`)}
                         className="w-full rounded-xl py-3 font-sora font-semibold text-white bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 flex items-center justify-center gap-2 transition-opacity">
-                        <Video className="w-4 h-4" /> Monter la vidéo
+                        <Video className="w-4 h-4" /> {t('contenus.detail.monterVideo')}
                       </button>
                     </div>
                   ) : selectedContenu.video_url ? (
@@ -1123,7 +1127,7 @@ export default function ContenusPage() {
                   ) : selectedContenu.video_status === 'en_traitement' ? (
                     <div className="w-full aspect-[9/16] max-h-[70vh] rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-400">
                       <Loader2 className="w-7 h-7 animate-spin text-[#8A6CFF]" />
-                      <span className="text-xs font-inter">Montage vidéo en cours…</span>
+                      <span className="text-xs font-inter">{t('contenus.detail.montageVideoEnCours')}</span>
                     </div>
                   ) : czR && selectedContenu.carrousel_data ? (
                     // Aperçu LIVE éditable — seulement AVANT validation (reflète la retouche)
@@ -1139,7 +1143,7 @@ export default function ContenusPage() {
                             </div>
                             <div className="flex gap-1.5 justify-center flex-wrap">
                               {slides.map((_, i) => (
-                                <button key={i} onClick={() => setCzSlide(i)} title={`slide ${i + 1}`}
+                                <button key={i} onClick={() => setCzSlide(i)} title={t('contenus.detail.slide', { n: i + 1 })}
                                   className={`rounded-md overflow-hidden border transition-all ${i === idx ? 'border-[#3AFFA3] ring-1 ring-[#3AFFA3]/40' : 'border-white/10 opacity-60 hover:opacity-100'}`}
                                   style={{ width: 32, height: 40 }}>
                                   <div className="origin-top-left" style={{ transform: 'scale(0.16)', width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: slides[i] }} />
@@ -1147,7 +1151,7 @@ export default function ContenusPage() {
                               ))}
                             </div>
                             <p className="text-[11px] text-[#3AFFA3] text-center font-inter flex items-center justify-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3]" />Aperçu live — reflète ta retouche
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3]" />{t('contenus.detail.apercuLive')}
                             </p>
                           </div>
                         );
@@ -1158,7 +1162,7 @@ export default function ContenusPage() {
                       {selectedContenu.slides_images.map((u, i) => (
                         <button key={i} type="button" onClick={() => setLightbox({ images: selectedContenu.slides_images, index: i })}
                           className="group relative block w-full overflow-hidden rounded-lg ring-1 ring-white/10 hover:ring-[#5B6CFF]/50 transition-all">
-                          <img src={u} alt={`slide ${i + 1}`} className="w-full object-cover group-hover:scale-[1.03] transition-transform" />
+                          <img src={u} alt={t('contenus.detail.slide', { n: i + 1 })} className="w-full object-cover group-hover:scale-[1.03] transition-transform" />
                           <span className="absolute bottom-1 right-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-black/60 text-white/90">{i + 1}/{selectedContenu.slides_images.length}</span>
                         </button>
                       ))}
@@ -1172,7 +1176,7 @@ export default function ContenusPage() {
                   ) : (
                     <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-600">
                       <ImageIcon className="w-10 h-10" />
-                      <span className="text-xs font-inter">Aucun visuel</span>
+                      <span className="text-xs font-inter">{t('contenus.detail.aucunVisuel')}</span>
                     </div>
                   )}
 
@@ -1182,7 +1186,7 @@ export default function ContenusPage() {
                     && selectedContenu.type !== 'Reel' && selectedContenu.type !== 'Video' && (
                     <Button size="sm" onClick={() => { const c = selectedContenu; setSelectedContenu(null); openImage(c); }}
                       className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] hover:-translate-y-px transition-all">
-                      <Wand2 className="w-4 h-4 mr-1.5" />{selectedContenu.lien_visuel ? 'Changer / régénérer le visuel' : 'Générer une image'}
+                      <Wand2 className="w-4 h-4 mr-1.5" />{selectedContenu.lien_visuel ? t('contenus.detail.changerVisuel') : t('contenus.detail.genererImage')}
                     </Button>
                   )}
 
@@ -1190,19 +1194,19 @@ export default function ContenusPage() {
                   {czR && (
                     <div className="rounded-xl border border-white/10 bg-slate-950/40 p-3 space-y-2.5">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Retoucher</span>
-                        <span className="text-[10.5px] text-[#3AFFA3] font-semibold">↑ aperçu instantané</span>
+                        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('contenus.retouche.titre')}</span>
+                        <span className="text-[10.5px] text-[#3AFFA3] font-semibold">{t('contenus.retouche.apercuInstantane')}</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
-                        <ColorField label="Fond" name="p" value={czR.p} onChange={setCzRColor} />
-                        <ColorField label="Secondaire" name="s" value={czR.s} onChange={setCzRColor} />
-                        <ColorField label="Accent" name="a" value={czR.a} onChange={setCzRColor} />
+                        <ColorField label={t('contenus.retouche.fond')} name="p" value={czR.p} onChange={setCzRColor} />
+                        <ColorField label={t('contenus.retouche.secondaire')} name="s" value={czR.s} onChange={setCzRColor} />
+                        <ColorField label={t('contenus.retouche.accent')} name="a" value={czR.a} onChange={setCzRColor} />
                       </div>
                       <select value={czR.font || ''} onChange={(e) => setCzRColor('font', e.target.value)}
                         className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
                         {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
                       </select>
-                      <p className="text-[11px] text-slate-600 font-inter">Le texte ne change pas. Les images finales sont rendues à la <b className="text-slate-400">validation</b>.</p>
+                      <p className="text-[11px] text-slate-600 font-inter">{t('contenus.retouche.noteAvant')}<b className="text-slate-400">{t('contenus.retouche.noteValidation')}</b>{t('contenus.retouche.noteApres')}</p>
                     </div>
                   )}
 
@@ -1211,7 +1215,7 @@ export default function ContenusPage() {
                     <a href={selectedContenu.carrousel_pdf} target="_blank" rel="noopener noreferrer" download
                       className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-slate-200 text-sm font-inter py-2.5 transition-colors">
                       <FileText className="w-4 h-4 text-[#5B6CFF]" />
-                      Télécharger le PDF <span className="text-slate-500">(document LinkedIn)</span>
+                      {t('contenus.detail.telechargerPdf')} <span className="text-slate-500">{t('contenus.detail.documentLinkedin')}</span>
                     </a>
                   )}
 
@@ -1227,7 +1231,7 @@ export default function ContenusPage() {
                         <ExternalLink className="w-4 h-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold font-sora text-sm">Publication en ligne</p>
+                        <p className="font-semibold font-sora text-sm">{t('contenus.detail.publicationEnLigne')}</p>
                         <p className="text-xs text-blue-400/60 truncate">{selectedContenu.lien_publication}</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-blue-400/40 shrink-0" />
@@ -1246,7 +1250,7 @@ export default function ContenusPage() {
                         <Video className="w-4 h-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold font-sora text-sm">Vidéo Dropbox</p>
+                        <p className="font-semibold font-sora text-sm">{t('contenus.detail.videoDropbox')}</p>
                         <p className="text-xs text-purple-400/60 truncate">{selectedContenu.lien_video_dropbox}</p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-purple-400/40 shrink-0" />
@@ -1258,23 +1262,23 @@ export default function ContenusPage() {
                   <div className="flex flex-col min-h-0">
                     <div className="flex-1 overflow-y-auto p-5 space-y-4">
                       <div>
-                        <p className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold mb-2.5">Texte du post</p>
+                        <p className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold mb-2.5">{t('contenus.detail.textePost')}</p>
                         <p className="text-slate-200 font-inter text-[14px] leading-relaxed whitespace-pre-wrap">{selectedContenu.contenu}</p>
                       </div>
                       <div className="grid grid-cols-2 gap-2.5">
                         <div className="bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
-                          <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Créé le</p>
+                          <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">{t('contenus.detail.creeLe')}</p>
                           <p className="text-slate-300 text-[13px] font-inter tabular-nums">{new Date(selectedContenu.created_at).toLocaleString('fr-FR')}</p>
                         </div>
                         {selectedContenu.date_publication && (
                           <div className="bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Publication</p>
+                            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">{t('contenus.detail.publication')}</p>
                             <p className="text-[#3AFFA3] text-[13px] font-inter tabular-nums">{new Date(selectedContenu.date_publication).toLocaleString('fr-FR')}</p>
                           </div>
                         )}
                         {selectedContenu.callback_url && (
                           <div className="col-span-2 bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">Webhook</p>
+                            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">{t('contenus.detail.webhook')}</p>
                             <p className="text-emerald-400 text-xs truncate font-inter">{selectedContenu.callback_url}</p>
                           </div>
                         )}
@@ -1282,7 +1286,7 @@ export default function ContenusPage() {
                       {selectedContenu.publish_status === 'échec' && selectedContenu.publish_error && (
                         <div className="flex gap-2.5 items-start p-3 rounded-lg bg-red-500/[0.07] border border-red-500/20">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-                          <p className="text-[12px] text-red-300/90 leading-relaxed"><b className="text-red-200">Publication en échec.</b> {selectedContenu.publish_error}</p>
+                          <p className="text-[12px] text-red-300/90 leading-relaxed"><b className="text-red-200">{t('contenus.detail.publicationEchecLabel')}</b> {selectedContenu.publish_error}</p>
                         </div>
                       )}
                     </div>
@@ -1293,54 +1297,54 @@ export default function ContenusPage() {
                 <div className="px-5 py-3 border-t border-white/10 flex items-center gap-3 bg-[#0a0f1c]">
                   <Button size="sm" onClick={() => { const c = selectedContenu; setSelectedContenu(null); setDeleteContenu(c); }}
                     className="bg-transparent text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent font-inter shrink-0 px-2.5">
-                    <Trash2 className="w-4 h-4 mr-1.5" />Supprimer</Button>
+                    <Trash2 className="w-4 h-4 mr-1.5" />{t('contenus.actions.supprimer')}</Button>
                   <span className="hidden sm:block text-[11.5px] text-slate-600 font-inter truncate">
-                    {czR ? 'Images finales rendues à la validation' : ''}
+                    {czR ? t('contenus.detail.imagesFinalesValidation') : ''}
                   </span>
                   <div className="flex items-center gap-2 flex-wrap justify-end ml-auto">
                     {selectedContenu.video_url && selectedContenu.statut !== 'Publie' && (
                       <Button size="sm" onClick={() => navigate(`/dashboard/video?contenu_id=${selectedContenu.id}`)}
                         className="bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 font-sora font-semibold rounded-[11px]">
-                        <Video className="w-4 h-4 mr-1.5" />Modifier la vidéo</Button>
+                        <Video className="w-4 h-4 mr-1.5" />{t('contenus.detail.modifierVideo')}</Button>
                     )}
                     {selectedContenu.statut === 'A valider' && (
                       <>
                         <Button size="sm" onClick={() => handleUpdateStatut(selectedContenu.id, 'Refuse')} disabled={actionLoading === selectedContenu.id}
-                          className="bg-transparent border border-white/[0.12] text-slate-400 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] px-4 transition-colors"><X className="w-4 h-4 mr-1.5" />Refuser</Button>
+                          className="bg-transparent border border-white/[0.12] text-slate-400 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] px-4 transition-colors"><X className="w-4 h-4 mr-1.5" />{t('contenus.actions.refuser')}</Button>
                         <Button size="sm" onClick={() => validerContenu(selectedContenu.id)}
                           disabled={actionLoading === selectedContenu.id || czRBusy || ((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)}
-                          title={((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url) ? 'Attends la fin du montage vidéo avant de publier' : undefined}
+                          title={((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url) ? t('contenus.detail.attendsMontage') : undefined}
                           className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] px-5 shadow-[0_8px_24px_rgba(91,108,255,0.35)] hover:-translate-y-px hover:shadow-[0_12px_30px_rgba(91,108,255,0.45)] transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none">
                           {((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)
-                            ? <><Loader2 className="w-4 h-4 animate-spin mr-1.5" />Montage en cours…</>
-                            : <>{(actionLoading === selectedContenu.id || czRBusy) ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Check className="w-4 h-4 mr-1.5" />}Valider &amp; programmer</>}</Button>
+                            ? <><Loader2 className="w-4 h-4 animate-spin mr-1.5" />{t('contenus.detail.montageEnCours')}</>
+                            : <>{(actionLoading === selectedContenu.id || czRBusy) ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Check className="w-4 h-4 mr-1.5" />}{t('contenus.actions.validerProgrammer')}</>}</Button>
                       </>
                     )}
                     {selectedContenu.statut !== 'Publie' && selectedContenu.statut !== 'A valider' && selectedContenu.reseau_cible
                       && ['', null, undefined, 'échec', 'annulé'].includes(selectedContenu.publish_status) && (
                       <Button size="sm" onClick={() => programmerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
-                        title={selectedContenu.publish_status === 'échec' ? selectedContenu.publish_error : 'Envoyer dans la file de publication'}
+                        title={selectedContenu.publish_status === 'échec' ? selectedContenu.publish_error : t('contenus.detail.envoyerFile')}
                         className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] px-4 shadow-[0_8px_24px_rgba(91,108,255,0.35)] hover:-translate-y-px hover:shadow-[0_12px_30px_rgba(91,108,255,0.45)] transition-all">
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
-                        {selectedContenu.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}</Button>
+                        {selectedContenu.publish_status === 'échec' ? t('contenus.actions.reessayer') : t('contenus.actions.programmer')}</Button>
                     )}
                     {selectedContenu.statut !== 'Publie' && selectedContenu.statut !== 'A valider' && selectedContenu.reseau_cible
                       && selectedContenu.publish_status !== 'publié' && (
                       <Button size="sm" onClick={() => replanifierPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
-                        title="Trouve automatiquement le prochain créneau libre (selon ta planification) et reprogramme"
+                        title={t('contenus.detail.replanifierTitle')}
                         data-testid="replanifier-btn"
                         className="bg-transparent border border-white/[0.12] text-slate-300 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] transition-colors">
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <RefreshCw className="w-4 h-4 mr-1.5" />}
-                        Replanifier</Button>
+                        {t('contenus.actions.replanifier')}</Button>
                     )}
                     {['envoi', 'programmé'].includes(selectedContenu.publish_status) && (
                       <Button size="sm" onClick={() => annulerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
                         className="bg-transparent border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 font-sora font-semibold rounded-[11px] transition-colors">
-                        {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <X className="w-4 h-4 mr-1.5" />}Annuler l'envoi</Button>
+                        {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <X className="w-4 h-4 mr-1.5" />}{t('contenus.actions.annulerEnvoi')}</Button>
                     )}
                     {selectedContenu.statut === 'Publie' && selectedContenu.lien_publication && (
                       <a href={selectedContenu.lien_publication} target="_blank" rel="noopener noreferrer">
-                        <Button size="sm" className="bg-transparent border border-white/[0.12] text-slate-300 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] transition-colors"><ExternalLink className="w-4 h-4 mr-1.5" />Voir la publication</Button>
+                        <Button size="sm" className="bg-transparent border border-white/[0.12] text-slate-300 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] transition-colors"><ExternalLink className="w-4 h-4 mr-1.5" />{t('contenus.actions.voirPublication')}</Button>
                       </a>
                     )}
                   </div>
@@ -1354,7 +1358,7 @@ export default function ContenusPage() {
         <Dialog open={!!editContenu} onOpenChange={() => setEditContenu(null)}>
           <DialogContent className="bg-[#0f172a] border-slate-800">
             <DialogHeader>
-              <DialogTitle className="text-white font-sora">Modifier le contenu</DialogTitle>
+              <DialogTitle className="text-white font-sora">{t('contenus.edition.titre')}</DialogTitle>
             </DialogHeader>
             {editContenu && (
               <div className="space-y-4">
@@ -1373,7 +1377,7 @@ export default function ContenusPage() {
                   const over = n > lim;
                   return (
                     <p className={`text-[11.5px] font-inter text-right ${over ? 'text-red-400 font-semibold' : n > lim * 0.9 ? 'text-amber-400' : 'text-slate-500'}`}>
-                      {n.toLocaleString('fr-FR')} / {lim.toLocaleString('fr-FR')} caractères{over ? ' — trop long, la publication sera refusée' : ''}
+                      {t('contenus.edition.compteur', { n: n.toLocaleString('fr-FR'), lim: lim.toLocaleString('fr-FR') })}{over ? t('contenus.edition.tropLong') : ''}
                     </p>
                   );
                 })()}
@@ -1381,7 +1385,7 @@ export default function ContenusPage() {
             )}
             <DialogFooter>
               <Button variant="ghost" onClick={() => setEditContenu(null)} className="font-inter text-slate-400">
-                Annuler
+                {t('contenus.actions.annuler')}
               </Button>
               <Button
                 onClick={handleEdit}
@@ -1389,7 +1393,7 @@ export default function ContenusPage() {
                 className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter"
               >
                 {actionLoading === editContenu?.id && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                Enregistrer
+                {t('contenus.actions.enregistrer')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1400,15 +1404,13 @@ export default function ContenusPage() {
           <DialogContent className="bg-[#0f172a] border-slate-800">
             <DialogHeader>
               <DialogTitle className="text-white font-sora flex items-center gap-2">
-                <Repeat2 className="w-4 h-4 text-[#3AFFA3]" />Recycler ce post
+                <Repeat2 className="w-4 h-4 text-[#3AFFA3]" />{t('contenus.recyclage.titre')}
               </DialogTitle>
             </DialogHeader>
             {recycleFor && (
               <div className="space-y-4">
                 <p className="text-sm text-slate-400 font-inter">
-                  Une copie du post sera créée pour chaque réseau coché, avec son propre créneau de
-                  publication. Les copies arrivent en <span className="text-amber-400">« À valider »</span> —
-                  tu peux ajuster le texte avant validation.
+                  {t('contenus.recyclage.descAvant')}<span className="text-amber-400">{t('contenus.recyclage.descBadge')}</span>{t('contenus.recyclage.descApres')}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {connectedNets
@@ -1428,16 +1430,16 @@ export default function ContenusPage() {
                     })}
                 </div>
                 {!connectedNets.filter((p) => p.id !== (recycleFor.reseau_cible || '').toLowerCase()).length && (
-                  <p className="text-xs text-slate-500 font-inter">Aucun autre réseau connecté — connecte un réseau dans Paramètres → Réseaux sociaux.</p>
+                  <p className="text-xs text-slate-500 font-inter">{t('contenus.recyclage.aucunReseau')}</p>
                 )}
               </div>
             )}
             <DialogFooter>
-              <Button variant="ghost" onClick={() => setRecycleFor(null)} className="font-inter text-slate-400">Annuler</Button>
+              <Button variant="ghost" onClick={() => setRecycleFor(null)} className="font-inter text-slate-400">{t('contenus.actions.annuler')}</Button>
               <Button onClick={doRecycle} disabled={recycling || !recycleNets.length} data-testid="recycle-submit"
                 className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter">
                 {recycling ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Repeat2 className="w-4 h-4 mr-2" />}
-                Recycler ({recycleNets.length})
+                {t('contenus.recyclage.bouton', { n: recycleNets.length })}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -1448,26 +1450,26 @@ export default function ContenusPage() {
           <DialogContent className="bg-[#0f172a] border-slate-800 max-w-md">
             <DialogHeader>
               <DialogTitle className="text-white font-sora flex items-center gap-2">
-                <Clapperboard className="w-4 h-4 text-[#8A6CFF]" />Générer un reel animé
+                <Clapperboard className="w-4 h-4 text-[#8A6CFF]" />{t('contenus.reel.generer')}
               </DialogTitle>
             </DialogHeader>
             {reelFor && (
               <div className="space-y-3">
                 <p className="text-sm text-slate-400 font-inter">
-                  Le post est transformé en vidéo verticale animée à ta charte. Choisis le template :
+                  {t('contenus.reel.description')}
                 </p>
                 <div className="space-y-2.5 max-h-[52vh] overflow-y-auto pr-1">
-                  {reelTemplates.map((t, i) => (
-                    <button key={t.id} type="button" onClick={() => doReel(reelFor, t.id)} data-testid={`reel-${t.id}`}
+                  {reelTemplates.map((tpl, i) => (
+                    <button key={tpl.id} type="button" onClick={() => doReel(reelFor, tpl.id)} data-testid={`reel-${tpl.id}`}
                       className="w-full text-left rounded-xl border border-white/[0.08] bg-slate-950/50 hover:border-[#8A6CFF]/50 hover:bg-[#8A6CFF]/5 transition-all active:scale-[0.98] p-4">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-sora font-bold text-white flex items-center gap-2">
-                          {t.label}
-                          {i === 0 && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">★ Nouveau</span>}
+                          {tpl.label}
+                          {i === 0 && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">{t('contenus.reel.nouveau')}</span>}
                         </span>
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 shrink-0">{t.duree} s</span>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 shrink-0">{tpl.duree} s</span>
                       </div>
-                      <p className="text-xs text-slate-400 font-inter mt-1">{t.desc}</p>
+                      <p className="text-xs text-slate-400 font-inter mt-1">{tpl.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -1480,17 +1482,17 @@ export default function ContenusPage() {
         <AlertDialog open={!!deleteContenu} onOpenChange={() => setDeleteContenu(null)}>
           <AlertDialogContent className="bg-[#0f172a] border-slate-800">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-white font-sora">Supprimer ce contenu ?</AlertDialogTitle>
+              <AlertDialogTitle className="text-white font-sora">{t('contenus.suppression.titre')}</AlertDialogTitle>
               <AlertDialogDescription className="text-slate-400 font-inter">
-                Cette action est irréversible. Le contenu sera définitivement supprimé.
+                {t('contenus.suppression.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 font-inter">
-                Annuler
+                {t('contenus.actions.annuler')}
               </AlertDialogCancel>
               <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600 font-inter">
-                Supprimer
+                {t('contenus.actions.supprimer')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1505,10 +1507,10 @@ export default function ContenusPage() {
                 <div className="md:w-[44%] p-5 flex flex-col gap-3 border-b md:border-b-0 md:border-r border-white/10"
                   style={{ background: 'radial-gradient(120% 90% at 30% 0%, rgba(91,108,255,.08), transparent 55%), #0b1120' }}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10.5px] tracking-[0.18em] uppercase text-slate-500 font-semibold">Aperçu</span>
+                    <span className="text-[10.5px] tracking-[0.18em] uppercase text-slate-500 font-semibold">{t('contenus.image.apercu')}</span>
                     {imageContenu.lien_visuel && (
                       <a href={imageContenu.lien_visuel} target="_blank" rel="noreferrer"
-                        className="w-8 h-8 rounded-lg border border-white/10 grid place-items-center text-slate-400 hover:text-white hover:border-white/20" title="Ouvrir / télécharger">
+                        className="w-8 h-8 rounded-lg border border-white/10 grid place-items-center text-slate-400 hover:text-white hover:border-white/20" title={t('contenus.image.ouvrirTelecharger')}>
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     )}
@@ -1520,7 +1522,7 @@ export default function ContenusPage() {
                       <div className="w-full max-w-[300px] aspect-square rounded-2xl border border-dashed border-white/15 grid place-items-center text-center px-8">
                         <p className="text-slate-500 text-sm font-inter leading-relaxed">
                           <ImageIcon className="w-7 h-7 mx-auto mb-2.5 opacity-40" />
-                          Choisis un gabarit, un template,<br />ou décris ton image.
+                          {t('contenus.image.placeholderLigne1')}<br />{t('contenus.image.placeholderLigne2')}
                         </p>
                       </div>
                     )}
@@ -1530,14 +1532,14 @@ export default function ContenusPage() {
                 {/* ---- CONTRÔLES ---- */}
                 <div className="flex-1 md:w-[56%] flex flex-col min-h-0">
                   <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10 space-y-0 text-left">
-                    <DialogTitle className="text-white font-sora text-[17px]">Créer le visuel</DialogTitle>
-                    <p className="text-[12px] text-slate-500 font-inter">{user?.nom || 'Ta marque'} · feed cohérent</p>
+                    <DialogTitle className="text-white font-sora text-[17px]">{t('contenus.carte.creerVisuel')}</DialogTitle>
+                    <p className="text-[12px] text-slate-500 font-inter">{user?.nom || t('contenus.image.taMarque')} · {t('contenus.image.feedCoherent')}</p>
                   </DialogHeader>
 
                   <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
                     {/* Toggle de mode */}
                     <div className="grid grid-cols-3 gap-1 p-1 bg-[#0a0f1c] border border-white/10 rounded-xl">
-                      {[['gabarit', 'Gabarit', LayoutGrid], ['template', 'Template', ScrollText], ['ia', 'Image IA', Wand2]].map(([m, lbl, Icon]) => (
+                      {[['gabarit', t('contenus.image.modeGabarit'), LayoutGrid], ['template', t('contenus.image.modeTemplate'), ScrollText], ['ia', t('contenus.image.modeIa'), Wand2]].map(([m, lbl, Icon]) => (
                         <button key={m} onClick={() => setMode(m)}
                           className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-[13px] font-medium font-inter transition-all ${imgMode === m ? 'bg-[#5B6CFF]/15 text-white border border-[#5B6CFF]/40' : 'text-slate-400 border border-transparent hover:text-white'}`}>
                           <Icon className="w-3.5 h-3.5" />{lbl}
@@ -1548,7 +1550,7 @@ export default function ContenusPage() {
                     {/* MODE GABARIT */}
                     {imgMode === 'gabarit' && (
                       <div className="space-y-2.5">
-                        <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Mise en page</p>
+                        <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.miseEnPage')}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {gabarits.map((g) => (
                             <button key={g} onClick={() => setSelectedGabarit(g)} title={gabLabels[g] || g}
@@ -1564,31 +1566,31 @@ export default function ContenusPage() {
                             </button>
                           ))}
                         </div>
-                        <p className="text-[11.5px] text-slate-500 font-inter flex items-center gap-1.5"><Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" />L'IA écrit le texte depuis ton post et le pose sur le gabarit.</p>
+                        <p className="text-[11.5px] text-slate-500 font-inter flex items-center gap-1.5"><Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" />{t('contenus.image.iaEcritTexte')}</p>
 
                         {/* Photo — uniquement pour les gabarits qui ont une zone photo */}
                         {selectedGabarit && gabPhoto.includes(selectedGabarit) && (
                         <div className="space-y-2 pt-1">
                           <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Photo <span className="normal-case tracking-normal text-slate-600">· optionnel</span></label>
+                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.photo')} <span className="normal-case tracking-normal text-slate-600">{t('contenus.image.optionnel')}</span></label>
                             <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
                             <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
                               className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
-                              {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Importer
+                              {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} {t('contenus.image.importer')}
                             </button>
                           </div>
                           {inspirations.length === 0 ? (
-                            <p className="text-xs text-slate-600 font-inter">Importe une photo : elle ira dans la zone photo du gabarit.</p>
+                            <p className="text-xs text-slate-600 font-inter">{t('contenus.image.importePhotoZone')}</p>
                           ) : (
                             <div className="flex flex-wrap gap-2">
-                              <button onClick={() => setTemplateBg(null)} title="Pas de photo"
+                              <button onClick={() => setTemplateBg(null)} title={t('contenus.image.pasDePhoto')}
                                 className={`w-12 h-12 rounded-lg border-2 grid place-items-center text-[10px] font-medium transition-all ${!templateBg ? 'border-[#3AFFA3] text-[#3AFFA3]' : 'border-white/10 text-slate-500 hover:text-white'}`}>
-                                Aucune
+                                {t('contenus.image.aucune')}
                               </button>
                               {inspirations.map((url) => {
                                 const on = templateBg === url;
                                 return (
-                                  <button key={url} onClick={() => setTemplateBg(on ? null : url)} title={on ? 'Photo sélectionnée' : 'Utiliser cette photo'}
+                                  <button key={url} onClick={() => setTemplateBg(on ? null : url)} title={on ? t('contenus.image.photoSelectionnee') : t('contenus.image.utiliserPhoto')}
                                     className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-60 hover:opacity-90'}`}>
                                     <img src={url} alt="" className="w-full h-full object-cover" />
                                     {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
@@ -1601,14 +1603,14 @@ export default function ContenusPage() {
                           {templateBg && !inspirations.includes(templateBg) && (
                             <div className="flex items-center gap-2">
                               <img src={templateBg} alt="" className="w-12 h-12 rounded-lg object-cover ring-2 ring-[#3AFFA3]" />
-                              <span className="text-[11.5px] text-[#3AFFA3]">Photo générée sélectionnée</span>
+                              <span className="text-[11.5px] text-[#3AFFA3]">{t('contenus.image.photoGenereeSelectionnee')}</span>
                             </div>
                           )}
                           {/* Décris la photo -> générée automatiquement au clic sur le bouton principal en bas */}
                           <input value={photoDesc} onChange={(e) => setPhotoDesc(e.target.value)}
-                            placeholder="Ou décris la photo à générer…"
+                            placeholder={t('contenus.image.decrisPhotoPlaceholder')}
                             className="w-full bg-[#0a0f1c] border border-white/10 rounded-lg text-slate-200 text-[13px] px-3 py-2 outline-none focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
-                          <p className="text-[11px] text-slate-600 font-inter">Si tu la décris, la photo est générée automatiquement (IA) au moment de créer le visuel — consomme 1 image standard.</p>
+                          <p className="text-[11px] text-slate-600 font-inter">{t('contenus.image.photoAutoNote')}</p>
                         </div>
                         )}
                       </div>
@@ -1618,11 +1620,11 @@ export default function ContenusPage() {
                     {imgMode === 'template' && (
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Tes templates de marque</p>
-                          <a href="/dashboard/parametres" className="text-[11.5px] text-[#3AFFA3] hover:underline inline-flex items-center gap-1"><Plus className="w-3 h-3" />Nouveau</a>
+                          <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.tesTemplates')}</p>
+                          <a href="/dashboard/parametres" className="text-[11.5px] text-[#3AFFA3] hover:underline inline-flex items-center gap-1"><Plus className="w-3 h-3" />{t('contenus.image.nouveau')}</a>
                         </div>
                         {templates.length === 0 ? (
-                          <p className="text-xs text-slate-600 font-inter">Aucun template. Crée-en un dans Paramètres → Style &amp; Couleurs.</p>
+                          <p className="text-xs text-slate-600 font-inter">{t('contenus.image.aucunTemplate')}</p>
                         ) : (
                           <div className="grid grid-cols-3 gap-2">
                             {templates.map((t) => {
@@ -1644,37 +1646,37 @@ export default function ContenusPage() {
                         )}
                         {activeTemplate && (
                           <div className="space-y-1.5 pt-1">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Instructions (optionnel)</label>
+                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.instructionsOptionnel')}</label>
                             <Textarea value={imgPrompt} onChange={(e) => setImgPrompt(e.target.value)} rows={2}
-                              placeholder="Ex : mets la photo de référence dans le cercle, garde le fond bleu…"
+                              placeholder={t('contenus.image.instructionsPlaceholder')}
                               className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
-                            <p className="text-[11px] text-slate-600 font-inter">Laisse vide pour un rendu standard (l'IA reprend le texte du post).</p>
+                            <p className="text-[11px] text-slate-600 font-inter">{t('contenus.image.laisseVide')}</p>
                           </div>
                         )}
                         {activeTemplate && (
                           <div className="space-y-2 pt-1">
                             <div className="flex items-center justify-between gap-2">
                               <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">
-                                Images de référence <span className="text-slate-600 normal-case tracking-normal">· {selectedRefs.filter((u) => inspirations.includes(u)).length} choisie{selectedRefs.filter((u) => inspirations.includes(u)).length > 1 ? 's' : ''}</span>
+                                {t('contenus.image.imagesReference')} <span className="text-slate-600 normal-case tracking-normal">{selectedRefs.filter((u) => inspirations.includes(u)).length > 1 ? t('contenus.image.choisies', { n: selectedRefs.filter((u) => inspirations.includes(u)).length }) : t('contenus.image.choisie', { n: selectedRefs.filter((u) => inspirations.includes(u)).length })}</span>
                               </label>
                               <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
                               <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
                                 className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
-                                {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Ajouter
+                                {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} {t('contenus.image.ajouter')}
                               </button>
                             </div>
                             {inspirations.length === 0 ? (
-                              <p className="text-xs text-slate-600 font-inter">Aucune image. Ajoute-en une à intégrer via tes instructions.</p>
+                              <p className="text-xs text-slate-600 font-inter">{t('contenus.image.aucuneImageInstructions')}</p>
                             ) : (
                               <div className="flex flex-wrap gap-2">
                                 {inspirations.map((url) => {
                                   const on = selectedRefs.includes(url);
                                   return (
-                                    <div key={url} onClick={() => toggleRef(url, true)} title={on ? 'Utilisée' : 'Non utilisée'}
+                                    <div key={url} onClick={() => toggleRef(url, true)} title={on ? t('contenus.image.utilisee') : t('contenus.image.nonUtilisee')}
                                       className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
                                       <img src={url} alt="" className="w-full h-full object-cover" />
                                       {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
-                                      <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title="Agrandir"
+                                      <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title={t('contenus.image.agrandir')}
                                         className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <Search className="w-2.5 h-2.5" />
                                       </button>
@@ -1683,7 +1685,7 @@ export default function ContenusPage() {
                                 })}
                               </div>
                             )}
-                            <p className="text-[11px] text-slate-600 font-inter">Sélectionne une image, puis dis à l'IA quoi en faire dans « Instructions » (ex. « mets-la dans le cercle »).</p>
+                            <p className="text-[11px] text-slate-600 font-inter">{t('contenus.image.selectionneImageNote')}</p>
                           </div>
                         )}
                       </div>
@@ -1694,14 +1696,14 @@ export default function ContenusPage() {
                       <>
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Description de l'image</label>
+                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.descriptionImage')}</label>
                             <button onClick={() => chargerPrompt(imageContenu)} disabled={imgLoadingPrompt}
                               className="text-xs text-[#8A6CFF] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
-                              <Wand2 className="w-3 h-3" /> Proposer une description
+                              <Wand2 className="w-3 h-3" /> {t('contenus.image.proposerDescription')}
                             </button>
                           </div>
                           {imgLoadingPrompt ? (
-                            <div className="flex items-center gap-2 text-slate-400 text-sm py-4"><Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" /> L'IA prépare la description…</div>
+                            <div className="flex items-center gap-2 text-slate-400 text-sm py-4"><Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" /> {t('contenus.image.iaPrepareDescription')}</div>
                           ) : (
                             <Textarea value={imgPrompt} onChange={(e) => setImgPrompt(e.target.value)} rows={3}
                               className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50" />
@@ -1709,18 +1711,18 @@ export default function ContenusPage() {
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-[#0a0f1c] border border-white/10">
                           <div>
-                            <span className="text-sm text-slate-300 font-inter">Inclure ma photo</span>
+                            <span className="text-sm text-slate-300 font-inter">{t('contenus.image.inclureMaPhoto')}</span>
                             <p className="text-[11px] text-slate-500 font-inter mt-0.5">
                               {user?.photo_url
-                                ? 'Décoché = aucun visage/humain ajouté au visuel.'
-                                : 'Ajoute une photo de profil dans Paramètres → Identité pour l’activer.'}
+                                ? t('contenus.image.decocheNote')
+                                : t('contenus.image.ajoutePhotoProfil')}
                             </p>
                           </div>
                           <Switch
                             checked={imgAvecPhoto}
                             onCheckedChange={(v) => {
                               if (v && !user?.photo_url) {
-                                toast.error('Ajoute d’abord une photo de profil dans Paramètres → Identité.');
+                                toast.error(t('contenus.toast.photoProfilRequise'));
                                 return;
                               }
                               setImgAvecPhoto(v);
@@ -1729,25 +1731,25 @@ export default function ContenusPage() {
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Images de référence <span className="text-slate-600 normal-case tracking-normal">· {selectedRefs.length} choisie{selectedRefs.length > 1 ? 's' : ''}</span></label>
+                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.imagesReference')} <span className="text-slate-600 normal-case tracking-normal">{selectedRefs.length > 1 ? t('contenus.image.choisies', { n: selectedRefs.length }) : t('contenus.image.choisie', { n: selectedRefs.length })}</span></label>
                             <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
                             <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
                               className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
-                              {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} Ajouter
+                              {refImporting ? <Loader2 className="w-3 h-3 animate-spin" /> : <ImageIcon className="w-3 h-3" />} {t('contenus.image.ajouter')}
                             </button>
                           </div>
                           {inspirations.length === 0 ? (
-                            <p className="text-xs text-slate-600 font-inter">Aucune image. Ajoute-en une pour guider le style.</p>
+                            <p className="text-xs text-slate-600 font-inter">{t('contenus.image.aucuneImageStyle')}</p>
                           ) : (
                             <div className="flex flex-wrap gap-2">
                               {inspirations.map((url) => {
                                 const on = selectedRefs.includes(url);
                                 return (
-                                  <div key={url} onClick={() => toggleRef(url)} title={on ? 'Utilisée' : 'Non utilisée'}
+                                  <div key={url} onClick={() => toggleRef(url)} title={on ? t('contenus.image.utilisee') : t('contenus.image.nonUtilisee')}
                                     className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
                                     <img src={url} alt="" className="w-full h-full object-cover" />
                                     {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
-                                    <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title="Agrandir"
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title={t('contenus.image.agrandir')}
                                       className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                       <Search className="w-2.5 h-2.5" />
                                     </button>
@@ -1764,12 +1766,12 @@ export default function ContenusPage() {
                     {/* Qualité (modèle) — Image IA ET Template : choix HD / standard */}
                     {imgMode !== 'gabarit' && (
                       <div className="space-y-2">
-                        <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">Qualité</p>
+                        <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.qualite')}</p>
                         <div className="grid grid-cols-2 gap-2">
                           {IMAGE_MODELES.map((m) => (
                             <button key={m.id} onClick={() => setImgModele(m.id)}
                               className={`px-3 py-2 rounded-lg text-[13px] font-medium font-inter border transition-all ${imgModele === m.id ? 'bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-[#5B6CFF]/50' : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'}`}>
-                              {m.id === 'nano3' ? 'Image HD' : 'Image standard'}
+                              {m.id === 'nano3' ? t('contenus.image.imageHd') : t('contenus.image.imageStandard')}
                             </button>
                           ))}
                         </div>
@@ -1779,7 +1781,7 @@ export default function ContenusPage() {
                     {imgMode === 'template' && imgModele === 'nano2' && (
                       <div className="flex items-start gap-2 text-[12px] text-amber-300/90 bg-amber-500/[0.06] border border-amber-500/20 rounded-lg px-3 py-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
-                        <span>Mode <b>standard</b> : moins cher, mais peut parfois produire des <b>fautes d'orthographe</b> sur le texte. Passe en <b>Image HD</b> pour un texte fiable.</span>
+                        <span>{t('contenus.image.warnStdA')}<b>{t('contenus.image.warnStdB')}</b>{t('contenus.image.warnStdC')}<b>{t('contenus.image.warnStdD')}</b>{t('contenus.image.warnStdE')}<b>{t('contenus.image.warnStdF')}</b>{t('contenus.image.warnStdG')}</span>
                       </div>
                     )}
                   </div>
@@ -1788,7 +1790,7 @@ export default function ContenusPage() {
                   <div className="border-t border-white/10 px-5 py-3 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-[12px] text-slate-400 min-w-0">
                       {quotaInfo() ? (
-                        <><span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3] shrink-0" /><span className="truncate"><b className="text-slate-200 font-semibold">{quotaInfo().remaining}</b> {quotaInfo().label} restantes</span></>
+                        <><span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3] shrink-0" /><span className="truncate"><b className="text-slate-200 font-semibold">{quotaInfo().remaining}</b> {quotaInfo().label} {t('contenus.image.restantes')}</span></>
                       ) : null}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -1798,11 +1800,11 @@ export default function ContenusPage() {
                           {imgImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
                         </Button>
                       )}
-                      <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">Fermer</Button>
+                      <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">{t('contenus.actions.fermer')}</Button>
                       <Button onClick={onGenerate} disabled={genDisabled}
                         className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter shadow-lg shadow-[#5B6CFF]/30">
                         {genBusy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
-                        {imageContenu.lien_visuel ? 'Régénérer' : 'Générer le visuel'}
+                        {imageContenu.lien_visuel ? t('contenus.actions.regenerer') : t('contenus.carte.genererVisuel')}
                       </Button>
                     </div>
                   </div>
@@ -1816,25 +1818,25 @@ export default function ContenusPage() {
         {lightbox && createPortal((
           <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
             onClick={() => setLightbox(null)}>
-            <button onClick={() => setLightbox(null)} title="Fermer"
+            <button onClick={() => setLightbox(null)} title={t('contenus.actions.fermer')}
               className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
               <X className="w-5 h-5" />
             </button>
             {lightbox.images.length > 1 && (
               <button onClick={(e) => { e.stopPropagation(); setLightbox((lb) => ({ ...lb, index: (lb.index - 1 + lb.images.length) % lb.images.length })); }}
-                title="Précédent"
+                title={t('contenus.lightbox.precedent')}
                 className="absolute left-3 md:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
                 <ChevronRight className="w-6 h-6 rotate-180" />
               </button>
             )}
             <div className="flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
-              <img src={lightbox.images[lightbox.index]} alt={`slide ${lightbox.index + 1}`}
+              <img src={lightbox.images[lightbox.index]} alt={t('contenus.detail.slide', { n: lightbox.index + 1 })}
                 className="max-h-[82vh] max-w-[88vw] rounded-xl ring-1 ring-white/15 shadow-2xl" />
               <span className="text-sm text-white/70 font-inter">{lightbox.index + 1} / {lightbox.images.length}</span>
             </div>
             {lightbox.images.length > 1 && (
               <button onClick={(e) => { e.stopPropagation(); setLightbox((lb) => ({ ...lb, index: (lb.index + 1) % lb.images.length })); }}
-                title="Suivant"
+                title={t('contenus.lightbox.suivant')}
                 className="absolute right-3 md:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
                 <ChevronRight className="w-6 h-6" />
               </button>

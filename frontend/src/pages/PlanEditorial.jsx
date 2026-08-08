@@ -5,13 +5,14 @@ import {
   Loader2, Lightbulb, AlertTriangle, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation, Trans } from 'react-i18next';
 import { agentService } from '../services/agentService';
 import { useUser } from '../context/UserContext';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
 import { SocialIcon } from '../components/SocialIcon';
 
-const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+const MOIS_KEYS = ['moisJanvier', 'moisFevrier', 'moisMars', 'moisAvril', 'moisMai', 'moisJuin', 'moisJuillet', 'moisAout', 'moisSeptembre', 'moisOctobre', 'moisNovembre', 'moisDecembre'];
 
 // Métadonnées réseaux (badge)
 const NET_META = {
@@ -22,15 +23,15 @@ const NET_META = {
   youtube:   { short: '▶', cls: 'bg-[#ff0000]' },
   googlebusiness: { short: 'G', cls: 'bg-[#4285f4]' },
 };
-const FORMAT_LABEL = { post: 'Post écrit', reel: 'Réel', video: 'Vidéo', story: 'Story' };
+const FORMAT_LABEL_KEY = { post: 'formatPostEcrit', reel: 'formatReel', video: 'formatVideo', story: 'formatStory' };
 // coût crédits par (kind × qualité) — kind: post | script
 const COST = {
   post:      { rapide: 8, equilibre: 20, premium: 40 },
   script:    { rapide: 12, equilibre: 30, premium: 60 },
   carrousel: { rapide: 40, equilibre: 80, premium: 140 },
 };
-// libellés des formats
-const FORMAT_LBL = { post: 'Post', carrousel: 'Carrousel', reel: 'Réel', video: 'Vidéo', story: 'Story' };
+// libellés des formats (clés i18n — les ids restent les valeurs API)
+const FORMAT_LBL_KEY = { post: 'fmtPost', carrousel: 'fmtCarrousel', reel: 'fmtReel', video: 'fmtVideo', story: 'fmtStory' };
 // formats acceptés PAR réseau (chaque réseau n'accepte pas tout) — story : Instagram/Facebook (Zernio)
 const FORMATS_BY_NET = {
   linkedin:  ['post', 'carrousel', 'video'],
@@ -46,13 +47,14 @@ const defaultFormat = (netId, configFmt) => {
   return allowed.includes(configFmt) ? configFmt : allowed[0];
 };
 const QUALITES = [
-  { id: 'rapide', label: 'Rapide' },
-  { id: 'equilibre', label: 'Équilibré' },
-  { id: 'premium', label: 'Premium' },
+  { id: 'rapide', labelKey: 'qualiteRapide' },
+  { id: 'equilibre', labelKey: 'qualiteEquilibre' },
+  { id: 'premium', labelKey: 'qualitePremium' },
 ];
 const costKey = (fmt) => (fmt === 'post' || fmt === 'story' ? 'post' : fmt === 'carrousel' ? 'carrousel' : 'script');
 
 export default function PlanEditorial() {
+  const { t } = useTranslation();
   const { user } = useUser();
   const marqueOk = !!(user?.secteur && String(user.secteur).trim());
 
@@ -147,14 +149,14 @@ export default function PlanEditorial() {
   });
 
   const proposerSujets = async () => {
-    if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
+    if (!marqueOk) { toast.error(t('plan.toastSecteurRequis')); return; }
     setGenSujets(true);
     try {
       const d = await agentService.sujets(nbSujets);
       setSubjects((prev) => [...(d.sujets || []), ...prev]);
       agentService.usage().then(setUsage).catch(() => {}); // rafraîchit les jauges (sujets consommés)
     } catch (e) {
-      toast.error(e?.response?.data?.detail || 'Erreur lors de la génération');
+      toast.error(e?.response?.data?.detail || t('plan.toastErreurGeneration'));
     } finally {
       setGenSujets(false);
     }
@@ -173,7 +175,8 @@ export default function PlanEditorial() {
       const d = await agentService.rafale(rafale.items, year, month);
       if (d.usage) setUsage(d.usage); // rafraîchit les contenus restants
       const ko = (d.errors || []).length;
-      toast.success(`${d.created} contenu${d.created > 1 ? 's' : ''} généré${d.created > 1 ? 's' : ''} → onglet Contenus${ko ? ` (${ko} échec${ko > 1 ? 's' : ''})` : ''}`);
+      const okMsg = t('plan.toastRafaleSuccess', { count: d.created });
+      toast.success(ko ? `${okMsg}${t('plan.toastRafaleEchecs', { count: ko })}` : okMsg);
       // retire les sujets utilisés du pool
       const used = subjects.filter((s) => sel[s.id]?.checked && Object.keys(sel[s.id]?.nets || {}).length);
       used.forEach((s) => agentService.supprimerSujet(s.id).catch(() => {}));
@@ -181,8 +184,8 @@ export default function PlanEditorial() {
       setSel({});
       fetchPlan(year, month);
     } catch (e) {
-      if (e?.response?.status === 402) toast.error('Quota atteint — plus de contenus disponibles ce mois');
-      else toast.error(e?.response?.data?.detail || 'Échec de la rafale');
+      if (e?.response?.status === 402) toast.error(t('plan.toastQuotaAtteint'));
+      else toast.error(e?.response?.data?.detail || t('plan.toastEchecRafale'));
     } finally {
       setRunning(false);
     }
@@ -192,13 +195,13 @@ export default function PlanEditorial() {
     <div className="w-full space-y-6 pb-28">
       <PageHeader
         icon={CalendarDays}
-        title="Plan éditorial"
-        subtitle="Remplis ton calendrier du mois, réseau par réseau."
+        title={t('plan.titre')}
+        subtitle={t('plan.sousTitre')}
         actions={
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]"
-            title={postGauge ? `${postGauge.used}/${postGauge.limit} contenus utilisés ce mois-ci` : undefined}>
+            title={postGauge ? t('plan.jaugeTitre', { used: postGauge.used, limit: postGauge.limit }) : undefined}>
             <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3]" />
-            <span className="text-xs text-slate-400 font-inter">Contenus restants</span>
+            <span className="text-xs text-slate-400 font-inter">{t('plan.contenusRestants')}</span>
             <span className="text-sm font-semibold text-white font-inter">
               {postGauge ? `${postsLeft} / ${postGauge.limit}` : '—'}
             </span>
@@ -213,7 +216,7 @@ export default function PlanEditorial() {
             <ChevronLeft className="w-[18px] h-[18px]" />
           </button>
           <div className="text-lg font-semibold font-sora min-w-[150px] text-center">
-            {MOIS[month - 1]} <span className="text-slate-500 font-medium">{year}</span>
+            {t(`plan.${MOIS_KEYS[month - 1]}`)} <span className="text-slate-500 font-medium">{year}</span>
           </div>
           <button onClick={() => changeMonth(1)} className="w-9 h-9 rounded-lg border border-white/10 bg-white/[0.02] text-slate-200 grid place-items-center hover:bg-white/[0.06] transition-colors">
             <ChevronRight className="w-[18px] h-[18px]" />
@@ -221,9 +224,9 @@ export default function PlanEditorial() {
         </div>
         <div className="text-[12.5px] text-slate-400 font-inter">
           {totals.allDone ? (
-            <span className="text-emerald-400 font-medium">Mois bouclé ✓ — passez au mois suivant ▶</span>
+            <span className="text-emerald-400 font-medium">{t('plan.moisBoucle')}</span>
           ) : (
-            <span><b className="text-slate-200">{totals.filled}</b> / {totals.needed} contenus du mois · <b className="text-slate-200">{totals.done}</b>/{totals.nets} réseaux bouclés</span>
+            <span><b className="text-slate-200">{totals.filled}</b> / {totals.needed} {t('plan.contenusDuMois')} · <b className="text-slate-200">{totals.done}</b>/{totals.nets} {t('plan.reseauxBoucles')}</span>
           )}
         </div>
       </div>
@@ -233,8 +236,10 @@ export default function PlanEditorial() {
         <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10">
           <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-amber-300 font-inter">
-            Renseignez votre <span className="font-medium">secteur</span> dans{' '}
-            <Link to="/dashboard/parametres" className="underline text-amber-200 hover:text-white">Paramètres → Voix de marque</Link> pour générer.
+            <Trans
+              i18nKey="plan.gardeFouMarque"
+              components={{ gras: <span className="font-medium" />, lien: <Link to="/dashboard/parametres" className="underline text-amber-200 hover:text-white" /> }}
+            />
           </p>
         </div>
       )}
@@ -242,15 +247,17 @@ export default function PlanEditorial() {
       {/* Objectifs du mois */}
       <div>
         <div className="flex items-center justify-between mb-3 px-0.5">
-          <h3 className="text-[13px] font-semibold flex items-center gap-2"><Zap className="w-[15px] h-[15px] text-[#3AFFA3]" /> Objectifs du mois</h3>
-          <span className="text-xs text-slate-600 font-inter">depuis ta cadence (Paramètres → Planification)</span>
+          <h3 className="text-[13px] font-semibold flex items-center gap-2"><Zap className="w-[15px] h-[15px] text-[#3AFFA3]" /> {t('plan.objectifsDuMois')}</h3>
+          <span className="text-xs text-slate-600 font-inter">{t('plan.depuisCadence')}</span>
         </div>
         {loadingPlan ? (
           <div className="flex items-center justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-[#5B6CFF]" /></div>
         ) : plan.length === 0 ? (
           <div className="text-sm text-slate-500 font-inter p-5 rounded-xl border border-white/[0.06] bg-[#0f172a]">
-            Aucun réseau actif. Définis ta cadence dans{' '}
-            <Link to="/dashboard/parametres" className="underline hover:text-white">Paramètres → Planification</Link> (fréquence + format par réseau).
+            <Trans
+              i18nKey="plan.aucunReseauActif"
+              components={{ lien: <Link to="/dashboard/parametres" className="underline hover:text-white" /> }}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -263,13 +270,13 @@ export default function PlanEditorial() {
                 <div key={p.platform} className={`rounded-2xl border p-4 transition-all ${!conn ? 'border-white/[0.06] bg-[#0f172a] opacity-55' : done ? 'border-[#3AFFA3]/30 bg-gradient-to-b from-[#3AFFA3]/[0.05] to-transparent' : 'border-white/[0.06] bg-[#0f172a]'}`}>
                   <div className="flex items-center gap-3 mb-3">
                     <div className={`w-8 h-8 rounded-lg grid place-items-center text-white ${meta.cls}`}><SocialIcon network={p.platform} className="w-4 h-4" /></div>
-                    <div><div className="font-semibold text-sm">{p.label}</div><div className="text-[11px] text-slate-500">{FORMAT_LABEL[p.format] || p.format}</div></div>
+                    <div><div className="font-semibold text-sm">{p.label}</div><div className="text-[11px] text-slate-500">{FORMAT_LABEL_KEY[p.format] ? t(`plan.${FORMAT_LABEL_KEY[p.format]}`) : p.format}</div></div>
                     <div className="ml-auto text-right">
                       {conn ? (<>
                         <div className="text-[15px] font-bold font-sora">{p.filled}<span className="text-slate-500 font-medium text-[13px]">/{p.needed}</span></div>
-                        <div className={`text-[11px] ${done ? 'text-[#3AFFA3]' : 'text-slate-500'}`}>{done ? 'bouclé ✓' : `${p.remaining} à faire`}</div>
+                        <div className={`text-[11px] ${done ? 'text-[#3AFFA3]' : 'text-slate-500'}`}>{done ? t('plan.boucle') : t('plan.aFaire', { count: p.remaining })}</div>
                       </>) : (
-                        <Link to="/dashboard/parametres" className="text-[11px] text-amber-400 hover:underline whitespace-nowrap">Non connecté →</Link>
+                        <Link to="/dashboard/parametres" className="text-[11px] text-amber-400 hover:underline whitespace-nowrap">{t('plan.nonConnecte')}</Link>
                       )}
                     </div>
                   </div>
@@ -286,8 +293,8 @@ export default function PlanEditorial() {
       {/* Sujets du mois */}
       <div>
         <div className="flex items-center justify-between mb-3 px-0.5">
-          <h3 className="text-[13px] font-semibold flex items-center gap-2"><Lightbulb className="w-[15px] h-[15px] text-amber-400" /> Sujets du mois</h3>
-          <span className="text-xs text-slate-600 font-inter">coche, puis choisis les réseaux</span>
+          <h3 className="text-[13px] font-semibold flex items-center gap-2"><Lightbulb className="w-[15px] h-[15px] text-amber-400" /> {t('plan.sujetsDuMois')}</h3>
+          <span className="text-xs text-slate-600 font-inter">{t('plan.cocheHintCourt')}</span>
         </div>
         <div className="flex items-center gap-3 flex-wrap mb-4">
           <input type="number" min={1} max={12} value={nbSujets}
@@ -296,14 +303,14 @@ export default function PlanEditorial() {
           <Button onClick={proposerSujets} disabled={!marqueOk || genSujets}
             className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
             {genSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            <span className="ml-2">Générer des sujets</span>
+            <span className="ml-2">{t('plan.genererSujets')}</span>
           </Button>
-          <span className="text-[12.5px] text-slate-600 font-inter">coche un sujet, puis choisis ses réseaux (un ou plusieurs)</span>
+          <span className="text-[12.5px] text-slate-600 font-inter">{t('plan.cocheHintLong')}</span>
         </div>
 
         {subjects.length === 0 ? (
           <div className="text-center py-10 text-slate-600 font-inter text-sm rounded-xl border border-white/[0.06] bg-[#0f172a]">
-            Aucun sujet. Génère un lot d'idées pour démarrer.
+            {t('plan.aucunSujet')}
           </div>
         ) : (
           <div className="flex flex-col gap-2.5">
@@ -318,7 +325,7 @@ export default function PlanEditorial() {
                     <span className={`flex-1 text-sm ${st.checked ? 'text-white font-medium' : 'text-slate-200'}`}>{s.titre}</span>
                     {st.checked && (() => { const cnt = Object.keys(st.nets).length; return (
                       <span className={`text-[11px] whitespace-nowrap ${cnt ? 'text-[#3AFFA3]' : 'text-amber-400'}`}>
-                        {cnt ? `${cnt} réseau${cnt > 1 ? 'x' : ''}` : 'choisis un réseau'}
+                        {cnt ? t('plan.nbReseaux', { count: cnt }) : t('plan.choisisUnReseau')}
                       </span>
                     ); })()}
                     <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} className="text-slate-600 hover:text-red-400 transition-colors flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
@@ -326,8 +333,8 @@ export default function PlanEditorial() {
                   {st.checked && (
                     <div className="px-4 pb-4 pt-3 border-t border-white/[0.06]">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[11px] text-slate-500 mr-0.5">Réseaux :</span>
-                        {networks.length === 0 && <Link to="/dashboard/parametres" className="text-[11px] text-amber-400 hover:underline">Aucun réseau connecté — connecte un compte dans Paramètres →</Link>}
+                        <span className="text-[11px] text-slate-500 mr-0.5">{t('plan.reseauxLabel')}</span>
+                        {networks.length === 0 && <Link to="/dashboard/parametres" className="text-[11px] text-amber-400 hover:underline">{t('plan.aucunReseauConnecte')}</Link>}
                         {networks.map((n) => {
                           const on = n.id in st.nets;
                           const meta = NET_META[n.id] || { short: '•', cls: 'bg-slate-700' };
@@ -341,7 +348,7 @@ export default function PlanEditorial() {
                               {on && (
                                 <select value={st.nets[n.id]} onChange={(e) => setNetFormat(s.id, n.id, e.target.value)}
                                   className="rounded-lg bg-slate-950/70 border border-[#5B6CFF]/30 text-slate-200 text-[11.5px] px-2 py-1.5 outline-none focus:border-[#5B6CFF]/60 cursor-pointer">
-                                  {formatsFor(n.id).map((f) => <option key={f} value={f} className="bg-slate-900">{FORMAT_LBL[f]}</option>)}
+                                  {formatsFor(n.id).map((f) => <option key={f} value={f} className="bg-slate-900">{t(`plan.${FORMAT_LBL_KEY[f]}`)}</option>)}
                                 </select>
                               )}
                             </div>
@@ -361,33 +368,33 @@ export default function PlanEditorial() {
       {rafale.posts > 0 && (
         <div className="fixed bottom-0 left-0 md:left-64 right-0 z-20 border-t border-white/10 bg-[#090d18]/90 backdrop-blur-xl px-5 md:px-8 py-3.5 flex items-center gap-4 flex-wrap">
           <div className="flex flex-col">
-            <div className="text-sm font-semibold"><span className="text-[#3AFFA3]">{rafale.posts}</span> contenu{rafale.posts > 1 ? 's' : ''} à générer</div>
+            <div className="text-sm font-semibold"><span className="text-[#3AFFA3]">{rafale.posts}</span> {t('plan.aGenerer', { count: rafale.posts })}</div>
             <div className="text-[12px] text-slate-500">
-              planifiés sur {MOIS[month - 1]}
+              {t('plan.planifiesSur', { mois: t(`plan.${MOIS_KEYS[month - 1]}`) })}
               {rafale.videos > 0
-                ? ` · dont ${rafale.videos} script${rafale.videos > 1 ? 's' : ''} vidéo à tourner (Studio Vidéo)`
-                : ' · prêts à valider dans Contenus'}
+                ? t('plan.dontScriptsVideo', { count: rafale.videos })
+                : t('plan.pretsAValider')}
             </div>
           </div>
           <div className="flex gap-0.5 p-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] md:ml-auto">
             {QUALITES.map((q) => (
               <button key={q.id} onClick={() => setQuality(q.id)}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${quality === q.id ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>
-                {q.label}
+                {t(`plan.${q.labelKey}`)}
               </button>
             ))}
           </div>
           {postGauge && (
             <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[13px]"
-              title={`Il te reste ${postsLeft} contenu${postsLeft > 1 ? 's' : ''} à générer ce mois-ci (${postGauge.used}/${postGauge.limit} utilisés)`}>
+              title={t('plan.jaugeRestantsTitre', { count: postsLeft, used: postGauge.used, limit: postGauge.limit })}>
             <span className={`font-bold ${rafale.posts > postsLeft ? 'text-red-400' : 'text-[#3AFFA3]'}`}>{postsLeft}</span>
-            <span className="text-slate-400">contenu{postsLeft > 1 ? 's' : ''} restant{postsLeft > 1 ? 's' : ''}</span>
+            <span className="text-slate-400">{t('plan.contenusRestantsBadge', { count: postsLeft })}</span>
           </div>
           )}
           <Button onClick={lancerRafale} disabled={running}
             className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
             {running ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-            <span className="ml-2">{running ? 'Génération…' : `Générer en rafale · ${rafale.posts}`}</span>
+            <span className="ml-2">{running ? t('plan.generationEnCours') : t('plan.genererEnRafale', { count: rafale.posts })}</span>
           </Button>
         </div>
       )}

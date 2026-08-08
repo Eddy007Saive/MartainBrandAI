@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
+import { initCrisp, identifyCrisp, hideCrisp, resetCrisp } from '../lib/crisp';
 import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
@@ -9,6 +10,7 @@ import { UserProvider, useUser } from '../context/UserContext';
 import { removeToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 import NotificationsBell from '../components/NotificationsBell';
+import LangSwitcher from '../components/LangSwitcher';
 import AccountSwitcher from '../components/AccountSwitcher';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 import { getVision, exitVision } from '../lib/vision';
@@ -153,6 +155,26 @@ function DashboardContent() {
   // Notifications push (mobile) : demande la permission + enregistre le token
   useEffect(() => { initPush(); }, []);
 
+  // Chat support Crisp : bulle visible dans le dashboard, masquée en quittant ;
+  // l'utilisateur est identifié (nom, email, plan) dès que son profil est chargé.
+  useEffect(() => {
+    initCrisp();
+    return () => hideCrisp();
+  }, []);
+  useEffect(() => { if (user) identifyCrisp(user); }, [user]);
+
+  // Langue de l'interface : si le client n'a jamais choisi explicitement (pas de localStorage),
+  // on aligne l'UI sur sa langue de contenu (user.langue : fr/en/es).
+  const { i18n } = useTranslation();
+  useEffect(() => {
+    const explicite = localStorage.getItem('lang');
+    const lg = (user?.langue || '').slice(0, 2);
+    if (!explicite && ['fr', 'en', 'es'].includes(lg) && i18n.resolvedLanguage !== lg) {
+      i18n.changeLanguage(lg);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.langue]);
+
   // Bouton retour Android : revenir en arrière dans l'app ; sur l'accueil -> mettre en arrière-plan (ne pas quitter)
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
@@ -182,6 +204,7 @@ function DashboardContent() {
   const dismissDl = () => { markDownloaded(); setShowDl(false); };
 
   const handleLogout = () => {
+    resetCrisp(); // ne pas mélanger la conversation support de deux comptes
     logout();
     removeToken();
     navigate('/login');
@@ -191,6 +214,7 @@ function DashboardContent() {
 
   const UserBlock = () => (
     <div className="p-3 border-t border-white/[0.06] space-y-1">
+      <div className="px-2 pb-1"><LangSwitcher /></div>
       <div className="flex items-center gap-3 px-2 py-2">
         {user?.avatar_url ? (
           <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-1 ring-white/15" />

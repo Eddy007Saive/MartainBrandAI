@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send, Trash2, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
 import { useUser } from '../context/UserContext';
@@ -15,28 +16,28 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const PUBLISH_BADGE = {
-  envoi: { label: '⏳ Envoi…', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
-  'programmé': { label: '⏱ Programmé', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
-  'publié': { label: '✅ Publié', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
-  partiel: { label: '⚠️ Partiel', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
-  'échec': { label: '❌ Échec', cls: 'bg-red-500/15 text-red-400 border-red-500/25' },
-  'annulé': { label: 'Annulé', cls: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
+  envoi: { labelKey: 'badgeEnvoi', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
+  'programmé': { labelKey: 'badgeProgramme', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25' },
+  'publié': { labelKey: 'badgePublie', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' },
+  partiel: { labelKey: 'badgePartiel', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/25' },
+  'échec': { labelKey: 'badgeEchec', cls: 'bg-red-500/15 text-red-400 border-red-500/25' },
+  'annulé': { labelKey: 'badgeAnnule', cls: 'bg-slate-500/15 text-slate-400 border-slate-500/25' },
 };
 
-const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-const MOIS_COURT = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUIN', 'JUIL', 'AOÛ', 'SEP', 'OCT', 'NOV', 'DÉC'];
+const JOURS_KEYS = ['jours0', 'jours1', 'jours2', 'jours3', 'jours4', 'jours5', 'jours6'];
+const MOIS_KEYS = ['mois0', 'mois1', 'mois2', 'mois3', 'mois4', 'mois5', 'mois6', 'mois7', 'mois8', 'mois9', 'mois10', 'mois11'];
+const MOIS_COURT_KEYS = ['moisCourt0', 'moisCourt1', 'moisCourt2', 'moisCourt3', 'moisCourt4', 'moisCourt5', 'moisCourt6', 'moisCourt7', 'moisCourt8', 'moisCourt9', 'moisCourt10', 'moisCourt11'];
 
 // Statuts (clés = valeurs enum DB) -> couleurs
 const STATUT = {
-  'A valider':       { label: 'À valider', bg: 'rgba(251,191,36,.15)',  co: '#fcd770', sw: '#fbbf24' },
-  'Valider':         { label: 'Validé',    bg: 'rgba(52,211,153,.15)',  co: '#6ee7b7', sw: '#34d399' },
-  'Planifie':        { label: 'Planifié',  bg: 'rgba(138,108,255,.18)', co: '#c4b5fd', sw: '#8A6CFF' },
-  'Pret a publier':  { label: 'Prêt',      bg: 'rgba(138,108,255,.18)', co: '#c4b5fd', sw: '#8A6CFF' },
-  'Publie':          { label: 'Publié',    bg: 'rgba(96,165,250,.15)',  co: '#93c5fd', sw: '#60a5fa' },
-  'Refuse':          { label: 'Refusé',    bg: 'rgba(248,113,113,.15)', co: '#fca5a5', sw: '#f87171' },
+  'A valider':       { labelKey: 'statutAValider', bg: 'rgba(251,191,36,.15)',  co: '#fcd770', sw: '#fbbf24' },
+  'Valider':         { labelKey: 'statutValide',   bg: 'rgba(52,211,153,.15)',  co: '#6ee7b7', sw: '#34d399' },
+  'Planifie':        { labelKey: 'statutPlanifie', bg: 'rgba(138,108,255,.18)', co: '#c4b5fd', sw: '#8A6CFF' },
+  'Pret a publier':  { labelKey: 'statutPret',     bg: 'rgba(138,108,255,.18)', co: '#c4b5fd', sw: '#8A6CFF' },
+  'Publie':          { labelKey: 'statutPublie',   bg: 'rgba(96,165,250,.15)',  co: '#93c5fd', sw: '#60a5fa' },
+  'Refuse':          { labelKey: 'statutRefuse',   bg: 'rgba(248,113,113,.15)', co: '#fca5a5', sw: '#f87171' },
 };
-const ST_DEFAUT = { label: '—', bg: 'rgba(148,163,184,.15)', co: '#cbd5e1', sw: '#94a3b8' };
+const ST_DEFAUT = { labelKey: 'statutAucun', bg: 'rgba(148,163,184,.15)', co: '#cbd5e1', sw: '#94a3b8' };
 const stOf = (s) => STATUT[s] || ST_DEFAUT;
 
 // Réseaux -> pastille
@@ -51,16 +52,17 @@ const netOf = (r) => NET[r] || { s: '•', style: { background: '#334155' } };
 
 // État de publication (Late) -> icône + couleur
 const PUB = {
-  envoi:       { Icon: Send,          color: '#22d3ee', label: 'En cours d\'envoi' },
-  'programmé': { Icon: Clock,         color: '#22d3ee', label: 'Programmé' },
-  'publié':    { Icon: Check,         color: '#34d399', label: 'Publié' },
-  partiel:     { Icon: AlertTriangle, color: '#fbbf24', label: 'Partiel' },
-  'échec':     { Icon: X,             color: '#f87171', label: 'Échec' },
-  'annulé':    { Icon: Ban,           color: '#94a3b8', label: 'Annulé' },
+  envoi:       { Icon: Send,          color: '#22d3ee', labelKey: 'pubEnvoi' },
+  'programmé': { Icon: Clock,         color: '#22d3ee', labelKey: 'pubProgramme' },
+  'publié':    { Icon: Check,         color: '#34d399', labelKey: 'pubPublie' },
+  partiel:     { Icon: AlertTriangle, color: '#fbbf24', labelKey: 'pubPartiel' },
+  'échec':     { Icon: X,             color: '#f87171', labelKey: 'pubEchec' },
+  'annulé':    { Icon: Ban,           color: '#94a3b8', labelKey: 'pubAnnule' },
 };
 const pubOf = (s) => PUB[s] || null;
 
 export default function PlanificationPage() {
+  const { t } = useTranslation();
   const { user } = useUser();
   const [contenus, setContenus] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +86,7 @@ export default function PlanificationPage() {
     try {
       const iso = inputToUtc(`${dateStr}T${time}`, tz);
       if (new Date(iso).getTime() < Date.now()) {
-        toast.error('La date de publication doit être dans le futur');
+        toast.error(t('planif.dateFutur'));
         setDropBusy(false);
         return;
       }
@@ -96,17 +98,17 @@ export default function PlanificationPage() {
         try {
           const pub = await contenuService.publier(contenu.id);
           setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null } : c)));
-          toast.success('Replanifié ✓');
+          toast.success(t('planif.replanifieOk'));
         } catch (e) {
           setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, publish_status: 'échec', publish_error: e.response?.data?.detail } : c)));
-          toast.error(e.response?.data?.detail || 'Déplacé, mais re-programmation échouée', { duration: 7000 });
+          toast.error(e.response?.data?.detail || t('planif.deplaceReprogEchec'), { duration: 7000 });
         }
       } else {
-        toast.success('Post déplacé ✓');
+        toast.success(t('planif.postDeplace'));
       }
       setDropPending(null);
     } catch (e) {
-      toast.error('Échec du déplacement');
+      toast.error(t('planif.echecDeplacement'));
     } finally {
       setDropBusy(false);
     }
@@ -115,15 +117,15 @@ export default function PlanificationPage() {
   const importImage = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !selected) return;
-    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image.'); return; }
-    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    if (!file.type.startsWith('image/')) { toast.error(t('planif.choisirImage')); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error(t('planif.imageTropLourde')); return; }
     setImporting(true);
     try {
       const d = await contenuService.uploadImage(selected.id, file);
       patchSel({ lien_visuel: d.lien_visuel, statut: d.statut || selected.statut, date_publication: d.date_publication || selected.date_publication });
-      toast.success('Image importée ✓');
+      toast.success(t('planif.imageImportee'));
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Échec de l'import");
+      toast.error(err.response?.data?.detail || t('planif.echecImport'));
     } finally {
       setImporting(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -153,7 +155,7 @@ export default function PlanificationPage() {
     try {
       const iso = inputToUtc(dateVal, tz);
       if (new Date(iso).getTime() < Date.now()) {
-        toast.error('La date de publication doit être dans le futur');
+        toast.error(t('planif.dateFutur'));
         setBusy(false);
         return;
       }
@@ -166,15 +168,15 @@ export default function PlanificationPage() {
         try {
           const pub = await contenuService.publier(selected.id);
           patchSel({ publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null });
-          toast.success('Date mise à jour et re-programmée ✓');
+          toast.success(t('planif.dateMajReprog'));
         } catch (e) {
           patchSel({ publish_status: 'échec', publish_error: e.response?.data?.detail });
-          toast.error(e.response?.data?.detail || 'Date enregistrée, mais re-programmation échouée', { duration: 7000 });
+          toast.error(e.response?.data?.detail || t('planif.dateEnregReprogEchec'), { duration: 7000 });
         }
       } else {
-        toast.success('Date mise à jour');
+        toast.success(t('planif.dateMaj'));
       }
-    } catch (e) { toast.error('Échec de la mise à jour de la date'); }
+    } catch (e) { toast.error(t('planif.echecMajDate')); }
     finally { setBusy(false); }
   };
 
@@ -184,9 +186,9 @@ export default function PlanificationPage() {
     try {
       const d = await contenuService.publier(selected.id);
       patchSel({ publish_status: d.publish_status, late_post_id: d.late_post_id, publish_error: null });
-      toast.success('Publication programmée ✓ — partira à la date prévue');
+      toast.success(t('planif.pubProgrammee'));
     } catch (e) {
-      const msg = e.response?.data?.detail || 'Échec de la programmation';
+      const msg = e.response?.data?.detail || t('planif.echecProgrammation');
       patchSel({ publish_status: 'échec', publish_error: msg });
       toast.error(msg);
     } finally { setBusy(false); }
@@ -200,10 +202,10 @@ export default function PlanificationPage() {
       const d = await contenuService.replanifier(selected.id);
       patchSel({ date_publication: d.date_publication, publish_status: d.publish_status, publish_error: d.error || null });
       const dt = d.date_publication ? new Date(d.date_publication).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
-      if (d.publish_status === 'envoi') toast.success(`Replanifié → ${dt} ✓`);
-      else toast.error(d.error || "Replanifié, mais l'envoi a échoué — réessaie.");
+      if (d.publish_status === 'envoi') toast.success(t('planif.replanifieVers', { date: dt }));
+      else toast.error(d.error || t('planif.replanifieEnvoiEchec'));
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Échec de la replanification');
+      toast.error(e.response?.data?.detail || t('planif.echecReplanification'));
     } finally { setBusy(false); }
   };
 
@@ -213,21 +215,21 @@ export default function PlanificationPage() {
     try {
       const d = await contenuService.annuler(selected.id);
       patchSel({ publish_status: d.publish_status, late_post_id: null });
-      toast.success('Envoi annulé — post supprimé de Late');
-    } catch (e) { toast.error(e.response?.data?.detail || "Échec de l'annulation"); }
+      toast.success(t('planif.envoiAnnule'));
+    } catch (e) { toast.error(e.response?.data?.detail || t('planif.echecAnnulation')); }
     finally { setBusy(false); }
   };
 
   const supprimer = async () => {
     if (!selected) return;
-    if (!window.confirm('Supprimer définitivement ce post ?\nIl sera retiré de la file Late et effacé de tes contenus.')) return;
+    if (!window.confirm(t('planif.confirmSuppression'))) return;
     setBusy(true);
     try {
       await contenuService.remove(selected.id);
       setContenus((prev) => prev.filter((c) => c.id !== selected.id));
       setSelected(null);
-      toast.success('Post supprimé');
-    } catch (e) { toast.error(e.response?.data?.detail || 'Échec de la suppression'); }
+      toast.success(t('planif.postSupprime'));
+    } catch (e) { toast.error(e.response?.data?.detail || t('planif.echecSuppression')); }
     finally { setBusy(false); }
   };
 
@@ -297,6 +299,7 @@ export default function PlanificationPage() {
   };
 
   const Pill = ({ c }) => {
+    const { t } = useTranslation();
     const pub = pubOf(c.publish_status);
     const net = netOf(c.reseau_cible);
     const justDragged = useRef(false);
@@ -334,7 +337,7 @@ export default function PlanificationPage() {
         }}
         onClick={(e) => { if (justDragged.current) return; e.stopPropagation(); openContenu(c); }}
         role="button" tabIndex={0}
-        title={`${c.titre || ''}${pub ? ` · ${pub.label}` : ''} — glisse pour replanifier`}
+        title={`${c.titre || ''}${pub ? ` · ${t(`planif.${pub.labelKey}`)}` : ''} — ${t('planif.glisseReplanifier')}`}
         className="w-full flex flex-col gap-1 px-1.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] transition-colors text-left cursor-grab active:cursor-grabbing"
       >
         <div className="flex items-center gap-1.5">
@@ -343,7 +346,7 @@ export default function PlanificationPage() {
           {pub ? <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} />
                : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: stOf(c.statut).sw }} />}
         </div>
-        <span className="text-[10px] leading-[1.22] font-medium text-slate-200 line-clamp-2">{c.titre || c.contenu?.slice(0, 40) || 'Sans titre'}</span>
+        <span className="text-[10px] leading-[1.22] font-medium text-slate-200 line-clamp-2">{c.titre || c.contenu?.slice(0, 40) || t('planif.sansTitre')}</span>
       </motion.div>
     );
   };
@@ -352,20 +355,20 @@ export default function PlanificationPage() {
     <div className="w-full space-y-5 pb-10">
       <PageHeader
         icon={Calendar}
-        title="Planification"
-        subtitle="Vue calendrier de tes publications."
+        title={t('planif.titre')}
+        subtitle={t('planif.sousTitre')}
       />
 
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <button onClick={() => changeMonth(-1)} className="w-9 h-9 rounded-lg border border-white/10 bg-white/[0.02] grid place-items-center hover:bg-white/[0.06] transition-colors"><ChevronLeft className="w-[18px] h-[18px]" /></button>
-          <div className="text-lg font-semibold font-sora min-w-[150px] text-center">{MOIS[month]} <span className="text-slate-500 font-medium">{year}</span></div>
+          <div className="text-lg font-semibold font-sora min-w-[150px] text-center">{t(`planif.${MOIS_KEYS[month]}`)} <span className="text-slate-500 font-medium">{year}</span></div>
           <button onClick={() => changeMonth(1)} className="w-9 h-9 rounded-lg border border-white/10 bg-white/[0.02] grid place-items-center hover:bg-white/[0.06] transition-colors"><ChevronRight className="w-[18px] h-[18px]" /></button>
-          <button onClick={goToday} className="px-3.5 py-2 rounded-lg border border-white/10 bg-white/[0.02] text-slate-400 hover:text-white hover:bg-white/[0.06] text-xs font-semibold font-inter transition-colors">Aujourd'hui</button>
+          <button onClick={goToday} className="px-3.5 py-2 rounded-lg border border-white/10 bg-white/[0.02] text-slate-400 hover:text-white hover:bg-white/[0.06] text-xs font-semibold font-inter transition-colors">{t('planif.aujourdhui')}</button>
         </div>
         <div className="flex gap-0.5 p-0.5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-          {[['mois', 'Mois'], ['liste', 'Liste']].map(([id, lab]) => (
+          {[['mois', t('planif.vueMois')], ['liste', t('planif.vueListe')]].map(([id, lab]) => (
             <button key={id} onClick={() => setView(id)} className={`px-3.5 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all ${view === id ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>{lab}</button>
           ))}
         </div>
@@ -379,7 +382,7 @@ export default function PlanificationPage() {
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-3.5">
             <div className="overflow-x-auto">
               <div className="grid grid-cols-7 gap-2 mb-2 min-w-[640px]">
-                {JOURS.map((j) => <div key={j} className="px-2.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-600 font-semibold font-inter">{j}</div>)}
+                {JOURS_KEYS.map((j) => <div key={j} className="px-2.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-600 font-semibold font-inter">{t(`planif.${j}`)}</div>)}
               </div>
               <div className="grid grid-cols-7 gap-2 min-w-[640px]">
                 {days.map((d, i) => {
@@ -394,7 +397,7 @@ export default function PlanificationPage() {
                         {isToday ? <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center text-white text-[11px] inline-grid">{d.date.getDate()}</span> : d.date.getDate()}
                       </div>
                       {evs.slice(0, 3).map((c) => <Pill key={c.id} c={c} />)}
-                      {evs.length > 3 && <div className="text-[10.5px] text-slate-500 px-1.5 font-medium">+{evs.length - 3} autres</div>}
+                      {evs.length > 3 && <div className="text-[10.5px] text-slate-500 px-1.5 font-medium">{t('planif.autresPlus', { n: evs.length - 3 })}</div>}
                     </div>
                   );
                 })}
@@ -402,10 +405,10 @@ export default function PlanificationPage() {
             </div>
             {/* Légende publication */}
             <div className="mt-3.5 pt-3.5 border-t border-white/[0.06] flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="text-[10px] uppercase tracking-wide text-slate-600 font-inter">État</span>
+              <span className="text-[10px] uppercase tracking-wide text-slate-600 font-inter">{t('planif.legendeEtat')}</span>
               {Object.values(PUB).map((p) => (
-                <div key={p.label} className="flex items-center gap-1.5 text-xs text-slate-400 font-inter">
-                  <p.Icon className="w-3.5 h-3.5" style={{ color: p.color }} strokeWidth={2.5} />{p.label}
+                <div key={p.labelKey} className="flex items-center gap-1.5 text-xs text-slate-400 font-inter">
+                  <p.Icon className="w-3.5 h-3.5" style={{ color: p.color }} strokeWidth={2.5} />{t(`planif.${p.labelKey}`)}
                 </div>
               ))}
             </div>
@@ -416,9 +419,9 @@ export default function PlanificationPage() {
             {/* Mini-stats */}
             <div className="grid grid-cols-3 gap-2.5">
               {[
-                { n: stats.prog, c: '#22d3ee', l: 'Programmés' },
-                { n: stats.pub, c: '#34d399', l: 'Publiés' },
-                { n: stats.valid, c: '#fbbf24', l: 'À valider' },
+                { n: stats.prog, c: '#22d3ee', l: t('planif.statProgrammes') },
+                { n: stats.pub, c: '#34d399', l: t('planif.statPublies') },
+                { n: stats.valid, c: '#fbbf24', l: t('planif.statAValider') },
               ].map((s) => (
                 <div key={s.l} className="rounded-xl border border-white/[0.06] bg-[#0f172a] px-3 py-3 text-center">
                   <div className="text-xl font-bold font-sora leading-none" style={{ color: s.c }}>{s.n}</div>
@@ -431,7 +434,7 @@ export default function PlanificationPage() {
             {aProgrammer.length > 0 && (
               <div className="rounded-2xl border border-white/[0.06] bg-[#0b1322] p-4">
                 <h3 className="text-[13.5px] font-semibold font-sora flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-4 h-4 text-[#fbbf24]" />À programmer
+                  <AlertTriangle className="w-4 h-4 text-[#fbbf24]" />{t('planif.aProgrammer')}
                   <span className="ml-auto text-[11px] text-slate-500 bg-white/[0.05] px-2 py-0.5 rounded-full">{aProgrammer.length}</span>
                 </h3>
                 <div className="divide-y divide-white/[0.06]">
@@ -439,10 +442,10 @@ export default function PlanificationPage() {
                     <div key={c.id} className="flex items-center gap-3 py-2.5 first:pt-0">
                       <Thumb c={c} className="w-10 h-10" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-[12.5px] font-medium text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 40) || 'Sans titre'}</div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{c.reseau_cible || '—'}{c.date_publication ? ` · ${new Date(c.date_publication).getDate()} ${MOIS_COURT[new Date(c.date_publication).getMonth()]}` : ' · pas de date'}</div>
+                        <div className="text-[12.5px] font-medium text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 40) || t('planif.sansTitre')}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{c.reseau_cible || '—'}{c.date_publication ? ` · ${new Date(c.date_publication).getDate()} ${t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)}` : ` · ${t('planif.pasDeDate')}`}</div>
                       </div>
-                      <button onClick={() => openContenu(c)} title="Programmer" className="w-8 h-8 rounded-lg border border-white/10 text-cyan-400 hover:bg-cyan-500/15 grid place-items-center shrink-0">
+                      <button onClick={() => openContenu(c)} title={t('planif.programmer')} className="w-8 h-8 rounded-lg border border-white/10 text-cyan-400 hover:bg-cyan-500/15 grid place-items-center shrink-0">
                         <Calendar className="w-4 h-4" />
                       </button>
                     </div>
@@ -454,11 +457,11 @@ export default function PlanificationPage() {
             {/* Prochaines publications */}
             <div className="rounded-2xl border border-white/[0.06] bg-[#0b1322] p-4">
               <h3 className="text-[13.5px] font-semibold font-sora flex items-center gap-2 mb-3">
-                <Clock className="w-4 h-4 text-[#8A6CFF]" />Prochaines
+                <Clock className="w-4 h-4 text-[#8A6CFF]" />{t('planif.prochaines')}
                 <span className="ml-auto text-[11px] text-slate-500 bg-white/[0.05] px-2 py-0.5 rounded-full">{upcoming.length}</span>
               </h3>
               {upcoming.length === 0 ? (
-                <p className="text-slate-500 font-inter text-[12.5px] py-3 text-center">Aucune publication à venir.</p>
+                <p className="text-slate-500 font-inter text-[12.5px] py-3 text-center">{t('planif.aucunePubAVenir')}</p>
               ) : (
                 <div className="divide-y divide-white/[0.06]">
                   {upcoming.map((c) => {
@@ -467,10 +470,10 @@ export default function PlanificationPage() {
                       <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-3 py-2.5 first:pt-0 cursor-pointer hover:opacity-80">
                         <Thumb c={c} className="w-10 h-10" />
                         <div className="flex-1 min-w-0">
-                          <div className="text-[12.5px] font-medium text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 40) || 'Sans titre'}</div>
+                          <div className="text-[12.5px] font-medium text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 40) || t('planif.sansTitre')}</div>
                           <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
                             {pub && <pub.Icon className="w-3 h-3" style={{ color: pub.color }} strokeWidth={2.5} />}
-                            {new Date(c.date_publication).getDate()} {MOIS_COURT[new Date(c.date_publication).getMonth()]} · {hhmm(c.date_publication)} · {c.reseau_cible}
+                            {new Date(c.date_publication).getDate()} {t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)} · {hhmm(c.date_publication)} · {c.reseau_cible}
                           </div>
                         </div>
                       </div>
@@ -485,14 +488,14 @@ export default function PlanificationPage() {
         /* Vue liste */
         <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-4 space-y-2.5">
           {moisContenus.length === 0 ? (
-            <p className="text-center py-12 text-slate-500 font-inter text-sm">Aucun contenu planifié sur {MOIS[month]}.</p>
+            <p className="text-center py-12 text-slate-500 font-inter text-sm">{t('planif.aucunContenuMois', { mois: t(`planif.${MOIS_KEYS[month]}`) })}</p>
           ) : moisContenus.map((c) => {
             const st = stOf(c.statut), net = netOf(c.reseau_cible);
             return (
               <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-4 p-3 rounded-xl border border-white/[0.06] bg-[#0a1120] cursor-pointer hover:border-white/[0.15] transition-colors">
                 <div className="text-center min-w-[46px]">
                   <div className="text-xl font-bold font-sora leading-none">{new Date(c.date_publication).getDate()}</div>
-                  <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{MOIS_COURT[new Date(c.date_publication).getMonth()]}</div>
+                  <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)}</div>
                 </div>
                 <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-4 h-4" /></div>
                 <div className="flex-1 min-w-0">
@@ -502,9 +505,9 @@ export default function PlanificationPage() {
                 {pubOf(c.publish_status) && (() => { const p = pubOf(c.publish_status); return (
                   <span className="flex items-center gap-1 text-[10.5px] font-semibold px-2 py-1 rounded-full border shrink-0"
                     style={{ color: p.color, borderColor: `${p.color}55`, background: `${p.color}14` }}>
-                    <p.Icon className="w-3 h-3" strokeWidth={2.5} />{p.label}
+                    <p.Icon className="w-3 h-3" strokeWidth={2.5} />{t(`planif.${p.labelKey}`)}
                   </span>); })()}
-                <span className="text-[10.5px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{ background: st.bg, color: st.co }}>{st.label}</span>
+                <span className="text-[10.5px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{ background: st.bg, color: st.co }}>{t(`planif.${st.labelKey}`)}</span>
               </div>
             );
           })}
@@ -514,9 +517,9 @@ export default function PlanificationPage() {
       {/* Prochaines publications (vue liste uniquement — en mois c'est dans la sidebar) */}
       {view === 'liste' && (
       <div>
-        <h3 className="text-sm font-semibold font-sora mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-[#8A6CFF]" />Prochaines publications</h3>
+        <h3 className="text-sm font-semibold font-sora mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-[#8A6CFF]" />{t('planif.prochainesPublications')}</h3>
         {upcoming.length === 0 ? (
-          <p className="text-slate-500 font-inter text-sm">Aucune publication planifiée.</p>
+          <p className="text-slate-500 font-inter text-sm">{t('planif.aucunePubPlanifiee')}</p>
         ) : (
           <div className="space-y-2.5">
             {upcoming.map((c) => {
@@ -525,14 +528,14 @@ export default function PlanificationPage() {
                 <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-4 p-3 rounded-2xl border border-white/[0.06] bg-[#0f172a] cursor-pointer hover:border-white/[0.15] transition-colors">
                   <div className="text-center min-w-[46px]">
                     <div className="text-xl font-bold font-sora leading-none">{new Date(c.date_publication).getDate()}</div>
-                    <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{MOIS_COURT[new Date(c.date_publication).getMonth()]}</div>
+                    <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)}</div>
                   </div>
                   <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-4 h-4" /></div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[13.5px] text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 50)}</div>
                     <div className="text-[11.5px] text-slate-500 mt-0.5">{c.reseau_cible || '—'} · {hhmm(c.date_publication)}</div>
                   </div>
-                  <span className="text-[10.5px] font-semibold px-2.5 py-1 rounded-full" style={{ background: st.bg, color: st.co }}>{st.label}</span>
+                  <span className="text-[10.5px] font-semibold px-2.5 py-1 rounded-full" style={{ background: st.bg, color: st.co }}>{t(`planif.${st.labelKey}`)}</span>
                 </div>
               );
             })}
@@ -562,7 +565,7 @@ export default function PlanificationPage() {
             >
               <div className="text-[12.5px] font-semibold text-white font-sora flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[#8A6CFF]" />
-                Replanifier au {format(parseISO(dropPending.dateStr), 'EEE d MMM', { locale: fr })}
+                {t('planif.replanifierAu', { date: format(parseISO(dropPending.dateStr), 'EEE d MMM', { locale: fr }) })}
               </div>
               <input
                 type="time" step="300" autoFocus value={dropPending.time}
@@ -571,10 +574,10 @@ export default function PlanificationPage() {
               />
               <div className="flex gap-2">
                 <Button size="sm" onClick={() => setDropPending(null)} disabled={dropBusy}
-                  className="flex-1 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10">Annuler</Button>
+                  className="flex-1 bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10">{t('planif.annuler')}</Button>
                 <Button size="sm" onClick={commitDrop} disabled={dropBusy}
                   className="flex-1 bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white">
-                  {dropBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Confirmer'}
+                  {dropBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : t('planif.confirmer')}
                 </Button>
               </div>
             </motion.div>
@@ -586,7 +589,7 @@ export default function PlanificationPage() {
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="bg-[#0b1322] border-white/10 max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-white font-sora pr-6">{selected?.titre || 'Contenu'}</DialogTitle>
+            <DialogTitle className="text-white font-sora pr-6">{selected?.titre || t('planif.contenu')}</DialogTitle>
           </DialogHeader>
           {selected && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -603,7 +606,7 @@ export default function PlanificationPage() {
                 ) : (
                   <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 grid place-items-center text-slate-600 gap-2">
                     <ImageIcon className="w-10 h-10" />
-                    <span className="text-xs font-inter">Aucun visuel</span>
+                    <span className="text-xs font-inter">{t('planif.aucunVisuel')}</span>
                   </div>
                 )}
                 {!(Array.isArray(selected.slides_images) && selected.slides_images.length) && (
@@ -612,7 +615,7 @@ export default function PlanificationPage() {
                     <Button size="sm" onClick={() => fileRef.current?.click()} disabled={importing}
                       className="w-full bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">
                       {importing ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <ImageIcon className="w-4 h-4 mr-1.5" />}
-                      {selected.lien_visuel ? "Changer l'image" : 'Importer une image'}
+                      {selected.lien_visuel ? t('planif.changerImage') : t('planif.importerImage')}
                     </Button>
                   </>
                 )}
@@ -623,20 +626,20 @@ export default function PlanificationPage() {
                   <span className="w-6 h-6 rounded-md grid place-items-center text-white" style={netOf(selected.reseau_cible).style}><SocialIcon network={selected.reseau_cible} className="w-3.5 h-3.5" /></span>
                   <span className="text-sm text-slate-300 font-inter">{selected.reseau_cible || '—'}</span>
                   {PUBLISH_BADGE[selected.publish_status] && (
-                    <span className={`ml-auto text-[11px] font-medium px-2 py-0.5 rounded-full border ${PUBLISH_BADGE[selected.publish_status].cls}`}>{PUBLISH_BADGE[selected.publish_status].label}</span>
+                    <span className={`ml-auto text-[11px] font-medium px-2 py-0.5 rounded-full border ${PUBLISH_BADGE[selected.publish_status].cls}`}>{t(`planif.${PUBLISH_BADGE[selected.publish_status].labelKey}`)}</span>
                   )}
                 </div>
                 <p className="text-[13px] text-slate-300 font-inter whitespace-pre-wrap max-h-40 overflow-y-auto leading-relaxed">{selected.contenu}</p>
 
                 {/* Date picker */}
                 <div className="space-y-1.5">
-                  <label className="text-xs text-slate-400 font-inter">Date de publication <span className="text-slate-600">({tz.split('/').pop().replace('_', ' ')} · {tzAbbrev(tz)})</span></label>
+                  <label className="text-xs text-slate-400 font-inter">{t('planif.datePublication')} <span className="text-slate-600">({tz.split('/').pop().replace('_', ' ')} · {tzAbbrev(tz)})</span></label>
                   <div className="flex gap-2 flex-wrap items-center">
                     <Popover>
                       <PopoverTrigger asChild>
                         <button className="flex-1 min-w-[150px] flex items-center gap-2 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 hover:border-[#5B6CFF]/50 transition-colors text-left">
                           <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                          <span className="truncate">{dateVal?.split('T')[0] ? format(parseISO(dateVal.split('T')[0]), 'EEE d MMM yyyy', { locale: fr }) : 'Choisir une date'}</span>
+                          <span className="truncate">{dateVal?.split('T')[0] ? format(parseISO(dateVal.split('T')[0]), 'EEE d MMM yyyy', { locale: fr }) : t('planif.choisirDate')}</span>
                         </button>
                       </PopoverTrigger>
                       <PopoverContent align="start" className="w-auto p-0 bg-[#0f172a] border-white/10">
@@ -650,12 +653,12 @@ export default function PlanificationPage() {
                       onChange={(e) => setDateVal(`${dateVal?.split('T')[0] || format(new Date(), 'yyyy-MM-dd')}T${e.target.value}`)}
                       className="w-[112px] rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-2 outline-none focus:border-[#5B6CFF]/50" />
                     <Button size="sm" onClick={saveDate} disabled={busy || !dateVal || utcToInput(selected.date_publication, tz) === dateVal}
-                      className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">Enregistrer</Button>
+                      className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">{t('planif.enregistrer')}</Button>
                   </div>
                 </div>
 
                 {selected.publish_status === 'échec' && selected.publish_error && (
-                  <p className="text-[12px] text-red-400 font-inter">⚠ Échec : {selected.publish_error}</p>
+                  <p className="text-[12px] text-red-400 font-inter">{t('planif.echecDetail', { erreur: selected.publish_error })}</p>
                 )}
 
                 {/* Actions publication */}
@@ -665,34 +668,34 @@ export default function PlanificationPage() {
                     <Button size="sm" onClick={programmer} disabled={busy}
                       className="bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/25 border border-cyan-500/30">
                       {busy ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
-                      {selected.publish_status === 'échec' ? 'Réessayer' : 'Programmer'}
+                      {selected.publish_status === 'échec' ? t('planif.reessayer') : t('planif.programmer')}
                     </Button>
                   )}
                   {selected.statut !== 'Publie' && selected.reseau_cible && selected.publish_status !== 'publié' && (
                     <Button size="sm" onClick={replanifier} disabled={busy} data-testid="replanifier-btn"
-                      title="Trouve automatiquement le prochain créneau libre (selon ta planification) et reprogramme"
+                      title={t('planif.replanifierTooltip')}
                       className="bg-[#3AFFA3]/10 text-[#3AFFA3] hover:bg-[#3AFFA3]/20 border border-[#3AFFA3]/30">
                       {busy ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <RefreshCw className="w-4 h-4 mr-1.5" />}
-                      Replanifier
+                      {t('planif.replanifier')}
                     </Button>
                   )}
                   {['envoi', 'programmé'].includes(selected.publish_status) && (
                     <Button size="sm" onClick={annuler} disabled={busy}
                       className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30">
                       {busy ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <X className="w-4 h-4 mr-1.5" />}
-                      Annuler la publication
+                      {t('planif.annulerPublication')}
                     </Button>
                   )}
                   {selected.statut === 'Publie' && selected.lien_publication && (
                     <a href={selected.lien_publication} target="_blank" rel="noopener noreferrer">
                       <Button size="sm" className="bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30">
-                        <ExternalLink className="w-4 h-4 mr-1.5" />Voir le post
+                        <ExternalLink className="w-4 h-4 mr-1.5" />{t('planif.voirPost')}
                       </Button>
                     </a>
                   )}
                   <Button size="sm" onClick={supprimer} disabled={busy}
                     className="ml-auto bg-transparent text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent">
-                    <Trash2 className="w-4 h-4 mr-1.5" />Supprimer le post
+                    <Trash2 className="w-4 h-4 mr-1.5" />{t('planif.supprimerPost')}
                   </Button>
                 </div>
               </div>

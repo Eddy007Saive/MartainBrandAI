@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useUser } from '../context/UserContext';
 import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { analyticsService } from '../services/analyticsService';
@@ -7,6 +8,7 @@ import PerformanceCurve from '../components/PerformanceCurve';
 import TopPosts from '../components/TopPosts';
 
 export default function AccueilPage() {
+  const { t } = useTranslation();
   const { user } = useUser();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,10 +29,10 @@ export default function AccueilPage() {
   };
 
   const kpis = stats ? [
-    { label: 'Vues totales', value: stats.vues?.toLocaleString() || '0', icon: Eye, color: 'text-blue-400' },
-    { label: 'Likes', value: stats.likes?.toLocaleString() || '0', icon: Heart, color: 'text-pink-400' },
-    { label: 'Commentaires', value: stats.commentaires?.toLocaleString() || '0', icon: MessageCircle, color: 'text-green-400' },
-    { label: "Taux d'engagement", value: `${stats.taux_engagement || 0}%`, icon: TrendingUp, color: 'text-purple-400' },
+    { label: t('accueil.kpiVues'), value: stats.vues?.toLocaleString() || '0', icon: Eye, color: 'text-blue-400' },
+    { label: t('accueil.kpiLikes'), value: stats.likes?.toLocaleString() || '0', icon: Heart, color: 'text-pink-400' },
+    { label: t('accueil.kpiCommentaires'), value: stats.commentaires?.toLocaleString() || '0', icon: MessageCircle, color: 'text-green-400' },
+    { label: t('accueil.kpiEngagement'), value: `${stats.taux_engagement || 0}%`, icon: TrendingUp, color: 'text-purple-400' },
   ] : [];
 
   return (
@@ -38,10 +40,10 @@ export default function AccueilPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold font-sora text-white">
-          Bonjour, {user?.nom || 'Utilisateur'} 👋
+          {t('accueil.greeting', { name: user?.nom || t('accueil.defaultUser') })}
         </h1>
         <p className="text-slate-400 mt-2 font-inter">
-          Voici un aperçu de vos performances
+          {t('accueil.subtitle')}
         </p>
       </div>
 
@@ -54,12 +56,12 @@ export default function AccueilPage() {
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-white font-semibold font-sora">Créer du contenu avec l'IA</p>
-                <p className="text-slate-400 text-sm font-inter">Générez posts et scripts à partir de votre marque</p>
+                <p className="text-white font-semibold font-sora">{t('accueil.ctaTitle')}</p>
+                <p className="text-slate-400 text-sm font-inter">{t('accueil.ctaSubtitle')}</p>
               </div>
             </div>
             <div className="hidden sm:flex items-center gap-1.5 text-[#8A6CFF] font-medium text-sm font-inter group-hover:gap-2.5 transition-all flex-shrink-0">
-              Ouvrir le Studio <ArrowRight className="w-4 h-4" />
+              {t('accueil.ctaOpen')} <ArrowRight className="w-4 h-4" />
             </div>
           </div>
         </div>
@@ -102,8 +104,8 @@ export default function AccueilPage() {
                   <FileText className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
-                  <p className="text-white font-semibold font-sora">Contenus à valider</p>
-                  <p className="text-slate-400 text-sm font-inter">En attente de votre validation</p>
+                  <p className="text-white font-semibold font-sora">{t('accueil.aValiderTitre')}</p>
+                  <p className="text-slate-400 text-sm font-inter">{t('accueil.aValiderSous')}</p>
                 </div>
               </div>
               <p className="text-4xl font-bold text-amber-400 font-sora">
@@ -118,8 +120,8 @@ export default function AccueilPage() {
                   <MessageCircle className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-white font-semibold font-sora">Nouveaux commentaires</p>
-                  <p className="text-slate-400 text-sm font-inter">À traiter</p>
+                  <p className="text-white font-semibold font-sora">{t('accueil.nouveauxCommentairesTitre')}</p>
+                  <p className="text-slate-400 text-sm font-inter">{t('accueil.nouveauxCommentairesSous')}</p>
                 </div>
               </div>
               <p className="text-4xl font-bold text-blue-400 font-sora">
@@ -134,8 +136,8 @@ export default function AccueilPage() {
                   <TrendingUp className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
-                  <p className="text-white font-semibold font-sora">Posts performants</p>
-                  <p className="text-slate-400 text-sm font-inter">Au-dessus de la moyenne</p>
+                  <p className="text-white font-semibold font-sora">{t('accueil.postsPerformantsTitre')}</p>
+                  <p className="text-slate-400 text-sm font-inter">{t('accueil.postsPerformantsSous')}</p>
                 </div>
               </div>
               <p className="text-4xl font-bold text-emerald-400 font-sora">
@@ -147,7 +149,7 @@ export default function AccueilPage() {
           {/* Contenus par statut */}
           {stats?.contenus_stats && Object.keys(stats.contenus_stats).length > 0 && (
             <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white font-sora mb-4">Répartition des contenus</h2>
+              <h2 className="text-lg font-semibold text-white font-sora mb-4">{t('accueil.repartitionTitre')}</h2>
               <div className="flex flex-wrap gap-3">
                 {Object.entries(stats.contenus_stats).map(([statut, count]) => (
                   <div key={statut} className="bg-slate-800/50 rounded-lg px-4 py-2 flex items-center gap-2">

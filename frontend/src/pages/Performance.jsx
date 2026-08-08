@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, Eye, Heart, MessageCircle, Share2, TrendingUp, Lock, Plug, BarChart3, RefreshCw, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../components/PageHeader';
 import { SocialIcon } from '../components/SocialIcon';
 import { analyticsService } from '../services/analyticsService';
 
 const NETS = [
-  { id: '', label: 'Tous' },
+  { id: '', labelKey: 'allNetworks' },
   { id: 'linkedin', label: 'LinkedIn' },
   { id: 'instagram', label: 'Instagram' },
   { id: 'facebook', label: 'Facebook' },
@@ -26,6 +27,7 @@ const fmt = (n) => {
 };
 
 export default function Performance() {
+  const { t, i18n } = useTranslation();
   const [days, setDays] = useState(30);
   const [platform, setPlatform] = useState('');
   const [data, setData] = useState(null);
@@ -38,37 +40,37 @@ export default function Performance() {
       const d = await analyticsService.insights(days, platform || undefined, refresh);
       setData(d);
     } catch (e) {
-      setData({ ok: false, error: 'Erreur de chargement' });
+      setData({ ok: false, error: t('perf.loadError') });
     } finally {
       setLoading(false); setRefreshing(false);
     }
-  }, [days, platform]);
+  }, [days, platform, t]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const sinceLabel = (iso) => {
     if (!iso) return null;
     const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-    if (m < 1) return "à l'instant";
-    if (m < 60) return `il y a ${m} min`;
+    if (m < 1) return t('perf.justNow');
+    if (m < 60) return t('perf.minutesAgo', { count: m });
     const h = Math.round(m / 60);
-    return h < 24 ? `il y a ${h} h` : `il y a ${Math.round(h / 24)} j`;
+    return h < 24 ? t('perf.hoursAgo', { count: h }) : t('perf.daysAgo', { count: Math.round(h / 24) });
   };
 
   const kpis = data?.kpis || {};
   const posts = data?.posts || [];
   const KPI = [
-    { k: 'impressions', label: 'Impressions', icon: Eye, color: '#8A6CFF', val: fmt(kpis.impressions) },
-    { k: 'reach', label: 'Portée', icon: Users, color: '#E879F9', val: fmt(kpis.reach) },
-    { k: 'eng', label: 'Engagement', icon: TrendingUp, color: '#3AFFA3', val: (kpis.engagementRate || 0) + '%' },
-    { k: 'likes', label: "J'aime", icon: Heart, color: '#f87171', val: fmt(kpis.likes) },
-    { k: 'comments', label: 'Commentaires', icon: MessageCircle, color: '#60a5fa', val: fmt(kpis.comments) },
-    { k: 'shares', label: 'Partages', icon: Share2, color: '#8A6CFF', val: fmt(kpis.shares) },
+    { k: 'impressions', label: t('perf.kpiImpressions'), icon: Eye, color: '#8A6CFF', val: fmt(kpis.impressions) },
+    { k: 'reach', label: t('perf.kpiReach'), icon: Users, color: '#E879F9', val: fmt(kpis.reach) },
+    { k: 'eng', label: t('perf.kpiEngagement'), icon: TrendingUp, color: '#3AFFA3', val: (kpis.engagementRate || 0) + '%' },
+    { k: 'likes', label: t('perf.kpiLikes'), icon: Heart, color: '#f87171', val: fmt(kpis.likes) },
+    { k: 'comments', label: t('perf.kpiComments'), icon: MessageCircle, color: '#60a5fa', val: fmt(kpis.comments) },
+    { k: 'shares', label: t('perf.kpiShares'), icon: Share2, color: '#8A6CFF', val: fmt(kpis.shares) },
   ];
 
   return (
     <div className="w-full space-y-5 pb-10">
-      <PageHeader icon={BarChart3} title="Performance des publications" subtitle="Likes, commentaires, partages et portée de tes posts" />
+      <PageHeader icon={BarChart3} title={t('perf.title')} subtitle={t('perf.subtitle')} />
 
       {/* Filtres */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -77,17 +79,17 @@ export default function Performance() {
             <button key={n.id} onClick={() => setPlatform(n.id)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-[12.5px] font-medium transition-all ${platform === n.id ? 'text-white border-white/15 bg-white/[0.06]' : 'text-slate-400 border-white/[0.06] bg-white/[0.02] hover:text-white'}`}>
               {n.id && <span className="w-4 h-4 rounded grid place-items-center text-white" style={{ background: NET_BG[n.id] }}><SocialIcon network={n.label} className="w-2.5 h-2.5" /></span>}
-              {n.label}
+              {n.labelKey ? t(`perf.${n.labelKey}`) : n.label}
             </button>
           ))}
         </div>
         <div className="flex items-center gap-2">
           <div className="flex gap-0.5 p-0.5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-            {[[7, '7 j'], [30, '30 j'], [90, '90 j']].map(([d, l]) => (
-              <button key={d} onClick={() => setDays(d)} className={`px-3.5 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all ${days === d ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>{l}</button>
+            {[7, 30, 90].map((d) => (
+              <button key={d} onClick={() => setDays(d)} className={`px-3.5 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all ${days === d ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>{t('perf.daysShort', { count: d })}</button>
             ))}
           </div>
-          <button onClick={() => fetchData(true)} disabled={refreshing || loading} title="Synchroniser maintenant"
+          <button onClick={() => fetchData(true)} disabled={refreshing || loading} title={t('perf.syncNow')}
             className="w-9 h-9 grid place-items-center rounded-xl bg-white/[0.04] border border-white/[0.06] text-slate-400 hover:text-white disabled:opacity-50">
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -95,7 +97,7 @@ export default function Performance() {
       </div>
 
       {data?.cached_at && !loading && (
-        <p className="text-[11.5px] text-slate-500 -mt-2">Synchronisé {sinceLabel(data.cached_at)} · maj auto toutes les heures</p>
+        <p className="text-[11.5px] text-slate-500 -mt-2">{t('perf.syncedAgo', { time: sinceLabel(data.cached_at) })}</p>
       )}
 
       {loading ? (
@@ -103,18 +105,18 @@ export default function Performance() {
       ) : data?.addon_required ? (
         <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.06] p-8 text-center max-w-lg mx-auto">
           <Lock className="w-10 h-10 text-amber-400 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold font-sora text-white">Analytics non activé</h3>
-          <p className="text-sm text-slate-400 font-inter mt-2">Les statistiques détaillées (likes, partages, portée…) nécessitent l'add-on <b>Analytics</b> de ta plateforme de publication. Active-le pour voir tes performances.</p>
+          <h3 className="text-lg font-semibold font-sora text-white">{t('perf.addonTitle')}</h3>
+          <p className="text-sm text-slate-400 font-inter mt-2">{t('perf.addonDescBefore')} <b>Analytics</b> {t('perf.addonDescAfter')}</p>
         </div>
       ) : data?.connected === false ? (
         <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-8 text-center max-w-lg mx-auto">
           <Plug className="w-10 h-10 text-slate-500 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold font-sora text-white">Aucun réseau connecté</h3>
-          <p className="text-sm text-slate-400 font-inter mt-2">Connecte un compte dans Paramètres pour suivre tes performances.</p>
-          <Link to="/dashboard/parametres" className="inline-block mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-200 text-sm hover:bg-white/10">Aller aux Paramètres →</Link>
+          <h3 className="text-lg font-semibold font-sora text-white">{t('perf.notConnectedTitle')}</h3>
+          <p className="text-sm text-slate-400 font-inter mt-2">{t('perf.notConnectedDesc')}</p>
+          <Link to="/dashboard/parametres" className="inline-block mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-slate-200 text-sm hover:bg-white/10">{t('perf.goToSettings')}</Link>
         </div>
       ) : !data?.ok ? (
-        <div className="text-center py-16 text-slate-500 font-inter text-sm">{data?.error || 'Indisponible'}</div>
+        <div className="text-center py-16 text-slate-500 font-inter text-sm">{data?.error || t('perf.unavailable')}</div>
       ) : (
         <>
           {/* KPIs */}
@@ -132,9 +134,9 @@ export default function Performance() {
 
           {/* Top posts */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden">
-            <div className="px-5 py-4 border-b border-white/[0.06]"><h3 className="font-semibold font-sora text-[15px]">Publications</h3></div>
+            <div className="px-5 py-4 border-b border-white/[0.06]"><h3 className="font-semibold font-sora text-[15px]">{t('perf.postsHeading')}</h3></div>
             {posts.length === 0 ? (
-              <p className="text-center py-12 text-slate-500 font-inter text-sm">Aucune donnée sur la période (la synchro peut prendre un moment après publication).</p>
+              <p className="text-center py-12 text-slate-500 font-inter text-sm">{t('perf.noData')}</p>
             ) : (
               <div className="divide-y divide-white/[0.04]">
                 {posts.map((p) => {
@@ -146,17 +148,17 @@ export default function Performance() {
                         {!p.thumbnailUrl && <SocialIcon network={np} className="w-4 h-4" />}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[13px] text-slate-200 truncate">{(p.content || 'Publication').slice(0, 70)}</div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{np} · {p.publishedAt ? new Date(p.publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : ''}</div>
+                        <div className="text-[13px] text-slate-200 truncate">{(p.content || t('perf.postFallback')).slice(0, 70)}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{np} · {p.publishedAt ? new Date(p.publishedAt).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' }) : ''}</div>
                       </div>
                       <div className="hidden sm:flex items-center gap-4 text-[12.5px] text-slate-400 shrink-0">
-                        <span title="Impressions — nombre de fois où le post a été affiché" className="flex items-center gap-1 cursor-help"><Eye className="w-3.5 h-3.5" />{fmt(m.impressions)}</span>
-                        <span title="Portée — nombre de comptes uniques qui ont vu le post" className="flex items-center gap-1 cursor-help"><Users className="w-3.5 h-3.5" />{fmt(m.reach)}</span>
-                        <span title="J'aime — nombre de likes" className="flex items-center gap-1 cursor-help"><Heart className="w-3.5 h-3.5" />{fmt(m.likes)}</span>
-                        <span title="Commentaires reçus" className="flex items-center gap-1 cursor-help"><MessageCircle className="w-3.5 h-3.5" />{fmt(m.comments)}</span>
-                        <span title="Partages" className="flex items-center gap-1 cursor-help"><Share2 className="w-3.5 h-3.5" />{fmt(m.shares)}</span>
+                        <span title={t('perf.tipImpressions')} className="flex items-center gap-1 cursor-help"><Eye className="w-3.5 h-3.5" />{fmt(m.impressions)}</span>
+                        <span title={t('perf.tipReach')} className="flex items-center gap-1 cursor-help"><Users className="w-3.5 h-3.5" />{fmt(m.reach)}</span>
+                        <span title={t('perf.tipLikes')} className="flex items-center gap-1 cursor-help"><Heart className="w-3.5 h-3.5" />{fmt(m.likes)}</span>
+                        <span title={t('perf.tipComments')} className="flex items-center gap-1 cursor-help"><MessageCircle className="w-3.5 h-3.5" />{fmt(m.comments)}</span>
+                        <span title={t('perf.tipShares')} className="flex items-center gap-1 cursor-help"><Share2 className="w-3.5 h-3.5" />{fmt(m.shares)}</span>
                       </div>
-                      <span title="Taux d'engagement = (j'aime + commentaires + partages) ÷ impressions"
+                      <span title={t('perf.tipEngagement')}
                         className="text-[13px] font-bold text-[#3AFFA3] w-14 text-right shrink-0 cursor-help">{(p.engagementRate || 0)}%</span>
                     </div>
                   );

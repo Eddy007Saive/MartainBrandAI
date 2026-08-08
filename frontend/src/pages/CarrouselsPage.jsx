@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Loader2, Check, X, Maximize2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation, Trans } from 'react-i18next';
 import { useUser } from '../context/UserContext';
 import { userService } from '../services/userService';
 import { scheduleService } from '../services/scheduleService';
@@ -11,15 +12,16 @@ import { ColorField } from '../components/ColorField';
 import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS } from '../lib/carrouselPreview';
 
 const NETS = [
-  { id: 'linkedin', label: 'LinkedIn', bg: '#0A66C2', note: 'Publié en PDF (document)' },
-  { id: 'instagram', label: 'Instagram', bg: 'linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)', note: 'Carrousel d’images (jusqu’à 10)' },
-  { id: 'facebook', label: 'Facebook', bg: '#1877F2', note: 'Carrousel d’images' },
+  { id: 'linkedin', label: 'LinkedIn', bg: '#0A66C2', noteKey: 'noteLinkedin' },
+  { id: 'instagram', label: 'Instagram', bg: 'linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)', noteKey: 'noteInstagram' },
+  { id: 'facebook', label: 'Facebook', bg: '#1877F2', noteKey: 'noteFacebook' },
 ];
 const labelOf = (id) => TEMPLATES.find((t) => t.id === id)?.label || 'Crème';
 
 const BRAND_DEFAULTS = { p: '#003D2E', s: '#0077FF', a: '#3AFFA3' };
 
 export default function CarrouselsPage() {
+  const { t } = useTranslation();
   const { user, updateUser } = useUser();
   const brand = {
     p: user?.couleur_principale || BRAND_DEFAULTS.p,
@@ -72,9 +74,9 @@ export default function CarrouselsPage() {
       const payload = { carrousel_couleur_principale: cz.p, carrousel_couleur_secondaire: cz.s, carrousel_couleur_accent: cz.a, carrousel_font: cz.font || null };
       await userService.updateMe(payload);
       updateUser(payload);
-      toast.success('Couleurs du carrousel enregistrées ✨');
+      toast.success(t('carrousels.toastCouleursEnregistrees'));
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Échec de l'enregistrement");
+      toast.error(e?.response?.data?.detail || t('carrousels.toastEchecEnregistrement'));
     } finally { setSavingCz(false); }
   };
 
@@ -118,9 +120,9 @@ export default function CarrouselsPage() {
       const out = await scheduleService.save(rows);
       setSchedules(out || rows);
       setSaved((p) => ({ ...p, [net]: sel[net] }));
-      toast.success(`Style « ${labelOf(sel[net])} » enregistré pour ${NETS.find((n) => n.id === net)?.label}`);
+      toast.success(t('carrousels.toastStyleEnregistre', { style: labelOf(sel[net]), reseau: NETS.find((n) => n.id === net)?.label }));
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Échec de l'enregistrement");
+      toast.error(e?.response?.data?.detail || t('carrousels.toastEchecEnregistrement'));
     } finally { setSaving(null); }
   };
 
@@ -130,9 +132,9 @@ export default function CarrouselsPage() {
   return (
     <div className="max-w-5xl">
       <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
-      <h1 className="text-2xl font-bold font-sora text-white">Styles de carrousel</h1>
+      <h1 className="text-2xl font-bold font-sora text-white">{t('carrousels.titre')}</h1>
       <p className="text-sm text-slate-400 font-inter mt-1 mb-5">
-        Un style par réseau, dans <span className="text-slate-200">tes couleurs</span>. Choisis un réseau, clique un style pour l'agrandir et faire défiler les slides, puis <span className="text-slate-200">enregistre</span>.
+        <Trans i18nKey="carrousels.intro" components={{ gras: <span className="text-slate-200" /> }} />
       </p>
 
       {/* Couleurs propres au carrousel */}
@@ -140,25 +142,25 @@ export default function CarrouselsPage() {
         <div className="rounded-2xl border border-white/8 bg-[#0b1322] p-4 sm:p-5 mb-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div>
-              <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Style du carrousel</div>
-              <div className="text-xs text-slate-400 mt-0.5">Couleurs + police, par défaut = ta marque. Le texte reste auto-lisible. L'aperçu se met à jour en direct.</div>
+              <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('carrousels.styleDuCarrousel')}</div>
+              <div className="text-xs text-slate-400 mt-0.5">{t('carrousels.styleDescription')}</div>
             </div>
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-              <button onClick={resetColors} className="text-[12.5px] text-slate-400 hover:text-white px-3 py-2 rounded-lg border border-white/10">Réinitialiser</button>
+              <button onClick={resetColors} className="text-[12.5px] text-slate-400 hover:text-white px-3 py-2 rounded-lg border border-white/10">{t('carrousels.reinitialiser')}</button>
               <button onClick={saveColors} disabled={!czDirty || savingCz}
                 className={`text-[13px] font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${czDirty ? 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white' : 'bg-white/5 text-slate-500 cursor-default'}`}>
                 {savingCz ? <Loader2 className="w-4 h-4 animate-spin" /> : (!czDirty && <Check className="w-4 h-4" />)}
-                {czDirty ? 'Enregistrer' : 'Enregistré'}
+                {czDirty ? t('carrousels.enregistrer') : t('carrousels.dejaEnregistre')}
               </button>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <ColorField label="Principale (fond)" name="p" value={cz.p} onChange={setColor} />
-            <ColorField label="Secondaire" name="s" value={cz.s} onChange={setColor} />
-            <ColorField label="Accent" name="a" value={cz.a} onChange={setColor} />
+            <ColorField label={t('carrousels.couleurPrincipale')} name="p" value={cz.p} onChange={setColor} />
+            <ColorField label={t('carrousels.couleurSecondaire')} name="s" value={cz.s} onChange={setColor} />
+            <ColorField label={t('carrousels.couleurAccent')} name="a" value={cz.a} onChange={setColor} />
           </div>
           <div className="mt-3 max-w-xs">
-            <label className="block text-[12px] font-medium text-slate-300 mb-1.5">Police des titres</label>
+            <label className="block text-[12px] font-medium text-slate-300 mb-1.5">{t('carrousels.policeDesTitres')}</label>
             <select value={cz.font || ''} onChange={(e) => setColor('font', e.target.value)}
               className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
               {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
@@ -168,7 +170,7 @@ export default function CarrouselsPage() {
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-slate-400 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#5B6CFF]" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-slate-400 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin text-[#5B6CFF]" /> {t('carrousels.chargement')}</div>
       ) : (
         <>
           {/* Onglets réseaux */}
@@ -192,13 +194,13 @@ export default function CarrouselsPage() {
           <div className="rounded-2xl border border-white/8 bg-[#0b1322] p-4 sm:p-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div className="min-w-0">
-                <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{nt.label} — choisis un style</div>
-                <div className="text-xs text-slate-400 mt-0.5">{nt.note}</div>
+                <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('carrousels.panneauTitre', { reseau: nt.label })}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{t(`carrousels.${nt.noteKey}`)}</div>
               </div>
               <button onClick={() => save(activeNet)} disabled={!dirty || saving === activeNet} data-testid={`carr-save-${activeNet}`}
                 className={`self-start sm:self-auto shrink-0 text-[13px] font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${dirty ? 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white' : 'bg-white/5 text-slate-500 cursor-default'}`}>
                 {saving === activeNet ? <Loader2 className="w-4 h-4 animate-spin" /> : (!dirty && <Check className="w-4 h-4" />)}
-                {!dirty ? 'Enregistré' : 'Enregistrer'}
+                {!dirty ? t('carrousels.dejaEnregistre') : t('carrousels.enregistrer')}
               </button>
             </div>
 
@@ -231,11 +233,11 @@ export default function CarrouselsPage() {
           <div className="flex items-center justify-between px-6 py-4" onClick={(e) => e.stopPropagation()}>
             <div>
               <div className="text-white font-sora font-bold text-lg">{labelOf(lightbox.tpl)}</div>
-              <div className="text-slate-400 text-xs">{NETS.find((n) => n.id === lightbox.net)?.label} · glisse pour voir les 5 slides</div>
+              <div className="text-slate-400 text-xs">{t('carrousels.lightboxHint', { reseau: NETS.find((n) => n.id === lightbox.net)?.label })}</div>
             </div>
             <div className="flex items-center gap-3">
               <button onClick={() => { save(lightbox.net); setLightbox(null); }}
-                className="text-[13px] font-semibold px-4 py-2 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white">Enregistrer ce style</button>
+                className="text-[13px] font-semibold px-4 py-2 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white">{t('carrousels.enregistrerCeStyle')}</button>
               <button onClick={() => setLightbox(null)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><X className="w-5 h-5" /></button>
             </div>
           </div>

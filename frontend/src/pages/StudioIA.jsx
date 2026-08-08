@@ -5,6 +5,7 @@ import {
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { agentService } from '../services/agentService';
 import { videoService } from '../services/videoService';
 import { contenuService } from '../services/contenuService';
@@ -16,10 +17,10 @@ import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 
 const FORMATS = [
-  { id: 'post', label: 'Post écrit', icon: PenLine },
-  { id: 'carrousel', label: 'Carrousel', icon: LayoutGrid },
-  { id: 'story', label: 'Story', icon: ImageIcon },
-  { id: 'script', label: 'Script vidéo', icon: Clapperboard },
+  { id: 'post', labelKey: 'formatPost', icon: PenLine },
+  { id: 'carrousel', labelKey: 'formatCarousel', icon: LayoutGrid },
+  { id: 'story', labelKey: 'formatStory', icon: ImageIcon },
+  { id: 'script', labelKey: 'formatScript', icon: Clapperboard },
 ];
 // Les stories ne se publient que sur Instagram et Facebook (Zernio)
 const RESEAUX_STORY = ['instagram', 'facebook'];
@@ -33,26 +34,23 @@ const RESEAUX = [
   { id: 'googlebusiness', label: 'Google Business' },
   { id: 'twitter', label: 'X (Twitter)' },
 ];
+// Les ids sont envoyés tels quels à l'API — seuls les labels (labelKey) se traduisent.
 const TYPES_VIDEO = [
-  { id: 'Reel', label: 'Reel' },
-  { id: 'Short', label: 'Short' },
-  { id: 'Video', label: 'Vidéo' },
-  { id: 'Interview', label: 'Interview' },
+  { id: 'Reel', labelKey: 'typeReel' },
+  { id: 'Short', labelKey: 'typeShort' },
+  { id: 'Video', labelKey: 'typeVideo' },
+  { id: 'Interview', labelKey: 'typeInterview' },
 ];
 // Qualité de génération : plus de choix côté client (héritage du système de crédits).
 // Tout passe en 'equilibre' ; le backend garde le paramètre (réactivable par offre si besoin).
 
-const LOGS_SUJETS = [
-  'Lecture de votre voix de marque…',
-  'Analyse de votre secteur et de votre audience…',
-  "Recherche d'angles pertinents…",
-  'Formulation des sujets…',
-];
+// Clés i18n (préfixe studio.) des logs affichés pendant la génération de sujets
+const LOGS_SUJETS = ['logBrandVoice', 'logSectorAudience', 'logAngles', 'logTopics'];
 
 const STEPS = [
-  { n: 1, label: 'Sujets', icon: Lightbulb },
-  { n: 2, label: 'Génération', icon: PenLine },
-  { n: 3, label: 'Validation', icon: CheckCircle2 },
+  { n: 1, labelKey: 'stepSubjects', icon: Lightbulb },
+  { n: 2, labelKey: 'stepGeneration', icon: PenLine },
+  { n: 3, labelKey: 'stepValidation', icon: CheckCircle2 },
 ];
 
 let _uid = 0;
@@ -72,6 +70,7 @@ const Pill = ({ active, onClick, children }) => (
 );
 
 export default function StudioIA() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, updateUser } = useUser();
   const [usage, setUsage] = useState(null);
@@ -88,8 +87,8 @@ export default function StudioIA() {
   const reseauxPour = (fmt) => (fmt === 'story' ? reseaux.filter((r) => RESEAUX_STORY.includes(r.id)) : reseaux);
 
   const erreurGen = (e) => {
-    if (e?.response?.status === 402) toast.error(e?.response?.data?.detail || 'Quota atteint pour ce type ce mois-ci.');
-    else toast.error(e?.response?.data?.detail || 'Erreur lors de la génération');
+    if (e?.response?.status === 402) toast.error(e?.response?.data?.detail || t('studio.quotaReached'));
+    else toast.error(e?.response?.data?.detail || t('studio.generationError'));
     refreshUsage();
   };
 
@@ -173,18 +172,24 @@ export default function StudioIA() {
 
   const supprimerContenu = (id) => setContenus((prev) => prev.filter((c) => c.id !== id));
 
+  // Affichage traduit d'un type vidéo (la valeur stockée/envoyée à l'API reste l'id, ex. 'Video')
+  const typeVideoLabel = (id) => {
+    const v = TYPES_VIDEO.find((x) => x.id === id);
+    return v ? t(`studio.${v.labelKey}`) : id;
+  };
+
   const step = contenus.length === 0 ? 1 : 2;
 
   // --- Sujets ---
   const proposerSujets = async () => {
-    if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
+    if (!marqueOk) { toast.error(t('studio.fillSectorFirst')); return; }
     setLoadingSujets(true);
     try {
       const data = await agentService.sujets(nbSujets);
       const nouveaux = data.sujets || [];
       setSujets((prev) => [...nouveaux, ...prev]);
       refreshUsage();
-      if (!nouveaux.length) toast.info('Aucun sujet généré, réessayez.');
+      if (!nouveaux.length) toast.info(t('studio.noSubjectsGenerated'));
     } catch (e) {
       erreurGen(e);
     } finally {
@@ -228,9 +233,9 @@ export default function StudioIA() {
         if (extras.length && d.contenu_id) {
           try {
             await contenuService.recycler(d.contenu_id, extras);
-            toast.success(`Carrousel dupliqué sur ${extras.length} autre${extras.length > 1 ? 's' : ''} réseau${extras.length > 1 ? 'x' : ''} ♻️`);
+            toast.success(t('studio.carouselDuplicated', { count: extras.length }));
           } catch (err) {
-            toast.error('Copies multi-réseaux du carrousel impossibles (tu peux utiliser Recycler dans Contenus)');
+            toast.error(t('studio.carouselCopiesFailed'));
           }
         }
         return;
@@ -252,7 +257,7 @@ export default function StudioIA() {
   const genererBrief = async () => {
     const txt = briefText.trim();
     if (!txt) return;
-    if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
+    if (!marqueOk) { toast.error(t('studio.fillSectorFirst')); return; }
     const fmt = bFormat;
     const meta = fmt === 'script' ? bType : bReseaux[0];
     const extras = fmt === 'script' ? [] : bReseaux.slice(1);
@@ -271,9 +276,9 @@ export default function StudioIA() {
         if (extras.length && d.contenu_id) {
           try {
             await contenuService.recycler(d.contenu_id, extras);
-            toast.success(`Carrousel dupliqué sur ${extras.length} autre${extras.length > 1 ? 's' : ''} réseau${extras.length > 1 ? 'x' : ''} ♻️`);
+            toast.success(t('studio.carouselDuplicated', { count: extras.length }));
           } catch (err) {
-            toast.error('Copies multi-réseaux du carrousel impossibles (tu peux utiliser Recycler dans Contenus)');
+            toast.error(t('studio.carouselCopiesFailed'));
           }
         }
         return;
@@ -303,12 +308,12 @@ export default function StudioIA() {
 
   const genererPhoto = async (file) => {
     if (!file) return;
-    if (!marqueOk) { toast.error('Renseignez votre secteur dans Paramètres → Voix de marque.'); return; }
-    if (!file.type.startsWith('image/')) { toast.error('Choisissez une image (jpg, png, webp).'); return; }
-    if (file.size > 10 * 1024 * 1024) { toast.error('Image trop lourde (max 10 Mo).'); return; }
+    if (!marqueOk) { toast.error(t('studio.fillSectorFirst')); return; }
+    if (!file.type.startsWith('image/')) { toast.error(t('studio.invalidImage')); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error(t('studio.imageTooLarge')); return; }
     setPhotoLoading(true);
     const cardId = nextId();
-    setContenus((prev) => [{ id: cardId, sujet: 'Post depuis une photo', statut: 'redaction', format: 'photo', meta: photoReseau, qualite: photoQualite }, ...prev]);
+    setContenus((prev) => [{ id: cardId, sujet: t('studio.postFromPhoto'), statut: 'redaction', format: 'photo', meta: photoReseau, qualite: photoQualite }, ...prev]);
     setPhotoOpen(false);
     try {
       const d = await agentService.redigerPhoto(file, photoReseau, photoQualite);
@@ -337,9 +342,9 @@ export default function StudioIA() {
         if (extras.length && d.contenu_id) {
           try {
             await contenuService.recycler(d.contenu_id, extras);
-            toast.success(`Carrousel dupliqué sur ${extras.length} autre${extras.length > 1 ? 's' : ''} réseau${extras.length > 1 ? 'x' : ''} ♻️`);
+            toast.success(t('studio.carouselDuplicated', { count: extras.length }));
           } catch (err) {
-            toast.error('Copies multi-réseaux du carrousel impossibles (tu peux utiliser Recycler dans Contenus)');
+            toast.error(t('studio.carouselCopiesFailed'));
           }
         }
         return;
@@ -368,8 +373,8 @@ export default function StudioIA() {
         const d = await videoService.createDraft({ script: card.texte, titre: card.sujet });
         setContenus((prev) => prev.filter((c) => c.id !== id));
         if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
-        toast.success('Script prêt → à monter en vidéo', {
-          action: d?.contenu_id ? { label: 'Monter la vidéo', onClick: () => navigate(`/dashboard/video?contenu_id=${d.contenu_id}`) } : undefined,
+        toast.success(t('studio.scriptReady'), {
+          action: d?.contenu_id ? { label: t('studio.editVideoAction'), onClick: () => navigate(`/dashboard/video?contenu_id=${d.contenu_id}`) } : undefined,
         });
         return;
       }
@@ -381,15 +386,15 @@ export default function StudioIA() {
       setContenus((prev) => prev.filter((c) => c.id !== id)); // validé → quitte le Studio
       if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
       if (card.extras?.length) {
-        toast.success('Post validé → ajoute une image dans Contenus, puis clique ♻️ Recycler pour le publier aussi sur les autres réseaux (même image, sans la régénérer).', { duration: 8000 });
+        toast.success(t('studio.postValidatedRecycle'), { duration: 8000 });
       } else {
         toast.success(card.format === 'story'
-          ? 'Story validée → ajoute un visuel 9:16 dans Contenus'
-          : 'Post validé → onglet Contenus');
+          ? t('studio.storyValidated')
+          : t('studio.postValidated'));
       }
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false } : c)));
-      toast.error(e.response?.data?.detail || 'Erreur lors de la validation');
+      toast.error(e.response?.data?.detail || t('studio.validationError'));
     }
   };
 
@@ -397,13 +402,13 @@ export default function StudioIA() {
     <div className="w-full space-y-6 pb-10">
       <PageHeader
         icon={Sparkles}
-        title="Studio IA"
-        subtitle="Votre IA génère vos contenus à partir de votre marque"
+        title={t('studio.pageTitle')}
+        subtitle={t('studio.pageSubtitle')}
         actions={
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3]" />
             <span className="text-sm font-semibold text-white font-inter">{sujetsReste() ?? '—'}</span>
-            <span className="text-xs text-slate-400 font-inter">sujets restants</span>
+            <span className="text-xs text-slate-400 font-inter">{t('studio.subjectsRemaining')}</span>
           </div>
         }
       />
@@ -424,7 +429,7 @@ export default function StudioIA() {
                 }`}>
                   {done ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                 </div>
-                <span className={`text-xs font-inter font-medium hidden sm:block ${active || done ? 'text-slate-200' : 'text-slate-500'}`}>{s.label}</span>
+                <span className={`text-xs font-inter font-medium hidden sm:block ${active || done ? 'text-slate-200' : 'text-slate-500'}`}>{t(`studio.${s.labelKey}`)}</span>
               </div>
               {i < STEPS.length - 1 && <div className={`flex-1 h-px mx-3 transition-all duration-300 ${step > s.n ? 'bg-emerald-500/40' : 'bg-white/10'}`} />}
             </div>
@@ -437,10 +442,10 @@ export default function StudioIA() {
         <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 animate-fade-in">
           <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
           <div className="text-sm font-inter">
-            <p className="text-amber-300 font-medium">Complétez votre marque d'abord</p>
+            <p className="text-amber-300 font-medium">{t('studio.completeBrandFirst')}</p>
             <p className="text-amber-400/80 text-xs mt-1 leading-relaxed">
-              Renseignez au moins votre <span className="font-medium">secteur</span> dans{' '}
-              <Link to="/dashboard/parametres" className="underline text-amber-200 hover:text-white">Paramètres → Voix de marque</Link>.
+              {t('studio.guardIntro')} <span className="font-medium">{t('studio.guardSector')}</span> {t('studio.guardIn')}{' '}
+              <Link to="/dashboard/parametres" className="underline text-amber-200 hover:text-white">{t('studio.settingsBrandVoice')}</Link>.
             </p>
           </div>
         </div>
@@ -451,12 +456,12 @@ export default function StudioIA() {
         <section className="bg-slate-900/60 border border-white/[0.06] rounded-2xl p-5 space-y-4">
           <div className="flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-amber-400" />
-            <h2 className="font-medium font-inter text-slate-200">1. Réserve de sujets</h2>
+            <h2 className="font-medium font-inter text-slate-200">{t('studio.subjectsReserveTitle')}</h2>
           </div>
 
           {/* Génération : nombre + bouton */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-inter">Nombre</span>
+            <span className="text-xs text-slate-500 font-inter">{t('studio.countLabel')}</span>
             <input
               type="number" min={1} max={12} value={nbSujets}
               onChange={(e) => setNbSujets(Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 1)))}
@@ -465,7 +470,7 @@ export default function StudioIA() {
             <Button onClick={proposerSujets} disabled={!marqueOk || loadingSujets} data-testid="studio-generer-sujets"
               className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40 ml-auto">
               {loadingSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              <span className="ml-2">Générer des sujets</span>
+              <span className="ml-2">{t('studio.generateSubjects')}</span>
             </Button>
           </div>
 
@@ -474,7 +479,7 @@ export default function StudioIA() {
             <button onClick={() => setBriefOpen((o) => !o)} data-testid="studio-brief-toggle"
               className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-inter text-slate-300 hover:text-white transition-colors">
               <PenLine className="w-4 h-4 text-[#8A6CFF]" />
-              <span>Écrire mon propre brief</span>
+              <span>{t('studio.writeOwnBrief')}</span>
               <span className="ml-auto text-xs text-slate-500">{briefOpen ? '▲' : '▼'}</span>
             </button>
             {briefOpen && (
@@ -482,11 +487,11 @@ export default function StudioIA() {
                 <Textarea
                   value={briefText} onChange={(e) => setBriefText(e.target.value)} rows={3}
                   data-testid="studio-brief-text"
-                  placeholder="Ex : Promo pour la sortie du module Goodtime — ton enthousiaste, bénéfices clés, CTA inscription."
+                  placeholder={t('studio.briefPlaceholder')}
                   className="bg-slate-950/60 border-white/10 text-slate-100 font-inter resize-y text-sm"
                 />
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">Format</span>
+                  <span className="text-xs text-slate-500 font-inter">{t('studio.formatLabel')}</span>
                   {FORMATS.map((f) => {
                     const Icon = f.icon;
                     return (
@@ -494,29 +499,29 @@ export default function StudioIA() {
                         setBFormat(f.id);
                         if (f.id === 'story') setBReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
                       }}>
-                        <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{f.label}</span>
+                        <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{t(`studio.${f.labelKey}`)}</span>
                       </Pill>
                     );
                   })}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">{bFormat === 'script' ? 'Type' : 'Réseaux'}</span>
+                  <span className="text-xs text-slate-500 font-inter">{bFormat === 'script' ? t('studio.typeLabel') : t('studio.networksLabel')}</span>
                   {bFormat !== 'script' && reseaux.length === 0
-                    ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
+                    ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
                     : (bFormat === 'script' ? TYPES_VIDEO : reseauxPour(bFormat)).map((r) => (
                     <Pill key={r.id}
                       active={bFormat === 'script' ? bType === r.id : bReseaux.includes(r.id)}
                       onClick={() => (bFormat === 'script' ? setBType(r.id) : toggleReseau(setBReseaux)(r.id))}>
-                      {bFormat !== 'script' && bReseaux.includes(r.id) ? '✓ ' : ''}{r.label}
+                      {bFormat !== 'script' && bReseaux.includes(r.id) ? '✓ ' : ''}{r.labelKey ? t(`studio.${r.labelKey}`) : r.label}
                     </Pill>
                   ))}
                   {bFormat !== 'script' && bReseaux.length > 1 && (
-                    <span className="text-[11px] text-[#3AFFA3] font-inter">1 post → {bReseaux.length} réseaux</span>
+                    <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: bReseaux.length })}</span>
                   )}
                 </div>
                 {bFormat === 'carrousel' && (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 font-inter">Slides</span>
+                    <span className="text-xs text-slate-500 font-inter">{t('studio.slidesLabel')}</span>
                     <input type="number" min={3} max={10} value={nbSlides}
                       onChange={(e) => setNbSlides(Math.max(3, Math.min(10, parseInt(e.target.value, 10) || 5)))}
                       className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
@@ -525,7 +530,7 @@ export default function StudioIA() {
                 <div className="flex items-center justify-end">
                   <Button onClick={genererBrief} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer"
                     className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
-                    <Wand2 className="w-4 h-4" /><span className="ml-2">Rédiger</span>
+                    <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.writeButton')}</span>
                   </Button>
                 </div>
               </div>
@@ -537,16 +542,16 @@ export default function StudioIA() {
             <button onClick={() => setPhotoOpen((o) => !o)} data-testid="studio-photo-toggle"
               className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-inter text-slate-300 hover:text-white transition-colors">
               <ImageIcon className="w-4 h-4 text-[#3AFFA3]" />
-              <span>Générer depuis une photo</span>
+              <span>{t('studio.generateFromPhoto')}</span>
               <span className="ml-auto text-xs text-slate-500">{photoOpen ? '▲' : '▼'}</span>
             </button>
             {photoOpen && (
               <div className="px-4 pb-4 space-y-3 animate-fade-in">
-                <p className="text-xs text-slate-500 font-inter">Importe une photo : l'IA l'analyse et écrit un post adapté au réseau. La photo devient le visuel.</p>
+                <p className="text-xs text-slate-500 font-inter">{t('studio.photoHint')}</p>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">Réseau</span>
+                  <span className="text-xs text-slate-500 font-inter">{t('studio.networkLabel')}</span>
                   {reseaux.length === 0
-                    ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
+                    ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
                     : reseaux.map((r) => <Pill key={r.id} active={photoReseau === r.id} onClick={() => setPhotoReseau(r.id)}>{r.label}</Pill>)}
                 </div>
                 <input ref={photoRef} type="file" accept="image/*" className="hidden" data-testid="studio-photo-input"
@@ -556,13 +561,13 @@ export default function StudioIA() {
                     <Button onClick={prendrePhoto} disabled={!marqueOk || photoLoading}
                       className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10 disabled:opacity-40">
                       <Camera className="w-4 h-4" />
-                      <span className="ml-2">Prendre une photo</span>
+                      <span className="ml-2">{t('studio.takePhotoButton')}</span>
                     </Button>
                   )}
                   <Button onClick={() => photoRef.current?.click()} disabled={!marqueOk || photoLoading}
                     className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
                     {photoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                    <span className="ml-2">{cameraAvailable() ? 'Importer' : 'Choisir une photo'}</span>
+                    <span className="ml-2">{cameraAvailable() ? t('studio.importButton') : t('studio.choosePhotoButton')}</span>
                   </Button>
                 </div>
               </div>
@@ -578,7 +583,7 @@ export default function StudioIA() {
                 return (
                   <div key={i} className="flex items-center gap-2 text-sm font-inter animate-fade-in">
                     {isCurrent ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#5B6CFF]" /> : <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                    <span className={isCurrent ? 'text-slate-300' : 'text-slate-500'}>{log}</span>
+                    <span className={isCurrent ? 'text-slate-300' : 'text-slate-500'}>{t(`studio.${log}`)}</span>
                   </div>
                 );
               })}
@@ -592,7 +597,7 @@ export default function StudioIA() {
                 <Wand2 className="w-7 h-7 text-[#5B6CFF]" />
               </div>
               <p className="text-sm font-inter max-w-xs">
-                Générez une réserve d'idées. Vous choisirez le format et le réseau au moment de transformer chaque sujet.
+                {t('studio.emptySubjectsHint')}
               </p>
             </div>
           )}
@@ -610,9 +615,9 @@ export default function StudioIA() {
                       {!open && (
                         <>
                           <button onClick={() => ouvrir(s)} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-[#5B6CFF]/20 text-white hover:bg-[#5B6CFF]/30 transition-all flex-shrink-0">
-                            Créer →
+                            {t('studio.createButton')}
                           </button>
-                          <button onClick={() => supprimerSujet(s.id)} title="Supprimer" className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
+                          <button onClick={() => supprimerSujet(s.id)} title={t('studio.deleteTitle')} className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </>
@@ -623,7 +628,7 @@ export default function StudioIA() {
                     {open && (
                       <div className="px-4 pb-4 pt-1 space-y-3 animate-fade-in">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-slate-500 font-inter">Format</span>
+                          <span className="text-xs text-slate-500 font-inter">{t('studio.formatLabel')}</span>
                           {FORMATS.map((f) => {
                             const Icon = f.icon;
                             return (
@@ -631,38 +636,38 @@ export default function StudioIA() {
                                 setCfgFormat(f.id);
                                 if (f.id === 'story') setCfgReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
                               }}>
-                                <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{f.label}</span>
+                                <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{t(`studio.${f.labelKey}`)}</span>
                               </Pill>
                             );
                           })}
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-slate-500 font-inter">{cfgFormat === 'script' ? 'Type' : 'Réseaux'}</span>
+                          <span className="text-xs text-slate-500 font-inter">{cfgFormat === 'script' ? t('studio.typeLabel') : t('studio.networksLabel')}</span>
                           {cfgFormat !== 'script' && reseaux.length === 0
-                            ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">Connecte un réseau dans Paramètres →</Link>
+                            ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
                             : (cfgFormat === 'script' ? TYPES_VIDEO : reseauxPour(cfgFormat)).map((r) => (
                             <Pill key={r.id}
                               active={cfgFormat === 'script' ? cfgType === r.id : cfgReseaux.includes(r.id)}
                               onClick={() => (cfgFormat === 'script' ? setCfgType(r.id) : toggleReseau(setCfgReseaux)(r.id))}>
-                              {cfgFormat !== 'script' && cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.label}
+                              {cfgFormat !== 'script' && cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.labelKey ? t(`studio.${r.labelKey}`) : r.label}
                             </Pill>
                           ))}
                           {cfgFormat !== 'script' && cfgReseaux.length > 1 && (
-                            <span className="text-[11px] text-[#3AFFA3] font-inter">1 post → {cfgReseaux.length} réseaux</span>
+                            <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: cfgReseaux.length })}</span>
                           )}
                         </div>
                         {cfgFormat === 'carrousel' && (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-500 font-inter">Slides</span>
+                            <span className="text-xs text-slate-500 font-inter">{t('studio.slidesLabel')}</span>
                             <input type="number" min={3} max={10} value={nbSlides}
                               onChange={(e) => setNbSlides(Math.max(3, Math.min(10, parseInt(e.target.value, 10) || 5)))}
                               className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
                           </div>
                         )}
                         <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => setOpenId(null)} className="text-xs text-slate-400 hover:text-white font-inter px-2">Annuler</button>
+                          <button onClick={() => setOpenId(null)} className="text-xs text-slate-400 hover:text-white font-inter px-2">{t('studio.cancel')}</button>
                           <Button onClick={() => genererContenu(s)} className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
-                            <Wand2 className="w-4 h-4" /><span className="ml-2">Générer</span>
+                            <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.generateButton')}</span>
                           </Button>
                         </div>
                       </div>
@@ -679,10 +684,10 @@ export default function StudioIA() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <PenLine className="w-4 h-4 text-[#3AFFA3]" />
-              <h2 className="font-medium font-inter text-slate-200">2. Vos contenus</h2>
+              <h2 className="font-medium font-inter text-slate-200">{t('studio.yourContentsTitle')}</h2>
             </div>
             {contenus.length > 0 && (
-              <span className="text-xs text-slate-500 font-inter">{contenus.length} brouillon{contenus.length > 1 ? 's' : ''}</span>
+              <span className="text-xs text-slate-500 font-inter">{t('studio.draftsCount', { count: contenus.length })}</span>
             )}
           </div>
 
@@ -692,7 +697,7 @@ export default function StudioIA() {
                 <PenLine className="w-6 h-6 text-slate-600" />
               </div>
               <p className="text-sm font-inter max-w-[15rem]">
-                Transformez un sujet (à gauche) en post ou en script — il apparaîtra ici.
+                {t('studio.emptyContentsHint')}
               </p>
             </div>
           ) : (
@@ -702,10 +707,10 @@ export default function StudioIA() {
                   className="rounded-xl border border-white/[0.06] bg-slate-950/40 p-4 space-y-3 transition-all duration-300 animate-fade-in">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-inter flex-shrink-0">
-                      {c.format === 'script' ? `🎬 ${c.meta}` : c.format === 'carrousel' ? `🖼 ${c.meta}` : c.format === 'photo' ? `📷 ${c.meta}` : c.meta}
+                      {c.format === 'script' ? `🎬 ${typeVideoLabel(c.meta)}` : c.format === 'carrousel' ? `🖼 ${c.meta}` : c.format === 'photo' ? `📷 ${c.meta}` : c.meta}
                     </span>
                     <span className="text-xs font-medium text-slate-400 font-inter flex-1 truncate">{c.sujet}</span>
-                    <button onClick={() => supprimerContenu(c.id)} title="Retirer" className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
+                    <button onClick={() => supprimerContenu(c.id)} title={t('studio.removeTitle')} className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -714,24 +719,24 @@ export default function StudioIA() {
                     <div className="flex flex-col items-center gap-2 text-center py-6">
                       <p className="text-xs text-red-400 font-inter">
                         {c.format === 'carrousel'
-                          ? "Erreur pendant la génération — si elle a quand même abouti côté serveur, retrouve-la dans l'onglet Contenus avant de réessayer (pour éviter un doublon)."
-                          : "Erreur pendant la génération."}
+                          ? t('studio.carouselGenerationErrorLong')
+                          : t('studio.generationErrorShort')}
                       </p>
                       <Button size="sm" variant="ghost" onClick={() => regenerer(c.id)} className="text-slate-400 hover:text-white">
-                        <RefreshCw className="w-4 h-4" /><span className="ml-2">Réessayer</span>
+                        <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.retry')}</span>
                       </Button>
                     </div>
                   ) : c.statut === 'redaction' ? (
                     <div className="flex items-center gap-2 text-slate-400 py-8 justify-center">
                       <Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" />
-                      <span className="font-inter text-sm">{c.format === 'carrousel' ? 'Création du carrousel… (slides + images)' : c.format === 'photo' ? 'Analyse de la photo…' : c.format === 'script' ? 'Écriture du script…' : 'Rédaction du post…'}</span>
+                      <span className="font-inter text-sm">{c.format === 'carrousel' ? t('studio.creatingCarousel') : c.format === 'photo' ? t('studio.analyzingPhoto') : c.format === 'script' ? t('studio.writingScript') : t('studio.writingPost')}</span>
                     </div>
                   ) : c.format === 'photo' ? (
                     <div className="space-y-3">
                       {c.image && <img src={c.image} alt="" className="w-full rounded-lg border border-white/10 max-h-60 object-cover" />}
                       <p className="text-sm text-slate-200 font-inter whitespace-pre-wrap">{c.texte}</p>
                       <div className="flex items-center gap-2 text-emerald-400 text-xs font-inter">
-                        <Check className="w-3.5 h-3.5" /> Post + photo enregistrés → onglet Contenus
+                        <Check className="w-3.5 h-3.5" /> {t('studio.photoSaved')}
                       </div>
                     </div>
                   ) : c.format === 'carrousel' ? (
@@ -740,15 +745,15 @@ export default function StudioIA() {
                         <div className="grid grid-cols-3 gap-2">
                           {c.images.map((u, i) => (
                             <div key={i} className="w-full aspect-[4/5] rounded-lg border border-white/10 overflow-hidden bg-slate-950/60">
-                              <img src={u} alt={`slide ${i + 1}`} className="w-full h-full object-cover" />
+                              <img src={u} alt={t('studio.slideAlt', { n: i + 1 })} className="w-full h-full object-cover" />
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-amber-400 font-inter py-4 text-center">Aucune image générée — réessaie.</p>
+                        <p className="text-xs text-amber-400 font-inter py-4 text-center">{t('studio.noImagesGenerated')}</p>
                       )}
                       <div className="flex items-center gap-2 text-emerald-400 text-xs font-inter">
-                        <Check className="w-3.5 h-3.5" /> Carrousel enregistré → onglet Contenus
+                        <Check className="w-3.5 h-3.5" /> {t('studio.carouselSaved')}
                       </div>
                     </div>
                   ) : (
@@ -758,11 +763,11 @@ export default function StudioIA() {
                         className="bg-slate-950/60 border-white/10 text-slate-100 font-inter resize-y" />
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" onClick={() => regenerer(c.id)} className="text-slate-400 hover:text-white">
-                          <RefreshCw className="w-4 h-4" /><span className="ml-2">Régénérer</span>
+                          <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.regenerate')}</span>
                         </Button>
                         <Button data-testid={`studio-valider-${c.id}`} onClick={() => valider(c.id)} disabled={c.saving || !c.texte.trim()}
                           className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30">
-                          {c.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}<span className="ml-2">Valider</span>
+                          {c.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}<span className="ml-2">{t('studio.validate')}</span>
                         </Button>
                       </div>
                     </>
