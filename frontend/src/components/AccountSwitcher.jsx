@@ -16,11 +16,13 @@ export default function AccountSwitcher() {
   const load = () => accountService.list().then((d) => setAccounts(d.accounts || [])).catch(() => {});
   useEffect(() => { load(); }, []);
 
-  // Ferme au clic extérieur
+  // Ferme au clic extérieur (touchstart aussi : sur mobile le mousedown synthétisé
+  // n'arrive qu'après le tap, la fermeture paraissait sinon en retard)
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
+    document.addEventListener('touchstart', h);
+    return () => { document.removeEventListener('mousedown', h); document.removeEventListener('touchstart', h); };
   }, []);
 
   const current = accounts.find((a) => a.is_current);

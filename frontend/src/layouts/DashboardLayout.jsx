@@ -308,7 +308,13 @@ function DashboardContent() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-[#050810]/95 backdrop-blur-xl pt-20 flex flex-col">
+        <div className="md:hidden fixed inset-0 z-40 bg-[#050810]/95 backdrop-blur-xl pt-20 flex flex-col overflow-y-auto">
+          {/* Sélecteur de marque : présent aussi sur mobile (il n'existait que dans la sidebar desktop) */}
+          {!inSettings && (
+            <div className="px-4 pb-3">
+              <AccountSwitcher />
+            </div>
+          )}
           <nav className="px-4 space-y-1 flex-1">
             {navItems.map((item) => (
               <NavItem key={item.path} item={item} onClick={() => setMobileMenuOpen(false)} />
