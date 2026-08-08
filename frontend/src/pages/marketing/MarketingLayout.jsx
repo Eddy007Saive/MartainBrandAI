@@ -1,17 +1,20 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation, Link, NavLink, Outlet } from 'react-router-dom';
 import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
 import { isNativeApp } from '../../lib/appDownload';
+import LangSwitcher from '../../components/LangSwitcher';
 import { CSS, GOODTIME } from './shared';
 
 const LINKS = [
-  { to: '/fonctionnalites', label: 'Fonctionnalités' },
-  { to: '/comment-ca-marche', label: 'Comment ça marche' },
-  { to: '/tarifs', label: 'Tarifs' },
-  { to: '/faq', label: 'FAQ' },
+  { to: '/fonctionnalites', labelKey: 'lp.nav.features' },
+  { to: '/comment-ca-marche', labelKey: 'lp.nav.howItWorks' },
+  { to: '/tarifs', labelKey: 'lp.nav.pricing' },
+  { to: '/faq', labelKey: 'lp.nav.faq' },
 ];
 
 export default function MarketingLayout() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -54,11 +57,11 @@ export default function MarketingLayout() {
       <style>{CSS}</style>
 
       <nav><div className="wrap">
-        <Link to="/" className="brand"><img src="/logo.png" alt="Postorico" /><div><b>Postorico</b><small>Studio de contenu IA</small></div></Link>
+        <Link to="/" className="brand"><img src="/logo.png" alt="Postorico" /><div><b>Postorico</b><small>{t('lp.nav.tagline')}</small></div></Link>
         <div className="navlinks">
-          {LINKS.map((l) => <NavLink key={l.to} to={l.to}>{l.label}</NavLink>)}
+          {LINKS.map((l) => <NavLink key={l.to} to={l.to}>{t(l.labelKey)}</NavLink>)}
         </div>
-        <div className="nav-cta"><Link className="login" to="/login">Se connecter</Link><Link className="btn btn-grad sm" to="/register">Commencer</Link></div>
+        <div className="nav-cta"><LangSwitcher /><Link className="login" to="/login">{t('lp.nav.login')}</Link><Link className="btn btn-grad sm" to="/register">{t('lp.nav.start')}</Link></div>
       </div></nav>
 
       <div className="pagebody"><Outlet /></div>
@@ -68,15 +71,15 @@ export default function MarketingLayout() {
           <img src="/logo.png" alt="" style={{ width: 30, height: 30 }} />
           <div>
             <b>Postorico</b>
-            <small>Un produit <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a> · © 2026</small>
+            <small>{t('lp.footer.productOf')} <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a> · © 2026</small>
           </div>
         </div>
         <div className="flinks">
-          <Link to="/tarifs">Tarifs</Link>
-          <Link to="/faq">FAQ</Link>
-          <Link to="/cgu">CGU</Link>
-          <Link to="/confidentialite">Confidentialité</Link>
-          <Link to="/mentions-legales">Mentions légales</Link>
+          <Link to="/tarifs">{t('lp.footer.pricing')}</Link>
+          <Link to="/faq">{t('lp.footer.faq')}</Link>
+          <Link to="/cgu">{t('lp.footer.cgu')}</Link>
+          <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
+          <Link to="/mentions-legales">{t('lp.footer.legal')}</Link>
           <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a>
         </div>
       </div></footer>

@@ -1166,5 +1166,486 @@
       "note1": "Pick the network(s) then \"Save & publish\" — you then review it in",
       "note2": "Contents"
     }
+  },
+  "lp": {
+    "nav": {
+      "features": "Features",
+      "how": "How it works",
+      "pricing": "Pricing",
+      "faq": "FAQ",
+      "dashboard": "My dashboard",
+      "login": "Log in",
+      "start": "Get started",
+      "menu": "Menu",
+      "tagline": "AI content studio",
+      "howItWorks": "How it works"
+    },
+    "brand": {
+      "tagline": "AI content studio"
+    },
+    "cta": {
+      "call": "Book your setup call →",
+      "account": "Create my account",
+      "apk": "↓ Android app"
+    },
+    "hero": {
+      "kicker": "Set up by experts · Run by you",
+      "title1": "We build your marketing system.",
+      "title2": "You run it in 2 hrs a month.",
+      "sub": "Our experts study your business and build a content studio <b>tuned to your voice</b>. Then you take the wheel: generate, approve, publish. <b>An agency's consistency, without the invoice.</b>",
+      "note": "Free call · We study your business first",
+      "scroll": "↓ scroll",
+      "stat1": {
+        "v": "2 hrs",
+        "l": "a month"
+      },
+      "stat2": {
+        "v": "< 30 s",
+        "l": "per post"
+      },
+      "stat3": {
+        "v": "6",
+        "l": "networks"
+      },
+      "stat4": {
+        "v": "€0",
+        "l": "to get started"
+      }
+    },
+    "impact": {
+      "title": "You run a company, §not §a §newsroom."
+    },
+    "ps": {
+      "eyebrow": "The reality",
+      "title": "Staying visible on social when you're running a company",
+      "lead": "Between the lack of time, the on-and-off posting and the scattered tools, most founders give up fast. Postorico changes that.",
+      "bad": {
+        "title": "Without Postorico",
+        "1": "You know you should be posting… but you run a company, not a newsroom.",
+        "2": "Either your accounts are dead, or you're hoping your intern pulls it off.",
+        "3": "You juggle 5 apps and 10 tabs, or you pay an agency and hope for the best.",
+        "4": "You never really know what's working (or why)."
+      },
+      "good": {
+        "badge": "The switch",
+        "title": "With Postorico",
+        "1": "The AI generates topics and posts tuned to your brand.",
+        "2": "You approve in one click — nothing goes out without your green light.",
+        "3": "Once approved, scheduling is automatic — consistency without thinking about it.",
+        "4": "Your real numbers in front of you — you finally know what works."
+      }
+    },
+    "scenes": {
+      "alt": "Postorico — {{name}}",
+      "studio": {
+        "label": "AI Studio",
+        "tag": "your voice, not generic filler",
+        "desc": "The AI writes in your tone, you approve in one click."
+      },
+      "contenus": {
+        "label": "Content",
+        "tag": "all in one place",
+        "desc": "Posts and visuals on brand, ready to publish."
+      },
+      "planification": {
+        "label": "Scheduling",
+        "tag": "on autopilot",
+        "desc": "Your days, your time: the calendar publishes on its own."
+      },
+      "commentaires": {
+        "label": "Comments",
+        "tag": "one unified inbox",
+        "desc": "Reply across every network from a single screen."
+      },
+      "performance": {
+        "label": "Performance",
+        "tag": "you know what works",
+        "desc": "Impressions, reach, engagement — network by network."
+      },
+      "carrousels": {
+        "label": "Carousels",
+        "tag": "slides that stop the scroll",
+        "desc": "Generated on brand, rendered pixel-perfect."
+      }
+    },
+    "cmp": {
+      "eyebrow": "Instead of…",
+      "title": "You already know your options. Here's why Postorico wins.",
+      "badge": "★ The right call",
+      "crit": {
+        "cost": "Cost",
+        "volume": "Volume",
+        "voice": "Your voice",
+        "consistency": "Consistency",
+        "control": "Control",
+        "setup": "Time to launch"
+      },
+      "nothing": {
+        "name": "Doing nothing",
+        "v1": "€0 (dead accounts)",
+        "v2": "None",
+        "v3": "—",
+        "v4": "None",
+        "v5": "—",
+        "v6": "—"
+      },
+      "intern": {
+        "name": "An intern / apprentice",
+        "v1": "A salary",
+        "v2": "A few posts",
+        "v3": "They pick it up (or not)",
+        "v4": "Hit or miss",
+        "v5": "You proofread everything",
+        "v6": "Hiring + training"
+      },
+      "agency": {
+        "name": "An agency",
+        "v1": "€1,500–3,000/month",
+        "v2": "Capped plan (8-20/month)",
+        "v3": "Off-the-shelf",
+        "v4": "Good",
+        "v5": "You wait on their replies",
+        "v6": "Weeks of onboarding"
+      },
+      "postorico": {
+        "name": "Postorico",
+        "v1": "From €0",
+        "v2": "Unlimited, every network",
+        "v3": "Tuned to your brand",
+        "v4": "Automatic",
+        "v5": "You approve in 1 click",
+        "v6": "2 minutes"
+      }
+    },
+    "aud": {
+      "eyebrow": "Who it's for",
+      "title": "Does one of these sound like you?",
+      "lead": "We're not built for one industry — we're built for the reality of running a company.",
+      "1": {
+        "title": "\"I don't have the time\"",
+        "text": "You're running a business, not a content studio. Postorico is your pocket-sized marketing agency: original content that fits your brand, in just 2 to 3 hours a month."
+      },
+      "2": {
+        "title": "\"I delegate… and cross my fingers\"",
+        "text": "No more all-or-nothing bet on an intern. Postorico writes in your voice and you approve in one click. Consistent across every network — your tone, your brand."
+      },
+      "3": {
+        "title": "\"I'm paying an agency\"",
+        "text": "No capped plan, no €3,000 invoice every month. Publish as much as you want, on every network, and grow your presence for 10× less."
+      }
+    },
+    "flow": {
+      "eyebrow": "Done-for-you setup",
+      "title": "Short on time? We build your system for you.",
+      "lead": "Our marketing experts study your brand and build your studio from scratch. All that's left for you: approve and publish.",
+      "1": {
+        "title": "We study your business",
+        "text": "Positioning, offers, audiences, brand tone, competitors. A real audit, not a form."
+      },
+      "2": {
+        "title": "We build your system",
+        "text": "Editorial pillars, angles, calendar, AI tuned to your voice — plus concrete post and video ideas that look like you."
+      },
+      "3": {
+        "title": "You run it — in ~2 hrs/month",
+        "text": "The system is ready: you generate topics, approve them, produce your visuals and videos, and schedule. Nothing goes out without you."
+      },
+      "roles": {
+        "title": "We set it up. You run it.",
+        "text": "<b>Us:</b> we study your brand, configure everything, and build your visual templates. — <b>You:</b> ~2 hours a month to generate, approve and publish. You keep control, we carry the complexity."
+      }
+    },
+    "testi": {
+      "eyebrow": "Early access",
+      "title": "The first founders on board"
+    },
+    "avis": {
+      "1": {
+        "role": "Director, consulting firm",
+        "quote": "“I used to pay an agency €2,000/month. Now I handle it myself in a few minutes, and it actually looks like me.”"
+      },
+      "2": {
+        "role": "SME owner",
+        "quote": "“The setup changed everything: the system is tuned to my voice, all I do is approve. A huge time-saver.”"
+      },
+      "3": {
+        "role": "Startup founder",
+        "quote": "“Generation, scheduling and comment replies in one place. No more juggling ten different tools.”"
+      }
+    },
+    "final": {
+      "title": "Ready to take back control of your presence?",
+      "text": "Book your setup call — we study your business, we build your system, you run it."
+    },
+    "footer": {
+      "about": "Your AI content studio, set up by experts and tuned to your voice. You generate, you approve, you publish — 2 hours a month, every network.",
+      "product": "Product",
+      "account": "Account",
+      "legal": "Legal notice",
+      "cgu": "Terms",
+      "privacy": "Privacy",
+      "legalNotice": "Legal notice",
+      "apk": "Android app",
+      "book": "Book a call",
+      "copy": "© 2026 Postorico — a GoodTime BNB product",
+      "made": "Made with 🐓 in France",
+      "productOf": "A product by",
+      "pricing": "Pricing",
+      "faq": "FAQ"
+    },
+    "feat": {
+      "head": {
+        "eyebrow": "All-in-one",
+        "title": "A complete studio for your brand",
+        "lead": "From idea to publication, without switching tools."
+      },
+      "cta": "Try it free →",
+      "list": {
+        "1": {
+          "t": "AI generation",
+          "d": "Posts tuned to your brand voice, your industry and your content pillars — in seconds."
+        },
+        "2": {
+          "t": "Every network",
+          "d": "LinkedIn, Instagram, Facebook, TikTok, YouTube — publish everywhere from one place."
+        },
+        "3": {
+          "t": "Scheduling",
+          "d": "Editorial calendar, automatic slots, posting at the right time in your own time zone."
+        },
+        "4": {
+          "t": "Comments & inbox",
+          "d": "Reply, like and hide comments from a single inbox — with a notification the moment a new one lands."
+        },
+        "5": {
+          "t": "Performance analytics",
+          "d": "Impressions, likes, shares and engagement per post, synced automatically every hour."
+        },
+        "6": {
+          "t": "Branded carousels",
+          "d": "Carousels in your brand colours, generated and ready to post (LinkedIn PDF included)."
+        },
+        "7": {
+          "t": "Push notifications",
+          "d": "Know when a post is scheduled, published or fails — even with the app closed."
+        },
+        "8": {
+          "t": "AI video avatar",
+          "d": "Turn your scripts into videos with your digital avatar. Text to video, no filming required."
+        }
+      }
+    },
+    "steps": {
+      "list": {
+        "1": {
+          "t": "Define your brand",
+          "d": "Set your voice, your industry, your pillars. The AI learns who you are."
+        },
+        "2": {
+          "t": "The AI creates",
+          "d": "Topics, posts, carousels, video scripts — tailored to each network."
+        },
+        "3": {
+          "t": "Approve & schedule",
+          "d": "You review, you tweak, you schedule. Publishing takes care of itself."
+        }
+      },
+      "head": {
+        "eyebrow": "How it works",
+        "title": "From idea to publication, on autopilot",
+        "lead": "Three simple steps. You stay in control, the AI does the heavy lifting."
+      },
+      "flow": {
+        "1": {
+          "t": "Define your brand",
+          "p": "You set up your world once. The AI learns who you are and never strays from it.",
+          "li": {
+            "1": "Industry, audience & goals",
+            "2": "Your brand voice and tone",
+            "3": "Your content pillars",
+            "4": "Your brand colours & logo"
+          }
+        },
+        "2": {
+          "t": "The AI creates for you",
+          "p": "From a single topic, the AI writes content tailored to each network — in your voice.",
+          "li": {
+            "1": "Topic ideas in one click",
+            "2": "Posts tuned per network",
+            "3": "Branded carousels (LinkedIn PDF)",
+            "4": "Video scripts & AI visuals"
+          }
+        },
+        "3": {
+          "t": "Approve, schedule, publish",
+          "p": "You review, you tweak, you schedule. Publishing runs on its own, at the right time.",
+          "li": {
+            "1": "Quick edits before approval",
+            "2": "Calendar & automatic slots",
+            "3": "Multi-network publishing",
+            "4": "Notifications + performance tracking"
+          }
+        }
+      },
+      "creates": {
+        "head": {
+          "eyebrow": "What you can create",
+          "title": "One topic, every format",
+          "lead": "Turn a single idea into several pieces of content, without rewriting a thing."
+        },
+        "1": {
+          "t": "Posts",
+          "d": "Copy optimised for each network, in your brand voice."
+        },
+        "2": {
+          "t": "Carousels",
+          "d": "Slides in your brand colours, with PDF export for LinkedIn."
+        },
+        "3": {
+          "t": "Video scripts",
+          "d": "Ready-to-shoot scripts for Reels, TikTok and YouTube."
+        },
+        "4": {
+          "t": "AI images",
+          "d": "Generated visuals to go with your posts."
+        },
+        "5": {
+          "t": "AI video avatar",
+          "d": "Turn your scripts into videos with your digital avatar."
+        },
+        "6": {
+          "t": "Comment replies",
+          "d": "Answer your community from the inbox, notified in real time."
+        }
+      },
+      "behind": {
+        "head": {
+          "eyebrow": "Behind the scenes",
+          "title": "Publishing you never have to think about",
+          "lead": "Once approved, everything runs by itself."
+        },
+        "1": {
+          "t": "At the right time",
+          "p": "Your posts go out in the optimal slot, in your time zone — wherever your clients are."
+        },
+        "2": {
+          "t": "You stay informed",
+          "p": "A push notification tells you when a post is scheduled, published, or if something fails."
+        },
+        "3": {
+          "t": "You measure",
+          "p": "Impressions, likes, shares, engagement: your real numbers are synced every hour."
+        }
+      },
+      "cta": {
+        "start": "Start for free →",
+        "features": "See the features"
+      }
+    },
+    "pricing": {
+      "badge": {
+        "recommended": "Recommended",
+        "popular": "Most popular"
+      },
+      "oneTime": "One-off payment",
+      "perMonth": "/month",
+      "setup": {
+        "head": {
+          "eyebrow": "We set it up for you",
+          "title": "First, we build your system",
+          "lead": "A one-off engagement: our experts study your brand and build your studio to measure. All you have to do is steer it."
+        },
+        "cta": "Book your call →",
+        "note": "Free consultation · We study your business before proposing anything.",
+        "plans": {
+          "1": {
+            "name": "Essential Setup",
+            "desc": "To start clean, and fast.",
+            "feat": {
+              "1": "Condensed brand study",
+              "2": "AI calibrated to your tone",
+              "3": "Your networks set up",
+              "4": "First editorial calendar"
+            }
+          },
+          "2": {
+            "name": "Bespoke Setup",
+            "desc": "Your full marketing system, turnkey.",
+            "feat": {
+              "1": "Full audit (positioning, offers, competitors, targets)",
+              "2": "Your editorial line, built from scratch",
+              "3": "Draft posts + video concepts in your image",
+              "4": "Advanced AI calibration on your voice",
+              "5": "Everything in Essential Setup included"
+            }
+          }
+        }
+      },
+      "sub": {
+        "head": {
+          "eyebrow": "Then you steer",
+          "title": "The monthly subscription",
+          "lead": "Once the system is live: unlimited generation, multi-network scheduling, approval and stats. No commitment, cancel any time."
+        },
+        "note": "Prefer to start on your own? The Free plan lets you try it with no credit card."
+      },
+      "plans": {
+        "free": {
+          "name": "Free",
+          "tag": "To try it out, no card needed",
+          "feat": {
+            "1": "1 connected network",
+            "2": "Post generation",
+            "3": "Community support"
+          },
+          "cta": "Get started"
+        },
+        "pro": {
+          "name": "Pro",
+          "tag": "Everything included · no commitment",
+          "feat": {
+            "1": "All 5 networks",
+            "2": "Carousels + scheduling",
+            "3": "Analytics + comments",
+            "4": "Video studio (reels)",
+            "5": "Push notifications"
+          },
+          "cta": "Choose Pro"
+        }
+      },
+      "agency": {
+        "title": "An agency costs you {{price}}",
+        "titleAccent": "every month.",
+        "text": "With Postorico: one setup, once, then a light subscription you steer in about 2 hours a month. The consistency of an agency, without the recurring invoice.",
+        "ctaCall": "Book your setup call →",
+        "ctaSignup": "Create my account",
+        "note": "Indicative prices, subject to change."
+      }
+    },
+    "faq": {
+      "head": {
+        "eyebrow": "FAQ",
+        "title": "Frequently asked questions"
+      },
+      "cta": "Start for free →",
+      "list": {
+        "1": {
+          "q": "Is it really free to get started?",
+          "a": "Yes — the Free plan lets you try it with no credit card. You only move to a paid plan if you need more credits or more features."
+        },
+        "2": {
+          "q": "Which networks can I publish to?",
+          "a": "LinkedIn, Instagram, Facebook, TikTok and YouTube — you connect your accounts in a few clicks."
+        },
+        "3": {
+          "q": "How do credits work?",
+          "a": "Each generation (post, carousel, image, video script) uses credits depending on the quality you choose. You see your balance in real time."
+        },
+        "4": {
+          "q": "Is my data safe?",
+          "a": "Your social accounts are connected through official OAuth: we never store your passwords, and you can disconnect a network at any time."
+        }
+      }
+    }
   }
 }

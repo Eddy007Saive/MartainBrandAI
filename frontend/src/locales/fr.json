@@ -1166,5 +1166,486 @@
       "note1": "Choisis le(s) réseau(x) puis « Enregistrer & publier » — tu valides ensuite dans",
       "note2": "Contenus"
     }
+  },
+  "lp": {
+    "nav": {
+      "features": "Fonctionnalités",
+      "how": "Comment ça marche",
+      "pricing": "Tarifs",
+      "faq": "FAQ",
+      "dashboard": "Mon dashboard",
+      "login": "Se connecter",
+      "start": "Commencer",
+      "menu": "Menu",
+      "tagline": "Studio de contenu IA",
+      "howItWorks": "Comment ça marche"
+    },
+    "brand": {
+      "tagline": "Studio de contenu IA"
+    },
+    "cta": {
+      "call": "Réserve ton call de setup →",
+      "account": "Créer mon compte",
+      "apk": "↓ App Android"
+    },
+    "hero": {
+      "kicker": "Installé par des experts · Piloté par toi",
+      "title1": "On installe ton système marketing.",
+      "title2": "Tu le pilotes en 2 h par mois.",
+      "sub": "Nos experts étudient ta boîte et bâtissent ton studio de contenu <b>calibré sur ta voix</b>. Ensuite c'est toi aux commandes : tu génères, tu valides, tu publies. <b>La régularité d'une agence, sans la facture.</b>",
+      "note": "Échange gratuit · On étudie ta boîte avant tout",
+      "scroll": "↓ scrolle",
+      "stat1": {
+        "v": "2 h",
+        "l": "par mois"
+      },
+      "stat2": {
+        "v": "< 30 s",
+        "l": "par post"
+      },
+      "stat3": {
+        "v": "6",
+        "l": "réseaux"
+      },
+      "stat4": {
+        "v": "0 €",
+        "l": "pour démarrer"
+      }
+    },
+    "impact": {
+      "title": "Tu diriges une boîte, §pas §une §rédaction."
+    },
+    "ps": {
+      "eyebrow": "Le constat",
+      "title": "Être présent sur les réseaux quand on dirige une boîte",
+      "lead": "Entre le manque de temps, l'irrégularité et les outils éparpillés, on lâche vite. Postorico change la donne.",
+      "bad": {
+        "title": "Sans Postorico",
+        "1": "Tu sais qu'il faut publier… mais tu diriges une boîte, pas une rédaction.",
+        "2": "Soit tes réseaux sont morts, soit tu pries pour que ton stagiaire s'en sorte.",
+        "3": "Tu jongles entre 5 apps et 10 onglets, ou tu paies une agence en aveugle.",
+        "4": "Tu ne sais pas vraiment ce qui fonctionne (ni pourquoi)."
+      },
+      "good": {
+        "badge": "La bascule",
+        "title": "Avec Postorico",
+        "1": "L'IA génère des sujets et des posts calibrés sur ta marque.",
+        "2": "Tu valides en un clic — rien ne se publie sans ton feu vert.",
+        "3": "Une fois validés, la programmation est automatique — la régularité sans y penser.",
+        "4": "Tes vraies stats sous les yeux — tu sais enfin ce qui marche."
+      }
+    },
+    "scenes": {
+      "alt": "Postorico — {{name}}",
+      "studio": {
+        "label": "Studio IA",
+        "tag": "ta voix, pas du générique",
+        "desc": "L'IA rédige dans ton ton, tu valides en un clic."
+      },
+      "contenus": {
+        "label": "Contenus",
+        "tag": "tout au même endroit",
+        "desc": "Posts et visuels à ta charte, prêts à publier."
+      },
+      "planification": {
+        "label": "Planification",
+        "tag": "en automatique",
+        "desc": "Tes jours, ton heure : le calendrier publie tout seul."
+      },
+      "commentaires": {
+        "label": "Commentaires",
+        "tag": "l'inbox unifiée",
+        "desc": "Tu réponds à tous tes réseaux depuis un seul écran."
+      },
+      "performance": {
+        "label": "Performance",
+        "tag": "tu sais ce qui marche",
+        "desc": "Impressions, portée, engagement, réseau par réseau."
+      },
+      "carrousels": {
+        "label": "Carrousels",
+        "tag": "des slides qui accrochent",
+        "desc": "Générés à ta charte, rendus pixel-perfect."
+      }
+    },
+    "cmp": {
+      "eyebrow": "Plutôt que…",
+      "title": "Tu connais déjà tes options. Voilà pourquoi Postorico gagne.",
+      "badge": "★ Le bon choix",
+      "crit": {
+        "cost": "Coût",
+        "volume": "Volume",
+        "voice": "Ta voix",
+        "consistency": "Régularité",
+        "control": "Contrôle",
+        "setup": "Mise en route"
+      },
+      "nothing": {
+        "name": "Ne rien faire",
+        "v1": "0 € (réseaux morts)",
+        "v2": "Nul",
+        "v3": "—",
+        "v4": "Nulle",
+        "v5": "—",
+        "v6": "—"
+      },
+      "intern": {
+        "name": "Un stagiaire / alternant",
+        "v1": "Un salaire",
+        "v2": "Quelques posts",
+        "v3": "Il l'apprend (ou pas)",
+        "v4": "Variable",
+        "v5": "Tu relis tout",
+        "v6": "Recrutement + formation"
+      },
+      "agency": {
+        "name": "Une agence",
+        "v1": "1 500–3 000 €/mois",
+        "v2": "Forfait limité (8-20/mois)",
+        "v3": "Standardisée",
+        "v4": "Bonne",
+        "v5": "Tu attends les retours",
+        "v6": "Onboarding de semaines"
+      },
+      "postorico": {
+        "name": "Postorico",
+        "v1": "À partir de 0 €",
+        "v2": "Illimité, tous réseaux",
+        "v3": "Calibrée sur ta marque",
+        "v4": "Automatique",
+        "v5": "Tu valides en 1 clic",
+        "v6": "2 minutes"
+      }
+    },
+    "aud": {
+      "eyebrow": "Pour qui",
+      "title": "Tu te reconnais dans une de ces situations ?",
+      "lead": "On ne s'adresse pas à un secteur, mais à une réalité de dirigeant.",
+      "1": {
+        "title": "« Je n'ai pas le temps »",
+        "text": "Tu fais tourner ta boîte, pas un studio de contenu. Postorico, c'est ton agence marketing de poche : du contenu unique qui colle à ta marque, en seulement 2 à 3 h par mois."
+      },
+      "2": {
+        "title": "« Je délègue… et je croise les doigts »",
+        "text": "Fini le quitte ou double du stagiaire ou de l'alternant. Postorico produit dans ta voix, tu valides en un clic. Régulier sur tous les réseaux — ton ton, ta marque."
+      },
+      "3": {
+        "title": "« Je paie une agence »",
+        "text": "Pas de forfait limité, ni de facture à 3 000 € par mois. Publie autant que tu veux, sur tous les réseaux, et développe ta présence en ligne pour 10× moins cher."
+      }
+    },
+    "flow": {
+      "eyebrow": "Accompagnement",
+      "title": "Tu n'as pas le temps ? On construit ton système à ta place.",
+      "lead": "Nos experts marketing étudient ta marque et bâtissent ton studio sur-mesure. Tu n'as plus qu'à valider et publier.",
+      "1": {
+        "title": "On étudie ta boîte",
+        "text": "Positionnement, offres, cibles, ton de marque, concurrents. Un vrai audit, pas un formulaire."
+      },
+      "2": {
+        "title": "On construit ton système",
+        "text": "Lignes éditoriales, angles, calendrier, calibrage de l'IA sur ta voix — et des propositions concrètes de posts et formats vidéo à ton image."
+      },
+      "3": {
+        "title": "Tu pilotes — en ~2 h/mois",
+        "text": "Le système est prêt : tu génères tes sujets, tu valides, tu produis tes visuels et vidéos, tu programmes. Rien ne sort sans toi."
+      },
+      "roles": {
+        "title": "On installe. Tu pilotes.",
+        "text": "<b>Nous :</b> on étudie ta marque, on paramètre tout, on crée tes modèles de visuels. — <b>Toi :</b> ~2 h par mois pour générer, valider et publier. Tu gardes le contrôle, on porte la complexité."
+      }
+    },
+    "testi": {
+      "eyebrow": "Accès anticipé",
+      "title": "Les premiers dirigeants à bord"
+    },
+    "avis": {
+      "1": {
+        "role": "Gérante, cabinet de conseil",
+        "quote": "« Avant je payais une agence 2 000 €/mois. Là je gère ça moi-même en quelques minutes, et c'est plus à mon image. »"
+      },
+      "2": {
+        "role": "Dirigeant PME",
+        "quote": "« Le setup a tout changé : le système est calibré sur ma voix, je n'ai plus qu'à valider. Un gain de temps énorme. »"
+      },
+      "3": {
+        "role": "Fondatrice de startup",
+        "quote": "« Génération, planif et réponses aux commentaires au même endroit. Je ne jongle plus entre dix outils. »"
+      }
+    },
+    "final": {
+      "title": "Prêt à reprendre le contrôle de ta présence ?",
+      "text": "Réserve ton call de setup — on étudie ta boîte, on construit ton système, tu pilotes."
+    },
+    "footer": {
+      "about": "Ton studio de contenu IA, installé par des experts et calibré sur ta voix. Tu génères, tu valides, tu publies — 2 h par mois, tous réseaux.",
+      "product": "Produit",
+      "account": "Compte",
+      "legal": "Mentions légales",
+      "cgu": "CGU",
+      "privacy": "Confidentialité",
+      "legalNotice": "Mentions légales",
+      "apk": "App Android",
+      "book": "Réserver un call",
+      "copy": "© 2026 Postorico — un produit GoodTime BNB",
+      "made": "Fait avec 🐓 en France",
+      "productOf": "Un produit",
+      "pricing": "Tarifs",
+      "faq": "FAQ"
+    },
+    "feat": {
+      "head": {
+        "eyebrow": "Tout-en-un",
+        "title": "Un studio complet pour ta marque",
+        "lead": "De l'idée à la publication, sans changer d'outil."
+      },
+      "cta": "Essayer gratuitement →",
+      "list": {
+        "1": {
+          "t": "Génération IA",
+          "d": "Des posts calibrés sur ta voix de marque, ton secteur et tes piliers — en quelques secondes."
+        },
+        "2": {
+          "t": "Multi-réseaux",
+          "d": "LinkedIn, Instagram, Facebook, TikTok, YouTube — publie partout depuis un seul endroit."
+        },
+        "3": {
+          "t": "Planification",
+          "d": "Calendrier éditorial, créneaux automatiques, publication à la bonne heure dans ton fuseau."
+        },
+        "4": {
+          "t": "Commentaires & inbox",
+          "d": "Réponds, aime, masque tes commentaires depuis un seul endroit — avec notification dès qu’un nouveau arrive."
+        },
+        "5": {
+          "t": "Analyse des performances",
+          "d": "Impressions, j’aime, partages et engagement par post, synchronisés automatiquement chaque heure."
+        },
+        "6": {
+          "t": "Carrousels brandés",
+          "d": "Des carrousels aux couleurs de ta marque, générés et prêts à poster (PDF LinkedIn inclus)."
+        },
+        "7": {
+          "t": "Notifications push",
+          "d": "Sois prévenu quand un post est programmé, publié ou échoue — même app fermée."
+        },
+        "8": {
+          "t": "Avatar vidéo IA",
+          "d": "Transforme tes scripts en vidéos avec ton avatar digital. Du texte à la vidéo, sans tournage."
+        }
+      }
+    },
+    "steps": {
+      "list": {
+        "1": {
+          "t": "Définis ta marque",
+          "d": "Renseigne ta voix, ton secteur, tes piliers. L’IA apprend qui tu es."
+        },
+        "2": {
+          "t": "L’IA génère",
+          "d": "Sujets, posts, carrousels, scripts vidéo — adaptés à chaque réseau."
+        },
+        "3": {
+          "t": "Valide & programme",
+          "d": "Tu relis, tu ajustes, tu programmes. La publication part toute seule."
+        }
+      },
+      "head": {
+        "eyebrow": "Comment ça marche",
+        "title": "De l'idée à la publication, en pilote auto",
+        "lead": "Trois étapes simples. Tu gardes le contrôle, l'IA fait le gros du travail."
+      },
+      "flow": {
+        "1": {
+          "t": "Définis ta marque",
+          "p": "Tu renseignes ton univers une seule fois. L’IA apprend qui tu es et ne s’en écarte plus.",
+          "li": {
+            "1": "Secteur, audience & objectifs",
+            "2": "Ta voix de marque et ton ton",
+            "3": "Tes piliers de contenu",
+            "4": "Couleurs & logo de ta marque"
+          }
+        },
+        "2": {
+          "t": "L’IA génère pour toi",
+          "p": "À partir d’un sujet, l’IA rédige des contenus adaptés à chaque réseau — dans ta voix.",
+          "li": {
+            "1": "Des sujets en un clic",
+            "2": "Posts calibrés par réseau",
+            "3": "Carrousels brandés (PDF LinkedIn)",
+            "4": "Scripts vidéo & visuels IA"
+          }
+        },
+        "3": {
+          "t": "Valide, planifie, publie",
+          "p": "Tu relis, tu ajustes, tu programmes. La publication part toute seule, à la bonne heure.",
+          "li": {
+            "1": "Édition rapide avant validation",
+            "2": "Calendrier & créneaux automatiques",
+            "3": "Publication multi-réseaux",
+            "4": "Notifications + analyse des perfs"
+          }
+        }
+      },
+      "creates": {
+        "head": {
+          "eyebrow": "Ce que tu peux créer",
+          "title": "Un seul sujet, tous les formats",
+          "lead": "Décline une idée en plusieurs contenus, sans tout réécrire."
+        },
+        "1": {
+          "t": "Posts",
+          "d": "Textes optimisés pour chaque réseau, dans ta voix de marque."
+        },
+        "2": {
+          "t": "Carrousels",
+          "d": "Slides aux couleurs de ta marque, export PDF pour LinkedIn."
+        },
+        "3": {
+          "t": "Scripts vidéo",
+          "d": "Des scripts prêts à tourner pour Reels, TikTok, YouTube."
+        },
+        "4": {
+          "t": "Images IA",
+          "d": "Des visuels générés pour accompagner tes publications."
+        },
+        "5": {
+          "t": "Avatar vidéo IA",
+          "d": "Transforme tes scripts en vidéos avec ton avatar digital."
+        },
+        "6": {
+          "t": "Réponses commentaires",
+          "d": "Réponds à ta communauté depuis l’inbox, notifié en temps réel."
+        }
+      },
+      "behind": {
+        "head": {
+          "eyebrow": "En coulisses",
+          "title": "La publication, sans y penser",
+          "lead": "Une fois validé, tout s'enchaîne automatiquement."
+        },
+        "1": {
+          "t": "À la bonne heure",
+          "p": "Tes posts partent au créneau optimal, dans ton fuseau horaire — où que soient tes clients."
+        },
+        "2": {
+          "t": "Tu es prévenu",
+          "p": "Une notification push t'informe quand un post est programmé, publié, ou si quelque chose échoue."
+        },
+        "3": {
+          "t": "Tu mesures",
+          "p": "Impressions, j'aime, partages, engagement : tes vraies performances sont synchronisées chaque heure."
+        }
+      },
+      "cta": {
+        "start": "Commencer gratuitement →",
+        "features": "Voir les fonctionnalités"
+      }
+    },
+    "pricing": {
+      "badge": {
+        "recommended": "Recommandé",
+        "popular": "Populaire"
+      },
+      "oneTime": "Paiement unique",
+      "perMonth": "/mois",
+      "setup": {
+        "head": {
+          "eyebrow": "On installe pour toi",
+          "title": "D'abord, on construit ton système",
+          "lead": "Un accompagnement unique : nos experts étudient ta marque et bâtissent ton studio sur-mesure. Tu n'as plus qu'à piloter."
+        },
+        "cta": "Réserve ton call →",
+        "note": "Échange gratuit · On étudie ta boîte avant de proposer quoi que ce soit.",
+        "plans": {
+          "1": {
+            "name": "Setup Essentiel",
+            "desc": "Pour démarrer propre, et vite.",
+            "feat": {
+              "1": "Étude de marque condensée",
+              "2": "Calibrage de l’IA sur ton ton",
+              "3": "Mise en place de tes réseaux",
+              "4": "Premier calendrier éditorial"
+            }
+          },
+          "2": {
+            "name": "Setup Sur-mesure",
+            "desc": "Ton système marketing complet, clé en main.",
+            "feat": {
+              "1": "Audit complet (positionnement, offres, concurrents, cibles)",
+              "2": "Construction de ta ligne éditoriale",
+              "3": "Propositions de posts + concepts vidéo à ton image",
+              "4": "Calibrage avancé de l’IA sur ta voix",
+              "5": "Tout le Setup Essentiel inclus"
+            }
+          }
+        }
+      },
+      "sub": {
+        "head": {
+          "eyebrow": "Puis tu pilotes",
+          "title": "L'abonnement mensuel",
+          "lead": "Une fois le système en place : génération illimitée, planification multi-réseaux, validation et stats. Sans engagement, résiliable à tout moment."
+        },
+        "note": "Tu préfères démarrer seul ? L'offre Gratuite te laisse tester sans carte bancaire."
+      },
+      "plans": {
+        "free": {
+          "name": "Gratuit",
+          "tag": "Pour tester, sans carte",
+          "feat": {
+            "1": "1 réseau connecté",
+            "2": "Génération de posts",
+            "3": "Support communauté"
+          },
+          "cta": "Commencer"
+        },
+        "pro": {
+          "name": "Pro",
+          "tag": "Tout inclus · sans engagement",
+          "feat": {
+            "1": "Les 5 réseaux",
+            "2": "Carrousels + planification",
+            "3": "Analytics + commentaires",
+            "4": "Studio vidéo (reels)",
+            "5": "Notifications push"
+          },
+          "cta": "Choisir Pro"
+        }
+      },
+      "agency": {
+        "title": "Une agence te coûte {{price}}",
+        "titleAccent": "chaque mois.",
+        "text": "Avec Postorico : un setup une seule fois, puis un abonnement léger que tu pilotes en ~2 h par mois. La régularité d'une agence, sans la facture récurrente.",
+        "ctaCall": "Réserve ton call de setup →",
+        "ctaSignup": "Créer mon compte",
+        "note": "Tarifs indicatifs, susceptibles d'évoluer."
+      }
+    },
+    "faq": {
+      "head": {
+        "eyebrow": "FAQ",
+        "title": "Questions fréquentes"
+      },
+      "cta": "Démarrer gratuitement →",
+      "list": {
+        "1": {
+          "q": "C’est vraiment gratuit pour démarrer ?",
+          "a": "Oui — l’offre Gratuite te laisse tester sans carte bancaire. Tu passes à une offre payante seulement si tu as besoin de plus de crédits ou de fonctionnalités."
+        },
+        "2": {
+          "q": "Sur quels réseaux puis-je publier ?",
+          "a": "LinkedIn, Instagram, Facebook, TikTok et YouTube — tu connectes tes comptes en quelques clics."
+        },
+        "3": {
+          "q": "Comment fonctionnent les crédits ?",
+          "a": "Chaque génération (post, carrousel, image, script vidéo) consomme des crédits selon la qualité choisie. Tu vois ton solde en temps réel."
+        },
+        "4": {
+          "q": "Mes données sont-elles en sécurité ?",
+          "a": "Tes comptes sociaux sont connectés via OAuth officiel : on ne stocke jamais tes mots de passe, et tu peux déconnecter un réseau à tout moment."
+        }
+      }
+    }
   }
 }

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { APK_URL } from '../../lib/appDownload';
 import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
+import LangSwitcher from '../../components/LangSwitcher';
 import { BOOKING_URL } from './shared';
 import './homeCine.css';
 
@@ -27,14 +28,23 @@ const BG_CLIPS = [
 ];
 
 // Scènes de la galerie (vraies captures produit)
+// `id` sert de clé React stable (indépendante de la langue) ; les libellés viennent de i18n.
 const SCENES = [
-  { label: 'Studio IA', src: '/images/studio.jpg', cap: <><b>Studio IA</b> — <em>ta voix, pas du générique</em> · L'IA rédige dans ton ton, tu valides en un clic.</> },
-  { label: 'Contenus', src: '/images/contenus.jpg', cap: <><b>Contenus</b> — <em>tout au même endroit</em> · Posts et visuels à ta charte, prêts à publier.</> },
-  { label: 'Planification', src: '/images/planification.jpg', cap: <><b>Planification</b> — <em>en automatique</em> · Tes jours, ton heure : le calendrier publie tout seul.</> },
-  { label: 'Commentaires', src: '/images/commentaires.jpg', cap: <><b>Commentaires</b> — <em>l'inbox unifiée</em> · Tu réponds à tous tes réseaux depuis un seul écran.</> },
-  { label: 'Performance', src: '/images/performance.jpg', cap: <><b>Performance</b> — <em>tu sais ce qui marche</em> · Impressions, portée, engagement, réseau par réseau.</> },
-  { label: 'Carrousels', src: '/images/carrousels.jpg', cap: <><b>Carrousels</b> — <em>des slides qui accrochent</em> · Générés à ta charte, rendus pixel-perfect.</> },
+  { id: 'studio', src: '/images/studio.jpg', labelKey: 'lp.scenes.studio.label', tagKey: 'lp.scenes.studio.tag', descKey: 'lp.scenes.studio.desc' },
+  { id: 'contenus', src: '/images/contenus.jpg', labelKey: 'lp.scenes.contenus.label', tagKey: 'lp.scenes.contenus.tag', descKey: 'lp.scenes.contenus.desc' },
+  { id: 'planification', src: '/images/planification.jpg', labelKey: 'lp.scenes.planification.label', tagKey: 'lp.scenes.planification.tag', descKey: 'lp.scenes.planification.desc' },
+  { id: 'commentaires', src: '/images/commentaires.jpg', labelKey: 'lp.scenes.commentaires.label', tagKey: 'lp.scenes.commentaires.tag', descKey: 'lp.scenes.commentaires.desc' },
+  { id: 'performance', src: '/images/performance.jpg', labelKey: 'lp.scenes.performance.label', tagKey: 'lp.scenes.performance.tag', descKey: 'lp.scenes.performance.desc' },
+  { id: 'carrousels', src: '/images/carrousels.jpg', labelKey: 'lp.scenes.carrousels.label', tagKey: 'lp.scenes.carrousels.tag', descKey: 'lp.scenes.carrousels.desc' },
 ];
+
+// Légende d'une scène : « <b>Titre</b> — <em>accroche</em> · description »
+function SceneCap({ scene }) {
+  const { t } = useTranslation();
+  return (
+    <><b>{t(scene.labelKey)}</b> — <em>{t(scene.tagKey)}</em> · {t(scene.descKey)}</>
+  );
+}
 
 // Icônes réseaux (bulles qui montent depuis l'écran du laptop)
 const RISE_LOGOS = [
@@ -48,18 +58,28 @@ const RISE_LOGOS = [
 ];
 
 const CMP = [
-  { name: 'Ne rien faire', vals: ['0 € (réseaux morts)', 'Nul', '—', 'Nulle', '—', '—'] },
-  { name: 'Un stagiaire / alternant', vals: ['Un salaire', 'Quelques posts', "Il l'apprend (ou pas)", 'Variable', 'Tu relis tout', 'Recrutement + formation'] },
-  { name: 'Une agence', vals: ['1 500–3 000 €/mois', 'Forfait limité (8-20/mois)', 'Standardisée', 'Bonne', 'Tu attends les retours', 'Onboarding de semaines'] },
-  { name: 'Postorico', win: true, vals: ['À partir de 0 €', 'Illimité, tous réseaux', 'Calibrée sur ta marque', 'Automatique', 'Tu valides en 1 clic', '2 minutes'] },
+  { id: 'nothing', nameKey: 'lp.cmp.nothing.name', valKeys: ['lp.cmp.nothing.v1', 'lp.cmp.nothing.v2', 'lp.cmp.nothing.v3', 'lp.cmp.nothing.v4', 'lp.cmp.nothing.v5', 'lp.cmp.nothing.v6'] },
+  { id: 'intern', nameKey: 'lp.cmp.intern.name', valKeys: ['lp.cmp.intern.v1', 'lp.cmp.intern.v2', 'lp.cmp.intern.v3', 'lp.cmp.intern.v4', 'lp.cmp.intern.v5', 'lp.cmp.intern.v6'] },
+  { id: 'agency', nameKey: 'lp.cmp.agency.name', valKeys: ['lp.cmp.agency.v1', 'lp.cmp.agency.v2', 'lp.cmp.agency.v3', 'lp.cmp.agency.v4', 'lp.cmp.agency.v5', 'lp.cmp.agency.v6'] },
+  // nom de marque : la valeur reste « Postorico » dans les trois langues
+  { id: 'postorico', win: true, nameKey: 'lp.cmp.postorico.name', valKeys: ['lp.cmp.postorico.v1', 'lp.cmp.postorico.v2', 'lp.cmp.postorico.v3', 'lp.cmp.postorico.v4', 'lp.cmp.postorico.v5', 'lp.cmp.postorico.v6'] },
 ];
-const CRITERIA = ['Coût', 'Volume', 'Ta voix', 'Régularité', 'Contrôle', 'Mise en route'];
+const CRITERIA = ['lp.cmp.crit.cost', 'lp.cmp.crit.volume', 'lp.cmp.crit.voice', 'lp.cmp.crit.consistency', 'lp.cmp.crit.control', 'lp.cmp.crit.setup'];
 
 // Avis clients (accès anticipé) — TODO Martin : remplacer par de vrais avis nominatifs
+// `nom` = nom propre, jamais traduit ; rôle et citation viennent de i18n.
 const AVIS = [
-  { nom: 'Aurélie M.', role: 'Gérante, cabinet de conseil', quote: "Avant je payais une agence 2 000 €/mois. Là je gère ça moi-même en quelques minutes, et c'est plus à mon image." },
-  { nom: 'Thomas R.', role: 'Dirigeant PME', quote: "Le setup a tout changé : le système est calibré sur ma voix, je n'ai plus qu'à valider. Un gain de temps énorme." },
-  { nom: 'Léa B.', role: 'Fondatrice de startup', quote: 'Génération, planif et réponses aux commentaires au même endroit. Je ne jongle plus entre dix outils.' },
+  { nom: 'Aurélie M.', roleKey: 'lp.avis.1.role', quoteKey: 'lp.avis.1.quote' },
+  { nom: 'Thomas R.', roleKey: 'lp.avis.2.role', quoteKey: 'lp.avis.2.quote' },
+  { nom: 'Léa B.', roleKey: 'lp.avis.3.role', quoteKey: 'lp.avis.3.quote' },
+];
+
+// Liens de navigation (nav desktop + menu mobile)
+const NAV_LINKS = [
+  ['lp.nav.features', '/fonctionnalites'],
+  ['lp.nav.how', '/comment-ca-marche'],
+  ['lp.nav.pricing', '/tarifs'],
+  ['lp.nav.faq', '/faq'],
 ];
 
 export default function HomeCine() {
@@ -105,7 +125,7 @@ export default function HomeCine() {
   }, []);
 
   // Témoignage vidéo dans la langue du visiteur
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = (i18n.resolvedLanguage || 'fr').slice(0, 2);
   const testi = lang === 'es'
     ? { flag: '🇪🇸', label: 'Testimonio de cliente · Español', src: `${CLD}/q_auto/marketing/temoignage-es.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-es.jpg` }
@@ -118,7 +138,7 @@ export default function HomeCine() {
     // Défilement lissé — DESKTOP uniquement : sur mobile, Lenis capture les gestes
     // tactiles et bloque le carrousel horizontal (scroll natif = comportement normal).
     const lenis = isTouch ? null : new Lenis({ lerp: 0.09 });
-    const raf = (t) => { if (lenis) lenis.raf(t * 1000); };
+    const raf = (time) => { if (lenis) lenis.raf(time * 1000); };
     if (lenis) {
       lenis.on('scroll', ScrollTrigger.update);
       gsap.ticker.add(raf);
@@ -137,10 +157,16 @@ export default function HomeCine() {
     }
 
     // Impact : reveal mot à mot scrubé
+    // (le h2 est remonté via key={lang} à chaque changement de langue -> on repart d'un texte propre)
     const H = impactRef.current;
-    H.innerHTML = H.textContent.trim().split(/[^\S ]+/).map((w) => {
+    // Découpe MOT à MOT (l'ancien `[^\S ]+` ne coupait que sur les retours à la ligne :
+    // un seul span, et les § restaient visibles à l'écran).
+    // Le texte source est mémorisé : au 2e passage de l'effet (StrictMode, ou re-render)
+    // le DOM ne contient plus les § et les mots accentués seraient perdus.
+    const src = H.dataset.raw || (H.dataset.raw = H.textContent.trim());
+    H.innerHTML = src.split(/\s+/).map((w) => {
       const acc = w.startsWith('§');
-      return `<span class="word${acc ? ' word--accent' : ''}">${w.replace('§', '')}</span>`;
+      return `<span class="word${acc ? ' word--accent' : ''}">${w.replace(/§/g, '')}</span>`;
     }).join(' ');
     const words = [...H.querySelectorAll('.word')];
     const clamp = (v) => Math.max(0, Math.min(1, v));
@@ -199,14 +225,15 @@ export default function HomeCine() {
     document.addEventListener('visibilitychange', onVis);
 
     return () => {
-      st1.kill(); clipTriggers.forEach((t) => t.kill());
-      ScrollTrigger.getAll().forEach((t) => t.kill());
+      st1.kill(); clipTriggers.forEach((tr) => tr.kill());
+      ScrollTrigger.getAll().forEach((tr) => tr.kill());
       gsap.ticker.remove(raf);
       if (lenis) lenis.destroy();
       document.removeEventListener('visibilitychange', onVis);
     };
     // re-cable tout (pins, triggers, stack video) quand on bascule mobile <-> desktop
-  }, [isTouch]);
+    // ou quand la langue change (le titre « impact » est re-decoupe mot a mot)
+  }, [isTouch, lang]);
 
   return (
     <div className="cine" ref={rootRef}>
@@ -224,39 +251,39 @@ export default function HomeCine() {
 
       {/* Nav */}
       <nav className="lnav"><div className="wrap">
-        <Link className="brand" to="/"><img src="/logo.png" alt="Postorico" /><span className="bt"><b>Postorico</b><small>Studio de contenu IA</small></span></Link>
+        <Link className="brand" to="/"><img src="/logo.png" alt="Postorico" /><span className="bt"><b>Postorico</b><small>{t('lp.brand.tagline')}</small></span></Link>
         <div className="nav-links">
-          <Link to="/fonctionnalites">Fonctionnalités</Link>
-          <Link to="/comment-ca-marche">Comment ça marche</Link>
-          <Link to="/tarifs">Tarifs</Link>
-          <Link to="/faq">FAQ</Link>
+          {NAV_LINKS.map(([labelKey, to]) => (
+            <Link key={to} to={to}>{t(labelKey)}</Link>
+          ))}
         </div>
         <div className="nav-right">
+          <LangSwitcher />
           {connecte ? (
-            <Link className="nav-cta grad" to={dashTo}>Mon dashboard</Link>
+            <Link className="nav-cta grad" to={dashTo}>{t('lp.nav.dashboard')}</Link>
           ) : (
             <>
-              <Link className="nav-link" to="/login">Se connecter</Link>
-              <Link className="nav-cta grad" to="/register">Commencer</Link>
+              <Link className="nav-link" to="/login">{t('lp.nav.login')}</Link>
+              <Link className="nav-cta grad" to="/register">{t('lp.nav.start')}</Link>
             </>
           )}
-          <button className={`burger${menuOpen ? ' open' : ''}`} aria-label="Menu" aria-expanded={menuOpen}
+          <button className={`burger${menuOpen ? ' open' : ''}`} aria-label={t('lp.nav.menu')} aria-expanded={menuOpen}
             onClick={() => setMenuOpen((o) => !o)}><i /><i /><i /></button>
         </div>
       </div></nav>
 
       {/* Menu mobile plein écran */}
       <div className={`mmenu${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen(false)}>
-        {[['Fonctionnalités', '/fonctionnalites'], ['Comment ça marche', '/comment-ca-marche'], ['Tarifs', '/tarifs'], ['FAQ', '/faq']].map(([label, to], i) => (
-          <Link key={to} to={to} style={{ transitionDelay: menuOpen ? `${80 + i * 50}ms` : '0ms' }}>{label}</Link>
+        {NAV_LINKS.map(([labelKey, to], i) => (
+          <Link key={to} to={to} style={{ transitionDelay: menuOpen ? `${80 + i * 50}ms` : '0ms' }}>{t(labelKey)}</Link>
         ))}
         <div className="sep" />
         {connecte ? (
-          <Link className="cta" to={dashTo} style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>Mon dashboard</Link>
+          <Link className="cta" to={dashTo} style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>{t('lp.nav.dashboard')}</Link>
         ) : (
           <>
-            <Link className="ghost" to="/login" style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>Se connecter</Link>
-            <Link className="cta" to="/register" style={{ transitionDelay: menuOpen ? '350ms' : '0ms' }}>Commencer</Link>
+            <Link className="ghost" to="/login" style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>{t('lp.nav.login')}</Link>
+            <Link className="cta" to="/register" style={{ transitionDelay: menuOpen ? '350ms' : '0ms' }}>{t('lp.nav.start')}</Link>
           </>
         )}
       </div>
@@ -265,21 +292,21 @@ export default function HomeCine() {
         {/* HERO */}
         <section className="hero">
           <div className="hero-copy">
-            <span className="kicker"><span className="dot" />Installé par des experts · Piloté par toi</span>
-            <h1>On installe ton système marketing.<br /><span className="g">Tu le pilotes en 2&nbsp;h par mois.</span></h1>
-            <p className="hero-sub">Nos experts étudient ta boîte et bâtissent ton studio de contenu <b>calibré sur ta voix</b>. Ensuite c'est toi aux commandes : tu génères, tu valides, tu publies. <b>La régularité d'une agence, sans la facture.</b></p>
+            <span className="kicker"><span className="dot" />{t('lp.hero.kicker')}</span>
+            <h1>{t('lp.hero.title1')}<br /><span className="g">{t('lp.hero.title2')}</span></h1>
+            <p className="hero-sub"><Trans i18nKey="lp.hero.sub" components={{ b: <b /> }} /></p>
             <div className="nets"><b>LinkedIn</b><i>·</i><b>Instagram</b><i>·</i><b>Facebook</b><i>·</i><b>TikTok</b><i>·</i><b>YouTube</b><i>·</i><b>Google Business</b></div>
             <div className="cta-row">
-              <a className="btn grad" href={BOOKING_URL}>Réserve ton call de setup →</a>
-              <Link className="btn ghost" to="/register">Créer mon compte</Link>
-              <a className="btn apk" href={APK_URL}>↓ App Android</a>
+              <a className="btn grad" href={BOOKING_URL}>{t('lp.cta.call')}</a>
+              <Link className="btn ghost" to="/register">{t('lp.cta.account')}</Link>
+              <a className="btn apk" href={APK_URL}>{t('lp.cta.apk')}</a>
             </div>
-            <div className="hero-note">Échange gratuit · On étudie ta boîte avant tout</div>
+            <div className="hero-note">{t('lp.hero.note')}</div>
             <div className="hstats">
-              <div className="hstat"><b>2 h</b><span>par mois</span></div>
-              <div className="hstat"><b>&lt; 30 s</b><span>par post</span></div>
-              <div className="hstat"><b>6</b><span>réseaux</span></div>
-              <div className="hstat"><b>0 €</b><span>pour démarrer</span></div>
+              <div className="hstat"><b>{t('lp.hero.stat1.v')}</b><span>{t('lp.hero.stat1.l')}</span></div>
+              <div className="hstat"><b>{t('lp.hero.stat2.v')}</b><span>{t('lp.hero.stat2.l')}</span></div>
+              <div className="hstat"><b>{t('lp.hero.stat3.v')}</b><span>{t('lp.hero.stat3.l')}</span></div>
+              <div className="hstat"><b>{t('lp.hero.stat4.v')}</b><span>{t('lp.hero.stat4.l')}</span></div>
             </div>
           </div>
           <div />
@@ -289,40 +316,40 @@ export default function HomeCine() {
               <span key={k} className={`rlogo ${k}`}><svg viewBox="0 0 24 24"><path d={d} /></svg></span>
             ))}
           </div>
-          <div className="scroll-cue">↓ scrolle</div>
+          <div className="scroll-cue">{t('lp.hero.scroll')}</div>
         </section>
 
         {/* IMPACT */}
         <section className="impact"><div className="wrap">
-          <h2 ref={impactRef}>Tu diriges une boîte, §pas §une §rédaction.</h2>
+          <h2 key={lang} ref={impactRef}>{t('lp.impact.title')}</h2>
         </div></section>
 
         {/* PROBLÈME -> SOLUTION */}
         <section className="sec"><div className="wrap">
           <div className="shead">
-            <div className="eyebrow">Le constat</div>
-            <h2>Être présent sur les réseaux quand on dirige une boîte</h2>
-            <p className="lead">Entre le manque de temps, l'irrégularité et les outils éparpillés, on lâche vite. Postorico change la donne.</p>
+            <div className="eyebrow">{t('lp.ps.eyebrow')}</div>
+            <h2>{t('lp.ps.title')}</h2>
+            <p className="lead">{t('lp.ps.lead')}</p>
           </div>
           <div className="ps">
             <div className="pscol bad">
-              <div className="ps-head"><span className="ps-ic">✗</span><h3>Sans Postorico</h3></div>
+              <div className="ps-head"><span className="ps-ic">✗</span><h3>{t('lp.ps.bad.title')}</h3></div>
               <ul>
-                <li><span className="mk">✗</span>Tu sais qu'il faut publier… mais tu diriges une boîte, pas une rédaction.</li>
-                <li><span className="mk">✗</span>Soit tes réseaux sont morts, soit tu pries pour que ton stagiaire s'en sorte.</li>
-                <li><span className="mk">✗</span>Tu jongles entre 5 apps et 10 onglets, ou tu paies une agence en aveugle.</li>
-                <li><span className="mk">✗</span>Tu ne sais pas vraiment ce qui fonctionne (ni pourquoi).</li>
+                <li><span className="mk">✗</span>{t('lp.ps.bad.1')}</li>
+                <li><span className="mk">✗</span>{t('lp.ps.bad.2')}</li>
+                <li><span className="mk">✗</span>{t('lp.ps.bad.3')}</li>
+                <li><span className="mk">✗</span>{t('lp.ps.bad.4')}</li>
               </ul>
             </div>
             <div className="ps-arrow" aria-hidden="true">→</div>
             <div className="pscol good">
-              <span className="ps-badge">La bascule</span>
-              <div className="ps-head"><span className="ps-ic">✓</span><h3>Avec Postorico</h3></div>
+              <span className="ps-badge">{t('lp.ps.good.badge')}</span>
+              <div className="ps-head"><span className="ps-ic">✓</span><h3>{t('lp.ps.good.title')}</h3></div>
               <ul>
-                <li><span className="mk">✓</span>L'IA génère des sujets et des posts calibrés sur ta marque.</li>
-                <li><span className="mk">✓</span>Tu valides en un clic — rien ne se publie sans ton feu vert.</li>
-                <li><span className="mk">✓</span>Une fois validés, la programmation est automatique — la régularité sans y penser.</li>
-                <li><span className="mk">✓</span>Tes vraies stats sous les yeux — tu sais enfin ce qui marche.</li>
+                <li><span className="mk">✓</span>{t('lp.ps.good.1')}</li>
+                <li><span className="mk">✓</span>{t('lp.ps.good.2')}</li>
+                <li><span className="mk">✓</span>{t('lp.ps.good.3')}</li>
+                <li><span className="mk">✓</span>{t('lp.ps.good.4')}</li>
               </ul>
             </div>
           </div>
@@ -333,9 +360,9 @@ export default function HomeCine() {
           <section className="gallery-mob">
             <div className="mgal" data-lenis-prevent>
               {SCENES.map((s) => (
-                <figure key={s.label} className="mgal-card">
-                  <img src={s.src} alt={`Postorico — ${s.label}`} loading="lazy" />
-                  <figcaption>{s.cap}</figcaption>
+                <figure key={s.id} className="mgal-card">
+                  <img src={s.src} alt={t('lp.scenes.alt', { name: t(s.labelKey) })} loading="lazy" />
+                  <figcaption><SceneCap scene={s} /></figcaption>
                 </figure>
               ))}
             </div>
@@ -348,22 +375,22 @@ export default function HomeCine() {
                 <div className="sb">
                   <div className="lg"><img src="/logo.png" alt="" /><b>Postorico</b></div>
                   {SCENES.map((s, i) => (
-                    <div key={s.label} className={'it' + (i === scene ? ' on' : '')} onClick={() => setScene(i)}
-                      role="button" tabIndex={0}><span className="ic" />{s.label}</div>
+                    <div key={s.id} className={'it' + (i === scene ? ' on' : '')} onClick={() => setScene(i)}
+                      role="button" tabIndex={0}><span className="ic" />{t(s.labelKey)}</div>
                   ))}
                 </div>
                 <div className="pmain">
                   {SCENES.map((s, i) => (
-                    <img key={s.src} src={s.src} className={i === scene ? 'on' : ''} alt={`Postorico — ${s.label}`} />
+                    <img key={s.src} src={s.src} className={i === scene ? 'on' : ''} alt={t('lp.scenes.alt', { name: t(s.labelKey) })} />
                   ))}
                   <div className="hp-dots">
                     {SCENES.map((s, i) => (
-                      <i key={s.label} className={i === scene ? 'on' : ''} onClick={() => setScene(i)} role="button" />
+                      <i key={s.id} className={i === scene ? 'on' : ''} onClick={() => setScene(i)} role="button" />
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="pcap">{SCENES[scene].cap}</div>
+              <div className="pcap"><SceneCap scene={SCENES[scene]} /></div>
             </div>
           </div></section>
         )}
@@ -371,17 +398,17 @@ export default function HomeCine() {
         {/* PLUTÔT QUE… */}
         <section className="sec"><div className="wrap">
           <div className="shead">
-            <div className="eyebrow">Plutôt que…</div>
-            <h2>Tu connais déjà tes options. Voilà pourquoi Postorico gagne.</h2>
+            <div className="eyebrow">{t('lp.cmp.eyebrow')}</div>
+            <h2>{t('lp.cmp.title')}</h2>
           </div>
           <div className="cmp">
             {CMP.map((o) => (
-              <div key={o.name} className={'cmpcard' + (o.win ? ' win' : '')}>
-                {o.win && <span className="badge">★ Le bon choix</span>}
-                <h4>{o.name}</h4>
+              <div key={o.id} className={'cmpcard' + (o.win ? ' win' : '')}>
+                {o.win && <span className="badge">{t('lp.cmp.badge')}</span>}
+                <h4>{t(o.nameKey)}</h4>
                 <div className="rows">
-                  {o.vals.map((v, i) => (
-                    <div className="r" key={CRITERIA[i]}><span className="k">{CRITERIA[i]}</span><span className="v">{v}</span></div>
+                  {o.valKeys.map((vk, i) => (
+                    <div className="r" key={CRITERIA[i]}><span className="k">{t(CRITERIA[i])}</span><span className="v">{t(vk)}</span></div>
                   ))}
                 </div>
               </div>
@@ -392,25 +419,25 @@ export default function HomeCine() {
         {/* POUR QUI */}
         <section className="sec"><div className="wrap">
           <div className="shead">
-            <div className="eyebrow">Pour qui</div>
-            <h2>Tu te reconnais dans une de ces situations ?</h2>
-            <p className="lead">On ne s'adresse pas à un secteur, mais à une réalité de dirigeant.</p>
+            <div className="eyebrow">{t('lp.aud.eyebrow')}</div>
+            <h2>{t('lp.aud.title')}</h2>
+            <p className="lead">{t('lp.aud.lead')}</p>
           </div>
           <div className="aud">
             <div className="acard">
               <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 7v5l3 2M12 21a9 9 0 110-18 9 9 0 010 18z" /></svg></div>
-              <h3>« Je n'ai pas le temps »</h3>
-              <p>Tu fais tourner ta boîte, pas un studio de contenu. Postorico, c'est ton agence marketing de poche : du contenu unique qui colle à ta marque, en seulement 2 à 3 h par mois.</p>
+              <h3>{t('lp.aud.1.title')}</h3>
+              <p>{t('lp.aud.1.text')}</p>
             </div>
             <div className="acard">
               <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div>
-              <h3>« Je délègue… et je croise les doigts »</h3>
-              <p>Fini le quitte ou double du stagiaire ou de l'alternant. Postorico produit dans ta voix, tu valides en un clic. Régulier sur tous les réseaux — ton ton, ta marque.</p>
+              <h3>{t('lp.aud.2.title')}</h3>
+              <p>{t('lp.aud.2.text')}</p>
             </div>
             <div className="acard">
               <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V5a1 1 0 011-1h7v17M12 9h7a1 1 0 011 1v11M7 8h2M7 12h2M16 13h2M16 17h2" /></svg></div>
-              <h3>« Je paie une agence »</h3>
-              <p>Pas de forfait limité, ni de facture à 3 000 € par mois. Publie autant que tu veux, sur tous les réseaux, et développe ta présence en ligne pour 10× moins cher.</p>
+              <h3>{t('lp.aud.3.title')}</h3>
+              <p>{t('lp.aud.3.text')}</p>
             </div>
           </div>
         </div></section>
@@ -418,28 +445,28 @@ export default function HomeCine() {
         {/* ACCOMPAGNEMENT */}
         <section className="sec"><div className="wrap">
           <div className="shead">
-            <div className="eyebrow">Accompagnement</div>
-            <h2>Tu n'as pas le temps ? On construit ton système à ta place.</h2>
-            <p className="lead">Nos experts marketing étudient ta marque et bâtissent ton studio sur-mesure. Tu n'as plus qu'à valider et publier.</p>
+            <div className="eyebrow">{t('lp.flow.eyebrow')}</div>
+            <h2>{t('lp.flow.title')}</h2>
+            <p className="lead">{t('lp.flow.lead')}</p>
           </div>
           <div className="flow">
-            <div className="fstep"><div className="n">1</div><h3>On étudie ta boîte</h3><p>Positionnement, offres, cibles, ton de marque, concurrents. Un vrai audit, pas un formulaire.</p></div>
-            <div className="fstep"><div className="n">2</div><h3>On construit ton système</h3><p>Lignes éditoriales, angles, calendrier, calibrage de l'IA sur ta voix — et des propositions concrètes de posts et formats vidéo à ton image.</p></div>
-            <div className="fstep"><div className="n">3</div><h3>Tu pilotes — en ~2 h/mois</h3><p>Le système est prêt : tu génères tes sujets, tu valides, tu produis tes visuels et vidéos, tu programmes. Rien ne sort sans toi.</p></div>
+            <div className="fstep"><div className="n">1</div><h3>{t('lp.flow.1.title')}</h3><p>{t('lp.flow.1.text')}</p></div>
+            <div className="fstep"><div className="n">2</div><h3>{t('lp.flow.2.title')}</h3><p>{t('lp.flow.2.text')}</p></div>
+            <div className="fstep"><div className="n">3</div><h3>{t('lp.flow.3.title')}</h3><p>{t('lp.flow.3.text')}</p></div>
           </div>
           <div className="roles">
-            <b>On installe. Tu pilotes.</b>
-            <p><b>Nous :</b> on étudie ta marque, on paramètre tout, on crée tes modèles de visuels. — <b>Toi :</b> ~2 h par mois pour générer, valider et publier. Tu gardes le contrôle, on porte la complexité.</p>
+            <b>{t('lp.flow.roles.title')}</b>
+            <p><Trans i18nKey="lp.flow.roles.text" components={{ b: <b /> }} /></p>
           </div>
           <div className="cta-row center" style={{ marginTop: 32 }}>
-            <a className="btn grad" href={BOOKING_URL}>Réserve ton call de setup →</a>
+            <a className="btn grad" href={BOOKING_URL}>{t('lp.cta.call')}</a>
           </div>
         </div></section>
 
         {/* TÉMOIGNAGES */}
         <section className="testi"><div className="wrap">
-          <div className="eyebrow">Accès anticipé</div>
-          <h2>Les premiers dirigeants à bord</h2>
+          <div className="eyebrow">{t('lp.testi.eyebrow')}</div>
+          <h2>{t('lp.testi.title')}</h2>
           <div className="tgrid tgrid--solo">
             <figure className="vcard">
               <video src={testi.src} poster={testi.poster} controls preload="metadata" playsInline />
@@ -455,8 +482,9 @@ export default function HomeCine() {
               {AVIS.map((a) => (
                 <figure className="avis-card" key={a.nom}>
                   <div className="stars">★★★★★</div>
-                  <blockquote>« {a.quote} »</blockquote>
-                  <figcaption><span className="av">{a.nom[0]}</span><div><b>{a.nom}</b><small>{a.role}</small></div></figcaption>
+                  {/* les guillemets font partie de la traduction (« » en fr/es, “ ” en en) */}
+                  <blockquote>{t(a.quoteKey)}</blockquote>
+                  <figcaption><span className="av">{a.nom[0]}</span><div><b>{a.nom}</b><small>{t(a.roleKey)}</small></div></figcaption>
                 </figure>
               ))}
             </div>
@@ -472,11 +500,11 @@ export default function HomeCine() {
         <section className="final"><div className="wrap">
           <div className="ctaband">
             {!isTouch && <video className="mascot-wave" src={`${CLD}/q_auto/marketing/mascotte-wave.mp4`} autoPlay muted loop playsInline aria-hidden="true" />}
-            <h2>Prêt à reprendre le contrôle de ta présence ?</h2>
-            <p>Réserve ton call de setup — on étudie ta boîte, on construit ton système, tu pilotes.</p>
+            <h2>{t('lp.final.title')}</h2>
+            <p>{t('lp.final.text')}</p>
             <div className="cta-row">
-              <a className="btn grad" href={BOOKING_URL}>Réserve ton call de setup →</a>
-              <Link className="btn ghost" to="/register">Créer mon compte</Link>
+              <a className="btn grad" href={BOOKING_URL}>{t('lp.cta.call')}</a>
+              <Link className="btn ghost" to="/register">{t('lp.cta.account')}</Link>
             </div>
           </div>
         </div></section>
@@ -488,40 +516,39 @@ export default function HomeCine() {
         <div className="fgrid wrap">
           <div className="fcol fbrand">
             <div className="fbrand-head"><img src="/logo.png" alt="" /><b>Postorico</b></div>
-            <p>Ton studio de contenu IA, installé par des experts et calibré sur ta voix. Tu génères, tu valides, tu publies — 2 h par mois, tous réseaux.</p>
+            <p>{t('lp.footer.about')}</p>
             <div className="fnets">LinkedIn · Instagram · Facebook · TikTok · YouTube · Google Business</div>
           </div>
           <div className="fcol">
-            <h4>Produit</h4>
-            <Link to="/fonctionnalites">Fonctionnalités</Link>
-            <Link to="/comment-ca-marche">Comment ça marche</Link>
-            <Link to="/tarifs">Tarifs</Link>
-            <Link to="/faq">FAQ</Link>
+            <h4>{t('lp.footer.product')}</h4>
+            {NAV_LINKS.map(([labelKey, to]) => (
+              <Link key={to} to={to}>{t(labelKey)}</Link>
+            ))}
           </div>
           <div className="fcol">
-            <h4>Compte</h4>
+            <h4>{t('lp.footer.account')}</h4>
             {connecte ? (
-              <Link to={dashTo}>Mon dashboard</Link>
+              <Link to={dashTo}>{t('lp.nav.dashboard')}</Link>
             ) : (
               <>
-                <Link to="/login">Se connecter</Link>
-                <Link to="/register">Créer mon compte</Link>
+                <Link to="/login">{t('lp.nav.login')}</Link>
+                <Link to="/register">{t('lp.cta.account')}</Link>
               </>
             )}
-            <a href={APK_URL}>App Android</a>
-            <a href={BOOKING_URL}>Réserver un call</a>
+            <a href={APK_URL}>{t('lp.footer.apk')}</a>
+            <a href={BOOKING_URL}>{t('lp.footer.book')}</a>
           </div>
           <div className="fcol">
-            <h4>Légal</h4>
-            <Link to="/cgu">CGU</Link>
-            <Link to="/confidentialite">Confidentialité</Link>
-            <Link to="/mentions-legales">Mentions légales</Link>
+            <h4>{t('lp.footer.legal')}</h4>
+            <Link to="/cgu">{t('lp.footer.cgu')}</Link>
+            <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
+            <Link to="/mentions-legales">{t('lp.footer.legalNotice')}</Link>
             <a href="https://gt-bnb.com" target="_blank" rel="noopener noreferrer">GoodTime BNB ↗</a>
           </div>
         </div>
         <div className="fbottom wrap">
-          <span>© 2026 Postorico — un produit GoodTime BNB</span>
-          <span className="fmade">Fait avec 🐓 en France</span>
+          <span>{t('lp.footer.copy')}</span>
+          <span className="fmade">{t('lp.footer.made')}</span>
         </div>
       </footer>
     </div>

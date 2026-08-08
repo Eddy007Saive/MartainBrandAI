@@ -347,3 +347,8 @@
 /* Galerie carrousel : sidebar et points cliquables */
 .cine .sb .it{cursor:pointer}
 .cine .hp-dots i{cursor:pointer}
+
+/* Sélecteur de langue : le reset `.cine *{padding:0}` en haut de ce fichier écrase les
+   paddings Tailwind du composant — on les restaure ici (sinon FR/EN/ES sont collés). */
+.cine [data-testid="lang-switcher"]{padding:2px}
+.cine [data-testid="lang-switcher"] button{padding:4px 9px}

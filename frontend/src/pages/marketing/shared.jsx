@@ -12,30 +12,49 @@ export const NetIcon = ({ id, size = 16 }) => (
 );
 export const Check = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3AFFA3" strokeWidth="2.5"><path d="M20 6L9 17l-5-5" /></svg>;
 
+// i18n : ces constantes ne contiennent QUE des clés de traduction (pas de hook possible
+// hors composant) — elles sont résolues avec t() au rendu dans les pages qui les consomment.
 export const FEATURES = [
-  ['Génération IA', 'Des posts calibrés sur ta voix de marque, ton secteur et tes piliers — en quelques secondes.'],
-  ['Multi-réseaux', 'LinkedIn, Instagram, Facebook, TikTok, YouTube — publie partout depuis un seul endroit.'],
-  ['Planification', 'Calendrier éditorial, créneaux automatiques, publication à la bonne heure dans ton fuseau.'],
-  ['Commentaires & inbox', 'Réponds, aime, masque tes commentaires depuis un seul endroit — avec notification dès qu’un nouveau arrive.'],
-  ['Analyse des performances', 'Impressions, j’aime, partages et engagement par post, synchronisés automatiquement chaque heure.'],
-  ['Carrousels brandés', 'Des carrousels aux couleurs de ta marque, générés et prêts à poster (PDF LinkedIn inclus).'],
-  ['Notifications push', 'Sois prévenu quand un post est programmé, publié ou échoue — même app fermée.'],
-  ['Avatar vidéo IA', 'Transforme tes scripts en vidéos avec ton avatar digital. Du texte à la vidéo, sans tournage.'],
+  ['lp.feat.list.1.t', 'lp.feat.list.1.d'],
+  ['lp.feat.list.2.t', 'lp.feat.list.2.d'],
+  ['lp.feat.list.3.t', 'lp.feat.list.3.d'],
+  ['lp.feat.list.4.t', 'lp.feat.list.4.d'],
+  ['lp.feat.list.5.t', 'lp.feat.list.5.d'],
+  ['lp.feat.list.6.t', 'lp.feat.list.6.d'],
+  ['lp.feat.list.7.t', 'lp.feat.list.7.d'],
+  ['lp.feat.list.8.t', 'lp.feat.list.8.d'],
 ];
 export const STEPS = [
-  ['Définis ta marque', 'Renseigne ta voix, ton secteur, tes piliers. L’IA apprend qui tu es.'],
-  ['L’IA génère', 'Sujets, posts, carrousels, scripts vidéo — adaptés à chaque réseau.'],
-  ['Valide & programme', 'Tu relis, tu ajustes, tu programmes. La publication part toute seule.'],
+  ['lp.steps.list.1.t', 'lp.steps.list.1.d'],
+  ['lp.steps.list.2.t', 'lp.steps.list.2.d'],
+  ['lp.steps.list.3.t', 'lp.steps.list.3.d'],
 ];
 export const PLANS = [
-  { name: 'Gratuit', price: '0€', tag: 'Pour tester, sans carte', feats: ['1 réseau connecté', 'Génération de posts', 'Support communauté'], cta: 'Commencer', to: '/register' },
-  { name: 'Pro', price: '279€', popular: true, tag: 'Tout inclus · sans engagement', feats: ['Les 5 réseaux', 'Carrousels + planification', 'Analytics + commentaires', 'Studio vidéo (reels)', 'Notifications push'], cta: 'Choisir Pro', to: '/register' },
+  {
+    id: 'free',
+    nameKey: 'lp.pricing.plans.free.name',
+    price: '0€',
+    tagKey: 'lp.pricing.plans.free.tag',
+    featKeys: ['lp.pricing.plans.free.feat.1', 'lp.pricing.plans.free.feat.2', 'lp.pricing.plans.free.feat.3'],
+    ctaKey: 'lp.pricing.plans.free.cta',
+    to: '/register',
+  },
+  {
+    id: 'pro',
+    nameKey: 'lp.pricing.plans.pro.name',
+    price: '279€',
+    popular: true,
+    tagKey: 'lp.pricing.plans.pro.tag',
+    featKeys: ['lp.pricing.plans.pro.feat.1', 'lp.pricing.plans.pro.feat.2', 'lp.pricing.plans.pro.feat.3', 'lp.pricing.plans.pro.feat.4', 'lp.pricing.plans.pro.feat.5'],
+    ctaKey: 'lp.pricing.plans.pro.cta',
+    to: '/register',
+  },
 ];
 export const FAQ = [
-  ['C’est vraiment gratuit pour démarrer ?', 'Oui — l’offre Gratuite te laisse tester sans carte bancaire. Tu passes à une offre payante seulement si tu as besoin de plus de crédits ou de fonctionnalités.'],
-  ['Sur quels réseaux puis-je publier ?', 'LinkedIn, Instagram, Facebook, TikTok et YouTube — tu connectes tes comptes en quelques clics.'],
-  ['Comment fonctionnent les crédits ?', 'Chaque génération (post, carrousel, image, script vidéo) consomme des crédits selon la qualité choisie. Tu vois ton solde en temps réel.'],
-  ['Mes données sont-elles en sécurité ?', 'Tes comptes sociaux sont connectés via OAuth officiel : on ne stocke jamais tes mots de passe, et tu peux déconnecter un réseau à tout moment.'],
+  ['lp.faq.list.1.q', 'lp.faq.list.1.a'],
+  ['lp.faq.list.2.q', 'lp.faq.list.2.a'],
+  ['lp.faq.list.3.q', 'lp.faq.list.3.a'],
+  ['lp.faq.list.4.q', 'lp.faq.list.4.a'],
 ];
 
 // Éditeur : GoodTime BNB (gt-bnb.com)
