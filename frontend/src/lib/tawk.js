@@ -31,6 +31,16 @@ export function initTawk() {
   }
   window.Tawk_API = window.Tawk_API || {};
   window.Tawk_LoadStart = new Date();
+  // Intégration au design : sous les dialogs/toasts (z-50) et décollée des bords ;
+  // sur mobile, remontée pour ne pas chevaucher les CTA en bas de page.
+  // (Couleur, langue et Attention Grabber se règlent dans l'admin Tawk, pas ici.)
+  window.Tawk_API.customStyle = {
+    zIndex: 45,
+    visibility: {
+      desktop: { position: 'br', xOffset: 18, yOffset: 18 },
+      mobile: { position: 'br', xOffset: 10, yOffset: 72 },
+    },
+  };
   window.Tawk_API.onLoad = () => { if (pendingUser) { applyIdentity(pendingUser); pendingUser = null; } };
   const s = document.createElement('script');
   s.src = `https://embed.tawk.to/${TAWK_ID}`;
