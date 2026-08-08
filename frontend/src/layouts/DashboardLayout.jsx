@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
-import { initCrisp, identifyCrisp, hideCrisp, resetCrisp } from '../lib/crisp';
+import { initTawk, identifyTawk, hideTawk, resetTawk } from '../lib/tawk';
 import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
@@ -155,13 +155,13 @@ function DashboardContent() {
   // Notifications push (mobile) : demande la permission + enregistre le token
   useEffect(() => { initPush(); }, []);
 
-  // Chat support Crisp : bulle visible dans le dashboard, masquée en quittant ;
+  // Chat support Tawk.to : bulle visible dans le dashboard, masquée en quittant ;
   // l'utilisateur est identifié (nom, email, plan) dès que son profil est chargé.
   useEffect(() => {
-    initCrisp();
-    return () => hideCrisp();
+    initTawk();
+    return () => hideTawk();
   }, []);
-  useEffect(() => { if (user) identifyCrisp(user); }, [user]);
+  useEffect(() => { if (user) identifyTawk(user); }, [user]);
 
   // Langue de l'interface : si le client n'a jamais choisi explicitement (pas de localStorage),
   // on aligne l'UI sur sa langue de contenu (user.langue : fr/en/es).
@@ -204,7 +204,7 @@ function DashboardContent() {
   const dismissDl = () => { markDownloaded(); setShowDl(false); };
 
   const handleLogout = () => {
-    resetCrisp(); // ne pas mélanger la conversation support de deux comptes
+    resetTawk(); // ne pas mélanger la conversation support de deux comptes
     logout();
     removeToken();
     navigate('/login');
