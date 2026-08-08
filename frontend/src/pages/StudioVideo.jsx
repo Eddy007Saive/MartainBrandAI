@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, Film, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
 import { videoService } from '../services/videoService';
 import { contenuService } from '../services/contenuService';
@@ -35,6 +36,7 @@ const TEMPLATES = [
 export default function StudioVideo() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const contenuId = params.get('contenu_id');
 
   const [options, setOptions] = useState({ templates: [], music: [], music_categories: [] });
@@ -94,8 +96,8 @@ export default function StudioVideo() {
 
   const onFile = (f) => {
     if (!f) return;
-    if (!f.type.startsWith('video/')) { toast.error('Choisis un fichier vidéo (mp4, mov…)'); return; }
-    if (f.size > 300 * 1024 * 1024) { toast.error('Vidéo trop lourde (300 Mo max)'); return; }
+    if (!f.type.startsWith('video/')) { toast.error(t('video.fileType')); return; }
+    if (f.size > 300 * 1024 * 1024) { toast.error(t('video.fileTooBig')); return; }
     if (localUrl) URL.revokeObjectURL(localUrl);
     setFile(f);
     setLocalUrl(URL.createObjectURL(f));   // aperçu LOCAL : rien n'est envoyé tant qu'on ne monte pas
@@ -116,13 +118,13 @@ export default function StudioVideo() {
 
   // Progression approximative (Submagic renvoie des ÉTAPES, pas un %) : upload puis étapes.
   const progress = () => {
-    if (uploadPct > 0 && uploadPct < 100) return { pct: Math.round(uploadPct * 0.2), label: `Envoi de la vidéo… ${uploadPct}%` };
+    if (uploadPct > 0 && uploadPct < 100) return { pct: Math.round(uploadPct * 0.2), label: t('video.progress.sending', { pct: uploadPct }) };
     const map = {
-      processing: { pct: 35, label: 'Analyse de la vidéo…' },
-      transcribing: { pct: 60, label: 'Transcription & sous-titres…' },
-      exporting: { pct: 88, label: 'Montage, b-roll & export…' },
+      processing: { pct: 35, label: t('video.progress.analyzing') },
+      transcribing: { pct: 60, label: t('video.progress.transcribing') },
+      exporting: { pct: 88, label: t('video.progress.exporting') },
     };
-    return map[stage] || { pct: 25, label: 'Préparation du montage…' };
+    return map[stage] || { pct: 25, label: t('video.progress.preparing') };
   };
 
   const lancer = async () => {
@@ -132,7 +134,7 @@ export default function StudioVideo() {
     try {
       // Upload MAINTENANT (pas à la sélection) → aucun orphelin si l'utilisateur abandonne avant.
       const up = await videoService.uploadRaw(file, setUploadPct);
-      const titre = draft?.titre || file?.name?.replace(/\.[^.]+$/, '') || 'Vidéo';
+      const titre = draft?.titre || file?.name?.replace(/\.[^.]+$/, '') || t('video.defaultTitle');
       if (mode === 'direct') {
         // Import tel quel : pas de Submagic, pas de quota.
         await videoService.importVideo({ video_url: up.video_url, contenu_id: contenuId || undefined, titre, reseaux, as_story: asStory });
@@ -156,8 +158,8 @@ export default function StudioVideo() {
       startPolling(d.contenu_id);
     } catch (e) {
       setStep('ready');
-      if (e.response?.status === 402) toast.error(e.response?.data?.detail || "Réservé à l'offre Pro");
-      else toast.error(e.response?.data?.detail || "L'opération n'a pas pu démarrer");
+      if (e.response?.status === 402) toast.error(e.response?.data?.detail || t('video.proOnly'));
+      else toast.error(e.response?.data?.detail || t('video.startError'));
     }
   };
 
@@ -176,10 +178,10 @@ export default function StudioVideo() {
     setPublishing(true);
     try {
       await videoService.importVideo({ contenu_id: cid, video_url: result.video_url, titre: result.titre || draft?.titre, reseaux, as_story: asStory });
-      toast.success('Réseau(x) enregistré(s) ✓ — valide & publie depuis Contenus.');
+      toast.success(t('video.networksSaved'));
       navigate('/dashboard/contenus');
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Échec de l'enregistrement des réseaux.");
+      toast.error(e?.response?.data?.detail || t('video.networksError'));
     } finally {
       setPublishing(false);
     }
@@ -195,8 +197,8 @@ export default function StudioVideo() {
           <Video className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold font-sora text-white">Studio Vidéo</h1>
-          <p className="text-sm text-slate-500 font-inter">Ta vidéo brute → montage IA (sous-titres, b-roll, zooms, musique)</p>
+          <h1 className="text-xl font-bold font-sora text-white">{t('video.title')}</h1>
+          <p className="text-sm text-slate-500 font-inter">{t('video.subtitle')}</p>
         </div>
       </div>
 
@@ -205,7 +207,7 @@ export default function StudioVideo() {
         <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden">
           <button onClick={() => setScriptOpen((o) => !o)} className="w-full flex items-center gap-2.5 px-5 py-3.5 text-left">
             <ScrollText className="w-4 h-4 text-[#8A6CFF]" />
-            <span className="text-sm font-semibold text-white font-sora flex-1">Ton script <span className="text-slate-500 font-inter font-normal">— à lire pendant le tournage</span></span>
+            <span className="text-sm font-semibold text-white font-sora flex-1">{t('video.script.title')} <span className="text-slate-500 font-inter font-normal">{t('video.script.sub')}</span></span>
             <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${scriptOpen ? 'rotate-180' : ''}`} />
           </button>
           {scriptOpen && (
@@ -223,15 +225,15 @@ export default function StudioVideo() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* GAUCHE : vidéo */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5 space-y-4">
-            <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">Ta vidéo</p>
+            <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('video.yourVideo')}</p>
             {!file ? (
               <label className="flex flex-col items-center justify-center gap-3 py-14 rounded-xl border-2 border-dashed border-white/10 hover:border-[#5B6CFF]/40 cursor-pointer transition-colors text-center">
                 <input type="file" accept="video/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
                 <div className="w-12 h-12 rounded-full bg-white/[0.04] flex items-center justify-center"><Upload className="w-6 h-6 text-slate-400" /></div>
                 <div>
-                  <p className="text-sm text-white font-inter font-medium">Importer ta vidéo filmée</p>
-                  <p className="text-xs text-slate-500 font-inter">MP4 / MOV vertical, 300 Mo max</p>
-                  <p className="text-[11px] text-slate-600 font-inter mt-1">Rien n'est envoyé tant que tu ne lances pas le montage.</p>
+                  <p className="text-sm text-white font-inter font-medium">{t('video.upload.cta')}</p>
+                  <p className="text-xs text-slate-500 font-inter">{t('video.upload.formats')}</p>
+                  <p className="text-[11px] text-slate-600 font-inter mt-1">{t('video.upload.note')}</p>
                 </div>
               </label>
             ) : (
@@ -239,11 +241,11 @@ export default function StudioVideo() {
                 <video src={localUrl} controls className="w-full max-h-[420px] rounded-xl bg-black object-contain" />
                 {step === 'processing' && uploadPct > 0 && uploadPct < 100 && (
                   <div className="flex items-center gap-2 text-xs text-slate-400 font-inter">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#5B6CFF]" /> Envoi de la vidéo… {uploadPct}%
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#5B6CFF]" /> {t('video.progress.sending', { pct: uploadPct })}
                   </div>
                 )}
                 {step !== 'processing' && (
-                  <button onClick={reset} className="text-xs text-slate-500 hover:text-white font-inter">Changer de vidéo</button>
+                  <button onClick={reset} className="text-xs text-slate-500 hover:text-white font-inter">{t('video.upload.change')}</button>
                 )}
               </div>
             )}
@@ -251,11 +253,11 @@ export default function StudioVideo() {
 
           {/* DROITE : réglages */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5">
-            <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-3">Réglages</p>
+            <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-3">{t('video.settings')}</p>
 
             {/* Réseaux de publication (multi — les 2 modes) */}
             <div className="mb-4">
-              <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">Réseaux</p>
+              <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">{t('video.networks')}</p>
               <div className="flex gap-2 flex-wrap">
                 {RESEAUX.map((r) => {
                   const on = reseaux.includes(r.id);
@@ -267,7 +269,7 @@ export default function StudioVideo() {
                 })}
               </div>
               {reseaux.length > 1 && (
-                <p className="text-[11px] text-slate-500 font-inter mt-1.5">1 montage → {reseaux.length} publications (une carte par réseau dans Contenus).</p>
+                <p className="text-[11px] text-slate-500 font-inter mt-1.5">{t('video.multiPub', { n: reseaux.length })}</p>
               )}
               {/* Story 24h — seulement si Instagram/Facebook sélectionné (support Zernio) */}
               {(reseaux.includes('instagram') || reseaux.includes('facebook')) && (
@@ -275,8 +277,8 @@ export default function StudioVideo() {
                   className={`mt-2.5 w-full flex items-center justify-between px-3 py-2 rounded-xl border text-left transition-all ${
                     asStory ? 'border-[#8A6CFF]/50 bg-[#5B6CFF]/10' : 'border-white/[0.06] bg-[#0c111f] hover:border-white/[0.12]'}`}>
                   <span>
-                    <span className={`block text-[12.5px] font-sora font-semibold ${asStory ? 'text-white' : 'text-slate-300'}`}>Publier en Story · 24h</span>
-                    <span className="block text-[11px] text-slate-500 font-inter mt-0.5">Éphémère, plein écran (Instagram/Facebook). Les autres réseaux restent en Reel.</span>
+                    <span className={`block text-[12.5px] font-sora font-semibold ${asStory ? 'text-white' : 'text-slate-300'}`}>{t('video.story.title')}</span>
+                    <span className="block text-[11px] text-slate-500 font-inter mt-0.5">{t('video.story.sub')}</span>
                   </span>
                   <span className={`shrink-0 w-9 h-5 rounded-full relative transition-colors ${asStory ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]' : 'bg-white/10'}`}>
                     <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${asStory ? 'left-[18px]' : 'left-0.5'}`} />
@@ -287,10 +289,10 @@ export default function StudioVideo() {
 
             {/* Mode : montage IA (Submagic) ou import direct */}
             <div className="flex gap-1 p-1 rounded-xl bg-[#0c111f] border border-white/[0.06] mb-4">
-              {[{ id: 'montage', label: 'Montage IA' }, { id: 'direct', label: 'Vidéo déjà prête' }].map((m) => (
+              {[{ id: 'montage', labelKey: 'video.mode.montage' }, { id: 'direct', labelKey: 'video.mode.direct' }].map((m) => (
                 <button key={m.id} type="button" onClick={() => setMode(m.id)}
                   className={`flex-1 py-2 rounded-lg text-[13px] font-sora font-semibold transition-all ${mode === m.id ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>
-                  {m.label}
+                  {t(m.labelKey)}
                 </button>
               ))}
             </div>
@@ -298,11 +300,11 @@ export default function StudioVideo() {
             {mode === 'montage' ? (<>
             {/* Templates */}
             <div className="sv-sec">
-              <div className="sv-lab"><Wand2 className="w-[15px] h-[15px] text-[#8A6CFF]" />Style de sous-titres<span className="ml-auto text-[12px] font-semibold text-[#3AFFA3] font-sora">{customId ? (options.custom?.find((c) => c.id === customId)?.label || 'Perso') : form.template}</span></div>
-              <p className="sv-hint">Le style d'animation des captions.</p>
+              <div className="sv-lab"><Wand2 className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.tpl.label')}<span className="ml-auto text-[12px] font-semibold text-[#3AFFA3] font-sora">{customId ? (options.custom?.find((c) => c.id === customId)?.label || t('video.tpl.custom')) : form.template}</span></div>
+              <p className="sv-hint">{t('video.tpl.hint')}</p>
               {options.custom?.length > 0 && (
                 <div className="mb-3">
-                  <p className="text-[10.5px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">Mes templates</p>
+                  <p className="text-[10.5px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">{t('video.tpl.mine')}</p>
                   <div className="flex gap-2 flex-wrap">
                     {options.custom.map((c) => (
                       <button key={c.id} type="button" onClick={() => setCustomId(c.id)} className={`sv-chip ${customId === c.id ? 'on' : ''}`}>
@@ -313,22 +315,22 @@ export default function StudioVideo() {
                 </div>
               )}
               <div className="sv-tpls">
-                {TEMPLATES.map((t) => {
-                  const on = !customId && form.template === t.name;
+                {TEMPLATES.map((tp) => {
+                  const on = !customId && form.template === tp.name;
                   return (
-                    <button key={t.name} type="button" onClick={() => { set('template', t.name); setCustomId(null); }} className={`sv-tpl ${on ? 'on' : ''}`}>
+                    <button key={tp.name} type="button" onClick={() => { set('template', tp.name); setCustomId(null); }} className={`sv-tpl ${on ? 'on' : ''}`}>
                       {on && <span className="sv-tick"><Check className="w-2.5 h-2.5 text-white" /></span>}
-                      <span className={`sv-prev ${t.cls}`}><span className="sv-cap" dangerouslySetInnerHTML={{ __html: t.html }} /></span>
-                      <span className="sv-name">{t.name}</span>
+                      <span className={`sv-prev ${tp.cls}`}><span className="sv-cap" dangerouslySetInnerHTML={{ __html: tp.html }} /></span>
+                      <span className="sv-name">{tp.name}</span>
                     </button>
                   );
                 })}
               </div>
               {!showAll ? (
-                <button onClick={() => setShowAll(true)} className="w-full text-center text-[12px] text-slate-500 hover:text-white py-2 font-inter">Voir les 45 styles →</button>
+                <button onClick={() => setShowAll(true)} className="w-full text-center text-[12px] text-slate-500 hover:text-white py-2 font-inter">{t('video.tpl.seeAll')}</button>
               ) : (
                 <select value={form.template} onChange={(e) => set('template', e.target.value)} className="sv-select mt-2">
-                  {options.templates.map((t) => <option key={t} value={t}>{t}</option>)}
+                  {options.templates.map((name) => <option key={name} value={name}>{name}</option>)}
                 </select>
               )}
             </div>
@@ -336,14 +338,14 @@ export default function StudioVideo() {
             {/* B-roll */}
             <div className="sv-sec">
               <div className="sv-trow">
-                <div className="flex-1"><div className="sv-t">B-roll automatiques</div><div className="sv-s">L'IA insère des images/clips d'illustration.</div></div>
+                <div className="flex-1"><div className="sv-t">{t('video.broll.title')}</div><div className="sv-s">{t('video.broll.sub')}</div></div>
                 <Switch on={brolls} onClick={() => setBrolls((v) => !v)} />
               </div>
               {brolls && (
                 <div className="mt-3.5">
-                  <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">Densité des b-roll</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{brollPct} %</span></div>
+                  <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">{t('video.broll.density')}</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{brollPct} %</span></div>
                   <input type="range" min="0" max="100" value={brollPct} onChange={(e) => setBrollPct(+e.target.value)} style={{ '--pct': `${brollPct}%` }} />
-                  <div className="flex justify-between mt-1.5 text-[10.5px] text-[#5a6680]"><span>Rare · sobre</span><span>Dense · rythmé</span></div>
+                  <div className="flex justify-between mt-1.5 text-[10.5px] text-[#5a6680]"><span>{t('video.broll.rare')}</span><span>{t('video.broll.dense')}</span></div>
                 </div>
               )}
             </div>
@@ -351,42 +353,42 @@ export default function StudioVideo() {
             {/* Zooms */}
             <div className="sv-sec">
               <div className="sv-trow">
-                <div className="flex-1"><div className="sv-t">Zooms automatiques</div><div className="sv-s">Petits zooms sur les moments forts.</div></div>
+                <div className="flex-1"><div className="sv-t">{t('video.zooms.title')}</div><div className="sv-s">{t('video.zooms.sub')}</div></div>
                 <Switch on={form.zooms} onClick={() => set('zooms', !form.zooms)} />
               </div>
             </div>
 
             {/* Montage pro */}
             <div className="sv-sec">
-              <div className="sv-lab"><Scissors className="w-[15px] h-[15px] text-[#8A6CFF]" />Montage pro</div>
+              <div className="sv-lab"><Scissors className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.pro.label')}</div>
 
               <div className="sv-trow">
                 <div className="flex-1">
-                  <div className="sv-t flex items-center gap-1.5">Couper les silences <InfoTip text="Supprime automatiquement les blancs et pauses entre les phrases → un reel plus rythmé et dynamique." /></div>
-                  <div className="sv-s">Vire les temps morts.</div>
+                  <div className="sv-t flex items-center gap-1.5">{t('video.pro.silences')} <InfoTip text={t('video.pro.silencesTip')} /></div>
+                  <div className="sv-s">{t('video.pro.silencesSub')}</div>
                 </div>
                 <Switch on={silencePace !== 'off'} onClick={() => setSilencePace(silencePace === 'off' ? 'natural' : 'off')} />
               </div>
               {silencePace !== 'off' && (
                 <div className="flex gap-2 mt-2.5">
-                  {[{ id: 'natural', label: 'Léger' }, { id: 'fast', label: 'Rapide' }, { id: 'extra-fast', label: 'Très rapide' }].map((p) => (
-                    <button key={p.id} type="button" onClick={() => setSilencePace(p.id)} className={`sv-chip flex-1 justify-center ${silencePace === p.id ? 'on' : ''}`}>{p.label}</button>
+                  {[{ id: 'natural', labelKey: 'video.pro.paceLight' }, { id: 'fast', labelKey: 'video.pro.paceFast' }, { id: 'extra-fast', labelKey: 'video.pro.paceXFast' }].map((p) => (
+                    <button key={p.id} type="button" onClick={() => setSilencePace(p.id)} className={`sv-chip flex-1 justify-center ${silencePace === p.id ? 'on' : ''}`}>{t(p.labelKey)}</button>
                   ))}
                 </div>
               )}
 
               <div className="sv-trow mt-3.5">
                 <div className="flex-1">
-                  <div className="sv-t flex items-center gap-1.5">Enlever les ratés <InfoTip text="Détecte et coupe les hésitations, faux départs et prises ratées (les « euh », répétitions)." /></div>
-                  <div className="sv-s">Nettoie les hésitations.</div>
+                  <div className="sv-t flex items-center gap-1.5">{t('video.pro.badTakes')} <InfoTip text={t('video.pro.badTakesTip')} /></div>
+                  <div className="sv-s">{t('video.pro.badTakesSub')}</div>
                 </div>
                 <Switch on={badTakes} onClick={() => setBadTakes((v) => !v)} />
               </div>
 
               <div className="sv-trow mt-3.5">
                 <div className="flex-1">
-                  <div className="sv-t flex items-center gap-1.5">Nettoyer l'audio <InfoTip text="Réduit le bruit de fond et améliore la clarté de la voix — un son plus pro." /></div>
-                  <div className="sv-s">Réduit le bruit, voix plus nette.</div>
+                  <div className="sv-t flex items-center gap-1.5">{t('video.pro.cleanAudio')} <InfoTip text={t('video.pro.cleanAudioTip')} /></div>
+                  <div className="sv-s">{t('video.pro.cleanAudioSub')}</div>
                 </div>
                 <Switch on={cleanAudio} onClick={() => setCleanAudio((v) => !v)} />
               </div>
@@ -394,12 +396,12 @@ export default function StudioVideo() {
 
             {/* Musique */}
             <div className="sv-sec">
-              <div className="sv-lab"><Music className="w-[15px] h-[15px] text-[#8A6CFF]" />Musique de fond</div>
-              <p className="sv-hint">Ajoutée sous ta voix (mixée et atténuée).</p>
+              <div className="sv-lab"><Music className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.music.label')}</div>
+              <p className="sv-hint">{t('video.music.hint')}</p>
               {/* Niveau 1 : Aucune + catégories */}
               <div className="flex gap-2 flex-wrap">
                 <div onClick={() => { set('music', 'none'); setMusicCat(null); stopPreview(); }}
-                  className={`sv-chip cursor-pointer ${form.music === 'none' ? 'on' : ''}`}>Aucune</div>
+                  className={`sv-chip cursor-pointer ${form.music === 'none' ? 'on' : ''}`}>{t('video.music.none')}</div>
                 {(options.music_categories || []).map((c) => {
                   const open = musicCat === c.id;
                   const hasSel = selMusic && selMusic.category === c.id;
@@ -419,7 +421,7 @@ export default function StudioVideo() {
                     <div key={m.id} onClick={() => set('music', m.id)}
                       className={`sv-chip flex items-center gap-1.5 cursor-pointer ${form.music === m.id ? 'on' : ''}`}>
                       {m.url && (
-                        <button type="button" aria-label="Écouter" onClick={(e) => { e.stopPropagation(); togglePlay(m); }}
+                        <button type="button" aria-label={t('video.music.listen')} onClick={(e) => { e.stopPropagation(); togglePlay(m); }}
                           className="w-5 h-5 -ml-0.5 rounded-full flex items-center justify-center hover:bg-white/15 transition-colors">
                           {playing === m.id ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
                         </button>
@@ -432,15 +434,15 @@ export default function StudioVideo() {
               <audio ref={audioRef} onEnded={() => setPlaying(null)} className="hidden" />
               {form.music !== 'none' && (
                 <div className="mt-3.5">
-                  <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">Volume de la musique</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{volume} %</span></div>
+                  <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">{t('video.music.volume')}</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{volume} %</span></div>
                   <input type="range" min="0" max="100" value={volume} onChange={(e) => setVolume(+e.target.value)} style={{ '--pct': `${volume}%` }} />
                 </div>
               )}
             </div>
             </>) : (
               <div className="rounded-xl border border-dashed border-white/10 bg-[#0c111f] p-4 text-center mb-1">
-                <p className="text-sm text-white font-inter font-medium">Vidéo importée telle quelle</p>
-                <p className="text-xs text-slate-500 font-inter mt-1">Aucun montage IA, aucun sous-titre ajouté — ta vidéo est publiée telle que tu l'as filmée/montée. <b className="text-slate-300">Gratuit</b>, ne consomme pas de quota.</p>
+                <p className="text-sm text-white font-inter font-medium">{t('video.direct.title')}</p>
+                <p className="text-xs text-slate-500 font-inter mt-1">{t('video.direct.sub')} <b className="text-slate-300">{t('video.direct.free')}</b>{t('video.direct.sub2')}</p>
               </div>
             )}
 
@@ -448,15 +450,15 @@ export default function StudioVideo() {
             <div className="pt-4 mt-1 border-t border-white/[0.06]">
               <Button onClick={lancer} disabled={!file || step === 'processing'} className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2">
                 {step === 'processing' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {step === 'processing' ? (mode === 'direct' ? 'Import…' : 'Montage en cours…') : (mode === 'direct' ? 'Importer la vidéo' : 'Monter la vidéo')}
+                {step === 'processing' ? (mode === 'direct' ? t('video.cta.importing') : t('video.cta.editing')) : (mode === 'direct' ? t('video.cta.import') : t('video.cta.edit'))}
               </Button>
               {mode === 'montage' ? (
                 <p className="text-[11px] text-slate-600 font-inter text-center mt-2.5 flex items-center justify-center gap-1.5">
                   <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">PRO</span>
-                  consomme 1 vidéo de ton quota · montage ≈ 1-2 min
+                  {t('video.cta.proNote')}
                 </p>
               ) : (
-                <p className="text-[11px] text-slate-600 font-inter text-center mt-2.5">Import direct · gratuit · aucun quota</p>
+                <p className="text-[11px] text-slate-600 font-inter text-center mt-2.5">{t('video.cta.freeNote')}</p>
               )}
             </div>
           </div>
@@ -469,7 +471,7 @@ export default function StudioVideo() {
             <Loader2 className="w-5 h-5 animate-spin text-[#8A6CFF] shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm text-white font-inter font-medium">{p.label}</p>
-              <p className="text-xs text-slate-400 font-inter">Tu peux quitter, ça continue — la vidéo apparaîtra dans Contenus.</p>
+              <p className="text-xs text-slate-400 font-inter">{t('video.progress.canLeave')}</p>
             </div>
             <span className="font-sora font-bold text-[#8A6CFF] text-sm tabular-nums">{p.pct}%</span>
           </div>
@@ -481,8 +483,8 @@ export default function StudioVideo() {
       {step === 'error' && (
         <div className="rounded-2xl border border-red-500/25 bg-red-500/[0.06] p-5 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-red-400" />
-          <div className="flex-1"><p className="text-sm text-white font-inter font-medium">Le montage a échoué</p><p className="text-xs text-slate-400 font-inter">Ton quota a été recrédité. Réessaie.</p></div>
-          <Button variant="ghost" onClick={reset} className="text-slate-300">Réessayer</Button>
+          <div className="flex-1"><p className="text-sm text-white font-inter font-medium">{t('video.error.failed')}</p><p className="text-xs text-slate-400 font-inter">{t('video.error.requeued')}</p></div>
+          <Button variant="ghost" onClick={reset} className="text-slate-300">{t('video.error.retry')}</Button>
         </div>
       )}
     </div>
@@ -490,15 +492,16 @@ export default function StudioVideo() {
 }
 
 function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish, publishing }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-2xl border border-[#3AFFA3]/25 bg-[#3AFFA3]/[0.06] p-5 space-y-4">
-      <div className="flex items-center gap-2 text-[#3AFFA3]"><Check className="w-5 h-5" /><p className="font-semibold font-sora">Vidéo montée !</p></div>
+      <div className="flex items-center gap-2 text-[#3AFFA3]"><Check className="w-5 h-5" /><p className="font-semibold font-sora">{t('video.result.done')}</p></div>
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4 items-start">
         {result.video_url && <video src={result.video_url} controls className="w-full max-h-[420px] rounded-xl bg-black" />}
         <div className="space-y-3">
           {/* Réseaux de publication (multi) */}
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-1.5">Publier sur</p>
+            <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-1.5">{t('video.result.publishOn')}</p>
             <div className="flex gap-2 flex-wrap">
               {RESEAUX.map((r) => {
                 const on = reseaux.includes(r.id);
@@ -514,13 +517,13 @@ function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish,
             <Button onClick={onPublish} disabled={publishing || !reseaux.length}
               className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2 disabled:opacity-50">
               {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-              Enregistrer les réseaux &amp; publier
+              {t('video.result.saveAndPublish')}
             </Button>
-            <Button variant="ghost" onClick={() => navigate('/dashboard/contenus')} className="text-slate-300">Voir dans Contenus</Button>
-            {result.video_preview_url && <a href={result.video_preview_url} target="_blank" rel="noreferrer"><Button variant="ghost" className="text-slate-300">Aperçu</Button></a>}
-            {onReset && <Button variant="ghost" onClick={onReset} className="text-slate-400">Nouvelle vidéo</Button>}
+            <Button variant="ghost" onClick={() => navigate('/dashboard/contenus')} className="text-slate-300">{t('video.result.seeContents')}</Button>
+            {result.video_preview_url && <a href={result.video_preview_url} target="_blank" rel="noreferrer"><Button variant="ghost" className="text-slate-300">{t('video.result.preview')}</Button></a>}
+            {onReset && <Button variant="ghost" onClick={onReset} className="text-slate-400">{t('video.result.newVideo')}</Button>}
           </div>
-          <p className="text-[11px] text-slate-500 font-inter">Choisis le(s) réseau(x) puis « Enregistrer &amp; publier » — tu valides ensuite dans <b className="text-slate-300">Contenus</b>.</p>
+          <p className="text-[11px] text-slate-500 font-inter">{t('video.result.note1')} <b className="text-slate-300">{t('video.result.note2')}</b>.</p>
         </div>
       </div>
     </div>

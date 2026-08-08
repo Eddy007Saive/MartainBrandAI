@@ -1056,5 +1056,115 @@
     "validate": "Approve",
     "carouselDuplicated": "Carousel duplicated to {{count}} other network(s) ♻️",
     "draftsCount": "{{count}} draft(s)"
+  },
+  "video": {
+    "title": "Video Studio",
+    "subtitle": "Your raw video → AI editing (captions, b-roll, zooms, music)",
+    "yourVideo": "Your video",
+    "settings": "Settings",
+    "networks": "Networks",
+    "multiPub": "1 edit → {{n}} posts (one content card per network in Contents).",
+    "defaultTitle": "Video",
+    "fileType": "Pick a video file (mp4, mov…)",
+    "fileTooBig": "Video too large (300 MB max)",
+    "networksSaved": "Network(s) saved ✓ — review & publish from Contents.",
+    "networksError": "Failed to save the networks.",
+    "proOnly": "Pro plan only",
+    "startError": "The operation could not start",
+    "script": {
+      "title": "Your script",
+      "sub": "— read it while filming"
+    },
+    "upload": {
+      "cta": "Upload your filmed video",
+      "formats": "Vertical MP4 / MOV, 300 MB max",
+      "note": "Nothing is uploaded until you start the edit.",
+      "change": "Change video"
+    },
+    "story": {
+      "title": "Publish as Story · 24h",
+      "sub": "Ephemeral, full screen (Instagram/Facebook). Other networks stay as Reels."
+    },
+    "mode": {
+      "montage": "AI editing",
+      "direct": "Video already done"
+    },
+    "tpl": {
+      "label": "Caption style",
+      "custom": "Custom",
+      "hint": "The animation style of the captions.",
+      "mine": "My templates",
+      "seeAll": "See all 45 styles →"
+    },
+    "broll": {
+      "title": "Automatic b-roll",
+      "sub": "The AI inserts illustrative images/clips.",
+      "density": "B-roll density",
+      "rare": "Rare · subtle",
+      "dense": "Dense · fast-paced"
+    },
+    "zooms": {
+      "title": "Automatic zooms",
+      "sub": "Small zooms on key moments."
+    },
+    "pro": {
+      "label": "Pro editing",
+      "silences": "Cut silences",
+      "silencesTip": "Automatically removes gaps and pauses between sentences → a snappier, more dynamic reel.",
+      "silencesSub": "Removes dead air.",
+      "paceLight": "Light",
+      "paceFast": "Fast",
+      "paceXFast": "Very fast",
+      "badTakes": "Remove bad takes",
+      "badTakesTip": "Detects and cuts hesitations, false starts and failed takes (the \"uhs\", repetitions).",
+      "badTakesSub": "Cleans up hesitations.",
+      "cleanAudio": "Clean up audio",
+      "cleanAudioTip": "Reduces background noise and improves voice clarity — a more professional sound.",
+      "cleanAudioSub": "Less noise, clearer voice."
+    },
+    "music": {
+      "label": "Background music",
+      "hint": "Added under your voice (mixed and attenuated).",
+      "none": "None",
+      "listen": "Listen",
+      "volume": "Music volume"
+    },
+    "direct": {
+      "title": "Video imported as is",
+      "sub": "No AI editing, no captions added — your video is published exactly as you filmed/edited it.",
+      "free": "Free",
+      "sub2": ", does not use any quota."
+    },
+    "cta": {
+      "importing": "Importing…",
+      "editing": "Editing in progress…",
+      "import": "Import the video",
+      "edit": "Edit the video",
+      "proNote": "uses 1 video from your quota · editing ≈ 1-2 min",
+      "freeNote": "Direct import · free · no quota"
+    },
+    "progress": {
+      "sending": "Uploading video… {{pct}}%",
+      "analyzing": "Analyzing video…",
+      "transcribing": "Transcription & captions…",
+      "exporting": "Editing, b-roll & export…",
+      "preparing": "Preparing the edit…",
+      "canLeave": "You can leave, it keeps going — the video will appear in Contents."
+    },
+    "error": {
+      "failed": "The edit failed",
+      "requeued": "Your quota has been refunded. Try again.",
+      "retry": "Retry"
+    },
+    "result": {
+      "done": "Video edited!",
+      "publishOn": "Publish on",
+      "saveAndPublish": "Save networks & publish",
+      "seeContents": "View in Contents",
+      "preview": "Preview",
+      "newVideo": "New video",
+      "note1": "Pick the network(s) then \"Save & publish\" — you then review it in",
+      "note2": "Contents"
+    }
   }
 }

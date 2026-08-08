@@ -1056,5 +1056,115 @@
     "validate": "Validar",
     "carouselDuplicated": "Carrusel duplicado en {{count}} red(es) más ♻️",
     "draftsCount": "{{count}} borrador(es)"
+  },
+  "video": {
+    "title": "Estudio de Vídeo",
+    "subtitle": "Tu vídeo en bruto → edición con IA (subtítulos, b-roll, zooms, música)",
+    "yourVideo": "Tu vídeo",
+    "settings": "Ajustes",
+    "networks": "Redes",
+    "multiPub": "1 edición → {{n}} publicaciones (una tarjeta por red en Contenidos).",
+    "defaultTitle": "Vídeo",
+    "fileType": "Elige un archivo de vídeo (mp4, mov…)",
+    "fileTooBig": "Vídeo demasiado pesado (300 MB máx.)",
+    "networksSaved": "Red(es) guardada(s) ✓ — valida y publica desde Contenidos.",
+    "networksError": "No se pudieron guardar las redes.",
+    "proOnly": "Reservado al plan Pro",
+    "startError": "La operación no pudo iniciarse",
+    "script": {
+      "title": "Tu guion",
+      "sub": "— léelo mientras grabas"
+    },
+    "upload": {
+      "cta": "Sube tu vídeo grabado",
+      "formats": "MP4 / MOV vertical, 300 MB máx.",
+      "note": "No se envía nada hasta que lances la edición.",
+      "change": "Cambiar de vídeo"
+    },
+    "story": {
+      "title": "Publicar como Historia · 24h",
+      "sub": "Efímera, pantalla completa (Instagram/Facebook). Las demás redes siguen como Reel."
+    },
+    "mode": {
+      "montage": "Edición IA",
+      "direct": "Vídeo ya listo"
+    },
+    "tpl": {
+      "label": "Estilo de subtítulos",
+      "custom": "Personalizado",
+      "hint": "El estilo de animación de los subtítulos.",
+      "mine": "Mis plantillas",
+      "seeAll": "Ver los 45 estilos →"
+    },
+    "broll": {
+      "title": "B-roll automáticos",
+      "sub": "La IA inserta imágenes/clips de ilustración.",
+      "density": "Densidad de b-roll",
+      "rare": "Escaso · sobrio",
+      "dense": "Denso · dinámico"
+    },
+    "zooms": {
+      "title": "Zooms automáticos",
+      "sub": "Pequeños zooms en los momentos clave."
+    },
+    "pro": {
+      "label": "Edición pro",
+      "silences": "Cortar los silencios",
+      "silencesTip": "Elimina automáticamente los huecos y pausas entre frases → un reel más rítmico y dinámico.",
+      "silencesSub": "Elimina los tiempos muertos.",
+      "paceLight": "Ligero",
+      "paceFast": "Rápido",
+      "paceXFast": "Muy rápido",
+      "badTakes": "Quitar las tomas falsas",
+      "badTakesTip": "Detecta y corta las dudas, los falsos comienzos y las tomas fallidas (los «eh», repeticiones).",
+      "badTakesSub": "Limpia las vacilaciones.",
+      "cleanAudio": "Limpiar el audio",
+      "cleanAudioTip": "Reduce el ruido de fondo y mejora la claridad de la voz — un sonido más profesional.",
+      "cleanAudioSub": "Menos ruido, voz más nítida."
+    },
+    "music": {
+      "label": "Música de fondo",
+      "hint": "Añadida bajo tu voz (mezclada y atenuada).",
+      "none": "Ninguna",
+      "listen": "Escuchar",
+      "volume": "Volumen de la música"
+    },
+    "direct": {
+      "title": "Vídeo importado tal cual",
+      "sub": "Sin edición IA, sin subtítulos añadidos — tu vídeo se publica tal y como lo grabaste/editaste.",
+      "free": "Gratis",
+      "sub2": ", no consume cuota."
+    },
+    "cta": {
+      "importing": "Importando…",
+      "editing": "Edición en curso…",
+      "import": "Importar el vídeo",
+      "edit": "Editar el vídeo",
+      "proNote": "consume 1 vídeo de tu cuota · edición ≈ 1-2 min",
+      "freeNote": "Importación directa · gratis · sin cuota"
+    },
+    "progress": {
+      "sending": "Enviando el vídeo… {{pct}}%",
+      "analyzing": "Analizando el vídeo…",
+      "transcribing": "Transcripción y subtítulos…",
+      "exporting": "Edición, b-roll y exportación…",
+      "preparing": "Preparando la edición…",
+      "canLeave": "Puedes salir, continúa en segundo plano — el vídeo aparecerá en Contenidos."
+    },
+    "error": {
+      "failed": "La edición falló",
+      "requeued": "Tu cuota ha sido reembolsada. Inténtalo de nuevo.",
+      "retry": "Reintentar"
+    },
+    "result": {
+      "done": "¡Vídeo editado!",
+      "publishOn": "Publicar en",
+      "saveAndPublish": "Guardar redes y publicar",
+      "seeContents": "Ver en Contenidos",
+      "preview": "Vista previa",
+      "newVideo": "Nuevo vídeo",
+      "note1": "Elige la(s) red(es) y luego «Guardar y publicar» — después lo validas en",
+      "note2": "Contenidos"
+    }
   }
 }

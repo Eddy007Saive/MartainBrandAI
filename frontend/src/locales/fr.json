@@ -1056,5 +1056,115 @@
     "validate": "Valider",
     "carouselDuplicated": "Carrousel dupliqué sur {{count}} autre(s) réseau(x) ♻️",
     "draftsCount": "{{count}} brouillon(s)"
+  },
+  "video": {
+    "title": "Studio Vidéo",
+    "subtitle": "Ta vidéo brute → montage IA (sous-titres, b-roll, zooms, musique)",
+    "yourVideo": "Ta vidéo",
+    "settings": "Réglages",
+    "networks": "Réseaux",
+    "multiPub": "1 montage → {{n}} publications (une carte par réseau dans Contenus).",
+    "defaultTitle": "Vidéo",
+    "fileType": "Choisis un fichier vidéo (mp4, mov…)",
+    "fileTooBig": "Vidéo trop lourde (300 Mo max)",
+    "networksSaved": "Réseau(x) enregistré(s) ✓ — valide & publie depuis Contenus.",
+    "networksError": "Échec de l'enregistrement des réseaux.",
+    "proOnly": "Réservé à l'offre Pro",
+    "startError": "L'opération n'a pas pu démarrer",
+    "script": {
+      "title": "Ton script",
+      "sub": "— à lire pendant le tournage"
+    },
+    "upload": {
+      "cta": "Importer ta vidéo filmée",
+      "formats": "MP4 / MOV vertical, 300 Mo max",
+      "note": "Rien n'est envoyé tant que tu ne lances pas le montage.",
+      "change": "Changer de vidéo"
+    },
+    "story": {
+      "title": "Publier en Story · 24h",
+      "sub": "Éphémère, plein écran (Instagram/Facebook). Les autres réseaux restent en Reel."
+    },
+    "mode": {
+      "montage": "Montage IA",
+      "direct": "Vidéo déjà prête"
+    },
+    "tpl": {
+      "label": "Style de sous-titres",
+      "custom": "Perso",
+      "hint": "Le style d'animation des captions.",
+      "mine": "Mes templates",
+      "seeAll": "Voir les 45 styles →"
+    },
+    "broll": {
+      "title": "B-roll automatiques",
+      "sub": "L'IA insère des images/clips d'illustration.",
+      "density": "Densité des b-roll",
+      "rare": "Rare · sobre",
+      "dense": "Dense · rythmé"
+    },
+    "zooms": {
+      "title": "Zooms automatiques",
+      "sub": "Petits zooms sur les moments forts."
+    },
+    "pro": {
+      "label": "Montage pro",
+      "silences": "Couper les silences",
+      "silencesTip": "Supprime automatiquement les blancs et pauses entre les phrases → un reel plus rythmé et dynamique.",
+      "silencesSub": "Vire les temps morts.",
+      "paceLight": "Léger",
+      "paceFast": "Rapide",
+      "paceXFast": "Très rapide",
+      "badTakes": "Enlever les ratés",
+      "badTakesTip": "Détecte et coupe les hésitations, faux départs et prises ratées (les « euh », répétitions).",
+      "badTakesSub": "Nettoie les hésitations.",
+      "cleanAudio": "Nettoyer l'audio",
+      "cleanAudioTip": "Réduit le bruit de fond et améliore la clarté de la voix — un son plus pro.",
+      "cleanAudioSub": "Réduit le bruit, voix plus nette."
+    },
+    "music": {
+      "label": "Musique de fond",
+      "hint": "Ajoutée sous ta voix (mixée et atténuée).",
+      "none": "Aucune",
+      "listen": "Écouter",
+      "volume": "Volume de la musique"
+    },
+    "direct": {
+      "title": "Vidéo importée telle quelle",
+      "sub": "Aucun montage IA, aucun sous-titre ajouté — ta vidéo est publiée telle que tu l'as filmée/montée.",
+      "free": "Gratuit",
+      "sub2": ", ne consomme pas de quota."
+    },
+    "cta": {
+      "importing": "Import…",
+      "editing": "Montage en cours…",
+      "import": "Importer la vidéo",
+      "edit": "Monter la vidéo",
+      "proNote": "consomme 1 vidéo de ton quota · montage ≈ 1-2 min",
+      "freeNote": "Import direct · gratuit · aucun quota"
+    },
+    "progress": {
+      "sending": "Envoi de la vidéo… {{pct}}%",
+      "analyzing": "Analyse de la vidéo…",
+      "transcribing": "Transcription & sous-titres…",
+      "exporting": "Montage, b-roll & export…",
+      "preparing": "Préparation du montage…",
+      "canLeave": "Tu peux quitter, ça continue — la vidéo apparaîtra dans Contenus."
+    },
+    "error": {
+      "failed": "Le montage a échoué",
+      "requeued": "Ton quota a été recrédité. Réessaie.",
+      "retry": "Réessayer"
+    },
+    "result": {
+      "done": "Vidéo montée !",
+      "publishOn": "Publier sur",
+      "saveAndPublish": "Enregistrer les réseaux & publier",
+      "seeContents": "Voir dans Contenus",
+      "preview": "Aperçu",
+      "newVideo": "Nouvelle vidéo",
+      "note1": "Choisis le(s) réseau(x) puis « Enregistrer & publier » — tu valides ensuite dans",
+      "note2": "Contenus"
+    }
   }
 }
