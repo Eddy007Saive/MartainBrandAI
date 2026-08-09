@@ -1,3 +1,4 @@
+import re
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -315,7 +316,11 @@ class CarrouselTemplatesUpdate(BaseModel):
 async def list_carrousel_exclusifs(payload: dict = Depends(verify_admin_token)):
     """Catalogue des templates de carrousel sur mesure attribuables à un compte."""
     from services import carrousel_service
-    return {"exclusifs": sorted(carrousel_service.EXCLUSIFS), "tous": carrousel_service.TEMPLATES}
+    from services import carrousel_custom
+    importes = carrousel_custom.lister()
+    return {"exclusifs": sorted(carrousel_service.EXCLUSIFS),
+            "importes": [{"id": t["id"], "label": t["label"]} for t in importes],
+            "tous": carrousel_service.TEMPLATES}
 
 
 @router.patch("/users/{telegram_id}/carrousel-templates")
@@ -324,7 +329,9 @@ async def set_carrousel_templates(telegram_id: str, body: CarrouselTemplatesUpda
     """Attribue (ou retire) les templates de carrousel sur mesure d'un compte."""
     from services import carrousel_service
     demandes = [str(t).strip().lower() for t in (body.templates or []) if str(t).strip()]
-    inconnus = [t for t in demandes if t not in carrousel_service.EXCLUSIFS]
+    from services import carrousel_custom
+    connus = set(carrousel_service.EXCLUSIFS) | carrousel_custom.ids()
+    inconnus = [t for t in demandes if t not in connus]
     if inconnus:
         raise HTTPException(status_code=400, detail=f"Template(s) inconnu(s) : {', '.join(inconnus)}")
     csv = ",".join(sorted(set(demandes))) or None
@@ -335,6 +342,49 @@ async def set_carrousel_templates(telegram_id: str, body: CarrouselTemplatesUpda
     except Exception as e:
         logger.error(f"set_carrousel_templates error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class CarrouselTemplateImport(BaseModel):
+    id: str
+    label: str
+    html: str
+
+
+@router.get("/carrousel-templates/custom")
+async def list_carrousel_custom(payload: dict = Depends(verify_admin_token)):
+    """Templates de carrousel importés (HTML stocké en base)."""
+    from services import carrousel_custom
+    return {"templates": carrousel_custom.lister(), "placeholders": carrousel_custom.PLACEHOLDERS}
+
+
+@router.post("/carrousel-templates/custom")
+async def import_carrousel_custom(body: CarrouselTemplateImport, payload: dict = Depends(verify_admin_token)):
+    """Importe un gabarit HTML : validation du contrat, nettoyage, vignette, enregistrement."""
+    from services import carrousel_custom, carrousel_service
+    tid = re.sub(r"[^a-z0-9-]+", "-", (body.id or "").strip().lower()).strip("-")
+    if not tid:
+        raise HTTPException(status_code=400, detail="Identifiant requis (lettres, chiffres, tirets)")
+    if tid in carrousel_service.TEMPLATES:
+        raise HTTPException(status_code=400, detail=f"« {tid} » est déjà un template intégré")
+    erreurs = carrousel_custom.valider(body.html or "")
+    if erreurs:
+        raise HTTPException(status_code=400, detail=" ".join(erreurs))
+    # Vignette : on rend la couverture avec un contenu de démonstration, une seule fois.
+    apercu = None
+    try:
+        apercu = await carrousel_service.apercu_custom(tid, body.html)
+    except Exception as e:
+        logger.warning(f"Vignette template {tid}: {e}")
+    row = carrousel_custom.enregistrer(tid, (body.label or tid).strip(), body.html, apercu,
+                                       payload.get("telegram_id"))
+    return {"success": True, "id": tid, "label": row["label"], "preview_url": apercu}
+
+
+@router.delete("/carrousel-templates/custom/{tpl_id}")
+async def delete_carrousel_custom(tpl_id: str, payload: dict = Depends(verify_admin_token)):
+    from services import carrousel_custom
+    carrousel_custom.supprimer(tpl_id)
+    return {"success": True}
 
 
 @router.get("/system")

@@ -90,15 +90,17 @@ export default function CarrouselsPage() {
   const [lightbox, setLightbox] = useState(null); // { net, tpl }
   // Templates sur mesure : invisibles tant qu'un admin ne les a pas attribués au compte.
   const [autorises, setAutorises] = useState(null);   // null = pas encore chargé
+  const [importes, setImportes] = useState([]);      // templates HTML importés par l'admin
   useEffect(() => {
     agentService.carrouselTemplates()
-      .then((d) => setAutorises(d?.templates || null))
+      .then((d) => { setAutorises(d?.templates || null); setImportes(d?.importes || []); })
       .catch(() => setAutorises(null));
   }, []);
-  const templatesVisibles = useMemo(
-    () => TEMPLATES.filter((t) => (autorises ? autorises.includes(t.id) : !t.exclusif)),
-    [autorises],
-  );
+  const templatesVisibles = useMemo(() => [
+    ...TEMPLATES.filter((t) => (autorises ? autorises.includes(t.id) : !t.exclusif)),
+    // Un template importé n'a pas d'aperçu JS : il affiche la vignette rendue à l'import.
+    ...importes.map((t) => ({ ...t, vignette: t.preview_url })),
+  ], [autorises, importes]);
 
   useEffect(() => {
     (async () => {
@@ -219,13 +221,15 @@ export default function CarrouselsPage() {
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-3.5">
               {templatesVisibles.map((t) => {
                 const on = sel[activeNet] === t.id;
-                const hero = renderSlides(t.id, colors)[0];
+                const hero = t.vignette ? null : renderSlides(t.id, colors)[0];
                 return (
                   <button key={t.id} type="button" onClick={() => { setSel((p) => ({ ...p, [activeNet]: t.id })); setLightbox({ net: activeNet, tpl: t.id }); }}
                     data-testid={`carr-tpl-${activeNet}-${t.id}`}
                     className={`group relative rounded-xl p-2 border transition-all flex flex-col items-center ${on ? 'border-[#5B6CFF] bg-[#5B6CFF]/10' : 'border-white/8 bg-white/[0.015] hover:border-white/25'}`}>
                     <div className="overflow-hidden rounded-lg relative mx-auto w-[140px] h-[175px] sm:w-[176px] sm:h-[220px]">
-                      <div className="origin-top-left scale-[0.70] sm:scale-[0.88]" style={{ width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: hero }} />
+                      {t.vignette
+                        ? <img src={t.vignette} alt="" className="w-full h-full object-cover" />
+                        : <div className="origin-top-left scale-[0.70] sm:scale-[0.88]" style={{ width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: hero }} />}
                       <span className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <Maximize2 className="w-6 h-6 text-white" />
                       </span>

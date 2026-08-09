@@ -30,6 +30,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as ChartToo
 import { removeAdminToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { adminService } from '../services/adminService';
+import CarrouselTemplateImport from '../components/CarrouselTemplateImport';
 import { enterVision } from '../lib/vision';
 
 const navItems = [
@@ -162,7 +163,9 @@ export default function Admin() {
       setUserContenus(contenusData);
       setThemeForm({ id: userData.submagic_theme_id || '', label: userData.submagic_theme_label || '' });
       setCarrSel((userData.carrousel_templates_exclusifs || '').split(',').map((x) => x.trim()).filter(Boolean));
-      if (!carrTpls.length) adminService.getCarrouselTemplates().then((d) => setCarrTpls(d?.exclusifs || [])).catch(() => {});
+      if (!carrTpls.length) adminService.getCarrouselTemplates()
+        .then((d) => setCarrTpls([...(d?.exclusifs || []), ...((d?.importes || []).map((x) => x.id))]))
+        .catch(() => {});
     } catch (error) {
       toast.error('Erreur lors du chargement du profil');
     }
@@ -1175,6 +1178,8 @@ export default function Admin() {
                   <RefreshCw className="w-4 h-4 mr-2" />Actualiser
                 </Button>
               </div>
+
+              <CarrouselTemplateImport />
 
               {loading || !system ? (
                 <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-red-500" /></div>

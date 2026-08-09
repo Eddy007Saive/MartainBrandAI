@@ -298,8 +298,13 @@ async def list_gabarits(payload: dict = Depends(verify_token)):
 @router.get("/carrousel-templates")
 async def list_carrousel_templates(payload: dict = Depends(verify_token)):
     """Templates de carrousel proposables à ce compte (les sur-mesure non attribués sont exclus)."""
-    from services import carrousel_service
-    return {"templates": carrousel_service.templates_autorises(payload.get("telegram_id"))}
+    from services import carrousel_service, carrousel_custom
+    tid = payload.get("telegram_id")
+    autorises = carrousel_service.templates_autorises(tid)
+    # Les templates importés n'ont pas d'aperçu JS : on renvoie leur vignette.
+    importes = [{"id": t["id"], "label": t["label"], "preview_url": t.get("preview_url")}
+                for t in carrousel_custom.lister() if t["id"] in autorises]
+    return {"templates": autorises, "importes": importes}
 
 
 @router.get("/usage")

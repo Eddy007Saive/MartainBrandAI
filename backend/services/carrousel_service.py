@@ -37,15 +37,22 @@ def _exclusifs_du_compte(telegram_id: str) -> set:
 
 
 def templates_autorises(telegram_id: str) -> list:
-    """Templates proposables à ce compte : les communs + ceux qu'un admin lui a attribués."""
+    """Templates proposables à ce compte : les communs + ceux qu'un admin lui a attribués
+    (sur mesure codés en dur ET templates importés depuis le back-office)."""
     accordes = _exclusifs_du_compte(telegram_id)
-    return [t for t in TEMPLATES if t not in EXCLUSIFS or t in accordes]
+    from services import carrousel_custom
+    importes = [t for t in carrousel_custom.ids() if t in accordes]
+    return [t for t in TEMPLATES if t not in EXCLUSIFS or t in accordes] + importes
 
 
 def template_valide(template: str, telegram_id: str) -> str:
     """Renvoie le template s'il est autorisé pour ce compte, sinon retombe sur « creme »."""
     t = (template or "creme").lower()
     if t not in TEMPLATES:
+        # Template importé : il n'est valable que s'il existe ET qu'il a été attribué.
+        from services import carrousel_custom
+        if t in carrousel_custom.ids() and t in _exclusifs_du_compte(telegram_id):
+            return t
         return "creme"
     if t in EXCLUSIFS and t not in _exclusifs_du_compte(telegram_id):
         return "creme"
@@ -179,6 +186,12 @@ def build_html(content, p, s, a, nom, secteur, template="creme", logo=None):
     secteur = (secteur or "").strip()
     if len(secteur) > 42:
         secteur = secteur[:42].rstrip() + "…"
+    # Template importé depuis l'admin : son HTML est stocké en base, pas dans le code.
+    if template not in TEMPLATES:
+        from services import carrousel_custom
+        row = carrousel_custom.charger(template)
+        if row:
+            return carrousel_custom.construire(row["html"], content, p, s, a, nom, secteur, logo)
     fn = {"creme": _tpl_creme, "sombre": _tpl_sombre, "alterne": _tpl_alterne,
           "editorial": _tpl_editorial, "pop": _tpl_pop, "clean": _tpl_clean, "neon": _tpl_neon,
           "postorico": _tpl_postorico,
@@ -729,3 +742,41 @@ def _tpl_postorico(content, p, s, a, nom, secteur, logo):
         f'<div class="bar"><span class="hd">{_esc(secteur)}</span><div class="dots">{_dots(n, n - 1)}</div></div></div>'
     )
     return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'
+
+
+async def apercu_custom(tpl_id: str, html_gabarit: str) -> str | None:
+    """Vignette d'un template importé : rend la couverture avec un contenu de démonstration
+    et l'envoie sur Cloudinary. Faite UNE fois à l'import — le sélecteur reste instantané."""
+    import asyncio
+    from services import carrousel_custom
+    demo = {
+        "hook": "Le sujet de ton carrousel",
+        "slides": [{"titre": "Idée forte 01", "texte": "Une phrase qui appuie ton idée.",
+                    "pills": ["Mot-clé"], "pro_tip": "Un conseil actionnable."}],
+        "cta": {"titre": "Passe à l'action", "texte": "Ton appel à l'action final."},
+    }
+    html = carrousel_custom.construire(html_gabarit, demo, "#5B6CFF", "#8A6CFF", "#3AFFA3",
+                                       "Ta marque", "Ton secteur", None)
+
+    def _shot():
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as pw:
+            args = ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
+            try:
+                browser = pw.chromium.launch(args=args)
+            except Exception:
+                browser = pw.chromium.launch(channel="chromium", args=args)
+            page = browser.new_page(viewport={"width": SLIDE_W, "height": SLIDE_H}, device_scale_factor=2)
+            page.set_content(html, wait_until="load")
+            page.wait_for_timeout(600)
+            el = page.query_selector(".slide") or page.query_selector("body")
+            png = el.screenshot(type="png")
+            browser.close()
+        return png
+
+    png = await asyncio.to_thread(_shot)
+    up = cloudinary.uploader.upload(
+        BytesIO(png), folder="carrousels/_templates", public_id=tpl_id,
+        overwrite=True, resource_type="image", format="png",
+    )
+    return up.get("secure_url")

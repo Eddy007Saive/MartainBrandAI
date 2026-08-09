@@ -59,6 +59,13 @@ export const adminService = {
   setCarrouselTemplates: (telegramId, templates) =>
     adminFetch(`/admin/users/${telegramId}/carrousel-templates`, { method: 'PATCH', body: JSON.stringify({ templates }) }),
 
+  // Templates de carrousel importés (HTML à marqueurs)
+  getCarrouselCustom: () => adminFetch('/admin/carrousel-templates/custom'),
+  importCarrouselCustom: (id, label, html) =>
+    adminFetch('/admin/carrousel-templates/custom', { method: 'POST', body: JSON.stringify({ id, label, html }) }),
+  deleteCarrouselCustom: (id) =>
+    adminFetch(`/admin/carrousel-templates/custom/${id}`, { method: 'DELETE' }),
+
   sendPush: (title, body, telegramId = null) =>
     adminFetch('/admin/push', { method: 'POST', body: JSON.stringify({ title, body, telegram_id: telegramId }) }),
 
