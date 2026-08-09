@@ -183,7 +183,8 @@
       "replanifier": "Replanifier",
       "supprimer": "Supprimer",
       "validerProgrammer": "Valider & programmer",
-      "voirPublication": "Voir la publication"
+      "voirPublication": "Voir la publication",
+      "postManuel": "Post manuel"
     },
     "carte": {
       "creerImagesSlides": "Créer les images des slides",
@@ -1647,5 +1648,25 @@
         }
       }
     }
+  },
+  "manuel": {
+    "titre": "Écrire un post",
+    "sousTitre": "Ton texte, ton visuel — aucune IA, aucun quota consommé.",
+    "reseau": "Réseau",
+    "story": "Publier en Story (24 h)",
+    "texte": "Texte du post",
+    "placeholder": "Écris ton post ici…",
+    "visuel": "Visuel (optionnel)",
+    "ajouterImage": "Importer une image",
+    "retirerImage": "Retirer l'image",
+    "annuler": "Annuler",
+    "creer": "Créer le post",
+    "cree": "Post créé ✓ — il t’attend dans « À valider ».",
+    "erreur": "Le post n'a pas pu être créé",
+    "texteRequis": "Écris ton texte avant d’enregistrer",
+    "tropLong": "Texte trop long pour ce réseau ({{limite}} caractères max)",
+    "imageType": "Choisis un fichier image (jpg, png…)",
+    "imageTropLourde": "Image trop lourde (10 Mo max)",
+    "imageEchouee": "Post créé, mais l'image n'a pas pu être importée"
   }
 }

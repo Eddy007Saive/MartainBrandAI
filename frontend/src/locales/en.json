@@ -183,7 +183,8 @@
       "replanifier": "Reschedule",
       "supprimer": "Delete",
       "validerProgrammer": "Approve & schedule",
-      "voirPublication": "View post"
+      "voirPublication": "View post",
+      "postManuel": "Manual post"
     },
     "carte": {
       "creerImagesSlides": "Create the slide images",
@@ -1647,5 +1648,25 @@
         }
       }
     }
+  },
+  "manuel": {
+    "titre": "Write a post",
+    "sousTitre": "Your text, your visual — no AI, no quota used.",
+    "reseau": "Network",
+    "story": "Publish as a Story (24h)",
+    "texte": "Post text",
+    "placeholder": "Write your post here…",
+    "visuel": "Visual (optional)",
+    "ajouterImage": "Upload an image",
+    "retirerImage": "Remove the image",
+    "annuler": "Cancel",
+    "creer": "Create post",
+    "cree": "Post created ✓ — waiting for you in \"To review\".",
+    "erreur": "The post could not be created",
+    "texteRequis": "Write your text before saving",
+    "tropLong": "Text too long for this network ({{limite}} characters max)",
+    "imageType": "Pick an image file (jpg, png…)",
+    "imageTropLourde": "Image too large (10 MB max)",
+    "imageEchouee": "Post created, but the image could not be uploaded"
   }
 }

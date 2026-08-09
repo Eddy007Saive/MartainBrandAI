@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
 import { SocialIcon } from '../components/SocialIcon';
+import PostManuelDialog from '../components/PostManuelDialog';
 import {
   Dialog,
   DialogContent,
@@ -282,6 +283,7 @@ export default function ContenusPage() {
 
   const { user, updateUser } = useUser();
   const [imageContenu, setImageContenu] = useState(null);
+  const [postManuelOpen, setPostManuelOpen] = useState(false);  // post écrit à la main (sans IA)
 
   // Recyclage : republier un post sur d'autres réseaux (une copie par réseau)
   const [recycleFor, setRecycleFor] = useState(null);   // contenu source
@@ -925,16 +927,27 @@ export default function ContenusPage() {
               {t('contenus.sousTitre')}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fetchContenus}
-            disabled={loading}
-            className="text-slate-400 hover:text-white self-start sm:self-auto"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            {t('contenus.actions.actualiser')}
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <Button
+              size="sm"
+              onClick={() => setPostManuelOpen(true)}
+              data-testid="btn-post-manuel"
+              className="bg-white/[0.06] border border-white/[0.10] text-slate-200 hover:bg-white/[0.10] hover:text-white"
+            >
+              <PenLine className="w-4 h-4 mr-2" />
+              {t('contenus.actions.postManuel')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchContenus}
+              disabled={loading}
+              className="text-slate-400 hover:text-white"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              {t('contenus.actions.actualiser')}
+            </Button>
+          </div>
         </div>
 
         {/* Tabs: Scripts / Vidéos / Tous */}
@@ -1844,6 +1857,8 @@ export default function ContenusPage() {
           </div>
         ), document.body)}
       </div>
+
+      <PostManuelDialog open={postManuelOpen} onOpenChange={setPostManuelOpen} onCreated={fetchContenus} />
     </div>
   );
 }

@@ -183,7 +183,8 @@
       "replanifier": "Replanificar",
       "supprimer": "Eliminar",
       "validerProgrammer": "Validar y programar",
-      "voirPublication": "Ver la publicación"
+      "voirPublication": "Ver la publicación",
+      "postManuel": "Publicación manual"
     },
     "carte": {
       "creerImagesSlides": "Crear las imágenes de las diapositivas",
@@ -1647,5 +1648,25 @@
         }
       }
     }
+  },
+  "manuel": {
+    "titre": "Escribir una publicación",
+    "sousTitre": "Tu texto, tu visual — sin IA, sin consumir cuota.",
+    "reseau": "Red",
+    "story": "Publicar como Historia (24 h)",
+    "texte": "Texto de la publicación",
+    "placeholder": "Escribe tu publicación aquí…",
+    "visuel": "Visual (opcional)",
+    "ajouterImage": "Subir una imagen",
+    "retirerImage": "Quitar la imagen",
+    "annuler": "Cancelar",
+    "creer": "Crear la publicación",
+    "cree": "Publicación creada ✓ — te espera en «Por validar».",
+    "erreur": "No se pudo crear la publicación",
+    "texteRequis": "Escribe tu texto antes de guardar",
+    "tropLong": "Texto demasiado largo para esta red ({{limite}} caracteres máx.)",
+    "imageType": "Elige un archivo de imagen (jpg, png…)",
+    "imageTropLourde": "Imagen demasiado pesada (10 MB máx.)",
+    "imageEchouee": "Publicación creada, pero no se pudo subir la imagen"
   }
 }
