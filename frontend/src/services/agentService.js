@@ -72,6 +72,8 @@ export const agentService = {
   recolorCarrousel: (contenu_id, colors, font) => api.post('/agent/carrousel/recolor', { contenu_id, colors, ...(font !== undefined ? { font } : {}) }).then((r) => r.data),
   // Jauge de résultats (quotas par type + état de l'abonnement)
   usage: () => api.get('/agent/usage').then((r) => r.data),
+  // Templates de carrousel proposables au compte (les sur-mesure non attribues sont exclus)
+  carrouselTemplates: () => api.get('/agent/carrousel-templates').then((r) => r.data),
   gabaritAuto: (gabarit, texte, contenu_id, bg_image = null) =>
     api.post('/agent/gabarit/auto', { gabarit, texte, contenu_id, ...(bg_image ? { bg_image } : {}) }).then((r) => r.data),
 };

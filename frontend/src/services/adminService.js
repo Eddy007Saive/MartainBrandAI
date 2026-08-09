@@ -54,6 +54,11 @@ export const adminService = {
   setSubmagicTheme: (telegramId, submagic_theme_id, submagic_theme_label) =>
     adminFetch(`/admin/users/${telegramId}/submagic-theme`, { method: 'PATCH', body: JSON.stringify({ submagic_theme_id, submagic_theme_label }) }),
 
+  // Templates de carrousel sur mesure : catalogue + attribution compte par compte
+  getCarrouselTemplates: () => adminFetch('/admin/carrousel-templates'),
+  setCarrouselTemplates: (telegramId, templates) =>
+    adminFetch(`/admin/users/${telegramId}/carrousel-templates`, { method: 'PATCH', body: JSON.stringify({ templates }) }),
+
   sendPush: (title, body, telegramId = null) =>
     adminFetch('/admin/push', { method: 'POST', body: JSON.stringify({ title, body, telegram_id: telegramId }) }),
 

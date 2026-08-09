@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from config import supabase, logger
+from services import carrousel_service
 
 VALID_FREQUENCIES = ['daily', '3_per_week', 'weekly', 'biweekly', 'custom']
 VALID_SCHEDULE_PLATFORMS = ['linkedin', 'instagram', 'facebook', 'tiktok', 'youtube', 'googlebusiness', 'twitter']
@@ -28,7 +29,9 @@ def update_schedules(telegram_id: str, schedules: list) -> dict:
             "preferred_time": item.preferred_time,
             "is_active": item.is_active,
             "format": getattr(item, "format", "post") or "post",
-            "carrousel_template": getattr(item, "carrousel_template", "bold") or "bold",
+            # Verrou : un template sur mesure non attribué à ce compte retombe sur « creme ».
+            "carrousel_template": carrousel_service.template_valide(
+                getattr(item, "carrousel_template", None) or "bold", telegram_id),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         supabase.table("publication_schedules").upsert(

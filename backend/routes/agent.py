@@ -295,6 +295,13 @@ async def list_gabarits(payload: dict = Depends(verify_token)):
     return {"gabarits": gabarit_service.GABARITS, "labels": gabarit_service.GAB_LABELS}
 
 
+@router.get("/carrousel-templates")
+async def list_carrousel_templates(payload: dict = Depends(verify_token)):
+    """Templates de carrousel proposables à ce compte (les sur-mesure non attribués sont exclus)."""
+    from services import carrousel_service
+    return {"templates": carrousel_service.templates_autorises(payload.get("telegram_id"))}
+
+
 @router.get("/usage")
 async def usage_gauge(payload: dict = Depends(verify_token)):
     """Jauge de résultats (par type) + état de l'abonnement, pour le dashboard."""

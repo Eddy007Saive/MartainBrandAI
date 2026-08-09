@@ -12,13 +12,44 @@ from io import BytesIO
 from PIL import Image
 import cloudinary
 import cloudinary.uploader
-from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, logger
+from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, supabase, logger
 from services.agent_service import _charger_marque
 
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
 
 SLIDE_W, SLIDE_H, DSF = 360, 450, 3  # 1080×1350
-TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon"]
+TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon", "postorico"]
+
+# Templates sur mesure : invisibles par défaut, attribués compte par compte depuis le
+# back-office (colonne users.carrousel_templates_exclusifs, liste CSV).
+EXCLUSIFS = {"postorico"}
+
+
+def _exclusifs_du_compte(telegram_id: str) -> set:
+    try:
+        r = (supabase.table("users").select("carrousel_templates_exclusifs")
+             .eq("telegram_id", telegram_id).limit(1).execute())
+        csv = (r.data[0].get("carrousel_templates_exclusifs") or "") if r.data else ""
+    except Exception as e:
+        logger.warning(f"exclusifs carrousel {telegram_id}: {e}")
+        csv = ""
+    return {t.strip().lower() for t in csv.split(",") if t.strip()}
+
+
+def templates_autorises(telegram_id: str) -> list:
+    """Templates proposables à ce compte : les communs + ceux qu'un admin lui a attribués."""
+    accordes = _exclusifs_du_compte(telegram_id)
+    return [t for t in TEMPLATES if t not in EXCLUSIFS or t in accordes]
+
+
+def template_valide(template: str, telegram_id: str) -> str:
+    """Renvoie le template s'il est autorisé pour ce compte, sinon retombe sur « creme »."""
+    t = (template or "creme").lower()
+    if t not in TEMPLATES:
+        return "creme"
+    if t in EXCLUSIFS and t not in _exclusifs_du_compte(telegram_id):
+        return "creme"
+    return t
 
 
 def _esc(t):
@@ -150,6 +181,7 @@ def build_html(content, p, s, a, nom, secteur, template="creme", logo=None):
         secteur = secteur[:42].rstrip() + "…"
     fn = {"creme": _tpl_creme, "sombre": _tpl_sombre, "alterne": _tpl_alterne,
           "editorial": _tpl_editorial, "pop": _tpl_pop, "clean": _tpl_clean, "neon": _tpl_neon,
+          "postorico": _tpl_postorico,
           "bold": _tpl_sombre, "instagram": _tpl_clean}.get(template, _tpl_creme)
     return fn(content, p, s, a, nom, secteur, logo)
 
@@ -533,6 +565,8 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     secteur = u.get("secteur") or ""
     logo = u.get("logo_url") or None
     font = ((font if font is not None else u.get("carrousel_font")) or "").strip() or None
+    # Un template sur mesure ne se rend que pour les comptes à qui il a été attribué.
+    template = template_valide(template, telegram_id)
     base = (contenu_id or "tmp").replace("-", "")[:16]
     args = (telegram_id, content, p, s, a, nom, secteur, base, template, logo, font)
     # Ratés intermittents de Playwright (timeout réseau/police) : jusqu'à 2 essais.
@@ -546,3 +580,152 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
         except Exception as e:
             logger.error(f"Carrousel render error (essai {attempt}): {e}")
     return res
+
+
+# =============================================================================
+# Template EXCLUSIF « Postorico » — univers de la mascotte
+# Nuit profonde + hexagones + halos ; mascotte sur la couverture et la finale.
+# Réservé aux comptes à qui un admin l'a attribué (users.carrousel_templates_exclusifs).
+# =============================================================================
+_MASCOTTE_PATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "..", "assets", "mascotte.png")
+_MASCOTTE_CACHE = {}
+
+
+def _mascotte_b64():
+    """Encodée une seule fois par process : elle est identique pour tous les rendus."""
+    if "b64" not in _MASCOTTE_CACHE:
+        try:
+            with open(_MASCOTTE_PATH, "rb") as f:
+                _MASCOTTE_CACHE["b64"] = _b64.b64encode(f.read()).decode()
+        except Exception as e:
+            logger.warning(f"Mascotte introuvable ({e}) — carrousel rendu sans elle")
+            _MASCOTTE_CACHE["b64"] = None
+    return _MASCOTTE_CACHE["b64"]
+
+
+def _hexes_svg(s, a):
+    """Hexagones en contour, débordant volontairement du cadre — repris du rendu 3D."""
+    return (
+        '<svg class="hexes" viewBox="0 0 360 450" preserveAspectRatio="none">'
+        '<g fill="none" stroke-width="2">'
+        f'<path d="M-46 88 l38-66 h76 l38 66 -38 66 h-76z" stroke="{s}" stroke-opacity=".85"/>'
+        f'<path d="M6 216 l30-52 h60 l30 52 -30 52 h-60z" stroke="{s}" stroke-opacity=".45"/>'
+        f'<path d="M-34 372 l26-45 h52 l26 45 -26 45 h-52z" stroke="{s}" stroke-opacity=".30"/>'
+        f'<path d="M300 40 l34-59 h68 l34 59 -34 59 h-68z" stroke="{a}" stroke-opacity=".42"/>'
+        f'<path d="M282 176 l26-45 h52 l26 45 -26 45 h-52z" stroke="{s}" stroke-opacity=".60"/>'
+        f'<path d="M330 318 l30-52 h60 l30 52 -30 52 h-60z" stroke="{a}" stroke-opacity=".30"/>'
+        f'<path d="M150 -40 l22-38 h44 l22 38 -22 38 h-44z" stroke="{s}" stroke-opacity=".35"/>'
+        '</g></svg>'
+    )
+
+
+def _accroche_mint(t, acc):
+    """Dernier tiers du titre en accent : l'œil accroche la chute, pas le début."""
+    w = (t or "").split(" ")
+    if len(w) < 3:
+        return f'<span style="color:{acc}">{_esc(t)}</span>'
+    c = len(w) - max(1, len(w) // 3)
+    return f'{_esc(" ".join(w[:c]))} <span style="color:{acc}">{_esc(" ".join(w[c:]))}</span>'
+
+
+_GRAIN = ("url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E"
+          "%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E"
+          "%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E\")")
+
+
+def _tpl_postorico(content, p, s, a, nom, secteur, logo):
+    P = p or "#5B6CFF"
+    S = s or "#8A6CFF"
+    A = _acc_dark(a or "#3AFFA3")
+    hook, slides, cta = _parts(content)
+    n = 2 + len(slides)
+    initial = (nom or "?")[:1].upper()
+    b64 = _mascotte_b64()
+    masc = f'<img class="masc" src="data:image/png;base64,{b64}" alt="">' if b64 else ""
+    marque = (f'<span class="lg"><img src="{logo}" alt=""></span>' if logo
+              else f'<span class="lg ini">{_esc(initial)}</span>')
+    head = ('<link href="https://fonts.googleapis.com/css2?'
+            'family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">')
+
+    css = (
+        "<style>*{box-sizing:border-box;margin:0} body{margin:0;font-family:Inter,sans-serif}"
+        f".slide{{width:{SLIDE_W}px;height:{SLIDE_H}px;position:relative;overflow:hidden;background:#070A14;"
+        "color:#F3F6FF;display:flex;flex-direction:column;padding:26px 26px 52px}"
+        ".glow{position:absolute;border-radius:50%;filter:blur(70px)}"
+        f".glow.v{{width:420px;height:420px;top:-190px;left:-150px;background:radial-gradient(circle,{S},transparent 66%);opacity:.46}}"
+        f".glow.m{{width:360px;height:360px;bottom:-180px;right:-120px;background:radial-gradient(circle,{A},transparent 66%);opacity:.20}}"
+        ".hexes{position:absolute;inset:0;width:100%;height:100%}"
+        f".grain{{position:absolute;inset:0;opacity:.45;mix-blend-mode:overlay;background-image:{_GRAIN}}}"
+        ".vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,transparent 42%,rgba(2,4,10,.72) 100%)}"
+        ".top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:3}"
+        ".brand{display:flex;align-items:center;gap:8px}"
+        ".lg{width:26px;height:26px;border-radius:50%;overflow:hidden;display:grid;place-items:center;flex:none}"
+        ".lg img{width:100%;height:100%;object-fit:cover;display:block}"
+        f".lg.ini{{background:linear-gradient(135deg,{P},{S});color:#06090f;font-family:Sora;font-weight:800;font-size:12px}}"
+        ".brand b{font-family:Sora;font-weight:700;font-size:14px;letter-spacing:-.2px}"
+        f".idx{{font-family:Sora;font-weight:700;font-size:13px;color:{A};font-variant-numeric:tabular-nums}}"
+        ".grow{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:3}"
+        "h1{font-family:Sora;font-weight:800;font-size:37px;line-height:1.04;letter-spacing:-1.2px;text-transform:uppercase}"
+        "h2{font-family:Sora;font-weight:800;font-size:27px;line-height:1.08;letter-spacing:-.6px;text-transform:uppercase}"
+        ".sub{font-size:13px;line-height:1.6;color:#8E9ABC;margin-top:12px;max-width:88%}"
+        f".ul{{width:52px;height:4px;border-radius:2px;background:{A};margin-top:18px}}"
+        ".num{font-family:Sora;font-weight:800;font-size:76px;line-height:.9;letter-spacing:-3px;color:transparent;"
+        f"-webkit-text-stroke:2.5px {A};margin-bottom:6px}}"
+        ".pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}"
+        ".pill{font-size:9.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:#F3F6FF;"
+        "border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px}"
+        f".tip{{margin-top:16px;padding-left:12px;border-left:2px solid {A}}}"
+        f".tip .lbl{{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:{A}}}"
+        ".tip p{font-size:12px;line-height:1.5;color:#8E9ABC;margin-top:4px}"
+        ".masc{position:absolute;bottom:26px;right:-34px;height:206px;z-index:2;filter:drop-shadow(0 22px 34px rgba(0,0,0,.6))}"
+        ".cta .masc{height:188px;right:-36px;bottom:34px}"
+        ".has-masc .grow{max-width:63%} .has-masc h1{font-size:34px} .has-masc h2{font-size:25px}"
+        ".has-masc .sub{max-width:100%}"
+        ".cta .grow{max-width:70%} .cta h2{font-size:23px;line-height:1.12}"
+        ".bar{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;align-items:center;"
+        "justify-content:space-between;padding:0 26px 20px}"
+        ".hd{font-size:9.5px;color:#8E9ABC;font-weight:500}"
+        ".dots{display:flex;gap:5px;align-items:center}"
+        ".dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.18)}"
+        f".dots i.on{{width:19px;border-radius:3px;background:{A}}}"
+        f".swipe{{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:{A}}}"
+        f".cta{{background:linear-gradient(150deg,{_darken(P, .55)} 0%,{P} 48%,{S} 100%)}}"
+        ".cta .sub{color:rgba(255,255,255,.84)} .cta .hd{color:rgba(255,255,255,.68)}"
+        ".cta .dots i{background:rgba(255,255,255,.3)}"
+        f".btn{{align-self:flex-start;margin-top:20px;background:{A};color:#04301F;font-family:Sora;"
+        "font-weight:700;font-size:12.5px;padding:12px 20px;border-radius:11px}"
+        "</style>"
+    )
+
+    hexes = _hexes_svg(S, A)
+    fonds = f'<div class="glow v"></div><div class="glow m"></div>{hexes}<div class="vig"></div><div class="grain"></div>'
+    marque_html = f'<div class="brand">{marque}<b>{_esc(nom)}</b></div>'
+
+    out = [
+        f'<div class="slide has-masc">{fonds}{masc}'
+        f'<div class="top">{marque_html}<span class="idx">1/{n}</span></div>'
+        f'<div class="grow"><h1 style="font-size:{_fit_fs(hook, 34)}px">{_accroche_mint(hook, A)}</h1>'
+        f'<div class="ul"></div></div>'
+        f'<div class="bar"><span class="hd">{_esc(secteur)}</span><span class="swipe">Swipe &#8594;</span></div></div>'
+    ]
+    for i, sl in enumerate(slides):
+        pills = f'<div class="pills">{_pills(sl.get("pills"))}</div>' if sl.get("pills") else ""
+        tip = (f'<div class="tip"><span class="lbl">Pro tip</span><p>{_esc(sl.get("pro_tip"))}</p></div>'
+               if sl.get("pro_tip") else "")
+        txt = f'<p class="sub">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else ""
+        out.append(
+            f'<div class="slide">{fonds}'
+            f'<div class="top">{marque_html}<span class="idx">{i + 2}/{n}</span></div>'
+            f'<div class="grow"><div class="num">{i + 1:02d}</div>'
+            f'<h2 style="font-size:{_fit_fs(sl.get("titre"), 27)}px">{_esc(sl.get("titre"))}</h2>{txt}{pills}{tip}</div>'
+            f'<div class="bar"><div class="dots">{_dots(n, i + 1)}</div><span class="hd">{_esc(nom)}</span></div></div>'
+        )
+    out.append(
+        f'<div class="slide cta has-masc"><div class="glow m"></div>{hexes}<div class="grain"></div>{masc}'
+        f'<div class="top">{marque_html}<span class="idx" style="color:#fff">{n}/{n}</span></div>'
+        f'<div class="grow"><h2 style="font-size:{_fit_fs(cta["titre"], 23)}px">{_accroche_mint(cta["titre"], A)}</h2>'
+        + (f'<p class="sub">{_esc(cta["texte"])}</p>' if cta["texte"] else "")
+        + '<span class="btn">Lien en bio &#8594;</span></div>'
+        f'<div class="bar"><span class="hd">{_esc(secteur)}</span><div class="dots">{_dots(n, n - 1)}</div></div></div>'
+    )
+    return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'

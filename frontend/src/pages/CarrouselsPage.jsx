@@ -6,6 +6,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { useUser } from '../context/UserContext';
 import { userService } from '../services/userService';
 import { scheduleService } from '../services/scheduleService';
+import { agentService } from '../services/agentService';
 import { DEFAULT_SCHEDULE } from '../constants/schedules';
 import { SocialIcon } from '../components/SocialIcon';
 import { ColorField } from '../components/ColorField';
@@ -87,6 +88,17 @@ export default function CarrouselsPage() {
   const [saved, setSaved] = useState({});
   const [saving, setSaving] = useState(null);
   const [lightbox, setLightbox] = useState(null); // { net, tpl }
+  // Templates sur mesure : invisibles tant qu'un admin ne les a pas attribués au compte.
+  const [autorises, setAutorises] = useState(null);   // null = pas encore chargé
+  useEffect(() => {
+    agentService.carrouselTemplates()
+      .then((d) => setAutorises(d?.templates || null))
+      .catch(() => setAutorises(null));
+  }, []);
+  const templatesVisibles = useMemo(
+    () => TEMPLATES.filter((t) => (autorises ? autorises.includes(t.id) : !t.exclusif)),
+    [autorises],
+  );
 
   useEffect(() => {
     (async () => {
@@ -205,7 +217,7 @@ export default function CarrouselsPage() {
             </div>
 
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-3.5">
-              {TEMPLATES.map((t) => {
+              {templatesVisibles.map((t) => {
                 const on = sel[activeNet] === t.id;
                 const hero = renderSlides(t.id, colors)[0];
                 return (

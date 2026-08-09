@@ -27,6 +27,7 @@ export const TEMPLATES = [
   { id: 'pop', label: 'Pop' },
   { id: 'clean', label: 'Clean' },
   { id: 'neon', label: 'Néon' },
+  { id: 'postorico', label: 'Postorico', exclusif: true },
 ];
 const twoTone = (t, acc) => { const w = (t || '').split(' '); if (w.length < 2) return `<span style="color:${acc}">${t || ''}</span>`; const c = Math.ceil(w.length / 2); return `${w.slice(0, c).join(' ')} <span style="color:${acc}">${w.slice(c).join(' ')}</span>`; };
 export const SLIDE_LABELS = ['Hook', 'Étape 01', 'Étape 02', 'Étape 03', 'CTA'];
@@ -165,6 +166,32 @@ function _renderRaw(tplId, colors) {
     o.push(`<div class="cz-slide" style="${bg}">${duo}${top(0)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.hook, 22)}${line}</div></div>`);
     CONTENT.slides.forEach((s, i) => o.push(`<div class="cz-slide" style="${bg}">${top(i + 1)}${illus(s.icon)}<div style="position:relative;z-index:2;margin-top:8px">${num(i + 1)}<div style="margin-top:2px">${h(s.t, 15)}</div>${line}</div><div style="flex:1;position:relative;z-index:2"><p style="font-size:9px;color:#9fb0cf">${s.x}</p></div></div>`));
     o.push(`<div class="cz-slide" style="${bg}">${top(n - 1)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.cta.t, 22)}${line}<p style="font-size:9px;color:#9fb0cf;position:relative;z-index:2">${CONTENT.cta.x}</p><span style="align-self:flex-start;background:${acc};color:${inkOn(acc)};font-family:Sora,sans-serif;font-weight:800;font-size:8.5px;padding:6px 11px;border-radius:7px;margin-top:8px;position:relative;z-index:2">Lien en bio →</span></div></div>`);
+    return o;
+  }
+
+  if (tplId === 'postorico') {
+    // Aperçu du template sur mesure : mêmes ingrédients que le rendu backend
+    // (nuit profonde, hexagones, halos, mascotte sur couverture et finale).
+    const acc = accD;
+    const hex = `<svg viewBox="0 0 200 250" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%"><g fill="none" stroke-width="1.2">`
+      + `<path d="M-26 49 l21-37 h42 l21 37 -21 37 h-42z" stroke="${S}" stroke-opacity=".85"/>`
+      + `<path d="M3 120 l17-29 h33 l17 29 -17 29 h-33z" stroke="${S}" stroke-opacity=".45"/>`
+      + `<path d="M167 22 l19-33 h38 l19 33 -19 33 h-38z" stroke="${acc}" stroke-opacity=".42"/>`
+      + `<path d="M157 98 l14-25 h29 l14 25 -14 25 h-29z" stroke="${S}" stroke-opacity=".6"/>`
+      + `<path d="M183 177 l17-29 h33 l17 29 -17 29 h-33z" stroke="${acc}" stroke-opacity=".3"/></g></svg>`;
+    const halos = `<div style="position:absolute;width:230px;height:230px;top:-105px;left:-83px;border-radius:50%;filter:blur(39px);background:radial-gradient(circle,${S},transparent 66%);opacity:.46"></div>`
+      + `<div style="position:absolute;width:200px;height:200px;bottom:-100px;right:-66px;border-radius:50%;filter:blur(39px);background:radial-gradient(circle,${acc},transparent 66%);opacity:.2"></div>`;
+    const vig = `<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,transparent 42%,rgba(2,4,10,.72) 100%)"></div>`;
+    const fond = halos + hex + vig;
+    const masc = `<img src="/images/mascotte.png" alt="" style="position:absolute;bottom:14px;right:-19px;height:114px;z-index:2;filter:drop-shadow(0 12px 19px rgba(0,0,0,.6))">`;
+    const top = (i) => `<div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:3">`
+      + `<div style="display:flex;align-items:center;gap:5px;font-family:Sora,sans-serif;font-weight:700;font-size:8px;color:#F3F6FF">${av(A, Aink)}<span>${nom}</span></div>`
+      + `<span style="font-family:Sora,sans-serif;font-weight:700;font-size:7.5px;color:${i === n - 1 ? '#fff' : acc}">${i + 1}/${n}</span></div>`;
+    const h = (t, fs, mw) => `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fs}px;line-height:1.05;letter-spacing:-.6px;text-transform:uppercase;position:relative;z-index:3;color:#F3F6FF${mw ? ';max-width:' + mw : ''}">${twoTone(t, acc)}</div>`;
+    const o = [];
+    o.push(`<div class="cz-slide" style="background:#070A14">${fond}${masc}${top(0)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.hook, 19, '63%')}<div style="width:29px;height:2.5px;border-radius:2px;background:${acc};margin-top:9px;position:relative;z-index:3"></div></div></div>`);
+    CONTENT.slides.forEach((s2, i) => o.push(`<div class="cz-slide" style="background:#070A14">${fond}${top(i + 1)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:42px;line-height:.9;letter-spacing:-1.6px;color:transparent;-webkit-text-stroke:1.5px ${acc};position:relative;z-index:3">0${i + 1}</div><div style="margin-top:3px">${h(s2.t, 15)}</div><p style="font-size:7.5px;line-height:1.55;color:#8E9ABC;margin-top:6px;position:relative;z-index:3">${s2.x}</p></div></div>`));
+    o.push(`<div class="cz-slide" style="background:linear-gradient(150deg,${dark(P, .55)} 0%,${P} 48%,${S} 100%)">${halos}${hex}${masc}${top(n - 1)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.cta.t, 14, '70%')}<span style="align-self:flex-start;background:${acc};color:#04301F;font-family:Sora,sans-serif;font-weight:700;font-size:7.5px;padding:6px 11px;border-radius:7px;margin-top:9px;position:relative;z-index:3">Lien en bio →</span></div></div>`);
     return o;
   }
 

@@ -93,6 +93,8 @@ export default function Admin() {
   // Crédits / plan (dans la fiche user)
   const [creditInput, setCreditInput] = useState('');
   const [themeForm, setThemeForm] = useState({ id: '', label: '' });
+  const [carrTpls, setCarrTpls] = useState([]);   // catalogue des templates de carrousel sur mesure
+  const [carrSel, setCarrSel] = useState([]);     // ceux attribues au compte ouvert
   const [userActionLoading, setUserActionLoading] = useState(false);
 
   // Quotas du client (jauges période courante + bonus individuels)
@@ -159,6 +161,8 @@ export default function Admin() {
       setSelectedUser(userData);
       setUserContenus(contenusData);
       setThemeForm({ id: userData.submagic_theme_id || '', label: userData.submagic_theme_label || '' });
+      setCarrSel((userData.carrousel_templates_exclusifs || '').split(',').map((x) => x.trim()).filter(Boolean));
+      if (!carrTpls.length) adminService.getCarrouselTemplates().then((d) => setCarrTpls(d?.exclusifs || [])).catch(() => {});
     } catch (error) {
       toast.error('Erreur lors du chargement du profil');
     }
@@ -351,6 +355,18 @@ export default function Admin() {
       setSelectedUser((u) => (u ? { ...u, submagic_theme_id: themeForm.id.trim() || null, submagic_theme_label: themeForm.label.trim() || null } : u));
       toast.success(themeForm.id.trim() ? 'Thème vidéo assigné ✓' : 'Thème vidéo retiré');
     } catch (e) { toast.error('Erreur thème vidéo'); }
+    finally { setUserActionLoading(false); }
+  };
+
+  const handleSaveCarrTpls = async (next) => {
+    if (!selectedUser) return;
+    setUserActionLoading(true);
+    try {
+      await adminService.setCarrouselTemplates(selectedUser.telegram_id, next);
+      setCarrSel(next);
+      setSelectedUser((u) => (u ? { ...u, carrousel_templates_exclusifs: next.join(',') || null } : u));
+      toast.success(next.length ? 'Template(s) attribué(s) ✓' : 'Templates sur mesure retirés');
+    } catch (e) { toast.error(e.response?.data?.detail || 'Erreur attribution'); }
     finally { setUserActionLoading(false); }
   };
 
@@ -1440,6 +1456,30 @@ export default function Admin() {
                     {userActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 mr-1" />}Enregistrer
                   </Button>
                 </div>
+              </div>
+
+              {/* Templates de carrousel sur mesure (attribués par l'admin) */}
+              <div className="rounded-[14px] border border-white/[0.06] bg-[#0a1120] p-4 space-y-2.5">
+                <div className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold">Templates de carrousel sur mesure</div>
+                <p className="text-[11px] text-slate-600">Designs réservés : invisibles dans le studio du client tant qu'ils ne lui sont pas attribués.</p>
+                {carrTpls.length === 0 ? (
+                  <p className="text-[12px] text-slate-500">Aucun template sur mesure disponible.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {carrTpls.map((id) => {
+                      const on = carrSel.includes(id);
+                      return (
+                        <button key={id} type="button" disabled={userActionLoading}
+                          onClick={() => handleSaveCarrTpls(on ? carrSel.filter((x) => x !== id) : [...carrSel, id])}
+                          data-testid={`admin-carr-tpl-${id}`}
+                          className={`px-3 py-1.5 rounded-[9px] text-[12.5px] font-medium border transition-all active:scale-[0.97] disabled:opacity-50 ${
+                            on ? 'border-[#3AFFA3]/50 bg-[#3AFFA3]/10 text-[#3AFFA3]' : 'border-white/[0.08] bg-[#0c1322] text-slate-400 hover:text-white hover:border-white/20'}`}>
+                          {on && <CheckCircle className="w-3.5 h-3.5 mr-1 inline -mt-px" />}{id}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Détails — liste hairline (plus de grille qui déborde) */}

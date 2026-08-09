@@ -307,6 +307,36 @@ async def set_submagic_theme(telegram_id: str, body: SubmagicThemeUpdate, payloa
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class CarrouselTemplatesUpdate(BaseModel):
+    templates: Optional[list] = None   # ex. ["postorico"] ; [] ou None retire tout
+
+
+@router.get("/carrousel-templates")
+async def list_carrousel_exclusifs(payload: dict = Depends(verify_admin_token)):
+    """Catalogue des templates de carrousel sur mesure attribuables à un compte."""
+    from services import carrousel_service
+    return {"exclusifs": sorted(carrousel_service.EXCLUSIFS), "tous": carrousel_service.TEMPLATES}
+
+
+@router.patch("/users/{telegram_id}/carrousel-templates")
+async def set_carrousel_templates(telegram_id: str, body: CarrouselTemplatesUpdate,
+                                  payload: dict = Depends(verify_admin_token)):
+    """Attribue (ou retire) les templates de carrousel sur mesure d'un compte."""
+    from services import carrousel_service
+    demandes = [str(t).strip().lower() for t in (body.templates or []) if str(t).strip()]
+    inconnus = [t for t in demandes if t not in carrousel_service.EXCLUSIFS]
+    if inconnus:
+        raise HTTPException(status_code=400, detail=f"Template(s) inconnu(s) : {', '.join(inconnus)}")
+    csv = ",".join(sorted(set(demandes))) or None
+    try:
+        supabase.table("users").update({"carrousel_templates_exclusifs": csv}) \
+            .eq("telegram_id", telegram_id).execute()
+        return {"success": True, "carrousel_templates_exclusifs": csv}
+    except Exception as e:
+        logger.error(f"set_carrousel_templates error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/system")
 async def get_system(payload: dict = Depends(verify_admin_token)):
     try:

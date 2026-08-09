@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Carrousel Postorico — proposition de design</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================================
+     TEMPLATE « POSTORICO » — 1080×1350 (prévisualisé ici à 360×450)
+     Paramétré par les 3 couleurs de marque, comme les 7 autres templates :
+       --p principale · --s secondaire · --a accent
+     Fond repris de l'univers de la mascotte : nuit profonde + hexagones + halos.
+     ============================================================================ */
+  :root{
+    --p:#5B6CFF; --s:#8A6CFF; --a:#3AFFA3;
+    --bg:#070A14;            /* nuit profonde, jamais du noir pur (trop dur en feed) */
+    --ink:#F3F6FF;
+    --mut:#8E9ABC;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{margin:0;font-family:Inter,sans-serif;background:#101426;padding:40px;display:flex;gap:26px;flex-wrap:wrap}
+
+  .slide{
+    width:360px;height:450px;position:relative;overflow:hidden;
+    background:var(--bg);color:var(--ink);
+    display:flex;flex-direction:column;padding:26px 26px 52px;
+  }
+
+  /* ---- Le fond de la mascotte, reconstruit en 3 couches ------------------- */
+  /* 1. les halos : violet en haut à gauche, menthe en bas — flous, discrets   */
+  .glow{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none}
+  .glow.v{width:420px;height:420px;top:-190px;left:-150px;
+    background:radial-gradient(circle,var(--s),transparent 66%);opacity:.46}
+  .glow.m{width:360px;height:360px;bottom:-180px;right:-120px;
+    background:radial-gradient(circle,var(--a),transparent 66%);opacity:.20}
+  /* 2. les hexagones : contours fins, partiellement hors cadre, comme le rendu */
+  .hexes{position:absolute;inset:0;pointer-events:none;opacity:1}
+  /* 3. le grain : casse le dégradé numérique, évite l'aplat « fait par une IA » */
+  .grain{position:absolute;inset:0;opacity:.45;pointer-events:none;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E")}
+  /* 4. vignette : ramène l'œil au centre, comme sur le rendu 3D de la mascotte */
+  .vig{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 42%,transparent 42%,rgba(2,4,10,.72) 100%)}
+
+  /* ---- En-tête ----------------------------------------------------------- */
+  .top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:3}
+  .brand{display:flex;align-items:center;gap:8px}
+  .brand img{width:26px;height:26px;border-radius:50%}
+  .brand b{font-family:Sora;font-weight:700;font-size:14px;letter-spacing:-.2px}
+  .idx{font-family:Sora;font-weight:700;font-size:13px;color:var(--a);font-variant-numeric:tabular-nums}
+
+  .grow{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:3}
+
+  /* ---- Typographie ------------------------------------------------------- */
+  h1{font-family:Sora;font-weight:800;font-size:37px;line-height:1.04;letter-spacing:-1.2px;text-transform:uppercase}
+  h2{font-family:Sora;font-weight:800;font-size:27px;line-height:1.08;letter-spacing:-.6px;text-transform:uppercase}
+  .mint{color:var(--a)}
+  .sub{font-size:13px;line-height:1.6;color:var(--mut);margin-top:12px;max-width:88%}
+  /* Le trait menthe sous le titre de couverture : une seule fois, court. */
+  .underline{width:52px;height:4px;border-radius:2px;background:var(--a);margin-top:18px}
+
+  /* Le grand numéro évidé : lisible même en vignette dans le feed. */
+  .num{font-family:Sora;font-weight:800;font-size:76px;line-height:.9;letter-spacing:-3px;
+    color:transparent;-webkit-text-stroke:2.5px var(--a);opacity:.95;margin-bottom:6px}
+
+  .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:15px}
+  .pill{font-size:9.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+    color:var(--ink);border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.04);
+    padding:6px 10px;border-radius:999px}
+
+  .protip{margin-top:16px;padding-left:12px;border-left:2px solid var(--a)}
+  .protip .lbl{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--a)}
+  .protip p{font-size:12px;line-height:1.5;color:var(--mut);margin-top:4px}
+
+  /* ---- La mascotte : couverture et fin seulement ------------------------- */
+  /* Présente partout, elle lasserait ; sur 2 slides, elle signe. */
+  .mascotte{position:absolute;bottom:26px;right:-34px;height:206px;z-index:2;
+    filter:drop-shadow(0 22px 34px rgba(0,0,0,.6))}
+  .mascotte.cta{height:188px;right:-36px;bottom:34px;opacity:.97}
+  /* Sur les slides à mascotte, le texte s'arrête avant elle : pas de chevauchement. */
+  .slide.has-mascotte .grow{max-width:63%}
+  .slide.has-mascotte h1{font-size:34px}
+  .slide.has-mascotte h2{font-size:25px}
+  .slide.has-mascotte .sub{max-width:100%}
+  /* La mascotte est plus petite sur la finale : le texte y respire un peu plus. */
+  .slide.cta .grow{max-width:70%}
+  .slide.cta h2{font-size:23px;line-height:1.12}
+
+  /* ---- Barre du bas ------------------------------------------------------ */
+  .bar{position:absolute;left:0;right:0;bottom:0;z-index:3;
+    display:flex;align-items:center;justify-content:space-between;padding:0 26px 20px}
+  .hd{font-size:9.5px;color:var(--mut);font-weight:500}
+  .dots{display:flex;gap:5px;align-items:center}
+  .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.18)}
+  .dots i.on{width:19px;border-radius:3px;background:var(--a)}
+  .swipe{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--a)}
+
+  /* ---- Slide finale : le dégradé de marque passe au premier plan --------- */
+  /* Une seule fois, à la fin : il l'a mérité. */
+  .slide.cta{background:linear-gradient(150deg,#2B1B6B 0%,var(--p) 48%,var(--s) 100%)}
+  .slide.cta .sub{color:rgba(255,255,255,.84)}
+  .slide.cta .hd{color:rgba(255,255,255,.68)}
+  .slide.cta .dots i{background:rgba(255,255,255,.3)}
+  .slide.cta .glow.m{opacity:.22}
+  .cta-btn{align-self:flex-start;margin-top:20px;background:var(--a);color:#04301F;
+    font-family:Sora;font-weight:700;font-size:12.5px;letter-spacing:.2px;padding:12px 20px;border-radius:11px}
+</style>
+</head>
+<body>
+
+<!-- Motif hexagonal réutilisé par chaque slide (même univers que le rendu 3D) -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="hexlayer" viewBox="0 0 360 450">
+    <g fill="none" stroke-width="2">
+      <path d="M-46 88 l38-66 h76 l38 66 -38 66 h-76z" stroke="#8A6CFF" stroke-opacity=".85"/>
+      <path d="M6 216 l30-52 h60 l30 52 -30 52 h-60z" stroke="#8A6CFF" stroke-opacity=".45"/>
+      <path d="M-34 372 l26-45 h52 l26 45 -26 45 h-52z" stroke="#8A6CFF" stroke-opacity=".3"/>
+      <path d="M300 40 l34-59 h68 l34 59 -34 59 h-68z" stroke="#3AFFA3" stroke-opacity=".42"/>
+      <path d="M282 176 l26-45 h52 l26 45 -26 45 h-52z" stroke="#8A6CFF" stroke-opacity=".6"/>
+      <path d="M330 318 l30-52 h60 l30 52 -30 52 h-60z" stroke="#3AFFA3" stroke-opacity=".3"/>
+      <path d="M150 -40 l22-38 h44 l22 38 -22 38 h-44z" stroke="#8A6CFF" stroke-opacity=".35"/>
+    </g>
+  </symbol>
+</svg>
+
+<!-- ================== 1 · COUVERTURE ================== -->
+<div class="slide has-mascotte">
+  <div class="glow v"></div><div class="glow m"></div>
+  <svg class="hexes"><use href="#hexlayer"/></svg>
+  <div class="vig"></div><div class="grain"></div>
+  <img class="mascotte" src="../frontend/public/images/mascotte.png" alt="">
+  <div class="top">
+    <div class="brand"><img src="../frontend/public/images/logoV2.png" alt=""><b>Postorico</b></div>
+    <span class="idx">1/5</span>
+  </div>
+  <div class="grow">
+    <h1>Tu diriges<br>une boîte,<br><span class="mint">pas une rédaction.</span></h1>
+    <div class="underline"></div>
+  </div>
+  <div class="bar">
+    <span class="hd">Studio de contenu IA</span>
+    <span class="swipe">Swipe →</span>
+  </div>
+</div>
+
+<!-- ================== 2 · ÉTAPE 01 ================== -->
+<div class="slide">
+  <div class="glow v"></div>
+  <svg class="hexes"><use href="#hexlayer"/></svg>
+  <div class="vig"></div><div class="grain"></div>
+  <div class="top">
+    <div class="brand"><img src="../frontend/public/images/logoV2.png" alt=""><b>Postorico</b></div>
+    <span class="idx">2/5</span>
+  </div>
+  <div class="grow">
+    <div class="num">01</div>
+    <h2>Ta voix,<br>pas celle d'un robot</h2>
+    <p class="sub">On étudie ta marque une fois : ton ton, tes sujets, tes interdits. Chaque post part de là.</p>
+    <div class="pills"><span class="pill">Voix de marque</span><span class="pill">Charte</span><span class="pill">6 réseaux</span></div>
+  </div>
+  <div class="bar">
+    <div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i></div>
+    <span class="hd">Postorico</span>
+  </div>
+</div>
+
+<!-- ================== 3 · ÉTAPE 02 ================== -->
+<div class="slide">
+  <div class="glow v"></div>
+  <svg class="hexes"><use href="#hexlayer"/></svg>
+  <div class="vig"></div><div class="grain"></div>
+  <div class="top">
+    <div class="brand"><img src="../frontend/public/images/logoV2.png" alt=""><b>Postorico</b></div>
+    <span class="idx">3/5</span>
+  </div>
+  <div class="grow">
+    <div class="num">02</div>
+    <h2>Tu valides<br>en un clic</h2>
+    <p class="sub">Rien ne part sans toi. Tu lis, tu ajustes, tu publies. Deux heures par mois suffisent.</p>
+    <div class="protip">
+      <span class="lbl">Pro tip</span>
+      <p>Valide le lundi matin : ta semaine est programmée avant ton premier café.</p>
+    </div>
+  </div>
+  <div class="bar">
+    <div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i></div>
+    <span class="hd">Postorico</span>
+  </div>
+</div>
+
+<!-- ================== 4 · ÉTAPE 03 ================== -->
+<div class="slide">
+  <div class="glow v"></div><div class="glow m"></div>
+  <svg class="hexes"><use href="#hexlayer"/></svg>
+  <div class="vig"></div><div class="grain"></div>
+  <div class="top">
+    <div class="brand"><img src="../frontend/public/images/logoV2.png" alt=""><b>Postorico</b></div>
+    <span class="idx">4/5</span>
+  </div>
+  <div class="grow">
+    <div class="num">03</div>
+    <h2>Six réseaux,<br>une seule main</h2>
+    <p class="sub">LinkedIn, Instagram, Facebook, TikTok, YouTube et Google Business — publiés au bon créneau.</p>
+  </div>
+  <div class="bar">
+    <div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i></div>
+    <span class="hd">Postorico</span>
+  </div>
+</div>
+
+<!-- ================== 5 · CTA ================== -->
+<div class="slide cta has-mascotte">
+  <div class="glow m"></div>
+  <svg class="hexes" style="opacity:.3"><use href="#hexlayer"/></svg>
+  <div class="grain"></div>
+  <img class="mascotte cta" src="../frontend/public/images/mascotte.png" alt="">
+  <div class="top">
+    <div class="brand"><img src="../frontend/public/images/logoV2.png" alt=""><b>Postorico</b></div>
+    <span class="idx" style="color:#fff">5/5</span>
+  </div>
+  <div class="grow">
+    <h2>La régularité<br>d'une agence,<br><span class="mint">sans la facture.</span></h2>
+    <p class="sub">Ton premier post est prêt en moins de 30 secondes.</p>
+    <span class="cta-btn">Lien en bio →</span>
+  </div>
+  <div class="bar">
+    <span class="hd">postorico.com</span>
+    <div class="dots"><i></i><i></i><i></i><i></i><i class="on"></i></div>
+  </div>
+</div>
+
+</body>
+</html>
