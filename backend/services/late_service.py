@@ -31,11 +31,33 @@ def _ig_fit(url: str) -> str:
     return url.replace("/image/upload/", f"/image/upload/{t}/", 1)
 
 
+def _couverture(contenu: dict) -> str | None:
+    """Image de couverture d'une vidéo. On préfère la vignette déjà calculée (`lien_visuel`
+    ou `video_preview_url`) ; à défaut on dérive une frame de la vidéo Cloudinary.
+    3 s et non 1 s : les reels Remotion n'ont pas fini leur animation d'entrée avant."""
+    for cle in ("lien_visuel", "video_preview_url"):
+        u = contenu.get(cle)
+        if u and "res.cloudinary.com" in u and "/image/upload/" in u:
+            return u                       # vraie image (visuel importé ou gabarit rendu)
+    v = contenu.get("video_url") or ""
+    if "res.cloudinary.com" in v and "/video/upload/" in v:
+        return v.rsplit(".", 1)[0].replace("/upload/", "/upload/so_3.0,q_auto/") + ".jpg"
+    return None
+
+
 def _media_items(contenu: dict, reseau: str) -> list:
     """Construit les médias Late selon le type de contenu et le réseau."""
     # Vidéo / Reel : le montage final est une vidéo → média unique de type "video".
     if contenu.get("video_url"):
-        return [{"url": contenu["video_url"], "type": "video"}]
+        item = {"url": contenu["video_url"], "type": "video"}
+        # Couverture du Reel : sans elle Instagram choisit une frame au hasard.
+        # (TikTok se règle par timestamp plus bas ; YouTube n'accepte pas de miniature
+        # sur les Shorts, et nos reels en sont toujours — donc rien à envoyer.)
+        if reseau == "instagram":
+            cover = _couverture(contenu)
+            if cover:
+                item["thumbnail"] = cover
+        return [item]
     ig = reseau == "instagram"  # Instagram impose un ratio 0.8–1.91 → on conforme l'image
     is_carrousel = contenu.get("type") == "Carrousel" or (contenu.get("slides_images") or [])
     if is_carrousel:
@@ -101,6 +123,10 @@ async def publish_contenu(telegram_id: str, contenu: dict, publish_now: bool = F
         )}
 
     plat_entry = {"platform": reseau, "accountId": account_id}
+    # TikTok : la couverture est la frame prise à 1 s par défaut — trop tôt pour nos reels,
+    # dont l'animation d'entrée n'est pas terminée. On la décale à 3 s.
+    if reseau == "tiktok" and contenu.get("video_url"):
+        plat_entry["platformSpecificData"] = {"videoCoverTimestampMs": 3000}
     # Story (Instagram/Facebook) : éphémère 24h, 1 média requis, pas de légende côté plateforme.
     if (contenu.get("type") == "Story") and reseau in ("instagram", "facebook"):
         if not media:
