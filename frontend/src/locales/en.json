@@ -1553,32 +1553,22 @@
       "setup": {
         "head": {
           "eyebrow": "We set it up for you",
-          "title": "First, we build your system",
-          "lead": "A one-off engagement: our experts study your brand and build your studio to measure. All you have to do is steer it."
+          "title": "First, we lay your foundations",
+          "lead": "An agency's real work, once. After that, you're on your own two feet."
         },
         "cta": "Book your call →",
-        "note": "Free consultation · We study your business before proposing anything.",
-        "plans": {
-          "1": {
-            "name": "Essential Setup",
-            "desc": "To start clean, and fast.",
-            "feat": {
-              "1": "Condensed brand study",
-              "2": "AI calibrated to your tone",
-              "3": "Your networks set up",
-              "4": "First editorial calendar"
-            }
-          },
-          "2": {
-            "name": "Bespoke Setup",
-            "desc": "Your full marketing system, turnkey.",
-            "feat": {
-              "1": "Full audit (positioning, offers, competitors, targets)",
-              "2": "Your editorial line, built from scratch",
-              "3": "Draft posts + video concepts in your image",
-              "4": "Advanced AI calibration on your voice",
-              "5": "Everything in Essential Setup included"
-            }
+        "note": "Free call · We study your business before proposing anything.",
+        "pack": {
+          "name": "Foundations Pack",
+          "desc": "The turnkey launch: you don't start from a blank page, but with a system already tuned to your brand.",
+          "feat": {
+            "1": "Your brand audit (positioning, audience, competitors)",
+            "2": "Your tone of voice, defined",
+            "3": "Your editorial line (pillars, topics, strategy)",
+            "4": "Your custom hooks and calls to action",
+            "5": "Your brand's visual identity (art direction)",
+            "6": "Your 9 Instagram feed templates",
+            "7": "Your 2 custom carousels, ready to publish"
           }
         }
       },
@@ -1621,6 +1611,24 @@
         "ctaCall": "Book your setup call →",
         "ctaSignup": "Create my account",
         "note": "Indicative prices, subject to change."
+      },
+      "multi": {
+        "eyebrow": "Several locations?",
+        "title": "Postorico Multi-account",
+        "lead": "For networks, franchises and multi-location groups.",
+        "name": "Multi-account",
+        "price": "On quote",
+        "tag": "Volume pricing by number of accounts",
+        "desc": "A strong brand nationally, powerful visibility locally. Central steering, execution at every location.",
+        "note": "The editorial line lives in the system, not in one person's head: a manager leaves, the presence doesn't move.",
+        "cta": "Request a quote",
+        "feat": {
+          "1": "One Foundations Pack per brand or location",
+          "2": "Every account managed from a single interface",
+          "3": "Brand consistency guaranteed, with local variation per location",
+          "4": "The Google Business profile of each location",
+          "5": "Dedicated support throughout the rollout"
+        }
       }
     },
     "faq": {

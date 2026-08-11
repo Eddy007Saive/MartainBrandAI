@@ -1553,32 +1553,22 @@
       "setup": {
         "head": {
           "eyebrow": "On installe pour toi",
-          "title": "D'abord, on construit ton système",
-          "lead": "Un accompagnement unique : nos experts étudient ta marque et bâtissent ton studio sur-mesure. Tu n'as plus qu'à piloter."
+          "title": "D'abord, on pose tes fondations",
+          "lead": "Le vrai travail d'une agence, une fois. Ensuite, tu es autonome."
         },
         "cta": "Réserve ton call →",
         "note": "Échange gratuit · On étudie ta boîte avant de proposer quoi que ce soit.",
-        "plans": {
-          "1": {
-            "name": "Setup Essentiel",
-            "desc": "Pour démarrer propre, et vite.",
-            "feat": {
-              "1": "Étude de marque condensée",
-              "2": "Calibrage de l’IA sur ton ton",
-              "3": "Mise en place de tes réseaux",
-              "4": "Premier calendrier éditorial"
-            }
-          },
-          "2": {
-            "name": "Setup Sur-mesure",
-            "desc": "Ton système marketing complet, clé en main.",
-            "feat": {
-              "1": "Audit complet (positionnement, offres, concurrents, cibles)",
-              "2": "Construction de ta ligne éditoriale",
-              "3": "Propositions de posts + concepts vidéo à ton image",
-              "4": "Calibrage avancé de l’IA sur ta voix",
-              "5": "Tout le Setup Essentiel inclus"
-            }
+        "pack": {
+          "name": "Pack Fondations",
+          "desc": "Le lancement clé en main : tu ne démarres pas devant une page blanche, mais avec un système déjà réglé à ton image.",
+          "feat": {
+            "1": "L'audit de ta marque (positionnement, cible, concurrents)",
+            "2": "La définition de ton ton de voix",
+            "3": "Ta ligne éditoriale (piliers, sujets, stratégie)",
+            "4": "Tes hooks et tes CTA sur-mesure",
+            "5": "Ta création graphique de marque (direction artistique)",
+            "6": "Tes 9 templates de feed Instagram",
+            "7": "Tes 2 carrousels personnalisés, prêts à publier"
           }
         }
       },
@@ -1621,6 +1611,24 @@
         "ctaCall": "Réserve ton call de setup →",
         "ctaSignup": "Créer mon compte",
         "note": "Tarifs indicatifs, susceptibles d'évoluer."
+      },
+      "multi": {
+        "eyebrow": "Plusieurs établissements ?",
+        "title": "Postorico Multicompte",
+        "lead": "Pour les réseaux, les franchises et les groupes multi-établissements.",
+        "name": "Multicompte",
+        "price": "Sur devis",
+        "tag": "Tarif dégressif au nombre de comptes",
+        "desc": "Une marque forte au national, une visibilité puissante en local. Pilotage centralisé, exécution sur chaque point de vente.",
+        "note": "La ligne éditoriale vit dans le système, pas dans la tête d'une personne : un responsable part, la présence ne bouge pas.",
+        "cta": "Demande ton devis",
+        "feat": {
+          "1": "Un Pack Fondations par marque ou établissement",
+          "2": "Pilotage de tous les comptes depuis une seule interface",
+          "3": "Cohérence de marque garantie, déclinaison locale par établissement",
+          "4": "La fiche Google Business de chaque point de vente",
+          "5": "Un accompagnement dédié pour le déploiement"
+        }
       }
     },
     "faq": {

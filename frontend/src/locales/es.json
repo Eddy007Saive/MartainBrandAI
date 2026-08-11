@@ -1553,32 +1553,22 @@
       "setup": {
         "head": {
           "eyebrow": "Lo montamos por ti",
-          "title": "Primero construimos tu sistema",
-          "lead": "Un acompañamiento único: nuestros expertos estudian tu marca y construyen tu estudio a medida. Tú solo tienes que pilotarlo."
+          "title": "Primero, ponemos tus cimientos",
+          "lead": "El trabajo real de una agencia, una sola vez. Después, eres autónomo."
         },
         "cta": "Reserva tu llamada →",
-        "note": "Conversación gratuita · Estudiamos tu empresa antes de proponerte nada.",
-        "plans": {
-          "1": {
-            "name": "Setup Esencial",
-            "desc": "Para empezar bien, y rápido.",
-            "feat": {
-              "1": "Estudio de marca condensado",
-              "2": "IA calibrada con tu tono",
-              "3": "Configuración de tus redes",
-              "4": "Primer calendario editorial"
-            }
-          },
-          "2": {
-            "name": "Setup a Medida",
-            "desc": "Tu sistema de marketing completo, llave en mano.",
-            "feat": {
-              "1": "Auditoría completa (posicionamiento, ofertas, competencia, público)",
-              "2": "Construcción de tu línea editorial",
-              "3": "Propuestas de publicaciones y conceptos de vídeo a tu imagen",
-              "4": "Calibración avanzada de la IA con tu voz",
-              "5": "Todo el Setup Esencial incluido"
-            }
+        "note": "Llamada gratuita · Estudiamos tu empresa antes de proponer nada.",
+        "pack": {
+          "name": "Pack Cimientos",
+          "desc": "El lanzamiento llave en mano: no empiezas ante una página en blanco, sino con un sistema ya ajustado a tu imagen.",
+          "feat": {
+            "1": "La auditoría de tu marca (posicionamiento, público, competencia)",
+            "2": "La definición de tu tono de voz",
+            "3": "Tu línea editorial (pilares, temas, estrategia)",
+            "4": "Tus ganchos y llamadas a la acción a medida",
+            "5": "La creación gráfica de tu marca (dirección artística)",
+            "6": "Tus 9 plantillas de feed de Instagram",
+            "7": "Tus 2 carruseles personalizados, listos para publicar"
           }
         }
       },
@@ -1621,6 +1611,24 @@
         "ctaCall": "Reserva tu llamada de setup →",
         "ctaSignup": "Crear mi cuenta",
         "note": "Precios orientativos, sujetos a cambios."
+      },
+      "multi": {
+        "eyebrow": "¿Varios establecimientos?",
+        "title": "Postorico Multicuenta",
+        "lead": "Para redes, franquicias y grupos con varios establecimientos.",
+        "name": "Multicuenta",
+        "price": "Presupuesto a medida",
+        "tag": "Tarifa decreciente según el número de cuentas",
+        "desc": "Una marca fuerte a nivel nacional, una visibilidad potente en local. Pilotaje centralizado, ejecución en cada punto de venta.",
+        "note": "La línea editorial vive en el sistema, no en la cabeza de una persona: si un responsable se va, la presencia no se mueve.",
+        "cta": "Pide tu presupuesto",
+        "feat": {
+          "1": "Un Pack Cimientos por marca o establecimiento",
+          "2": "Todas las cuentas pilotadas desde una sola interfaz",
+          "3": "Coherencia de marca garantizada, con adaptación local",
+          "4": "La ficha de Google Business de cada punto de venta",
+          "5": "Un acompañamiento dedicado para el despliegue"
+        }
       }
     },
     "faq": {

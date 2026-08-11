@@ -250,6 +250,8 @@ export const CSS = `
 .lp .nets .nx{display:flex;align-items:center;gap:10px;color:var(--muted);font-weight:600;font-size:14.5px}
 .lp .nets .nx .b{width:34px;height:34px;border-radius:9px;display:grid;place-items:center}
 .lp .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:52px;align-items:stretch}
+/* Offre unique (Pack Fondations, Multicompte) : une seule colonne, la carte occupe toute la largeur. */
+.lp .pricing.solo{grid-template-columns:1fr}
 .lp .plan{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:30px;display:flex;flex-direction:column}
 .lp .plan.pop{border-color:rgba(91,108,255,.5);background:linear-gradient(180deg,rgba(91,108,255,.10),var(--card));position:relative;box-shadow:0 30px 80px -34px rgba(91,108,255,.55)}
 .lp .plan .pbadge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--grad);color:#fff;font-size:11px;font-weight:700;padding:5px 14px;border-radius:999px;white-space:nowrap}
