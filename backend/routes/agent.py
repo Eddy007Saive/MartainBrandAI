@@ -877,8 +877,9 @@ async def carrousel_recolor(body: dict, payload: dict = Depends(verify_token)):
     template = next((s.get("carrousel_template") for s in scheds if (s.get("platform") or "").lower() == reseau), None) or "creme"
     colors = body.get("colors") if isinstance(body.get("colors"), dict) else None
     font = body.get("font")
+    font_corps = body.get("font_corps")
     try:
-        res = await carrousel_service.generer_carrousel(telegram_id, data["carrousel_data"], contenu_id, template, colors=colors, font=font)
+        res = await carrousel_service.generer_carrousel(telegram_id, data["carrousel_data"], contenu_id, template, colors=colors, font=font, font_corps=font_corps)
     except Exception as e:
         logger.error(f"carrousel recolor error: {e}")
         raise HTTPException(status_code=500, detail="Échec du re-rendu du carrousel.")

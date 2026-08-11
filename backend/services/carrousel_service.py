@@ -477,22 +477,26 @@ def _tpl_neon(content, p, s, a, nom, secteur, logo):
 _DISPLAY_FONTS = ["Anton", "Fraunces", "Sora"]
 
 
-def _apply_font(html_str, font):
-    """Remplace la police d'AFFICHAGE (titres) par celle choisie + charge la Google Font.
-    Le corps (Inter) reste inchangé. `font` vide -> police d'origine du template."""
-    if not font:
+def _apply_font(html_str, font, font_corps=None):
+    """Applique les polices choisies + charge les Google Fonts correspondantes.
+    `font` = police d'AFFICHAGE (titres), `font_corps` = police du TEXTE (corps,
+    Inter par défaut). Valeur vide -> police d'origine du template."""
+    if not font and not font_corps:
         return html_str
-    fam = font.replace(" ", "+")
-    link = f'<link href="https://fonts.googleapis.com/css2?family={fam}:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">'
-    html_str = link + html_str
-    for f in _DISPLAY_FONTS:
-        html_str = html_str.replace(f"font-family:{f}", f"font-family:'{font}'")
+    fams = [f for f in dict.fromkeys([font, font_corps]) if f]
+    q = "&".join(f"family={f.replace(' ', '+')}:wght@400;500;600;700;800;900" for f in fams)
+    html_str = f'<link href="https://fonts.googleapis.com/css2?{q}&display=swap" rel="stylesheet">' + html_str
+    if font:
+        for f in _DISPLAY_FONTS:
+            html_str = html_str.replace(f"font-family:{f}", f"font-family:'{font}'")
+    if font_corps:
+        html_str = html_str.replace("font-family:Inter", f"font-family:'{font_corps}'")
     return html_str
 
 
-def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, template="creme", logo=None, font=None):
+def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, template="creme", logo=None, font=None, font_corps=None):
     from playwright.sync_api import sync_playwright
-    html_str = _apply_font(build_html(content, p, s, a, nom, secteur, template, logo), font)
+    html_str = _apply_font(build_html(content, p, s, a, nom, secteur, template, logo), font, font_corps)
     urls, pngs = [], []
     with sync_playwright() as pw:
         args = ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
@@ -566,7 +570,7 @@ def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, templa
     return {"images": urls, "pdf": pdf_url}
 
 
-async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, template: str = "creme", colors: dict = None, font: str = None) -> dict:
+async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, template: str = "creme", colors: dict = None, font: str = None, font_corps: str = None) -> dict:
     import asyncio
     u = _charger_marque(telegram_id)
     co = colors or {}
@@ -578,10 +582,11 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     secteur = u.get("secteur") or ""
     logo = u.get("logo_url") or None
     font = ((font if font is not None else u.get("carrousel_font")) or "").strip() or None
+    font_corps = ((font_corps if font_corps is not None else u.get("carrousel_font_corps")) or "").strip() or None
     # Un template sur mesure ne se rend que pour les comptes à qui il a été attribué.
     template = template_valide(template, telegram_id)
     base = (contenu_id or "tmp").replace("-", "")[:16]
-    args = (telegram_id, content, p, s, a, nom, secteur, base, template, logo, font)
+    args = (telegram_id, content, p, s, a, nom, secteur, base, template, logo, font, font_corps)
     # Ratés intermittents de Playwright (timeout réseau/police) : jusqu'à 2 essais.
     res = {"images": [], "pdf": None}
     for attempt in (1, 2):

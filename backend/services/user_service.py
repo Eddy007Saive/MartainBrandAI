@@ -140,7 +140,19 @@ def get_user(telegram_id: str) -> dict | None:
 
 
 def update_user(telegram_id: str, update_data: dict) -> dict | None:
-    result = supabase.table("users").update(update_data).eq("telegram_id", telegram_id).execute()
+    try:
+        result = supabase.table("users").update(update_data).eq("telegram_id", telegram_id).execute()
+    except Exception as e:
+        # Colonne pas encore créée en base (migration en attente) : on réessaie sans
+        # les champs inconnus plutôt que de faire échouer toute la sauvegarde.
+        msg = str(e)
+        if not any(m in msg for m in ("42703", "PGRST204", "does not exist", "schema cache")):
+            raise
+        connus = {k: v for k, v in update_data.items() if f"'{k}'" not in msg and f"users.{k}" not in msg}
+        if not connus or connus == update_data:
+            raise
+        logger.warning(f"update_user: colonne(s) manquante(s) ignorée(s) — {set(update_data) - set(connus)}")
+        result = supabase.table("users").update(connus).eq("telegram_id", telegram_id).execute()
     if not result.data:
         return None
     return sanitize_user(result.data[0])

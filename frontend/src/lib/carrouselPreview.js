@@ -209,14 +209,38 @@ function _renderRaw(tplId, colors) {
 const CZ_DISPLAY_FONTS = ['Anton', 'Fraunces', 'Sora'];
 export const CAROUSEL_FONTS = [
   { id: '', label: 'Auto (par style)' },
+  // — impact / gras
   { id: 'Anton', label: 'Anton' },
+  { id: 'Archivo Black', label: 'Archivo Black' },
+  { id: 'Bebas Neue', label: 'Bebas Neue' },
+  { id: 'Oswald', label: 'Oswald' },
+  { id: 'Barlow Condensed', label: 'Barlow Condensed' },
+  // — modernes / géométriques
+  { id: 'Sora', label: 'Sora' },
+  { id: 'Space Grotesk', label: 'Space Grotesk' },
+  { id: 'Poppins', label: 'Poppins' },
+  { id: 'Montserrat', label: 'Montserrat' },
+  { id: 'Raleway', label: 'Raleway' },
+  { id: 'Nunito', label: 'Nunito' },
+  // — éditoriales / serif
+  { id: 'Playfair Display', label: 'Playfair' },
+  { id: 'Fraunces', label: 'Fraunces' },
+  { id: 'DM Serif Display', label: 'DM Serif' },
+  { id: 'Lora', label: 'Lora' },
+];
+
+// Police du TEXTE (corps) — remplace Inter ; polices lisibles en petit corps.
+export const CAROUSEL_BODY_FONTS = [
+  { id: '', label: 'Auto (Inter)' },
   { id: 'Sora', label: 'Sora' },
   { id: 'Poppins', label: 'Poppins' },
   { id: 'Montserrat', label: 'Montserrat' },
-  { id: 'Oswald', label: 'Oswald' },
-  { id: 'Bebas Neue', label: 'Bebas Neue' },
-  { id: 'Playfair Display', label: 'Playfair' },
-  { id: 'Fraunces', label: 'Fraunces' },
+  { id: 'Raleway', label: 'Raleway' },
+  { id: 'Nunito', label: 'Nunito' },
+  { id: 'Work Sans', label: 'Work Sans' },
+  { id: 'DM Sans', label: 'DM Sans' },
+  { id: 'Lora', label: 'Lora' },
+  { id: 'Source Serif 4', label: 'Source Serif' },
 ];
 
 function renderSlides(tplId, colors) {
@@ -224,8 +248,18 @@ function renderSlides(tplId, colors) {
   let slides;
   try { slides = _renderRaw(tplId, colors); } finally { CONTENT = DEMO_CONTENT; }
   const font = colors?.font;
-  if (!font) return slides;
-  return slides.map((h) => CZ_DISPLAY_FONTS.reduce((acc, f) => acc.split('font-family:' + f).join("font-family:'" + font + "'"), h));
+  const fontBody = colors?.fontBody;
+  if (!font && !fontBody) return slides;
+  return slides.map((h) => {
+    let out = h;
+    if (font) out = CZ_DISPLAY_FONTS.reduce((acc, f) => acc.split('font-family:' + f).join("font-family:'" + font + "'"), out);
+    // Corps : on injecte la police à la racine de la slide (équivaut au remplacement
+    // d'Inter côté rendu). Le style « jakarta » garde sa propre police de corps.
+    if (fontBody && !out.includes('Plus Jakarta Sans')) {
+      out = out.split('class="cz-slide" style="').join(`class="cz-slide" style="font-family:'${fontBody}',sans-serif;`);
+    }
+    return out;
+  });
 }
 
 export { renderSlides };

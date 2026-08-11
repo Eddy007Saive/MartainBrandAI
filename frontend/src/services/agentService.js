@@ -69,7 +69,7 @@ export const agentService = {
   // Génère une photo depuis une description (Nano Banana) -> URL (pour la zone photo d'un gabarit)
   generatePhoto: (description, modele = 'nano2') => api.post('/agent/photo', { description, modele }).then((r) => r.data),
   // Retouche les couleurs/police d'un carrousel (re-render depuis les slides stockées, texte inchangé)
-  recolorCarrousel: (contenu_id, colors, font) => api.post('/agent/carrousel/recolor', { contenu_id, colors, ...(font !== undefined ? { font } : {}) }).then((r) => r.data),
+  recolorCarrousel: (contenu_id, colors, font, fontCorps) => api.post('/agent/carrousel/recolor', { contenu_id, colors, ...(font !== undefined ? { font } : {}), ...(fontCorps !== undefined ? { font_corps: fontCorps } : {}) }).then((r) => r.data),
   // Jauge de résultats (quotas par type + état de l'abonnement)
   usage: () => api.get('/agent/usage').then((r) => r.data),
   // Templates de carrousel proposables au compte (les sur-mesure non attribues sont exclus)

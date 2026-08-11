@@ -34,7 +34,7 @@ import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
-import { CAROUSEL_FONTS, renderSlides, SLIDE_CSS } from '../lib/carrouselPreview';
+import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, renderSlides, SLIDE_CSS } from '../lib/carrouselPreview';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
@@ -348,25 +348,26 @@ export default function ContenusPage() {
       s: user?.carrousel_couleur_secondaire || user?.couleur_secondaire || '#0077FF',
       a: user?.carrousel_couleur_accent || user?.couleur_accent || '#3AFFA3',
       font: user?.carrousel_font || '',
+      fontBody: user?.carrousel_font_corps || '',
     } : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedContenu]);
-  // Charge la Google Font choisie pour la retouche
+  // Charge les Google Fonts choisies pour la retouche
   useEffect(() => {
-    const f = czR?.font;
-    if (!f) return;
-    const id = 'czfont-' + f.replace(/\s/g, '-');
-    if (document.getElementById(id)) return;
-    const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet';
-    l.href = `https://fonts.googleapis.com/css2?family=${f.replace(/\s/g, '+')}:wght@400;500;600;700;800;900&display=swap`;
-    document.head.appendChild(l);
-  }, [czR?.font]);
+    [czR?.font, czR?.fontBody].filter(Boolean).forEach((f) => {
+      const id = 'czfont-' + f.replace(/\s/g, '-');
+      if (document.getElementById(id)) return;
+      const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet';
+      l.href = `https://fonts.googleapis.com/css2?family=${f.replace(/\s/g, '+')}:wght@400;500;600;700;800;900&display=swap`;
+      document.head.appendChild(l);
+    });
+  }, [czR?.font, czR?.fontBody]);
   const setCzRColor = (name, val) => setCzR((prev) => ({ ...prev, [name]: val }));
   const retoucherCarrousel = async () => {
     if (!selectedContenu || !czR || czRBusy) return;
     setCzRBusy(true);
     try {
-      const d = await agentService.recolorCarrousel(selectedContenu.id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '');
+      const d = await agentService.recolorCarrousel(selectedContenu.id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || '');
       const imgs = d.images || [];
       if (imgs.length) {
         const patch = { slides_images: imgs, lien_visuel: imgs[0], carrousel_pdf: d.pdf };
@@ -383,7 +384,7 @@ export default function ContenusPage() {
     if (!selectedContenu || !czR || !selectedContenu.carrousel_data) return null;
     const tpl = czTemplates[(selectedContenu.reseau_cible || '').toLowerCase()] || 'creme';
     return renderSlides(tpl, {
-      p: czR.p, s: czR.s, a: czR.a, font: czR.font || '',
+      p: czR.p, s: czR.s, a: czR.a, font: czR.font || '', fontBody: czR.fontBody || '',
       logo: user?.logo_url, nom: user?.nom || user?.username,
       content: selectedContenu.carrousel_data,
     });
@@ -392,7 +393,7 @@ export default function ContenusPage() {
   const validerContenu = async (id) => {
     if (czR && selectedContenu?.carrousel_data) {
       setCzRBusy(true);
-      try { await agentService.recolorCarrousel(id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || ''); }
+      try { await agentService.recolorCarrousel(id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || ''); }
       catch (e) { /* on valide quand même avec les images existantes */ }
       finally { setCzRBusy(false); }
     }
@@ -1215,10 +1216,22 @@ export default function ContenusPage() {
                         <ColorField label={t('contenus.retouche.secondaire')} name="s" value={czR.s} onChange={setCzRColor} />
                         <ColorField label={t('contenus.retouche.accent')} name="a" value={czR.a} onChange={setCzRColor} />
                       </div>
-                      <select value={czR.font || ''} onChange={(e) => setCzRColor('font', e.target.value)}
-                        className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
-                        {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-                      </select>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10.5px] text-slate-500 mb-1">{t('carrousels.policeDesTitres')}</label>
+                          <select value={czR.font || ''} onChange={(e) => setCzRColor('font', e.target.value)}
+                            className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
+                            {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10.5px] text-slate-500 mb-1">{t('carrousels.policeDuTexte')}</label>
+                          <select value={czR.fontBody || ''} onChange={(e) => setCzRColor('fontBody', e.target.value)}
+                            className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
+                            {CAROUSEL_BODY_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+                          </select>
+                        </div>
+                      </div>
                       <p className="text-[11px] text-slate-600 font-inter">{t('contenus.retouche.noteAvant')}<b className="text-slate-400">{t('contenus.retouche.noteValidation')}</b>{t('contenus.retouche.noteApres')}</p>
                     </div>
                   )}
