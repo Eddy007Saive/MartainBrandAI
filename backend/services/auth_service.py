@@ -29,7 +29,7 @@ def sanitize_user(user: dict) -> dict:
     return user
 
 
-def register_user(nom: str, email: str, username: str, password: str, master_id: str = None) -> dict:
+def register_user(nom: str, email: str, username: str, password: str, master_id: str = None, langue: str = None) -> dict:
     # Email unique
     existing = supabase.table("users").select("email").eq("email", email).execute()
     if existing.data:
@@ -49,6 +49,8 @@ def register_user(nom: str, email: str, username: str, password: str, master_id:
         "couleur_principale": "#003D2E",
         "couleur_secondaire": "#0077FF",
         "couleur_accent": "#3AFFA3",
+        # Le contenu généré démarre dans la langue de l'interface choisie à l'inscription
+        "langue": langue if langue in ("fr", "en", "es") else "fr",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     # Sous-compte rattaché à un master (regroupement + switch). Facturation PAR COMPTE :

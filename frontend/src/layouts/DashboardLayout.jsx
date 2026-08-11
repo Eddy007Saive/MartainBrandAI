@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { UserProvider, useUser } from '../context/UserContext';
+import { userService } from '../services/userService';
 import { removeToken } from '../lib/auth';
 import { cn } from '../lib/utils';
 import NotificationsBell from '../components/NotificationsBell';
@@ -138,8 +139,18 @@ function Brand() {
 
 function DashboardContent() {
   const { t } = useTranslation();
-  const { user, logout } = useUser();
+  const { user, logout, updateUser } = useUser();
   const navigate = useNavigate();
+
+  // Changer la langue de l'interface aligne aussi la langue de RÉDACTION du contenu
+  // (modifiable ensuite au cas par cas dans Paramètres → Identité).
+  const syncLangueContenu = async (lang) => {
+    if (!user || (user.langue || 'fr') === lang) return;
+    try {
+      await userService.updateMe({ langue: lang });
+      updateUser({ langue: lang });
+    } catch (e) { /* non bloquant : l'interface change quand même */ }
+  };
 
   // Mode Vision (admin -> client) : bandeau permanent + sortie auto à l'expiration
   const [vision] = useState(() => getVision());
@@ -224,7 +235,7 @@ function DashboardContent() {
 
   const UserBlock = () => (
     <div className="p-3 border-t border-white/[0.06] space-y-1">
-      <div className="px-2 pb-1"><LangSwitcher /></div>
+      <div className="px-2 pb-1"><LangSwitcher onChanged={syncLangueContenu} /></div>
       <div className="flex items-center gap-3 px-2 py-2">
         {user?.avatar_url ? (
           <img src={user.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-1 ring-white/15" />

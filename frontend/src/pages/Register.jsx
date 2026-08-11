@@ -12,7 +12,7 @@ import { track } from '../lib/analytics';
 
 export default function Register() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [formData, setFormData] = useState({
     nom: '',
     email: '',
@@ -73,6 +73,8 @@ export default function Register() {
         email: formData.email,
         password: formData.password,
         username: formData.username || undefined,
+        // La langue du contenu généré démarre sur la langue de l'interface
+        langue: (i18n.resolvedLanguage || 'fr').slice(0, 2),
       };
 
       const data = await authService.register(payload);
