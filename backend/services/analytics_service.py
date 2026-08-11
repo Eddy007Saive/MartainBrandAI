@@ -138,8 +138,10 @@ def get_stats(telegram_id: str) -> dict:
     # analytics_performance n'est plus alimentée — sans ce raccord, les cartes
     # affichaient 0 alors que la courbe montrait les vraies données.
     cached = get_cached(telegram_id)
-    kpis = ((cached or {}).get("data") or {}).get("kpis") or {}
-    if kpis.get("impressions") or kpis.get("likes") or kpis.get("comments"):
+    cache_data = ((cached or {}).get("data") or {})
+    kpis = cache_data.get("kpis") or {}
+    depuis_cache = bool(kpis.get("impressions") or kpis.get("likes") or kpis.get("comments"))
+    if depuis_cache:
         total_vues = kpis.get("impressions") or 0
         total_likes = kpis.get("likes") or 0
         total_commentaires = kpis.get("comments") or 0
@@ -153,6 +155,28 @@ def get_stats(telegram_id: str) -> dict:
         contenus_stats[statut] = contenus_stats.get(statut, 0) + 1
 
     new_comments = supabase.table("commentaires").select("id").eq("telegram_id", telegram_id).eq("statut", "Nouveau").execute()
+    nouveaux_commentaires = len(new_comments.data)
+    posts_performants = len([a for a in analytics.data if a.get("post_performant")])
+
+    # Mêmes cartes, même source que la courbe : les cartes « nouveaux commentaires »
+    # et « posts performants » se calculent depuis le cache des insights, les tables
+    # héritées (commentaires / analytics_performance) n'étant plus alimentées.
+    if depuis_cache:
+        # Commentaires reçus sur les 7 derniers jours (série quotidienne du cache)
+        daily = cache_data.get("daily") or []
+        if daily:
+            nouveaux_commentaires = sum(
+                int(((d.get("metrics") or {}).get("comments")) or d.get("comments") or 0)
+                for d in daily[-7:]
+            )
+        # « Au-dessus de la moyenne » : posts dont l'engagement dépasse la moyenne du compte
+        posts_cache = cache_data.get("posts") or []
+        if posts_cache:
+            posts_performants = len([
+                p for p in posts_cache
+                if (p.get("engagementRate") or 0) > (avg_engagement or 0)
+                and (p.get("metrics", {}).get("impressions") or 0) > 0
+            ])
 
     return {
         "vues": int(total_vues),
@@ -161,8 +185,8 @@ def get_stats(telegram_id: str) -> dict:
         "partages": int(total_partages),
         "taux_engagement": round(avg_engagement, 2),
         "contenus_stats": contenus_stats,
-        "nouveaux_commentaires": len(new_comments.data),
-        "posts_performants": len([a for a in analytics.data if a.get("post_performant")])
+        "nouveaux_commentaires": nouveaux_commentaires,
+        "posts_performants": posts_performants
     }
 
 
