@@ -133,6 +133,19 @@ def get_stats(telegram_id: str) -> dict:
     engagements = [float(a.get("taux_engagement", 0) or 0) for a in analytics.data if a.get("taux_engagement")]
     avg_engagement = sum(engagements) / len(engagements) if engagements else 0
 
+    # Les KPI du tableau de bord lisent la MÊME source que la courbe : le cache des
+    # insights Zernio (alimenté par le cron horaire). L'ancienne table
+    # analytics_performance n'est plus alimentée — sans ce raccord, les cartes
+    # affichaient 0 alors que la courbe montrait les vraies données.
+    cached = get_cached(telegram_id)
+    kpis = ((cached or {}).get("data") or {}).get("kpis") or {}
+    if kpis.get("impressions") or kpis.get("likes") or kpis.get("comments"):
+        total_vues = kpis.get("impressions") or 0
+        total_likes = kpis.get("likes") or 0
+        total_commentaires = kpis.get("comments") or 0
+        total_partages = kpis.get("shares") or 0
+        avg_engagement = kpis.get("engagementRate") or 0
+
     contenus = supabase.table("contenu").select("statut").eq("telegram_id", telegram_id).execute()
     contenus_stats = {}
     for c in contenus.data:
