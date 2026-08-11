@@ -74,7 +74,8 @@
     "subscription": "Abonnement",
     "style": "Style & Couleurs",
     "avatar": "Avatar vidéo",
-    "soon": "Bientôt"
+    "soon": "Bientôt",
+    "support": "Contacter le support"
   },
   "accueil": {
     "greeting": "Bonjour, {{name}} 👋",

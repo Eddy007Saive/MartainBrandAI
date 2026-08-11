@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
-import { initTawk, identifyTawk, hideTawk, resetTawk } from '../lib/tawk';
+import { openTawk, identifyTawk, hideTawk, resetTawk } from '../lib/tawk';
 import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
@@ -41,6 +41,7 @@ const SETTINGS_NAV = [
 function SettingsNav({ onNavigate }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useUser();
   const [params, setParams] = useSearchParams();
   const active = params.get('s') || 'identity';
   return (
@@ -79,6 +80,18 @@ function SettingsNav({ onNavigate }) {
             </button>
           );
         })}
+      </div>
+
+      {/* Chat support : chargé et ouvert uniquement au clic (plus de bulle permanente) */}
+      <div className="mt-4 pt-3 border-t border-white/[0.06]">
+        <button
+          onClick={() => openTawk(user)}
+          data-testid="settings-nav-support"
+          className="group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium font-inter transition-all duration-150 text-slate-400 hover:text-white hover:bg-white/[0.03]"
+        >
+          <MessageCircle className="w-[18px] h-[18px] text-slate-500 group-hover:text-[#3AFFA3] transition-colors" />
+          <span className="flex-1 text-left">{t('nav.support')}</span>
+        </button>
       </div>
     </div>
   );
@@ -155,12 +168,9 @@ function DashboardContent() {
   // Notifications push (mobile) : demande la permission + enregistre le token
   useEffect(() => { initPush(); }, []);
 
-  // Chat support Tawk.to : bulle visible dans le dashboard, masquée en quittant ;
-  // l'utilisateur est identifié (nom, email, plan) dès que son profil est chargé.
-  useEffect(() => {
-    initTawk();
-    return () => hideTawk();
-  }, []);
+  // Chat support Tawk.to : chargé À LA DEMANDE depuis Paramètres → « Contacter le
+  // support » (plus de bulle permanente). On mémorise juste l'identité du client.
+  useEffect(() => () => hideTawk(), []);
   useEffect(() => { if (user) identifyTawk(user); }, [user]);
 
   // Langue de l'interface : si le client n'a jamais choisi explicitement (pas de localStorage),

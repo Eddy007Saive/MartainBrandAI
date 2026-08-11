@@ -1,10 +1,12 @@
-// Chat support Tawk.to (tawk.to) — chargé uniquement dans le dashboard client.
-// L'ID est PUBLIC (il identifie le widget, pas un secret) ; format "propertyId/widgetId"
-// (les deux segments à la fin de l'URL du widget : https://embed.tawk.to/<propertyId>/<widgetId>).
+// Chat support Tawk.to (tawk.to) — chargé À LA DEMANDE uniquement.
+// La bulle n'est plus affichée en permanence : le chat s'ouvre depuis
+// Paramètres → « Contacter le support », et disparaît complètement quand
+// le client le réduit. L'ID est PUBLIC ; format "propertyId/widgetId".
 const TAWK_ID = process.env.REACT_APP_TAWK_ID || '';
 
 let loaded = false;
-let pendingUser = null; // identité reçue avant que le widget soit prêt
+let pendingUser = null;   // identité connue avant que le widget soit prêt
+let wantOpen = false;     // ouverture demandée pendant le chargement du script
 
 const api = () => (window.Tawk_API && typeof window.Tawk_API.showWidget === 'function' ? window.Tawk_API : null);
 
@@ -21,19 +23,11 @@ function applyIdentity(user) {
   } catch (e) { /* jamais bloquant */ }
 }
 
-/** Charge le widget (une seule fois) et affiche la bulle. No-op si l'ID n'est pas configuré. */
-export function initTawk() {
-  if (!TAWK_ID) return;
-  if (loaded) {
-    const T = api();
-    if (T) { try { T.showWidget(); } catch (e) { /* widget pas prêt */ } }
-    return;
-  }
+function load() {
+  if (loaded || !TAWK_ID) return;
   window.Tawk_API = window.Tawk_API || {};
   window.Tawk_LoadStart = new Date();
-  // Intégration au design : sous les dialogs/toasts (z-50) et décollée des bords ;
-  // sur mobile, remontée pour ne pas chevaucher les CTA en bas de page.
-  // (Couleur, langue et Attention Grabber se règlent dans l'admin Tawk, pas ici.)
+  // Sous les dialogs/toasts (z-50), décollée des bords ; remontée sur mobile.
   window.Tawk_API.customStyle = {
     zIndex: 45,
     visibility: {
@@ -41,7 +35,20 @@ export function initTawk() {
       mobile: { position: 'br', xOffset: 10, yOffset: 72 },
     },
   };
-  window.Tawk_API.onLoad = () => { if (pendingUser) { applyIdentity(pendingUser); pendingUser = null; } };
+  window.Tawk_API.onLoad = () => {
+    const T = window.Tawk_API;
+    applyIdentity(pendingUser);
+    if (wantOpen) {
+      wantOpen = false;
+      try { T.showWidget(); T.maximize(); } catch (e) { /* ignore */ }
+    } else {
+      try { T.hideWidget(); } catch (e) { /* ignore */ }
+    }
+  };
+  // Chat réduit par le client -> la bulle disparaît complètement.
+  window.Tawk_API.onChatMinimized = () => {
+    try { window.Tawk_API.hideWidget(); } catch (e) { /* ignore */ }
+  };
   const s = document.createElement('script');
   s.src = `https://embed.tawk.to/${TAWK_ID}`;
   s.async = true;
@@ -51,11 +58,26 @@ export function initTawk() {
   loaded = true;
 }
 
-/** Identifie l'utilisateur connecté : le support voit "qui parle" sans demander. */
+/** Mémorise l'identité du client (appliquée dès que le widget existe). */
 export function identifyTawk(user) {
-  if (!TAWK_ID || !user) return;
+  if (!user) return;
+  pendingUser = user;
   if (api()) applyIdentity(user);
-  else pendingUser = user; // sera appliqué dans onLoad
+}
+
+/** Ouvre le chat support (charge le widget au premier appel). */
+export function openTawk(user) {
+  if (!TAWK_ID) return false;
+  if (user) pendingUser = user;
+  const T = api();
+  if (!T) {
+    wantOpen = true;
+    load();
+    return true;
+  }
+  applyIdentity(pendingUser);
+  try { T.showWidget(); T.maximize(); } catch (e) { /* ignore */ }
+  return true;
 }
 
 /** Masque la bulle (en quittant le dashboard : admin, vitrine, login…). */
@@ -71,4 +93,5 @@ export function resetTawk() {
   const T = window.Tawk_API;
   if (!loaded || !T) return;
   try { if (typeof T.endChat === 'function') T.endChat(); } catch (e) { /* ignore */ }
+  try { if (typeof T.hideWidget === 'function') T.hideWidget(); } catch (e) { /* ignore */ }
 }
