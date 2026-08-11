@@ -1,104 +1,98 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { onboardingService } from '../services/onboardingService';
+import LangSwitcher from '../components/LangSwitcher';
 
 const MAX_FILE_MB = 5;
 const MAX_IMAGES = 6;
 const TURNSTILE_SITE_KEY = process.env.REACT_APP_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
 
-/* ---------- SOURCE DE VÉRITÉ : tout le formulaire ---------- */
+/* ---------- SOURCE DE VÉRITÉ : structure du formulaire ----------
+   Les textes vivent dans les locales sous audit.sec.<section> / audit.f.<champ>
+   (label / help / ph / opt.<slug>). Les radios stockent le SLUG (stable
+   quelle que soit la langue) ; le récap les retraduit en français. */
 const FORM = [
-  { id: 'identite', title: 'Identité & entreprise', sub: 'On commence par les bases : qui tu es et ce que tu fais.', fields: [
-    { id: 'marque', label: 'Nom de la marque / entreprise', type: 'text', req: 1, ph: 'Le nom sous lequel tu communiques' },
-    { id: 'dirigeant', label: 'Ton nom et prénom', type: 'text', req: 1, ph: 'Celui qui incarne la marque' },
-    { id: 'site', label: 'Site web ou lien principal', type: 'text', ph: 'https://…' },
-    { id: 'secteur', label: "Ton secteur d'activité, en une phrase", type: 'text', req: 1, help: 'Précis. Le métier exact, pas la catégorie large.', ph: 'Ex : Coach en nutrition sportive pour femmes actives' },
-    { id: 'anciennete', label: "Depuis quand l'entreprise existe", type: 'text', ph: 'Ex : 2021' },
-    { id: 'zone', label: 'Ta zone géographique / tes marchés', type: 'text', ph: 'Ex : France, ou « en ligne, partout »' },
-    { id: 'pitch', label: 'En une phrase simple : que fais-tu, pour qui ?', type: 'textarea', req: 1, help: "Comme si tu l'expliquais à un inconnu en soirée.", ph: "Ex : J'aide les [clients] à [résultat] grâce à [méthode]." },
+  { id: 'identite', fields: [
+    { id: 'marque', type: 'text', req: 1, ph: 1 },
+    { id: 'dirigeant', type: 'text', req: 1, ph: 1 },
+    { id: 'site', type: 'text', ph: 1 },
+    { id: 'secteur', type: 'text', req: 1, help: 1, ph: 1 },
+    { id: 'anciennete', type: 'text', ph: 1 },
+    { id: 'zone', type: 'text', ph: 1 },
+    { id: 'pitch', type: 'textarea', req: 1, help: 1, ph: 1 },
   ] },
-
-  { id: 'offre', title: 'Offre & positionnement', sub: 'Ce que tu vends, et pourquoi on devrait te choisir toi.', fields: [
-    { id: 'produits', label: 'Que vends-tu concrètement ? (produits / services)', type: 'textarea', req: 1, ph: 'Liste tes offres principales, en quelques lignes.' },
-    { id: 'valeur', label: 'Ta proposition de valeur en une phrase', type: 'textarea', req: 1, help: 'Le bénéfice n°1 que tu apportes.', ph: 'Le résultat concret que ton client obtient grâce à toi.' },
-    { id: 'diff', label: "Qu'est-ce qui te rend différent ? (3 choses)", type: 'textarea', req: 1, help: 'Ce que les autres ne font pas, ou pas comme toi.', ph: '1.\n2.\n3.' },
-    { id: 'concurrents', label: 'Tes 2-3 concurrents ou alternatives', type: 'text', help: "On ne les citera jamais — c'est juste pour situer ton marché.", ph: 'Ex : autres logiciels, agences, faire soi-même' },
-    { id: 'histoire', label: 'Pourquoi as-tu lancé cette entreprise ? Ton histoire', type: 'textarea', help: "Le « pourquoi » derrière le projet. C'est souvent l'or de ta communication.", ph: "Le déclic, le problème vécu, la galère qui t'a poussé à créer ça…" },
-    { id: 'position', label: 'Ton positionnement prix', type: 'radio', options: ['Premium / haut de gamme', 'Milieu de gamme', 'Accessible / agressif', 'Sur-mesure / variable'] },
+  { id: 'offre', fields: [
+    { id: 'produits', type: 'textarea', req: 1, ph: 1 },
+    { id: 'valeur', type: 'textarea', req: 1, help: 1, ph: 1 },
+    { id: 'diff', type: 'textarea', req: 1, help: 1, ph: 1 },
+    { id: 'concurrents', type: 'text', help: 1, ph: 1 },
+    { id: 'histoire', type: 'textarea', help: 1, ph: 1 },
+    { id: 'position', type: 'radio', options: ['premium', 'milieu', 'accessible', 'surmesure'] },
   ] },
-
-  { id: 'cible', title: 'Ton client idéal', sub: "Pour parler juste, l'IA doit connaître à qui elle s'adresse.", fields: [
-    { id: 'persona', label: 'Décris ton client idéal', type: 'textarea', req: 1, help: 'Qui est-il ? Métier, âge, situation, niveau…', ph: 'Ex : entrepreneur solo, 30-45 ans, déjà du chiffre mais débordé, veut structurer sans s\'épuiser.' },
-    { id: 'douleurs', label: 'Ses 3 plus grosses frustrations / problèmes', type: 'textarea', req: 1, ph: '1.\n2.\n3.' },
-    { id: 'desir', label: "Ce qu'il veut vraiment obtenir", type: 'textarea', help: 'Au-delà du produit : son objectif profond.', ph: 'Ex : reprendre le contrôle, scaler sans s\'épuiser, construire un actif qui vaut quelque chose.' },
-    { id: 'objections', label: "Ses freins / objections avant d'acheter", type: 'textarea', help: 'Ce qui le retient de dire oui.', ph: 'Ex : « j\'ai déjà mes outils », « c\'est cher », « je n\'ai pas le temps de migrer »…' },
-    { id: 'vocabulaire', label: 'Comment parle-t-il ? Ses mots, ses expressions', type: 'textarea', help: "Le jargon de ton client. L'IA s'en servira pour sonner naturel.", ph: 'Mots du métier, tournures, expressions qu\'il utilise vraiment.' },
+  { id: 'cible', fields: [
+    { id: 'persona', type: 'textarea', req: 1, help: 1, ph: 1 },
+    { id: 'douleurs', type: 'textarea', req: 1, ph: 1 },
+    { id: 'desir', type: 'textarea', help: 1, ph: 1 },
+    { id: 'objections', type: 'textarea', help: 1, ph: 1 },
+    { id: 'vocabulaire', type: 'textarea', help: 1, ph: 1 },
   ] },
-
-  { id: 'voix', title: 'Voix & ton', sub: 'Le cœur de la config : comment tu sonnes.', fields: [
-    { id: 'adresse', label: "Tu t'adresses à ton audience en…", type: 'radio', req: 1, options: ['Tutoiement', 'Vouvoiement', 'Ça dépend du réseau'] },
-    { id: 'adjectifs', label: '3 à 5 adjectifs qui décrivent ton ton', type: 'text', req: 1, help: "Le caractère de ta marque à l'écrit.", ph: 'Ex : direct, chaleureux, sans bullshit, expert, cash' },
-    { id: 'langage', label: 'Niveau de langage', type: 'radio', options: ['Familier / parlé', 'Pro mais accessible', 'Expert / technique', 'Premium / sobre'] },
-    { id: 'emojis', label: 'Émojis ?', type: 'radio', options: ['Beaucoup, ça fait partie du style', 'Avec parcimonie', 'Jamais'] },
-    { id: 'phrases', label: 'Style de phrases', type: 'radio', options: ['Courtes, punchy, rythmées', 'Développées, posées', 'Un mix des deux'] },
-    { id: 'personne', label: 'Si ta marque était une personne, qui serait-elle ?', type: 'textarea', help: 'Un personnage, un type de mentor, une ambiance. Très utile pour calibrer le ton.', ph: 'Ex : le grand frère entrepreneur qui te dit la vérité sans te ménager.' },
-    { id: 'inspirations_ton', label: "Des créateurs / marques dont tu aimes le style d'écriture", type: 'textarea', help: "On s'en inspire pour le ton (jamais pour copier).", ph: 'Noms de comptes, de marques, de personnes…' },
+  { id: 'voix', fields: [
+    { id: 'adresse', type: 'radio', req: 1, options: ['tutoiement', 'vouvoiement', 'depend'] },
+    { id: 'adjectifs', type: 'text', req: 1, help: 1, ph: 1 },
+    { id: 'langage', type: 'radio', options: ['familier', 'pro', 'expert', 'premium'] },
+    { id: 'emojis', type: 'radio', options: ['beaucoup', 'parcimonie', 'jamais'] },
+    { id: 'phrases', type: 'radio', options: ['courtes', 'developpees', 'mix'] },
+    { id: 'personne', type: 'textarea', help: 1, ph: 1 },
+    { id: 'inspirations_ton', type: 'textarea', help: 1, ph: 1 },
   ] },
-
-  { id: 'piliers', title: 'Piliers de contenu', sub: 'Tes grands sujets récurrents — ce dont tu parles tout le temps.', fields: [
-    { id: 'themes', label: 'Tes 3 à 5 grands thèmes récurrents', type: 'textarea', req: 1, help: 'Un par ligne. Ce sont tes « piliers ».', ph: 'Ex :\nMindset & confiance\nMéthode / coulisses\nÉtudes de cas clients\nMon vécu d\'entrepreneur' },
-    { id: 'reference', label: 'Sur quel sujet veux-tu être LA référence ?', type: 'text', help: "Le terrain où tu veux qu'on pense à toi en premier.", ph: 'Ton domaine d\'expertise n°1' },
-    { id: 'message', label: 'Que veux-tu que les gens retiennent de toi ?', type: 'textarea', help: 'Ton message de fond, ta conviction profonde.', ph: 'Ta phrase signature, ta croyance forte.' },
-    { id: 'opinions', label: 'Des opinions tranchées que tu assumes', type: 'textarea', help: 'Les avis clivants font les meilleurs contenus.', ph: 'Ce sur quoi tu n\'es pas d\'accord avec ton secteur.' },
+  { id: 'piliers', fields: [
+    { id: 'themes', type: 'textarea', req: 1, help: 1, ph: 1 },
+    { id: 'reference', type: 'text', help: 1, ph: 1 },
+    { id: 'message', type: 'textarea', help: 1, ph: 1 },
+    { id: 'opinions', type: 'textarea', help: 1, ph: 1 },
   ] },
-
-  { id: 'eviter', title: 'Lignes rouges', sub: "Ce que l'IA ne devra jamais faire. Aussi important que le reste.", fields: [
-    { id: 'mots_bannis', label: 'Mots / expressions à bannir', type: 'textarea', help: 'Le vocabulaire qui ne te ressemble pas.', ph: 'Ex : « disruptif », jargon corporate, anglicismes inutiles…' },
-    { id: 'tons_eviter', label: 'Tons à éviter absolument', type: 'text', ph: 'Ex : moralisateur, vendeur agressif, niais, hype' },
-    { id: 'tabous', label: 'Sujets tabous / interdits', type: 'textarea', help: "Ce qu'on ne touche pas.", ph: 'Politique, religion, sujets sensibles de ton secteur…' },
-    { id: 'promesses', label: 'Promesses que tu ne feras JAMAIS', type: 'textarea', help: 'Important pour rester crédible et conforme.', ph: 'Ex : pas de résultats chiffrés garantis, pas de « x10 en 30 jours »…' },
-    { id: 'legal', label: 'Contraintes légales / réglementaires', type: 'textarea', help: 'Mentions obligatoires, secteur réglementé, etc.', ph: "S'il y a des règles de conformité à respecter." },
+  { id: 'eviter', fields: [
+    { id: 'mots_bannis', type: 'textarea', help: 1, ph: 1 },
+    { id: 'tons_eviter', type: 'text', ph: 1 },
+    { id: 'tabous', type: 'textarea', help: 1, ph: 1 },
+    { id: 'promesses', type: 'textarea', help: 1, ph: 1 },
+    { id: 'legal', type: 'textarea', help: 1, ph: 1 },
   ] },
-
-  { id: 'hooks', title: "Accroches & appels à l'action", sub: "Ce qui fait s'arrêter, et ce qui fait passer à l'action.", fields: [
-    { id: 'hooks_ok', label: 'Tes meilleures accroches (hooks) qui ont marché', type: 'textarea', help: "Une par ligne. L'IA s'en inspire pour ouvrir les posts.", ph: 'Ex :\nPendant 2 ans, j\'ai bradé mes prix…\n90% des [clients] font cette erreur\nPersonne ne te dira ça, mais…' },
-    { id: 'cta', label: "Tes appels à l'action habituels", type: 'textarea', help: 'Une par ligne. Ce que tu demandes au lecteur de faire.', ph: 'Ex :\nCommente le mot [X]\nLien en bio\nDM-moi pour en parler' },
-    { id: 'offres_push', label: 'Liens / offres à pousser régulièrement', type: 'textarea', ph: 'Lead magnet, audit gratuit, page de vente, mot-clé ManyChat…' },
+  { id: 'hooks', fields: [
+    { id: 'hooks_ok', type: 'textarea', help: 1, ph: 1 },
+    { id: 'cta', type: 'textarea', help: 1, ph: 1 },
+    { id: 'offres_push', type: 'textarea', ph: 1 },
   ] },
-
-  { id: 'regles', title: 'Règles éditoriales', sub: 'Ta « bible » : les règles que l\'IA respectera à la lettre.', fields: [
-    { id: 'bible', label: 'Tes règles strictes', type: 'textarea', help: 'Tout ce qui prime sur le reste. Structure, ce qui est interdit, dosage des CTA…', ph: 'Ex :\n1. Un seul CTA par post.\n2. Toujours un pilier + un hook.\n3. Jamais de promesses chiffrées garanties.' },
-    { id: 'structure_post', label: 'Ta structure de post préférée', type: 'textarea', help: 'Comment tu construis un post qui marche.', ph: 'Ex : hook → histoire/preuve → leçon → CTA' },
-    { id: 'cta_nombre', label: 'Combien de CTA par post ?', type: 'radio', options: ['Un seul, toujours', 'Selon le contexte', 'Plusieurs OK'] },
-    { id: 'hashtags', label: 'Hashtags ?', type: 'radio', options: ['Oui, beaucoup', 'Quelques-uns ciblés', 'Aucun'] },
+  { id: 'regles', fields: [
+    { id: 'bible', type: 'textarea', help: 1, ph: 1 },
+    { id: 'structure_post', type: 'textarea', help: 1, ph: 1 },
+    { id: 'cta_nombre', type: 'radio', options: ['unseul', 'contexte', 'plusieurs'] },
+    { id: 'hashtags', type: 'radio', options: ['beaucoup', 'cibles', 'aucun'] },
   ] },
-
-  { id: 'exemples', title: 'Tes meilleurs contenus', sub: 'Le plus précieux pour calibrer : colle tes vrais posts. Optionnel mais fortement recommandé.', fields: [
-    { id: 'ex_linkedin', label: '1 à 3 de tes meilleurs posts', type: 'tabs' },
+  { id: 'exemples', fields: [
+    { id: 'ex_linkedin', type: 'tabs' },
   ] },
-
-  { id: 'reseaux', title: 'Réseaux & rythme', sub: 'Où tu publies, et à quelle fréquence.', fields: [
-    { id: 'plateformes', label: 'Sur quels réseaux veux-tu publier ?', type: 'text', req: 1, ph: 'Ex : LinkedIn, Instagram, Facebook, TikTok' },
-    { id: 'profils', label: 'Liens de tes profils existants', type: 'textarea', help: "Pour qu'on récupère ton style et ton historique.", ph: 'Un lien par ligne.' },
-    { id: 'frequence', label: 'Fréquence de publication souhaitée', type: 'radio', options: ['1-2 / semaine', '3-4 / semaine', '1 / jour', 'Plusieurs / jour'] },
-    { id: 'creneaux', label: 'Jours / créneaux préférés', type: 'text', ph: 'Ex : en semaine le matin, pas le week-end' },
+  { id: 'reseaux', fields: [
+    { id: 'plateformes', type: 'text', req: 1, ph: 1 },
+    { id: 'profils', type: 'textarea', help: 1, ph: 1 },
+    { id: 'frequence', type: 'radio', options: ['s12', 's34', 'j1', 'jplus'] },
+    { id: 'creneaux', type: 'text', ph: 1 },
   ] },
-
-  { id: 'visuel', title: 'Identité visuelle', sub: 'Tes couleurs et ton style pour les visuels générés.', fields: [
-    { id: 'col1', label: 'Couleur principale', type: 'color', default: '#2B7BFF' },
-    { id: 'col2', label: 'Couleur secondaire', type: 'color', default: '#0A4FCC' },
-    { id: 'col3', label: 'Couleur accent', type: 'color', default: '#3AFFA3' },
-    { id: 'charte', label: 'Ton logo', type: 'file', help: 'Importe ton logo (PNG, JPG, SVG, WebP — 5 Mo max).' },
-    { id: 'style_visuel', label: 'Le style visuel que tu aimes', type: 'textarea', help: 'Ambiance générale de tes visuels.', ph: 'Ex : épuré, premium, sombre, beaucoup d\'espace, peu de texte…' },
-    { id: 'polices', label: 'Polices utilisées (si tu en as)', type: 'text', ph: 'Ex : Space Grotesk, Inter' },
-    { id: 'inspis_visuel', label: '2-3 comptes dont tu adores le visuel', type: 'textarea', help: "On s'inspire de la composition et de l'ambiance.", ph: 'Noms de comptes ou liens.' },
-    { id: 'visuels_upload', label: 'Visuels que tu aimes (upload)', type: 'files', help: `Importe des exemples de visuels — ${MAX_IMAGES} images max, ${MAX_FILE_MB} Mo chacune.` },
+  { id: 'visuel', fields: [
+    { id: 'col1', type: 'color', default: '#2B7BFF' },
+    { id: 'col2', type: 'color', default: '#0A4FCC' },
+    { id: 'col3', type: 'color', default: '#3AFFA3' },
+    { id: 'charte', type: 'file', help: 1 },
+    { id: 'style_visuel', type: 'textarea', help: 1, ph: 1 },
+    { id: 'polices', type: 'text', ph: 1 },
+    { id: 'inspis_visuel', type: 'textarea', help: 1, ph: 1 },
+    { id: 'visuels_upload', type: 'files', help: 1, helpVars: { max: MAX_IMAGES, mb: MAX_FILE_MB } },
   ] },
-
-  { id: 'objectifs', title: 'Objectifs', sub: "Pour finir : ce que tu veux que tout ça t'apporte.", fields: [
-    { id: 'objectif', label: 'Objectif n°1 de tes réseaux', type: 'radio', req: 1, options: ['Notoriété / image', 'Générer des leads', 'Vendre directement', 'Recruter', 'Tout ça à la fois'] },
-    { id: 'succes', label: 'Comment mesures-tu le succès ?', type: 'text', ph: 'Ex : nombre de leads qualifiés, DM reçus, audits réservés…' },
-    { id: 'libre', label: 'Un mot pour la fin / tout contexte utile', type: 'textarea', help: "Tout ce qu'on n'a pas demandé et qui compte pour toi.", ph: 'Champ libre.' },
+  { id: 'objectifs', fields: [
+    { id: 'objectif', type: 'radio', req: 1, options: ['notoriete', 'leads', 'vendre', 'recruter', 'tout'] },
+    { id: 'succes', type: 'text', ph: 1 },
+    { id: 'libre', type: 'textarea', help: 1, ph: 1 },
   ] },
 ];
 
@@ -107,6 +101,7 @@ const TABS = ['LinkedIn', 'Instagram', 'Facebook', 'TikTok'];
 const num = (i) => String(i + 1).padStart(2, '0');
 
 export default function AuditMarque() {
+  const { t, i18n } = useTranslation();
   // Valeurs initiales : les couleurs sont préremplies
   const [answers, setAnswers] = useState(() => {
     const init = {};
@@ -139,15 +134,15 @@ export default function AuditMarque() {
     if (multiple) {
       const existing = answers[f.id] || [];
       const room = MAX_IMAGES - existing.length;
-      if (room <= 0) { toast.error(`${MAX_IMAGES} images maximum.`); return; }
-      if (files.length > room) { toast.error(`${MAX_IMAGES} images maximum — seules les ${room} premières sont ajoutées.`); files = files.slice(0, room); }
+      if (room <= 0) { toast.error(t('audit.ui.maxImages', { n: MAX_IMAGES })); return; }
+      if (files.length > room) { toast.error(t('audit.ui.maxImagesTronque', { n: MAX_IMAGES, room })); files = files.slice(0, room); }
     } else {
       files = files.slice(0, 1);
     }
 
     const valid = files.filter((file) => {
-      if (!file.type.startsWith('image/')) { toast.error(`« ${file.name} » n'est pas une image.`); return false; }
-      if (file.size > MAX_FILE_MB * 1024 * 1024) { toast.error(`« ${file.name} » dépasse ${MAX_FILE_MB} Mo.`); return false; }
+      if (!file.type.startsWith('image/')) { toast.error(t('audit.ui.pasImage', { name: file.name })); return false; }
+      if (file.size > MAX_FILE_MB * 1024 * 1024) { toast.error(t('audit.ui.tropGros', { name: file.name, mb: MAX_FILE_MB })); return false; }
       return true;
     });
     if (!valid.length) return;
@@ -160,8 +155,7 @@ export default function AuditMarque() {
         else setAnswers((a) => ({ ...a, [f.id]: url }));
       }
     } catch (e) {
-      const msg = e?.response?.status === 429 ? "Trop d'envois, réessaie dans quelques minutes." : "Échec de l'upload. Réessaie.";
-      toast.error(msg);
+      toast.error(e?.response?.status === 429 ? t('audit.ui.trop429') : t('audit.ui.uploadEchec'));
     } finally {
       setUploading((u) => ({ ...u, [f.id]: false }));
     }
@@ -219,8 +213,11 @@ export default function AuditMarque() {
     return () => script && script.removeEventListener('load', render);
   }, []);
 
-  /* ---------- RÉCAP ---------- */
+  /* ---------- RÉCAP ----------
+     Toujours généré en FRANÇAIS (lecture interne par l'équipe), quelle que soit
+     la langue d'affichage du visiteur. Les réponses libres restent telles quelles. */
   const buildRecap = () => {
+    const tf = i18n.getFixedT('fr');
     const lines = [];
     const sep = '═══════════════════════════════════════════';
     lines.push(sep);
@@ -230,17 +227,20 @@ export default function AuditMarque() {
     lines.push(sep);
     FORM.forEach((sec, i) => {
       lines.push('');
-      lines.push(`### ${num(i)} — ${sec.title.toUpperCase()}`);
+      lines.push(`### ${num(i)} — ${tf(`audit.sec.${sec.id}.title`).toUpperCase()}`);
       sec.fields.forEach((f) => {
+        const label = tf(`audit.f.${f.id}.label`);
         if (f.type === 'tabs') {
-          TABS.forEach((t) => { const v = val(`${f.id}_${t.toLowerCase()}`); if (v) lines.push(`• Exemples ${t} :\n${v}`); });
+          TABS.forEach((tb) => { const v = val(`${f.id}_${tb.toLowerCase()}`); if (v) lines.push(`• Exemples ${tb} :\n${v}`); });
         } else if (f.type === 'file') {
-          if (answers[f.id]) lines.push(`• ${f.label} : ${answers[f.id]}`);
+          if (answers[f.id]) lines.push(`• ${label} : ${answers[f.id]}`);
         } else if (f.type === 'files') {
           const arr = answers[f.id] || [];
-          if (arr.length) lines.push(`• ${f.label} (${arr.length}) :\n${arr.join('\n')}`);
+          if (arr.length) lines.push(`• ${label} (${arr.length}) :\n${arr.join('\n')}`);
+        } else if (f.type === 'radio') {
+          const v = val(f.id); if (v) lines.push(`• ${label} : ${tf(`audit.f.${f.id}.opt.${v}`)}`);
         } else {
-          const v = val(f.id); if (v) lines.push(`• ${f.label} : ${v}`);
+          const v = val(f.id); if (v) lines.push(`• ${label} : ${v}`);
         }
       });
     });
@@ -259,7 +259,7 @@ export default function AuditMarque() {
   const submit = async () => {
     const email = senderEmail.trim();
     if (!email) { setEmailErr(true); return; }
-    if (!tsToken) { toast.error('Confirme que tu n\'es pas un robot.'); return; }
+    if (!tsToken) { toast.error(t('audit.ui.robot')); return; }
     setSending(true);
     const recap = buildRecap();
     const marque = val('marque') || 'Sans nom';
@@ -269,7 +269,7 @@ export default function AuditMarque() {
     } catch (e) {
       // 403 = anti-bot refusé : le token est à usage unique, on réarme le widget.
       resetTurnstile();
-      if (e?.response?.status === 403) { toast.error('Vérification anti-bot échouée. Recommence.'); }
+      if (e?.response?.status === 403) { toast.error(t('audit.ui.antibot')); }
       else { setModal({ type: 'fallback', recap }); }
     }
     setSending(false);
@@ -294,17 +294,18 @@ export default function AuditMarque() {
      sinon les <input> seraient remontés à chaque frappe et perdraient le focus. */
   const renderField = (f) => {
     const req = f.req ? <span className="req">*</span> : null;
+    const ph = f.ph ? t(`audit.f.${f.id}.ph`) : '';
     return (
       <div className="field" key={f.id}>
-        <label>{f.label}{req}</label>
-        {f.help && <p className="help">{f.help}</p>}
+        <label>{t(`audit.f.${f.id}.label`)}{req}</label>
+        {f.help && <p className="help">{t(`audit.f.${f.id}.help`, f.helpVars || {})}</p>}
 
         {f.type === 'text' && (
-          <input type="text" value={answers[f.id] || ''} placeholder={f.ph || ''} onChange={(e) => set(f.id, e.target.value)} />
+          <input type="text" value={answers[f.id] || ''} placeholder={ph} onChange={(e) => set(f.id, e.target.value)} />
         )}
 
         {f.type === 'textarea' && (
-          <textarea value={answers[f.id] || ''} placeholder={f.ph || ''} onChange={(e) => set(f.id, e.target.value)} />
+          <textarea value={answers[f.id] || ''} placeholder={ph} onChange={(e) => set(f.id, e.target.value)} />
         )}
 
         {f.type === 'radio' && (
@@ -312,7 +313,7 @@ export default function AuditMarque() {
             {f.options.map((o) => (
               <label key={o}>
                 <input type="radio" name={f.id} value={o} checked={answers[f.id] === o} onChange={() => set(f.id, o)} />
-                <span className="pill">{o}</span>
+                <span className="pill">{t(`audit.f.${f.id}.opt.${o}`)}</span>
               </label>
             ))}
           </div>
@@ -327,7 +328,7 @@ export default function AuditMarque() {
 
         {f.type === 'tabs' && (() => {
           const cur = tabIdx[f.id] || 0;
-          const t = TABS[cur];
+          const t2 = TABS[cur];
           return (
             <>
               <div className="tabs">
@@ -337,9 +338,9 @@ export default function AuditMarque() {
               </div>
               <div className="tabpane on">
                 <textarea
-                  value={answers[`${f.id}_${t.toLowerCase()}`] || ''}
-                  placeholder={`Colle ici 1 à 3 de tes meilleurs posts ${t}. Sépare-les par une ligne ---`}
-                  onChange={(e) => set(`${f.id}_${t.toLowerCase()}`, e.target.value)}
+                  value={answers[`${f.id}_${t2.toLowerCase()}`] || ''}
+                  placeholder={t('audit.ui.tabsPh', { reseau: t2 })}
+                  onChange={(e) => set(`${f.id}_${t2.toLowerCase()}`, e.target.value)}
                 />
               </div>
             </>
@@ -352,14 +353,14 @@ export default function AuditMarque() {
               <div className="thumbs">
                 <div className="thumb">
                   <img src={answers[f.id]} alt="" />
-                  <button type="button" aria-label="Retirer" onClick={() => removeUpload(f, answers[f.id])}>×</button>
+                  <button type="button" aria-label={t('audit.ui.retirer')} onClick={() => removeUpload(f, answers[f.id])}>×</button>
                 </div>
               </div>
             )}
             <label className={'uploadbtn' + (uploading[f.id] ? ' busy' : '')}>
               <input type="file" accept="image/*" style={{ display: 'none' }}
                 onChange={(e) => { doUpload(f, e.target.files); e.target.value = ''; }} />
-              {uploading[f.id] ? 'Envoi…' : (answers[f.id] ? 'Remplacer le logo' : 'Importer le logo')}
+              {uploading[f.id] ? t('audit.ui.envoi') : (answers[f.id] ? t('audit.ui.remplacerLogo') : t('audit.ui.importerLogo'))}
             </label>
           </div>
         )}
@@ -374,7 +375,7 @@ export default function AuditMarque() {
                   {arr.map((url) => (
                     <div className="thumb" key={url}>
                       <img src={url} alt="" />
-                      <button type="button" aria-label="Retirer" onClick={() => removeUpload(f, url)}>×</button>
+                      <button type="button" aria-label={t('audit.ui.retirer')} onClick={() => removeUpload(f, url)}>×</button>
                     </div>
                   ))}
                 </div>
@@ -382,7 +383,7 @@ export default function AuditMarque() {
               <label className={'uploadbtn' + (uploading[f.id] ? ' busy' : '') + (full ? ' disabled' : '')}>
                 <input type="file" accept="image/*" multiple disabled={full || uploading[f.id]} style={{ display: 'none' }}
                   onChange={(e) => { doUpload(f, e.target.files); e.target.value = ''; }} />
-                {uploading[f.id] ? 'Envoi…' : full ? `Maximum atteint (${MAX_IMAGES})` : 'Ajouter des images'}
+                {uploading[f.id] ? t('audit.ui.envoi') : full ? t('audit.ui.maxAtteint', { n: MAX_IMAGES }) : t('audit.ui.ajouterImages')}
               </label>
               <span className="cap">{arr.length}/{MAX_IMAGES}</span>
             </div>
@@ -400,14 +401,15 @@ export default function AuditMarque() {
       <nav className="topnav"><div className="wrap">
         <a href="/" className="tn-brand"><img src="/logo.png" alt="Postorico" /><span>Presence&nbsp;OS</span></a>
         <div className="tn-links">
-          <a href="/fonctionnalites">Fonctionnalités</a>
-          <a href="/comment-ca-marche">Comment ça marche</a>
-          <a href="/tarifs">Tarifs</a>
-          <a href="/faq">FAQ</a>
+          <a href="/fonctionnalites">{t('lp.nav.features')}</a>
+          <a href="/comment-ca-marche">{t('lp.nav.how')}</a>
+          <a href="/tarifs">{t('lp.nav.pricing')}</a>
+          <a href="/faq">{t('lp.nav.faq')}</a>
         </div>
         <div className="tn-cta">
-          <a href="/login" className="tn-login">Se connecter</a>
-          <a href="/register" className="tn-start">Commencer</a>
+          <LangSwitcher />
+          <a href="/login" className="tn-login">{t('lp.nav.login')}</a>
+          <a href="/register" className="tn-start">{t('lp.nav.start')}</a>
         </div>
       </div></nav>
 
@@ -421,13 +423,13 @@ export default function AuditMarque() {
         <div className="wrap">
           <div className="brandrow">
             <img src="/logo.png" alt="Postorico" className="glyph" />
-            <div><b>Presence&nbsp;OS</b><br /><span>Onboarding</span></div>
+            <div><b>Presence&nbsp;OS</b><br /><span>{t('audit.ui.onboarding')}</span></div>
           </div>
-          <h1>Audit de marque.<br />Pour que l'IA parle <em>exactement</em> comme toi.</h1>
-          <p className="lead">Ce questionnaire est l'étape de configuration de ton compte. Plus tes réponses sont <b>précises et détaillées</b>, plus les contenus générés sonnent justes — ton ton, ta cible, tes mots. Compte 20 à 30 minutes. Réponds avec tes mots, pas besoin de soigner la forme.</p>
+          <h1>{t('audit.ui.h1a')}<br />{t('audit.ui.h1b')} <em>{t('audit.ui.h1em')}</em> {t('audit.ui.h1c')}</h1>
+          <p className="lead">{t('audit.ui.lead')}</p>
           <div className="note">
             <div className="dot" />
-            <div><span>Prends le temps de tout remplir, <b>le plus précisément possible</b>. C'est la matière qui nous sert à réaliser un vrai audit complet de ta marque et à paramétrer ton compte finement — pas un réglage générique. Plus tes réponses sont détaillées, plus l'IA sonnera comme toi.</span></div>
+            <div><span>{t('audit.ui.note')}</span></div>
           </div>
         </div>
       </header>
@@ -447,7 +449,7 @@ export default function AuditMarque() {
             {FORM.map((sec, i) => (
               <a key={sec.id} href={'#' + sec.id}
                 className={[active === sec.id ? 'active' : '', sectionFilled(sec) ? 'done' : ''].join(' ').trim()}>
-                <span className="n">{num(i)}</span><span>{sec.title}</span><span className="tick" />
+                <span className="n">{num(i)}</span><span>{t(`audit.sec.${sec.id}.title`)}</span><span className="tick" />
               </a>
             ))}
           </nav>
@@ -456,27 +458,27 @@ export default function AuditMarque() {
           <main>
             {FORM.map((sec, i) => (
               <section className="block" id={sec.id} key={sec.id}>
-                <div className="eyebrow">{num(i)} — Étape</div>
-                <h2>{sec.title}</h2>
-                <p className="sub">{sec.sub}</p>
+                <div className="eyebrow">{num(i)} — {t('audit.ui.etape')}</div>
+                <h2>{t(`audit.sec.${sec.id}.title`)}</h2>
+                <p className="sub">{t(`audit.sec.${sec.id}.sub`)}</p>
                 {sec.fields.map((f) => renderField(f))}
               </section>
             ))}
 
             {/* BLOC FINAL */}
             <section className="block finish">
-              <div className="eyebrow">C'est fini</div>
-              <h2>Envoie tes réponses</h2>
-              <p className="sub" style={{ marginBottom: 22 }}>On reçoit tout, on configure ton compte, et on revient vers toi.</p>
+              <div className="eyebrow">{t('audit.ui.finiEyebrow')}</div>
+              <h2>{t('audit.ui.finiTitre')}</h2>
+              <p className="sub" style={{ marginBottom: 22 }}>{t('audit.ui.finiSub')}</p>
               <div style={{ maxWidth: 380, margin: '0 auto 22px', textAlign: 'left' }}>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: 14, marginBottom: 6 }}>Ton email <span style={{ color: 'var(--blue)' }}>*</span></label>
-                <input type="text" value={senderEmail} placeholder="pour qu'on puisse te répondre"
+                <label style={{ display: 'block', fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{t('audit.ui.emailLabel')} <span style={{ color: 'var(--blue)' }}>*</span></label>
+                <input type="text" value={senderEmail} placeholder={t('audit.ui.emailPh')}
                   onChange={(e) => { setSenderEmail(e.target.value); setEmailErr(false); }}
                   style={{ width: '100%', background: 'var(--input)', border: `1px solid ${emailErr ? 'var(--warn)' : 'var(--border)'}`, borderRadius: 11, color: 'var(--text)', font: 'inherit', fontSize: 14.5, padding: '12px 14px' }} />
               </div>
               <div ref={tsRef} className="ts" />
               <button className="btn primary" disabled={sending} onClick={submit} style={sending ? { opacity: 0.7 } : undefined}>
-                {sending ? 'Envoi…' : 'Envoyer les informations'}
+                {sending ? t('audit.ui.envoi') : t('audit.ui.envoyer')}
               </button>
             </section>
           </main>
@@ -484,7 +486,7 @@ export default function AuditMarque() {
       </div>
 
       <footer className="wrap">
-        <div>Postorico · Questionnaire d'onboarding confidentiel</div>
+        <div>{t('audit.ui.footer')}</div>
         <div className="credit">Propulsé par GT BNB · Produit par Blackcore AI · Kraemer V · 78 bld Vitosha, Sofia</div>
       </footer>
 
@@ -494,20 +496,20 @@ export default function AuditMarque() {
           <div className="modal">
             {modal.type === 'success' ? (
               <>
-                <div className="mh"><h3>C'est envoyé</h3><button className="x" onClick={() => setModal(null)}>×</button></div>
-                <div className="mb"><p className="hint">Merci ! Tes réponses ont bien été transmises. <b>On revient vers toi</b> pour la configuration de ton compte.</p></div>
-                <div className="mf"><button className="btn primary" onClick={() => setModal(null)}>Fermer</button></div>
+                <div className="mh"><h3>{t('audit.ui.okTitre')}</h3><button className="x" onClick={() => setModal(null)}>×</button></div>
+                <div className="mb"><p className="hint">{t('audit.ui.okBody')}</p></div>
+                <div className="mf"><button className="btn primary" onClick={() => setModal(null)}>{t('audit.ui.fermer')}</button></div>
               </>
             ) : (
               <>
-                <div className="mh"><h3>Dernière étape</h3><button className="x" onClick={() => setModal(null)}>×</button></div>
+                <div className="mh"><h3>{t('audit.ui.fallbackTitre')}</h3><button className="x" onClick={() => setModal(null)}>×</button></div>
                 <div className="mb">
-                  <p className="hint">L'envoi automatique n'est pas disponible. Pas de souci : <b>télécharge</b> ou <b>copie</b> ce document et renvoie-le nous.</p>
+                  <p className="hint">{t('audit.ui.fallbackBody')}</p>
                   <textarea readOnly value={modal.recap} />
                 </div>
                 <div className="mf">
-                  <button className="btn ghost" onClick={downloadRecap}>Télécharger (.txt)</button>
-                  <button className="btn primary" onClick={copyRecap}>{copied ? 'Copié ✓' : 'Copier le texte'}</button>
+                  <button className="btn ghost" onClick={downloadRecap}>{t('audit.ui.telecharger')}</button>
+                  <button className="btn primary" onClick={copyRecap}>{copied ? t('audit.ui.copie') : t('audit.ui.copier')}</button>
                 </div>
               </>
             )}

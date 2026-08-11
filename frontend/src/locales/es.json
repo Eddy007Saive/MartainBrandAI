@@ -1678,5 +1678,393 @@
     "imageType": "Elige un archivo de imagen (jpg, png…)",
     "imageTropLourde": "Imagen demasiado pesada (10 MB máx.)",
     "imageEchouee": "Publicación creada, pero no se pudo subir la imagen"
+  },
+  "audit": {
+    "sec": {
+      "identite": {
+        "title": "Identidad y empresa",
+        "sub": "Empezamos por lo básico: quién eres y qué haces."
+      },
+      "offre": {
+        "title": "Oferta y posicionamiento",
+        "sub": "Qué vendes y por qué deberían elegirte a ti."
+      },
+      "cible": {
+        "title": "Tu cliente ideal",
+        "sub": "Para hablar con precisión, la IA debe saber a quién se dirige."
+      },
+      "voix": {
+        "title": "Voz y tono",
+        "sub": "El corazón de la configuración: cómo suenas."
+      },
+      "piliers": {
+        "title": "Pilares de contenido",
+        "sub": "Tus grandes temas recurrentes: de lo que hablas todo el tiempo."
+      },
+      "eviter": {
+        "title": "Líneas rojas",
+        "sub": "Lo que la IA nunca deberá hacer. Tan importante como el resto."
+      },
+      "hooks": {
+        "title": "Ganchos y llamadas a la acción",
+        "sub": "Lo que hace parar el scroll y lo que impulsa a actuar."
+      },
+      "regles": {
+        "title": "Reglas editoriales",
+        "sub": "Tu «biblia»: las reglas que la IA respetará al pie de la letra."
+      },
+      "exemples": {
+        "title": "Tus mejores contenidos",
+        "sub": "Lo más valioso para calibrar: pega tus posts reales. Opcional pero muy recomendable."
+      },
+      "reseaux": {
+        "title": "Redes y ritmo",
+        "sub": "Dónde publicas y con qué frecuencia."
+      },
+      "visuel": {
+        "title": "Identidad visual",
+        "sub": "Tus colores y tu estilo para los visuales generados."
+      },
+      "objectifs": {
+        "title": "Objetivos",
+        "sub": "Para terminar: qué quieres que todo esto te aporte."
+      }
+    },
+    "f": {
+      "marque": {
+        "label": "Nombre de la marca / empresa",
+        "ph": "El nombre con el que comunicas"
+      },
+      "dirigeant": {
+        "label": "Tu nombre y apellido",
+        "ph": "Quien encarna la marca"
+      },
+      "site": {
+        "label": "Sitio web o enlace principal",
+        "ph": "https://…"
+      },
+      "secteur": {
+        "label": "Tu sector de actividad, en una frase",
+        "help": "Preciso. El oficio exacto, no la categoría amplia.",
+        "ph": "Ej.: Coach de nutrición deportiva para mujeres activas"
+      },
+      "anciennete": {
+        "label": "Desde cuándo existe la empresa",
+        "ph": "Ej.: 2021"
+      },
+      "zone": {
+        "label": "Tu zona geográfica / tus mercados",
+        "ph": "Ej.: España, o «online, en todas partes»"
+      },
+      "pitch": {
+        "label": "En una frase simple: ¿qué haces y para quién?",
+        "help": "Como si se lo explicaras a un desconocido en una fiesta.",
+        "ph": "Ej.: Ayudo a [clientes] a [resultado] gracias a [método]."
+      },
+      "produits": {
+        "label": "¿Qué vendes concretamente? (productos / servicios)",
+        "ph": "Enumera tus ofertas principales, en pocas líneas."
+      },
+      "valeur": {
+        "label": "Tu propuesta de valor en una frase",
+        "help": "El beneficio nº1 que aportas.",
+        "ph": "El resultado concreto que tu cliente obtiene gracias a ti."
+      },
+      "diff": {
+        "label": "¿Qué te hace diferente? (3 cosas)",
+        "help": "Lo que los demás no hacen, o no como tú.",
+        "ph": "1.\n2.\n3."
+      },
+      "concurrents": {
+        "label": "Tus 2-3 competidores o alternativas",
+        "help": "Nunca los citaremos; es solo para situar tu mercado.",
+        "ph": "Ej.: otros programas, agencias, hacerlo uno mismo"
+      },
+      "histoire": {
+        "label": "¿Por qué lanzaste esta empresa? Tu historia",
+        "help": "El «porqué» detrás del proyecto. A menudo es el oro de tu comunicación.",
+        "ph": "El detonante, el problema vivido, la lucha que te empujó a crear esto…"
+      },
+      "position": {
+        "label": "Tu posicionamiento de precio",
+        "opt": {
+          "premium": "Premium / gama alta",
+          "milieu": "Gama media",
+          "accessible": "Asequible / agresivo",
+          "surmesure": "A medida / variable"
+        }
+      },
+      "persona": {
+        "label": "Describe a tu cliente ideal",
+        "help": "¿Quién es? Profesión, edad, situación, nivel…",
+        "ph": "Ej.: emprendedor en solitario, 30-45 años, ya factura pero está desbordado, quiere estructurarse sin agotarse."
+      },
+      "douleurs": {
+        "label": "Sus 3 mayores frustraciones / problemas",
+        "ph": "1.\n2.\n3."
+      },
+      "desir": {
+        "label": "Lo que realmente quiere conseguir",
+        "help": "Más allá del producto: su objetivo profundo.",
+        "ph": "Ej.: recuperar el control, escalar sin agotarse, construir un activo que valga algo."
+      },
+      "objections": {
+        "label": "Sus frenos / objeciones antes de comprar",
+        "help": "Lo que le impide decir que sí.",
+        "ph": "Ej.: «ya tengo mis herramientas», «es caro», «no tengo tiempo para migrar»…"
+      },
+      "vocabulaire": {
+        "label": "¿Cómo habla? Sus palabras, sus expresiones",
+        "help": "La jerga de tu cliente. La IA la usará para sonar natural.",
+        "ph": "Palabras del oficio, giros, expresiones que usa de verdad."
+      },
+      "adresse": {
+        "label": "Te diriges a tu audiencia con…",
+        "opt": {
+          "tutoiement": "Tuteo",
+          "vouvoiement": "Usted",
+          "depend": "Depende de la red"
+        }
+      },
+      "adjectifs": {
+        "label": "3 a 5 adjetivos que describen tu tono",
+        "help": "El carácter de tu marca por escrito.",
+        "ph": "Ej.: directo, cercano, sin rodeos, experto, claro"
+      },
+      "langage": {
+        "label": "Nivel de lenguaje",
+        "opt": {
+          "familier": "Coloquial / hablado",
+          "pro": "Profesional pero accesible",
+          "expert": "Experto / técnico",
+          "premium": "Premium / sobrio"
+        }
+      },
+      "emojis": {
+        "label": "¿Emojis?",
+        "opt": {
+          "beaucoup": "Muchos, forman parte del estilo",
+          "parcimonie": "Con moderación",
+          "jamais": "Nunca"
+        }
+      },
+      "phrases": {
+        "label": "Estilo de frases",
+        "opt": {
+          "courtes": "Cortas, con punch, rítmicas",
+          "developpees": "Desarrolladas, pausadas",
+          "mix": "Una mezcla de ambas"
+        }
+      },
+      "personne": {
+        "label": "Si tu marca fuera una persona, ¿quién sería?",
+        "help": "Un personaje, un tipo de mentor, un ambiente. Muy útil para calibrar el tono.",
+        "ph": "Ej.: el hermano mayor emprendedor que te dice la verdad sin rodeos."
+      },
+      "inspirations_ton": {
+        "label": "Creadores / marcas cuyo estilo de escritura te gusta",
+        "help": "Nos inspiramos para el tono (nunca para copiar).",
+        "ph": "Nombres de cuentas, marcas, personas…"
+      },
+      "themes": {
+        "label": "Tus 3 a 5 grandes temas recurrentes",
+        "help": "Uno por línea. Son tus «pilares».",
+        "ph": "Ej.:\nMindset y confianza\nMétodo / entre bastidores\nCasos de clientes\nMi vida de emprendedor"
+      },
+      "reference": {
+        "label": "¿En qué tema quieres ser LA referencia?",
+        "help": "El terreno donde quieres que piensen primero en ti.",
+        "ph": "Tu área de experiencia nº1"
+      },
+      "message": {
+        "label": "¿Qué quieres que la gente recuerde de ti?",
+        "help": "Tu mensaje de fondo, tu convicción profunda.",
+        "ph": "Tu frase firma, tu creencia fuerte."
+      },
+      "opinions": {
+        "label": "Opiniones contundentes que asumes",
+        "help": "Las opiniones que dividen hacen los mejores contenidos.",
+        "ph": "Aquello en lo que no estás de acuerdo con tu sector."
+      },
+      "mots_bannis": {
+        "label": "Palabras / expresiones prohibidas",
+        "help": "El vocabulario que no te representa.",
+        "ph": "Ej.: «disruptivo», jerga corporativa, anglicismos innecesarios…"
+      },
+      "tons_eviter": {
+        "label": "Tonos a evitar absolutamente",
+        "ph": "Ej.: moralizador, vendedor agresivo, cursi, hype"
+      },
+      "tabous": {
+        "label": "Temas tabú / prohibidos",
+        "help": "Lo que no se toca.",
+        "ph": "Política, religión, temas sensibles de tu sector…"
+      },
+      "promesses": {
+        "label": "Promesas que NUNCA harás",
+        "help": "Importante para seguir siendo creíble y conforme.",
+        "ph": "Ej.: sin resultados garantizados con cifras, sin «x10 en 30 días»…"
+      },
+      "legal": {
+        "label": "Restricciones legales / normativas",
+        "help": "Menciones obligatorias, sector regulado, etc.",
+        "ph": "Si hay normas de cumplimiento que respetar."
+      },
+      "hooks_ok": {
+        "label": "Tus mejores ganchos que funcionaron",
+        "help": "Uno por línea. La IA se inspira en ellos para abrir los posts.",
+        "ph": "Ej.:\nDurante 2 años malvendí mis precios…\nEl 90% de los [clientes] comete este error\nNadie te dirá esto, pero…"
+      },
+      "cta": {
+        "label": "Tus llamadas a la acción habituales",
+        "help": "Una por línea. Lo que pides al lector que haga.",
+        "ph": "Ej.:\nComenta la palabra [X]\nEnlace en la bio\nEscríbeme por DM"
+      },
+      "offres_push": {
+        "label": "Enlaces / ofertas para promocionar regularmente",
+        "ph": "Lead magnet, auditoría gratuita, página de venta, palabra clave de ManyChat…"
+      },
+      "bible": {
+        "label": "Tus reglas estrictas",
+        "help": "Todo lo que prima sobre el resto. Estructura, lo prohibido, dosificación de CTA…",
+        "ph": "Ej.:\n1. Un solo CTA por post.\n2. Siempre un pilar + un gancho.\n3. Nunca promesas con cifras garantizadas."
+      },
+      "structure_post": {
+        "label": "Tu estructura de post preferida",
+        "help": "Cómo construyes un post que funciona.",
+        "ph": "Ej.: gancho → historia/prueba → lección → CTA"
+      },
+      "cta_nombre": {
+        "label": "¿Cuántos CTA por post?",
+        "opt": {
+          "unseul": "Solo uno, siempre",
+          "contexte": "Según el contexto",
+          "plusieurs": "Varios están bien"
+        }
+      },
+      "hashtags": {
+        "label": "¿Hashtags?",
+        "opt": {
+          "beaucoup": "Sí, muchos",
+          "cibles": "Algunos segmentados",
+          "aucun": "Ninguno"
+        }
+      },
+      "ex_linkedin": {
+        "label": "1 a 3 de tus mejores posts"
+      },
+      "plateformes": {
+        "label": "¿En qué redes quieres publicar?",
+        "ph": "Ej.: LinkedIn, Instagram, Facebook, TikTok"
+      },
+      "profils": {
+        "label": "Enlaces de tus perfiles existentes",
+        "help": "Para recuperar tu estilo y tu historial.",
+        "ph": "Un enlace por línea."
+      },
+      "frequence": {
+        "label": "Frecuencia de publicación deseada",
+        "opt": {
+          "s12": "1-2 / semana",
+          "s34": "3-4 / semana",
+          "j1": "1 / día",
+          "jplus": "Varios / día"
+        }
+      },
+      "creneaux": {
+        "label": "Días / franjas preferidos",
+        "ph": "Ej.: entre semana por la mañana, no el fin de semana"
+      },
+      "col1": {
+        "label": "Color principal"
+      },
+      "col2": {
+        "label": "Color secundario"
+      },
+      "col3": {
+        "label": "Color de acento"
+      },
+      "charte": {
+        "label": "Tu logo",
+        "help": "Sube tu logo (PNG, JPG, SVG, WebP — 5 MB máx.)."
+      },
+      "style_visuel": {
+        "label": "El estilo visual que te gusta",
+        "help": "Ambiente general de tus visuales.",
+        "ph": "Ej.: limpio, premium, oscuro, mucho espacio, poco texto…"
+      },
+      "polices": {
+        "label": "Tipografías utilizadas (si tienes)",
+        "ph": "Ej.: Space Grotesk, Inter"
+      },
+      "inspis_visuel": {
+        "label": "2-3 cuentas cuyo visual te encanta",
+        "help": "Nos inspiramos en la composición y el ambiente.",
+        "ph": "Nombres de cuentas o enlaces."
+      },
+      "visuels_upload": {
+        "label": "Visuales que te gustan (subida)",
+        "help": "Sube ejemplos de visuales — {{max}} imágenes máx., {{mb}} MB cada una."
+      },
+      "objectif": {
+        "label": "Objetivo nº1 de tus redes",
+        "opt": {
+          "notoriete": "Notoriedad / imagen",
+          "leads": "Generar leads",
+          "vendre": "Vender directamente",
+          "recruter": "Reclutar",
+          "tout": "Todo a la vez"
+        }
+      },
+      "succes": {
+        "label": "¿Cómo mides el éxito?",
+        "ph": "Ej.: leads cualificados, DMs recibidos, auditorías reservadas…"
+      },
+      "libre": {
+        "label": "Unas palabras para terminar / contexto útil",
+        "help": "Todo lo que no hemos preguntado y que importa para ti.",
+        "ph": "Campo libre."
+      }
+    },
+    "ui": {
+      "onboarding": "Onboarding",
+      "h1a": "Auditoría de marca.",
+      "h1b": "Para que la IA hable",
+      "h1em": "exactamente",
+      "h1c": "como tú.",
+      "lead": "Este cuestionario es la etapa de configuración de tu cuenta. Cuanto más precisas y detalladas sean tus respuestas, más acertados sonarán los contenidos generados: tu tono, tu público, tus palabras. Calcula de 20 a 30 minutos. Responde con tus palabras, sin cuidar la forma.",
+      "note": "Tómate el tiempo de rellenarlo todo, con la mayor precisión posible. Es el material que usamos para hacer una auditoría completa de tu marca y configurar tu cuenta con precisión, no un ajuste genérico. Cuanto más detalladas sean tus respuestas, más sonará la IA como tú.",
+      "etape": "Paso",
+      "finiEyebrow": "Ya está",
+      "finiTitre": "Envía tus respuestas",
+      "finiSub": "Lo recibimos todo, configuramos tu cuenta y te contactamos.",
+      "emailLabel": "Tu email",
+      "emailPh": "para poder responderte",
+      "envoyer": "Enviar la información",
+      "envoi": "Enviando…",
+      "robot": "Confirma que no eres un robot.",
+      "antibot": "Falló la verificación anti-bot. Inténtalo de nuevo.",
+      "okTitre": "¡Enviado!",
+      "okBody": "¡Gracias! Tus respuestas se han enviado correctamente. Te contactaremos para configurar tu cuenta.",
+      "fermer": "Cerrar",
+      "fallbackTitre": "Último paso",
+      "fallbackBody": "El envío automático no está disponible. No pasa nada: descarga o copia este documento y envíanoslo.",
+      "telecharger": "Descargar (.txt)",
+      "copier": "Copiar el texto",
+      "copie": "Copiado ✓",
+      "importerLogo": "Subir el logo",
+      "remplacerLogo": "Reemplazar el logo",
+      "ajouterImages": "Añadir imágenes",
+      "maxAtteint": "Máximo alcanzado ({{n}})",
+      "retirer": "Quitar",
+      "maxImages": "{{n}} imágenes como máximo.",
+      "maxImagesTronque": "{{n}} imágenes como máximo; solo se añaden las {{room}} primeras.",
+      "pasImage": "«{{name}}» no es una imagen.",
+      "tropGros": "«{{name}}» supera {{mb}} MB.",
+      "trop429": "Demasiados envíos, inténtalo en unos minutos.",
+      "uploadEchec": "Error al subir. Inténtalo de nuevo.",
+      "tabsPh": "Pega aquí de 1 a 3 de tus mejores posts de {{reseau}}. Sepáralos con una línea ---",
+      "footer": "Postorico · Cuestionario de onboarding confidencial"
+    }
   }
 }
