@@ -304,7 +304,117 @@ export default function ContenusPage() {
   useEffect(() => {
     contenuService.reelTemplates().then((t) => { if (t?.length) setReelTemplates(t); }).catch(() => {});
   }, []);
+  // Séquence : le CLIENT fournit les visuels (upload / banque) + un brief — l'IA monte
+  const [seqFor, setSeqFor] = useState(null);
+  const [seqImages, setSeqImages] = useState([]);      // {url, desc, src}
+  const [seqBrief, setSeqBrief] = useState('');
+  const [seqBanque, setSeqBanque] = useState(null);    // null = chargement
+  const [seqUploading, setSeqUploading] = useState(false);
+  const seqCache = useRef({});   // mémorise images + brief par contenu (fermer ≠ perdre)
+  const [seqRegen, setSeqRegen] = useState(false);   // true = modification d'un reel existant
+  const [seqLibre, setSeqLibre] = useState(false);   // true = reel créé de zéro (le brief est le sujet)
+  const [seqReseau, setSeqReseau] = useState('Instagram');
+  const openSequenceLibre = () => {
+    setSeqRegen(false);
+    setSeqLibre(true);
+    setSeqFor({ id: '__libre__' });
+    setSeqImages([]);
+    setSeqBrief('');
+    setSeqReseau('Instagram');
+    setSeqBanque(null);
+    contenuService.reelBanque().then(setSeqBanque).catch(() => setSeqBanque([]));
+  };
+  // Modifier un reel existant : dialogue pré-rempli depuis son scénario, re-rendu SUR PLACE
+  const openSequenceRegen = (reel) => {
+    setSelectedContenu(null);
+    setSeqLibre(false);
+    setSeqRegen(true);
+    setSeqFor(reel);
+    const sc = reel.reel_data || {};
+    const imgs = [];
+    (sc.segments || []).forEach((s) => {
+      if (s.image && !imgs.some((i) => i.url === s.image)) imgs.push({ url: s.image, desc: null, src: 'reel' });
+    });
+    setSeqImages(imgs);
+    setSeqBrief(sc.brief || '');
+    setSeqBanque(null);
+    contenuService.reelBanque().then(setSeqBanque).catch(() => setSeqBanque([]));
+  };
+  const openSequence = (contenu) => {
+    setReelFor(null);
+    setSeqLibre(false);
+    setSeqRegen(false);
+    setSeqFor(contenu);
+    const cached = seqCache.current[contenu.id];
+    if (cached) {
+      setSeqImages(cached.images);
+      setSeqBrief(cached.brief);
+    } else {
+      // Les visuels du post sont proposés d'office (le principal présélectionné)
+      const init = [];
+      if (contenu.lien_visuel && !contenu.lien_visuel.endsWith('.mp4') && !contenu.lien_visuel.includes('/video/upload/')) {
+        init.push({ url: contenu.lien_visuel, desc: '', src: 'post' });
+      }
+      setSeqImages(init);
+      setSeqBrief('');
+    }
+    setSeqBanque(null);
+    contenuService.reelBanque().then(setSeqBanque).catch(() => setSeqBanque([]));
+  };
+  useEffect(() => {
+    if (seqFor) seqCache.current[seqFor.id] = { images: seqImages, brief: seqBrief };
+  }, [seqFor, seqImages, seqBrief]);
+  const seqToggleBanque = (img) => {
+    setSeqImages((prev) => prev.some((i) => i.url === img.url)
+      ? prev.filter((i) => i.url !== img.url)
+      : (prev.length >= 6 ? prev : [...prev, { url: img.url, desc: img.description || '', src: 'banque' }]));
+  };
+  const seqUpload = async (files) => {
+    const list = Array.from(files || []).slice(0, 6 - seqImages.length);
+    if (!list.length) return;
+    setSeqUploading(true);
+    try {
+      for (const f of list) {
+        // L'image entre dans la BANQUE de la marque (conservée), puis est sélectionnée
+        const a = await contenuService.reelBanqueAjouter(f);
+        setSeqBanque((prev) => [a, ...(prev || [])]);
+        setSeqImages((prev) => prev.length >= 6 ? prev : [...prev, { url: a.url, desc: a.description || '', src: 'banque' }]);
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.reel.seq.uploadEchec'));
+    } finally { setSeqUploading(false); }
+  };
+  const doSeqReel = async () => {
+    if (!seqFor) return;
+    const contenu = seqFor;
+    if (seqLibre && !seqBrief.trim()) { toast.error(t('contenus.reel.seq.briefRequis')); return; }
+    setSeqFor(null);
+    setReelLoading(contenu.id);
+    toast.info(t('contenus.toast.reelEnCours', { label: 'Séquence', min: 2 }));
+    const payload = {
+      images: seqImages.map((i) => ({ url: i.url, desc: i.desc || null })),
+      brief: seqBrief.trim() || null,
+    };
+    try {
+      if (seqLibre) {
+        await contenuService.creerReel({ ...payload, reseau: seqReseau });
+      } else if (seqRegen) {
+        const d = await contenuService.regenererReel(contenu.id, payload);
+        const patch = { video_url: d.video_url, video_preview_url: d.video_preview_url, lien_visuel: d.video_preview_url };
+        setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
+        delete seqCache.current[contenu.id];
+      } else {
+        await contenuService.genererReel(contenu.id, 'sequence', payload);
+      }
+      toast.success(t('contenus.toast.reelGenere'));
+      fetchContenus();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));
+    } finally { setReelLoading(null); }
+  };
+
   const doReel = async (contenu, duree = 'affiche') => {
+    if (duree === 'sequence') { openSequence(contenu); return; }
     if (reelLoading) return;
     setReelFor(null);
     setReelLoading(contenu.id);
@@ -939,6 +1049,14 @@ export default function ContenusPage() {
               {t('contenus.actions.postManuel')}
             </Button>
             <Button
+              onClick={openSequenceLibre}
+              data-testid="btn-creer-reel"
+              className="bg-white/[0.06] border border-white/[0.10] text-slate-200 hover:bg-white/[0.10] hover:text-white"
+            >
+              <Clapperboard className="w-4 h-4 mr-2" />
+              {t('contenus.reel.seq.creerTitre')}
+            </Button>
+            <Button
               variant="ghost"
               size="sm"
               onClick={fetchContenus}
@@ -1137,7 +1255,16 @@ export default function ContenusPage() {
                     </div>
                   ) : selectedContenu.video_url ? (
                     // Vidéo / Reel montée (Studio Vidéo)
-                    <video src={selectedContenu.video_url} controls className="w-full max-h-[70vh] rounded-xl bg-black object-contain" poster={selectedContenu.lien_visuel || undefined} />
+                    <div className="space-y-2.5">
+                      <video src={selectedContenu.video_url} controls className="w-full max-h-[70vh] rounded-xl bg-black object-contain" poster={selectedContenu.lien_visuel || undefined} />
+                      {selectedContenu.type === 'Reel' && selectedContenu.reel_data && selectedContenu.statut === 'A valider' && (
+                        <button type="button" onClick={() => openSequenceRegen(selectedContenu)} data-testid="reel-modifier"
+                          disabled={reelLoading === selectedContenu.id}
+                          className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-3.5 py-2.5 rounded-[10px] transition-colors active:scale-[0.98] disabled:opacity-50">
+                          {reelLoading === selectedContenu.id ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.modifier')}
+                        </button>
+                      )}
+                    </div>
                   ) : selectedContenu.video_status === 'en_traitement' ? (
                     <div className="w-full aspect-[9/16] max-h-[70vh] rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-400">
                       <Loader2 className="w-7 h-7 animate-spin text-[#8A6CFF]" />
@@ -1498,6 +1625,121 @@ export default function ContenusPage() {
                       <p className="text-xs text-slate-400 font-inter mt-1">{tpl.desc}</p>
                     </button>
                   ))}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Séquence : le client fournit les visuels + un brief, l'IA monte */}
+        <Dialog open={!!seqFor} onOpenChange={() => setSeqFor(null)}>
+          <DialogContent className="bg-[#0f172a] border-slate-800 sm:max-w-[560px]">
+            <DialogHeader>
+              <DialogTitle className="text-white font-sora">{t('contenus.reel.seq.titre')}</DialogTitle>
+            </DialogHeader>
+            {seqFor && (
+              <div className="space-y-4">
+                <p className="text-sm text-slate-400 font-inter">{t('contenus.reel.seq.description')}</p>
+
+                {/* Visuels choisis (dans l'ordre du montage) */}
+                {seqImages.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.choisis')}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {seqImages.map((img, idx) => (
+                        <div key={img.url} className="relative w-16 h-16 rounded-lg overflow-hidden border border-[#3AFFA3]/40">
+                          <img src={img.url} alt="" className="w-full h-full object-cover" />
+                          <span className="absolute bottom-0.5 left-0.5 text-[10px] font-bold text-white bg-black/60 rounded px-1">{idx + 1}</span>
+                          <button type="button" onClick={() => setSeqImages((p) => p.filter((i) => i.url !== img.url))}
+                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white text-[12px] leading-none">×</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Visuels du post (sélectionnables) */}
+                {(() => {
+                  const postImgs = [seqFor.lien_visuel, ...(seqFor.slides_images || [])]
+                    .filter((u) => u && !u.endsWith('.mp4') && !u.includes('/video/upload/'))
+                    .filter((u, i, arr) => arr.indexOf(u) === i).slice(0, 6);
+                  if (!postImgs.length) return null;
+                  return (
+                    <div>
+                      <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.duPost')}</div>
+                      <div className="flex flex-wrap gap-2">
+                        {postImgs.map((u) => {
+                          const on = seqImages.some((i) => i.url === u);
+                          return (
+                            <button key={u} type="button" onClick={() => seqToggleBanque({ url: u, description: '' })}
+                              className={`relative w-16 h-16 rounded-lg overflow-hidden border transition-all ${on ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/40' : 'border-white/10 hover:border-white/30'}`}>
+                              <img src={u} alt="" className="w-full h-full object-cover" />
+                              {on && <span className="absolute inset-0 bg-[#3AFFA3]/20 grid place-items-center text-[#3AFFA3] font-bold">✓</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Import direct */}
+                <label className={`inline-flex items-center gap-2 text-[13px] font-inter font-semibold px-3.5 py-2 rounded-[10px] border border-dashed cursor-pointer transition-colors ${seqUploading || seqImages.length >= 6 ? 'border-white/10 text-slate-600 cursor-not-allowed' : 'border-[#5B6CFF]/50 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
+                  <input type="file" accept="image/*" multiple className="hidden" disabled={seqUploading || seqImages.length >= 6}
+                    onChange={(e) => { seqUpload(e.target.files); e.target.value = ''; }} />
+                  {seqUploading ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.importer')}
+                </label>
+                <span className="ml-2 text-[11px] text-slate-500 font-inter">{seqImages.length}/6</span>
+
+                {/* Banque d'images de la marque */}
+                <div>
+                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.banque')}</div>
+                  {seqBanque === null ? (
+                    <div className="text-xs text-slate-500 font-inter">…</div>
+                  ) : seqBanque.length === 0 ? (
+                    <div className="text-xs text-slate-500 font-inter">{t('contenus.reel.seq.banqueVide')}</div>
+                  ) : (
+                    <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto pr-1">
+                      {seqBanque.map((img) => {
+                        const on = seqImages.some((i) => i.url === img.url);
+                        return (
+                          <button key={img.id} type="button" onClick={() => seqToggleBanque(img)} title={img.description || ''}
+                            className={`relative aspect-square rounded-lg overflow-hidden border transition-all ${on ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/40' : 'border-white/10 hover:border-white/30'}`}>
+                            <img src={img.url} alt="" className="w-full h-full object-cover" />
+                            {on && <span className="absolute inset-0 bg-[#3AFFA3]/20 grid place-items-center text-[#3AFFA3] font-bold">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Réseau cible (mode création libre) */}
+                {seqLibre && (
+                  <div>
+                    <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.reseau')}</div>
+                    <select value={seqReseau} onChange={(e) => setSeqReseau(e.target.value)}
+                      className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
+                      {['Instagram', 'TikTok', 'Facebook', 'LinkedIn', 'YouTube'].map((n) => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                {/* Brief libre */}
+                <div>
+                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{seqLibre ? t('contenus.reel.seq.briefSujet') : t('contenus.reel.seq.brief')}</div>
+                  <textarea value={seqBrief} onChange={(e) => setSeqBrief(e.target.value)} rows={3} maxLength={500}
+                    placeholder={t('contenus.reel.seq.briefPh')}
+                    className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 resize-none" />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <button type="button" onClick={() => setSeqFor(null)}
+                    className="text-[13px] font-inter text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-white/10">{t('contenus.actions.annuler')}</button>
+                  <button type="button" onClick={doSeqReel} disabled={seqUploading} data-testid="seq-generer"
+                    className="text-[13px] font-semibold font-inter text-white px-5 py-2 rounded-lg bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 active:scale-[0.97] disabled:opacity-50">
+                    {t('contenus.reel.seq.generer')}
+                  </button>
                 </div>
               </div>
             )}

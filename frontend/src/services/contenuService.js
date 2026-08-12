@@ -28,7 +28,21 @@ export const contenuService = {
   recycler: (id, reseaux) => api.post(`/contenus/${id}/recycler`, { reseaux }).then(r => r.data),
 
   // Génère un reel animé à la charte (Remotion) — rendu long : timeout large
-  genererReel: (id, template = 'affiche') => api.post('/reels/generer', { contenu_id: id, template }, { timeout: 300000 }).then(r => r.data),
+  genererReel: (id, template = 'affiche', extra = {}) => api.post('/reels/generer', { contenu_id: id, template, ...extra }, { timeout: 300000 }).then(r => r.data),
+  // Séquence : visuels choisis par le client + banque de la marque
+  reelUploadImage: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post('/reels/upload-image', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 }).then(r => r.data);
+  },
+  reelBanque: () => api.get('/reels/banque').then(r => r.data.images || []),
+  reelBanqueAjouter: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post('/reels/banque', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 }).then(r => r.data);
+  },
+  regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }, { timeout: 300000 }).then(r => r.data),
+  creerReel: (extra = {}) => api.post('/reels/creer', extra, { timeout: 300000 }).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data.templates || []),
 
   // Replanifie sur le prochain créneau libre (algorithme de planification) + reprogramme Zernio

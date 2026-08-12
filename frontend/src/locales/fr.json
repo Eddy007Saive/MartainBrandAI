@@ -206,7 +206,26 @@
     "reel": {
       "generer": "Générer un reel animé",
       "description": "Le post est transformé en vidéo verticale animée à ta charte. Choisis le template :",
-      "nouveau": "★ Nouveau"
+      "nouveau": "★ Nouveau",
+      "seq": {
+        "titre": "Reel Séquence",
+        "description": "Choisis les images de ton reel (import ou banque), ajoute des consignes si tu veux — l'IA écrit les textes et monte la vidéo.",
+        "importer": "Ajouter des images",
+        "envoi": "Envoi…",
+        "banque": "Ta banque d'images",
+        "banqueVide": "Ta banque est vide — importe des images ci-dessus : elles y seront conservées pour tous tes reels.",
+        "brief": "Consignes (optionnel)",
+        "briefPh": "Ex : mets l'accent sur la promo -20 %, ton énergique, termine sur le logo…",
+        "generer": "Générer le reel",
+        "uploadEchec": "Échec de l'upload de l'image.",
+        "choisis": "Images du reel (dans l'ordre)",
+        "duPost": "Visuels du post",
+        "modifier": "Modifier le reel",
+        "creerTitre": "Créer un reel",
+        "reseau": "Réseau de publication",
+        "briefSujet": "Sujet du reel (obligatoire)",
+        "briefRequis": "Décris ton reel : le sujet est obligatoire en création libre."
+      }
     },
     "reelTpl": {
       "afficheLabel": "Affiche",

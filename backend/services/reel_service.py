@@ -151,12 +151,36 @@ _ROLE_SEQUENCE = (
 )
 
 
+def upload_image_source(telegram_id: str, data: bytes) -> dict:
+    """Visuel source d'un reel Sequence : Cloudinary + description vision (une fois)."""
+    from services.banque_service import _decrire
+    up = cloudinary.uploader.upload(
+        data, folder=f"reels-sources/{telegram_id}",
+        transformation=[{"width": 1600, "crop": "limit"}, {"quality": "auto"}],
+    )
+    url = up["secure_url"]
+    d = _decrire(url)
+    return {"url": url, "desc": d["description"]}
+
+
+def _est_image_source(url: str) -> bool:
+    """Une vraie image : pas un mp4, pas un poster derive d'une video (/video/upload/)."""
+    return bool(url) and not url.endswith(".mp4") and "/video/upload/" not in url
+
+
+def _img_rendu(url: str) -> str:
+    """Version 1200px/q_auto d'une image Cloudinary : chargement rapide au rendu."""
+    if url and "res.cloudinary.com" in url and "/upload/" in url and "/upload/w_" not in url:
+        return url.replace("/upload/", "/upload/w_1200,q_auto/", 1)
+    return url
+
+
 def _pool_visuels(telegram_id: str, cur: dict) -> list:
     """Visuels mobilisables pour le scenario : visuel du post + gabarits de la marque.
     Chaque entree : {id, url, desc} — l'agent ne voit que id + desc, jamais d'URL."""
     pool = []
     lv = cur.get("lien_visuel")
-    if lv and "cloudinary" in lv:
+    if lv and "cloudinary" in lv and _est_image_source(lv):
         pool.append({"id": "visuel_post", "url": lv, "desc": "Visuel principal du post"})
     for s_url in (cur.get("slides_images") or [])[:3]:
         pool.append({"id": f"slide_{len(pool)}", "url": s_url, "desc": "Slide du carrousel du post"})
@@ -174,18 +198,25 @@ def _pool_visuels(telegram_id: str, cur: dict) -> list:
     return pool[:8]
 
 
-def _script_sequence(texte: str, marque: dict, pool: list) -> dict:
-    """Scenario de sequence ; validation stricte + repli heuristique."""
+def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, imposees: bool = False) -> dict:
+    """Scenario de sequence ; validation stricte + repli heuristique.
+    imposees=True : les visuels ont ete CHOISIS par le client -> tous utilises."""
     ids = {p["id"] for p in pool}
-    urls = {p["id"]: p["url"] for p in pool}
+    urls = {p["id"]: _img_rendu(p["url"]) for p in pool}
     liste = "\n".join(f"- {p['id']} : {p['desc']}" for p in pool) or "(aucun visuel disponible)"
+    consigne = ""
+    if imposees and pool:
+        consigne = ("\nIMPORTANT : ces visuels ont ete choisis par le client. Tu DOIS tous les utiliser, "
+                    "un par plan de type image, dans l'ordre le plus logique pour la narration.")
+    if brief:
+        consigne += f"\nConsignes du client (prioritaires) : {brief[:500]}"
     segments = None
     try:
         resp = _messages_create(
             model="claude-haiku-4-5",
             max_tokens=900,
             system=_ROLE_SEQUENCE,
-            messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nVisuels disponibles :\n{liste}\n\nDonne le JSON."}],
+            messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nVisuels disponibles :\n{liste}{consigne}\n\nDonne le JSON."}],
         )
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         m = re.search(r"\{.*\}", raw, re.S)
@@ -221,17 +252,21 @@ def _script_sequence(texte: str, marque: dict, pool: list) -> dict:
     except Exception as e:
         logger.warning(f"reel sequence script LLM: {e}")
     if segments is None:
-        # Repli : hook -> visuel (si dispo) -> 2 phrases -> CTA
+        # Repli : hook -> visuels -> CTA. Si les visuels sont imposes, TOUS y passent.
         phrases = [s.strip() for s in re.split(r"(?<=[.!?])\s+", texte or "") if s.strip()]
         segments = [{"type": "typo", "dur": 2.6, "texte": (phrases[0] if phrases else "Un contenu qui travaille pour toi.")[:70], "accents": []}]
-        if pool:
-            segments.append({"type": "image", "dur": 3.0, "texte": (phrases[1] if len(phrases) > 1 else "Regarde.")[:60],
-                             "accents": [], "image": pool[0]["url"], "image_id": pool[0]["id"], "effet": "zoomIn", "tilt": -3})
-        for p in phrases[2:4]:
-            segments.append({"type": "typo", "dur": 2.8, "texte": p[:70], "accents": []})
+        visuels = pool if imposees else pool[:1]
+        effets = ["zoomIn", "panRight", "zoomOut", "panLeft"]
+        for i, v in enumerate(visuels[:5]):
+            txt = (phrases[1 + i] if len(phrases) > 1 + i else "Regarde.")[:60]
+            segments.append({"type": "image", "dur": 3.0, "texte": txt, "accents": [],
+                             "image": _img_rendu(v["url"]), "image_id": v["id"], "effet": effets[i % 4], "tilt": [-3, 2, -2, 3][i % 4]})
+        if not visuels:
+            for p in phrases[2:4]:
+                segments.append({"type": "typo", "dur": 2.8, "texte": p[:70], "accents": []})
         segments.append({"type": "cta", "dur": 3.2, "texte": "On en parle ?", "accents": [],
                          "bar": str(marque.get("nom") or "Suis-nous")[:40]})
-    return {"recette": "auto", "segments": segments}
+    return {"recette": "auto", "brief": brief, "segments": segments}
 
 
 def _script_depuis_post(texte: str, marque: dict, long: bool = False) -> dict:
@@ -296,7 +331,7 @@ def _rendre_mp4(props: dict, composition: str = "ReelBrand") -> str:
         json.dump(props, f, ensure_ascii=False)
     out_path = os.path.join(tempfile.gettempdir(), f"reel_{next(tempfile._get_candidate_names())}.mp4")
     npx = "npx.cmd" if os.name == "nt" else "npx"
-    cmd = [npx, "remotion", "render", "src/index.ts", composition, out_path, f"--props={props_path}"]
+    cmd = [npx, "remotion", "render", "src/index.ts", composition, out_path, f"--props={props_path}", "--timeout=120000"]
     if REMOTION_BROWSER:
         cmd.append(f"--browser-executable={REMOTION_BROWSER}")
     try:
@@ -313,7 +348,145 @@ def _rendre_mp4(props: dict, composition: str = "ReelBrand") -> str:
             pass
 
 
-def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact") -> dict:
+def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: str = "Instagram") -> dict:
+    """Cree un reel Sequence SANS contenu source : le brief du client est le sujet.
+    Le resultat entre dans Contenus comme un Reel « A valider », planifie normalement."""
+    if not (brief or "").strip():
+        return {"error": "Decris ton reel : le brief est le sujet."}
+    u = _charger_marque(telegram_id)
+    imgs = [{"url": im.get("url"), "desc": im.get("desc")}
+            for im in (images or []) if _est_image_source(im.get("url"))]
+    if imgs:
+        pool = [{"id": f"img_{i+1}", "url": im["url"],
+                 "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
+                for i, im in enumerate(imgs)]
+        scenario = _script_sequence(brief, u, pool, brief=brief, imposees=True)
+    else:
+        scenario = _script_sequence(brief, u, [], brief=brief)
+    props = {
+        "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
+        "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
+    }
+    try:
+        mp4 = _rendre_mp4(props, composition="ReelSequence")
+    except Exception as e:
+        logger.error(f"reel libre rendu: {e}")
+        return {"error": "Le rendu du reel a echoue. Reessaie dans un instant."}
+
+    hook = (scenario["segments"][0]["texte"] if scenario["segments"] else brief)[:60]
+    row = {
+        "telegram_id": telegram_id,
+        "titre": f"Reel — {hook}",
+        "contenu": brief.strip(),
+        "type": "Reel",
+        "reseau_cible": reseau or "Instagram",
+        "statut": "A valider",
+        "reel_data": scenario,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    creneau = planning_service.prochain_creneau(telegram_id, row["reseau_cible"], "Reel")
+    if creneau:
+        row["date_publication"] = creneau
+    try:
+        ins = supabase.table("contenu").insert(row).execute()
+    except Exception as e:
+        if any(m in str(e) for m in ("PGRST204", "42703", "does not exist", "schema cache")):
+            row.pop("reel_data", None)
+            ins = supabase.table("contenu").insert(row).execute()
+        else:
+            raise
+    new_id = ins.data[0]["id"] if ins.data else None
+    if not new_id:
+        try:
+            os.unlink(mp4)
+        except OSError:
+            pass
+        return {"error": "Creation du contenu reel impossible."}
+    try:
+        up = cloudinary.uploader.upload(
+            mp4, resource_type="video",
+            public_id=f"reels/{telegram_id}/{new_id}",
+            overwrite=True, invalidate=True,
+        )
+        url = up["secure_url"]
+        preview = url.rsplit(".", 1)[0] + ".jpg"
+        supabase.table("contenu").update({
+            "video_url": url, "video_status": "ready", "video_preview_url": preview,
+            "lien_visuel": preview,
+        }).eq("id", new_id).execute()
+    except Exception as e:
+        logger.error(f"reel libre upload: {e}")
+        supabase.table("contenu").delete().eq("id", new_id).execute()
+        return {"error": "Upload de la video impossible."}
+    finally:
+        try:
+            os.unlink(mp4)
+        except OSError:
+            pass
+    return {"id": new_id, "video_url": url, "hook": hook,
+            "reseau": row["reseau_cible"], "date_publication": row.get("date_publication")}
+
+
+def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: str = None) -> dict:
+    """Re-scenarise et re-rend un reel Sequence EXISTANT (statut A valider) : la video
+    est remplacee sur place (meme contenu, meme public_id Cloudinary), pas de doublon."""
+    res = supabase.table("contenu").select("*").eq("id", reel_id).eq("telegram_id", telegram_id).execute()
+    if not res.data:
+        return {"error": "Reel introuvable."}
+    cur = res.data[0]
+    if cur.get("type") != "Reel" or not cur.get("reel_data"):
+        return {"error": "Ce contenu n'est pas un reel modifiable."}
+    if cur.get("statut") not in ("A valider", "Refuse", "Refusé"):
+        return {"error": "Ce reel a deja ete valide : il ne peut plus etre modifie."}
+    texte = cur.get("contenu") or cur.get("titre") or ""
+    u = _charger_marque(telegram_id)
+    old_sc = cur.get("reel_data") or {}
+    if brief is None:
+        brief = old_sc.get("brief")
+    if images is None:
+        images = [{"url": sg.get("image"), "desc": None}
+                  for sg in old_sc.get("segments", []) if _est_image_source(sg.get("image"))]
+    if images:
+        pool = [{"id": f"img_{i+1}", "url": im["url"],
+                 "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
+                for i, im in enumerate(images) if im.get("url")]
+        scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True)
+    else:
+        pool = _pool_visuels(telegram_id, cur)
+        scenario = _script_sequence(texte, u, pool, brief=brief)
+    props = {
+        "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
+        "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
+    }
+    try:
+        mp4 = _rendre_mp4(props, composition="ReelSequence")
+    except Exception as e:
+        logger.error(f"reel regen rendu: {e}")
+        return {"error": "Le rendu du reel a echoue. Reessaie dans un instant."}
+    try:
+        up = cloudinary.uploader.upload(
+            mp4, resource_type="video",
+            public_id=f"reels/{telegram_id}/{reel_id}",
+            overwrite=True, invalidate=True,
+        )
+        url = up["secure_url"]
+        preview = url.rsplit(".", 1)[0] + ".jpg"
+        maj = {"video_url": url, "video_preview_url": preview, "lien_visuel": preview,
+               "reel_data": scenario, "video_status": "ready"}
+        supabase.table("contenu").update(maj).eq("id", reel_id).execute()
+    except Exception as e:
+        logger.error(f"reel regen upload: {e}")
+        return {"error": "Upload de la video impossible."}
+    finally:
+        try:
+            os.unlink(mp4)
+        except OSError:
+            pass
+    return {"id": reel_id, "video_url": url, "video_preview_url": preview}
+
+
+def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
+                 images: list = None, brief: str = None) -> dict:
     """Pipeline complet : post -> script -> rendu -> Cloudinary -> contenu jumeau 'Reel'.
     template : cle de TEMPLATES ('affiche', 'impact', 'stats', 'long')."""
     if template not in TEMPLATES:
@@ -329,9 +502,15 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact") ->
     u = _charger_marque(telegram_id)
     scenario = None
     if template == "sequence":
-        # Moteur de sequences : l'agent scenarise avec le pool de visuels du compte
-        pool = _pool_visuels(telegram_id, cur)
-        scenario = _script_sequence(texte, u, pool)
+        # Visuels CHOISIS par le client (dialogue Sequence) > pool automatique du compte
+        if images:
+            pool = [{"id": f"img_{i+1}", "url": im["url"],
+                     "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
+                    for i, im in enumerate(images) if _est_image_source(im.get("url"))]
+            scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True)
+        else:
+            pool = _pool_visuels(telegram_id, cur)
+            scenario = _script_sequence(texte, u, pool, brief=brief)
         script = {"hook": (scenario["segments"][0]["texte"] if scenario["segments"] else "")[:80]}
         props = {
             "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],

@@ -206,7 +206,26 @@
     "reel": {
       "generer": "Generar un reel animado",
       "description": "El post se transforma en un vídeo vertical animado con tu identidad. Elige la plantilla:",
-      "nouveau": "★ Nuevo"
+      "nouveau": "★ Nuevo",
+      "seq": {
+        "titre": "Reel Secuencia",
+        "description": "Elige las imágenes de tu reel (subida o banco), añade indicaciones si quieres — la IA escribe los textos y monta el vídeo.",
+        "importer": "Añadir imágenes",
+        "envoi": "Subiendo…",
+        "banque": "Tu banco de imágenes",
+        "banqueVide": "Tu banco está vacío — sube imágenes arriba: se conservarán aquí para todos tus reels.",
+        "brief": "Indicaciones (opcional)",
+        "briefPh": "Ej.: destaca la promo -20 %, tono enérgico, termina con el logo…",
+        "generer": "Generar el reel",
+        "uploadEchec": "Error al subir la imagen.",
+        "choisis": "Imágenes del reel (en orden)",
+        "duPost": "Visuales del post",
+        "modifier": "Modificar el reel",
+        "creerTitre": "Crear un reel",
+        "reseau": "Red de publicación",
+        "briefSujet": "Tema del reel (obligatorio)",
+        "briefRequis": "Describe tu reel: el tema es obligatorio."
+      }
     },
     "reelTpl": {
       "afficheLabel": "Cartel",

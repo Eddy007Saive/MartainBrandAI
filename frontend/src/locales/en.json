@@ -206,7 +206,26 @@
     "reel": {
       "generer": "Generate an animated reel",
       "description": "Your post is turned into an animated vertical video in your brand style. Pick a template:",
-      "nouveau": "★ New"
+      "nouveau": "★ New",
+      "seq": {
+        "titre": "Sequence Reel",
+        "description": "Pick the images for your reel (upload or bank), add instructions if you want — the AI writes the texts and edits the video.",
+        "importer": "Add images",
+        "envoi": "Uploading…",
+        "banque": "Your image bank",
+        "banqueVide": "Your bank is empty — upload images above: they are kept here for all your reels.",
+        "brief": "Instructions (optional)",
+        "briefPh": "E.g.: highlight the -20% promo, energetic tone, end on the logo…",
+        "generer": "Generate the reel",
+        "uploadEchec": "Image upload failed.",
+        "choisis": "Reel images (in order)",
+        "duPost": "Post visuals",
+        "modifier": "Edit the reel",
+        "creerTitre": "Create a reel",
+        "reseau": "Target network",
+        "briefSujet": "Reel topic (required)",
+        "briefRequis": "Describe your reel: the topic is required."
+      }
     },
     "reelTpl": {
       "afficheLabel": "Poster",
