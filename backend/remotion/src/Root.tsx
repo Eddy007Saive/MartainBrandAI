@@ -4,10 +4,35 @@ import { ReelBrand } from './ReelBrand';
 import { ReelLong } from './ReelLong';
 import { ReelStat } from './ReelStat';
 import { ReelAffiche } from './ReelAffiche';
+import { ReelSequence, dureeScenario, SequenceSegment } from './ReelSequence';
 
 // Les props sont injectées par le backend (reel_service.py) via --props.
 export const Root: React.FC = () => (
   <>
+    {/* Moteur de séquences : durée VARIABLE, calculée depuis le scénario */}
+    <Composition
+      id="ReelSequence"
+      component={ReelSequence}
+      durationInFrames={540}
+      fps={30}
+      width={1080}
+      height={1920}
+      calculateMetadata={({ props }) => ({
+        durationInFrames: Math.round(dureeScenario(props.segments as SequenceSegment[]) * 30),
+      })}
+      defaultProps={{
+        brand: {
+          nom: 'Postorico', principale: '#5B6CFF', accent: '#3AFFA3',
+          fond: '#020617', logo: null as string | null,
+        },
+        segments: [
+          { type: 'typo' as const, dur: 2.4, texte: 'ARRÊTE DE SCROLLER', accents: ['ARRÊTE'] },
+          { type: 'image' as const, dur: 2.9, texte: 'TON DASHBOARD EN TEMPS RÉEL', accents: ['DASHBOARD'], image: null, effet: 'zoomIn' as const, tilt: -3 },
+          { type: 'typo' as const, dur: 2.6, texte: "L'IA RÉDIGE TES POSTS", accents: ['RÉDIGE', 'POSTS'] },
+          { type: 'cta' as const, dur: 3.6, texte: '14 JOURS GRATUITS', accents: ['14', 'JOURS'], bar: 'postorico.com' },
+        ] as SequenceSegment[],
+      }}
+    />
     {/* Format court 8 s : hook → 3 preuves → CTA */}
     <Composition
       id="ReelBrand"

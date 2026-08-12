@@ -44,6 +44,8 @@ TEMPLATES = {
                 "desc": "Un chiffre géant par écran, qui compte en direct. Pour les posts à résultats."},
     "long":    {"composition": "ReelLong", "label": "Narratif", "duree": 22,
                 "desc": "Accroche → contexte → preuves plein écran → leçon en citation → CTA."},
+    "sequence": {"composition": "ReelSequence", "label": "Séquence", "duree": 18,
+                 "desc": "Le montage pro : plans multiples composés par l'IA — textes animés mot à mot, tes visuels en Ken Burns, CTA. Unique à chaque post."},
 }
 
 
@@ -126,6 +128,110 @@ def _script_affiche(texte: str, marque: dict) -> dict:
         "stat": "",
         "cta": (marque.get("nom") or "Découvrir")[:32],
     }
+
+
+_ROLE_SEQUENCE = (
+    "Tu es realisateur de reels courts (15-22 s). A partir d'un post et d'une liste de visuels disponibles, "
+    "tu ecris le SCENARIO d'un reel : une suite de 4 a 7 plans.\n"
+    "Recettes possibles (choisis celle qui colle au post) :\n"
+    "- promo : accroche choc -> benefice -> preuve -> offre/CTA\n"
+    "- tutoriel : accroche -> 2 a 4 etapes -> CTA\n"
+    "- preuve : accroche -> chiffres/resultats -> CTA\n"
+    "Types de plans : 'typo' (texte plein ecran), 'image' (un visuel de la liste + texte court), 'cta' (dernier plan, obligatoire).\n"
+    "Regles STRICTES :\n"
+    "- 4 a 7 plans, duree 2 a 4.5 s chacun, le dernier est TOUJOURS type cta\n"
+    "- texte : 2 a 7 mots par plan, percutant, dans la langue du post\n"
+    "- accents : 1 a 2 mots du texte a surligner (recopies exactement)\n"
+    "- image_id : UNIQUEMENT un id de la liste fournie ; s'il n'y a pas de visuel pertinent, fais un plan typo\n"
+    "- varie les effets : zoomIn, zoomOut, panLeft, panRight\n"
+    "- bar (plan cta) : 2 a 5 mots (marque, site ou action)\n"
+    "Reponds UNIQUEMENT en JSON strict : "
+    '{"recette": "...", "segments": [{"type": "typo|image|cta", "dur": 2.8, "texte": "...", '
+    '"accents": ["..."], "image_id": "...ou null", "effet": "zoomIn|zoomOut|panLeft|panRight", "bar": "...si cta"}]}'
+)
+
+
+def _pool_visuels(telegram_id: str, cur: dict) -> list:
+    """Visuels mobilisables pour le scenario : visuel du post + gabarits de la marque.
+    Chaque entree : {id, url, desc} — l'agent ne voit que id + desc, jamais d'URL."""
+    pool = []
+    lv = cur.get("lien_visuel")
+    if lv and "cloudinary" in lv:
+        pool.append({"id": "visuel_post", "url": lv, "desc": "Visuel principal du post"})
+    for s_url in (cur.get("slides_images") or [])[:3]:
+        pool.append({"id": f"slide_{len(pool)}", "url": s_url, "desc": "Slide du carrousel du post"})
+    try:
+        r = supabase.table("brand_templates").select("id, nom, note, images").eq("telegram_id", telegram_id).limit(5).execute()
+        for row in (r.data or []):
+            for i, u in enumerate((row.get("images") or [])[:2]):
+                pool.append({
+                    "id": f"bt_{str(row['id'])[:8]}_{i}",
+                    "url": u,
+                    "desc": f"Visuel de marque « {row.get('nom') or 'gabarit'} »" + (f" — {row['note']}" if row.get("note") else ""),
+                })
+    except Exception as e:
+        logger.warning(f"reel pool visuels: {e}")
+    return pool[:8]
+
+
+def _script_sequence(texte: str, marque: dict, pool: list) -> dict:
+    """Scenario de sequence ; validation stricte + repli heuristique."""
+    ids = {p["id"] for p in pool}
+    urls = {p["id"]: p["url"] for p in pool}
+    liste = "\n".join(f"- {p['id']} : {p['desc']}" for p in pool) or "(aucun visuel disponible)"
+    segments = None
+    try:
+        resp = _messages_create(
+            model="claude-haiku-4-5",
+            max_tokens=900,
+            system=_ROLE_SEQUENCE,
+            messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nVisuels disponibles :\n{liste}\n\nDonne le JSON."}],
+        )
+        raw = "".join(b.text for b in resp.content if b.type == "text").strip()
+        m = re.search(r"\{.*\}", raw, re.S)
+        data = json.loads(m.group(0) if m else raw)
+        segs = []
+        for s in (data.get("segments") or [])[:7]:
+            t = s.get("type") if s.get("type") in ("typo", "image", "cta") else "typo"
+            img_id = s.get("image_id")
+            seg = {
+                "type": t,
+                "dur": max(2.0, min(4.5, float(s.get("dur") or 3))),
+                "texte": str(s.get("texte") or "")[:80].strip(),
+                "accents": [str(a)[:30] for a in (s.get("accents") or [])[:2]],
+            }
+            if t == "image":
+                if img_id in ids:
+                    seg["image"] = urls[img_id]
+                    seg["image_id"] = img_id
+                    seg["effet"] = s.get("effet") if s.get("effet") in ("zoomIn", "zoomOut", "panLeft", "panRight") else "zoomIn"
+                    seg["tilt"] = [-3, 2, -2, 3][len(segs) % 4]
+                else:
+                    seg["type"] = "typo"   # id inconnu -> jamais d'URL inventee
+            if t == "cta":
+                seg["bar"] = str(s.get("bar") or marque.get("nom") or "")[:40]
+            if seg["texte"]:
+                segs.append(seg)
+        # invariants : 4-7 plans, le dernier est un cta
+        if segs and segs[-1]["type"] != "cta":
+            segs.append({"type": "cta", "dur": 3.2, "texte": segs[-1]["texte"][:40] or "Suis-nous",
+                         "accents": [], "bar": str(marque.get("nom") or "")[:40]})
+        if len(segs) >= 4:
+            segments = segs
+    except Exception as e:
+        logger.warning(f"reel sequence script LLM: {e}")
+    if segments is None:
+        # Repli : hook -> visuel (si dispo) -> 2 phrases -> CTA
+        phrases = [s.strip() for s in re.split(r"(?<=[.!?])\s+", texte or "") if s.strip()]
+        segments = [{"type": "typo", "dur": 2.6, "texte": (phrases[0] if phrases else "Un contenu qui travaille pour toi.")[:70], "accents": []}]
+        if pool:
+            segments.append({"type": "image", "dur": 3.0, "texte": (phrases[1] if len(phrases) > 1 else "Regarde.")[:60],
+                             "accents": [], "image": pool[0]["url"], "image_id": pool[0]["id"], "effet": "zoomIn", "tilt": -3})
+        for p in phrases[2:4]:
+            segments.append({"type": "typo", "dur": 2.8, "texte": p[:70], "accents": []})
+        segments.append({"type": "cta", "dur": 3.2, "texte": "On en parle ?", "accents": [],
+                         "bar": str(marque.get("nom") or "Suis-nous")[:40]})
+    return {"recette": "auto", "segments": segments}
 
 
 def _script_depuis_post(texte: str, marque: dict, long: bool = False) -> dict:
@@ -221,7 +327,17 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact") ->
         return {"error": "Ce contenu n'a pas de texte a transformer en reel."}
 
     u = _charger_marque(telegram_id)
-    if template == "affiche":
+    scenario = None
+    if template == "sequence":
+        # Moteur de sequences : l'agent scenarise avec le pool de visuels du compte
+        pool = _pool_visuels(telegram_id, cur)
+        scenario = _script_sequence(texte, u, pool)
+        script = {"hook": (scenario["segments"][0]["texte"] if scenario["segments"] else "")[:80]}
+        props = {
+            "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
+            "segments": [{k: v for k, v in s.items() if k != "image_id"} for s in scenario["segments"]],
+        }
+    elif template == "affiche":
         script = _script_affiche(texte, u)
         props = {
             "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
@@ -258,7 +374,20 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact") ->
     creneau = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"), cur.get("type") or "Reel")
     if creneau:
         row["date_publication"] = creneau
-    ins = supabase.table("contenu").insert(row).execute()
+    # Le scenario est conserve (retouche / re-rendu), comme carrousel_data pour les carrousels.
+    if scenario:
+        row["reel_data"] = scenario
+    try:
+        ins = supabase.table("contenu").insert(row).execute()
+    except Exception as e:
+        msg = str(e)
+        # Colonne pas encore migree : on n'echoue pas, le reel sort sans scenario stocke.
+        if "reel_data" in row and any(m in msg for m in ("PGRST204", "42703", "does not exist", "schema cache")):
+            logger.warning("contenu.reel_data absente en base — reel cree sans scenario stocke")
+            row.pop("reel_data", None)
+            ins = supabase.table("contenu").insert(row).execute()
+        else:
+            raise
     new_id = ins.data[0]["id"] if ins.data else None
     if not new_id:
         try:
