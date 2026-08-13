@@ -11,10 +11,12 @@ from config import supabase, logger
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
+# Tables portant un telegram_id, purgées à la suppression d'un sous-compte.
+# (Nettoyage 2026-08-13 : tables archivées retirées, brand_assets ajoutée — elle manquait.)
 _CHILD_TABLES = [
-    "analytics_cache", "analytics_performance", "anecdotes", "brand_templates", "brouillons",
-    "commentaires", "contenu", "device_tokens", "erreur_log", "heygen_avatars", "interviews",
-    "notifications", "plan_editorial", "planning_editorial", "publication_schedules", "settings",
+    "analytics_cache", "analytics_performance", "brand_assets", "brand_templates", "brouillons",
+    "commentaires", "contenu", "device_tokens", "heygen_avatars",
+    "notifications", "publication_schedules",
     "studio", "studio_drafts", "usage_log",
 ]
 
