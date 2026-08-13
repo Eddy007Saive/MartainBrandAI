@@ -34,15 +34,14 @@ MUSIC_LIBRARY = [
     {"id": "missed-my-chance", "label": "Missed My Chance", "category": "emotion", "user_media_id": "8a4ae600-4586-4926-85ae-a7dd16c7ba23", "url": f"{_MUS}/missed-my-chance.mp3"},
     {"id": "triste", "label": "Triste", "category": "emotion", "user_media_id": "0cfc6fdf-a29e-4f49-8d74-e821b29d2b7a", "url": f"{_MUS}/triste.mp3"},
     {"id": "country", "label": "Country", "category": "country", "user_media_id": "96d986ed-e831-4f5c-b0fc-7f360eeb2e85", "url": f"{_MUS}/country.mp3"},
-    # Pistes « Studio Motion » (pack MIT huashu-design, celles des démos de templates).
-    # user_media_id None = pas encore enregistrées chez Submagic -> reels Remotion uniquement
-    # (le sélecteur du Studio Vidéo les masque, voir routes/video.py).
-    {"id": "studio-pub", "label": "Pub énergique", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-ad.mp3"},
-    {"id": "studio-tech", "label": "Tech", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-tech.mp3"},
-    {"id": "studio-edu", "label": "Éducatif", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-educational.mp3"},
-    {"id": "studio-edu-2", "label": "Éducatif II", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-educational-alt.mp3"},
-    {"id": "studio-tuto", "label": "Tutoriel", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-tutorial.mp3"},
-    {"id": "studio-tuto-2", "label": "Tutoriel II", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-tutorial-alt.mp3"},
+    # Pistes « Studio Motion » (pack MIT huashu-design, celles des démos de templates),
+    # enregistrées chez Submagic le 14/08/2026 -> disponibles dans les DEUX studios.
+    {"id": "studio-pub", "label": "Pub énergique", "category": "studio", "user_media_id": "f010a5ac-f4b4-4fd8-983a-a60c2b162b3c", "url": f"{_MUS}/bgm-ad.mp3"},
+    {"id": "studio-tech", "label": "Tech", "category": "studio", "user_media_id": "2b2797b3-b838-4d62-8d58-579b9f1e15f6", "url": f"{_MUS}/bgm-tech.mp3"},
+    {"id": "studio-edu", "label": "Éducatif", "category": "studio", "user_media_id": "b69d530c-0602-4693-ab85-7d8122b8b760", "url": f"{_MUS}/bgm-educational.mp3"},
+    {"id": "studio-edu-2", "label": "Éducatif II", "category": "studio", "user_media_id": "ed2f60ff-aa30-4a38-9629-b5006aa66a5e", "url": f"{_MUS}/bgm-educational-alt.mp3"},
+    {"id": "studio-tuto", "label": "Tutoriel", "category": "studio", "user_media_id": "02979dd6-2a18-4729-9d3f-42ba25a9c01d", "url": f"{_MUS}/bgm-tutorial.mp3"},
+    {"id": "studio-tuto-2", "label": "Tutoriel II", "category": "studio", "user_media_id": "86e67102-210d-4085-9af9-19d235caeb1a", "url": f"{_MUS}/bgm-tutorial-alt.mp3"},
 ]
 
 
