@@ -147,7 +147,8 @@ _ROLE_SEQUENCE = (
     "- bar (plan cta) : 2 a 5 mots (marque, site ou action)\n"
     "Reponds UNIQUEMENT en JSON strict : "
     '{"recette": "...", "segments": [{"type": "typo|image|cta", "dur": 2.8, "texte": "...", '
-    '"accents": ["..."], "image_id": "...ou null", "effet": "zoomIn|zoomOut|panLeft|panRight", "bar": "...si cta"}]}'
+    '"accents": ["..."], "image_id": "...ou null", "effet": "zoomIn|zoomOut|panLeft|panRight", '
+    '"reveal": "carte|lamelles|portes|stores|iris", "bar": "...si cta"}]}'
 )
 
 
@@ -198,6 +199,38 @@ def _pool_visuels(telegram_id: str, cur: dict) -> list:
     return pool[:8]
 
 
+_REVEALS = ("carte", "lamelles", "portes", "stores", "iris")
+
+
+def _pimenter_reveals(segments: list, graine: str):
+    """Le piment : chaque reel tire sa propre rotation de revelations, ancree sur
+    le contenu (stable au re-rendu, differente d'un reel a l'autre). Corrige aussi
+    les repetitions du LLM : jamais deux reveals identiques d'affilee."""
+    import hashlib
+    seed = int(hashlib.md5((graine or "reel").encode()).hexdigest()[:8], 16)
+    ordre = list(_REVEALS)
+    # melange deterministe de la bibliotheque selon la graine
+    for i in range(len(ordre) - 1, 0, -1):
+        seed = (seed * 1103515245 + 12345) % (2 ** 31)
+        j = seed % (i + 1)
+        ordre[i], ordre[j] = ordre[j], ordre[i]
+    k = 0
+    precedent = None
+    for seg in segments:
+        if seg.get("type") != "image":
+            continue
+        r = seg.get("reveal")
+        if r not in _REVEALS or r == precedent:
+            r = ordre[k % len(ordre)]
+            if r == precedent:
+                k += 1
+                r = ordre[k % len(ordre)]
+        precedent = r
+        seg["reveal"] = r
+        k += 1
+    return segments
+
+
 def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, imposees: bool = False) -> dict:
     """Scenario de sequence ; validation stricte + repli heuristique.
     imposees=True : les visuels ont ete CHOISIS par le client -> tous utilises."""
@@ -236,6 +269,8 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
                     seg["image"] = urls[img_id]
                     seg["image_id"] = img_id
                     seg["effet"] = s.get("effet") if s.get("effet") in ("zoomIn", "zoomOut", "panLeft", "panRight") else "zoomIn"
+                    if s.get("reveal") in _REVEALS:
+                        seg["reveal"] = s["reveal"]
                     seg["tilt"] = [-3, 2, -2, 3][len(segs) % 4]
                 else:
                     seg["type"] = "typo"   # id inconnu -> jamais d'URL inventee
@@ -266,7 +301,8 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
                 segments.append({"type": "typo", "dur": 2.8, "texte": p[:70], "accents": []})
         segments.append({"type": "cta", "dur": 3.2, "texte": "On en parle ?", "accents": [],
                          "bar": str(marque.get("nom") or "Suis-nous")[:40]})
-    return {"recette": "auto", "brief": brief, "segments": segments}
+    return {"recette": "auto", "brief": brief,
+            "segments": _pimenter_reveals(segments, (brief or "") + (texte or "")[:120])}
 
 
 def _script_depuis_post(texte: str, marque: dict, long: bool = False) -> dict:

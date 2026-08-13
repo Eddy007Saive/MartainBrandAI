@@ -27,6 +27,7 @@ export type SequenceSegment = {
   accents?: string[];                            // mots à surligner (chips)
   image?: string | null;                         // URL du visuel (type image)
   effet?: 'zoomIn' | 'zoomOut' | 'panLeft' | 'panRight';
+  reveal?: 'carte' | 'lamelles' | 'portes' | 'stores' | 'iris';   // comment l'image APPARAÎT
   tilt?: number;                                 // inclinaison de la carte (degrés)
   bar?: string;                                  // texte du bandeau bas (type cta)
 };
@@ -155,35 +156,106 @@ const SegTypo: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number;
   </Coquille>
 );
 
-// ---- plan IMAGE : carte Ken Burns + karaoké tiers bas ----
+// ---- plan IMAGE : cadre borné + RÉVÉLATION variable (le piment du template) ----
+// Le cadre ne bouge pas (le texte ne passe jamais sur l'image) ; c'est la façon
+// dont l'image apparaît DANS le cadre qui change : carte, lamelles, portes,
+// stores, iris. Le scénariste varie les reveals à chaque génération.
 const SegImage: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number; last: boolean }> = ({ seg, brand, durFrames, last }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const enter = spring({ frame: frame - 2, fps, config: { damping: 14, mass: 0.8 } });
   const p = interpolate(frame, [0, durFrames], [0, 1]);
+  const rv = interpolate(frame, [3, Math.round(1.4 * fps)], [0, 1], {
+    extrapolateLeft: 'clamp', extrapolateRight: 'clamp',
+    easing: (t) => 1 - Math.pow(1 - t, 3),
+  });
   let kScale = 1, kx = 0;
   if (seg.effet === 'zoomIn') kScale = 1 + 0.09 * p;
   else if (seg.effet === 'zoomOut') kScale = 1.09 - 0.09 * p;
   else if (seg.effet === 'panRight') { kScale = 1.12; kx = -40 + 80 * p; }
   else if (seg.effet === 'panLeft') { kScale = 1.12; kx = 40 - 80 * p; }
   else kScale = 1 + 0.06 * p;
+
+  const imgStyle: React.CSSProperties = {
+    position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+    transform: `scale(${kScale}) translateX(${kx}px)`,
+  };
+  const reveal = seg.reveal || 'carte';
+  const N = 6;
+
+  let contenu: React.ReactNode;
+  if (!seg.image) {
+    contenu = <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.05)' }} />;
+  } else if (reveal === 'lamelles') {
+    // 6 bandes verticales alternées haut/bas
+    contenu = (
+      <>
+        {Array.from({ length: N }, (_, i) => {
+          const pi = interpolate(frame, [i * 2, i * 2 + Math.round(0.5 * fps)], [0, 1], {
+            extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: (t) => 1 - Math.pow(2, -10 * t) });
+          const dir = i % 2 === 0 ? -1 : 1;
+          return (
+            <div key={i} style={{ position: 'absolute', top: 0, bottom: 0, left: `${(100 / N) * i}%`, width: `${100 / N + 0.2}%`,
+              overflow: 'hidden', transform: `translateY(${dir * (1 - pi) * 104}%)` }}>
+              <div style={{ position: 'absolute', top: 0, left: `${-i * 100}%`, width: `${N * 100}%`, height: '100%' }}>
+                <Img src={seg.image!} style={imgStyle} />
+              </div>
+            </div>
+          );
+        })}
+      </>
+    );
+  } else if (reveal === 'portes') {
+    const demi = 50 * (1 - rv);
+    contenu = (
+      <>
+        <div style={{ position: 'absolute', inset: 0, clipPath: `inset(0 ${demi}% 0 ${demi}%)` }}>
+          <Img src={seg.image} style={imgStyle} />
+        </div>
+        {rv < 0.98 && <>
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${demi}%`, width: 3, background: brand.accent, opacity: 0.85 }} />
+          <div style={{ position: 'absolute', top: 0, bottom: 0, right: `${demi}%`, width: 3, background: brand.accent, opacity: 0.85 }} />
+        </>}
+      </>
+    );
+  } else if (reveal === 'stores') {
+    contenu = (
+      <>
+        {Array.from({ length: 5 }, (_, i) => {
+          const pi = interpolate(frame, [i * 3, i * 3 + Math.round(0.55 * fps)], [0, 1], {
+            extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: (t) => 1 - Math.pow(1 - t, 3) });
+          return (
+            <div key={i} style={{ position: 'absolute', left: 0, right: 0, top: `${20 * i}%`, height: '20.3%',
+              overflow: 'hidden', clipPath: `inset(0 ${(1 - pi) * 100}% 0 0)` }}>
+              <div style={{ position: 'absolute', left: 0, top: `${-100 * i}%`, width: '100%', height: '500%' }}>
+                <Img src={seg.image!} style={imgStyle} />
+              </div>
+            </div>
+          );
+        })}
+      </>
+    );
+  } else if (reveal === 'iris') {
+    const r = 8 + rv * 120;
+    contenu = (
+      <div style={{ position: 'absolute', inset: 0, clipPath: `circle(${r}% at 50% 46%)` }}>
+        <Img src={seg.image} style={imgStyle} />
+      </div>
+    );
+  } else {
+    // 'carte' : fondu simple dans le cadre (le cadre lui-même monte déjà)
+    contenu = <div style={{ position: 'absolute', inset: 0, opacity: Math.min(1, rv * 1.8) }}><Img src={seg.image} style={imgStyle} /></div>;
+  }
+
   return (
     <Coquille durFrames={durFrames} last={last}>
-      {/* Hauteur bornée + cover : le texte ne passe JAMAIS sur l'image, quel que soit son ratio */}
       <div style={{
         position: 'absolute', left: 60, right: 60, top: 400, height: 780, borderRadius: 26, overflow: 'hidden',
         border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 50px 130px rgba(0,0,0,0.6)',
         transform: `rotate(${seg.tilt || 0}deg) translateY(${(1 - enter) * 160}px)`,
-        opacity: Math.min(1, enter * 2),
+        opacity: Math.min(1, enter * 2), background: 'rgba(0,0,0,0.25)',
       }}>
-        {seg.image ? (
-          <Img src={seg.image} style={{
-            width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-            transform: `scale(${kScale}) translateX(${kx}px)`,
-          }} />
-        ) : (
-          <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.05)' }} />
-        )}
+        {contenu}
       </div>
       <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand} size={88} top="67%" />
     </Coquille>
