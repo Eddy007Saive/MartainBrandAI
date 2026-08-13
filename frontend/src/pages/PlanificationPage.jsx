@@ -342,6 +342,9 @@ export default function PlanificationPage() {
       >
         <div className="flex items-center gap-1.5">
           <span className="w-[16px] h-[16px] rounded grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
+          {c.type === 'Story' && (
+            <span className="text-[7.5px] font-bold uppercase tracking-wide px-1 py-px rounded bg-[#fbbf24]/15 text-[#fbbf24] shrink-0">Story</span>
+          )}
           <span className="flex-1 text-[9px] text-slate-500 truncate">{hhmm(c.date_publication)}</span>
           {pub ? <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} />
                : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: stOf(c.statut).sw }} />}
@@ -499,7 +502,12 @@ export default function PlanificationPage() {
                 </div>
                 <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-4 h-4" /></div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 50)}</div>
+                  <div className="text-[13.5px] text-slate-200 truncate flex items-center gap-2">
+                    <span className="truncate">{c.titre || c.contenu?.slice(0, 50)}</span>
+                    {c.type === 'Story' && (
+                      <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[#fbbf24]/15 text-[#fbbf24] shrink-0">Story · 24h</span>
+                    )}
+                  </div>
                   <div className="text-[11.5px] text-slate-500 mt-0.5">{c.reseau_cible || '—'} · {hhmm(c.date_publication)}</div>
                 </div>
                 {pubOf(c.publish_status) && (() => { const p = pubOf(c.publish_status); return (
