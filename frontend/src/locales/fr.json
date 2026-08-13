@@ -225,7 +225,8 @@
         "reseau": "Réseau de publication",
         "briefSujet": "Sujet du reel (obligatoire)",
         "briefRequis": "Décris ton reel : le sujet est obligatoire en création libre."
-      }
+      },
+      "recommande": "Recommandé"
     },
     "reelTpl": {
       "afficheLabel": "Affiche",

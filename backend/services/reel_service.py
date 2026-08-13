@@ -35,23 +35,77 @@ REMOTION_BROWSER = os.environ.get("REMOTION_BROWSER")
 
 # ----------------------------------------------------------------- Bibliotheque de templates
 # Ajouter un template = 1 composition .tsx dans remotion/src + 1 entree ici.
+# id -> composition Remotion + metadonnees galerie. Les entrees "sequence*" partagent
+# la composition ReelSequence : "style" pilote l'habillage (typo, letterbox, cadre).
+_APERCUS = "https://res.cloudinary.com/dy9gp5pim/video/upload/reels/_templates"
 TEMPLATES = {
-    "affiche": {"composition": "ReelAffiche", "label": "Affiche", "duree": 11,
+    "sequence": {"composition": "ReelSequence", "label": "Séquence", "duree": 18, "style": "signature",
+                 "tags": ["Tous usages"],
+                 "apercu": f"{_APERCUS}/sequence-signature.mp4",
+                 "desc": "Le montage pro : plans multiples composés par l'IA — tes visuels, textes animés, unique à chaque post."},
+    "sequence-cinema": {"composition": "ReelSequence", "label": "Séquence — Cinéma", "duree": 18, "style": "cinema",
+                        "tags": ["Haut de gamme", "Hôtel · Immo"],
+                        "apercu": f"{_APERCUS}/sequence-cinema.mp4",
+                        "desc": "Le même montage en écriture cinéma : letterbox, légendes élégantes, rythme posé."},
+    "sequence-editorial": {"composition": "ReelSequence", "label": "Séquence — Éditorial", "duree": 18, "style": "editorial",
+                           "tags": ["Marques", "Produit"],
+                           "apercu": f"{_APERCUS}/sequence-editorial.mp4",
+                           "desc": "Façon magazine : cadre fin, numéros de page, accents nets."},
+    "affiche": {"composition": "ReelAffiche", "label": "Affiche", "duree": 11, "tags": ["Pub"], "apercu": None,
                 "desc": "La pub premium : titre accentué, 3 arguments à icônes, ton image, CTA brillant."},
-    "impact":  {"composition": "ReelBrand", "label": "Impact", "duree": 8,
+    "impact":  {"composition": "ReelBrand", "label": "Impact", "duree": 8, "tags": ["Promo", "Stories"], "apercu": None,
                 "desc": "Punchy : accroche mot à mot → 3 preuves → CTA. Idéal stories."},
-    "stats":   {"composition": "ReelStat", "label": "Gros chiffres", "duree": 10,
+    "stats":   {"composition": "ReelStat", "label": "Gros chiffres", "duree": 10, "tags": ["Résultats"], "apercu": None,
                 "desc": "Un chiffre géant par écran, qui compte en direct. Pour les posts à résultats."},
-    "long":    {"composition": "ReelLong", "label": "Narratif", "duree": 22,
+    "long":    {"composition": "ReelLong", "label": "Narratif", "duree": 22, "tags": ["Storytelling"], "apercu": None,
                 "desc": "Accroche → contexte → preuves plein écran → leçon en citation → CTA."},
-    "sequence": {"composition": "ReelSequence", "label": "Séquence", "duree": 18,
-                 "desc": "Le montage pro : plans multiples composés par l'IA — textes animés mot à mot, tes visuels en Ken Burns, CTA. Unique à chaque post."},
 }
 
 
 def liste_templates() -> list:
-    return [{"id": k, "label": v["label"], "duree": v["duree"], "desc": v["desc"]}
+    return [{"id": k, "label": v["label"], "duree": v["duree"], "desc": v["desc"],
+             "tags": v.get("tags") or [], "apercu": v.get("apercu"), "sequence": k.startswith("sequence")}
             for k, v in TEMPLATES.items()]
+
+
+_ROLE_RECO = (
+    "Tu recommandes UN template de reel pour un post donne. Voici les templates :\n"
+    "- sequence : montage multi-plans avec les visuels du post (bon defaut)\n"
+    "- sequence-cinema : haut de gamme, contemplatif (hotellerie, immobilier, bien-etre, luxe)\n"
+    "- sequence-editorial : magazine, lancement produit, marques\n"
+    "- affiche : publicite posee avec arguments structures\n"
+    "- impact : promo punchy, offre, urgence\n"
+    "- stats : posts a chiffres et resultats\n"
+    "- long : storytelling, lecon, recit personnel\n"
+    'Reponds UNIQUEMENT en JSON strict : {"template": "id", "raison": "8-14 mots dans la langue du post"}'
+)
+
+
+def recommander_template(telegram_id: str, contenu_id: str) -> dict:
+    """L'IA choisit le template le plus adapte au post (badge « Recommande » de la galerie)."""
+    res = (supabase.table("contenu").select("contenu, titre").eq("id", contenu_id)
+           .eq("telegram_id", telegram_id).execute())
+    if not res.data:
+        return {"template": "sequence", "raison": ""}
+    texte = (res.data[0].get("contenu") or res.data[0].get("titre") or "")[:2500]
+    try:
+        resp = _messages_create(
+            model="claude-haiku-4-5", max_tokens=120, system=_ROLE_RECO,
+            messages=[{"role": "user", "content": f"Post :\n\n{texte}\n\nDonne le JSON."}],
+        )
+        raw = "".join(b.text for b in resp.content if b.type == "text").strip()
+        m = re.search(r"\{.*\}", raw, re.S)
+        data = json.loads(m.group(0) if m else raw)
+        tpl = data.get("template") if data.get("template") in TEMPLATES else "sequence"
+        return {"template": tpl, "raison": str(data.get("raison") or "")[:120]}
+    except Exception as e:
+        logger.warning(f"reel reco: {e}")
+        low = texte.lower()
+        if any(k in low for k in ("%", "promo", "offre", "réduction", "reduction")):
+            return {"template": "impact", "raison": ""}
+        if any(k in low for k in ("chiffre", "résultat", "resultat", "x2", "x3")):
+            return {"template": "stats", "raison": ""}
+        return {"template": "sequence", "raison": ""}
 
 _ROLE = (
     "Tu es copywriter pour reels courts. A partir d'un post, tu produis le script d'un reel de 8 s :\n"
@@ -384,7 +438,8 @@ def _rendre_mp4(props: dict, composition: str = "ReelBrand") -> str:
             pass
 
 
-def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: str = "Instagram") -> dict:
+def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: str = "Instagram",
+                     style: str = None) -> dict:
     """Cree un reel Sequence SANS contenu source : le brief du client est le sujet.
     Le resultat entre dans Contenus comme un Reel « A valider », planifie normalement."""
     if not (brief or "").strip():
@@ -399,9 +454,12 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
         scenario = _script_sequence(brief, u, pool, brief=brief, imposees=True)
     else:
         scenario = _script_sequence(brief, u, [], brief=brief)
+    st = style if style in ("signature", "cinema", "editorial") else (scenario.get("style") or "signature")
+    scenario["style"] = st
     props = {
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
         "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
+        "style": st,
     }
     try:
         mp4 = _rendre_mp4(props, composition="ReelSequence")
@@ -463,7 +521,7 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
             "reseau": row["reseau_cible"], "date_publication": row.get("date_publication")}
 
 
-def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: str = None) -> dict:
+def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: str = None, style: str = None) -> dict:
     """Re-scenarise et re-rend un reel Sequence EXISTANT (statut A valider) : la video
     est remplacee sur place (meme contenu, meme public_id Cloudinary), pas de doublon."""
     res = supabase.table("contenu").select("*").eq("id", reel_id).eq("telegram_id", telegram_id).execute()
@@ -477,6 +535,8 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
     texte = cur.get("contenu") or cur.get("titre") or ""
     u = _charger_marque(telegram_id)
     old_sc = cur.get("reel_data") or {}
+    if style is None:
+        style = old_sc.get("style")
     if brief is None:
         brief = old_sc.get("brief")
     if images is None:
@@ -490,9 +550,12 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
     else:
         pool = _pool_visuels(telegram_id, cur)
         scenario = _script_sequence(texte, u, pool, brief=brief)
+    st = style if style in ("signature", "cinema", "editorial") else (scenario.get("style") or "signature")
+    scenario["style"] = st
     props = {
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
         "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
+        "style": st,
     }
     try:
         mp4 = _rendre_mp4(props, composition="ReelSequence")
@@ -522,7 +585,7 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
 
 
 def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
-                 images: list = None, brief: str = None) -> dict:
+                 images: list = None, brief: str = None, style: str = None) -> dict:
     """Pipeline complet : post -> script -> rendu -> Cloudinary -> contenu jumeau 'Reel'.
     template : cle de TEMPLATES ('affiche', 'impact', 'stats', 'long')."""
     if template not in TEMPLATES:
@@ -537,7 +600,9 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
 
     u = _charger_marque(telegram_id)
     scenario = None
-    if template == "sequence":
+    if template.startswith("sequence"):
+        if style is None:
+            style = TEMPLATES.get(template, {}).get("style")
         # Visuels CHOISIS par le client (dialogue Sequence) > pool automatique du compte
         if images:
             pool = [{"id": f"img_{i+1}", "url": im["url"],

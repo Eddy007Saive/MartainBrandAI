@@ -225,7 +225,8 @@
         "reseau": "Red de publicación",
         "briefSujet": "Tema del reel (obligatorio)",
         "briefRequis": "Describe tu reel: el tema es obligatorio."
-      }
+      },
+      "recommande": "Recomendado"
     },
     "reelTpl": {
       "afficheLabel": "Cartel",

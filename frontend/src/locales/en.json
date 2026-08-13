@@ -225,7 +225,8 @@
         "reseau": "Target network",
         "briefSujet": "Reel topic (required)",
         "briefRequis": "Describe your reel: the topic is required."
-      }
+      },
+      "recommande": "Recommended"
     },
     "reelTpl": {
       "afficheLabel": "Poster",

@@ -32,9 +32,12 @@ export type SequenceSegment = {
   bar?: string;                                  // texte du bandeau bas (type cta)
 };
 
+export type SequenceStyle = 'signature' | 'cinema' | 'editorial';
+
 type Props = {
   brand: Brand;
   segments: SequenceSegment[];
+  style?: SequenceStyle;
 };
 
 export const XFADE = 0.35; // recouvrement entre plans (jamais d'écran vide)
@@ -92,8 +95,8 @@ const Fond: React.FC<{ brand: Brand }> = ({ brand }) => {
 // ---- karaoké : mots qui popent, mots-clés en chips ----
 const Karaoke: React.FC<{
   texte: string; accents: string[]; brand: Brand;
-  size: number; top: string; startDelay?: number;
-}> = ({ texte, accents, brand, size, top, startDelay = 8 }) => {
+  size: number; top: string; startDelay?: number; mode?: SequenceStyle;
+}> = ({ texte, accents, brand, size, top, startDelay = 8, mode = 'signature' }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const acc = new Set((accents || []).map(strip));
@@ -115,6 +118,22 @@ const Karaoke: React.FC<{
             transform: `scale(${vis ? Math.max(0.3, s) : 0.3}) rotate(${(1 - Math.min(1, s)) * (i % 2 ? 3 : -3)}deg)`,
             textShadow: '0 6px 30px rgba(0,0,0,0.55)',
           };
+          if (mode === 'cinema') {
+            return (
+              <span key={i} style={{
+                ...base, fontFamily: "Georgia, 'Times New Roman', serif", fontStyle: 'italic', fontWeight: 500,
+                letterSpacing: '0px', color: isAcc ? brand.accent : '#F2EDE4',
+                transform: `translateY(${(1 - Math.min(1, s)) * 30}px)`,
+              }}>{w}</span>
+            );
+          }
+          if (mode === 'editorial' && isAcc) {
+            return (
+              <span key={i} style={{
+                ...base, color: inkOn(brand.accent), background: brand.accent, padding: '2px 22px',
+              }}>{w}</span>
+            );
+          }
           if (kind === 'accent') {
             return (
               <span key={i} style={{
@@ -150,9 +169,9 @@ const Coquille: React.FC<{ durFrames: number; last: boolean; children: React.Rea
 };
 
 // ---- plan TYPO : plein écran typographique ----
-const SegTypo: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number; last: boolean }> = ({ seg, brand, durFrames, last }) => (
+const SegTypo: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number; last: boolean; mode?: SequenceStyle }> = ({ seg, brand, durFrames, last, mode }) => (
   <Coquille durFrames={durFrames} last={last}>
-    <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand} size={108} top="38%" />
+    <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand} size={mode === 'cinema' ? 96 : 108} top="38%" mode={mode} />
   </Coquille>
 );
 
@@ -160,7 +179,7 @@ const SegTypo: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number;
 // Le cadre ne bouge pas (le texte ne passe jamais sur l'image) ; c'est la façon
 // dont l'image apparaît DANS le cadre qui change : carte, lamelles, portes,
 // stores, iris. Le scénariste varie les reveals à chaque génération.
-const SegImage: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number; last: boolean }> = ({ seg, brand, durFrames, last }) => {
+const SegImage: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number; last: boolean; mode?: SequenceStyle }> = ({ seg, brand, durFrames, last, mode }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const enter = spring({ frame: frame - 2, fps, config: { damping: 14, mass: 0.8 } });
@@ -257,20 +276,20 @@ const SegImage: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number
       }}>
         {contenu}
       </div>
-      <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand} size={88} top="67%" />
+      <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand} size={mode === 'cinema' ? 78 : 88} top="67%" mode={mode} />
     </Coquille>
   );
 };
 
 // ---- plan CTA : offre + bandeau bas ----
-const SegCta: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number }> = ({ seg, brand, durFrames }) => {
+const SegCta: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number; last?: boolean; mode?: SequenceStyle }> = ({ seg, brand, durFrames, mode }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const bar = spring({ frame: frame - Math.round(durFrames * 0.4), fps, config: { damping: 200 } });
   const ink = inkOn(brand.accent);
   return (
     <Coquille durFrames={durFrames} last>
-      <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand} size={124} top="34%" />
+      <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand} size={mode === 'cinema' ? 108 : 124} top="34%" mode={mode} />
       <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0, height: 170, background: brand.accent,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 40, padding: '0 64px',
@@ -286,7 +305,34 @@ const SegCta: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number }
   );
 };
 
-export const ReelSequence: React.FC<Props> = ({ brand, segments }) => {
+const Habillage: React.FC<{ style: SequenceStyle; brand: Brand; segCount: number }> = ({ style, brand, segCount }) => {
+  const frame = useCurrentFrame();
+  const { fps, durationInFrames } = useVideoConfig();
+  if (style === 'cinema') {
+    return (
+      <>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 92, background: '#070707', zIndex: 41 }} />
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 92, background: '#070707', zIndex: 41 }} />
+        <AbsoluteFill style={{ boxShadow: 'inset 0 0 240px rgba(0,0,0,0.5)', pointerEvents: 'none', zIndex: 40 }} />
+      </>
+    );
+  }
+  if (style === 'editorial') {
+    const n = Math.min(segCount, 1 + Math.floor((frame / durationInFrames) * segCount));
+    return (
+      <>
+        <div style={{ position: 'absolute', inset: 26, border: '1px solid rgba(242,239,230,0.22)', pointerEvents: 'none', zIndex: 41 }} />
+        <div style={{ position: 'absolute', top: 54, right: 66, fontFamily: 'Sora, Inter, sans-serif', fontWeight: 700, fontSize: 21,
+          letterSpacing: '0.2em', color: 'rgba(242,239,230,0.6)', zIndex: 42, fontVariantNumeric: 'tabular-nums' }}>
+          N°{String(n).padStart(2, '0')}
+        </div>
+      </>
+    );
+  }
+  return null;
+};
+
+export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signature' }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const segs = (segments || []).filter((s) => s && s.texte);
@@ -315,11 +361,12 @@ export const ReelSequence: React.FC<Props> = ({ brand, segments }) => {
           const Comp = seg.type === 'image' ? SegImage : seg.type === 'cta' ? SegCta : SegTypo;
           return (
             <Sequence key={i} from={from} durationInFrames={durFrames}>
-              <Comp seg={seg} brand={brand} durFrames={durFrames} last={last} />
+              <Comp seg={seg} brand={brand} durFrames={durFrames} last={last} mode={style} />
             </Sequence>
           );
         })}
       </AbsoluteFill>
+      <Habillage style={style} brand={brand} segCount={segs.length} />
       {/* bandeau haut permanent : identité du client */}
       <div style={{
         position: 'absolute', top: 56, left: 60, right: 60, zIndex: 8,

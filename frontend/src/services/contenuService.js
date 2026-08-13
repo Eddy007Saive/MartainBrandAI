@@ -44,6 +44,7 @@ export const contenuService = {
   regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }, { timeout: 300000 }).then(r => r.data),
   creerReel: (extra = {}) => api.post('/reels/creer', extra, { timeout: 300000 }).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data.templates || []),
+  reelRecommander: (id) => api.get(`/reels/recommander/${id}`).then(r => r.data),
 
   // Replanifie sur le prochain créneau libre (algorithme de planification) + reprogramme Zernio
   replanifier: (id) => api.post(`/contenus/${id}/replanifier`).then(r => r.data),

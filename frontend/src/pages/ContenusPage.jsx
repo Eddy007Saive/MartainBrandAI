@@ -294,6 +294,7 @@ export default function ContenusPage() {
   // Reel animé (Remotion) : post -> script IA -> MP4 à la charte, en « À valider »
   const [reelLoading, setReelLoading] = useState(null);
   const [reelFor, setReelFor] = useState(null); // contenu en attente du choix de template
+  const [reelReco, setReelReco] = useState(null);   // recommandation IA {template, raison}
   // Bibliothèque de templates (registre backend) — repli local si l'appel échoue
   const [reelTemplates, setReelTemplates] = useState(() => ([
     { id: 'affiche', label: t('contenus.reelTpl.afficheLabel'), duree: 11, desc: t('contenus.reelTpl.afficheDesc') },
@@ -314,9 +315,11 @@ export default function ContenusPage() {
   const [seqRegen, setSeqRegen] = useState(false);   // true = modification d'un reel existant
   const [seqLibre, setSeqLibre] = useState(false);   // true = reel créé de zéro (le brief est le sujet)
   const [seqReseau, setSeqReseau] = useState('Instagram');
+  const [seqStyle, setSeqStyle] = useState('signature');
   const openSequenceLibre = () => {
     setSeqRegen(false);
     setSeqLibre(true);
+    setSeqStyle('signature');
     setSeqFor({ id: '__libre__' });
     setSeqImages([]);
     setSeqBrief('');
@@ -329,6 +332,7 @@ export default function ContenusPage() {
     setSelectedContenu(null);
     setSeqLibre(false);
     setSeqRegen(true);
+    setSeqStyle(reel.reel_data?.style || 'signature');
     setSeqFor(reel);
     const sc = reel.reel_data || {};
     const imgs = [];
@@ -340,10 +344,11 @@ export default function ContenusPage() {
     setSeqBanque(null);
     contenuService.reelBanque().then(setSeqBanque).catch(() => setSeqBanque([]));
   };
-  const openSequence = (contenu) => {
+  const openSequence = (contenu, style = 'signature') => {
     setReelFor(null);
     setSeqLibre(false);
     setSeqRegen(false);
+    setSeqStyle(style);
     setSeqFor(contenu);
     const cached = seqCache.current[contenu.id];
     if (cached) {
@@ -397,9 +402,9 @@ export default function ContenusPage() {
     };
     try {
       if (seqLibre) {
-        await contenuService.creerReel({ ...payload, reseau: seqReseau });
+        await contenuService.creerReel({ ...payload, reseau: seqReseau, style: seqStyle });
       } else if (seqRegen) {
-        const d = await contenuService.regenererReel(contenu.id, payload);
+        const d = await contenuService.regenererReel(contenu.id, { ...payload, style: seqStyle });
         const patch = { video_url: d.video_url, video_preview_url: d.video_preview_url, lien_visuel: d.video_preview_url };
         setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
         delete seqCache.current[contenu.id];
@@ -414,7 +419,7 @@ export default function ContenusPage() {
   };
 
   const doReel = async (contenu, duree = 'affiche') => {
-    if (duree === 'sequence') { openSequence(contenu); return; }
+    if (duree.startsWith('sequence')) { openSequence(contenu, duree.split('-')[1] || 'signature'); return; }
     if (reelLoading) return;
     setReelFor(null);
     setReelLoading(contenu.id);
@@ -1183,7 +1188,7 @@ export default function ContenusPage() {
                   onStory={declinerEnStory}
                   onRenderSlides={rendreSlidesEnImages}
                   renderLoading={renderSlidesLoading}
-                  onReel={(c) => setReelFor(c)}
+                  onReel={(c) => { setReelFor(c); setReelReco(null); contenuService.reelRecommander(c.id).then(setReelReco).catch(() => {}); }}
                   reelLoading={reelLoading}
                   actionLoading={actionLoading}
                 />
@@ -1612,19 +1617,34 @@ export default function ContenusPage() {
                   {t('contenus.reel.description')}
                 </p>
                 <div className="space-y-2.5 max-h-[52vh] overflow-y-auto pr-1">
-                  {reelTemplates.map((tpl, i) => (
-                    <button key={tpl.id} type="button" onClick={() => doReel(reelFor, tpl.id)} data-testid={`reel-${tpl.id}`}
-                      className="w-full text-left rounded-xl border border-white/[0.08] bg-slate-950/50 hover:border-[#8A6CFF]/50 hover:bg-[#8A6CFF]/5 transition-all active:scale-[0.98] p-4">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-sora font-bold text-white flex items-center gap-2">
-                          {tpl.label}
-                          {i === 0 && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">{t('contenus.reel.nouveau')}</span>}
-                        </span>
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 shrink-0">{tpl.duree} s</span>
-                      </div>
-                      <p className="text-xs text-slate-400 font-inter mt-1">{tpl.desc}</p>
-                    </button>
-                  ))}
+                  {[...reelTemplates].sort((a, b) => (b.id === reelReco?.template) - (a.id === reelReco?.template)).map((tpl) => {
+                    const reco = reelReco?.template === tpl.id;
+                    return (
+                      <button key={tpl.id} type="button" onClick={() => doReel(reelFor, tpl.id)} data-testid={`reel-${tpl.id}`}
+                        className={`w-full text-left rounded-xl border transition-all active:scale-[0.98] p-3.5 flex gap-3.5 items-stretch ${reco ? 'border-[#3AFFA3]/60 bg-[#3AFFA3]/[0.05]' : 'border-white/[0.08] bg-slate-950/50 hover:border-[#8A6CFF]/50 hover:bg-[#8A6CFF]/5'}`}>
+                        {tpl.apercu && (
+                          <video src={tpl.apercu} autoPlay muted loop playsInline
+                            className="w-[74px] h-[128px] object-cover rounded-lg border border-white/10 shrink-0" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-sora font-bold text-white flex items-center gap-2 min-w-0">
+                              <span className="truncate">{tpl.label}</span>
+                              {reco && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#3AFFA3]/15 text-[#3AFFA3] border border-[#3AFFA3]/40 shrink-0">★ {t('contenus.reel.recommande')}</span>}
+                            </span>
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 shrink-0">{tpl.duree} s</span>
+                          </div>
+                          <p className="text-xs text-slate-400 font-inter mt-1">{tpl.desc}</p>
+                          {reco && reelReco?.raison && <p className="text-[11px] text-[#3AFFA3]/80 font-inter mt-1.5">→ {reelReco.raison}</p>}
+                          {(tpl.tags || []).length > 0 && (
+                            <div className="flex gap-1.5 mt-2 flex-wrap">
+                              {tpl.tags.map((tag) => <span key={tag} className="text-[10px] font-inter text-slate-500 border border-white/10 rounded-full px-2 py-0.5">{tag}</span>)}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

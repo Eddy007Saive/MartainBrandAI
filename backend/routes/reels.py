@@ -18,12 +18,22 @@ class ReelRequest(BaseModel):
     duree: str | None = None    # retro-compat ancien front ("long" -> template long)
     images: list[ReelImage] | None = None   # Sequence : visuels choisis par le CLIENT
     brief: str | None = None                # Sequence : consignes libres du client
+    style: str | None = None                # Sequence : habillage (signature/cinema/editorial)
 
 
 @router.get("/templates")
 def templates(payload: dict = Depends(verify_token)):
     """La bibliotheque de templates de reels (id, label, duree, description)."""
     return {"templates": reel_service.liste_templates()}
+
+
+@router.get("/recommander/{contenu_id}")
+def recommander(contenu_id: str, payload: dict = Depends(verify_token)):
+    """L'IA recommande le template le plus adapte au post (badge de la galerie)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return reel_service.recommander_template(telegram_id, contenu_id)
 
 
 @router.post("/generer")
@@ -40,7 +50,8 @@ def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
     images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
     try:
         res = reel_service.generer_reel(telegram_id, body.contenu_id, template=template,
-                                        images=images or None, brief=(body.brief or "").strip() or None)
+                                        images=images or None, brief=(body.brief or "").strip() or None,
+                                        style=body.style)
     except Exception as e:
         logger.error(f"generer reel: {e}")
         raise HTTPException(status_code=500, detail="Echec de la generation du reel")
@@ -53,6 +64,7 @@ class ReelLibreRequest(BaseModel):
     brief: str
     images: list[ReelImage] | None = None
     reseau: str | None = None
+    style: str | None = None
 
 
 @router.post("/creer")
@@ -64,7 +76,8 @@ def creer(body: ReelLibreRequest, payload: dict = Depends(verify_token)):
     images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
     try:
         res = reel_service.creer_reel_libre(telegram_id, body.brief,
-                                            images=images or None, reseau=body.reseau or "Instagram")
+                                            images=images or None, reseau=body.reseau or "Instagram",
+                                            style=body.style)
     except Exception as e:
         logger.error(f"creer reel libre: {e}")
         raise HTTPException(status_code=500, detail="Echec de la creation du reel")
@@ -77,6 +90,7 @@ class ReelRegenRequest(BaseModel):
     reel_id: str
     images: list[ReelImage] | None = None
     brief: str | None = None
+    style: str | None = None
 
 
 @router.post("/regenerer")
@@ -88,7 +102,8 @@ def regenerer(body: ReelRegenRequest, payload: dict = Depends(verify_token)):
     images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
     try:
         res = reel_service.regenerer_reel(telegram_id, body.reel_id,
-                                          images=images or None, brief=(body.brief or "").strip() or None)
+                                          images=images or None, brief=(body.brief or "").strip() or None,
+                                          style=body.style)
     except Exception as e:
         logger.error(f"regenerer reel: {e}")
         raise HTTPException(status_code=500, detail="Echec de la regeneration du reel")
