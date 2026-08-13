@@ -85,7 +85,8 @@ def _shell(inner: str, width: int = 520, internal: bool = False) -> str:
 </html>"""
 
 
-async def send_email(to: str, subject: str, html: str, text: str | None = None) -> dict:
+async def send_email(to: str, subject: str, html: str, text: str | None = None,
+                     unsubscribe_url: str | None = None) -> dict:
     if not RESEND_API_KEY:
         logger.error("RESEND_API_KEY manquante — email non envoyé")
         return {"error": "no_resend_key"}
@@ -104,8 +105,12 @@ async def send_email(to: str, subject: str, html: str, text: str | None = None) 
                     "subject": subject,
                     "html": html,
                     "text": text or _html_to_text(html),
-                    # mailto uniquement -> pas de One-Click (qui exigerait une URL https)
-                    "headers": {"List-Unsubscribe": f"<{_UNSUB}>"},
+                    # Avec une URL https (newsletter) -> désinscription One-Click, très
+                    # bon signal de délivrabilité. Sinon mailto seul (pas de One-Click).
+                    "headers": ({
+                        "List-Unsubscribe": f"<{unsubscribe_url}>, <{_UNSUB}>",
+                        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+                    } if unsubscribe_url else {"List-Unsubscribe": f"<{_UNSUB}>"}),
                 },
             )
     except Exception as e:

@@ -1,4 +1,6 @@
 import asyncio
+import os
+from datetime import datetime
 from fastapi import FastAPI, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 from config import CORS_ORIGINS, ANALYTICS_CRON_HOURS, logger
@@ -20,6 +22,7 @@ from routes.accounts import router as accounts_router
 from routes.onboarding import router as onboarding_router
 from routes.video import router as video_router
 from routes.reels import router as reels_router
+from routes.newsletter import router as newsletter_router
 
 app = FastAPI()
 
@@ -50,6 +53,7 @@ api_router.include_router(accounts_router)
 api_router.include_router(onboarding_router)
 api_router.include_router(video_router)
 api_router.include_router(reels_router)
+api_router.include_router(newsletter_router)
 
 app.include_router(api_router)
 
@@ -65,6 +69,7 @@ app.add_middleware(
 
 _cron_task = None
 _sweep_task = None
+_newsletter_task = None
 
 
 async def _analytics_cron():
@@ -94,14 +99,42 @@ async def _publish_sweep_cron():
         await asyncio.sleep(600)
 
 
+async def _newsletter_cron():
+    """Newsletter hebdomadaire : chaque mardi matin (heure de Paris), on prépare
+    l'édition et on l'envoie à Martin pour validation. Rien ne part aux abonnés
+    sans son clic — voir services/newsletter_service.py.
+    NEWSLETTER_JOUR : 0=lundi … 6=dimanche (défaut mardi). NEWSLETTER_HEURE : heure locale."""
+    from services import newsletter_service
+    from zoneinfo import ZoneInfo
+    tz = ZoneInfo(os.environ.get("NEWSLETTER_TZ", "Europe/Paris"))
+    jour = int(os.environ.get("NEWSLETTER_JOUR", "1"))
+    heure = int(os.environ.get("NEWSLETTER_HEURE", "9"))
+    await asyncio.sleep(120)
+    while True:
+        try:
+            maintenant = datetime.now(tz)
+            # Fenêtre de 2 h : robuste à un redémarrage ou à un cycle décalé.
+            if maintenant.weekday() == jour and heure <= maintenant.hour < heure + 2:
+                if not newsletter_service.derniere_du_cycle(jours=5):
+                    logger.info("Newsletter hebdo : préparation de l'édition…")
+                    res = await newsletter_service.preparer()
+                    logger.info(f"Newsletter hebdo : {res}")
+        except Exception as e:
+            logger.error(f"newsletter cron loop: {e}")
+        await asyncio.sleep(1800)   # vérification toutes les 30 min
+
+
 @app.on_event("startup")
 async def startup():
-    global _cron_task, _sweep_task
+    global _cron_task, _sweep_task, _newsletter_task
     if ANALYTICS_CRON_HOURS and ANALYTICS_CRON_HOURS > 0:
         _cron_task = asyncio.create_task(_analytics_cron())
         logger.info(f"Cron analytics activé (toutes les {ANALYTICS_CRON_HOURS} h)")
     _sweep_task = asyncio.create_task(_publish_sweep_cron())
     logger.info("Cron programmation Zernio activé (balayage toutes les 10 min)")
+    if os.environ.get("NEWSLETTER_ACTIVE", "1") != "0":
+        _newsletter_task = asyncio.create_task(_newsletter_cron())
+        logger.info("Cron newsletter hebdomadaire activé")
 
 
 @app.on_event("shutdown")
@@ -110,6 +143,8 @@ async def shutdown():
         _cron_task.cancel()
     if _sweep_task:
         _sweep_task.cancel()
+    if _newsletter_task:
+        _newsletter_task.cancel()
 
 
 # Lancement direct (Railway/Docker) : lit le port depuis $PORT, sans dépendre de l'expansion shell.
