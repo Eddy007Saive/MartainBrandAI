@@ -2,7 +2,6 @@ import React from 'react';
 import {
   AbsoluteFill, Img, interpolate, spring, staticFile,
   useCurrentFrame, useVideoConfig, Sequence,
-  delayRender, continueRender,
 } from 'remotion';
 
 /**
@@ -52,17 +51,14 @@ export const XFADE = 0.35; // recouvrement entre plans (jamais d'écran vide)
 
 // Police manuscrite du style Carnet — chargée depuis public/ (le rendu prod est
 // un Linux sans polices fantaisie ; on n'ajoute pas de dépendance pour ça).
-// Garde-fou : si le chargement traîne, on continue SANS la police plutôt que de
-// bloquer le rendu (un load() de FontFace peut rester suspendu indéfiniment).
+// JAMAIS de delayRender ici : un FontFace.load() suspendu bloquait tout rendu
+// jusqu'au timeout (vu en local). Chargement en tâche de fond ; si la police
+// n'est pas prête, le style Carnet sort avec la cursive de repli — jamais d'échec.
 if (typeof document !== 'undefined') {
-  const h = delayRender('carnet font');
-  let done = false;
-  const fin = () => { if (!done) { done = true; continueRender(h); } };
-  const garde = setTimeout(fin, 4000);
   new FontFace('CarnetScript', `url(${staticFile('fonts/caveat.ttf')})`)
     .load()
-    .then((f) => { (document.fonts as FontFaceSet).add(f); clearTimeout(garde); fin(); })
-    .catch(() => { clearTimeout(garde); fin(); });
+    .then((f) => { (document.fonts as FontFaceSet).add(f); })
+    .catch(() => {});
 }
 
 // ---- couleur : encre lisible posée sur l'accent ----
