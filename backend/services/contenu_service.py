@@ -208,12 +208,25 @@ def _cleanup_assets(c: dict) -> None:
     if isinstance(c.get("slides_images"), list):
         imgs += c["slides_images"]
     for u in imgs:
+        # Le poster d'un reel (…/video/upload/….jpg) dérive de l'asset VIDEO :
+        # il disparaît avec lui, ce n'est pas une image à détruire.
+        if "/video/upload/" in (u or ""):
+            continue
         pid = _public_id_from_cloudinary_url(u)
         if pid:
             try:
                 cloudinary.uploader.destroy(pid, resource_type="image", invalidate=True)
             except Exception as e:
                 logger.warning(f"cleanup image {pid}: {e}")
+    # Vidéo du contenu (reel rendu par Remotion ou import) hébergée sur Cloudinary
+    vu = c.get("video_url")
+    if vu and "cloudinary.com" in vu and "/video/upload/" in vu:
+        pid = _public_id_from_cloudinary_url(vu)
+        if pid:
+            try:
+                cloudinary.uploader.destroy(pid, resource_type="video", invalidate=True)
+            except Exception as e:
+                logger.warning(f"cleanup video {pid}: {e}")
     if c.get("carrousel_pdf"):
         pid = _raw_public_id(c["carrousel_pdf"])
         if pid:

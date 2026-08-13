@@ -37,7 +37,9 @@ REMOTION_BROWSER = os.environ.get("REMOTION_BROWSER")
 # Ajouter un template = 1 composition .tsx dans remotion/src + 1 entree ici.
 # id -> composition Remotion + metadonnees galerie. Les entrees "sequence*" partagent
 # la composition ReelSequence : "style" pilote l'habillage (typo, letterbox, cadre).
-_APERCUS = "https://res.cloudinary.com/dy9gp5pim/video/upload/reels/_templates"
+# q_auto : allege les apercus ET donne une cle CDN distincte de l'URL brute
+# (le CDN avait mis en cache des 404 demandes avant la fin des uploads).
+_APERCUS = "https://res.cloudinary.com/dy9gp5pim/video/upload/q_auto/reels/_templates"
 TEMPLATES = {
     "sequence": {"composition": "ReelSequence", "label": "Séquence", "duree": 18, "style": "signature",
                  "tags": ["Tous usages"],
@@ -51,6 +53,34 @@ TEMPLATES = {
                            "tags": ["Marques", "Produit"],
                            "apercu": f"{_APERCUS}/sequence-editorial.mp4",
                            "desc": "Façon magazine : cadre fin, numéros de page, accents nets."},
+    "sequence-impact": {"composition": "ReelSequence", "label": "Séquence — Impact", "duree": 16, "style": "impact",
+                        "tags": ["Punchy", "Promo"],
+                        "apercu": f"{_APERCUS}/sequence-impact.mp4",
+                        "desc": "Noir et brutal : mots énormes, coupes sèches, flashs — pour les annonces qui claquent."},
+    "sequence-odyssee": {"composition": "ReelSequence", "label": "Séquence — Odyssée", "duree": 18, "style": "odyssee",
+                         "tags": ["Spectaculaire", "Voyage"],
+                         "apercu": f"{_APERCUS}/sequence-odyssee.mp4",
+                         "desc": "Profondeur spatiale : images traversées en zoom, typo espacée — grandiose et immersif."},
+    "sequence-vlog": {"composition": "ReelSequence", "label": "Séquence — Vlog", "duree": 18, "style": "vlog",
+                      "tags": ["Casual", "Coulisses"],
+                      "apercu": f"{_APERCUS}/sequence-vlog.mp4",
+                      "desc": "Esprit vlog : mots en stickers, cadre caméra REC, image qui respire — proche et authentique."},
+    "sequence-carnet": {"composition": "ReelSequence", "label": "Séquence — Carnet", "duree": 18, "style": "carnet",
+                        "tags": ["Voyage", "Lifestyle"],
+                        "apercu": f"{_APERCUS}/sequence-carnet.mp4",
+                        "desc": "Carnet de voyage : polaroids scotchés, écriture manuscrite, papier crème."},
+    "sequence-avantapres": {"composition": "ReelSequence", "label": "Séquence — Avant/Après", "duree": 16, "style": "avantapres",
+                            "tags": ["Transformation", "Preuve"],
+                            "apercu": f"{_APERCUS}/sequence-avantapres.mp4",
+                            "desc": "La preuve par l'image : visuels badgés AVANT puis APRÈS — parfait pour les transformations."},
+    "sequence-temoignage": {"composition": "ReelSequence", "label": "Séquence — Témoignage", "duree": 16, "style": "temoignage",
+                            "tags": ["Avis client", "Confiance"],
+                            "apercu": f"{_APERCUS}/sequence-temoignage.mp4",
+                            "desc": "Un avis client mis en scène : 5 étoiles, citation en lettres serif, signature."},
+    "sequence-conseils": {"composition": "ReelSequence", "label": "Séquence — Conseils", "duree": 18, "style": "conseils",
+                          "tags": ["Éducatif", "Tips"],
+                          "apercu": f"{_APERCUS}/sequence-conseils.mp4",
+                          "desc": "Accroche puis conseils numérotés — le format qui se partage et se sauvegarde."},
     "affiche": {"composition": "ReelAffiche", "label": "Affiche", "duree": 11, "tags": ["Pub"], "apercu": None,
                 "desc": "La pub premium : titre accentué, 3 arguments à icônes, ton image, CTA brillant."},
     "impact":  {"composition": "ReelBrand", "label": "Impact", "duree": 8, "tags": ["Promo", "Stories"], "apercu": None,
@@ -60,6 +90,10 @@ TEMPLATES = {
     "long":    {"composition": "ReelLong", "label": "Narratif", "duree": 22, "tags": ["Storytelling"], "apercu": None,
                 "desc": "Accroche → contexte → preuves plein écran → leçon en citation → CTA."},
 }
+
+
+# Styles valides du moteur ReelSequence (= valeurs "style" des entrees sequence*)
+_STYLES_SEQUENCE = tuple(v["style"] for k, v in TEMPLATES.items() if k.startswith("sequence"))
 
 
 def liste_templates() -> list:
@@ -73,8 +107,15 @@ _ROLE_RECO = (
     "- sequence : montage multi-plans avec les visuels du post (bon defaut)\n"
     "- sequence-cinema : haut de gamme, contemplatif (hotellerie, immobilier, bien-etre, luxe)\n"
     "- sequence-editorial : magazine, lancement produit, marques\n"
+    "- sequence-impact : annonce choc, promo agressive, urgence, gros lancement\n"
+    "- sequence-odyssee : voyage, destination, immobilier de prestige, spectaculaire\n"
+    "- sequence-vlog : coulisses, quotidien, createurs, proximite avec l'audience\n"
+    "- sequence-carnet : recit de voyage, lifestyle, souvenirs, artisanat\n"
+    "- sequence-avantapres : transformation visible, renovation, relooking, resultats photo\n"
+    "- sequence-temoignage : avis client, retour d'experience, preuve sociale\n"
+    "- sequence-conseils : post educatif, astuces, liste d'erreurs ou de tips\n"
     "- affiche : publicite posee avec arguments structures\n"
-    "- impact : promo punchy, offre, urgence\n"
+    "- impact : promo punchy courte format stories\n"
     "- stats : posts a chiffres et resultats\n"
     "- long : storytelling, lecon, recit personnel\n"
     'Reponds UNIQUEMENT en JSON strict : {"template": "id", "raison": "8-14 mots dans la langue du post"}'
@@ -199,11 +240,34 @@ _ROLE_SEQUENCE = (
     "- image_id : UNIQUEMENT un id de la liste fournie ; s'il n'y a pas de visuel pertinent, fais un plan typo\n"
     "- varie les effets : zoomIn, zoomOut, panLeft, panRight\n"
     "- bar (plan cta) : 2 a 5 mots (marque, site ou action)\n"
+    "- label (optionnel) : badge du plan quand la direction artistique le demande (AVANT/APRES, signature du temoin)\n"
     "Reponds UNIQUEMENT en JSON strict : "
     '{"recette": "...", "segments": [{"type": "typo|image|cta", "dur": 2.8, "texte": "...", '
     '"accents": ["..."], "image_id": "...ou null", "effet": "zoomIn|zoomOut|panLeft|panRight", '
-    '"reveal": "carte|lamelles|portes|stores|iris", "bar": "...si cta"}]}'
+    '"reveal": "carte|lamelles|portes|stores|iris", "bar": "...si cta", "label": "...optionnel"}]}'
 )
+
+# Direction artistique par style : injectee dans le prompt scenariste pour que
+# l'ECRITURE colle a l'habillage (le moteur Remotion fait le reste).
+_GUIDES_STYLE = {
+    "impact": ("STYLE IMPACT : phrases de 2 a 4 mots MAXIMUM, verbes forts, zero blabla. "
+               "Rythme rapide : dur entre 2 et 2.8 s."),
+    "odyssee": ("STYLE ODYSSEE : ton grandiose et evocateur (voyage, immensite). "
+                "Privilegie les plans image avec reveal iris, textes courts et aeriens."),
+    "vlog": ("STYLE VLOG : ton parle et direct, premiere personne, comme une story face camera. "
+             "Naturel, complice, pas corporate."),
+    "carnet": ("STYLE CARNET DE VOYAGE : ton intime de journal de bord a la premiere personne, "
+               "phrases courtes et sensorielles."),
+    "avantapres": ("STRUCTURE IMPOSEE AVANT/APRES : plan 1 = typo accroche ; puis alternance stricte "
+                   "d'images avec label 'AVANT' puis label 'APRES' (renseigne le champ label) dans "
+                   "l'ordre logique des visuels ; dernier plan cta. Pas assez d'images ? Remplace par "
+                   "des plans typo qui decrivent l'avant puis l'apres."),
+    "temoignage": ("STYLE TEMOIGNAGE : ecris le reel comme UNE citation client authentique a la "
+                   "premiere personne (resultat concret, emotion sincere). Sur le DERNIER plan avant "
+                   "le cta, renseigne label = 'Prenom, qualite' (ex : 'Sophie, cliente depuis 2024')."),
+    "conseils": ("STRUCTURE CONSEILS : plan 1 = typo accroche (promesse ou erreur courante) ; puis 3 a "
+                 "5 plans = UN conseil concret et actionnable par plan (typo ou image) ; dernier plan cta."),
+}
 
 
 def upload_image_source(telegram_id: str, data: bytes) -> dict:
@@ -285,12 +349,15 @@ def _pimenter_reveals(segments: list, graine: str):
     return segments
 
 
-def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, imposees: bool = False) -> dict:
+def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, imposees: bool = False,
+                     style: str = None) -> dict:
     """Scenario de sequence ; validation stricte + repli heuristique.
-    imposees=True : les visuels ont ete CHOISIS par le client -> tous utilises."""
+    imposees=True : les visuels ont ete CHOISIS par le client -> tous utilises.
+    style : injecte la direction artistique du template dans l'ecriture."""
     ids = {p["id"] for p in pool}
     urls = {p["id"]: _img_rendu(p["url"]) for p in pool}
     liste = "\n".join(f"- {p['id']} : {p['desc']}" for p in pool) or "(aucun visuel disponible)"
+    role = _ROLE_SEQUENCE + (f"\n\n{_GUIDES_STYLE[style]}" if style in _GUIDES_STYLE else "")
     consigne = ""
     if imposees and pool:
         consigne = ("\nIMPORTANT : ces visuels ont ete choisis par le client. Tu DOIS tous les utiliser, "
@@ -302,7 +369,7 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
         resp = _messages_create(
             model="claude-haiku-4-5",
             max_tokens=900,
-            system=_ROLE_SEQUENCE,
+            system=role,
             messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nVisuels disponibles :\n{liste}{consigne}\n\nDonne le JSON."}],
         )
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
@@ -330,6 +397,8 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
                     seg["type"] = "typo"   # id inconnu -> jamais d'URL inventee
             if t == "cta":
                 seg["bar"] = str(s.get("bar") or marque.get("nom") or "")[:40]
+            if s.get("label"):
+                seg["label"] = str(s["label"])[:40]
             if seg["texte"]:
                 segs.append(seg)
         # invariants : 4-7 plans, le dernier est un cta
@@ -447,14 +516,14 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
     u = _charger_marque(telegram_id)
     imgs = [{"url": im.get("url"), "desc": im.get("desc")}
             for im in (images or []) if _est_image_source(im.get("url"))]
+    st = style if style in _STYLES_SEQUENCE else "signature"
     if imgs:
         pool = [{"id": f"img_{i+1}", "url": im["url"],
                  "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                 for i, im in enumerate(imgs)]
-        scenario = _script_sequence(brief, u, pool, brief=brief, imposees=True)
+        scenario = _script_sequence(brief, u, pool, brief=brief, imposees=True, style=st)
     else:
-        scenario = _script_sequence(brief, u, [], brief=brief)
-    st = style if style in ("signature", "cinema", "editorial") else (scenario.get("style") or "signature")
+        scenario = _script_sequence(brief, u, [], brief=brief, style=st)
     scenario["style"] = st
     props = {
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
@@ -542,15 +611,15 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
     if images is None:
         images = [{"url": sg.get("image"), "desc": None}
                   for sg in old_sc.get("segments", []) if _est_image_source(sg.get("image"))]
+    st = style if style in _STYLES_SEQUENCE else "signature"
     if images:
         pool = [{"id": f"img_{i+1}", "url": im["url"],
                  "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                 for i, im in enumerate(images) if im.get("url")]
-        scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True)
+        scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st)
     else:
         pool = _pool_visuels(telegram_id, cur)
-        scenario = _script_sequence(texte, u, pool, brief=brief)
-    st = style if style in ("signature", "cinema", "editorial") else (scenario.get("style") or "signature")
+        scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
     scenario["style"] = st
     props = {
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
@@ -603,19 +672,22 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
     if template.startswith("sequence"):
         if style is None:
             style = TEMPLATES.get(template, {}).get("style")
+        st = style if style in _STYLES_SEQUENCE else "signature"
         # Visuels CHOISIS par le client (dialogue Sequence) > pool automatique du compte
         if images:
             pool = [{"id": f"img_{i+1}", "url": im["url"],
                      "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                     for i, im in enumerate(images) if _est_image_source(im.get("url"))]
-            scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True)
+            scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st)
         else:
             pool = _pool_visuels(telegram_id, cur)
-            scenario = _script_sequence(texte, u, pool, brief=brief)
+            scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
+        scenario["style"] = st
         script = {"hook": (scenario["segments"][0]["texte"] if scenario["segments"] else "")[:80]}
         props = {
             "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
             "segments": [{k: v for k, v in s.items() if k != "image_id"} for s in scenario["segments"]],
+            "style": st,
         }
     elif template == "affiche":
         script = _script_affiche(texte, u)

@@ -1076,7 +1076,7 @@ export default function ContenusPage() {
         </div>
 
         {/* Tabs: Scripts / Vidéos / Tous */}
-        <div className="flex gap-1 p-1 bg-slate-950/60 rounded-xl border border-white/[0.04]">
+        <div className="flex gap-1 p-1 bg-slate-950/60 rounded-xl border border-white/[0.04] overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             { id: 'all', label: t('contenus.onglets.tous'), icon: Sparkles, count: contenus.length },
             { id: 'posts', label: t('contenus.onglets.posts'), icon: FileText, count: posts.length },
@@ -1086,14 +1086,14 @@ export default function ContenusPage() {
             <button
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); setSearchQuery(''); setFilterStatut('all'); }}
-              className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 sm:px-4 py-2.5 rounded-lg text-[13px] sm:text-sm font-inter font-medium transition-all ${
+              className={`flex-none sm:flex-1 sm:min-w-0 flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-lg text-[13px] sm:text-sm font-inter font-medium whitespace-nowrap transition-all ${
                 activeTab === tab.id
                   ? 'bg-[#5B6CFF]/20 text-white shadow-[0_0_10px_rgba(91,108,255,0.1)]'
                   : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
               }`}
             >
               <tab.icon className="w-4 h-4 shrink-0" />
-              <span className="truncate">{tab.label}</span>
+              <span>{tab.label}</span>
               <span className={`hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded-full ${
                 activeTab === tab.id ? 'bg-[#5B6CFF]/30 text-white' : 'bg-slate-800 text-slate-500'
               }`}>
@@ -1105,10 +1105,10 @@ export default function ContenusPage() {
 
         {/* Filtres par statut (le chiffre EST le filtre) + recherche */}
         <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-nowrap sm:flex-wrap items-center gap-2 overflow-x-auto sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {FILTRES.map((f) => (
               <button key={f.id} onClick={() => setFilterStatut(f.id)}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-[12.5px] font-semibold font-inter border transition-all active:scale-[0.97] ${
+                className={`inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-full text-[12.5px] font-semibold font-inter border whitespace-nowrap transition-all active:scale-[0.97] ${
                   filterStatut === f.id
                     ? 'bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-[#5B6CFF]/45'
                     : 'bg-white/[0.02] text-slate-400 border-white/[0.07] hover:text-white hover:border-white/[0.18]'
@@ -1675,10 +1675,17 @@ export default function ContenusPage() {
                 <p className="text-sm text-slate-400 font-inter">{t('contenus.reel.seq.description')}</p>
 
                 <div className="grid md:grid-cols-[minmax(0,1fr)_340px] gap-6">
-                {/* ---- COLONNE GAUCHE : galerie de templates (grands aperçus + agrandir) ---- */}
+                {/* ---- COLONNE GAUCHE : vignettes compactes (loupe = aperçu grand) ---- */}
                 <div>
-                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-3">{t('contenus.reel.seq.tplTitre')}</div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                  <div className="flex items-baseline gap-2 mb-3">
+                    <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('contenus.reel.seq.tplTitre')}</span>
+                    {(() => {
+                      const cur = reelTemplates.find((x) => (x.id === 'sequence' ? 'signature' : x.id.split('-')[1]) === seqStyle && x.id.startsWith('sequence'));
+                      const nomSel = cur ? (cur.id === 'sequence' ? 'Signature' : cur.label.replace(/^Séquence\s*—\s*/, '')) : '';
+                      return nomSel ? <span className="ml-auto text-[12px] font-semibold text-[#3AFFA3]">✓ {nomSel}</span> : null;
+                    })()}
+                  </div>
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-3">
                     {reelTemplates.filter((x) => x.id.startsWith('sequence')).map((tpl, idx) => {
                       const st = tpl.id === 'sequence' ? 'signature' : tpl.id.split('-')[1];
                       const on = seqStyle === st;
@@ -1687,23 +1694,19 @@ export default function ContenusPage() {
                       return (
                         <div key={tpl.id} role="button" tabIndex={0} onClick={() => setSeqStyle(st)} data-testid={`seq-style-${st}`}
                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSeqStyle(st); } }}
-                          className={`group relative text-left rounded-2xl border p-2 pb-3 cursor-pointer transition-all active:scale-[0.97] ${on ? 'border-[#3AFFA3] ring-1 ring-[#3AFFA3]/60 bg-[#3AFFA3]/[0.04] shadow-[0_0_28px_rgba(58,255,163,0.10)]' : 'border-white/[0.08] bg-[#0a1120] hover:border-[#8A6CFF]/50 hover:bg-[#8A6CFF]/5'}`}>
-                          {reco && <span className="absolute top-3.5 left-3.5 z-[2] text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-[#3AFFA3] text-[#05261a]">★ {t('contenus.reel.recommande')}</span>}
-                          <div className="relative aspect-[9/16] rounded-xl overflow-hidden border border-white/[0.07] bg-[#060b18]">
+                          className="group relative cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95">
+                          <div className={`relative aspect-[9/16] rounded-xl overflow-hidden bg-[#060b18] border-[1.5px] transition-all ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3,0_8px_30px_rgba(58,255,163,0.14)]' : 'border-white/[0.09] group-hover:border-[#8A6CFF]/60'}`}>
                             {tpl.apercu && <video src={tpl.apercu} autoPlay muted loop playsInline className="w-full h-full object-cover" />}
+                            {on && <span className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#020617]/60 pointer-events-none" />}
+                            {reco && <span className="absolute top-1.5 left-1.5 z-[2] text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#3AFFA3] text-[#05261a]">★</span>}
                             <button type="button" title={t('contenus.reel.seq.agrandir')} aria-label={t('contenus.reel.seq.agrandir')}
                               onClick={(e) => { e.stopPropagation(); setSeqZoom(idx); }}
-                              className="absolute top-2 right-2 w-8 h-8 rounded-lg border border-white/25 bg-[#020617]/75 text-white grid place-items-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity backdrop-blur-sm cursor-zoom-in active:scale-90">
-                              <Maximize2 className="w-3.5 h-3.5" />
+                              className="absolute top-1.5 right-1.5 z-[3] w-[26px] h-[26px] rounded-lg border border-white/25 bg-[#020617]/75 text-white grid place-items-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity backdrop-blur-sm cursor-zoom-in active:scale-90">
+                              <Maximize2 className="w-3 h-3" />
                             </button>
+                            {on && <span className="absolute right-1.5 bottom-1.5 z-[2] w-[22px] h-[22px] rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[11px] font-extrabold">✓</span>}
                           </div>
-                          <div className="px-1.5 pt-2.5">
-                            <div className="text-[13px] font-sora font-bold text-white flex items-center gap-1.5 min-w-0">
-                              <span className="truncate">{nom}</span>
-                              {on && <span className="w-[17px] h-[17px] rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[10px] font-extrabold shrink-0">✓</span>}
-                            </div>
-                            <p className="text-[11px] text-slate-500 font-inter mt-1 leading-snug line-clamp-2">{tpl.desc}</p>
-                          </div>
+                          <div className={`mt-1.5 text-center text-[11.5px] font-sora font-bold truncate ${on ? 'text-[#3AFFA3]' : 'text-slate-300'}`}>{nom}</div>
                         </div>
                       );
                     })}
