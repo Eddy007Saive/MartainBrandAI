@@ -25,7 +25,7 @@ from config import (
     CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
 )
 from services.agent_service import _charger_marque, _messages_create
-from services import planning_service
+from services import planning_service, music_library
 
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
 
@@ -508,7 +508,7 @@ def _rendre_mp4(props: dict, composition: str = "ReelBrand") -> str:
 
 
 def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: str = "Instagram",
-                     style: str = None) -> dict:
+                     style: str = None, musique: str = None) -> dict:
     """Cree un reel Sequence SANS contenu source : le brief du client est le sujet.
     Le resultat entre dans Contenus comme un Reel « A valider », planifie normalement."""
     if not (brief or "").strip():
@@ -525,10 +525,12 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
     else:
         scenario = _script_sequence(brief, u, [], brief=brief, style=st)
     scenario["style"] = st
+    scenario["musique"] = musique if music_library.piste(musique) else None
     props = {
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
         "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
         "style": st,
+        "musique": music_library.musique_url(scenario["musique"]),
     }
     try:
         mp4 = _rendre_mp4(props, composition="ReelSequence")
@@ -590,7 +592,8 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
             "reseau": row["reseau_cible"], "date_publication": row.get("date_publication")}
 
 
-def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: str = None, style: str = None) -> dict:
+def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: str = None, style: str = None,
+                   musique: str = None) -> dict:
     """Re-scenarise et re-rend un reel Sequence EXISTANT (statut A valider) : la video
     est remplacee sur place (meme contenu, meme public_id Cloudinary), pas de doublon."""
     res = supabase.table("contenu").select("*").eq("id", reel_id).eq("telegram_id", telegram_id).execute()
@@ -606,6 +609,8 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
     old_sc = cur.get("reel_data") or {}
     if style is None:
         style = old_sc.get("style")
+    if musique is None:
+        musique = old_sc.get("musique")   # None = garder ; "none" = retirer explicitement
     if brief is None:
         brief = old_sc.get("brief")
     if images is None:
@@ -621,10 +626,12 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         pool = _pool_visuels(telegram_id, cur)
         scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
     scenario["style"] = st
+    scenario["musique"] = musique if music_library.piste(musique) else None
     props = {
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
         "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
         "style": st,
+        "musique": music_library.musique_url(scenario["musique"]),
     }
     try:
         mp4 = _rendre_mp4(props, composition="ReelSequence")
@@ -654,7 +661,8 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
 
 
 def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
-                 images: list = None, brief: str = None, style: str = None) -> dict:
+                 images: list = None, brief: str = None, style: str = None,
+                 musique: str = None) -> dict:
     """Pipeline complet : post -> script -> rendu -> Cloudinary -> contenu jumeau 'Reel'.
     template : cle de TEMPLATES ('affiche', 'impact', 'stats', 'long')."""
     if template not in TEMPLATES:
@@ -683,11 +691,13 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
             pool = _pool_visuels(telegram_id, cur)
             scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
         scenario["style"] = st
+        scenario["musique"] = musique if music_library.piste(musique) else None
         script = {"hook": (scenario["segments"][0]["texte"] if scenario["segments"] else "")[:80]}
         props = {
             "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
             "segments": [{k: v for k, v in s.items() if k != "image_id"} for s in scenario["segments"]],
             "style": st,
+            "musique": music_library.musique_url(scenario["musique"]),
         }
     elif template == "affiche":
         script = _script_affiche(texte, u)

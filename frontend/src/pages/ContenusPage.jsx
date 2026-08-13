@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -28,6 +28,7 @@ import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { contenuService } from '../services/contenuService';
+import { PillFabrication } from '../components/Fabrication';
 import { agentService } from '../services/agentService';
 import { userService } from '../services/userService';
 import { templateService } from '../services/templateService';
@@ -302,8 +303,15 @@ export default function ContenusPage() {
     { id: 'stats', label: t('contenus.reelTpl.statsLabel'), duree: 10, desc: t('contenus.reelTpl.statsDesc') },
     { id: 'long', label: t('contenus.reelTpl.longLabel'), duree: 22, desc: t('contenus.reelTpl.longDesc') },
   ]));
+  const [reelMusiques, setReelMusiques] = useState([]);      // bibliothèque partagée avec le Studio Vidéo
+  const [reelMusicCats, setReelMusicCats] = useState([]);
   useEffect(() => {
-    contenuService.reelTemplates().then((t) => { if (t?.length) setReelTemplates(t); }).catch(() => {});
+    contenuService.reelTemplates().then((d) => {
+      const tpls = Array.isArray(d) ? d : d?.templates;       // rétro-compat ancienne réponse (liste nue)
+      if (tpls?.length) setReelTemplates(tpls);
+      if (d?.musiques?.length) setReelMusiques(d.musiques);
+      if (d?.categories?.length) setReelMusicCats(d.categories);
+    }).catch(() => {});
   }, []);
   // Séquence : le CLIENT fournit les visuels (upload / banque) + un brief — l'IA monte
   const [seqFor, setSeqFor] = useState(null);
@@ -317,23 +325,26 @@ export default function ContenusPage() {
   const [seqReseau, setSeqReseau] = useState('Instagram');
   const [seqStyle, setSeqStyle] = useState('signature');
   const [seqZoom, setSeqZoom] = useState(null);      // index du template agrandi (lightbox), null = fermé
-  const openSequenceLibre = () => {
-    setSeqRegen(false);
-    setSeqLibre(true);
-    setSeqStyle('signature');
-    setSeqFor({ id: '__libre__' });
-    setSeqImages([]);
-    setSeqBrief('');
-    setSeqReseau('Instagram');
-    setSeqBanque(null);
-    contenuService.reelBanque().then(setSeqBanque).catch(() => setSeqBanque([]));
+  const [seqMusique, setSeqMusique] = useState('none');  // piste de fond du reel (bibliothèque partagée)
+  const [seqPlaying, setSeqPlaying] = useState(false);   // pré-écoute de la piste choisie
+  const seqAudioRef = useRef(null);
+  const seqStopPreview = () => { if (seqAudioRef.current) seqAudioRef.current.pause(); setSeqPlaying(false); };
+  const seqTogglePreview = () => {
+    const m = reelMusiques.find((x) => x.id === seqMusique);
+    const a = seqAudioRef.current;
+    if (!a || !m?.url) return;
+    if (seqPlaying) { a.pause(); setSeqPlaying(false); return; }
+    a.src = m.url; a.currentTime = 0;
+    a.play().then(() => setSeqPlaying(true)).catch(() => setSeqPlaying(false));
   };
+  // La création LIBRE d'un reel vit désormais en pleine page : /dashboard/reel (StudioReel).
   // Modifier un reel existant : dialogue pré-rempli depuis son scénario, re-rendu SUR PLACE
   const openSequenceRegen = (reel) => {
     setSelectedContenu(null);
     setSeqLibre(false);
     setSeqRegen(true);
     setSeqStyle(reel.reel_data?.style || 'signature');
+    setSeqMusique(reel.reel_data?.musique || 'none');
     setSeqFor(reel);
     const sc = reel.reel_data || {};
     const imgs = [];
@@ -352,6 +363,7 @@ export default function ContenusPage() {
     setSeqStyle(style);
     setSeqFor(contenu);
     const cached = seqCache.current[contenu.id];
+    setSeqMusique(cached?.musique || 'none');
     if (cached) {
       setSeqImages(cached.images);
       setSeqBrief(cached.brief);
@@ -368,8 +380,8 @@ export default function ContenusPage() {
     contenuService.reelBanque().then(setSeqBanque).catch(() => setSeqBanque([]));
   };
   useEffect(() => {
-    if (seqFor) seqCache.current[seqFor.id] = { images: seqImages, brief: seqBrief };
-  }, [seqFor, seqImages, seqBrief]);
+    if (seqFor) seqCache.current[seqFor.id] = { images: seqImages, brief: seqBrief, musique: seqMusique };
+  }, [seqFor, seqImages, seqBrief, seqMusique]);
   const seqToggleBanque = (img) => {
     setSeqImages((prev) => prev.some((i) => i.url === img.url)
       ? prev.filter((i) => i.url !== img.url)
@@ -397,9 +409,11 @@ export default function ContenusPage() {
     setSeqFor(null);
     setReelLoading(contenu.id);
     toast.info(t('contenus.toast.reelEnCours', { label: 'Séquence', min: 2 }));
+    seqStopPreview();
     const payload = {
       images: seqImages.map((i) => ({ url: i.url, desc: i.desc || null })),
       brief: seqBrief.trim() || null,
+      musique: seqMusique,
     };
     try {
       if (seqLibre) {
@@ -410,7 +424,7 @@ export default function ContenusPage() {
         setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
         delete seqCache.current[contenu.id];
       } else {
-        await contenuService.genererReel(contenu.id, 'sequence', payload);
+        await contenuService.genererReel(contenu.id, 'sequence', { ...payload, style: seqStyle });
       }
       toast.success(t('contenus.toast.reelGenere'));
       fetchContenus();
@@ -1055,7 +1069,7 @@ export default function ContenusPage() {
               {t('contenus.actions.postManuel')}
             </Button>
             <Button
-              onClick={openSequenceLibre}
+              onClick={() => navigate('/dashboard/reel')}
               data-testid="btn-creer-reel"
               className="bg-white/[0.06] border border-white/[0.10] text-slate-200 hover:bg-white/[0.10] hover:text-white"
             >
@@ -1664,7 +1678,7 @@ export default function ContenusPage() {
         </Dialog>
 
         {/* Séquence : le client fournit les visuels + un brief, l'IA monte */}
-        <Dialog open={!!seqFor} onOpenChange={() => { setSeqFor(null); setSeqZoom(null); }}>
+        <Dialog open={!!seqFor} onOpenChange={() => { setSeqFor(null); setSeqZoom(null); seqStopPreview(); }}>
           <DialogContent className="bg-[#0f172a] border-slate-800 w-[96vw] sm:max-w-[1180px] max-h-[92vh] overflow-y-auto"
             onEscapeKeyDown={(e) => { if (seqZoom !== null) { e.preventDefault(); setSeqZoom(null); } }}>
             <DialogHeader>
@@ -1788,6 +1802,33 @@ export default function ContenusPage() {
                   )}
                 </div>
 
+                {/* Musique de fond (bibliothèque partagée avec le Studio Vidéo) */}
+                {reelMusiques.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.musique')}</div>
+                    <div className="flex items-center gap-2">
+                      <select value={seqMusique} onChange={(e) => { setSeqMusique(e.target.value); seqStopPreview(); }}
+                        data-testid="seq-musique"
+                        className="flex-1 bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
+                        <option value="none">{t('contenus.reel.seq.sansMusique')}</option>
+                        {reelMusicCats.map((c) => (
+                          <optgroup key={c.id} label={c.label}>
+                            {reelMusiques.filter((m) => m.category === c.id).map((m) => (
+                              <option key={m.id} value={m.id}>{m.label}</option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                      <button type="button" onClick={seqTogglePreview} disabled={seqMusique === 'none'}
+                        title={t('contenus.reel.seq.ecouter')} aria-label={t('contenus.reel.seq.ecouter')}
+                        className={`w-9 h-9 rounded-lg border grid place-items-center transition-all active:scale-95 ${seqMusique === 'none' ? 'border-white/[0.06] text-slate-700' : seqPlaying ? 'border-[#3AFFA3]/60 text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-300 hover:border-white/25'}`}>
+                        {seqPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <audio ref={seqAudioRef} onEnded={() => setSeqPlaying(false)} className="hidden" />
+                  </div>
+                )}
+
                 {/* Réseau cible (mode création libre) */}
                 {seqLibre && (
                   <div>
@@ -1867,6 +1908,14 @@ export default function ContenusPage() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Fabrications longues : pastille flottante (reel > carrousel > slides) */}
+        <PillFabrication
+          actif={!!(reelLoading || carrouselLoading || renderSlidesLoading)}
+          label={reelLoading ? t('contenus.reel.fab.pillReel')
+            : carrouselLoading ? t('contenus.reel.fab.pillCarrousel')
+            : t('contenus.reel.fab.pillSlides')}
+        />
 
         {/* Delete Confirmation */}
         <AlertDialog open={!!deleteContenu} onOpenChange={() => setDeleteContenu(null)}>

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel
 from dependencies import verify_token
 from services import reel_service, banque_service
+from services.music_library import MUSIC_CATEGORIES, MUSIC_LIBRARY
 from config import logger
 
 router = APIRouter(prefix="/reels", tags=["reels"])
@@ -18,13 +19,17 @@ class ReelRequest(BaseModel):
     duree: str | None = None    # retro-compat ancien front ("long" -> template long)
     images: list[ReelImage] | None = None   # Sequence : visuels choisis par le CLIENT
     brief: str | None = None                # Sequence : consignes libres du client
-    style: str | None = None                # Sequence : habillage (signature/cinema/editorial)
+    style: str | None = None                # Sequence : habillage (signature/cinema/…)
+    musique: str | None = None              # Sequence : piste de fond (bibliotheque partagee)
 
 
 @router.get("/templates")
 def templates(payload: dict = Depends(verify_token)):
-    """La bibliotheque de templates de reels (id, label, duree, description)."""
-    return {"templates": reel_service.liste_templates()}
+    """Templates de reels + bibliotheque musicale (le studio Sequence affiche les deux)."""
+    return {"templates": reel_service.liste_templates(),
+            "musiques": [{"id": m["id"], "label": m["label"], "category": m.get("category"), "url": m.get("url")}
+                         for m in MUSIC_LIBRARY],
+            "categories": MUSIC_CATEGORIES}
 
 
 @router.get("/recommander/{contenu_id}")
@@ -51,7 +56,7 @@ def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
     try:
         res = reel_service.generer_reel(telegram_id, body.contenu_id, template=template,
                                         images=images or None, brief=(body.brief or "").strip() or None,
-                                        style=body.style)
+                                        style=body.style, musique=body.musique)
     except Exception as e:
         logger.error(f"generer reel: {e}")
         raise HTTPException(status_code=500, detail="Echec de la generation du reel")
@@ -65,6 +70,7 @@ class ReelLibreRequest(BaseModel):
     images: list[ReelImage] | None = None
     reseau: str | None = None
     style: str | None = None
+    musique: str | None = None
 
 
 @router.post("/creer")
@@ -77,7 +83,7 @@ def creer(body: ReelLibreRequest, payload: dict = Depends(verify_token)):
     try:
         res = reel_service.creer_reel_libre(telegram_id, body.brief,
                                             images=images or None, reseau=body.reseau or "Instagram",
-                                            style=body.style)
+                                            style=body.style, musique=body.musique)
     except Exception as e:
         logger.error(f"creer reel libre: {e}")
         raise HTTPException(status_code=500, detail="Echec de la creation du reel")
@@ -91,6 +97,7 @@ class ReelRegenRequest(BaseModel):
     images: list[ReelImage] | None = None
     brief: str | None = None
     style: str | None = None
+    musique: str | None = None
 
 
 @router.post("/regenerer")
@@ -103,7 +110,7 @@ def regenerer(body: ReelRegenRequest, payload: dict = Depends(verify_token)):
     try:
         res = reel_service.regenerer_reel(telegram_id, body.reel_id,
                                           images=images or None, brief=(body.brief or "").strip() or None,
-                                          style=body.style)
+                                          style=body.style, musique=body.musique)
     except Exception as e:
         logger.error(f"regenerer reel: {e}")
         raise HTTPException(status_code=500, detail="Echec de la regeneration du reel")

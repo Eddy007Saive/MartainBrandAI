@@ -230,9 +230,22 @@
         "monter": "Edit the video",
         "agrandir": "Enlarge preview",
         "apercuTpl": "Template preview",
-        "choisirTpl": "Choose this template"
+        "choisirTpl": "Choose this template",
+        "musique": "Background music",
+        "sansMusique": "No music",
+        "ecouter": "Preview the track"
       },
-      "recommande": "Recommended"
+      "recommande": "Recommended",
+      "fab": {
+        "titre": "Building your reel",
+        "etape1": "The AI is writing the script…",
+        "etape2": "Rendering the video, shot by shot…",
+        "etape3": "Final touches and upload…",
+        "note": "About 2 minutes — stay on this page, your reel will appear in Contents once ready.",
+        "pillReel": "Reel in progress",
+        "pillCarrousel": "Carousel in progress",
+        "pillSlides": "Slides in progress"
+      }
     },
     "reelTpl": {
       "afficheLabel": "Poster",

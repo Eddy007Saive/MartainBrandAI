@@ -230,9 +230,22 @@
         "monter": "Hacer el montaje",
         "agrandir": "Ampliar la vista previa",
         "apercuTpl": "Vista previa de la plantilla",
-        "choisirTpl": "Elegir esta plantilla"
+        "choisirTpl": "Elegir esta plantilla",
+        "musique": "Música de fondo",
+        "sansMusique": "Sin música",
+        "ecouter": "Escuchar la pista"
       },
-      "recommande": "Recomendado"
+      "recommande": "Recomendado",
+      "fab": {
+        "titre": "Fabricando tu reel",
+        "etape1": "La IA escribe el guion…",
+        "etape2": "Renderizando el vídeo, plano a plano…",
+        "etape3": "Últimos ajustes y subida…",
+        "note": "Unos 2 minutos — quédate en esta página, tu reel aparecerá en Contenidos en cuanto esté listo.",
+        "pillReel": "Reel en fabricación",
+        "pillCarrousel": "Carrusel en fabricación",
+        "pillSlides": "Slides en fabricación"
+      }
     },
     "reelTpl": {
       "afficheLabel": "Cartel",

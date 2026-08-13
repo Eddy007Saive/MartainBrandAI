@@ -21,6 +21,7 @@ import AccueilPage from "./pages/AccueilPage";
 import ContenusPage from "./pages/ContenusPage";
 import StudioIA from "./pages/StudioIA";
 import StudioVideo from "./pages/StudioVideo";
+import StudioReel from "./pages/StudioReel";
 import PlanEditorial from "./pages/PlanEditorial";
 import CommentairesPage from "./pages/CommentairesPage";
 import Performance from "./pages/Performance";
@@ -68,6 +69,7 @@ function App() {
             <Route index element={<AccueilPage />} />
             <Route path="studio" element={<StudioIA />} />
             <Route path="video" element={<StudioVideo />} />
+            <Route path="reel" element={<StudioReel />} />
             <Route path="plan" element={<PlanEditorial />} />
             <Route path="contenus" element={<ContenusPage />} />
             <Route path="commentaires" element={<CommentairesPage />} />

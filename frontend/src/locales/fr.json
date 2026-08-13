@@ -230,7 +230,20 @@
         "monter": "Faire le montage",
         "agrandir": "Agrandir l'aperçu",
         "apercuTpl": "Aperçu du template",
-        "choisirTpl": "Choisir ce template"
+        "choisirTpl": "Choisir ce template",
+        "musique": "Musique de fond",
+        "sansMusique": "Aucune musique",
+        "ecouter": "Écouter la piste"
+      },
+      "fab": {
+        "titre": "Fabrication du reel",
+        "etape1": "L'IA écrit le scénario…",
+        "etape2": "Rendu de la vidéo, plan par plan…",
+        "etape3": "Derniers réglages et upload…",
+        "note": "Environ 2 minutes — reste sur cette page, ton reel apparaîtra dans Contenus dès qu'il est prêt.",
+        "pillReel": "Reel en fabrication",
+        "pillCarrousel": "Carrousel en fabrication",
+        "pillSlides": "Slides en fabrication"
       },
       "recommande": "Recommandé"
     },

@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  AbsoluteFill, Img, interpolate, spring, staticFile,
+  AbsoluteFill, Audio, Img, interpolate, spring, staticFile,
   useCurrentFrame, useVideoConfig, Sequence,
 } from 'remotion';
 
@@ -45,6 +45,7 @@ type Props = {
   brand: Brand;
   segments: SequenceSegment[];
   style?: SequenceStyle;
+  musique?: string | null;   // URL de la piste de fond (bibliothèque partagée) — mixée au rendu
 };
 
 export const XFADE = 0.35; // recouvrement entre plans (jamais d'écran vide)
@@ -623,7 +624,24 @@ const Habillage: React.FC<{ style: SequenceStyle; brand: Brand; segCount: number
   return null;
 };
 
-export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signature' }) => {
+// ---- musique de fond : volume posé, fondu d'entrée court et fondu de sortie ----
+const Bgm: React.FC<{ src: string }> = ({ src }) => {
+  const { fps, durationInFrames } = useVideoConfig();
+  const VOL = 0.3;
+  return (
+    <Audio
+      src={src}
+      loop
+      volume={(f) => {
+        const fadeIn = interpolate(f, [0, Math.round(0.6 * fps)], [0, VOL], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+        const fadeOut = interpolate(f, [durationInFrames - Math.round(1.4 * fps), durationInFrames], [VOL, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+        return Math.min(fadeIn, fadeOut);
+      }}
+    />
+  );
+};
+
+export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signature', musique = null }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const segs = (segments || []).filter((s) => s && s.texte);
@@ -653,6 +671,7 @@ export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signat
 
   return (
     <AbsoluteFill style={{ background: papier ? PAPER : style === 'impact' ? '#05060a' : (brand.fond || '#020617'), overflow: 'hidden' }}>
+      {musique ? <Bgm src={musique} /> : null}
       <Fond brand={brand} style={style} />
       <AbsoluteFill style={{ transform: `scale(${punch})`, transformOrigin: 'center 46%' }}>
         {segs.map((seg, i) => {
