@@ -368,6 +368,26 @@ def _notify_payload(uid: str, kind: str, extra=None):
     return {"kind": kind, "nom": u.get("nom"), "email": u.get("email"), "plan": u.get("plan"), "extra": extra}
 
 
+def _facture_payload(uid: str, montant_cents: int, devise: str, libelle: str,
+                     numero: str = None, url: str = None, pdf: str = None):
+    """Infos pour l'email FACTURE envoyé au client (par la route, en async).
+    None si le client est introuvable, sans email, ou si le montant est nul (essai)."""
+    if not uid or not montant_cents:
+        return None
+    try:
+        r = supabase.table("users").select("nom, email").eq("telegram_id", uid).limit(1).execute()
+        u = r.data[0] if r.data else {}
+    except Exception:
+        u = {}
+    if not u.get("email"):
+        return None
+    return {
+        "nom": u.get("nom"), "email": u["email"],
+        "montant": montant_cents / 100, "devise": (devise or "eur").upper(),
+        "libelle": libelle, "numero": numero, "url": url, "pdf": pdf,
+    }
+
+
 def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     if not _ready():
         return {"ok": False}
@@ -385,12 +405,17 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     obj = event["data"]["object"]
     canceled_uid = None  # à déconnecter (abo terminé) -> géré async par la route
     notify = None        # {"kind","nom","email",...} -> email admin envoyé par la route (async)
+    facture = None       # {"email","montant",...} -> email facture CLIENT envoyé par la route (async)
     try:
         if etype == "checkout.session.completed":
             meta = obj.get("metadata") or {}
             if meta.get("pack_id"):
                 _apply_pack(obj)                       # achat de pack (one-time)
                 notify = _notify_payload(meta.get("telegram_id"), "pack", meta.get("action_type"))
+                # Reçu client : les packs (paiement one-time) n'ont pas de facture Stripe,
+                # on envoie le reçu depuis la session.
+                facture = _facture_payload(meta.get("telegram_id"), obj.get("amount_total"),
+                                           obj.get("currency"), f"Pack {meta.get('action_type') or 'crédits'}")
             elif obj.get("subscription"):
                 # active l'abo tout de suite ; la notif "nouvel abonnement" est gérée
                 # par customer.subscription.created (évite le doublon + ne dépend pas de cet event).
@@ -406,8 +431,17 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
                 elif res.get("newly_canceling"):       # résiliation PROGRAMMÉE (actif jusqu'à la fin)
                     end = (res.get("cancel_at") or "")[:10]
                     notify = _notify_payload(res["uid"], "canceling", f"Fin le {end} · raison : {_cancel_reason(obj)}")
+        elif etype == "invoice.payment_succeeded":
+            # Facture d'abonnement payée (1er paiement ET renouvellements mensuels)
+            # -> email au client avec lien Stripe + PDF. Montant nul (essai) : pas d'envoi.
+            lignes = ((obj.get("lines") or {}).get("data") or [])
+            libelle = (lignes[0].get("description") if lignes else None) or "Abonnement Postorico"
+            facture = _facture_payload(
+                _uid_by_customer(obj.get("customer")), obj.get("amount_paid"), obj.get("currency"),
+                libelle, numero=obj.get("number"),
+                url=obj.get("hosted_invoice_url"), pdf=obj.get("invoice_pdf"))
         elif etype == "invoice.payment_failed":
             notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed")
     except Exception as e:
         logger.error(f"stripe webhook handle error: {e}")
-    return {"ok": True, "event": etype, "canceled_uid": canceled_uid, "notify": notify}
+    return {"ok": True, "event": etype, "canceled_uid": canceled_uid, "notify": notify, "facture": facture}

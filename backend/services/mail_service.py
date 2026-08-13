@@ -180,6 +180,43 @@ def reset_email_html(nom: str, link: str) -> str:
     return _shell(inner, width=480)
 
 
+def facture_html(nom: str, montant: float, devise: str, libelle: str,
+                 numero: str = None, url: str = None, pdf: str = None) -> tuple:
+    """Email FACTURE au client après un paiement réussi (abonnement ou pack).
+    Retourne (sujet, html). Liens Stripe : facture en ligne + PDF téléchargeable."""
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    devise_sym = "€" if devise == "EUR" else devise
+    montant_txt = f"{montant:.2f}".replace(".", ",").removesuffix(",00")
+    num = f" n°{_html.escape(numero)}" if numero else ""
+    sujet = f"Ta facture Postorico{num} — {montant_txt} {devise_sym}"
+    bouton = f"""
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;"><tr>
+        <td style="border-radius:10px;background:linear-gradient(135deg,#5B6CFF,#8A6CFF);">
+          <a href="{url}" target="_blank" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;">
+            Voir ma facture
+          </a>
+        </td>
+      </tr></table>""" if url else ""
+    lien_pdf = f"""<p style="margin:0 0 24px;"><a href="{pdf}" target="_blank" style="color:#8A6CFF;font-size:13px;">Télécharger le PDF</a></p>""" if pdf else ""
+    inner = f"""<tr><td style="padding:16px 32px 24px;">
+      <h1 style="color:#ffffff;font-size:20px;margin:0 0 12px;">Merci pour ton paiement ✅</h1>
+      <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 20px;">{salutation}</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;margin:0 0 24px;">
+        <tr><td style="padding:18px 22px;">
+          <p style="color:#94a3b8;font-size:12px;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.08em;">Facture{num}</p>
+          <p style="color:#ffffff;font-size:15px;font-weight:bold;margin:0 0 6px;">{_html.escape(libelle)}</p>
+          <p style="color:#3AFFA3;font-size:22px;font-weight:bold;margin:0;">{montant_txt} {devise_sym}</p>
+        </td></tr>
+      </table>
+      {bouton}
+      {lien_pdf}
+      <p style="color:#64748b;font-size:12px;line-height:1.6;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+        Retrouve toutes tes factures dans Paramètres → Abonnement. Une question ? Réponds simplement à cet email.
+      </p>
+    </td></tr>"""
+    return sujet, _shell(inner, width=480)
+
+
 def account_disconnected_html(nom: str, reseau: str, link: str) -> str:
     """Alerte : un réseau social s'est déconnecté — CTA de reconnexion en un clic.
     Envoyé dès réception du webhook account.disconnected (sinon les publications

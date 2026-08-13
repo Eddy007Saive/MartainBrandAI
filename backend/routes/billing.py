@@ -98,6 +98,16 @@ async def stripe_webhook(request: Request):
                 await mail_service.send_email(ADMIN_NOTIF_EMAIL, subject, html)
             except Exception as e:
                 logger.error(f"webhook admin notif: {e}")
+        # Facture au CLIENT (paiement d'abonnement réussi ou achat de pack)
+        facture = result.get("facture") if isinstance(result, dict) else None
+        if facture:
+            try:
+                sujet, html = mail_service.facture_html(
+                    facture.get("nom"), facture["montant"], facture["devise"], facture["libelle"],
+                    numero=facture.get("numero"), url=facture.get("url"), pdf=facture.get("pdf"))
+                await mail_service.send_email(facture["email"], sujet, html)
+            except Exception as e:
+                logger.error(f"webhook facture client: {e}")
         return result
     except Exception as e:
         logger.error(f"stripe webhook error: {e}")
