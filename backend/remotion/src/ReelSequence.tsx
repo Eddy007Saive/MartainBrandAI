@@ -46,6 +46,7 @@ type Props = {
   segments: SequenceSegment[];
   style?: SequenceStyle;
   musique?: string | null;   // URL de la piste de fond (bibliothèque partagée) — mixée au rendu
+  bruitages?: boolean;       // whoosh aux coupes, cadre, tampon CTA (public/sfx, pack MIT)
 };
 
 export const XFADE = 0.35; // recouvrement entre plans (jamais d'écran vide)
@@ -641,7 +642,17 @@ const Bgm: React.FC<{ src: string }> = ({ src }) => {
   );
 };
 
-export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signature', musique = null }) => {
+// Bruitages par style : la coupe, l'arrivée du cadre image, le bandeau CTA.
+// Sobres (2 sons max par plan) — c'est la ponctuation du montage, pas un feu d'artifice.
+const sfxDe = (style: SequenceStyle) => ({
+  coupe: style === 'impact' ? 'sfx/whoosh-fast.mp3'
+    : style === 'cinema' || style === 'temoignage' ? 'sfx/dissolve.mp3'
+    : 'sfx/whoosh.mp3',
+  image: style === 'carnet' ? 'sfx/card-flip.mp3' : 'sfx/card-snap.mp3',
+  cta: style === 'impact' ? 'sfx/drop-thud.mp3' : 'sfx/brand-stamp.mp3',
+});
+
+export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signature', musique = null, bruitages = true }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const segs = (segments || []).filter((s) => s && s.texte);
@@ -679,8 +690,30 @@ export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signat
           const last = i === segs.length - 1;
           const durFrames = Math.round((durS + (last ? 0 : XFADE)) * fps);
           const from = Math.round(starts[i] * fps);
+          const sfx = sfxDe(style);
           return (
             <Sequence key={i} from={from} durationInFrames={durFrames}>
+              {bruitages && i > 0 && <Audio src={staticFile(sfx.coupe)} volume={0.5} />}
+              {bruitages && seg.type === 'image' && (
+                <Sequence from={3} durationInFrames={durFrames - 3}>
+                  <Audio src={staticFile(sfx.image)} volume={0.45} />
+                </Sequence>
+              )}
+              {bruitages && seg.type === 'cta' && (
+                <Sequence from={Math.max(1, Math.round(durFrames * 0.4))} durationInFrames={Math.round(durFrames * 0.6)}>
+                  <Audio src={staticFile(sfx.cta)} volume={0.55} />
+                </Sequence>
+              )}
+              {bruitages && style === 'conseils' && seg.type !== 'cta' && planNos[i] >= 1 && (
+                <Sequence from={4} durationInFrames={durFrames - 4}>
+                  <Audio src={staticFile('sfx/notification-pop.mp3')} volume={0.45} />
+                </Sequence>
+              )}
+              {bruitages && style === 'temoignage' && seg.type === 'typo' && (
+                <Sequence from={4} durationInFrames={durFrames - 4}>
+                  <Audio src={staticFile('sfx/sparkle.mp3')} volume={0.4} />
+                </Sequence>
+              )}
               {seg.type === 'image'
                 ? <SegImage seg={seg} brand={brand} durFrames={durFrames} last={last} mode={style} imgNo={imgNos[i]} planNo={planNos[i]} />
                 : seg.type === 'cta'
