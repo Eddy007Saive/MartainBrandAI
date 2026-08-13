@@ -4,14 +4,12 @@ Planification automatique.
 Pose une date de publication sur un contenu à partir des créneaux préférés
 de l'utilisateur (table publication_schedules).
 
-Règle : on prend le PROCHAIN jour préféré du réseau qui n'a pas déjà un contenu
-de la MÊME FAMILLE (feed / vidéo / story), à l'heure préférée. Les familles
-peuvent cohabiter le même jour (surfaces différentes chez les plateformes),
-avec des heures décalées pour ne pas tout publier à la même minute :
+Règle : UNE SEULE publication de flux par réseau et par jour — un post, un
+carrousel OU un reel, jamais deux le même jour (ils se cannibalisent dans le
+feed). Seules les STORIES cohabitent avec n'importe quoi (surface éphémère) :
 
-    feed  (Post écrit, Carrousel)  -> 1 max/jour, à l'heure préférée
-    video (Reel, Short, Video)     -> 1 max/jour, heure préférée +6 h
-    story (Story)                  -> 1 max/jour, heure préférée +3 h
+    feed  (Post, Carrousel, Reel, Short, Video) -> 1 max/jour, à l'heure préférée
+    story (Story)                               -> 1 max/jour, heure préférée +3 h
 
 Si le réseau n'a pas de cadence active, on retombe sur le prochain jour ouvré à 09:00.
 
@@ -35,14 +33,16 @@ RESEAU_TO_PLATFORM = {
 DEFAULT_TIME = time(9, 0)
 HORIZON_DAYS = 120  # on cherche un créneau dans les ~4 prochains mois
 
-# Famille d'un contenu selon son type (contenu.type ; None/Post/autre => feed)
+# Famille d'un contenu selon son type (contenu.type ; None/Post/autre => feed).
+# Post, carrousel et reel partagent la MÊME famille : un seul d'entre eux par jour
+# et par réseau. Seule la story vit sur une surface à part.
 _TYPE_TO_FAMILLE = {
     "Carrousel": "feed",
-    "Reel": "video", "Short": "video", "Video": "video",
+    "Reel": "feed", "Short": "feed", "Video": "feed",
     "Story": "story",
 }
 # Décalage horaire de chaque famille par rapport à l'heure préférée du réseau
-_FAMILLE_OFFSET_H = {"feed": 0, "story": 3, "video": 6}
+_FAMILLE_OFFSET_H = {"feed": 0, "story": 3}
 
 
 def famille_de(type_contenu: str | None) -> str:
@@ -102,7 +102,7 @@ def prochain_creneau(telegram_id: str, reseau_cible: str | None,
     days = set(row.get("days_of_week") or []) if row else set()
 
     # Heure décalée selon la famille (cohabitation le même jour sans collision d'heure)
-    heure = (ptime.hour + _FAMILLE_OFFSET_H[famille]) % 24
+    heure = (ptime.hour + _FAMILLE_OFFSET_H.get(famille, 0)) % 24
 
     occ = _jours_occupes(telegram_id, reseau_cible, famille)
     today = datetime.now(timezone.utc).date()

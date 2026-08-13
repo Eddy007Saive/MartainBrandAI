@@ -169,7 +169,9 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 continue
             usage_service.log(telegram_id, action, model, r.get("usage"), q.get("unit_cost", 0), qualite)
 
-            famille = "video" if action == "script" else ("story" if fmt == "story" else "feed")
+            # Un seul contenu de flux par jour et par réseau (post/carrousel/reel
+            # partagent la famille "feed") ; seules les stories cohabitent.
+            famille = "story" if fmt == "story" else "feed"
             oc = occ_for(reseau_cap, famille)
             slots = plan_service.creneaux_libres(telegram_id, reseau_cap, year, month, oc)
             date_pub = slots[0] if slots else None
