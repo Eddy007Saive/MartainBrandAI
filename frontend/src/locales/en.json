@@ -224,7 +224,13 @@
         "creerTitre": "Create a reel",
         "reseau": "Target network",
         "briefSujet": "Reel topic (required)",
-        "briefRequis": "Describe your reel: the topic is required."
+        "briefRequis": "Describe your reel: the topic is required.",
+        "tplTitre": "Templates",
+        "nbStyles": "{{n}} styles",
+        "monter": "Edit the video",
+        "agrandir": "Enlarge preview",
+        "apercuTpl": "Template preview",
+        "choisirTpl": "Choose this template"
       },
       "recommande": "Recommended"
     },

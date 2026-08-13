@@ -224,7 +224,13 @@
         "creerTitre": "Crear un reel",
         "reseau": "Red de publicación",
         "briefSujet": "Tema del reel (obligatorio)",
-        "briefRequis": "Describe tu reel: el tema es obligatorio."
+        "briefRequis": "Describe tu reel: el tema es obligatorio.",
+        "tplTitre": "Plantillas",
+        "nbStyles": "{{n}} estilos",
+        "monter": "Hacer el montaje",
+        "agrandir": "Ampliar la vista previa",
+        "apercuTpl": "Vista previa de la plantilla",
+        "choisirTpl": "Elegir esta plantilla"
       },
       "recommande": "Recomendado"
     },

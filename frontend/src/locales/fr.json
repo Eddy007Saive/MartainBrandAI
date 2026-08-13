@@ -224,7 +224,13 @@
         "creerTitre": "Créer un reel",
         "reseau": "Réseau de publication",
         "briefSujet": "Sujet du reel (obligatoire)",
-        "briefRequis": "Décris ton reel : le sujet est obligatoire en création libre."
+        "briefRequis": "Décris ton reel : le sujet est obligatoire en création libre.",
+        "tplTitre": "Templates",
+        "nbStyles": "{{n}} styles",
+        "monter": "Faire le montage",
+        "agrandir": "Agrandir l'aperçu",
+        "apercuTpl": "Aperçu du template",
+        "choisirTpl": "Choisir ce template"
       },
       "recommande": "Recommandé"
     },

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Séquence v2 — maquette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020617;
+    --card: #0f172a;
+    --panel: #0a1120;
+    --ink: #e2e8f0;
+    --muted: #64748b;
+    --accent: #3AFFA3;
+    --g1: #5B6CFF;
+    --g2: #8A6CFF;
+    /* Emil : courbes custom, plus de punch que les easings natifs */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  .sora { font-family: 'Sora', sans-serif; }
+
+  /* ============ LE DIALOGUE ============ */
+  .dialog {
+    width: min(1240px, 96vw);
+    max-height: 92vh;
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 40px 120px rgba(0,0,0,.6);
+  }
+  .dlg-head {
+    padding: 22px 26px 0;
+  }
+  .dlg-head h1 { font-family: 'Sora'; font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+  .dlg-head p { color: #94a3b8; font-size: 13.5px; margin-top: 6px; }
+
+  .dlg-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 0;
+    min-height: 0;
+  }
+
+  /* ---- GAUCHE : la galerie de templates ---- */
+  .tpl-zone {
+    padding: 20px 22px 22px 26px;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .zone-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+  }
+  .tpl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+    gap: 14px;
+  }
+  .tpl-card {
+    position: relative;
+    text-align: left;
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    padding: 8px 8px 12px;
+    cursor: pointer;
+    transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out), background 160ms var(--ease-out);
+  }
+  .tpl-card:hover { border-color: rgba(138,108,255,.55); background: rgba(138,108,255,.05); }
+  .tpl-card:active { transform: scale(0.97); }
+  .tpl-card.on {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 0 28px rgba(58,255,163,.12);
+    background: rgba(58,255,163,.04);
+  }
+  .tpl-thumb {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    border-radius: 11px;
+    overflow: hidden;
+    background: #060b18;
+    border: 1px solid rgba(255,255,255,.07);
+  }
+  .tpl-thumb video, .tpl-thumb .ghost {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  /* Agrandir : apparaît au survol, en haut à droite de l'aperçu */
+  .btn-zoom {
+    position: absolute; top: 8px; right: 8px;
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    border: 1px solid rgba(255,255,255,.22);
+    background: rgba(2,6,23,.72);
+    color: #fff;
+    display: grid; place-items: center;
+    cursor: zoom-in;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 140ms var(--ease-out), transform 140ms var(--ease-out);
+    backdrop-filter: blur(6px);
+  }
+  .tpl-card:hover .btn-zoom, .btn-zoom:focus-visible { opacity: 1; transform: scale(1); }
+  .btn-zoom:active { transform: scale(0.92); }
+  .btn-zoom svg { width: 15px; height: 15px; }
+
+  .tpl-meta { padding: 10px 4px 0; }
+  .tpl-name {
+    font-family: 'Sora'; font-size: 13.5px; font-weight: 700;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .tpl-name .check {
+    width: 17px; height: 17px; border-radius: 50%;
+    background: var(--accent); color: #05261a;
+    display: none; place-items: center; font-size: 11px; font-weight: 800;
+    flex-shrink: 0;
+  }
+  .tpl-card.on .check { display: grid; }
+  .tpl-desc { font-size: 11px; color: #7c8aa0; line-height: 1.45; margin-top: 5px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .badge-reco {
+    position: absolute; top: 14px; left: 14px;
+    font-size: 9.5px; font-weight: 700; letter-spacing: .04em;
+    padding: 3px 8px; border-radius: 99px;
+    background: rgba(58,255,163,.92); color: #05261a;
+    z-index: 2;
+  }
+  /* Templates à venir : placeholder honnête, non cliquable */
+  .tpl-card.soon { opacity: .45; cursor: default; }
+  .tpl-card.soon:hover { border-color: rgba(255,255,255,.08); background: var(--panel); }
+  .tpl-card.soon:active { transform: none; }
+  .ghost {
+    display: grid; place-items: center;
+    color: #3b4a63; font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  /* ---- DROITE : images + consignes ---- */
+  .img-zone {
+    border-left: 1px solid rgba(255,255,255,.07);
+    padding: 20px 26px 22px 22px;
+    overflow-y: auto;
+    min-height: 0;
+    display: flex; flex-direction: column; gap: 18px;
+    background: rgba(2,6,23,.35);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    position: relative; width: 62px; height: 62px;
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,.1);
+    cursor: pointer;
+    transition: transform 140ms var(--ease-out), border-color 140ms var(--ease-out);
+  }
+  .chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .chip:active { transform: scale(0.95); }
+  .chip.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .chip .num {
+    position: absolute; bottom: 3px; left: 3px;
+    font-size: 10px; font-weight: 800; color: #fff;
+    background: rgba(0,0,0,.65); border-radius: 5px; padding: 1px 5px;
+  }
+  .chip .rm {
+    position: absolute; top: 3px; right: 3px;
+    width: 17px; height: 17px; border-radius: 50%;
+    background: rgba(0,0,0,.72); color: #fff; border: 0;
+    font-size: 11px; line-height: 1; cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .chip .ok {
+    position: absolute; inset: 0;
+    background: rgba(58,255,163,.18);
+    display: grid; place-items: center;
+    color: var(--accent); font-weight: 800; font-size: 15px;
+  }
+  .btn-import {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600;
+    padding: 9px 14px; border-radius: 10px;
+    border: 1px dashed rgba(91,108,255,.5);
+    color: #a5b0ff; background: none; cursor: pointer;
+    transition: background 140ms var(--ease-out), transform 140ms var(--ease-out);
+  }
+  .btn-import:hover { background: rgba(91,108,255,.1); }
+  .btn-import:active { transform: scale(0.97); }
+  .count { font-size: 11px; color: var(--muted); margin-left: 8px; }
+  textarea {
+    width: 100%; min-height: 74px; resize: none;
+    background: rgba(2,6,23,.6);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 10px; padding: 10px 12px;
+    color: var(--ink); font-family: 'Inter'; font-size: 13px;
+    outline: none;
+    transition: border-color 140ms var(--ease-out);
+  }
+  textarea:focus { border-color: rgba(91,108,255,.5); }
+  textarea::placeholder { color: #475569; }
+
+  /* ---- FOOTER ---- */
+  .dlg-foot {
+    display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+    padding: 14px 26px;
+    border-top: 1px solid rgba(255,255,255,.07);
+  }
+  .btn-ghost {
+    font-size: 13px; color: #94a3b8;
+    padding: 9px 16px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.1); background: none; cursor: pointer;
+    transition: color 140ms var(--ease-out), transform 140ms var(--ease-out);
+  }
+  .btn-ghost:hover { color: #fff; }
+  .btn-ghost:active { transform: scale(0.97); }
+  .btn-cta {
+    font-size: 13.5px; font-weight: 700; color: #fff;
+    padding: 10px 22px; border-radius: 10px; border: 0; cursor: pointer;
+    background: linear-gradient(90deg, var(--g1), var(--g2));
+    transition: transform 140ms var(--ease-out), opacity 140ms var(--ease-out);
+  }
+  .btn-cta:hover { opacity: .92; }
+  .btn-cta:active { transform: scale(0.97); }
+
+  /* ============ LIGHTBOX (aperçu agrandi) ============ */
+  .lb {
+    position: fixed; inset: 0; z-index: 50;
+    display: grid; place-items: center;
+    background: rgba(2,6,23,.82);
+    backdrop-filter: blur(8px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 200ms var(--ease-out);
+  }
+  .lb.open { opacity: 1; pointer-events: auto; }
+  .lb-panel {
+    display: flex; align-items: center; gap: 34px;
+    transform: scale(0.95);
+    transition: transform 220ms var(--ease-out);
+  }
+  .lb.open .lb-panel { transform: scale(1); }
+  .lb-video {
+    height: min(76vh, 720px);
+    aspect-ratio: 9 / 16;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow: 0 30px 90px rgba(0,0,0,.65);
+    background: #060b18;
+  }
+  .lb-video video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lb-side { max-width: 330px; }
+  .lb-side .kicker { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+  .lb-side h2 { font-family: 'Sora'; font-size: 30px; font-weight: 800; margin-top: 8px; letter-spacing: -.02em; }
+  .lb-side p { font-size: 14px; color: #94a3b8; line-height: 1.6; margin-top: 12px; }
+  .lb-tags { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 16px; }
+  .lb-tags span {
+    font-size: 11px; color: #7c8aa0;
+    border: 1px solid rgba(255,255,255,.12); border-radius: 99px; padding: 3px 10px;
+  }
+  .lb-actions { display: flex; gap: 10px; margin-top: 26px; }
+  .lb-nav {
+    position: absolute; top: 50%; translate: 0 -50%;
+    width: 46px; height: 46px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(15,23,42,.8); color: #fff;
+    font-size: 19px; cursor: pointer;
+    display: grid; place-items: center;
+    transition: background 140ms var(--ease-out), transform 140ms var(--ease-out);
+  }
+  .lb-nav:hover { background: rgba(91,108,255,.35); }
+  .lb-nav:active { transform: translateY(0) scale(0.94); }
+  .lb-prev { left: 26px; }
+  .lb-next { right: 26px; }
+  .lb-close {
+    position: absolute; top: 22px; right: 26px;
+    width: 40px; height: 40px; border-radius: 11px;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(15,23,42,.8); color: #fff;
+    font-size: 17px; cursor: pointer;
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 920px) {
+    .dlg-body { grid-template-columns: 1fr; }
+    .img-zone { border-left: 0; border-top: 1px solid rgba(255,255,255,.07); }
+    .tpl-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); }
+    .lb-panel { flex-direction: column; gap: 18px; }
+    .lb-video { height: 58vh; }
+    .lb-side { text-align: center; max-width: 88vw; }
+    .lb-actions { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="dialog">
+  <div class="dlg-head">
+    <h1>Reel Séquence</h1>
+    <p>Choisis ton template (clique sur <strong style="color:#a5b0ff">⤢</strong> pour l'agrandir), tes images, et l'IA monte la vidéo.</p>
+  </div>
+
+  <div class="dlg-body">
+    <!-- GAUCHE : GALERIE -->
+    <div class="tpl-zone">
+      <div class="zone-label">Templates</div>
+      <div class="tpl-grid" id="grid"></div>
+    </div>
+
+    <!-- DROITE : IMAGES + CONSIGNES -->
+    <div class="img-zone">
+      <div>
+        <div class="zone-label">Images du reel (dans l'ordre)</div>
+        <div class="chips">
+          <div class="chip sel"><img src="cine-img/h2.jpg" alt=""><span class="num">1</span><button class="rm">×</button></div>
+          <div class="chip sel"><img src="cine-img/h5.jpg" alt=""><span class="num">2</span><button class="rm">×</button></div>
+        </div>
+      </div>
+      <div>
+        <div class="zone-label">Visuels du post</div>
+        <div class="chips">
+          <div class="chip sel"><img src="cine-img/h2.jpg" alt=""><span class="ok">✓</span></div>
+        </div>
+      </div>
+      <div>
+        <button class="btn-import">＋ Ajouter des images</button><span class="count">2/6</span>
+      </div>
+      <div>
+        <div class="zone-label">Ta banque d'images</div>
+        <div class="chips">
+          <div class="chip sel"><img src="cine-img/h5.jpg" alt=""><span class="ok">✓</span></div>
+          <div class="chip"><img src="cine-img/h1.jpg" alt=""></div>
+          <div class="chip"><img src="cine-img/h4.jpg" alt=""></div>
+          <div class="chip"><img src="cine-img/h7.jpg" alt=""></div>
+          <div class="chip"><img src="cine-img/h8.jpg" alt=""></div>
+        </div>
+      </div>
+      <div>
+        <div class="zone-label">Consignes (optionnel)</div>
+        <textarea placeholder="Ex : mets l'accent sur la promo -20 %, ton énergique, termine sur le logo…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="dlg-foot">
+    <button class="btn-ghost">Annuler</button>
+    <button class="btn-cta">Faire le montage</button>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb">
+  <button class="lb-close" id="lbClose">✕</button>
+  <button class="lb-nav lb-prev" id="lbPrev">‹</button>
+  <button class="lb-nav lb-next" id="lbNext">›</button>
+  <div class="lb-panel">
+    <div class="lb-video"><video id="lbVideo" autoplay muted loop playsinline></video></div>
+    <div class="lb-side">
+      <div class="kicker">Aperçu du template</div>
+      <h2 id="lbName"></h2>
+      <p id="lbDesc"></p>
+      <div class="lb-tags" id="lbTags"></div>
+      <div class="lb-actions">
+        <button class="btn-ghost" id="lbCancel">Fermer</button>
+        <button class="btn-cta" id="lbPick">Choisir ce template</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CDN = 'https://res.cloudinary.com/dy9gp5pim/video/upload/reels/_templates';
+const TEMPLATES = [
+  { id: 'signature', nom: 'Signature', src: CDN + '/sequence-signature.mp4', reco: true,
+    desc: "Le montage pro : plans multiples composés par l'IA — tes visuels, textes animés, unique à chaque post.",
+    tags: ['Tous usages'] },
+  { id: 'cinema', nom: 'Cinéma', src: CDN + '/sequence-cinema.mp4',
+    desc: "Le même montage en écriture cinéma : letterbox, légendes élégantes, rythme posé.",
+    tags: ['Haut de gamme', 'Hôtel · Immo'] },
+  { id: 'editorial', nom: 'Éditorial', src: CDN + '/sequence-editorial.mp4',
+    desc: "Façon magazine : cadre fin, numéros de page, accents nets.",
+    tags: ['Marques', 'Produit'] },
+  // À venir — placeholders honnêtes, la grille montre comment elle passera à 9
+  { id: 'impact', nom: 'Impact', soon: true, desc: "Punchy : chiffres énormes, coupes sèches." },
+  { id: 'vlog', nom: 'Vlog', soon: true, desc: "Carnet de voyage : polaroids, main levée." },
+  { id: 'temoignage', nom: 'Témoignage', soon: true, desc: "Avis client mis en scène." },
+];
+
+let selected = 'signature';
+let lbIndex = 0;
+const grid = document.getElementById('grid');
+const actifs = TEMPLATES.filter(t => !t.soon);
+
+function render() {
+  grid.innerHTML = '';
+  TEMPLATES.forEach((t) => {
+    const card = document.createElement('div');
+    card.className = 'tpl-card' + (t.soon ? ' soon' : '') + (selected === t.id ? ' on' : '');
+    card.innerHTML = `
+      ${t.reco ? '<span class="badge-reco">★ Recommandé</span>' : ''}
+      <div class="tpl-thumb">
+        ${t.soon
+          ? '<div class="ghost">Bientôt</div>'
+          : `<video src="${t.src}" autoplay muted loop playsinline></video>
+             <button class="btn-zoom" title="Agrandir" aria-label="Agrandir l'aperçu">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                 <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+               </svg>
+             </button>`}
+      </div>
+      <div class="tpl-meta">
+        <div class="tpl-name sora"><span>${t.nom}</span><span class="check">✓</span></div>
+        <div class="tpl-desc">${t.desc}</div>
+      </div>`;
+    if (!t.soon) {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-zoom')) { openLb(actifs.findIndex(a => a.id === t.id)); return; }
+        selected = t.id; render();
+      });
+    }
+    grid.appendChild(card);
+  });
+}
+
+/* Lightbox */
+const lb = document.getElementById('lb');
+const lbVideo = document.getElementById('lbVideo');
+function openLb(i) {
+  lbIndex = (i + actifs.length) % actifs.length;
+  const t = actifs[lbIndex];
+  lbVideo.src = t.src;
+  document.getElementById('lbName').textContent = t.nom;
+  document.getElementById('lbDesc').textContent = t.desc;
+  document.getElementById('lbTags').innerHTML = (t.tags || []).map(x => `<span>${x}</span>`).join('');
+  lb.classList.add('open');
+}
+function closeLb() { lb.classList.remove('open'); lbVideo.pause(); }
+document.getElementById('lbClose').onclick = closeLb;
+document.getElementById('lbCancel').onclick = closeLb;
+document.getElementById('lbPrev').onclick = () => openLb(lbIndex - 1);
+document.getElementById('lbNext').onclick = () => openLb(lbIndex + 1);
+document.getElementById('lbPick').onclick = () => { selected = actifs[lbIndex].id; closeLb(); render(); };
+lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
+document.addEventListener('keydown', (e) => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape') closeLb();
+  if (e.key === 'ArrowLeft') openLb(lbIndex - 1);
+  if (e.key === 'ArrowRight') openLb(lbIndex + 1);
+});
+
+render();
+</script>
+</body>
+</html>

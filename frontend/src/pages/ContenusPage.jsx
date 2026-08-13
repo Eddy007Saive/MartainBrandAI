@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -316,6 +316,7 @@ export default function ContenusPage() {
   const [seqLibre, setSeqLibre] = useState(false);   // true = reel créé de zéro (le brief est le sujet)
   const [seqReseau, setSeqReseau] = useState('Instagram');
   const [seqStyle, setSeqStyle] = useState('signature');
+  const [seqZoom, setSeqZoom] = useState(null);      // index du template agrandi (lightbox), null = fermé
   const openSequenceLibre = () => {
     setSeqRegen(false);
     setSeqLibre(true);
@@ -1617,10 +1618,21 @@ export default function ContenusPage() {
                   {t('contenus.reel.description')}
                 </p>
                 <div className="space-y-2.5 max-h-[52vh] overflow-y-auto pr-1">
-                  {[...reelTemplates].sort((a, b) => (b.id === reelReco?.template) - (a.id === reelReco?.template)).map((tpl) => {
-                    const reco = reelReco?.template === tpl.id;
+                  {(() => {
+                    // Les variantes "sequence-*" sont regroupées en UNE carte Séquence :
+                    // le style se choisit ensuite dans le studio (templates côte à côte).
+                    const seqMain = reelTemplates.find((x) => x.id === 'sequence') || reelTemplates.find((x) => x.id.startsWith('sequence'));
+                    const nbStyles = reelTemplates.filter((x) => x.id.startsWith('sequence')).length;
+                    const recoSeq = !!reelReco?.template?.startsWith('sequence');
+                    const liste = [
+                      ...(seqMain ? [{ ...seqMain, groupe: true }] : []),
+                      ...reelTemplates.filter((x) => !x.id.startsWith('sequence')),
+                    ];
+                    return liste.sort((a, b) => (b.groupe ? recoSeq : b.id === reelReco?.template) - (a.groupe ? recoSeq : a.id === reelReco?.template)).map((tpl) => {
+                    const reco = tpl.groupe ? recoSeq : reelReco?.template === tpl.id;
                     return (
-                      <button key={tpl.id} type="button" onClick={() => doReel(reelFor, tpl.id)} data-testid={`reel-${tpl.id}`}
+                      <button key={tpl.id} type="button" data-testid={`reel-${tpl.id}`}
+                        onClick={() => doReel(reelFor, tpl.groupe ? (recoSeq ? reelReco.template : 'sequence') : tpl.id)}
                         className={`w-full text-left rounded-xl border transition-all active:scale-[0.98] p-3.5 flex gap-3.5 items-stretch ${reco ? 'border-[#3AFFA3]/60 bg-[#3AFFA3]/[0.05]' : 'border-white/[0.08] bg-slate-950/50 hover:border-[#8A6CFF]/50 hover:bg-[#8A6CFF]/5'}`}>
                         {tpl.apercu && (
                           <video src={tpl.apercu} autoPlay muted loop playsInline
@@ -1632,7 +1644,7 @@ export default function ContenusPage() {
                               <span className="truncate">{tpl.label}</span>
                               {reco && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#3AFFA3]/15 text-[#3AFFA3] border border-[#3AFFA3]/40 shrink-0">★ {t('contenus.reel.recommande')}</span>}
                             </span>
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 shrink-0">{tpl.duree} s</span>
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 shrink-0">{tpl.groupe && nbStyles > 1 ? t('contenus.reel.seq.nbStyles', { n: nbStyles }) : `${tpl.duree} s`}</span>
                           </div>
                           <p className="text-xs text-slate-400 font-inter mt-1">{tpl.desc}</p>
                           {reco && reelReco?.raison && <p className="text-[11px] text-[#3AFFA3]/80 font-inter mt-1.5">→ {reelReco.raison}</p>}
@@ -1644,7 +1656,7 @@ export default function ContenusPage() {
                         </div>
                       </button>
                     );
-                  })}
+                  }); })()}
                 </div>
               </div>
             )}
@@ -1652,8 +1664,9 @@ export default function ContenusPage() {
         </Dialog>
 
         {/* Séquence : le client fournit les visuels + un brief, l'IA monte */}
-        <Dialog open={!!seqFor} onOpenChange={() => setSeqFor(null)}>
-          <DialogContent className="bg-[#0f172a] border-slate-800 sm:max-w-[560px]">
+        <Dialog open={!!seqFor} onOpenChange={() => { setSeqFor(null); setSeqZoom(null); }}>
+          <DialogContent className="bg-[#0f172a] border-slate-800 w-[96vw] sm:max-w-[1180px] max-h-[92vh] overflow-y-auto"
+            onEscapeKeyDown={(e) => { if (seqZoom !== null) { e.preventDefault(); setSeqZoom(null); } }}>
             <DialogHeader>
               <DialogTitle className="text-white font-sora">{t('contenus.reel.seq.titre')}</DialogTitle>
             </DialogHeader>
@@ -1661,6 +1674,44 @@ export default function ContenusPage() {
               <div className="space-y-4">
                 <p className="text-sm text-slate-400 font-inter">{t('contenus.reel.seq.description')}</p>
 
+                <div className="grid md:grid-cols-[minmax(0,1fr)_340px] gap-6">
+                {/* ---- COLONNE GAUCHE : galerie de templates (grands aperçus + agrandir) ---- */}
+                <div>
+                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-3">{t('contenus.reel.seq.tplTitre')}</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                    {reelTemplates.filter((x) => x.id.startsWith('sequence')).map((tpl, idx) => {
+                      const st = tpl.id === 'sequence' ? 'signature' : tpl.id.split('-')[1];
+                      const on = seqStyle === st;
+                      const reco = reelReco?.template === tpl.id;
+                      const nom = tpl.id === 'sequence' ? 'Signature' : tpl.label.replace(/^Séquence\s*—\s*/, '');
+                      return (
+                        <div key={tpl.id} role="button" tabIndex={0} onClick={() => setSeqStyle(st)} data-testid={`seq-style-${st}`}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSeqStyle(st); } }}
+                          className={`group relative text-left rounded-2xl border p-2 pb-3 cursor-pointer transition-all active:scale-[0.97] ${on ? 'border-[#3AFFA3] ring-1 ring-[#3AFFA3]/60 bg-[#3AFFA3]/[0.04] shadow-[0_0_28px_rgba(58,255,163,0.10)]' : 'border-white/[0.08] bg-[#0a1120] hover:border-[#8A6CFF]/50 hover:bg-[#8A6CFF]/5'}`}>
+                          {reco && <span className="absolute top-3.5 left-3.5 z-[2] text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-[#3AFFA3] text-[#05261a]">★ {t('contenus.reel.recommande')}</span>}
+                          <div className="relative aspect-[9/16] rounded-xl overflow-hidden border border-white/[0.07] bg-[#060b18]">
+                            {tpl.apercu && <video src={tpl.apercu} autoPlay muted loop playsInline className="w-full h-full object-cover" />}
+                            <button type="button" title={t('contenus.reel.seq.agrandir')} aria-label={t('contenus.reel.seq.agrandir')}
+                              onClick={(e) => { e.stopPropagation(); setSeqZoom(idx); }}
+                              className="absolute top-2 right-2 w-8 h-8 rounded-lg border border-white/25 bg-[#020617]/75 text-white grid place-items-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity backdrop-blur-sm cursor-zoom-in active:scale-90">
+                              <Maximize2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="px-1.5 pt-2.5">
+                            <div className="text-[13px] font-sora font-bold text-white flex items-center gap-1.5 min-w-0">
+                              <span className="truncate">{nom}</span>
+                              {on && <span className="w-[17px] h-[17px] rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[10px] font-extrabold shrink-0">✓</span>}
+                            </div>
+                            <p className="text-[11px] text-slate-500 font-inter mt-1 leading-snug line-clamp-2">{tpl.desc}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ---- COLONNE DROITE : visuels, import, banque, brief ---- */}
+                <div className="space-y-4">
                 {/* Visuels choisis (dans l'ordre du montage) */}
                 {seqImages.length > 0 && (
                   <div>
@@ -1752,15 +1803,63 @@ export default function ContenusPage() {
                     placeholder={t('contenus.reel.seq.briefPh')}
                     className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 resize-none" />
                 </div>
+                </div>
+                </div>
 
-                <div className="flex justify-end gap-2 pt-1">
+                <div className="flex justify-end gap-2 border-t border-white/[0.06] mt-1 pt-3">
                   <button type="button" onClick={() => setSeqFor(null)}
                     className="text-[13px] font-inter text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-white/10">{t('contenus.actions.annuler')}</button>
                   <button type="button" onClick={doSeqReel} disabled={seqUploading} data-testid="seq-generer"
                     className="text-[13px] font-semibold font-inter text-white px-5 py-2 rounded-lg bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 active:scale-[0.97] disabled:opacity-50">
-                    {t('contenus.reel.seq.generer')}
+                    {t('contenus.reel.seq.monter')}
                   </button>
                 </div>
+
+                {/* ---- LIGHTBOX : aperçu agrandi du template ---- */}
+                {seqZoom !== null && (() => {
+                  const seqTpls = reelTemplates.filter((x) => x.id.startsWith('sequence'));
+                  const tpl = seqTpls[seqZoom];
+                  if (!tpl) return null;
+                  const st = tpl.id === 'sequence' ? 'signature' : tpl.id.split('-')[1];
+                  const nom = tpl.id === 'sequence' ? 'Signature' : tpl.label.replace(/^Séquence\s*—\s*/, '');
+                  const prev = () => setSeqZoom((seqZoom - 1 + seqTpls.length) % seqTpls.length);
+                  const next = () => setSeqZoom((seqZoom + 1) % seqTpls.length);
+                  return (
+                    <div className="fixed inset-0 z-[60] grid place-items-center bg-[#020617]/85 backdrop-blur-md" onClick={() => setSeqZoom(null)}>
+                      <button type="button" aria-label={t('contenus.actions.annuler')} onClick={(e) => { e.stopPropagation(); setSeqZoom(null); }}
+                        className="absolute top-5 right-6 w-10 h-10 rounded-xl border border-white/15 bg-[#0f172a]/85 text-white grid place-items-center hover:bg-[#5B6CFF]/30 active:scale-95 transition-all"><X className="w-[18px] h-[18px]" /></button>
+                      {seqTpls.length > 1 && (<>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); prev(); }}
+                          className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full border border-white/15 bg-[#0f172a]/85 text-white grid place-items-center hover:bg-[#5B6CFF]/30 active:scale-95 transition-all"><ChevronLeft className="w-5 h-5" /></button>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); next(); }}
+                          className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full border border-white/15 bg-[#0f172a]/85 text-white grid place-items-center hover:bg-[#5B6CFF]/30 active:scale-95 transition-all"><ChevronRight className="w-5 h-5" /></button>
+                      </>)}
+                      <div className="flex flex-col md:flex-row items-center gap-5 md:gap-9 px-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="h-[52vh] md:h-[74vh] aspect-[9/16] rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-[#060b18] shrink-0">
+                          {tpl.apercu && <video key={tpl.id} src={tpl.apercu} autoPlay muted loop playsInline className="w-full h-full object-cover" />}
+                        </div>
+                        <div className="max-w-[330px] text-center md:text-left">
+                          <div className="text-[11px] font-bold tracking-[0.16em] uppercase text-[#3AFFA3]">{t('contenus.reel.seq.apercuTpl')}</div>
+                          <h2 className="font-sora font-extrabold text-white text-2xl md:text-3xl mt-2 tracking-tight">{nom}</h2>
+                          <p className="text-sm text-slate-400 font-inter leading-relaxed mt-3">{tpl.desc}</p>
+                          {(tpl.tags || []).length > 0 && (
+                            <div className="flex gap-2 flex-wrap justify-center md:justify-start mt-4">
+                              {tpl.tags.map((x) => <span key={x} className="text-[11px] text-slate-500 border border-white/10 rounded-full px-2.5 py-0.5">{x}</span>)}
+                            </div>
+                          )}
+                          <div className="flex gap-2.5 justify-center md:justify-start mt-6">
+                            <button type="button" onClick={() => setSeqZoom(null)}
+                              className="text-[13px] font-inter text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-white/10">{t('contenus.actions.annuler')}</button>
+                            <button type="button" onClick={() => { setSeqStyle(st); setSeqZoom(null); }} data-testid="seq-zoom-choisir"
+                              className="text-[13px] font-semibold font-inter text-white px-5 py-2 rounded-lg bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 active:scale-[0.97]">
+                              {t('contenus.reel.seq.choisirTpl')}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </DialogContent>
