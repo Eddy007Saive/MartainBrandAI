@@ -105,11 +105,15 @@ async def options(payload: dict = Depends(verify_token)):
         custom.append({"id": "brand", "label": theme_label or "Thème de ta marque", "type": "theme"})
     custom += [{"id": t["id"], "label": t["label"], "type": t["type"]} for t in CUSTOM_TEMPLATES]
 
+    # Submagic ne sait mixer que les pistes pre-enregistrees chez lui (user_media_id) :
+    # on masque les autres ici — les reels Remotion, eux, utilisent toute la bibliotheque.
+    utilisables = [m for m in MUSIC_LIBRARY if m["id"] == "none" or m.get("user_media_id")]
+    cats_ok = {m.get("category") for m in utilisables}
     return {
         "templates": templates,
         "custom": custom,
-        "music_categories": MUSIC_CATEGORIES,
-        "music": [{"id": m["id"], "label": m["label"], "category": m.get("category"), "url": m.get("url")} for m in MUSIC_LIBRARY],
+        "music_categories": [c for c in MUSIC_CATEGORIES if c["id"] in cats_ok],
+        "music": [{"id": m["id"], "label": m["label"], "category": m.get("category"), "url": m.get("url")} for m in utilisables],
     }
 
 

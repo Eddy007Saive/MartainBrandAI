@@ -8,6 +8,7 @@ Seed Submagic via scripts/seed_submagic_music_drive.py.
 """
 
 MUSIC_CATEGORIES = [
+    {"id": "studio", "label": "Studio Motion"},
     {"id": "calme", "label": "Calme"},
     {"id": "optimiste", "label": "Optimiste"},
     {"id": "funky", "label": "Funky / Groove"},
@@ -33,6 +34,15 @@ MUSIC_LIBRARY = [
     {"id": "missed-my-chance", "label": "Missed My Chance", "category": "emotion", "user_media_id": "8a4ae600-4586-4926-85ae-a7dd16c7ba23", "url": f"{_MUS}/missed-my-chance.mp3"},
     {"id": "triste", "label": "Triste", "category": "emotion", "user_media_id": "0cfc6fdf-a29e-4f49-8d74-e821b29d2b7a", "url": f"{_MUS}/triste.mp3"},
     {"id": "country", "label": "Country", "category": "country", "user_media_id": "96d986ed-e831-4f5c-b0fc-7f360eeb2e85", "url": f"{_MUS}/country.mp3"},
+    # Pistes « Studio Motion » (pack MIT huashu-design, celles des démos de templates).
+    # user_media_id None = pas encore enregistrées chez Submagic -> reels Remotion uniquement
+    # (le sélecteur du Studio Vidéo les masque, voir routes/video.py).
+    {"id": "studio-pub", "label": "Pub énergique", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-ad.mp3"},
+    {"id": "studio-tech", "label": "Tech", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-tech.mp3"},
+    {"id": "studio-edu", "label": "Éducatif", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-educational.mp3"},
+    {"id": "studio-edu-2", "label": "Éducatif II", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-educational-alt.mp3"},
+    {"id": "studio-tuto", "label": "Tutoriel", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-tutorial.mp3"},
+    {"id": "studio-tuto-2", "label": "Tutoriel II", "category": "studio", "user_media_id": None, "url": f"{_MUS}/bgm-tutorial-alt.mp3"},
 ]
 
 
