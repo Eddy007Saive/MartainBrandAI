@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft } from 'lucide-react';
+import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
 import { OverlayFabrication } from '../components/Fabrication';
 
@@ -26,6 +26,7 @@ export default function StudioReel() {
   const [reseau, setReseau] = useState('Instagram');
   const [images, setImages] = useState([]);          // {url, desc, src}
   const [musique, setMusique] = useState('none');
+  const [mp3, setMp3] = useState(false);          // import d'un MP3 perso en cours
   const [playing, setPlaying] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -43,6 +44,22 @@ export default function StudioReel() {
   useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
 
   const stopPreview = () => { if (audioRef.current) audioRef.current.pause(); setPlaying(false); };
+
+  // Import d'une musique du client : elle rejoint sa bibliothèque et devient la piste choisie.
+  const importerMp3 = async (file) => {
+    if (!file) return;
+    setMp3(true);
+    try {
+      const m = await contenuService.reelMusiqueImporter(file);
+      setMusiques((prev) => [m, ...prev]);
+      setMusicCats((prev) => (prev.some((c) => c.id === 'perso')
+        ? prev : [{ id: 'perso', label: t('contenus.reel.seq.mesMusiques') }, ...prev]));
+      setMusique(m.id);
+      toast.success(t('contenus.reel.seq.mp3Ajoute', { nom: m.label }));
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.reel.seq.mp3Echec'));
+    } finally { setMp3(false); }
+  };
   const togglePreview = () => {
     const m = musiques.find((x) => x.id === musique);
     const a = audioRef.current;
@@ -227,7 +244,14 @@ export default function StudioReel() {
                   className={`w-9 h-9 rounded-lg border grid place-items-center transition-all active:scale-95 shrink-0 ${musique === 'none' ? 'border-white/[0.06] text-slate-700' : playing ? 'border-[#3AFFA3]/60 text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-300 hover:border-white/25'}`}>
                   {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                 </button>
+                <label title={t('contenus.reel.seq.importerMp3')} aria-label={t('contenus.reel.seq.importerMp3')}
+                  className={`w-9 h-9 shrink-0 rounded-lg border grid place-items-center transition-all active:scale-95 cursor-pointer ${mp3 ? 'border-white/[0.06] text-slate-700' : 'border-[#5B6CFF]/40 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
+                  <input type="file" accept="audio/*,.mp3,.m4a,.wav" className="hidden" disabled={mp3}
+                    onChange={(e) => { importerMp3(e.target.files?.[0]); e.target.value = ''; }} />
+                  {mp3 ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                </label>
               </div>
+              <p className="text-[11px] text-slate-600 font-inter mt-1.5">{t('contenus.reel.seq.mp3Aide')}</p>
               <audio ref={audioRef} onEnded={() => setPlaying(false)} className="hidden" />
             </div>
           )}

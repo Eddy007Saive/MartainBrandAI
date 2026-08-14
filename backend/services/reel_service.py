@@ -330,6 +330,45 @@ def upload_image_source(telegram_id: str, data: bytes) -> dict:
     return {"url": url, "desc": d["description"]}
 
 
+def importer_musique(telegram_id: str, data: bytes, nom_fichier: str = None) -> dict:
+    """Ajoute un MP3 du client à sa bibliothèque (Cloudinary + ligne brand_musiques).
+    Cloudinary range l'audio sous resource_type='video' — c'est sa convention."""
+    from services import music_library
+    if len(data) > music_library.TAILLE_MAX_MO * 1024 * 1024:
+        return {"error": f"Fichier trop lourd (max {music_library.TAILLE_MAX_MO} Mo)."}
+    if len(music_library.musiques_du_compte(telegram_id)) >= music_library.MAX_MUSIQUES:
+        return {"error": f"Bibliothèque pleine ({music_library.MAX_MUSIQUES} musiques). Supprimes-en une d'abord."}
+    label = re.sub(r"\.[a-z0-9]{2,4}$", "", (nom_fichier or "").strip(), flags=re.I)[:60] or "Ma musique"
+    try:
+        up = cloudinary.uploader.upload(data, resource_type="video", folder=f"musiques/{telegram_id}")
+        ins = supabase.table("brand_musiques").insert({
+            "telegram_id": telegram_id, "url": up["secure_url"], "label": label,
+        }).execute()
+    except Exception as e:
+        logger.error(f"import musique {telegram_id}: {e}")
+        return {"error": "Import impossible."}
+    if not ins.data:
+        return {"error": "Enregistrement impossible."}
+    m = ins.data[0]
+    return {"id": m["id"], "label": m["label"], "url": m["url"], "category": "perso"}
+
+
+def supprimer_musique(telegram_id: str, musique_id: str) -> dict:
+    """Retire la piste ET son fichier Cloudinary (pas d'accumulation)."""
+    r = (supabase.table("brand_musiques").select("url").eq("id", musique_id)
+         .eq("telegram_id", telegram_id).execute())
+    if not r.data:
+        return {"error": "Musique introuvable."}
+    try:
+        m = re.search(r"/upload/(?:v\d+/)?(.+)\.[a-z0-9]+$", r.data[0]["url"], re.I)
+        if m:
+            cloudinary.uploader.destroy(m.group(1), resource_type="video", invalidate=True)
+    except Exception as e:
+        logger.warning(f"destroy musique cloudinary: {e}")
+    supabase.table("brand_musiques").delete().eq("id", musique_id).eq("telegram_id", telegram_id).execute()
+    return {"ok": True}
+
+
 def _est_image_source(url: str) -> bool:
     """Une vraie image : pas un mp4, pas un poster derive d'une video (/video/upload/)."""
     return bool(url) and not url.endswith(".mp4") and "/video/upload/" not in url
@@ -607,12 +646,12 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
     else:
         scenario = _script_sequence(brief, u, [], brief=brief, style=st)
     scenario["style"] = st
-    scenario["musique"] = musique if music_library.piste(musique) else None
+    scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
     props = {
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
         "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
         "style": st,
-        "musique": music_library.musique_url(scenario["musique"]),
+        "musique": music_library.url_de(scenario["musique"], telegram_id),
     }
     try:
         mp4 = _rendre_mp4(props, composition="ReelSequence",
@@ -709,12 +748,12 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         pool = _pool_visuels(telegram_id, cur)
         scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
     scenario["style"] = st
-    scenario["musique"] = musique if music_library.piste(musique) else None
+    scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
     props = {
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
         "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
         "style": st,
-        "musique": music_library.musique_url(scenario["musique"]),
+        "musique": music_library.url_de(scenario["musique"], telegram_id),
     }
     try:
         mp4 = _rendre_mp4(props, composition="ReelSequence",
@@ -775,13 +814,13 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
             pool = _pool_visuels(telegram_id, cur)
             scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
         scenario["style"] = st
-        scenario["musique"] = musique if music_library.piste(musique) else None
+        scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
         script = {"hook": (scenario["segments"][0]["texte"] if scenario["segments"] else "")[:80]}
         props = {
             "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
             "segments": [{k: v for k, v in s.items() if k != "image_id"} for s in scenario["segments"]],
             "style": st,
-            "musique": music_library.musique_url(scenario["musique"]),
+            "musique": music_library.url_de(scenario["musique"], telegram_id),
         }
     elif template == "affiche":
         script = _script_affiche(texte, u)

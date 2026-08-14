@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel
 from dependencies import verify_token
-from services import reel_service, banque_service
-from services.music_library import MUSIC_CATEGORIES, MUSIC_LIBRARY
+from services import reel_service, banque_service, music_library
 from config import logger
 
 router = APIRouter(prefix="/reels", tags=["reels"])
@@ -25,11 +24,42 @@ class ReelRequest(BaseModel):
 
 @router.get("/templates")
 def templates(payload: dict = Depends(verify_token)):
-    """Templates de reels + bibliotheque musicale (le studio Sequence affiche les deux)."""
+    """Templates de reels + bibliotheque musicale (partagee + MP3 importes par le client)."""
+    telegram_id = payload.get("telegram_id")
+    cats, pistes = music_library.bibliotheque(telegram_id)
     return {"templates": reel_service.liste_templates(),
             "musiques": [{"id": m["id"], "label": m["label"], "category": m.get("category"), "url": m.get("url")}
-                         for m in MUSIC_LIBRARY],
-            "categories": MUSIC_CATEGORIES}
+                         for m in pistes],
+            "categories": cats}
+
+
+@router.post("/musique")
+async def importer_musique(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
+    """Import d'un MP3 personnel, utilisable comme musique de fond des reels."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    ct = (file.content_type or "").lower()
+    nom = (file.filename or "").lower()
+    if not (ct.startswith("audio/") or ct in ("video/mp4", "application/octet-stream")
+            or nom.endswith((".mp3", ".m4a", ".wav", ".aac", ".ogg"))):
+        raise HTTPException(status_code=400, detail="Le fichier doit etre un audio (MP3, M4A, WAV…)")
+    data = await file.read()
+    res = reel_service.importer_musique(telegram_id, data, file.filename)
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res
+
+
+@router.delete("/musique/{musique_id}")
+def supprimer_musique(musique_id: str, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    res = reel_service.supprimer_musique(telegram_id, musique_id)
+    if res.get("error"):
+        raise HTTPException(status_code=404, detail=res["error"])
+    return res
 
 
 @router.get("/recommander/{contenu_id}")

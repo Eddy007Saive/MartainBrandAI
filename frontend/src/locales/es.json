@@ -234,7 +234,12 @@
         "choisirTpl": "Elegir esta plantilla",
         "musique": "Música de fondo",
         "sansMusique": "Sin música",
-        "ecouter": "Escuchar la pista"
+        "ecouter": "Escuchar la pista",
+        "importerMp3": "Importar un MP3",
+        "mesMusiques": "Mi música",
+        "mp3Aide": "Puedes subir tu propia música (MP3, 15 MB máx.) — asegúrate de tener los derechos.",
+        "mp3Ajoute": "«{{nom}}» añadida a tu música",
+        "mp3Echec": "No se pudo importar la música."
       },
       "recommande": "Recomendado",
       "fab": {

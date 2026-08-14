@@ -326,6 +326,22 @@ export default function ContenusPage() {
   const [seqStyle, setSeqStyle] = useState('signature');
   const [seqZoom, setSeqZoom] = useState(null);      // index du template agrandi (lightbox), null = fermé
   const [seqMusique, setSeqMusique] = useState('none');  // piste de fond du reel (bibliothèque partagée)
+  const [seqMp3, setSeqMp3] = useState(false);           // import d'un MP3 perso en cours
+  // Import d'une musique du client : elle rejoint sa bibliothèque et devient la piste choisie.
+  const importerMp3 = async (file) => {
+    if (!file) return;
+    setSeqMp3(true);
+    try {
+      const m = await contenuService.reelMusiqueImporter(file);
+      setReelMusiques((prev) => [m, ...prev]);
+      setReelMusicCats((prev) => (prev.some((c) => c.id === 'perso')
+        ? prev : [{ id: 'perso', label: t('contenus.reel.seq.mesMusiques') }, ...prev]));
+      setSeqMusique(m.id);
+      toast.success(t('contenus.reel.seq.mp3Ajoute', { nom: m.label }));
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.reel.seq.mp3Echec'));
+    } finally { setSeqMp3(false); }
+  };
   const [seqPlaying, setSeqPlaying] = useState(false);   // pré-écoute de la piste choisie
   const seqAudioRef = useRef(null);
   const seqStopPreview = () => { if (seqAudioRef.current) seqAudioRef.current.pause(); setSeqPlaying(false); };
@@ -1818,7 +1834,14 @@ export default function ContenusPage() {
                         className={`w-9 h-9 rounded-lg border grid place-items-center transition-all active:scale-95 ${seqMusique === 'none' ? 'border-white/[0.06] text-slate-700' : seqPlaying ? 'border-[#3AFFA3]/60 text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-300 hover:border-white/25'}`}>
                         {seqPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                       </button>
+                      <label title={t('contenus.reel.seq.importerMp3')} aria-label={t('contenus.reel.seq.importerMp3')}
+                        className={`w-9 h-9 shrink-0 rounded-lg border grid place-items-center transition-all active:scale-95 cursor-pointer ${seqMp3 ? 'border-white/[0.06] text-slate-700' : 'border-[#5B6CFF]/40 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
+                        <input type="file" accept="audio/*,.mp3,.m4a,.wav" className="hidden" disabled={seqMp3}
+                          onChange={(e) => { importerMp3(e.target.files?.[0]); e.target.value = ''; }} />
+                        {seqMp3 ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                      </label>
                     </div>
+                    <p className="text-[11px] text-slate-600 font-inter mt-1.5">{t('contenus.reel.seq.mp3Aide')}</p>
                     <audio ref={seqAudioRef} onEnded={() => setSeqPlaying(false)} className="hidden" />
                   </div>
                 )}

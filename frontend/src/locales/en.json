@@ -234,7 +234,12 @@
         "choisirTpl": "Choose this template",
         "musique": "Background music",
         "sansMusique": "No music",
-        "ecouter": "Preview the track"
+        "ecouter": "Preview the track",
+        "importerMp3": "Upload an MP3",
+        "mesMusiques": "My music",
+        "mp3Aide": "You can upload your own track (MP3, 15 MB max) — make sure you hold the rights.",
+        "mp3Ajoute": "\"{{nom}}\" added to your music",
+        "mp3Echec": "Could not upload the track."
       },
       "recommande": "Recommended",
       "fab": {

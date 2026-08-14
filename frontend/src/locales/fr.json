@@ -234,7 +234,12 @@
         "choisirTpl": "Choisir ce template",
         "musique": "Musique de fond",
         "sansMusique": "Aucune musique",
-        "ecouter": "Écouter la piste"
+        "ecouter": "Écouter la piste",
+        "importerMp3": "Importer un MP3",
+        "mesMusiques": "Mes musiques",
+        "mp3Aide": "Tu peux importer ta propre musique (MP3, 15 Mo max) — assure-toi d'en avoir les droits.",
+        "mp3Ajoute": "« {{nom}} » ajoutée à tes musiques",
+        "mp3Echec": "Import de la musique impossible."
       },
       "fab": {
         "titre": "Fabrication du reel",

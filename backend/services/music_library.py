@@ -45,6 +45,38 @@ MUSIC_LIBRARY = [
 ]
 
 
+MAX_MUSIQUES = 12          # par compte — garde-fou de stockage
+TAILLE_MAX_MO = 15
+
+
+def musiques_du_compte(telegram_id: str) -> list:
+    """Les MP3 importés par le client, présentés comme la bibliothèque partagée."""
+    from config import supabase, logger
+    try:
+        r = (supabase.table("brand_musiques").select("id, url, label, created_at")
+             .eq("telegram_id", telegram_id).order("created_at", desc=True).execute())
+        return [{"id": m["id"], "label": m["label"], "category": "perso",
+                 "user_media_id": None, "url": m["url"]} for m in (r.data or [])]
+    except Exception as e:
+        logger.error(f"musiques du compte {telegram_id}: {e}")
+        return []
+
+
+def bibliotheque(telegram_id: str = None) -> tuple:
+    """(catégories, pistes) — la bibliothèque partagée + les MP3 du client en tête."""
+    perso = musiques_du_compte(telegram_id) if telegram_id else []
+    cats = ([{"id": "perso", "label": "Mes musiques"}] if perso else []) + MUSIC_CATEGORIES
+    return cats, perso + MUSIC_LIBRARY
+
+
+def url_de(music_id: str | None, telegram_id: str = None) -> str | None:
+    """URL d'une piste, qu'elle vienne de la bibliothèque partagée ou du client."""
+    u = musique_url(music_id)
+    if u or not (music_id and telegram_id):
+        return u
+    return next((m["url"] for m in musiques_du_compte(telegram_id) if m["id"] == music_id), None)
+
+
 def piste(music_id: str | None) -> dict | None:
     """La piste correspondant à l'id, ou None (inclut l'entrée « none » : url None)."""
     if not music_id:
