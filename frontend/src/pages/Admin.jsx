@@ -92,7 +92,6 @@ export default function Admin() {
   const [savingAvatar, setSavingAvatar] = useState(false);
 
   // Crédits / plan (dans la fiche user)
-  const [creditInput, setCreditInput] = useState('');
   const [themeForm, setThemeForm] = useState({ id: '', label: '' });
   const [carrTpls, setCarrTpls] = useState([]);   // catalogue des templates de carrousel sur mesure
   const [carrSel, setCarrSel] = useState([]);     // ceux attribues au compte ouvert
@@ -325,20 +324,6 @@ export default function Admin() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUser?.telegram_id]);
 
-  const handleSetCredits = async (mode) => {
-    if (!selectedUser) return;
-    const amount = parseInt(creditInput, 10);
-    if (Number.isNaN(amount)) { toast.error('Montant invalide'); return; }
-    setUserActionLoading(true);
-    try {
-      await adminService.setCredits(selectedUser.telegram_id, amount, mode);
-      toast.success(mode === 'add' ? `${amount > 0 ? '+' : ''}${amount} crédits` : `Solde fixé à ${amount}`);
-      setCreditInput('');
-      await refreshSelected(selectedUser.telegram_id);
-    } catch (e) { toast.error('Erreur crédits'); }
-    finally { setUserActionLoading(false); }
-  };
-
   const handleSetPlan = async (plan) => {
     if (!selectedUser || plan === selectedUser.plan) return;
     setUserActionLoading(true);
@@ -390,17 +375,6 @@ export default function Admin() {
       const r = await adminService.refreshAnalytics();
       toast.success(`Analytics : ${r.refreshed ?? 0} user(s) synchronisé(s)`);
     } catch (e) { toast.error('Erreur synchro analytics'); }
-    finally { setSysAction(null); }
-  };
-
-  const handleResetCredits = async () => {
-    if (!window.confirm('Réinitialiser les crédits de TOUS les utilisateurs au quota de leur forfait ?')) return;
-    setSysAction('credits');
-    try {
-      const r = await adminService.resetMonthlyCredits();
-      const n = Object.values(r.reset || {}).reduce((a, b) => a + b, 0);
-      toast.success(`Crédits réinitialisés pour ${n} utilisateur(s)`);
-    } catch (e) { toast.error('Erreur reset crédits'); }
     finally { setSysAction(null); }
   };
 
@@ -1311,12 +1285,8 @@ export default function Admin() {
                         {sysAction === 'analytics' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                         Synchroniser les analytics
                       </Button>
-                      <Button onClick={handleResetCredits} disabled={sysAction === 'credits'} variant="outline" className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10">
-                        {sysAction === 'credits' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Coins className="w-4 h-4 mr-2" />}
-                        Réinitialiser les crédits mensuels
-                      </Button>
                     </div>
-                    <p className="text-xs text-slate-500 mt-3">« Réinitialiser » remet chaque utilisateur au quota de crédits de son forfait.</p>
+                    <p className="text-xs text-slate-500 mt-3">Les quotas se réinitialisent seuls à chaque période — rien à faire ici.</p>
                   </div>
                 </>
               )}
@@ -1387,20 +1357,8 @@ export default function Admin() {
                     </button>
                   ))}
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[12.5px] text-slate-400 mr-auto">Solde actuel · <b className="text-white font-sora tabular-nums text-[15px]">{selectedUser.credits ?? 0}</b> crédits</span>
-                  <Input type="number" value={creditInput} onChange={(e) => setCreditInput(e.target.value)}
-                    placeholder="Montant" className="bg-[#0c1322] border-white/[0.06] text-slate-200 text-sm w-24 h-9 rounded-[9px]" />
-                  <Button size="sm" onClick={() => handleSetCredits('add')} disabled={userActionLoading}
-                    className="h-9 bg-[#3AFFA3]/10 text-[#3AFFA3] hover:bg-[#3AFFA3]/20 border border-[#3AFFA3]/25 rounded-[9px] transition-all active:scale-[0.97]">
-                    <Plus className="w-3.5 h-3.5 mr-1" />Ajouter
-                  </Button>
-                  <Button size="sm" onClick={() => handleSetCredits('set')} disabled={userActionLoading}
-                    className="h-9 bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06] hover:border-white/[0.16] rounded-[9px] transition-all active:scale-[0.97]">
-                    <Save className="w-3.5 h-3.5 mr-1" />Fixer
-                  </Button>
-                  {userActionLoading && <Loader2 className="w-4 h-4 animate-spin text-slate-400 self-center" />}
-                </div>
+                {/* Le solde de crédits a disparu avec les quotas : tout se règle
+                    dans le panneau « Quotas » ci-dessous, type d'action par type d'action. */}
               </div>
 
               {/* Quotas (période en cours) — jauges + bonus individuel par type */}

@@ -102,8 +102,6 @@ def get_user_detail(telegram_id: str) -> dict | None:
     return user
 
 
-class CreditsObsoletes(Exception):
-    """Les crédits ont été remplacés par les quotas par type d'action."""
 
 
 def update_plan(telegram_id: str, plan: str, reset_credits: bool = True) -> dict | None:

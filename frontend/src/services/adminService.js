@@ -36,8 +36,6 @@ export const adminService = {
   getUsers: (filter = 'all', q = '') =>
     adminFetch(`/admin/users?filter=${filter}${q ? `&q=${encodeURIComponent(q)}` : ''}`),
 
-  setCredits: (telegramId, amount, mode = 'set') =>
-    adminFetch(`/admin/users/${telegramId}/credits`, { method: 'PATCH', body: JSON.stringify({ amount, mode }) }),
 
   setPlan: (telegramId, plan, reset_credits = true) =>
     adminFetch(`/admin/users/${telegramId}/plan`, { method: 'PATCH', body: JSON.stringify({ plan, reset_credits }) }),
@@ -73,7 +71,6 @@ export const adminService = {
   getApiBalances: () => adminFetch('/admin/api-balances'),
   getAnalyticsProduit: () => adminFetch('/admin/analytics-produit'),
   refreshAnalytics: () => adminFetch('/admin/analytics/refresh', { method: 'POST' }),
-  resetMonthlyCredits: () => adminFetch('/admin/credits/reset-monthly', { method: 'POST' }),
 
   getUser: (telegramId) => adminFetch(`/admin/users/${telegramId}`),
 

@@ -157,19 +157,7 @@ async def deactivate_user(telegram_id: str, payload: dict = Depends(verify_admin
         raise HTTPException(status_code=500, detail=str(e))
 
 
-class CreditsUpdate(BaseModel):
-    amount: int
-    mode: str = "set"  # "set" ou "add"
 
-
-@router.patch("/users/{telegram_id}/credits")
-async def set_credits(telegram_id: str, body: CreditsUpdate, payload: dict = Depends(verify_admin_token)):
-    """Obsolète : le solde de crédits a été remplacé par les quotas par type d'action.
-    On répond explicitement plutôt que de laisser croire à une modification."""
-    raise HTTPException(
-        status_code=410,
-        detail="Les crédits ont été remplacés par les quotas. Ajuste le forfait ou accorde un pack.",
-    )
 
 
 class PlanUpdate(BaseModel):
@@ -419,13 +407,6 @@ async def refresh_analytics(payload: dict = Depends(verify_admin_token)):
     except Exception as e:
         logger.error(f"Refresh analytics error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/credits/reset-monthly")
-async def reset_monthly(payload: dict = Depends(verify_admin_token)):
-    """Obsolète : les crédits ont été remplacés par les quotas par type d'action,
-    qui se réinitialisent seuls à chaque période (ensure_period_counters)."""
-    return {"ok": True, "reset": {}, "info": "Les quotas se réinitialisent automatiquement."}
 
 
 class PushBroadcast(BaseModel):
