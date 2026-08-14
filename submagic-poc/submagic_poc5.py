@@ -3,14 +3,29 @@
 import json
 import os
 import re
+import shutil
 import statistics
 import subprocess
 import sys
 
 import cv2
 
-FFMPEG = os.path.expandvars(r"%LOCALAPPDATA%\Programs\ffmpeg\bin\ffmpeg.exe")
-FFPROBE = os.path.expandvars(r"%LOCALAPPDATA%\Programs\ffmpeg\bin\ffmpeg.exe").replace("ffmpeg.exe", "ffprobe.exe")
+
+def _find_ffmpeg(name):
+    """PATH système en priorité (Railway/Linux : ffmpeg installé via apt,
+    déjà sur le PATH) ; repli sur l'emplacement du build Windows local
+    (dev sur cette machine, pas ajouté au PATH lors de l'install)."""
+    found = shutil.which(name)
+    if found:
+        return found
+    win_path = os.path.expandvars(rf"%LOCALAPPDATA%\Programs\ffmpeg\bin\{name}.exe")
+    if os.path.exists(win_path):
+        return win_path
+    return name  # dernier repli : laisse le sous-processus échouer avec un message clair
+
+
+FFMPEG = _find_ffmpeg("ffmpeg")
+FFPROBE = _find_ffmpeg("ffprobe")
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 HALLUCINATIONS = re.compile(
