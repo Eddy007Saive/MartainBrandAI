@@ -26,10 +26,10 @@ EXCLUSIFS = {"postorico"}
 
 
 def _exclusifs_du_compte(telegram_id: str) -> set:
+    # La liste vit dans la fiche de marque (table `marques`) depuis la normalisation.
+    from services import marque_service
     try:
-        r = (supabase.table("users").select("carrousel_templates_exclusifs")
-             .eq("telegram_id", telegram_id).limit(1).execute())
-        csv = (r.data[0].get("carrousel_templates_exclusifs") or "") if r.data else ""
+        csv = marque_service.fiche(telegram_id).get("carrousel_templates_exclusifs") or ""
     except Exception as e:
         logger.warning(f"exclusifs carrousel {telegram_id}: {e}")
         csv = ""

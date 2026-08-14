@@ -102,17 +102,8 @@ def get_user_detail(telegram_id: str) -> dict | None:
     return user
 
 
-def update_credits(telegram_id: str, amount: int, mode: str = "set") -> dict | None:
-    """mode 'set' = définit le solde, 'add' = ajoute (peut être négatif)."""
-    if mode == "add":
-        cur = supabase.table("users").select("credits").eq("telegram_id", telegram_id).execute()
-        base = (cur.data[0].get("credits") or 0) if cur.data else 0
-        new_val = base + amount
-    else:
-        new_val = amount
-    new_val = max(0, int(new_val))
-    res = supabase.table("users").update({"credits": new_val}).eq("telegram_id", telegram_id).execute()
-    return sanitize_user(res.data[0]) if res.data else None
+class CreditsObsoletes(Exception):
+    """Les crédits ont été remplacés par les quotas par type d'action."""
 
 
 def update_plan(telegram_id: str, plan: str, reset_credits: bool = True) -> dict | None:
@@ -414,7 +405,7 @@ def get_user_contenus(telegram_id: str) -> list:
 
 
 def get_global_stats() -> dict:
-    users = supabase.table("users").select("telegram_id, actif, created_at, plan, credits").execute()
+    users = supabase.table("users").select("telegram_id, actif, created_at").execute()
     total_users = len(users.data)
     active_users = len([u for u in users.data if u.get("actif")])
     pending_users = total_users - active_users

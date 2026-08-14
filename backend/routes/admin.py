@@ -164,18 +164,12 @@ class CreditsUpdate(BaseModel):
 
 @router.patch("/users/{telegram_id}/credits")
 async def set_credits(telegram_id: str, body: CreditsUpdate, payload: dict = Depends(verify_admin_token)):
-    try:
-        if body.mode not in ("set", "add"):
-            raise HTTPException(status_code=400, detail="mode invalide")
-        user = admin_service.update_credits(telegram_id, body.amount, body.mode)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        return user
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Set credits error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Obsolète : le solde de crédits a été remplacé par les quotas par type d'action.
+    On répond explicitement plutôt que de laisser croire à une modification."""
+    raise HTTPException(
+        status_code=410,
+        detail="Les crédits ont été remplacés par les quotas. Ajuste le forfait ou accorde un pack.",
+    )
 
 
 class PlanUpdate(BaseModel):
@@ -336,8 +330,9 @@ async def set_carrousel_templates(telegram_id: str, body: CarrouselTemplatesUpda
         raise HTTPException(status_code=400, detail=f"Template(s) inconnu(s) : {', '.join(inconnus)}")
     csv = ",".join(sorted(set(demandes))) or None
     try:
-        supabase.table("users").update({"carrousel_templates_exclusifs": csv}) \
-            .eq("telegram_id", telegram_id).execute()
+        # Réglage de marque : il vit dans `marques` depuis la normalisation.
+        from services import marque_service
+        marque_service.enregistrer(telegram_id, {"carrousel_templates_exclusifs": csv})
         return {"success": True, "carrousel_templates_exclusifs": csv}
     except Exception as e:
         logger.error(f"set_carrousel_templates error: {e}")

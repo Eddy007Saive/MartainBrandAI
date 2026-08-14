@@ -60,17 +60,17 @@ def upload_photo(telegram_id: str, file_bytes: bytes) -> str:
 
 
 def upload_logo(telegram_id: str, file_bytes: bytes) -> str:
-    """Upload le logo de marque sur Cloudinary et met à jour users.logo_url. Retourne l'URL.
+    """Upload le logo de marque sur Cloudinary et met à jour marques.logo_url. Retourne l'URL.
     Remplace l'ancien logo (même public_id + overwrite ; supprime l'orphelin éventuel)."""
-    prev = supabase.table("users").select("logo_url").eq("telegram_id", telegram_id).execute()
-    old_url = prev.data[0].get("logo_url") if prev.data else None
+    from services import marque_service
+    old_url = marque_service.fiche(telegram_id).get("logo_url")
 
     public_id = f"logos/{telegram_id}/logo"
     up = cloudinary.uploader.upload(
         file_bytes, resource_type="image", public_id=public_id, overwrite=True, invalidate=True,
     )
     url = up["secure_url"]
-    supabase.table("users").update({"logo_url": url}).eq("telegram_id", telegram_id).execute()
+    marque_service.enregistrer(telegram_id, {"logo_url": url})
     _delete_old_photo(old_url, keep_public_id=public_id)
     return url
 
@@ -90,10 +90,10 @@ def upload_avatar(telegram_id: str, file_bytes: bytes) -> str:
 
 
 def delete_logo(telegram_id: str) -> None:
-    """Supprime le logo (Cloudinary + users.logo_url)."""
-    prev = supabase.table("users").select("logo_url").eq("telegram_id", telegram_id).execute()
-    old_url = prev.data[0].get("logo_url") if prev.data else None
-    supabase.table("users").update({"logo_url": None}).eq("telegram_id", telegram_id).execute()
+    """Supprime le logo (Cloudinary + marques.logo_url)."""
+    from services import marque_service
+    old_url = marque_service.fiche(telegram_id).get("logo_url")
+    marque_service.enregistrer(telegram_id, {"logo_url": None})
     _delete_old_photo(old_url, keep_public_id="")
 
 

@@ -35,19 +35,29 @@ async def list_accounts(payload: dict = Depends(verify_token)):
     master = _effective_master(payload)
     try:
         res = (supabase.table("users")
-               .select("telegram_id, nom, email, photo_url, logo_url, master_id")
+               .select("telegram_id, nom, email, photo_url, master_id")
                .or_(f"telegram_id.eq.{master},master_id.eq.{master}")
                .execute())
         rows = res.data or []
     except Exception as e:
         logger.error(f"list_accounts error: {e}")
         rows = []
+    # Le logo appartient à la fiche de marque depuis la normalisation : une seule
+    # requête pour toute la famille (pas d'appel par compte).
+    logos = {}
+    if rows:
+        try:
+            lm = (supabase.table("marques").select("telegram_id, logo_url")
+                  .in_("telegram_id", [r["telegram_id"] for r in rows]).execute())
+            logos = {m["telegram_id"]: m.get("logo_url") for m in (lm.data or [])}
+        except Exception as e:
+            logger.warning(f"list_accounts logos: {e}")
     accounts = [{
         "telegram_id": r["telegram_id"],
         "nom": r.get("nom"),
         "email": r.get("email"),
         "photo_url": r.get("photo_url"),
-        "logo_url": r.get("logo_url"),
+        "logo_url": logos.get(r["telegram_id"]),
         "is_master": r["telegram_id"] == master,
         "is_current": r["telegram_id"] == me,
     } for r in rows]

@@ -400,11 +400,14 @@ def _notify_payload(uid: str, kind: str, extra=None):
     if not uid:
         return None
     try:
-        r = supabase.table("users").select("nom, email, plan").eq("telegram_id", uid).limit(1).execute()
+        r = supabase.table("users").select("nom, email").eq("telegram_id", uid).limit(1).execute()
         u = r.data[0] if r.data else {}
     except Exception:
         u = {}
-    return {"kind": kind, "nom": u.get("nom"), "email": u.get("email"), "plan": u.get("plan"), "extra": extra}
+    # Le forfait se lit dans subscriptions (source de vérité depuis la normalisation).
+    from services import admin_service
+    plan = admin_service._champs_abonnement(admin_service._abonnements().get(uid)).get("plan")
+    return {"kind": kind, "nom": u.get("nom"), "email": u.get("email"), "plan": plan, "extra": extra}
 
 
 def _facture_payload(uid: str, montant_cents: int, devise: str, libelle: str,
