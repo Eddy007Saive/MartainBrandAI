@@ -132,6 +132,33 @@ CREATE TABLE public.contenu (
   CONSTRAINT contenu_pkey PRIMARY KEY (id),
   CONSTRAINT contenu_telegram_id_fkey FOREIGN KEY (telegram_id) REFERENCES public.users(telegram_id)
 );
+-- Normalisation phase 3 (14/08/2026) — la fiche de marque sort de `users`.
+-- 22 colonnes décrivant la MARQUE (voix, piliers, exemples par réseau, palette,
+-- réglages carrousel) cohabitaient avec le compte (mot de passe, facturation).
+-- UNIQUE(telegram_id) fige le 1-1 actuel ; la retirer ouvrira le multi-marques.
+-- Comme en phase 2, les colonnes d'origine sont conservées et tenues à jour en
+-- miroir, et le frontend continue de lire user.voix_marque, user.couleur_accent…
+-- (recomposé par marque_service.fiche() dans get_user() et _charger_marque()).
+CREATE TABLE public.marques (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  telegram_id uuid NOT NULL,
+  secteur text, voix_marque text, audience text, piliers text, a_eviter text,
+  hooks text, ctas text, regles text,
+  exemples_linkedin text, exemples_instagram text, exemples_facebook text, exemples_tiktok text,
+  couleur_principale text DEFAULT '#003D2E',
+  couleur_secondaire text DEFAULT '#0077FF',
+  couleur_accent text DEFAULT '#3AFFA3',
+  logo_url text,
+  carrousel_couleur_principale text, carrousel_couleur_secondaire text, carrousel_couleur_accent text,
+  carrousel_font text, carrousel_font_corps text, carrousel_templates_exclusifs text,
+  use_inspirations boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT marques_pkey PRIMARY KEY (id),
+  CONSTRAINT marques_telegram_id_fkey FOREIGN KEY (telegram_id) REFERENCES public.users(telegram_id) ON DELETE CASCADE,
+  CONSTRAINT marques_telegram_id_key UNIQUE (telegram_id)
+);
+
 -- Normalisation phase 2 (14/08/2026) — les comptes sociaux sortent de `users`.
 -- Avant : 7 colonnes late_account_<réseau> en dur (ajouter un réseau = migration de
 -- schéma, et une colonne NULL pour la majorité des comptes). Après : une ligne par

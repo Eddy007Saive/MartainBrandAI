@@ -72,8 +72,17 @@ SUJETS_MODEL = "claude-haiku-4-5"
 # Mémoire de la marque (depuis Supabase)
 # ---------------------------------------------------------------------------
 def _charger_marque(telegram_id: str) -> dict:
+    """Le compte + sa fiche de marque, fusionnés en un seul dictionnaire.
+
+    Depuis la normalisation, la fiche vit dans `marques` ; on la refusionne ici pour
+    que tous les appelants (prompts, carrousels, reels, images) continuent de lire
+    u["voix_marque"], u["couleur_accent"]… sans rien changer chez eux.
+    """
+    from services import marque_service
     res = supabase.table("users").select("*").eq("telegram_id", telegram_id).execute()
-    return res.data[0] if res.data else {}
+    if not res.data:
+        return {}
+    return {**res.data[0], **marque_service.fiche(telegram_id)}
 
 
 LANGUES_CONTENU = {"fr": "français", "en": "anglais (English)", "es": "espagnol (Español)"}

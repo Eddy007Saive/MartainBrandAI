@@ -135,8 +135,11 @@ def get_user(telegram_id: str) -> dict | None:
     # Les comptes sociaux vivent dans `comptes_sociaux` depuis la normalisation, mais
     # le frontend lit toujours user.late_account_<réseau> : on recompose ces clés ici,
     # une seule fois, plutôt que de propager la nouvelle forme dans toute l'interface.
-    from services import social_service
+    from services import social_service, marque_service
     user.update(social_service.champs_late(telegram_id))
+    # Idem pour la fiche de marque (table `marques`) : le frontend continue de lire
+    # user.voix_marque, user.couleur_accent, etc.
+    user.update(marque_service.fiche(telegram_id))
     # Facturation PAR COMPTE : chaque compte a ses propres crédits + forfait.
     # On expose seulement le flag sous-compte (pour l'UI), sans écraser crédits/plan.
     if user.get("master_id"):
@@ -145,6 +148,14 @@ def get_user(telegram_id: str) -> dict | None:
 
 
 def update_user(telegram_id: str, update_data: dict) -> dict | None:
+    # La page Paramètres envoie compte et marque dans la même requête : on route
+    # chaque champ vers sa table. Les colonnes d'origine de `users` restent tenues
+    # à jour en miroir le temps de valider la bascule (rollback immédiat).
+    from services import marque_service
+    _, champs_marque = marque_service.separer(update_data)
+    if champs_marque:
+        marque_service.enregistrer(telegram_id, champs_marque)
+
     try:
         result = supabase.table("users").update(update_data).eq("telegram_id", telegram_id).execute()
     except Exception as e:
@@ -160,7 +171,10 @@ def update_user(telegram_id: str, update_data: dict) -> dict | None:
         result = supabase.table("users").update(connus).eq("telegram_id", telegram_id).execute()
     if not result.data:
         return None
-    return sanitize_user(result.data[0])
+    user = sanitize_user(result.data[0])
+    from services import marque_service as _ms
+    user.update(_ms.fiche(telegram_id))   # la réponse reflète la marque enregistrée
+    return user
 
 
 def delete_user(telegram_id: str) -> bool:

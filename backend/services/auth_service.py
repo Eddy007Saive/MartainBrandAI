@@ -59,6 +59,9 @@ def register_user(nom: str, email: str, username: str, password: str, master_id:
         new_user["master_id"] = master_id
 
     supabase.table("users").insert(new_user).execute()
+    # Fiche de marque du nouveau compte (palette par défaut) — table `marques`.
+    from services import marque_service
+    marque_service.creer(new_user["telegram_id"])
     return {"success": True, "telegram_id": new_user["telegram_id"], "nom": nom, "email": email}
 
 
