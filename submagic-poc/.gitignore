@@ -1,0 +1,40 @@
+# Données d'exécution (régénérées au runtime, jamais versionnées)
+jobs/
+cache/
+music_cache/
+emoji_cache/
+__pycache__/
+*.pyc
+
+# Secrets locaux (repli dev uniquement — les vraies clés vivent en variables
+# d'environnement sur le déploiement, voir .env.example)
+.env
+
+# Scripts standalone antérieurs à l'app FastAPI, superseded par pipeline.py
+# (submagic_poc5.py reste : réutilisé comme module "base" par pipeline.py)
+submagic_poc.py
+submagic_poc2.py
+submagic_poc3.py
+submagic_poc4.py
+transcribe_only.py
+bd.rnnn
+
+# Vidéos/images/exports de test accumulés en itérant sur le POC
+*.mp4
+*.ass
+*.filtergraph
+compare_*.jpg
+submagic_*.jpg
+submagic_*.png
+submagic_style_hint.txt
+submagic_transcript.txt
+nanobanana_test.png
+gemini_pick_test.jpg
+emoji_test*.png
+emoji_test*.ass
+emoji_fire_test.png
+test_a.jpg
+test_b.jpg
+test_c.jpg
+words-*.json
+regen_test.jpg

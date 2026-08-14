@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Montage — MartainBrandAI</title>
+<style>
+  :root {
+    --bg: #020617;
+    --card: #0f172a;
+    --card-2: #1e293b;
+    --border: rgba(148, 163, 184, .14);
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #3AFFA3;
+    --grad: linear-gradient(135deg, #5B6CFF, #8A6CFF);
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --r: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { color-scheme: dark; }
+  body {
+    background: var(--bg); color: var(--text);
+    font: 15px/1.5 "Inter", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1500px; margin: 0 auto; padding: 28px 20px 80px; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .logo {
+    width: 38px; height: 38px; border-radius: 11px; background: var(--grad);
+    display: grid; place-items: center; font-size: 19px;
+  }
+  header h1 { font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+  header p { color: var(--muted); font-size: 13px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 460px; gap: 26px; align-items: start; }
+  @media (max-width: 840px) { .grid { grid-template-columns: 1fr; } .preview-col { order: -1; } }
+
+  section.card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--r); padding: 20px; margin-bottom: 18px;
+    opacity: 0; transform: translateY(8px);
+    animation: rise .45s var(--ease-out) forwards;
+  }
+  section.card:nth-of-type(2) { animation-delay: 50ms; }
+  section.card:nth-of-type(3) { animation-delay: 100ms; }
+  section.card:nth-of-type(4) { animation-delay: 150ms; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 14px; }
+  h2 .n {
+    display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 7px;
+    background: var(--card-2); color: var(--text); font-size: 11px; margin-right: 8px;
+  }
+
+  /* ---- dropzone ---- */
+  .drop {
+    border: 1.5px dashed rgba(148,163,184,.3); border-radius: 12px;
+    padding: 34px 20px; text-align: center; cursor: pointer;
+    transition: border-color .2s ease, background-color .2s ease, transform .16s var(--ease-out);
+  }
+  .drop.over { border-color: var(--accent); background: rgba(58,255,163,.05); }
+  .drop:active { transform: scale(.99); }
+  .drop strong { display: block; margin-bottom: 4px; }
+  .drop span { color: var(--muted); font-size: 13px; }
+  .file-chip {
+    display: none; align-items: center; gap: 10px; margin-top: 12px;
+    background: var(--card-2); border-radius: 10px; padding: 10px 14px; font-size: 13px;
+  }
+  .file-chip.on { display: flex; }
+  .file-chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+
+  /* ---- presets ---- */
+  .presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .preset {
+    position: relative; height: 64px; border-radius: 10px; cursor: pointer;
+    background: #565b64; border: 2px solid transparent;
+    display: grid; place-items: center; overflow: hidden;
+    transition: border-color .18s ease, transform .16s var(--ease-out);
+  }
+  .preset:active { transform: scale(.97); }
+  @media (hover: hover) and (pointer: fine) {
+    .preset:hover { border-color: rgba(255,255,255,.25); }
+  }
+  .preset.sel { border-color: var(--accent); }
+  .preset .tag {
+    position: absolute; top: 6px; left: 6px; font-size: 9px; font-weight: 700;
+    color: var(--muted); letter-spacing: .05em; text-transform: uppercase;
+  }
+  .preset .sample { font-size: 17px; line-height: 1; white-space: nowrap; }
+
+  /* ---- fonts ---- */
+  .fonts { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 12px; }
+  .font-card {
+    position: relative; border: 1px solid var(--border); border-radius: 12px;
+    background: linear-gradient(160deg, #101b33, #0b1222);
+    padding: 14px 14px 16px; cursor: pointer; overflow: hidden;
+    transition: border-color .18s ease, transform .16s var(--ease-out);
+  }
+  .font-card:active { transform: scale(.98); }
+  @media (hover: hover) and (pointer: fine) {
+    .font-card:hover { border-color: rgba(148,163,184,.35); }
+  }
+  .font-card.sel { border-color: var(--accent); }
+  .font-card.sel::after {
+    content: "✓"; position: absolute; top: 8px; right: 10px;
+    color: var(--accent); font-size: 12px; font-weight: 700;
+  }
+  .font-card .name { font-size: 11px; color: var(--muted); margin-bottom: 10px; letter-spacing: .04em; }
+  .font-card .demo {
+    font-size: 21px; line-height: 1.15; color: #fff; letter-spacing: .01em;
+    text-shadow: -2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000,
+                 -1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000;
+  }
+  .font-card .demo em { font-style: normal; color: var(--accent); }
+
+  /* ---- style controls ---- */
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; }
+  .row + .row { border-top: 1px solid var(--border); }
+  .row label { font-size: 14px; }
+  .row small { display: block; color: var(--muted); font-size: 12px; }
+  .swatches { display: flex; gap: 8px; }
+  .sw {
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+    transition: transform .16s var(--ease-out), border-color .18s ease;
+  }
+  .sw:active { transform: scale(.9); }
+  .sw.sel { border-color: #fff; transform: scale(1.12); }
+  input[type=range] { accent-color: #7c6cff; width: 150px; }
+  .val { color: var(--muted); font-size: 12px; width: 42px; text-align: right; }
+
+  /* ---- switch ---- */
+  .switch { position: relative; width: 40px; height: 23px; flex: none; }
+  .switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .track {
+    position: absolute; inset: 0; border-radius: 99px; background: #2c3a52;
+    transition: background-color .18s ease;
+    pointer-events: none;   /* les clics doivent atteindre la checkbox dessous */
+  }
+  .knob {
+    position: absolute; top: 2.5px; left: 2.5px; width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; transition: transform .18s var(--ease-out);
+  }
+  .switch input:checked ~ .track { background: #22c55e; }
+  .switch input:checked ~ .track .knob { transform: translateX(17px); }
+
+  /* ---- preview ---- */
+  .preview-col { position: sticky; top: 20px; }
+  @media (max-width: 840px) { .preview-col { position: static; } }
+  .phone {
+    aspect-ratio: 9/16; max-height: 480px; margin: 0 auto; border-radius: 22px; overflow: hidden;
+    position: relative; background:
+      radial-gradient(90% 60% at 60% 24%, #33415c 0%, transparent 60%),
+      linear-gradient(180deg, #1a2440, #0a101f 70%, #070b16);
+    border: 1px solid var(--border); width: min(100%, 270px);
+  }
+  .resultRow { display: none; gap: 12px; }
+  .resultRow.on { display: flex; }
+  .resultRow > div { flex: 1; min-width: 0; }
+  .resultRow .phone { width: 100%; max-height: none; }
+  .resultRow .phone video, .resultRow .phone img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  }
+  .resultCaption {
+    text-align: center; color: var(--muted); font-size: 11.5px; margin-top: 6px;
+  }
+  .phone video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .caption {
+    position: absolute; left: 8%; right: 8%; text-align: center; pointer-events: none;
+    color: #fff; font-weight: 900;
+    text-shadow: -2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000,
+                 -1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000;
+  }
+  .caption .w { display: inline-block; transition: color .12s ease, transform .12s var(--ease-out); }
+  .caption .w.on { color: var(--accent); transform: scale(1.09); }
+  .hint { text-align: center; color: var(--muted); font-size: 12px; margin-top: 10px; }
+  .hookcap { top: 9%; bottom: auto; font-size: 26px; line-height: 1.12; transition: top .2s var(--ease-out), bottom .2s var(--ease-out); }
+  .chip {
+    background: var(--card-2); border: 1px solid var(--border); border-radius: 99px;
+    padding: 7px 13px; font-size: 13px; cursor: pointer; color: var(--text);
+    transition: border-color .18s ease, transform .16s var(--ease-out);
+    opacity: 0; transform: translateY(6px); animation: rise .35s var(--ease-out) forwards;
+  }
+  .chip:active { transform: scale(.97); }
+  @media (hover: hover) and (pointer: fine) { .chip:hover { border-color: var(--accent); } }
+  .posBtn {
+    flex: 1; padding: 9px 0; border-radius: 9px; border: 1px solid var(--border);
+    background: var(--card-2); color: var(--muted); font-size: 13px; cursor: pointer;
+    transition: border-color .18s ease, color .18s ease, transform .16s var(--ease-out);
+  }
+  .posBtn:active { transform: scale(.96); }
+  .posBtn.sel { border-color: var(--accent); color: var(--text); }
+  .tabs {
+    display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;
+    margin-bottom: 4px; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tabBtn {
+    flex: none; padding: 9px 15px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); color: var(--muted); font-size: 13.5px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+    transition: border-color .18s ease, color .18s ease, background-color .18s ease, transform .16s var(--ease-out);
+  }
+  .tabBtn:active { transform: scale(.96); }
+  .tabBtn.sel { border-color: transparent; background: var(--grad); color: #fff; }
+  .tabPanel { display: none; }
+  .tabPanel.sel { display: block; }
+  .playBtn {
+    width: 34px; height: 34px; border-radius: 50%; flex: none; cursor: pointer;
+    background: var(--card-2); border: 1px solid var(--border); color: var(--text);
+    font-size: 12px; transition: transform .16s var(--ease-out), border-color .18s ease;
+  }
+  .playBtn:active { transform: scale(.92); }
+  .playBtn.playing { border-color: var(--accent); color: var(--accent); }
+  .playBtn:disabled { opacity: .35; cursor: not-allowed; }
+  #hookPresetGrid .preset { height: 52px; }
+  #hookPresetGrid .sample { font-size: 13px; }
+
+  /* ---- CTA / progress ---- */
+  .cta {
+    width: 100%; padding: 14px; border: 0; border-radius: 12px; cursor: pointer;
+    background: var(--grad); color: #fff; font-size: 15px; font-weight: 700;
+    letter-spacing: .01em; transition: transform .16s var(--ease-out), opacity .18s ease;
+  }
+  .cta:active { transform: scale(.97); }
+  .cta:disabled { opacity: .4; cursor: not-allowed; }
+  .steps { display: none; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .steps.on { display: flex; }
+  .progressRow { display: flex; align-items: center; gap: 10px; }
+  .progressTrack {
+    flex: 1; height: 8px; border-radius: 99px; background: var(--card-2);
+    overflow: hidden;
+  }
+  .progressFill {
+    height: 100%; width: 0%; border-radius: 99px; background: var(--grad);
+    transition: width .5s var(--ease-out);
+  }
+  .progressPct {
+    font-size: 13px; font-weight: 700; color: var(--text); width: 38px;
+    text-align: right; flex: none; font-variant-numeric: tabular-nums;
+  }
+  .progressLabel { color: var(--muted); font-size: 13.5px; text-align: center; }
+  .result { display: none; margin-top: 14px; }
+  .result.on { display: block; }
+  .result video { width: 100%; border-radius: 12px; border: 1px solid var(--border); }
+  .dl {
+    display: block; text-align: center; margin-top: 10px; padding: 11px; border-radius: 10px;
+    background: var(--card-2); color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600;
+    transition: transform .16s var(--ease-out);
+  }
+  .dl:active { transform: scale(.98); }
+  .err { display: none; margin-top: 12px; color: #ff8a8a; font-size: 13px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    section.card { animation-duration: .01s; }
+    .caption .w, .font-card, .cta, .sw, .drop { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🎬</div>
+    <div>
+      <h1>Studio Montage</h1>
+      <p>Coupes, zoom visage, sous-titres karaoké, audio nettoyé — en local</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div>
+      <section class="card">
+        <h2>Vidéo</h2>
+        <div class="drop" id="drop">
+          <strong>Dépose ta vidéo ici</strong>
+          <span>ou clique pour choisir un fichier (MP4/MOV)</span>
+          <input type="file" id="file" accept="video/*" hidden>
+        </div>
+        <div class="file-chip" id="chip"><span class="dot"></span><span id="chipTxt"></span></div>
+      </section>
+
+      <div class="tabs" id="tabs">
+        <button type="button" class="tabBtn sel" data-tab="hook">Hook</button>
+        <button type="button" class="tabBtn" data-tab="captions">Sous-titres</button>
+        <button type="button" class="tabBtn" data-tab="style">Style</button>
+        <button type="button" class="tabBtn" data-tab="montage">Montage</button>
+        <button type="button" class="tabBtn" data-tab="music">Musique</button>
+      </div>
+
+      <section class="card tabPanel sel" data-tab="hook">
+        <h2>Hook d'ouverture</h2>
+        <div class="row" style="padding-top:0">
+          <label>Hook automatique par IA<small>l'IA choisit l'accroche pendant le montage</small></label>
+          <div class="switch"><input type="checkbox" id="hookAuto"><span class="track"><span class="knob"></span></span></div>
+        </div>
+        <div id="hookManual">
+          <input type="text" id="hook" maxlength="80" placeholder="Phrase choc des 3 premières secondes (optionnel)"
+                 style="width:100%;background:var(--card-2);border:1px solid var(--border);border-radius:10px;
+                        padding:11px 14px;color:var(--text);font-size:14px;outline:none;margin-top:10px">
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+            <button class="cta" id="aiHooks" disabled style="width:auto;padding:9px 16px;font-size:13px">✨ Suggérer avec l'IA</button>
+            <span id="hookStatus" style="color:var(--muted);font-size:12.5px"></span>
+          </div>
+          <div id="hookChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+
+          <div class="row" style="border-top:1px solid var(--border);margin-top:12px">
+            <label>Style du hook<small>indépendant des sous-titres si désactivé</small></label>
+            <div class="switch"><input type="checkbox" id="hookSameStyle" checked><span class="track"><span class="knob"></span></span></div>
+          </div>
+          <div class="presets" id="hookPresetGrid" style="display:none;margin-top:4px"></div>
+          <div class="row">
+            <label>Taille du hook<small>domine le cadre par défaut, ajustable</small></label>
+            <div><input type="range" id="hookSize" min="50" max="160" value="100"> <span class="val" id="hookSizeVal">100%</span></div>
+          </div>
+          <div class="row">
+            <label>Emplacement</label>
+            <div id="hookPosGroup" style="display:flex;gap:6px">
+              <button type="button" class="posBtn sel" data-v="top">Haut</button>
+              <button type="button" class="posBtn" data-v="center">Centre</button>
+              <button type="button" class="posBtn" data-v="bottom">Bas</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card tabPanel" data-tab="captions">
+        <h2>Style des sous-titres</h2>
+        <div class="presets" id="presets"></div>
+        <details style="margin-top:14px">
+          <summary style="cursor:pointer;color:var(--muted);font-size:13px">Changer la police du style</summary>
+          <div class="fonts" id="fonts" style="margin-top:12px"></div>
+        </details>
+      </section>
+
+      <section class="card tabPanel" data-tab="style">
+        <h2>Style</h2>
+        <div class="row">
+          <label>Couleur du mot actif</label>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="row">
+          <label>Taille du texte</label>
+          <div><input type="range" id="size" min="70" max="140" value="100"> <span class="val" id="sizeVal">100%</span></div>
+        </div>
+        <div class="row">
+          <label>Position verticale<small>distance depuis le bas</small></label>
+          <div><input type="range" id="pos" min="10" max="45" value="30"> <span class="val" id="posVal">30%</span></div>
+        </div>
+        <div class="row">
+          <label>MAJUSCULES</label>
+          <div class="switch"><input type="checkbox" id="upper" checked><span class="track"><span class="knob"></span></span></div>
+        </div>
+      </section>
+
+      <section class="card tabPanel" data-tab="montage">
+        <h2>Montage</h2>
+        <div class="row">
+          <label>Couper les silences<small>compresse les pauses &gt; 0,4 s</small></label>
+          <div class="switch"><input type="checkbox" id="cuts" checked><span class="track"><span class="knob"></span></span></div>
+        </div>
+        <div class="row">
+          <label>Format vertical 9:16<small>recadrage automatique sur le visage</small></label>
+          <div class="switch"><input type="checkbox" id="vertical" checked><span class="track"><span class="knob"></span></span></div>
+        </div>
+        <div class="row">
+          <label>Suivi du visage<small>recadrage et zoom centrés sur le visage détecté</small></label>
+          <div class="switch"><input type="checkbox" id="ftrack" checked><span class="track"><span class="knob"></span></span></div>
+        </div>
+        <div class="row">
+          <label>Zoom dynamique<small>zoom fluide, une phrase sur deux</small></label>
+          <div><input type="range" id="zoom" min="0" max="16" value="10"> <span class="val" id="zoomVal">10%</span></div>
+        </div>
+        <div class="row">
+          <label>Nettoyage audio<small>RNNoise + normalisation loudness</small></label>
+          <div class="switch"><input type="checkbox" id="aclean" checked><span class="track"><span class="knob"></span></span></div>
+        </div>
+        <div class="row">
+          <label>Emojis réaction (IA)<small>l'IA place quelques emojis sur les moments forts</small></label>
+          <div class="switch"><input type="checkbox" id="emojis"><span class="track"><span class="knob"></span></span></div>
+        </div>
+      </section>
+
+      <section class="card tabPanel" data-tab="music">
+        <h2>Musique de fond</h2>
+        <div class="row" style="padding-top:0">
+          <label>Piste<small>bibliothèque MIT, usage commercial libre</small></label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button type="button" class="playBtn" id="musicPlay" disabled aria-label="Écouter">▶</button>
+            <select id="musicSelect" style="background:var(--card-2);border:1px solid var(--border);
+                    border-radius:9px;color:var(--text);font-size:13.5px;padding:8px 10px;max-width:180px">
+              <option value="none">Aucune musique</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" id="musicVolRow" style="display:none">
+          <label>Volume de la musique<small>reste sous la voix</small></label>
+          <div><input type="range" id="musicVol" min="0" max="100" value="30"> <span class="val" id="musicVolVal">30%</span></div>
+        </div>
+        <audio id="musicPreview" style="display:none"></audio>
+      </section>
+    </div>
+
+    <div class="preview-col">
+      <div class="phone" id="phone">
+        <video id="pv" muted loop playsinline></video>
+        <div class="caption hookcap" id="hookCap"></div>
+        <div class="caption" id="cap"></div>
+      </div>
+      <p class="hint" id="previewHint">Aperçu en direct — la police affichée est celle incrustée</p>
+
+      <div class="resultRow" id="resultRow">
+        <div>
+          <div class="phone"><video id="out" controls></video></div>
+          <p class="resultCaption">Vidéo générée</p>
+        </div>
+        <div id="thumbCol" style="display:none">
+          <div class="phone"><img id="thumbImg"></div>
+          <p class="resultCaption">Miniature</p>
+        </div>
+      </div>
+
+      <br>
+      <button class="cta" id="go" disabled>Lancer le montage</button>
+      <div class="steps" id="steps">
+        <div class="progressRow">
+          <div class="progressTrack"><div class="progressFill" id="progressFill"></div></div>
+          <span class="progressPct" id="progressPct">0%</span>
+        </div>
+        <p class="progressLabel" id="progressLabel">Préparation…</p>
+      </div>
+      <div class="result" id="result">
+        <p id="hookDone" style="display:none;color:var(--muted);font-size:12.5px;margin-top:8px;text-align:center"></p>
+        <a class="dl" id="dl" href="#" download>Télécharger la vidéo</a>
+        <div id="thumbBox" style="display:none;margin-top:14px">
+          <div style="display:flex;gap:8px">
+            <a class="dl" id="thumbDl" href="#" download style="flex:1">Télécharger la miniature</a>
+            <button type="button" class="dl" id="thumbRegen" style="flex:1;cursor:pointer;border:1px solid var(--border);background:var(--card-2)">🔄 Régénérer</button>
+          </div>
+          <p id="thumbStatus" style="display:none;text-align:center;color:var(--muted);font-size:12.5px;margin-top:8px"></p>
+        </div>
+      </div>
+      <p class="err" id="err"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const FONTS = [
+  { ass: "Arial Black",    css: '"Arial Black", sans-serif',              w: 900 },
+  { ass: "Impact",         css: 'Impact, sans-serif',                     w: 400 },
+  { ass: "Segoe UI Black", css: '"Segoe UI Black", "Segoe UI", sans-serif', w: 900 },
+  { ass: "Bahnschrift",    css: 'Bahnschrift, sans-serif',                w: 700 },
+  { ass: "Trebuchet MS",   css: '"Trebuchet MS", sans-serif',             w: 700 },
+  { ass: "Verdana",        css: 'Verdana, sans-serif',                    w: 700 },
+  { ass: "Georgia",        css: 'Georgia, serif',                         w: 700 },
+];
+const COLORS = ["#3AFFA3", "#FFD84D", "#FF5C8A", "#00D1FF", "#B18CFF", "#FF8A00"];
+/* miroir de PRESETS côté pipeline.py */
+const PRESETS = [
+  { key: "classic", name: "Classic", font: "Arial Black",    primary: "white", box: null,    glow: null,    shad: 0, italic: 0, active: "hl" },
+  { key: "hormozi", name: "Hormozi", font: "Segoe UI Black", primary: "white", box: null,    glow: "black", shad: 0, italic: 0, active: "hl" },
+  { key: "neon",    name: "Néon",    font: "Segoe UI Black", primary: "white", box: null,    glow: "hl",    shad: 0, italic: 0, active: "white" },
+  { key: "leon",    name: "Leon",    font: "Arial Black",    primary: "white", box: "hl",    glow: null,    shad: 0, italic: 0, active: "scale" },
+  { key: "molly",   name: "Molly",   font: "Verdana",        primary: "black", box: "white", glow: null,    shad: 0, italic: 0, active: "hl" },
+  { key: "caleb",   name: "Caleb",   font: "Arial Black",    primary: "white", box: "black", glow: null,    shad: 0, italic: 0, active: "hl" },
+  { key: "william", name: "William", font: "Arial Black",    primary: "hl",    box: null,    glow: null,    shad: 0, italic: 0, active: "white" },
+  { key: "beast",   name: "Beast",   font: "Impact",         primary: "white", box: null,    glow: null,    shad: 1, italic: 0, active: "hl" },
+  { key: "duo",     name: "Duo",     font: "Trebuchet MS",   primary: "white", box: null,    glow: null,    shad: 0, italic: 0, active: "pop" },
+  { key: "noah",    name: "Noah",    font: "Segoe UI Black", primary: "white", box: null,    glow: null,    shad: 0, italic: 1, active: "hl" },
+  { key: "brandin", name: "Brandin", font: "Georgia",        primary: "white", box: null,    glow: null,    shad: 0, italic: 0, active: "hl" },
+  { key: "bahn",    name: "Bahn",    font: "Bahnschrift",    primary: "white", box: null,    glow: null,    shad: 1, italic: 0, active: "hl" },
+];
+const state = { font: FONTS[0], preset: PRESETS[0], color: COLORS[0], file: null,
+                 hookPreset: null, hookPosition: "top" };
+
+const OUTLINE = "-2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000, -1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000";
+function tok(t, hl) { return t === "hl" ? hl : t === "white" ? "#fff" : "#000"; }
+function presetCss(p, hl) {
+  const c = { color: tok(p.primary, hl), textShadow: "none", fontStyle: p.italic ? "italic" : "normal" };
+  if (p.glow) { const g = tok(p.glow, hl); c.textShadow = `0 0 6px ${g}, 0 0 14px ${g}, 0 0 26px ${g}`; }
+  else if (p.shad) c.textShadow = OUTLINE + ", 4px 4px 0 #000";
+  else if (!p.box) c.textShadow = OUTLINE;
+  return c;
+}
+
+/* ---- styles (presets) ---- */
+const presetsEl = document.getElementById("presets");
+PRESETS.forEach((p, i) => {
+  const d = document.createElement("div");
+  d.className = "preset" + (i === 0 ? " sel" : "");
+  d.dataset.key = p.key;
+  d.innerHTML = `<span class="tag">${p.name}</span><span class="sample"></span>`;
+  d.onclick = () => {
+    document.querySelectorAll(".preset").forEach(x => x.classList.remove("sel"));
+    d.classList.add("sel");
+    state.preset = p;
+    state.font = FONTS.find(f => f.ass === p.font) || FONTS[0];
+    document.querySelectorAll(".font-card").forEach(x =>
+      x.classList.toggle("sel", x.dataset.ass === state.font.ass));
+    renderPresetSamples(); renderCaption();
+  };
+  presetsEl.appendChild(d);
+});
+function renderPresetSamples() {
+  document.querySelectorAll(".preset").forEach(el => {
+    const p = PRESETS.find(x => x.key === el.dataset.key);
+    const f = FONTS.find(x => x.ass === p.font) || FONTS[0];
+    const s = el.querySelector(".sample");
+    const css = presetCss(p, state.color);
+    s.style.fontFamily = f.css; s.style.fontWeight = f.w;
+    s.style.fontStyle = css.fontStyle; s.style.textShadow = css.textShadow;
+    s.style.color = css.color;
+    if (p.box) {
+      s.style.background = tok(p.box, state.color);
+      s.style.padding = "3px 9px"; s.style.borderRadius = "6px";
+    } else { s.style.background = "none"; s.style.padding = "0"; }
+    s.textContent = p.name.toUpperCase();
+  });
+}
+
+/* ---- polices (override) ---- */
+const fontsEl = document.getElementById("fonts");
+FONTS.forEach((f, i) => {
+  const d = document.createElement("div");
+  d.className = "font-card" + (i === 0 ? " sel" : "");
+  d.dataset.ass = f.ass;
+  d.innerHTML = `<div class="name">${f.ass}</div>
+    <div class="demo" style="font-family:${f.css};font-weight:${f.w}">PRÊT À <em>TOUT</em> CHANGER</div>`;
+  d.onclick = () => {
+    document.querySelectorAll(".font-card").forEach(x => x.classList.remove("sel"));
+    d.classList.add("sel"); state.font = f; renderCaption();
+  };
+  fontsEl.appendChild(d);
+});
+
+/* ---- couleurs ---- */
+const swEl = document.getElementById("swatches");
+COLORS.forEach((c, i) => {
+  const s = document.createElement("div");
+  s.className = "sw" + (i === 0 ? " sel" : "");
+  s.style.background = c;
+  s.onclick = () => {
+    document.querySelectorAll(".sw").forEach(x => x.classList.remove("sel"));
+    s.classList.add("sel"); state.color = c;
+    document.documentElement.style.setProperty("--accent", c);
+    renderPresetSamples(); renderCaption();
+  };
+  swEl.appendChild(s);
+});
+
+/* ---- aperçu caption karaoké ---- */
+const cap = document.getElementById("cap");
+const WORDS = ["PRÊT", "À", "TOUT", "CHANGER ?"];
+let active = 0;
+function renderCaption() {
+  const up = document.getElementById("upper").checked;
+  const p = state.preset, hl = state.color;
+  const css = presetCss(p, hl);
+  cap.style.fontFamily = state.font.css;
+  cap.style.fontWeight = state.font.w;
+  cap.style.fontStyle = css.fontStyle;
+  cap.style.fontSize = (document.getElementById("size").value / 100 * 17) + "px";
+  cap.style.bottom = document.getElementById("pos").value + "%";
+  cap.style.textShadow = css.textShadow;
+  cap.innerHTML = WORDS.map((w, i) => {
+    const on = i === active;
+    let st = `color:${css.color}`;
+    if (p.box) st += `;background:${tok(p.box, hl)};padding:1px 6px;border-radius:5px`;
+    if (on) {
+      if (p.active === "hl" || p.active === "pop") st = st.replace(/color:[^;]+/, `color:${hl}`);
+      if (p.active === "white") st = st.replace(/color:[^;]+/, "color:#fff");
+      if (p.active === "scale" || p.active === "pop") st += ";transform:scale(1.1)";
+    }
+    return `<span class="w${on && (p.active === "hl" || p.active === "white") ? " on" : ""}" style="${st}">${up ? w : w.toLowerCase()}</span>`;
+  }).join(" ");
+}
+renderPresetSamples();
+setInterval(() => { active = (active + 1) % WORDS.length; renderCaption(); }, 550);
+
+/* ---- style + emplacement du hook (indépendants des sous-titres) ---- */
+const hookPresetGrid = document.getElementById("hookPresetGrid");
+const hookSameStyle = document.getElementById("hookSameStyle");
+PRESETS.forEach((p, i) => {
+  const d = document.createElement("div");
+  d.className = "preset" + (i === 0 ? " sel" : "");
+  d.dataset.key = p.key;
+  d.innerHTML = `<span class="tag">${p.name}</span><span class="sample"></span>`;
+  d.onclick = () => {
+    hookPresetGrid.querySelectorAll(".preset").forEach(x => x.classList.remove("sel"));
+    d.classList.add("sel");
+    state.hookPreset = p;
+    renderHook();
+  };
+  hookPresetGrid.appendChild(d);
+});
+function renderHookPresetSamples() {
+  hookPresetGrid.querySelectorAll(".preset").forEach(el => {
+    const p = PRESETS.find(x => x.key === el.dataset.key);
+    const f = FONTS.find(x => x.ass === p.font) || FONTS[0];
+    const s = el.querySelector(".sample");
+    const css = presetCss(p, state.color);
+    s.style.fontFamily = f.css; s.style.fontWeight = f.w;
+    s.style.fontStyle = css.fontStyle; s.style.textShadow = css.textShadow;
+    s.style.color = css.color;
+    if (p.box) { s.style.background = tok(p.box, state.color); s.style.padding = "3px 9px"; s.style.borderRadius = "6px"; }
+    else { s.style.background = "none"; s.style.padding = "0"; }
+    s.textContent = p.name.toUpperCase();
+  });
+}
+renderHookPresetSamples();
+hookSameStyle.addEventListener("change", () => {
+  hookPresetGrid.style.display = hookSameStyle.checked ? "none" : "grid";
+  if (hookSameStyle.checked) state.hookPreset = null;
+  else if (!state.hookPreset) { state.hookPreset = PRESETS[0]; hookPresetGrid.querySelector(".preset").classList.add("sel"); }
+  renderHook();
+});
+
+document.querySelectorAll("#hookPosGroup .posBtn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll("#hookPosGroup .posBtn").forEach(b => b.classList.remove("sel"));
+    btn.classList.add("sel");
+    state.hookPosition = btn.dataset.v;
+    renderHook();
+  };
+});
+
+/* ---- hook (texte + aperçu) ---- */
+const hookIn = document.getElementById("hook"), hookCap = document.getElementById("hookCap");
+const HOOK_POS_CSS = {
+  top:    { top: "9%",  bottom: "auto", transform: "none" },
+  center: { top: "50%", bottom: "auto", transform: "translateY(-50%)" },
+  bottom: { top: "auto", bottom: "16%", transform: "none" },
+};
+const HOOK_PLACEHOLDER = "TON ACCROCHE ICI";
+function renderHook() {
+  const up = document.getElementById("upper").checked;
+  const t = hookIn.value.trim() || HOOK_PLACEHOLDER;
+  const isPlaceholder = !hookIn.value.trim();
+  const p = state.hookPreset || state.preset;
+  const f = FONTS.find(x => x.ass === p.font) || FONTS[0];
+  const css = presetCss(p, state.color);
+  const hookScale = document.getElementById("hookSize").value / 100;
+  hookCap.textContent = up ? t.toUpperCase() : t;
+  hookCap.style.opacity = isPlaceholder ? "0.45" : "1";
+  hookCap.style.fontSize = (26 * hookScale) + "px";
+  hookCap.style.fontFamily = f.css;
+  hookCap.style.fontWeight = f.w;
+  hookCap.style.fontStyle = css.fontStyle;
+  hookCap.style.color = css.color;
+  hookCap.style.textShadow = css.textShadow;
+  if (p.box) {
+    hookCap.style.background = tok(p.box, state.color);
+    hookCap.style.padding = "4px 12px"; hookCap.style.borderRadius = "8px";
+    hookCap.style.display = "inline-block";
+    hookCap.style.left = "50%"; hookCap.style.right = "auto";
+    hookCap.style.transform = "translateX(-50%)";
+  } else {
+    hookCap.style.background = "none"; hookCap.style.padding = "0"; hookCap.style.borderRadius = "0";
+    hookCap.style.display = "block";
+    hookCap.style.left = "8%"; hookCap.style.right = "8%";
+  }
+  const pos = HOOK_POS_CSS[state.hookPosition];
+  hookCap.style.top = pos.top; hookCap.style.bottom = pos.bottom;
+  if (!p.box) hookCap.style.transform = pos.transform;
+}
+hookIn.addEventListener("input", renderHook);
+document.getElementById("hookSize").addEventListener("input", e => {
+  document.getElementById("hookSizeVal").textContent = e.target.value + "%";
+  renderHook();
+});
+renderHook();
+
+const hookAuto = document.getElementById("hookAuto"), hookManual = document.getElementById("hookManual");
+function syncHookMode() {
+  hookManual.style.display = hookAuto.checked ? "none" : "block";
+  if (hookAuto.checked) { hookIn.value = ""; renderHook(); }
+}
+hookAuto.addEventListener("change", syncHookMode);
+
+document.getElementById("aiHooks").onclick = async () => {
+  const btn = document.getElementById("aiHooks"), st = document.getElementById("hookStatus");
+  btn.disabled = true; st.textContent = "Transcription…";
+  const fd = new FormData(); fd.append("video", state.file);
+  try {
+    const { job_id } = await (await fetch("/suggest_hooks", { method: "POST", body: fd })).json();
+    const poll = setInterval(async () => {
+      const j = await (await fetch("/jobs/" + job_id)).json();
+      if (j.status === "processing") { st.textContent = friendlyStep(j.step); return; }
+      clearInterval(poll); btn.disabled = false;
+      if (j.status === "done") {
+        st.textContent = "Choisis ou édite :";
+        const chips = document.getElementById("hookChips");
+        chips.innerHTML = "";
+        j.hooks.forEach((h, i) => {
+          const c = document.createElement("div");
+          c.className = "chip"; c.textContent = h;
+          c.style.animationDelay = (i * 60) + "ms";
+          c.onclick = () => { hookIn.value = h; renderHook(); };
+          chips.appendChild(c);
+        });
+      } else { st.textContent = "Erreur : " + (j.error || "inconnue"); }
+    }, 1500);
+  } catch { btn.disabled = false; st.textContent = "Serveur injoignable"; }
+};
+["size", "pos", "upper"].forEach(id => document.getElementById(id).addEventListener("input", () => {
+  document.getElementById("sizeVal").textContent = document.getElementById("size").value + "%";
+  document.getElementById("posVal").textContent = document.getElementById("pos").value + "%";
+  renderCaption();
+}));
+document.getElementById("zoom").addEventListener("input", e =>
+  document.getElementById("zoomVal").textContent = e.target.value + "%");
+renderCaption();
+
+/* ---- musique de fond ---- */
+const musicSelect = document.getElementById("musicSelect"), musicPlay = document.getElementById("musicPlay");
+const musicPreview = document.getElementById("musicPreview"), musicVolRow = document.getElementById("musicVolRow");
+let musicTracks = [];
+fetch("/music").then(r => r.json()).then(data => {
+  musicTracks = data.tracks;
+  const byCat = {};
+  data.categories.forEach(c => byCat[c.id] = { label: c.label, tracks: [] });
+  data.tracks.forEach(t => { if (t.category) byCat[t.category].tracks.push(t); });
+  Object.values(byCat).forEach(cat => {
+    if (!cat.tracks.length) return;
+    const og = document.createElement("optgroup"); og.label = cat.label;
+    cat.tracks.forEach(t => {
+      const opt = document.createElement("option"); opt.value = t.id; opt.textContent = t.label;
+      og.appendChild(opt);
+    });
+    musicSelect.appendChild(og);
+  });
+}).catch(() => {});
+
+musicSelect.addEventListener("change", () => {
+  const id = musicSelect.value;
+  musicPreview.pause(); musicPlay.classList.remove("playing"); musicPlay.textContent = "▶";
+  musicVolRow.style.display = id === "none" ? "none" : "flex";
+  musicPlay.disabled = id === "none";
+  if (id !== "none") {
+    const t = musicTracks.find(x => x.id === id);
+    musicPreview.src = t ? t.url : "";
+  }
+});
+musicPlay.onclick = () => {
+  if (musicPreview.paused) { musicPreview.play(); musicPlay.classList.add("playing"); musicPlay.textContent = "❚❚"; }
+  else { musicPreview.pause(); musicPlay.classList.remove("playing"); musicPlay.textContent = "▶"; }
+};
+musicPreview.addEventListener("ended", () => { musicPlay.classList.remove("playing"); musicPlay.textContent = "▶"; });
+document.getElementById("musicVol").addEventListener("input", e => {
+  document.getElementById("musicVolVal").textContent = e.target.value + "%";
+});
+
+/* ---- onglets (Hook / Sous-titres / Style / Montage / Musique) ---- */
+document.querySelectorAll("#tabs .tabBtn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll("#tabs .tabBtn").forEach(b => b.classList.remove("sel"));
+    document.querySelectorAll(".tabPanel").forEach(p => p.classList.remove("sel"));
+    btn.classList.add("sel");
+    document.querySelector(`.tabPanel[data-tab="${btn.dataset.tab}"]`).classList.add("sel");
+  };
+});
+
+/* ---- upload ---- */
+const drop = document.getElementById("drop"), file = document.getElementById("file");
+drop.onclick = () => file.click();
+["dragover", "dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault();
+  drop.classList.toggle("over", ev === "dragover");
+  if (ev === "drop" && e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+}));
+file.onchange = () => file.files[0] && setFile(file.files[0]);
+function setFile(f) {
+  state.file = f;
+  document.getElementById("chip").classList.add("on");
+  document.getElementById("chipTxt").textContent = `${f.name} — ${(f.size / 1e6).toFixed(1)} Mo`;
+  const pv = document.getElementById("pv");
+  pv.src = URL.createObjectURL(f); pv.play().catch(() => {});
+  document.getElementById("go").disabled = false;
+  document.getElementById("aiHooks").disabled = false;
+}
+
+/* ---- lancement + suivi ---- */
+// libellés génériques : jamais le nom des outils/modèles utilisés en coulisses
+const STEP_LABELS = {
+  "file d'attente": "Préparation…", transcription: "Écoute de la vidéo…",
+  correction: "Vérification du texte…", hook: "Rédaction de l'accroche…",
+  "génération": "Rédaction de l'accroche…", emojis: "Repérage des moments forts…",
+  analyse: "Analyse de l'image…", musique: "Préparation de la musique…",
+  rendu: "Montage final…", miniature: "Création de la miniature…",
+  stockage: "Sauvegarde…", fini: "Finalisation…",
+};
+function friendlyStep(s) { return STEP_LABELS[s] || "Traitement…"; }
+
+let currentJobId = null;
+const go = document.getElementById("go"), steps = document.getElementById("steps");
+go.onclick = async () => {
+  go.disabled = true; go.textContent = "Montage en cours…";
+  steps.classList.add("on");
+  document.getElementById("progressFill").style.width = "0%";
+  document.getElementById("progressPct").textContent = "0%";
+  document.getElementById("progressLabel").textContent = "Préparation…";
+  document.getElementById("result").classList.remove("on");
+  document.getElementById("resultRow").classList.remove("on");
+  document.getElementById("phone").style.display = "";
+  document.getElementById("previewHint").style.display = "";
+  document.getElementById("err").style.display = "none";
+  const fd = new FormData();
+  fd.append("video", state.file);
+  fd.append("options", JSON.stringify({
+    preset: state.preset.key,
+    hook: document.getElementById("hook").value.trim(),
+    hook_auto: hookAuto.checked,
+    hook_preset: hookSameStyle.checked ? null : (state.hookPreset || PRESETS[0]).key,
+    hook_position: state.hookPosition,
+    hook_fontscale: document.getElementById("hookSize").value / 100,
+    music_id: document.getElementById("musicSelect").value,
+    music_volume: +document.getElementById("musicVol").value,
+    emojis: document.getElementById("emojis").checked,
+    font: state.font.ass,
+    hl_color: state.color,
+    fontscale: document.getElementById("size").value / 100,
+    position: document.getElementById("pos").value / 100,
+    uppercase: document.getElementById("upper").checked,
+    cuts: document.getElementById("cuts").checked,
+    vertical: document.getElementById("vertical").checked,
+    face_track: document.getElementById("ftrack").checked,
+    zoom: +document.getElementById("zoom").value > 0,
+    zoom_max: +document.getElementById("zoom").value / 100,
+    audio_clean: document.getElementById("aclean").checked,
+  }));
+  try {
+    const { job_id } = await (await fetch("/process", { method: "POST", body: fd })).json();
+    currentJobId = job_id;
+    const order = ["transcription", "correction", "hook", "emojis", "analyse", "musique", "rendu", "miniature", "stockage"];
+    const fill = document.getElementById("progressFill"), pct = document.getElementById("progressPct");
+    const label = document.getElementById("progressLabel");
+    const poll = setInterval(async () => {
+      const j = await (await fetch("/jobs/" + job_id)).json();
+      const i = order.indexOf(j.step);
+      const p = j.status === "done" ? 100 : Math.round(((i < 0 ? 0 : i + 0.5) / order.length) * 100);
+      fill.style.width = p + "%"; pct.textContent = p + "%";
+      label.textContent = friendlyStep(j.step);
+      if (j.status === "done") {
+        clearInterval(poll);
+        go.textContent = "Relancer le montage"; go.disabled = false;
+        const url = "/result/" + job_id;
+        document.getElementById("out").src = url;
+        // ?download=1 : force le téléchargement même une fois redirigé vers
+        // Cloudinary (l'attribut HTML `download` seul est ignoré par les
+        // navigateurs sur un lien cross-origin)
+        document.getElementById("dl").href = url + "?download=1";
+        document.getElementById("result").classList.add("on");
+        // l'aperçu import remplacé par la vidéo générée (miniature à côté)
+        document.getElementById("phone").style.display = "none";
+        document.getElementById("previewHint").style.display = "none";
+        document.getElementById("resultRow").classList.add("on");
+        const hd = document.getElementById("hookDone");
+        if (j.hook) { hd.textContent = "Hook utilisé : « " + j.hook + " »"; hd.style.display = "block"; }
+        else hd.style.display = "none";
+        const tb = document.getElementById("thumbBox"), tc = document.getElementById("thumbCol");
+        if (j.thumbnail) {
+          const turl = "/thumbnail/" + job_id + "?t=" + Date.now();
+          document.getElementById("thumbImg").src = turl;
+          document.getElementById("thumbDl").href = "/thumbnail/" + job_id + "?download=1";
+          tb.style.display = "block"; tc.style.display = "block";
+        } else { tb.style.display = "none"; tc.style.display = "none"; }
+      } else if (j.status === "error") {
+        clearInterval(poll);
+        go.textContent = "Lancer le montage"; go.disabled = false;
+        const e = document.getElementById("err");
+        e.textContent = "Erreur : " + (j.error || "inconnue"); e.style.display = "block";
+      }
+    }, 1500);
+  } catch (e) {
+    go.textContent = "Lancer le montage"; go.disabled = false;
+    const el = document.getElementById("err");
+    el.textContent = "Serveur injoignable — lance « python app.py » dans _design/submagic-poc";
+    el.style.display = "block";
+  }
+};
+
+/* ---- régénération miniature seule ---- */
+document.getElementById("thumbRegen").onclick = async () => {
+  if (!currentJobId) return;
+  const btn = document.getElementById("thumbRegen"), st = document.getElementById("thumbStatus");
+  btn.disabled = true; btn.textContent = "…"; st.style.display = "block"; st.textContent = "Nouvelle miniature…";
+  const fd = new FormData();
+  fd.append("options", JSON.stringify({
+    hook: document.getElementById("hook").value.trim(),
+    hook_auto: hookAuto.checked,
+    hook_preset: hookSameStyle.checked ? null : (state.hookPreset || PRESETS[0]).key,
+    hook_position: state.hookPosition,
+    hook_fontscale: document.getElementById("hookSize").value / 100,
+  }));
+  try {
+    const { job_id } = await (await fetch("/regenerate_thumbnail/" + currentJobId,
+      { method: "POST", body: fd })).json();
+    const poll = setInterval(async () => {
+      const j = await (await fetch("/jobs/" + job_id)).json();
+      if (j.status === "processing") { st.textContent = friendlyStep(j.step); return; }
+      clearInterval(poll);
+      btn.disabled = false; btn.textContent = "🔄 Régénérer";
+      if (j.status === "done") {
+        st.textContent = "Nouvelle miniature générée.";
+        const turl = "/thumbnail/" + job_id + "?t=" + Date.now();
+        document.getElementById("thumbImg").src = turl;
+        document.getElementById("thumbDl").href = "/thumbnail/" + job_id + "?download=1";
+        const hd = document.getElementById("hookDone");
+        if (j.hook) { hd.textContent = "Hook utilisé : « " + j.hook + " »"; hd.style.display = "block"; }
+      } else {
+        st.textContent = "Erreur : " + (j.error || "inconnue");
+      }
+    }, 1500);
+  } catch {
+    btn.disabled = false; btn.textContent = "🔄 Régénérer";
+    st.textContent = "Serveur injoignable";
+  }
+};
+</script>
+</body>
+</html>
