@@ -69,12 +69,32 @@ def bibliotheque(telegram_id: str = None) -> tuple:
     return cats, perso + MUSIC_LIBRARY
 
 
-def url_de(music_id: str | None, telegram_id: str = None) -> str | None:
-    """URL d'une piste, qu'elle vienne de la bibliothèque partagée ou du client."""
+def pour_rendu(url: str | None) -> str | None:
+    """Version allégée d'une piste pour le rendu Remotion.
+
+    L'audio est ré-encodé à la volée par Cloudinary en 128 kbps : ~35 % de moins à
+    télécharger avant chaque rendu, pour une musique de fond mixée à 30 % derrière
+    les bruitages — la différence est inaudible. Le fichier d'origine n'est pas
+    touché (c'est une transformation d'URL), et la pré-écoute reste en pleine qualité.
+    `q_auto` ne sert à rien ici : testé, aucun gain sur de l'audio.
+    """
+    if not url or "res.cloudinary.com" not in url or "/upload/" not in url:
+        return url
+    base, _, fin = url.partition("/upload/")
+    if fin.startswith("ac_"):        # déjà encodée
+        return url
+    if fin.startswith("q_auto/"):    # q_auto n'apporte rien sur l'audio : on le remplace
+        fin = fin[len("q_auto/"):]
+    return f"{base}/upload/ac_mp3,br_128k/{fin}"
+
+
+def url_de(music_id: str | None, telegram_id: str = None, rendu: bool = False) -> str | None:
+    """URL d'une piste, qu'elle vienne de la bibliothèque partagée ou du client.
+    `rendu=True` : version allégée destinée au moteur de rendu."""
     u = musique_url(music_id)
-    if u or not (music_id and telegram_id):
-        return u
-    return next((m["url"] for m in musiques_du_compte(telegram_id) if m["id"] == music_id), None)
+    if not u and music_id and telegram_id:
+        u = next((m["url"] for m in musiques_du_compte(telegram_id) if m["id"] == music_id), None)
+    return pour_rendu(u) if rendu else u
 
 
 def piste(music_id: str | None) -> dict | None:

@@ -651,7 +651,7 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
         "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
         "style": st,
-        "musique": music_library.url_de(scenario["musique"], telegram_id),
+        "musique": music_library.url_de(scenario["musique"], telegram_id, rendu=True),
     }
     try:
         mp4 = _rendre_mp4(props, composition="ReelSequence",
@@ -753,7 +753,7 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
         "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
         "style": st,
-        "musique": music_library.url_de(scenario["musique"], telegram_id),
+        "musique": music_library.url_de(scenario["musique"], telegram_id, rendu=True),
     }
     try:
         mp4 = _rendre_mp4(props, composition="ReelSequence",
@@ -820,7 +820,7 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
             "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
             "segments": [{k: v for k, v in s.items() if k != "image_id"} for s in scenario["segments"]],
             "style": st,
-            "musique": music_library.url_de(scenario["musique"], telegram_id),
+            "musique": music_library.url_de(scenario["musique"], telegram_id, rendu=True),
         }
     elif template == "affiche":
         script = _script_affiche(texte, u)
