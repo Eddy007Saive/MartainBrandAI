@@ -139,7 +139,7 @@ export default function Register() {
               type="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="votre@email.com"
+              placeholder={t('app.emailPh')}
               data-testid="register-email"
               className={`bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 ${errors.email ? 'border-red-500' : ''}`}
             />

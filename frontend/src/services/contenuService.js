@@ -41,6 +41,7 @@ export const contenuService = {
     form.append('file', file);
     return api.post('/reels/banque', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 }).then(r => r.data);
   },
+  reelBanqueSupprimer: (assetId) => api.delete(`/reels/banque/${assetId}`).then(r => r.data),
   regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }, { timeout: 300000 }).then(r => r.data),
   creerReel: (extra = {}) => api.post('/reels/creer', extra, { timeout: 300000 }).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data),   // {templates, musiques, categories}

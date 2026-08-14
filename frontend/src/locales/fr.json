@@ -75,7 +75,8 @@
     "style": "Style & Couleurs",
     "avatar": "Avatar vidéo",
     "soon": "Bientôt",
-    "support": "Contacter le support"
+    "support": "Contacter le support",
+    "banque": "Banque d'images"
   },
   "accueil": {
     "greeting": "Bonjour, {{name}} 👋",
@@ -795,6 +796,17 @@
       "deposerVideo": "Veuillez déposer un fichier vidéo",
       "cliquerChanger": "Cliquer pour changer",
       "ajouterVideo": "Veuillez ajouter la vidéo d'entraînement"
+    },
+    "banque": {
+      "intro": "Les visuels de ta marque, réutilisables dans tous tes reels. Chaque image est décrite automatiquement par l'IA pour qu'elle sache quand l'employer.",
+      "ajouter": "Ajouter des images",
+      "envoi": "Envoi…",
+      "vide": "Ta banque est vide. Ajoute des visuels : ils seront proposés à chaque montage de reel.",
+      "supprimer": "Retirer de la banque",
+      "compteur": "{{n}} image(s) dans ta banque",
+      "ajoutee": "{{n}} image(s) ajoutée(s)",
+      "echec": "Échec de l'ajout.",
+      "echecSuppr": "Échec de la suppression."
     }
   },
   "perf": {
@@ -2104,5 +2116,12 @@
       "tabsPh": "Colle ici 1 à 3 de tes meilleurs posts {{reseau}}. Sépare-les par une ligne ---",
       "footer": "Postorico · Questionnaire d'onboarding confidentiel"
     }
+  },
+  "app": {
+    "tagline": "Studio de contenu IA",
+    "appTitre": "Installe l'app mobile",
+    "appSous": "Notifications push + accès rapide depuis ton téléphone.",
+    "appTelecharger": "Télécharger",
+    "emailPh": "votre@email.com"
   }
 }

@@ -126,12 +126,13 @@ function NavItem({ item, onClick }) {
 }
 
 function Brand() {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2.5">
       <img src="/logo.png" alt="Postorico" className="w-9 h-9 object-contain flex-shrink-0" />
       <div className="leading-tight">
         <p className="text-sm font-bold text-white font-sora">Postorico</p>
-        <p className="text-[11px] text-slate-500 font-inter">Studio de contenu IA</p>
+        <p className="text-[11px] text-slate-500 font-inter">{t('app.tagline')}</p>
       </div>
     </div>
   );
@@ -352,12 +353,12 @@ function DashboardContent() {
             <div className="mb-5 flex items-center gap-3 p-3 rounded-xl border border-[#3AFFA3]/25 bg-[#3AFFA3]/[0.06]">
               <Download className="w-5 h-5 text-[#3AFFA3] shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white font-inter">Installe l'app mobile</p>
-                <p className="text-xs text-slate-400 font-inter">Notifications push + accès rapide depuis ton téléphone.</p>
+                <p className="text-sm font-medium text-white font-inter">{t('app.appTitre')}</p>
+                <p className="text-xs text-slate-400 font-inter">{t('app.appSous')}</p>
               </div>
               <a href={APK_URL} onClick={dismissDl}
                 className="shrink-0 px-3 py-2 rounded-lg bg-[#3AFFA3]/15 text-[#3AFFA3] text-[13px] font-semibold hover:bg-[#3AFFA3]/25 transition-colors">
-                Télécharger
+                {t('app.appTelecharger')}
               </a>
               <button onClick={dismissDl} aria-label="Fermer" className="shrink-0 text-slate-500 hover:text-white">
                 <X className="w-4 h-4" />

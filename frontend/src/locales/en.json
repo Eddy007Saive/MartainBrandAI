@@ -75,7 +75,8 @@
     "style": "Style & Colors",
     "avatar": "Video avatar",
     "soon": "Soon",
-    "support": "Contact support"
+    "support": "Contact support",
+    "banque": "Image bank"
   },
   "accueil": {
     "greeting": "Hello, {{name}} 👋",
@@ -795,6 +796,17 @@
       "deposerVideo": "Please drop a video file",
       "cliquerChanger": "Click to change",
       "ajouterVideo": "Please add the training video"
+    },
+    "banque": {
+      "intro": "Your brand visuals, reusable across all your reels. Each image is described automatically by the AI so it knows when to use it.",
+      "ajouter": "Add images",
+      "envoi": "Uploading…",
+      "vide": "Your bank is empty. Add visuals — they'll be offered every time you build a reel.",
+      "supprimer": "Remove from bank",
+      "compteur": "{{n}} image(s) in your bank",
+      "ajoutee": "{{n}} image(s) added",
+      "echec": "Upload failed.",
+      "echecSuppr": "Could not delete."
     }
   },
   "perf": {
@@ -2104,5 +2116,12 @@
       "tabsPh": "Paste 1 to 3 of your best {{reseau}} posts here. Separate them with a --- line",
       "footer": "Postorico · Confidential onboarding questionnaire"
     }
+  },
+  "app": {
+    "tagline": "AI content studio",
+    "appTitre": "Install the mobile app",
+    "appSous": "Push notifications and quick access from your phone.",
+    "appTelecharger": "Download",
+    "emailPh": "you@email.com"
   }
 }

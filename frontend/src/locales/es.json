@@ -75,7 +75,8 @@
     "style": "Estilo y colores",
     "avatar": "Avatar de vídeo",
     "soon": "Pronto",
-    "support": "Contactar con soporte"
+    "support": "Contactar con soporte",
+    "banque": "Banco de imágenes"
   },
   "accueil": {
     "greeting": "Hola, {{name}} 👋",
@@ -795,6 +796,17 @@
       "deposerVideo": "Suelta un archivo de vídeo, por favor",
       "cliquerChanger": "Haz clic para cambiar",
       "ajouterVideo": "Añade el vídeo de entrenamiento, por favor"
+    },
+    "banque": {
+      "intro": "Los visuales de tu marca, reutilizables en todos tus reels. La IA describe cada imagen automáticamente para saber cuándo usarla.",
+      "ajouter": "Añadir imágenes",
+      "envoi": "Subiendo…",
+      "vide": "Tu banco está vacío. Añade visuales: se propondrán en cada montaje de reel.",
+      "supprimer": "Quitar del banco",
+      "compteur": "{{n}} imagen(es) en tu banco",
+      "ajoutee": "{{n}} imagen(es) añadida(s)",
+      "echec": "Error al añadir.",
+      "echecSuppr": "No se pudo eliminar."
     }
   },
   "perf": {
@@ -2104,5 +2116,12 @@
       "tabsPh": "Pega aquí de 1 a 3 de tus mejores posts de {{reseau}}. Sepáralos con una línea ---",
       "footer": "Postorico · Cuestionario de onboarding confidencial"
     }
+  },
+  "app": {
+    "tagline": "Estudio de contenido IA",
+    "appTitre": "Instala la app móvil",
+    "appSous": "Notificaciones push y acceso rápido desde tu teléfono.",
+    "appTelecharger": "Descargar",
+    "emailPh": "tu@email.com"
   }
 }

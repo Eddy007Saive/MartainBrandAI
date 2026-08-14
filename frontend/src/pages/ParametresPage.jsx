@@ -29,6 +29,7 @@ import { userService } from '../services/userService';
 import { billingService } from '../services/billingService';
 import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
+import { contenuService } from '../services/contenuService';
 import { templateService } from '../services/templateService';
 import { removeToken, setToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
@@ -53,6 +54,7 @@ const SETTINGS_SECTIONS = [
   { id: 'schedules', titleKey: 'nav.planning', icon: Calendar },
   { id: 'abonnement', titleKey: 'nav.subscription', icon: CreditCard },
   { id: 'style', titleKey: 'nav.style', icon: Palette },
+  { id: 'banque', titleKey: 'nav.banque', icon: ImageIcon },
   { id: 'avatar', titleKey: 'nav.avatar', icon: Video, soon: true },
 ];
 
@@ -158,6 +160,40 @@ export default function ParametresPage() {
   const [schedules, setSchedules] = useState([]);
   const [schedulesLoaded, setSchedulesLoaded] = useState(false);
   const [savingSchedules, setSavingSchedules] = useState(false);
+
+  // Banque d'images de la marque — chargée à l'ouverture de l'onglet seulement.
+  const [banque, setBanque] = useState(null);          // null = pas encore chargée
+  const [banqueUpload, setBanqueUpload] = useState(false);
+  useEffect(() => {
+    if (activeSection !== 'banque' || banque !== null) return;
+    contenuService.reelBanque().then(setBanque).catch(() => setBanque([]));
+  }, [activeSection, banque]);
+
+  const ajouterALaBanque = async (files) => {
+    const list = Array.from(files || []);
+    if (!list.length) return;
+    setBanqueUpload(true);
+    try {
+      for (const f of list) {
+        const a = await contenuService.reelBanqueAjouter(f);
+        setBanque((prev) => [a, ...(prev || [])]);
+      }
+      toast.success(t('params.banque.ajoutee', { n: list.length }));
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('params.banque.echec'));
+    } finally { setBanqueUpload(false); }
+  };
+
+  const supprimerDeLaBanque = async (img) => {
+    const avant = banque;
+    setBanque((prev) => (prev || []).filter((x) => x.id !== img.id));   // retrait optimiste
+    try {
+      await contenuService.reelBanqueSupprimer(img.id);
+    } catch (e) {
+      setBanque(avant);
+      toast.error(e.response?.data?.detail || t('params.banque.echecSuppr'));
+    }
+  };
 
   // Inspirations visuelles
   const [inspirations, setInspirations] = useState([]);
@@ -1062,16 +1098,48 @@ export default function ParametresPage() {
     </div>
   );
 
-  const renderGptUrls = () => (
-    <div className="grid grid-cols-1 gap-5">
-      <Field label="GPT URL LinkedIn" name="gpt_url_linkedin" value={user?.gpt_url_linkedin} onChange={handleChange}
-        hint="L'URL de votre GPT pour LinkedIn. Format : https://chat.openai.com/g/g-XXXXXXX" />
-      <Field label="GPT URL Instagram" name="gpt_url_instagram" value={user?.gpt_url_instagram} onChange={handleChange}
-        hint="L'URL de votre GPT pour Instagram." />
-      <Field label="GPT URL Sujets" name="gpt_url_sujets" value={user?.gpt_url_sujets} onChange={handleChange}
-        hint="L'URL du GPT pour générer des idées de sujets." />
-      <Field label="GPT URL Default" name="gpt_url_default" value={user?.gpt_url_default} onChange={handleChange}
-        hint="L'URL du GPT par défaut." />
+  // ---- Banque d'images de la marque (partagée avec le studio Séquence des reels) ----
+  const renderBanque = () => (
+    <div className="space-y-5">
+      <p className="text-[13.5px] text-slate-400 font-inter leading-relaxed">{t('params.banque.intro')}</p>
+
+      <label className={`inline-flex items-center gap-2 text-[13px] font-inter font-semibold px-4 py-2.5 rounded-[10px] border border-dashed cursor-pointer transition-colors ${
+        banqueUpload ? 'border-white/10 text-slate-600 cursor-not-allowed' : 'border-[#5B6CFF]/50 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
+        <input type="file" accept="image/*" multiple className="hidden" disabled={banqueUpload}
+          onChange={(e) => { ajouterALaBanque(e.target.files); e.target.value = ''; }} />
+        {banqueUpload ? <><Loader2 className="w-4 h-4 animate-spin" />{t('params.banque.envoi')}</>
+                      : <><Plus className="w-4 h-4" />{t('params.banque.ajouter')}</>}
+      </label>
+
+      {banque === null ? (
+        <div className="flex items-center gap-2 text-slate-500 text-sm font-inter"><Loader2 className="w-4 h-4 animate-spin" />…</div>
+      ) : banque.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-white/10 p-8 text-center">
+          <ImageIcon className="w-7 h-7 mx-auto mb-3 text-slate-600" />
+          <p className="text-sm text-slate-500 font-inter">{t('params.banque.vide')}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+          {banque.map((img) => (
+            <div key={img.id} className="group relative aspect-square rounded-xl overflow-hidden border border-white/10">
+              <img src={img.url} alt="" className="w-full h-full object-cover" />
+              {img.description && (
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020617] to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-3">{img.description}</p>
+                </div>
+              )}
+              <button type="button" onClick={() => supprimerDeLaBanque(img)}
+                title={t('params.banque.supprimer')} aria-label={t('params.banque.supprimer')}
+                className="absolute top-1.5 right-1.5 w-7 h-7 rounded-lg bg-[#020617]/80 border border-white/20 text-slate-300 grid place-items-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity hover:text-red-400 hover:border-red-400/40 active:scale-90">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {banque?.length > 0 && (
+        <p className="text-[11.5px] text-slate-500 font-inter">{t('params.banque.compteur', { n: banque.length })}</p>
+      )}
     </div>
   );
 
@@ -1511,6 +1579,7 @@ export default function ParametresPage() {
     schedules: renderSchedules,
     abonnement: renderAbonnement,
     style: renderStyle,
+    banque: renderBanque,
     avatar: renderAvatar,
   };
 
