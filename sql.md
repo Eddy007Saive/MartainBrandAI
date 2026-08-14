@@ -122,22 +122,20 @@ CREATE TABLE public.contenu (
   reseau_cible USER-DEFINED,
   type USER-DEFINED,
   statut USER-DEFINED DEFAULT 'A valider'::statut_contenu,
-  lien_notion text,
   lien_visuel text,
   lien_publication text,
-  post_id text,
   lien_video_dropbox text,
   prompt_image text,
-  image_martin boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   date_publication timestamp with time zone,
-  studio_id uuid,
   callback_url text,
   CONSTRAINT contenu_pkey PRIMARY KEY (id),
-  CONSTRAINT contenu_telegram_id_fkey FOREIGN KEY (telegram_id) REFERENCES public.users(telegram_id),
-  CONSTRAINT contenu_studio_id_fkey FOREIGN KEY (studio_id) REFERENCES public.studio(id)
+  CONSTRAINT contenu_telegram_id_fkey FOREIGN KEY (telegram_id) REFERENCES public.users(telegram_id)
 );
+-- Normalisation phase 1 (14/08/2026) : lien_notion, post_id, image_martin et studio_id
+-- ont été supprimées (aucune référence dans le code ; valeurs résiduelles dans
+-- archive.contenu_colonnes_mortes). La contrainte contenu_studio_id_fkey est tombée avec.
 CREATE TABLE public.documents (
   id bigint NOT NULL DEFAULT nextval('documents_id_seq'::regclass),
   content text,
