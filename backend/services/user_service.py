@@ -132,6 +132,11 @@ def get_user(telegram_id: str) -> dict | None:
     if not result.data:
         return None
     user = sanitize_user(result.data[0])
+    # Les comptes sociaux vivent dans `comptes_sociaux` depuis la normalisation, mais
+    # le frontend lit toujours user.late_account_<réseau> : on recompose ces clés ici,
+    # une seule fois, plutôt que de propager la nouvelle forme dans toute l'interface.
+    from services import social_service
+    user.update(social_service.champs_late(telegram_id))
     # Facturation PAR COMPTE : chaque compte a ses propres crédits + forfait.
     # On expose seulement le flag sous-compte (pour l'UI), sans écraser crédits/plan.
     if user.get("master_id"):

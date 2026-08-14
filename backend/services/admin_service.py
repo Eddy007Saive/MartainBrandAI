@@ -9,8 +9,25 @@ PLAN_PRICE = {"gratuit": 0, "pro": 279, "business": 49, "boss": 0}
 _RESEAUX = ["linkedin", "instagram", "facebook", "tiktok", "youtube", "googlebusiness"]
 
 
-def _reseaux_connectes(user: dict) -> list:
-    return [r for r in _RESEAUX if user.get(f"late_account_{r}")]
+def _tous_les_comptes() -> dict:
+    """{telegram_id: [réseaux connectés]} — une seule requête pour toute la liste
+    d'utilisateurs (la table comptes_sociaux remplace les colonnes late_account_*)."""
+    par_user = {}
+    try:
+        r = supabase.table("comptes_sociaux").select("telegram_id, plateforme").execute()
+        for x in (r.data or []):
+            par_user.setdefault(x["telegram_id"], []).append(x["plateforme"])
+    except Exception as e:
+        logger.error(f"lecture comptes_sociaux (admin): {e}")
+    return par_user
+
+
+def _reseaux_connectes(telegram_id: str, cache: dict = None) -> list:
+    if cache is not None:
+        reseaux = cache.get(telegram_id, [])
+    else:
+        reseaux = _tous_les_comptes().get(telegram_id, [])
+    return [r for r in _RESEAUX if r in reseaux]
 
 
 def get_users(filter: str = "all", q: str = None) -> list:
@@ -28,8 +45,9 @@ def get_users(filter: str = "all", q: str = None) -> list:
         users = [u for u in users if ql in (u.get("nom") or "").lower()
                  or ql in (u.get("email") or "").lower()
                  or ql in (u.get("username") or "").lower()]
+    comptes = _tous_les_comptes()
     for u in users:
-        u["reseaux_connectes"] = _reseaux_connectes(u)
+        u["reseaux_connectes"] = _reseaux_connectes(u.get("telegram_id"), comptes)
     return users
 
 
@@ -48,7 +66,7 @@ def get_user_detail(telegram_id: str) -> dict | None:
 
     commentaires = supabase.table("commentaires").select("id").eq("telegram_id", telegram_id).execute()
 
-    user["reseaux_connectes"] = _reseaux_connectes(user)
+    user["reseaux_connectes"] = _reseaux_connectes(telegram_id)
     user["derniere_activite"] = (contenus.data[0].get("updated_at") or contenus.data[0].get("created_at")) if contenus.data else None
     user["stats"] = {
         "total_contenus": len(contenus.data),

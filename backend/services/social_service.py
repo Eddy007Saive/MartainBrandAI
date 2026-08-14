@@ -19,6 +19,70 @@ FIELD_MAP = {
 }
 
 
+# ----------------------------------------------- Comptes connectés (comptes_sociaux)
+# La table `comptes_sociaux` est la source de vérité depuis la normalisation du
+# 14/08/2026 : une ligne par compte connecté, au lieu de 7 colonnes dans `users`.
+# Les colonnes late_account_<réseau> sont encore tenues à jour (filet de sécurité
+# le temps de valider la bascule en production) mais ne sont plus lues.
+
+def comptes(telegram_id: str) -> dict:
+    """{plateforme: late_account_id} des comptes connectés de ce compte."""
+    try:
+        r = (supabase.table("comptes_sociaux").select("plateforme, late_account_id")
+             .eq("telegram_id", telegram_id).execute())
+        return {x["plateforme"]: x["late_account_id"] for x in (r.data or []) if x.get("late_account_id")}
+    except Exception as e:
+        logger.error(f"lecture comptes_sociaux {telegram_id}: {e}")
+        return {}
+
+
+def compte(telegram_id: str, plateforme: str) -> str | None:
+    """L'identifiant Late d'un réseau, ou None s'il n'est pas connecté."""
+    return comptes(telegram_id).get(_norm_platform(plateforme))
+
+
+def champs_late(telegram_id: str) -> dict:
+    """Les clés late_account_<réseau> attendues par le frontend, recomposées depuis
+    comptes_sociaux : la normalisation ne change pas le contrat de l'API."""
+    c = comptes(telegram_id)
+    return {champ: c.get(p) for p, champ in FIELD_MAP.items()}
+
+
+def enregistrer_compte(telegram_id: str, plateforme: str, account_id: str) -> bool:
+    """Connecte un réseau (upsert) ; met aussi à jour l'ancienne colonne le temps de la transition."""
+    plateforme = _norm_platform(plateforme)
+    if plateforme not in VALID_PLATFORMS or not account_id:
+        return False
+    try:
+        supabase.table("comptes_sociaux").upsert(
+            {"telegram_id": telegram_id, "plateforme": plateforme, "late_account_id": account_id},
+            on_conflict="telegram_id,plateforme").execute()
+    except Exception as e:
+        logger.error(f"enregistrer_compte {telegram_id}/{plateforme}: {e}")
+        return False
+    try:
+        supabase.table("users").update({FIELD_MAP[plateforme]: account_id}).eq("telegram_id", telegram_id).execute()
+    except Exception as e:
+        logger.warning(f"miroir late_account_{plateforme} {telegram_id}: {e}")
+    return True
+
+
+def supprimer_compte(telegram_id: str, plateforme: str) -> bool:
+    plateforme = _norm_platform(plateforme)
+    if plateforme not in VALID_PLATFORMS:
+        return False
+    try:
+        supabase.table("comptes_sociaux").delete().eq("telegram_id", telegram_id).eq("plateforme", plateforme).execute()
+    except Exception as e:
+        logger.error(f"supprimer_compte {telegram_id}/{plateforme}: {e}")
+        return False
+    try:
+        supabase.table("users").update({FIELD_MAP[plateforme]: None}).eq("telegram_id", telegram_id).execute()
+    except Exception as e:
+        logger.warning(f"miroir late_account_{plateforme} {telegram_id}: {e}")
+    return True
+
+
 async def create_late_profile(telegram_id: str, nom: str) -> dict:
     """Crée le profil Late directement via le SDK (plus de dépendance n8n) et enregistre
     late_profile_id en base. Retourne {created: bool, late_profile_id?, error?}."""
@@ -169,21 +233,17 @@ async def list_connected_accounts(telegram_id: str) -> dict:
 
 async def finalize_connection(telegram_id: str, platform: str, account_id: str = None) -> dict:
     """Après l'OAuth (Late a connecté le compte au profil), on enregistre l'accountId dans
-    late_account_<platform>. account_id : fourni par Late dans le callback (le plus fiable)."""
+    comptes_sociaux. account_id : fourni par Late dans le callback (le plus fiable)."""
     platform = _norm_platform(platform)
-    field = FIELD_MAP.get(platform)
-    if not field:
+    if platform not in VALID_PLATFORMS:
         return {"ok": False, "error": "Plateforme inconnue."}
 
     # Cas idéal : Late nous a donné l'accountId directement dans le callback
     if account_id:
-        try:
-            supabase.table("users").update({field: account_id}).eq("telegram_id", telegram_id).execute()
+        if enregistrer_compte(telegram_id, platform, account_id):
             logger.info(f"Compte {platform} connecté pour {telegram_id}: {account_id} (via callback)")
             return {"ok": True, "account_id": account_id}
-        except Exception as e:
-            logger.error(f"finalize_connection store {telegram_id}/{platform}: {e}")
-            return {"ok": False, "error": "Erreur lors de l'enregistrement du compte."}
+        return {"ok": False, "error": "Erreur lors de l'enregistrement du compte."}
 
     res = supabase.table("users").select("late_profile_id").eq("telegram_id", telegram_id).execute()
     profile_id = res.data[0].get("late_profile_id") if res.data else None
@@ -200,7 +260,7 @@ async def finalize_connection(telegram_id: str, platform: str, account_id: str =
             return {"ok": False, "error": "Compte non trouvé après connexion."}
         chosen = matches[-1]  # le plus récent (modèle 1 compte/réseau)
         account_id = chosen.get("field_id") or chosen.get("_id")
-        supabase.table("users").update({field: account_id}).eq("telegram_id", telegram_id).execute()
+        enregistrer_compte(telegram_id, platform, account_id)
         logger.info(f"Compte {platform} connecté pour {telegram_id}: {account_id}")
         return {"ok": True, "account_id": account_id}
     except Exception as e:
@@ -212,12 +272,10 @@ async def disconnect_platform(telegram_id: str, platform: str) -> dict:
     """Déconnecte un réseau via le SDK Late (supprime le compte côté Late -> libère un slot),
     puis nettoie la colonne en base."""
     platform_n = _norm_platform(platform)
-    field = FIELD_MAP.get(platform_n)
-    if not field:
+    if platform_n not in VALID_PLATFORMS:
         return {"success": False, "error": "Plateforme inconnue."}
 
-    res = supabase.table("users").select(field).eq("telegram_id", telegram_id).execute()
-    account_id = res.data[0].get(field) if res.data else None
+    account_id = compte(telegram_id, platform_n)
 
     # Suppression côté Late (libère un slot). Best-effort : on nettoie la base même si ça échoue.
     if account_id and LATE_API_KEY:
@@ -228,10 +286,7 @@ async def disconnect_platform(telegram_id: str, platform: str) -> dict:
         except Exception as e:
             logger.warning(f"disconnect Late {telegram_id}/{platform_n} ({account_id}): {e}")
 
-    try:
-        supabase.table("users").update({field: None}).eq("telegram_id", telegram_id).execute()
-    except Exception as e:
-        logger.error(f"disconnect cleanup {telegram_id}/{platform_n}: {e}")
+    if not supprimer_compte(telegram_id, platform_n):
         return {"success": False, "error": "Erreur lors de la déconnexion."}
 
     return {"success": True}
@@ -240,28 +295,19 @@ async def disconnect_platform(telegram_id: str, platform: str) -> dict:
 async def disconnect_all(telegram_id: str) -> int:
     """Déconnecte TOUS les réseaux du compte (libère les slots Late -> stoppe le coût récurrent).
     Appelé quand un abonnement se termine définitivement (canceled/unpaid). Retourne le nb déconnectés."""
-    fields = list(FIELD_MAP.values())
-    res = supabase.table("users").select(",".join(fields)).eq("telegram_id", telegram_id).execute()
-    row = res.data[0] if res.data else {}
     n = 0
-    for field in fields:
-        account_id = row.get(field)
-        if not account_id:
-            continue
+    for plateforme, account_id in comptes(telegram_id).items():
         if LATE_API_KEY:
             try:
                 async with Zernio(api_key=LATE_API_KEY) as client:
                     await client.accounts.adelete_account(account_id)
             except Exception as e:
-                # Late n'a pas pu supprimer (ex. clé d'un AUTRE workspace) -> on GARDE la colonne
+                # Late n'a pas pu supprimer (ex. clé d'un AUTRE workspace) -> on GARDE le compte
                 # pour rester cohérent avec Late (jamais de faux "déconnecté" en base).
-                logger.warning(f"disconnect_all Late {telegram_id}/{field} ({account_id}) -> compte conservé: {e}")
+                logger.warning(f"disconnect_all Late {telegram_id}/{plateforme} ({account_id}) -> compte conservé: {e}")
                 continue
-        try:
-            supabase.table("users").update({field: None}).eq("telegram_id", telegram_id).execute()
+        if supprimer_compte(telegram_id, plateforme):
             n += 1
-        except Exception as e:
-            logger.error(f"disconnect_all cleanup {telegram_id}/{field}: {e}")
     if n:
         logger.info(f"disconnect_all : {n} réseau(x) déconnecté(s) pour {telegram_id} (abonnement terminé)")
     return n

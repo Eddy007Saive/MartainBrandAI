@@ -18,19 +18,16 @@ def _norm_platform(p: str) -> str:
 
 
 def user_by_account(platform: str, account_id: str) -> str | None:
-    """Retrouve le telegram_id du user propriétaire d'un compte social (late_account_<platform>)."""
-    platform = _norm_platform(platform)
+    """Retrouve le telegram_id du propriétaire d'un compte social, par son identifiant Late."""
     if not account_id:
         return None
-    cols = [f"late_account_{platform}"] if platform in PLATFORMS else [f"late_account_{p}" for p in PLATFORMS]
-    for col in cols:
-        try:
-            res = supabase.table("users").select("telegram_id").eq(col, account_id).execute()
-            if res.data:
-                return res.data[0]["telegram_id"]
-        except Exception:
-            continue
-    return None
+    try:
+        res = (supabase.table("comptes_sociaux").select("telegram_id")
+               .eq("late_account_id", account_id).limit(1).execute())
+        return res.data[0]["telegram_id"] if res.data else None
+    except Exception as e:
+        logger.warning(f"user_by_account {account_id}: {e}")
+        return None
 
 
 def handle_comment_webhook(payload: dict) -> dict:

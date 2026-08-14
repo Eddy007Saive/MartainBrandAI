@@ -101,10 +101,10 @@ async def publish_contenu(telegram_id: str, contenu: dict, publish_now: bool = F
     if reseau not in PLATFORMS:
         return {"ok": False, "error": "Aucun réseau cible défini sur ce contenu."}
 
-    res = supabase.table("users").select(f"{ACCOUNT_COL[reseau]}, timezone").eq("telegram_id", telegram_id).execute()
-    row = res.data[0] if res.data else {}
-    account_id = row.get(ACCOUNT_COL[reseau])
-    user_tz = row.get("timezone") or DEFAULT_TZ
+    from services import social_service
+    account_id = social_service.compte(telegram_id, reseau)
+    res = supabase.table("users").select("timezone").eq("telegram_id", telegram_id).execute()
+    user_tz = (res.data[0].get("timezone") if res.data else None) or DEFAULT_TZ
     if not account_id:
         return {"ok": False, "error": f"Compte {reseau.capitalize()} non connecté. Connecte-le dans Paramètres."}
 

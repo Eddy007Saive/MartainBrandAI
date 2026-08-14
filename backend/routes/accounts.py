@@ -15,7 +15,7 @@ router = APIRouter(prefix="/accounts", tags=["accounts"])
 # (Nettoyage 2026-08-13 : tables archivées retirées, brand_assets ajoutée — elle manquait.)
 _CHILD_TABLES = [
     "analytics_cache", "analytics_performance", "brand_assets", "brand_templates", "brouillons",
-    "commentaires", "contenu", "device_tokens", "heygen_avatars",
+    "commentaires", "comptes_sociaux", "contenu", "device_tokens", "heygen_avatars",
     "notifications", "publication_schedules",
     "studio", "studio_drafts", "usage_log",
 ]
