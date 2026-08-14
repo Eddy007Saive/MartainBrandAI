@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py pipeline.py submagic_poc5.py envkeys.py ./
 COPY hooks.py correct.py emojis.py emoji_lib.py ./
 COPY music.py thumbnail.py nanobanana.py gemini_pick.py ./
-COPY index.html yunet.onnx ./
+COPY storage.py index.html yunet.onnx ./
 
 # Cache Whisper téléchargé au 1er démarrage (~460 Mo pour "small") ; sans
 # volume Railway monté sur /root/.cache, il est reperdu à chaque redéploiement
