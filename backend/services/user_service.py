@@ -148,13 +148,15 @@ def get_user(telegram_id: str) -> dict | None:
 
 
 def update_user(telegram_id: str, update_data: dict) -> dict | None:
-    # La page Paramètres envoie compte et marque dans la même requête : on route
-    # chaque champ vers sa table. Les colonnes d'origine de `users` restent tenues
-    # à jour en miroir le temps de valider la bascule (rollback immédiat).
+    # La page Paramètres envoie compte et marque dans la même requête : chaque champ
+    # part dans sa table, `users` ne reçoit plus que ce qui décrit le compte.
     from services import marque_service
-    _, champs_marque = marque_service.separer(update_data)
+    champs_compte, champs_marque = marque_service.separer(update_data)
     if champs_marque:
         marque_service.enregistrer(telegram_id, champs_marque)
+    if not champs_compte:                       # mise à jour purement marque
+        return get_user(telegram_id)
+    update_data = champs_compte
 
     try:
         result = supabase.table("users").update(update_data).eq("telegram_id", telegram_id).execute()

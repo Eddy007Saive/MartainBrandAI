@@ -46,9 +46,7 @@ def register_user(nom: str, email: str, username: str, password: str, master_id:
         "actif": True,
         "plan": "gratuit",
         "credits": 100,
-        "couleur_principale": "#003D2E",
-        "couleur_secondaire": "#0077FF",
-        "couleur_accent": "#3AFFA3",
+        # La palette de marque est posée dans `marques` (marque_service.creer ci-dessous).
         # Le contenu généré démarre dans la langue de l'interface choisie à l'inscription
         "langue": langue if langue in ("fr", "en", "es") else "fr",
         "created_at": datetime.now(timezone.utc).isoformat()

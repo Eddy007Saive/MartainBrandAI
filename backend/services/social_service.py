@@ -49,7 +49,7 @@ def champs_late(telegram_id: str) -> dict:
 
 
 def enregistrer_compte(telegram_id: str, plateforme: str, account_id: str) -> bool:
-    """Connecte un réseau (upsert) ; met aussi à jour l'ancienne colonne le temps de la transition."""
+    """Connecte un réseau (une ligne par compte, remplacée si elle existe déjà)."""
     plateforme = _norm_platform(plateforme)
     if plateforme not in VALID_PLATFORMS or not account_id:
         return False
@@ -57,14 +57,10 @@ def enregistrer_compte(telegram_id: str, plateforme: str, account_id: str) -> bo
         supabase.table("comptes_sociaux").upsert(
             {"telegram_id": telegram_id, "plateforme": plateforme, "late_account_id": account_id},
             on_conflict="telegram_id,plateforme").execute()
+        return True
     except Exception as e:
         logger.error(f"enregistrer_compte {telegram_id}/{plateforme}: {e}")
         return False
-    try:
-        supabase.table("users").update({FIELD_MAP[plateforme]: account_id}).eq("telegram_id", telegram_id).execute()
-    except Exception as e:
-        logger.warning(f"miroir late_account_{plateforme} {telegram_id}: {e}")
-    return True
 
 
 def supprimer_compte(telegram_id: str, plateforme: str) -> bool:
@@ -73,14 +69,10 @@ def supprimer_compte(telegram_id: str, plateforme: str) -> bool:
         return False
     try:
         supabase.table("comptes_sociaux").delete().eq("telegram_id", telegram_id).eq("plateforme", plateforme).execute()
+        return True
     except Exception as e:
         logger.error(f"supprimer_compte {telegram_id}/{plateforme}: {e}")
         return False
-    try:
-        supabase.table("users").update({FIELD_MAP[plateforme]: None}).eq("telegram_id", telegram_id).execute()
-    except Exception as e:
-        logger.warning(f"miroir late_account_{plateforme} {telegram_id}: {e}")
-    return True
 
 
 async def create_late_profile(telegram_id: str, nom: str) -> dict:

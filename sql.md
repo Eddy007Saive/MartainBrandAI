@@ -343,6 +343,9 @@ CREATE TABLE public.test_2 (
 --     get_user_keys (SECURITY DEFINER exécutable par anon) sont tombés avec.
 --   heygen_avatar_name/id/status : doublons de la table heygen_avatars
 -- Valeurs résiduelles conservées dans archive.users_colonnes_mortes.
+-- Suppression des colonnes miroir (14/08/2026) : users ne decrit plus que le COMPTE
+-- (identite, authentification, facturation, preferences). Les comptes sociaux sont
+-- dans comptes_sociaux, la fiche de marque dans marques. 56 -> 26 colonnes.
 CREATE TABLE public.users (
   telegram_id bigint NOT NULL,
   nom text,
@@ -355,17 +358,7 @@ CREATE TABLE public.users (
   user_name text,
   style_vestimentaire text,
   sexe USER-DEFINED DEFAULT 'homme'::"Sexe",
-  couleur_principale text DEFAULT '#003D2E'::text,
-  couleur_secondaire text DEFAULT '#0077FF'::text,
-  couleur_accent text DEFAULT '#3AFFA3'::text,
   password_hash text,
   late_profile_id text,
-  late_account_linkedin text,
-  late_account_instagram text,
-  late_account_facebook text,
-  late_account_tiktok text,
-  late_account_youtube text,
-  late_account_googlebusiness text,
-  late_account_twitter text,
   CONSTRAINT users_pkey PRIMARY KEY (telegram_id)
 );
