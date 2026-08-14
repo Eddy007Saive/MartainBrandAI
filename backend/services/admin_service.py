@@ -184,6 +184,36 @@ def system_info() -> dict:
         },
     }
 
+    # Rendus vidéo (Remotion) : le coût est du TEMPS de calcul, pas des tokens.
+    # On sort la moyenne par template pour savoir ce que coûte réellement un reel.
+    rendus = {"total": {"n": 0, "echecs": 0, "secondes": 0.0, "cost_usd": 0.0}, "par_template": []}
+    try:
+        lignes = (supabase.table("usage_log").select("action, model, duree_s, cost_usd")
+                  .like("action", "reel_rendu%").execute().data or [])
+        par = {}
+        for r in lignes:
+            echec = (r.get("action") or "").endswith("echec")
+            s = float(r.get("duree_s") or 0)
+            c = float(r.get("cost_usd") or 0)
+            d = par.setdefault(r.get("model") or "?", {"n": 0, "echecs": 0, "secondes": 0.0, "cost_usd": 0.0})
+            d["n"] += 1; d["secondes"] += s; d["cost_usd"] += c
+            rendus["total"]["n"] += 1; rendus["total"]["secondes"] += s; rendus["total"]["cost_usd"] += c
+            if echec:
+                d["echecs"] += 1; rendus["total"]["echecs"] += 1
+        rendus["par_template"] = sorted(
+            [{"template": k, "n": v["n"], "echecs": v["echecs"],
+              "moyenne_s": round(v["secondes"] / v["n"], 1) if v["n"] else 0,
+              "cost_usd": round(v["cost_usd"], 4),
+              "cout_moyen_usd": round(v["cost_usd"] / v["n"], 5) if v["n"] else 0}
+             for k, v in par.items()], key=lambda x: -x["n"])
+        t = rendus["total"]
+        t["moyenne_s"] = round(t["secondes"] / t["n"], 1) if t["n"] else 0
+        t["cout_moyen_usd"] = round(t["cost_usd"] / t["n"], 5) if t["n"] else 0
+        t["cost_usd"] = round(t["cost_usd"], 4)
+        t["secondes"] = round(t["secondes"])
+    except Exception as e:
+        logger.warning(f"stats rendus: {e}")
+
     return {
         "integrations": integrations,
         "cron_analytics_h": ANALYTICS_CRON_HOURS,
@@ -191,6 +221,7 @@ def system_info() -> dict:
         "plans": {p["name"]: p.get("price_cents", 0) / 100
                   for p in (supabase.table("plans").select("name, price_cents").execute().data or [])},
         "usage": usage,
+        "rendus": rendus,
     }
 
 

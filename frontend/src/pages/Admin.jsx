@@ -1266,16 +1266,66 @@ export default function Admin() {
                           </div>
                         ))}
                         <div className="pt-3 mt-1 border-t border-white/5 space-y-2">
-                          {Object.entries(system.plans.credits).map(([plan, cr]) => (
+                          {Object.entries(system.plans || {}).map(([plan, prix]) => (
                             <div key={plan} className="flex items-center justify-between">
                               <span className="text-slate-300 capitalize">{plan}</span>
-                              <span className="text-slate-400 text-xs">{cr} cr · {system.plans.prix[plan]}€/mois</span>
+                              <span className="text-slate-400 text-xs">{prix}€/mois</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Rendus vidéo — le coût d'un reel, c'est du temps de calcul */}
+                  {system.rendus?.total?.n > 0 && (
+                    <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-white font-sora mb-1">Rendus vidéo (Remotion)</h3>
+                      <p className="text-xs text-slate-500 mb-4">
+                        Un reel ne consomme pas de tokens : il consomme du temps de calcul. Coût estimé au tarif serveur.
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+                        {[
+                          { v: system.rendus.total.n, l: 'rendus' },
+                          { v: `${system.rendus.total.moyenne_s}s`, l: 'durée moyenne' },
+                          { v: `$${system.rendus.total.cout_moyen_usd}`, l: 'coût moyen' },
+                          { v: `$${system.rendus.total.cost_usd}`, l: 'coût total' },
+                        ].map((s) => (
+                          <div key={s.l} className="bg-slate-800/40 rounded-lg p-4 text-center">
+                            <p className="text-2xl font-bold text-white font-sora tabular-nums">{s.v}</p>
+                            <p className="text-xs text-slate-500 mt-1">{s.l}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-slate-500 text-xs border-b border-white/5">
+                            <th className="text-left py-2 font-medium">Template</th>
+                            <th className="text-right py-2 font-medium">Rendus</th>
+                            <th className="text-right py-2 font-medium">Moyenne</th>
+                            <th className="text-right py-2 font-medium">Coût moyen</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {system.rendus.par_template.map((r) => (
+                            <tr key={r.template} className="border-b border-white/[0.03]">
+                              <td className="py-2 text-slate-300">{r.template}</td>
+                              <td className="py-2 text-right text-slate-300 tabular-nums">
+                                {r.n}{r.echecs > 0 && <span className="text-amber-400"> ({r.echecs} échec{r.echecs > 1 ? 's' : ''})</span>}
+                              </td>
+                              <td className="py-2 text-right text-slate-400 tabular-nums">{r.moyenne_s}s</td>
+                              <td className="py-2 text-right text-slate-400 tabular-nums">${r.cout_moyen_usd}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {system.rendus.total.echecs > 0 && (
+                        <p className="text-xs text-amber-400/80 mt-3">
+                          {system.rendus.total.echecs} rendu(s) échoué(s) — ils consomment du CPU sans rien produire.
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   {/* Actions */}
                   <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">

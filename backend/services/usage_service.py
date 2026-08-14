@@ -33,11 +33,14 @@ def cout_reel(model: str, usage: dict) -> float:
     return (inp / 1e6) * p["in"] + (cw / 1e6) * p["in"] * 1.25 + (cr / 1e6) * p["in"] * 0.1 + (out / 1e6) * p["out"]
 
 
-def log(telegram_id: str, action: str, model: str, usage: dict, credits: int, qualite: str = None, cost_override: float = None) -> None:
+def log(telegram_id: str, action: str, model: str, usage: dict, credits: int, qualite: str = None,
+        cost_override: float = None, duree_s: float = None) -> None:
+    """Journalise une consommation. `duree_s` : temps de calcul (rendus vidéo) — les
+    colonnes de tokens n'ont pas de sens pour un rendu, c'est la durée qui compte."""
     try:
         u = usage or {}
         cost = cost_override if cost_override is not None else round(cout_reel(model, u), 6)
-        supabase.table("usage_log").insert({
+        ligne = {
             "telegram_id": telegram_id,
             "action": action,
             "model": model,
@@ -48,6 +51,9 @@ def log(telegram_id: str, action: str, model: str, usage: dict, credits: int, qu
             "output_tokens": u.get("output", 0) or 0,
             "cost_usd": round(cost, 6),
             "credits": credits,
-        }).execute()
+        }
+        if duree_s is not None:
+            ligne["duree_s"] = round(float(duree_s), 2)
+        supabase.table("usage_log").insert(ligne).execute()
     except Exception as e:
         logger.error(f"usage log error: {e}")

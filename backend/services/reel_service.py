@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import tempfile
+import time
 from datetime import datetime, timezone
 
 import cloudinary
@@ -32,6 +33,12 @@ cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, 
 _BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REMOTION_DIR = os.environ.get("REMOTION_DIR") or os.path.join(_BACKEND_DIR, "remotion")
 REMOTION_BROWSER = os.environ.get("REMOTION_BROWSER")
+
+# Cout d'une minute de rendu, en dollars. Un rendu Remotion sature les coeurs du
+# conteneur : le seul cout reel est le TEMPS de calcul facture par l'hebergeur.
+# Valeur par defaut prudente pour ~2 vCPU + 2 Go sur Railway ; a ajuster depuis la
+# facture reelle via REMOTION_COUT_MINUTE_USD.
+COUT_RENDU_MINUTE_USD = float(os.environ.get("REMOTION_COUT_MINUTE_USD", "0.0014"))
 
 # ----------------------------------------------------------------- Bibliotheque de templates
 # Ajouter un template = 1 composition .tsx dans remotion/src + 1 entree ici.
@@ -512,9 +519,14 @@ def _props_marque(u: dict, script: dict) -> dict:
     }
 
 
-def _rendre_mp4(props: dict, composition: str = "ReelBrand") -> str:
+def _rendre_mp4(props: dict, composition: str = "ReelBrand",
+                telegram_id: str = None, etiquette: str = None) -> str:
     """Lance le rendu Remotion en subprocess. Retourne le chemin du MP4.
-    composition : "ReelBrand" (8 s) ou "ReelLong" (22 s)."""
+
+    Le temps de calcul est journalise dans usage_log (colonne duree_s) avec son
+    cout estime : c'est la seule depense reelle d'un rendu, et la moyenne permet
+    de savoir ce que coute un reel. Les echecs sont journalises aussi — ils
+    consomment du CPU sans rien produire."""
     if not os.path.isdir(os.path.join(REMOTION_DIR, "node_modules")):
         raise RuntimeError(f"Remotion non installe ({REMOTION_DIR}) : lancer `npm ci` dans ce dossier.")
     fd, props_path = tempfile.mkstemp(suffix=".json")
@@ -525,14 +537,30 @@ def _rendre_mp4(props: dict, composition: str = "ReelBrand") -> str:
     cmd = [npx, "remotion", "render", "src/index.ts", composition, out_path, f"--props={props_path}", "--timeout=120000"]
     if REMOTION_BROWSER:
         cmd.append(f"--browser-executable={REMOTION_BROWSER}")
+    depart = time.monotonic()
+    ok = False
     try:
         r = subprocess.run(cmd, cwd=REMOTION_DIR, capture_output=True, text=True,
                            encoding="utf-8", errors="replace", timeout=900)
         if r.returncode != 0 or not os.path.exists(out_path):
             tail = (r.stderr or r.stdout or "")[-800:]
             raise RuntimeError(f"rendu remotion (code {r.returncode}) : {tail}")
+        ok = True
         return out_path
     finally:
+        duree = time.monotonic() - depart
+        if telegram_id:
+            try:
+                from services import usage_service
+                usage_service.log(
+                    telegram_id,
+                    "reel_rendu" if ok else "reel_rendu_echec",
+                    etiquette or composition, {}, 0,
+                    cost_override=round(duree / 60 * COUT_RENDU_MINUTE_USD, 6),
+                    duree_s=duree,
+                )
+            except Exception as e:
+                logger.warning(f"journal du rendu {composition}: {e}")
         try:
             os.unlink(props_path)
         except OSError:
@@ -565,7 +593,8 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
         "musique": music_library.musique_url(scenario["musique"]),
     }
     try:
-        mp4 = _rendre_mp4(props, composition="ReelSequence")
+        mp4 = _rendre_mp4(props, composition="ReelSequence",
+                          telegram_id=telegram_id, etiquette=f"sequence/{st}")
     except Exception as e:
         logger.error(f"reel libre rendu: {e}")
         return {"error": "Le rendu du reel a echoue. Reessaie dans un instant."}
@@ -666,7 +695,8 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         "musique": music_library.musique_url(scenario["musique"]),
     }
     try:
-        mp4 = _rendre_mp4(props, composition="ReelSequence")
+        mp4 = _rendre_mp4(props, composition="ReelSequence",
+                          telegram_id=telegram_id, etiquette=f"sequence/{st}")
     except Exception as e:
         logger.error(f"reel regen rendu: {e}")
         return {"error": "Le rendu du reel a echoue. Reessaie dans un instant."}
@@ -750,7 +780,8 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
             props["lecon"] = script.get("lecon") or ""
 
     try:
-        mp4 = _rendre_mp4(props, composition=TEMPLATES[template]["composition"])
+        mp4 = _rendre_mp4(props, composition=TEMPLATES[template]["composition"],
+                          telegram_id=telegram_id, etiquette=template)
     except Exception as e:
         logger.error(f"reel rendu: {e}")
         return {"error": "Le rendu du reel a echoue. Reessaie dans un instant."}
