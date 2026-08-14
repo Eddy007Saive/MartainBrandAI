@@ -29,8 +29,9 @@ _ROLE_VISION = (
 )
 
 
-def _decrire(url: str) -> dict:
-    """Description + tags par IA vision ; repli neutre si l'appel échoue."""
+def _decrire(url: str, telegram_id: str = None) -> dict:
+    """Description + tags par IA vision ; repli neutre si l'appel échoue.
+    `telegram_id` : journalise le coût de l'appel vision dans usage_log."""
     try:
         resp = _messages_create(
             model="claude-haiku-4-5",
@@ -44,6 +45,9 @@ def _decrire(url: str) -> dict:
                 ],
             }],
         )
+        if telegram_id:
+            from services.reel_service import _journal_llm
+            _journal_llm(telegram_id, "banque_vision", resp)
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         m = re.search(r"\{.*\}", raw, re.S)
         data = json.loads(m.group(0) if m else raw)
@@ -82,7 +86,7 @@ def ajouter(telegram_id: str, fichier) -> dict:
             if attempt == 2:
                 raise
     url = up["secure_url"]
-    desc = _decrire(url)
+    desc = _decrire(url, telegram_id)
     row = {
         "telegram_id": telegram_id,
         "url": url,

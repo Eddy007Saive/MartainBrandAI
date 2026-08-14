@@ -40,6 +40,24 @@ REMOTION_BROWSER = os.environ.get("REMOTION_BROWSER")
 # facture reelle via REMOTION_COUT_MINUTE_USD.
 COUT_RENDU_MINUTE_USD = float(os.environ.get("REMOTION_COUT_MINUTE_USD", "0.0014"))
 
+_MODELE_SCRIPT = "claude-haiku-4-5"
+
+
+def _journal_llm(telegram_id: str, action: str, resp, modele: str = _MODELE_SCRIPT) -> None:
+    """Journalise un appel LLM du studio reels dans usage_log.
+
+    Un reel coute DEUX choses : l'ecriture du scenario par Claude (tokens, ici) et
+    le rendu Remotion (temps de calcul, voir _rendre_mp4). Sans cette moitie, le
+    cout affiche a l'admin serait faux."""
+    if not telegram_id or resp is None:
+        return
+    try:
+        from services.agent_service import _usage
+        from services import usage_service
+        usage_service.log(telegram_id, action, modele, _usage(resp), 0)
+    except Exception as e:
+        logger.warning(f"journal LLM {action}: {e}")
+
 # ----------------------------------------------------------------- Bibliotheque de templates
 # Ajouter un template = 1 composition .tsx dans remotion/src + 1 entree ici.
 # id -> composition Remotion + metadonnees galerie. Les entrees "sequence*" partagent
@@ -141,6 +159,7 @@ def recommander_template(telegram_id: str, contenu_id: str) -> dict:
             model="claude-haiku-4-5", max_tokens=120, system=_ROLE_RECO,
             messages=[{"role": "user", "content": f"Post :\n\n{texte}\n\nDonne le JSON."}],
         )
+        _journal_llm(telegram_id, "reel_reco", resp)
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         m = re.search(r"\{.*\}", raw, re.S)
         data = json.loads(m.group(0) if m else raw)
@@ -198,6 +217,7 @@ def _script_affiche(texte: str, marque: dict) -> dict:
             system=_ROLE_AFFICHE,
             messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nDonne le JSON."}],
         )
+        _journal_llm(marque.get("telegram_id"), "reel_script_affiche", resp)
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         m = re.search(r"\{.*\}", raw, re.S)
         data = json.loads(m.group(0) if m else raw)
@@ -306,7 +326,7 @@ def upload_image_source(telegram_id: str, data: bytes) -> dict:
         transformation=[{"width": 1600, "crop": "limit"}, {"quality": "auto"}],
     )
     url = up["secure_url"]
-    d = _decrire(url)
+    d = _decrire(url, telegram_id)
     return {"url": url, "desc": d["description"]}
 
 
@@ -411,6 +431,7 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
             system=role,
             messages=[{"role": "user", "content": f"{entete}Post:\n\n{texte[:4000]}\n\nAvailable visuals:\n{liste}{consigne}\n\nReturn the JSON."}],
         )
+        _journal_llm(marque.get("telegram_id"), "reel_scenario", resp)
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         m = re.search(r"\{.*\}", raw, re.S)
         data = json.loads(m.group(0) if m else raw)
@@ -476,6 +497,7 @@ def _script_depuis_post(texte: str, marque: dict, long: bool = False) -> dict:
             system=_ROLE_LONG if long else _ROLE,
             messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nDonne le JSON."}],
         )
+        _journal_llm(marque.get("telegram_id"), "reel_script", resp)
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         m = re.search(r"\{.*\}", raw, re.S)
         data = json.loads(m.group(0) if m else raw)
