@@ -428,11 +428,9 @@ async def refresh_analytics(payload: dict = Depends(verify_admin_token)):
 
 @router.post("/credits/reset-monthly")
 async def reset_monthly(payload: dict = Depends(verify_admin_token)):
-    try:
-        return {"ok": True, "reset": admin_service.reset_monthly_credits()}
-    except Exception as e:
-        logger.error(f"Reset credits error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Obsolète : les crédits ont été remplacés par les quotas par type d'action,
+    qui se réinitialisent seuls à chaque période (ensure_period_counters)."""
+    return {"ok": True, "reset": {}, "info": "Les quotas se réinitialisent automatiquement."}
 
 
 class PushBroadcast(BaseModel):

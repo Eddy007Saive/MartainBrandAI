@@ -346,6 +346,12 @@ CREATE TABLE public.test_2 (
 -- Suppression des colonnes miroir (14/08/2026) : users ne decrit plus que le COMPTE
 -- (identite, authentification, facturation, preferences). Les comptes sociaux sont
 -- dans comptes_sociaux, la fiche de marque dans marques. 56 -> 26 colonnes.
+-- Facturation (14/08/2026) : plan, credits, stripe_subscription_id, plan_renews_at
+-- et plan_cancel_at sont supprimees. `subscriptions` + `plans` font autorite (elles
+-- gouvernent les quotas) ; elles avaient diverge sur 4 comptes sur 10, faussant le
+-- chiffre d'affaires affiche. subscriptions gagne `cancel_at`. On garde
+-- stripe_customer_id : le client Stripe appartient au COMPTE, pas a l'abonnement.
+-- Les credits sont morts (remplaces par les quotas) : RPC deduct/refund_credits supprimees.
 CREATE TABLE public.users (
   telegram_id bigint NOT NULL,
   nom text,

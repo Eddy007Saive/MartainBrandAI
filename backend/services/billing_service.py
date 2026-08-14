@@ -248,21 +248,60 @@ def _apply_subscription(sub: dict):
 
     actif = status in ("active", "trialing")
     # Transition None -> date = nouvelle résiliation programmée -> email admin (par la route).
-    prev = supabase.table("users").select("plan_cancel_at").eq("telegram_id", uid).execute().data
-    was_canceling = bool(prev and prev[0].get("plan_cancel_at"))
+    prev = (supabase.table("subscriptions").select("cancel_at")
+            .eq("user_id", uid).order("created_at", desc=True).limit(1).execute().data)
+    was_canceling = bool(prev and prev[0].get("cancel_at"))
     newly_canceling = bool(cancel_at) and actif and not was_canceling
 
-    supabase.table("users").update({
-        "plan": "pro" if actif else "gratuit",
-        "stripe_subscription_id": sub.get("id") if actif else None,
-        "plan_renews_at": pe,
-        "plan_cancel_at": cancel_at if actif else None,   # date de fin si résilié, sinon None
-    }).eq("telegram_id", uid).execute()
+    try:
+        supabase.table("subscriptions").update({"cancel_at": cancel_at if actif else None}) \
+            .eq("user_id", uid).execute()
+    except Exception as e:
+        logger.warning(f"stripe: date de résiliation non enregistrée pour {uid}: {e}")
     logger.info(f"stripe: {uid} -> {status}" + (" (résiliation programmée)" if cancel_at else ""))
     return {"uid": uid, "status": status, "newly_canceling": newly_canceling, "cancel_at": cancel_at}
 
 
 # ----------------------------------------------------------------- Packs de rachat
+def abonnements() -> dict:
+    """{telegram_id: {plan, prix_cents, statut, renouvelle_le, resilie_le, stripe_subscription_id}}
+    pour tous les comptes, en une requête. `subscriptions` fait autorité depuis le
+    14/08/2026 : c'est elle qui gouverne les quotas, donc ce que le client reçoit
+    vraiment. Le prix vient de `plans`, plus d'un barème codé en dur."""
+    try:
+        subs = (supabase.table("subscriptions")
+                .select("user_id, status, current_period_end, cancel_at, stripe_subscription_id, plan_id, created_at")
+                .order("created_at", desc=True).execute().data or [])
+        tarifs = {p["id"]: p for p in (supabase.table("plans").select("id, name, price_cents").execute().data or [])}
+    except Exception as e:
+        logger.error(f"lecture abonnements: {e}")
+        return {}
+    par_user = {}
+    for s in subs:
+        uid = s["user_id"]
+        if uid in par_user:      # trié par date : on garde le plus récent
+            continue
+        p = tarifs.get(s.get("plan_id")) or {}
+        actif = s.get("status") in ("active", "trialing")
+        par_user[uid] = {
+            "plan": (p.get("name") or "Essai"),
+            "prix_cents": (p.get("price_cents") or 0) if s.get("status") == "active" else 0,
+            "statut": s.get("status"),
+            "renouvelle_le": s.get("current_period_end"),
+            "resilie_le": s.get("cancel_at"),
+            "stripe_subscription_id": s.get("stripe_subscription_id") if actif else None,
+        }
+    return par_user
+
+
+def abonnement(telegram_id: str) -> dict:
+    """L'abonnement courant d'un compte (voir abonnements())."""
+    return abonnements().get(telegram_id, {
+        "plan": "Essai", "prix_cents": 0, "statut": None,
+        "renouvelle_le": None, "resilie_le": None, "stripe_subscription_id": None,
+    })
+
+
 def list_packs(action_type: str = None) -> list:
     """Packs actifs (optionnellement filtrés par type), formulés en résultats."""
     try:

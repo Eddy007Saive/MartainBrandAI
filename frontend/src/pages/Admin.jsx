@@ -704,7 +704,7 @@ export default function Admin() {
                             <Badge className={cn('text-[10.5px] py-0', PLAN_CFG[user.plan || 'gratuit'].bg, PLAN_CFG[user.plan || 'gratuit'].color)}>{PLAN_CFG[user.plan || 'gratuit'].label}</Badge>
                           </td>
                           <td className="px-3 py-3 text-right">
-                            <span className="inline-flex items-center gap-1 text-slate-300 font-medium"><Coins className="w-3.5 h-3.5 text-slate-500" />{user.credits ?? 0}</span>
+                            
                           </td>
                           <td className="px-3 py-3">
                             {user.reseaux_connectes?.length ? (
@@ -756,7 +756,7 @@ export default function Admin() {
                         </div>
                         <div className="flex items-center gap-3 mt-3 text-[12px] text-slate-400">
                           <Badge className={cn('text-[10px] py-0', PLAN_CFG[user.plan || 'gratuit'].bg, PLAN_CFG[user.plan || 'gratuit'].color)}>{PLAN_CFG[user.plan || 'gratuit'].label}</Badge>
-                          <span className="inline-flex items-center gap-1"><Coins className="w-3 h-3" />{user.credits ?? 0}</span>
+                          
                           {user.reseaux_connectes?.length > 0 && (
                             <span className="inline-flex items-center gap-1">{user.reseaux_connectes.map((n) => <span key={n} className="w-2 h-2 rounded-full" style={{ background: NET_DOT[n] || '#64748b' }} />)}</span>
                           )}

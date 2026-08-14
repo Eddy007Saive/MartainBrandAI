@@ -4,9 +4,31 @@ from datetime import datetime, timezone, timedelta
 from config import supabase, logger
 from services.auth_service import sanitize_user
 
-PLAN_CREDITS = {"gratuit": 100, "pro": 1000, "business": 3000, "boss": 9999}
-PLAN_PRICE = {"gratuit": 0, "pro": 279, "business": 49, "boss": 0}
+# Les forfaits et leurs prix vivent dans la table `plans` (voir billing_service.abonnements()).
+# Le barème codé en dur a été retiré le 14/08/2026 : il faisait diverger le chiffre
+# d'affaires affiché de la réalité facturée.
 _RESEAUX = ["linkedin", "instagram", "facebook", "tiktok", "youtube", "googlebusiness"]
+
+
+def _abonnements() -> dict:
+    from services import billing_service
+    return billing_service.abonnements()
+
+
+def _champs_abonnement(abo: dict | None) -> dict:
+    """Recompose les clés que l'interface admin attend (elle lisait user.plan,
+    user.plan_renews_at…) depuis l'abonnement réel. Le nom du forfait est ramené
+    en minuscules pour rester compatible avec l'affichage existant."""
+    abo = abo or {}
+    nom = (abo.get("plan") or "Essai").lower()
+    return {
+        "plan": "gratuit" if nom in ("essai", "gratuit") else nom,
+        "plan_libelle": abo.get("plan") or "Essai",
+        "plan_renews_at": abo.get("renouvelle_le"),
+        "plan_cancel_at": abo.get("resilie_le"),
+        "stripe_subscription_id": abo.get("stripe_subscription_id"),
+        "prix_cents": abo.get("prix_cents") or 0,
+    }
 
 
 def _tous_les_comptes() -> dict:
@@ -36,8 +58,7 @@ def get_users(filter: str = "all", q: str = None) -> list:
         query = query.eq("actif", False)
     elif filter == "active":
         query = query.eq("actif", True)
-    elif filter in ("gratuit", "pro", "business", "boss"):
-        query = query.eq("plan", filter)
+    # Le filtre par forfait s'applique après coup : le forfait vit dans `subscriptions`.
     result = query.order("created_at", desc=True).execute()
     users = [sanitize_user(user) for user in result.data]
     if q:
@@ -46,8 +67,12 @@ def get_users(filter: str = "all", q: str = None) -> list:
                  or ql in (u.get("email") or "").lower()
                  or ql in (u.get("username") or "").lower()]
     comptes = _tous_les_comptes()
+    abos = _abonnements()
     for u in users:
         u["reseaux_connectes"] = _reseaux_connectes(u.get("telegram_id"), comptes)
+        u.update(_champs_abonnement(abos.get(u.get("telegram_id"))))
+    if filter in ("gratuit", "pro", "business", "boss"):
+        users = [u for u in users if (u.get("plan") or "gratuit") == filter]
     return users
 
 
@@ -67,6 +92,7 @@ def get_user_detail(telegram_id: str) -> dict | None:
     commentaires = supabase.table("commentaires").select("id").eq("telegram_id", telegram_id).execute()
 
     user["reseaux_connectes"] = _reseaux_connectes(telegram_id)
+    user.update(_champs_abonnement(_abonnements().get(telegram_id)))
     user["derniere_activite"] = (contenus.data[0].get("updated_at") or contenus.data[0].get("created_at")) if contenus.data else None
     user["stats"] = {
         "total_contenus": len(contenus.data),
@@ -90,22 +116,24 @@ def update_credits(telegram_id: str, amount: int, mode: str = "set") -> dict | N
 
 
 def update_plan(telegram_id: str, plan: str, reset_credits: bool = True) -> dict | None:
-    if plan not in PLAN_CREDITS:
+    """Change le forfait d'un compte à la main (support). Écrit dans `subscriptions`,
+    la seule source qui gouverne réellement les quotas — `users.plan` n'existe plus."""
+    r = supabase.table("plans").select("id, name").ilike("name", plan).limit(1).execute()
+    if not r.data:
         return None
-    upd = {"plan": plan}
-    if reset_credits:
-        upd["credits"] = PLAN_CREDITS[plan]
-    res = supabase.table("users").update(upd).eq("telegram_id", telegram_id).execute()
-    return sanitize_user(res.data[0]) if res.data else None
-
-
-def reset_monthly_credits() -> dict:
-    """Réinitialise le solde de crédits de chaque user au quota de son forfait."""
-    done = {}
-    for plan, cr in PLAN_CREDITS.items():
-        res = supabase.table("users").update({"credits": cr}).eq("plan", plan).execute()
-        done[plan] = len(res.data or [])
-    return done
+    plan_id = r.data[0]["id"]
+    sub = (supabase.table("subscriptions").select("id").eq("user_id", telegram_id)
+           .order("created_at", desc=True).limit(1).execute())
+    if sub.data:
+        supabase.table("subscriptions").update({"plan_id": plan_id, "status": "active"}) \
+            .eq("id", sub.data[0]["id"]).execute()
+    else:
+        from datetime import timedelta
+        supabase.table("subscriptions").insert({
+            "user_id": telegram_id, "plan_id": plan_id, "status": "active",
+            "current_period_end": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
+        }).execute()
+    return get_user_detail(telegram_id)
 
 
 def system_info() -> dict:
@@ -132,8 +160,10 @@ def system_info() -> dict:
         "Génération IA": bool(CLAUDE_API_KEY or OPENROUTER_API_KEY),
     }
 
-    # Coûts & marges depuis usage_log
-    EUR_PER_CREDIT = PLAN_PRICE["pro"] / PLAN_CREDITS["pro"]  # valeur de vente d'un crédit (€)
+    # Coûts & marges depuis usage_log. Le « crédit » n'est plus une monnaie facturée
+    # (remplacé par les quotas) mais reste l'unité de mesure de l'historique : on garde
+    # une valeur de référence pour continuer à lire les marges passées.
+    EUR_PER_CREDIT = 279 / 1000
     USD_TO_EUR = 0.92
     rows = supabase.table("usage_log").select("action, credits, cost_usd").execute().data or []
     per = {}
@@ -169,7 +199,8 @@ def system_info() -> dict:
         "integrations": integrations,
         "cron_analytics_h": ANALYTICS_CRON_HOURS,
         "bareme": credit_service.COUTS,
-        "plans": {"credits": PLAN_CREDITS, "prix": PLAN_PRICE},
+        "plans": {p["name"]: p.get("price_cents", 0) / 100
+                  for p in (supabase.table("plans").select("name, price_cents").execute().data or [])},
         "usage": usage,
     }
 
@@ -269,12 +300,13 @@ def analytics_produit() -> dict:
         return _analytics_cache["data"]
 
     # ---- Business (Supabase) ----
-    users = supabase.table("users").select("telegram_id, plan, actif, is_admin, created_at").execute().data or []
+    users = supabase.table("users").select("telegram_id, actif, is_admin, created_at").execute().data or []
     clients = [u for u in users if not u.get("is_admin")]
     actifs = [u for u in clients if u.get("actif")]
+    abos = _abonnements()
     par_plan = {}
     for u in actifs:
-        p = u.get("plan") or "gratuit"
+        p = _champs_abonnement(abos.get(u.get("telegram_id")))["plan"]
         par_plan[p] = par_plan.get(p, 0) + 1
 
     plans = {p["id"]: p for p in (supabase.table("plans").select("id, name, price_cents").execute().data or [])}
@@ -390,14 +422,15 @@ def get_global_stats() -> dict:
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
     new_users_week = len([u for u in users.data if u.get("created_at", "") > week_ago])
 
-    # Forfaits + revenus
-    par_plan = {"gratuit": 0, "pro": 0, "business": 0}
+    # Forfaits + revenus — depuis `subscriptions` et `plans`, seule source facturée.
+    abos = _abonnements()
+    par_plan = {}
     for u in users.data:
-        p = u.get("plan") or "gratuit"
+        p = _champs_abonnement(abos.get(u.get("telegram_id")))["plan"]
         par_plan[p] = par_plan.get(p, 0) + 1
-    mrr = sum(PLAN_PRICE.get(u.get("plan") or "gratuit", 0) for u in users.data)
-    abonnes = par_plan.get("pro", 0) + par_plan.get("business", 0)
-    credits_total = sum(int(u.get("credits") or 0) for u in users.data)
+    mrr = sum((a.get("prix_cents") or 0) for a in abos.values()) / 100
+    abonnes = sum(1 for a in abos.values() if (a.get("prix_cents") or 0) > 0)
+    credits_total = 0   # système de crédits remplacé par les quotas par type d'action
 
     contenus = supabase.table("contenu").select("id, statut, reseau_cible, created_at").execute()
     total_contenus = len(contenus.data)

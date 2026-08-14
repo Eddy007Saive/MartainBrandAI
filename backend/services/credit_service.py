@@ -1,8 +1,10 @@
 """
-Gestion des crédits (débit atomique côté Postgres).
-Barème : ce que coûte chaque action en crédits.
+Barème des coûts : ce que « pèse » chaque action, en unités de crédit.
+
+Ce barème ne facture plus rien depuis le passage aux quotas par type d'action
+(voir quota_service) : il sert d'unité de mesure pour l'historique de
+consommation (usage_log) et le calcul des marges affiché côté admin.
 """
-from config import supabase, logger
 
 # Coûts en crédits. Pour post/script, le coût dépend du niveau de qualité choisi.
 COUTS = {
@@ -24,30 +26,11 @@ def cout(action: str, qualite: str = "equilibre") -> int:
 
 
 def billing_id(telegram_id: str) -> str:
-    """Facturation PAR COMPTE : chaque compte (master comme sous-compte) a ses propres crédits."""
+    """Facturation PAR COMPTE : chaque compte (master comme sous-compte) a son propre abonnement."""
     return telegram_id
 
 
-def get_credits(telegram_id: str) -> int:
-    r = supabase.table("users").select("credits").eq("telegram_id", telegram_id).execute()
-    if not r.data:
-        return 0
-    return r.data[0].get("credits") or 0
-
-
-def deduct(telegram_id: str, amount: int) -> int:
-    """Débit atomique sur le compte. Retourne le nouveau solde, ou -1 si insuffisant."""
-    try:
-        res = supabase.rpc("deduct_credits", {"p_telegram_id": telegram_id, "p_amount": amount}).execute()
-        val = res.data
-        return val if isinstance(val, int) else -1
-    except Exception as e:
-        logger.error(f"deduct_credits error: {e}")
-        return -1
-
-
-def refund(telegram_id: str, amount: int) -> None:
-    try:
-        supabase.rpc("refund_credits", {"p_telegram_id": telegram_id, "p_amount": amount}).execute()
-    except Exception as e:
-        logger.error(f"refund_credits error: {e}")
+# get_credits / deduct / refund ont ete retires le 14/08/2026 : plus aucun appel
+# depuis le passage aux quotas par type d'action (voir quota_service). La colonne
+# users.credits et les fonctions SQL deduct_credits/refund_credits sont supprimees.
+# Ce module ne sert plus qu'au bareme des couts (COUTS), affiche cote admin.
