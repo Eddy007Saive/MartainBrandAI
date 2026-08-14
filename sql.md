@@ -129,13 +129,14 @@ CREATE TABLE public.contenu (
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   date_publication timestamp with time zone,
-  callback_url text,
   CONSTRAINT contenu_pkey PRIMARY KEY (id),
   CONSTRAINT contenu_telegram_id_fkey FOREIGN KEY (telegram_id) REFERENCES public.users(telegram_id)
 );
--- Normalisation phase 1 (14/08/2026) : lien_notion, post_id, image_martin et studio_id
--- ont été supprimées (aucune référence dans le code ; valeurs résiduelles dans
--- archive.contenu_colonnes_mortes). La contrainte contenu_studio_id_fkey est tombée avec.
+-- Normalisation phase 1 (14/08/2026) — colonnes supprimées de `contenu` :
+--   lien_notion, post_id, image_martin, studio_id : aucune référence dans le code
+--   callback_url : webhook de validation de l'ère n8n, fonctionnalité retirée avec son code
+-- Valeurs résiduelles conservées dans archive.contenu_colonnes_mortes.
+-- La contrainte contenu_studio_id_fkey est tombée avec studio_id.
 CREATE TABLE public.documents (
   id bigint NOT NULL DEFAULT nextval('documents_id_seq'::regclass),
   content text,

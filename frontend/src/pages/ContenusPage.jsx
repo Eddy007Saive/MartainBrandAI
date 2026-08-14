@@ -1449,12 +1449,6 @@ export default function ContenusPage() {
                             <p className="text-[#3AFFA3] text-[13px] font-inter tabular-nums">{new Date(selectedContenu.date_publication).toLocaleString('fr-FR')}</p>
                           </div>
                         )}
-                        {selectedContenu.callback_url && (
-                          <div className="col-span-2 bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">{t('contenus.detail.webhook')}</p>
-                            <p className="text-emerald-400 text-xs truncate font-inter">{selectedContenu.callback_url}</p>
-                          </div>
-                        )}
                       </div>
                       {selectedContenu.publish_status === 'échec' && selectedContenu.publish_error && (
                         <div className="flex gap-2.5 items-start p-3 rounded-lg bg-red-500/[0.07] border border-red-500/20">

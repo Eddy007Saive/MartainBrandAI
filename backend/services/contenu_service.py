@@ -1,4 +1,3 @@
-import httpx
 import cloudinary
 import cloudinary.uploader
 from datetime import datetime, timezone
@@ -58,7 +57,6 @@ def get_contenu(contenu_id: str, telegram_id: str) -> dict | None:
 
 
 async def update_contenu(contenu_id: str, telegram_id: str, update_data: dict) -> dict:
-    # Get current content to check callback_url
     current = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     if not current.data:
         return {"error": "not_found"}
@@ -83,31 +81,6 @@ async def update_contenu(contenu_id: str, telegram_id: str, update_data: dict) -
                 update_data["date_publication"] = creneau
                 logger.info(f"Auto-planif contenu {contenu_id} -> {creneau} ({'date passée' if past else 'date absente'})")
 
-    # If validating content and callback_url exists, call the webhook
-    webhook_result = None
-    if update_data.get("statut") == "Valider" and contenu_data.get("callback_url"):
-        callback_url = contenu_data["callback_url"]
-        try:
-            logger.info(f"Calling validation webhook: {callback_url}")
-            async with httpx.AsyncClient(timeout=30) as client:
-                webhook_response = await client.post(
-                    callback_url,
-                    json={
-                        "contenu_id": contenu_id,
-                        "telegram_id": telegram_id,
-                        "action": "validate",
-                        "statut": "Valider"
-                    }
-                )
-                logger.info(f"Webhook response: {webhook_response.status_code}")
-                webhook_result = {
-                    "success": webhook_response.status_code == 200,
-                    "status_code": webhook_response.status_code
-                }
-        except Exception as webhook_error:
-            logger.error(f"Webhook error: {webhook_error}")
-            webhook_result = {"success": False, "error": str(webhook_error)}
-
     result = supabase.table("contenu").update(update_data).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     response = result.data[0] if result.data else contenu_data
 
@@ -122,8 +95,6 @@ async def update_contenu(contenu_id: str, telegram_id: str, update_data: dict) -
         except Exception as e:
             logger.warning(f"programmation après validation {contenu_id}: {e}")
 
-    if webhook_result:
-        response["webhook_result"] = webhook_result
     return response
 
 
