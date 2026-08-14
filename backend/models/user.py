@@ -33,7 +33,6 @@ class UserUpdate(BaseModel):
     carrousel_couleur_accent: Optional[str] = None
     carrousel_font: Optional[str] = None
     carrousel_font_corps: Optional[str] = None
-    api_key_gemini: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
     late_account_instagram: Optional[str] = None
@@ -42,10 +41,6 @@ class UserUpdate(BaseModel):
     late_account_youtube: Optional[str] = None
     late_account_googlebusiness: Optional[str] = None
     late_account_twitter: Optional[str] = None
-    gpt_url_linkedin: Optional[str] = None
-    gpt_url_instagram: Optional[str] = None
-    gpt_url_sujets: Optional[str] = None
-    gpt_url_default: Optional[str] = None
     telegram_bot_token: Optional[str] = None
     telegram_bot_username: Optional[str] = None
     timezone: Optional[str] = None
@@ -72,7 +67,6 @@ class UserResponse(BaseModel):
     carrousel_couleur_accent: Optional[str] = None
     carrousel_font: Optional[str] = None
     carrousel_font_corps: Optional[str] = None
-    api_key_gemini: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
     late_account_instagram: Optional[str] = None
@@ -81,10 +75,6 @@ class UserResponse(BaseModel):
     late_account_youtube: Optional[str] = None
     late_account_googlebusiness: Optional[str] = None
     late_account_twitter: Optional[str] = None
-    gpt_url_linkedin: Optional[str] = None
-    gpt_url_instagram: Optional[str] = None
-    gpt_url_sujets: Optional[str] = None
-    gpt_url_default: Optional[str] = None
     telegram_bot_token: Optional[str] = None
     telegram_bot_username: Optional[str] = None
     timezone: Optional[str] = None

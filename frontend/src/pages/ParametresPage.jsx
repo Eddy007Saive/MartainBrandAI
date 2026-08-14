@@ -1075,16 +1075,6 @@ export default function ParametresPage() {
     </div>
   );
 
-  const renderApiKeys = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-5">
-        <Field label="OpenRouter API Key" name="api_key_gemini" value={user?.api_key_gemini} onChange={handleChange} type="password" hasValue={!!user?.api_key_gemini}
-          hint={"Comment obtenir votre clé :\n1. Allez sur openrouter.ai\n2. Créez un compte\n3. Keys → Create Key\n4. Collez-la ici."} />
-      </div>
-      <p className="text-xs text-slate-500 font-inter">La clé API est stockée de manière sécurisée.</p>
-    </div>
-  );
-
   const renderStyle = () => (
     <div className="space-y-5">
       <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5">

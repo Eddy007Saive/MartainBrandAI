@@ -289,6 +289,13 @@ CREATE TABLE public.test_2 (
   message jsonb NOT NULL,
   CONSTRAINT test_2_pkey PRIMARY KEY (id)
 );
+-- Normalisation phase 1 (14/08/2026) — colonnes supprimées de `users` :
+--   gpt_url_linkedin/instagram/sujets/default : ère des GPTs, jamais lues
+--   api_key_openrouter/gemini/openai : l'IA tourne sur la clé serveur ; l'UI qui
+--     les éditait était injoignable. Le trigger encrypt_api_keys et la fonction
+--     get_user_keys (SECURITY DEFINER exécutable par anon) sont tombés avec.
+--   heygen_avatar_name/id/status : doublons de la table heygen_avatars
+-- Valeurs résiduelles conservées dans archive.users_colonnes_mortes.
 CREATE TABLE public.users (
   telegram_id bigint NOT NULL,
   nom text,
@@ -300,17 +307,10 @@ CREATE TABLE public.users (
   use_photo boolean DEFAULT false,
   user_name text,
   style_vestimentaire text,
-  api_key_openrouter text,
-  api_key_gemini text,
-  api_key_openai text,
   sexe USER-DEFINED DEFAULT 'homme'::"Sexe",
   couleur_principale text DEFAULT '#003D2E'::text,
   couleur_secondaire text DEFAULT '#0077FF'::text,
   couleur_accent text DEFAULT '#3AFFA3'::text,
-  gpt_url_linkedin text,
-  gpt_url_instagram text,
-  gpt_url_sujets text,
-  gpt_url_default text,
   password_hash text,
   late_profile_id text,
   late_account_linkedin text,
@@ -320,6 +320,5 @@ CREATE TABLE public.users (
   late_account_youtube text,
   late_account_googlebusiness text,
   late_account_twitter text,
-  heygen_avatar_name text,
   CONSTRAINT users_pkey PRIMARY KEY (telegram_id)
 );
