@@ -226,48 +226,69 @@ def _script_affiche(texte: str, marque: dict) -> dict:
 
 
 _ROLE_SEQUENCE = (
-    "Tu es realisateur de reels courts (15-22 s). A partir d'un post et d'une liste de visuels disponibles, "
-    "tu ecris le SCENARIO d'un reel : une suite de 4 a 7 plans.\n"
-    "Recettes possibles (choisis celle qui colle au post) :\n"
-    "- promo : accroche choc -> benefice -> preuve -> offre/CTA\n"
-    "- tutoriel : accroche -> 2 a 4 etapes -> CTA\n"
-    "- preuve : accroche -> chiffres/resultats -> CTA\n"
-    "Types de plans : 'typo' (texte plein ecran), 'image' (un visuel de la liste + texte court), 'cta' (dernier plan, obligatoire).\n"
-    "Regles STRICTES :\n"
-    "- 4 a 7 plans, duree 2 a 4.5 s chacun, le dernier est TOUJOURS type cta\n"
-    "- texte : 2 a 7 mots par plan, percutant, dans la langue du post\n"
-    "- accents : 1 a 2 mots du texte a surligner (recopies exactement)\n"
-    "- image_id : UNIQUEMENT un id de la liste fournie ; s'il n'y a pas de visuel pertinent, fais un plan typo\n"
-    "- varie les effets : zoomIn, zoomOut, panLeft, panRight\n"
-    "- bar (plan cta) : 2 a 5 mots (marque, site ou action)\n"
-    "- label (optionnel) : badge du plan quand la direction artistique le demande (AVANT/APRES, signature du temoin)\n"
-    "Reponds UNIQUEMENT en JSON strict : "
+    "You direct short social videos (15-22 s). From a post and a list of available visuals, "
+    "you write the SCENARIO of a reel: a sequence of 4 to 7 shots.\n"
+    "\n"
+    "OUTPUT LANGUAGE — ABSOLUTE RULE. These instructions are in English; every word you WRITE "
+    "for the audience (texte, accents, bar, label) must be in the client's language, given below. "
+    "Never mix languages, never translate to English, never leave an English word in the reel. "
+    "Flawless spelling and accents in that language (é, è, ê, à, ç in French; ñ, á, ó in Spanish).\n"
+    "\n"
+    "Recipes (pick the one that fits the post):\n"
+    "- promo: punchy hook -> benefit -> proof -> offer/CTA\n"
+    "- tutorial: hook -> 2 to 4 steps -> CTA\n"
+    "- proof: hook -> numbers/results -> CTA\n"
+    "Shot types: 'typo' (full-screen text), 'image' (one visual from the list + short text), "
+    "'cta' (last shot, mandatory).\n"
+    "\n"
+    "THE CLIENT'S OWN INSTRUCTIONS OUTRANK EVERYTHING.\n"
+    "When the client says what to write or where to place it, obey to the letter:\n"
+    "- he dictates a sentence (\"end with: book your demo\") -> reuse HIS EXACT WORDS, "
+    "do not rephrase or embellish them, on the exact shot he asks for\n"
+    "- \"at the end\" / \"to finish\" -> that is the text of the last shot (the cta)\n"
+    "- \"start with\" / \"first\" -> that is the text of shot 1\n"
+    "- he imposes a tone, an angle, an order, a banned word -> hold it across ALL shots\n"
+    "- his instruction contradicts the recipe or the post? HE WINS.\n"
+    "An ignored instruction makes the reel unusable: re-read it before returning your JSON.\n"
+    "\n"
+    "STRICT rules (they apply UNLESS the client asks otherwise):\n"
+    "- 4 to 7 shots, 2 to 4.5 s each, the last one is ALWAYS type cta\n"
+    "- texte: 2 to 7 words per shot, punchy\n"
+    "- accents: 1 or 2 words of that text to highlight (copied exactly as written)\n"
+    "- image_id: ONLY an id from the provided list; if no visual fits, make it a typo shot\n"
+    "- vary the effects: zoomIn, zoomOut, panLeft, panRight\n"
+    "- bar (cta shot): 2 to 5 words (brand, website or action)\n"
+    "- label (optional): shot badge when the art direction asks for it (BEFORE/AFTER, witness signature)\n"
+    "Answer with STRICT JSON only: "
     '{"recette": "...", "segments": [{"type": "typo|image|cta", "dur": 2.8, "texte": "...", '
-    '"accents": ["..."], "image_id": "...ou null", "effet": "zoomIn|zoomOut|panLeft|panRight", '
-    '"reveal": "carte|lamelles|portes|stores|iris", "bar": "...si cta", "label": "...optionnel"}]}'
+    '"accents": ["..."], "image_id": "...or null", "effet": "zoomIn|zoomOut|panLeft|panRight", '
+    '"reveal": "carte|lamelles|portes|stores|iris", "bar": "...if cta", "label": "...optional"}]}'
 )
 
 # Direction artistique par style : injectee dans le prompt scenariste pour que
 # l'ECRITURE colle a l'habillage (le moteur Remotion fait le reste).
 _GUIDES_STYLE = {
-    "impact": ("STYLE IMPACT : phrases de 2 a 4 mots MAXIMUM, verbes forts, zero blabla. "
-               "Rythme rapide : dur entre 2 et 2.8 s."),
-    "odyssee": ("STYLE ODYSSEE : ton grandiose et evocateur (voyage, immensite). "
-                "Privilegie les plans image avec reveal iris, textes courts et aeriens."),
-    "vlog": ("STYLE VLOG : ton parle et direct, premiere personne, comme une story face camera. "
-             "Naturel, complice, pas corporate."),
-    "carnet": ("STYLE CARNET DE VOYAGE : ton intime de journal de bord a la premiere personne, "
-               "phrases courtes et sensorielles."),
-    "avantapres": ("STRUCTURE IMPOSEE AVANT/APRES : plan 1 = typo accroche ; puis alternance stricte "
-                   "d'images avec label 'AVANT' puis label 'APRES' (renseigne le champ label) dans "
-                   "l'ordre logique des visuels ; dernier plan cta. Pas assez d'images ? Remplace par "
-                   "des plans typo qui decrivent l'avant puis l'apres."),
-    "temoignage": ("STYLE TEMOIGNAGE : ecris le reel comme UNE citation client authentique a la "
-                   "premiere personne (resultat concret, emotion sincere). Sur le DERNIER plan avant "
-                   "le cta, renseigne label = 'Prenom, qualite' (ex : 'Sophie, cliente depuis 2024')."),
-    "conseils": ("STRUCTURE CONSEILS : plan 1 = typo accroche (promesse ou erreur courante) ; puis 3 a "
-                 "5 plans = UN conseil concret et actionnable par plan (typo ou image) ; dernier plan cta."),
+    "impact": ("IMPACT STYLE: sentences of 2 to 4 words MAXIMUM, strong verbs, zero filler. "
+               "Fast pace: dur between 2 and 2.8 s."),
+    "odyssee": ("ODYSSEY STYLE: grand, evocative tone (journey, vastness). "
+                "Favour image shots with the iris reveal; short, airy texts."),
+    "vlog": ("VLOG STYLE: spoken, direct tone, first person, like a face-to-camera story. "
+             "Natural and complicit, never corporate."),
+    "carnet": ("TRAVEL JOURNAL STYLE: intimate logbook tone in the first person, "
+               "short sensory sentences."),
+    "avantapres": ("MANDATORY BEFORE/AFTER STRUCTURE: shot 1 = typo hook; then a strict alternation "
+                   "of images labelled BEFORE then AFTER (fill the label field, in the client's "
+                   "language) following the logical order of the visuals; last shot is the cta. "
+                   "Not enough images? Replace them with typo shots describing the before, then the after."),
+    "temoignage": ("TESTIMONIAL STYLE: write the reel as ONE authentic client quote in the first person "
+                   "(concrete result, sincere emotion). On the LAST shot before the cta, set "
+                   "label = 'First name, role' (e.g. 'Sophie, client since 2024')."),
+    "conseils": ("TIPS STRUCTURE: shot 1 = typo hook (a promise or a common mistake); then 3 to 5 shots "
+                 "= ONE concrete, actionable tip per shot (typo or image); last shot is the cta."),
 }
+
+# Langue de redaction du client -> consigne explicite (on ne laisse pas le modele deduire).
+_LANGUES = {"fr": "French", "en": "English", "es": "Spanish"}
 
 
 def upload_image_source(telegram_id: str, data: bytes) -> dict:
@@ -357,20 +378,31 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
     ids = {p["id"] for p in pool}
     urls = {p["id"]: _img_rendu(p["url"]) for p in pool}
     liste = "\n".join(f"- {p['id']} : {p['desc']}" for p in pool) or "(aucun visuel disponible)"
-    role = _ROLE_SEQUENCE + (f"\n\n{_GUIDES_STYLE[style]}" if style in _GUIDES_STYLE else "")
+    # Langue de redaction : celle du compte, transmise explicitement (jamais deduite).
+    langue = _LANGUES.get((marque.get("langue") or "fr").lower(), "French")
+    role = (_ROLE_SEQUENCE
+            + f"\n\nCLIENT'S LANGUAGE — write every audience-facing word in {langue.upper()}."
+            + (f"\n\n{_GUIDES_STYLE[style]}" if style in _GUIDES_STYLE else ""))
     consigne = ""
     if imposees and pool:
-        consigne = ("\nIMPORTANT : ces visuels ont ete choisis par le client. Tu DOIS tous les utiliser, "
-                    "un par plan de type image, dans l'ordre le plus logique pour la narration.")
+        consigne = ("\nIMPORTANT: the client picked these visuals himself. You MUST use them ALL, "
+                    "one per image shot, in the order that best serves the narration.")
+    # Le brief est repris en TETE du message (et non en annexe) : c'est l'element
+    # que le client a ecrit lui-meme, il prime sur le post et sur la recette.
+    entete = ""
     if brief:
-        consigne += f"\nConsignes du client (prioritaires) : {brief[:500]}"
+        entete = ("### CLIENT'S OWN INSTRUCTIONS — FOLLOW THEM TO THE LETTER\n"
+                  f"{brief[:1500].strip()}\n"
+                  "### end of instructions\n\n")
+        consigne += ("\nREMINDER: apply the client's instructions above word for word. "
+                     "If he dictates a sentence, copy it as-is on the shot he asked for.")
     segments = None
     try:
         resp = _messages_create(
             model="claude-haiku-4-5",
             max_tokens=900,
             system=role,
-            messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nVisuels disponibles :\n{liste}{consigne}\n\nDonne le JSON."}],
+            messages=[{"role": "user", "content": f"{entete}Post:\n\n{texte[:4000]}\n\nAvailable visuals:\n{liste}{consigne}\n\nReturn the JSON."}],
         )
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         m = re.search(r"\{.*\}", raw, re.S)
