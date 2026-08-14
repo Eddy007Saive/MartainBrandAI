@@ -5,6 +5,7 @@ import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
 import { isNativeApp } from '../../lib/appDownload';
 import LangSwitcher from '../../components/LangSwitcher';
 import { CSS, GOODTIME } from './shared';
+import Newsletter from './Newsletter';
 
 const LINKS = [
   { to: '/fonctionnalites', labelKey: 'lp.nav.features' },
@@ -65,6 +66,8 @@ export default function MarketingLayout() {
       </div></nav>
 
       <div className="pagebody"><Outlet /></div>
+
+      <Newsletter />
 
       <footer><div className="wrap">
         <div className="brand">

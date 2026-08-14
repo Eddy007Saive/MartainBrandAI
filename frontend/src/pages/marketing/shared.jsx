@@ -339,6 +339,22 @@ export const CSS = `
 .lp .gtband .gt-t b{color:var(--ink)}
 .lp .gtband a{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--accent);background:rgba(58,255,163,.08);border:1px solid rgba(58,255,163,.25);padding:8px 15px;border-radius:10px}
 .lp .gtband a:hover{background:rgba(58,255,163,.16)}
+/* Bandeau newsletter « La lettre de Rico » (au-dessus du pied de page) */
+.lp .nl-band{border-top:1px solid var(--line);background:var(--panel)}
+.lp .nl-inner{max-width:820px;margin:0 auto;padding:46px 20px;text-align:center}
+.lp .nl-kicker{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.lp .nl-txt h2{font-size:27px;line-height:1.25;margin:10px 0 8px;letter-spacing:-.02em}
+.lp .nl-txt p{color:var(--muted);font-size:15px;line-height:1.65;max-width:560px;margin:0 auto}
+.lp .nl-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.lp .nl-form input{flex:1 1 300px;max-width:360px;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:12px 15px;color:var(--ink);font-size:14.5px;outline:none;transition:border-color .15s}
+.lp .nl-form input:focus{border-color:rgba(91,108,255,.55)}
+.lp .nl-form input::placeholder{color:var(--dim)}
+.lp .nl-form button{flex:0 0 auto}
+.lp .nl-ok{margin-top:22px;color:var(--accent);font-size:15.5px;font-weight:600}
+.lp .nl-err{margin-top:12px;color:#f87171;font-size:13.5px}
+.lp .nl-legal{display:block;margin-top:14px;color:var(--dim);font-size:12px}
+@media(max-width:600px){.lp .nl-form input{max-width:none}.lp .nl-form button{width:100%}}
+
 .lp footer{border-top:1px solid var(--line);padding:36px 0}
 .lp footer .wrap{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 .lp footer .flinks{display:flex;gap:24px;font-size:13.5px;color:var(--dim)}

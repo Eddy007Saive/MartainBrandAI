@@ -1707,6 +1707,17 @@
           "a": "Tus cuentas sociales se conectan mediante OAuth oficial: nunca guardamos tus contraseñas y puedes desconectar una red cuando quieras."
         }
       }
+    },
+    "newsletter": {
+      "kicker": "La carta de Rico",
+      "titre": "Lo que de verdad cambia en las redes, cada semana",
+      "sous": "Las novedades de las plataformas, los formatos que funcionan y una acción concreta para aplicar esta semana. Escrito para quien gestiona su propia presencia.",
+      "placeholder": "tu@email.com",
+      "bouton": "Me suscribo",
+      "envoi": "Suscribiendo…",
+      "merci": "Listo — recibirás la próxima carta.",
+      "erreur": "No se pudo completar la suscripción.",
+      "legal": "Una carta por semana. Baja en un clic, cuando quieras."
     }
   },
   "manuel": {

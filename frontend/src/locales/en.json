@@ -1707,6 +1707,17 @@
           "a": "Your social accounts are connected through official OAuth: we never store your passwords, and you can disconnect a network at any time."
         }
       }
+    },
+    "newsletter": {
+      "kicker": "Rico's letter",
+      "titre": "What actually changes on social media, every week",
+      "sous": "Platform updates, the formats that work, and one concrete action to apply this week. Written for people who run their own presence.",
+      "placeholder": "you@email.com",
+      "bouton": "Subscribe",
+      "envoi": "Subscribing…",
+      "merci": "You're in — the next letter is on its way.",
+      "erreur": "Could not sign you up right now.",
+      "legal": "One letter a week. Unsubscribe in one click, any time."
     }
   },
   "manuel": {

@@ -1707,6 +1707,17 @@
           "a": "Tes comptes sociaux sont connectés via OAuth officiel : on ne stocke jamais tes mots de passe, et tu peux déconnecter un réseau à tout moment."
         }
       }
+    },
+    "newsletter": {
+      "kicker": "La lettre de Rico",
+      "titre": "Ce qui change vraiment sur les réseaux, chaque semaine",
+      "sous": "Les nouveautés des plateformes, les formats qui marchent et une action concrète à appliquer dans la semaine. Écrit pour ceux qui gèrent leur présence eux-mêmes.",
+      "placeholder": "ton@email.com",
+      "bouton": "Je m'abonne",
+      "envoi": "Inscription…",
+      "merci": "C'est noté — tu recevras la prochaine lettre.",
+      "erreur": "Inscription impossible pour le moment.",
+      "legal": "Une lettre par semaine. Désinscription en un clic, à tout moment."
     }
   },
   "manuel": {
