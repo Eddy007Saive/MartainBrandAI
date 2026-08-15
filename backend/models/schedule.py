@@ -10,6 +10,9 @@ class ScheduleItem(BaseModel):
     is_active: bool = True
     format: str = "post"  # post | reel | video
     carrousel_template: str = "bold"  # style des carrousels pour ce réseau
+    # Rythme choisi par le client : « cumule » (formats en parallèle, heures
+    # décalées) ou « suite » (un seul contenu par jour, tous formats confondus).
+    mode_planification: str = "cumule"
 
 
 class ScheduleUpdate(BaseModel):

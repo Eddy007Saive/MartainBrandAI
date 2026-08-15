@@ -708,7 +708,12 @@
       "heure": "Time",
       "enregistrer": "Save schedule",
       "sauvegardee": "Schedule saved",
-      "erreurSauvegarde": "Error while saving the schedule"
+      "erreurSauvegarde": "Error while saving the schedule",
+      "rythme": "Publishing rhythm",
+      "cumuleTitre": "Stacked",
+      "cumuleSous": "A post, a story and a reel can go out the same day, at different times. Your calendar fills up fast.",
+      "suiteTitre": "One at a time",
+      "suiteSous": "A single post per day, all formats combined. Each piece queues behind the previous one."
     },
     "abonnement": {
       "activeToast": "Subscription activated ✨",

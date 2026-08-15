@@ -123,12 +123,13 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
     start, end = plan_service._month_bounds(year, month)
     occupied: dict = {}
 
-    def occ_for(reseau_cap: str, famille: str = "feed"):
-        # Occupation PAR FAMILLE (feed/video/story) : un reel peut partager le jour d'un post,
-        # mais jamais deux contenus feed (post/carrousel) le même jour sur le même réseau.
+    def occ_for(reseau_cap: str, famille: str = "feed", mode: str = None):
+        # Occupation PAR FAMILLE en rythme « cumulé » (un reel peut partager le jour
+        # d'un post) ; en « à la suite », tous les formats sont dans la même file.
         key = (reseau_cap, famille)
         if key not in occupied:
-            occupied[key] = {dp[:10] for dp in plan_service._dates_occupees(telegram_id, reseau_cap, start, end, famille)}
+            occupied[key] = {dp[:10] for dp in plan_service._dates_occupees(
+                telegram_id, reseau_cap, start, end, famille, mode)}
         return occupied[key]
 
     created, errors = 0, []
@@ -169,8 +170,11 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 continue
             usage_service.log(telegram_id, action, model, r.get("usage"), q.get("unit_cost", 0), qualite)
 
-            famille = "video" if action == "script" else ("story" if fmt == "story" else "feed")
-            oc = occ_for(reseau_cap, famille)
+            mode_reseau = planning_service.mode_du_reseau(telegram_id, reseau_low)
+            type_pour_famille = ("Video" if action == "script"
+                                 else "Story" if fmt == "story" else "Carrousel")
+            famille = planning_service.famille_de(type_pour_famille, mode_reseau)
+            oc = occ_for(reseau_cap, famille, mode_reseau)
             slots = plan_service.creneaux_libres(telegram_id, reseau_cap, year, month, oc)
             date_pub = slots[0] if slots else None
             if date_pub:

@@ -708,7 +708,12 @@
       "heure": "Heure",
       "enregistrer": "Enregistrer la planification",
       "sauvegardee": "Planification sauvegardée",
-      "erreurSauvegarde": "Erreur lors de la sauvegarde de la planification"
+      "erreurSauvegarde": "Erreur lors de la sauvegarde de la planification",
+      "rythme": "Rythme de publication",
+      "cumuleTitre": "Cumulé",
+      "cumuleSous": "Un post, une story et un reel peuvent sortir le même jour, à des heures différentes. Ton calendrier se remplit vite.",
+      "suiteTitre": "À la suite",
+      "suiteSous": "Une seule publication par jour, tous formats confondus. Chaque contenu se range derrière le précédent."
     },
     "abonnement": {
       "activeToast": "Abonnement activé ✨",

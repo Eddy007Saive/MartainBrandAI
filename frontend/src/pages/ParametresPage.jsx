@@ -5,7 +5,7 @@ import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
   CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings, CreditCard, Sparkles,
-  Plus, Image as ImageIcon, X,
+  Plus, Image as ImageIcon, X, Repeat,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -1077,6 +1077,35 @@ export default function ParametresPage() {
                           onChange={(e) => handleScheduleChange(schedule.platform, 'preferred_time', e.target.value)}
                           data-testid={`schedule-time-${schedule.platform}`}
                           className="w-[120px] rounded-lg bg-slate-950/50 border border-white/[0.07] focus:border-[#5B6CFF] text-slate-200 text-sm px-3 py-2 outline-none" />
+                      </div>
+                    </div>
+
+                    {/* Rythme : les formats se cumulent le même jour, ou se suivent */}
+                    <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                      <div className="text-xs text-slate-400 font-inter mb-2.5 flex items-center gap-1">
+                        <Repeat className="w-3 h-3" /> {t('params.planif.rythme')}
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-2.5">
+                        {[
+                          { id: 'cumule', titre: t('params.planif.cumuleTitre'), sous: t('params.planif.cumuleSous') },
+                          { id: 'suite', titre: t('params.planif.suiteTitre'), sous: t('params.planif.suiteSous') },
+                        ].map((m) => {
+                          const actif = (schedule.mode_planification || 'cumule') === m.id;
+                          return (
+                            <button key={m.id} type="button"
+                              onClick={() => handleScheduleChange(schedule.platform, 'mode_planification', m.id)}
+                              data-testid={`schedule-mode-${schedule.platform}-${m.id}`}
+                              className={`text-left rounded-xl border p-3 transition-all active:scale-[0.98] ${actif
+                                ? 'border-[#5B6CFF]/60 bg-[#5B6CFF]/[0.08]'
+                                : 'border-white/[0.07] bg-slate-950/40 hover:border-white/[0.16]'}`}>
+                              <div className="flex items-center gap-2">
+                                <span className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 ${actif ? 'border-[#8A6CFF] bg-[#8A6CFF]' : 'border-white/25'}`} />
+                                <span className={`text-[13px] font-semibold font-inter ${actif ? 'text-white' : 'text-slate-300'}`}>{m.titre}</span>
+                              </div>
+                              <p className="text-[11.5px] text-slate-500 font-inter mt-1.5 leading-snug">{m.sous}</p>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>

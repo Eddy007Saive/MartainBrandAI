@@ -62,11 +62,12 @@ def _candidate_days(start: date, end: date, days: set) -> list:
 
 
 def _dates_occupees(telegram_id: str, reseau: str, start: date, end: date,
-                    famille: str | None = None) -> list:
+                    famille: str | None = None, mode: str = None) -> list:
     """Dates (ISO) déjà prises par un contenu daté du réseau dans le mois (non refusé).
-    Si `famille` est fournie (feed/video/story), ne compte que les contenus de cette
-    famille — deux familles différentes peuvent partager un jour (cf. planning_service)."""
+    Si `famille` est fournie, ne compte que les contenus de cette famille. En rythme
+    « à la suite », tous les formats partagent la même file (cf. planning_service)."""
     from services import planning_service
+    mode = mode or planning_service.MODE_DEFAUT
     try:
         r = (supabase.table("contenu").select("date_publication, statut, type")
              .eq("telegram_id", telegram_id).eq("reseau_cible", reseau)
@@ -78,7 +79,7 @@ def _dates_occupees(telegram_id: str, reseau: str, start: date, end: date,
         return []
     return [row["date_publication"] for row in (r.data or [])
             if row.get("date_publication") and row.get("statut") != "Refuse"
-            and (famille is None or planning_service.famille_de(row.get("type")) == famille)]
+            and (famille is None or planning_service.famille_de(row.get("type"), mode) == famille)]
 
 
 def compute_plan(telegram_id: str, year: int, month: int) -> list:

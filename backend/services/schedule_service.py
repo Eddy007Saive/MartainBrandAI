@@ -32,6 +32,9 @@ def update_schedules(telegram_id: str, schedules: list) -> dict:
             # Verrou : un template sur mesure non attribué à ce compte retombe sur « creme ».
             "carrousel_template": carrousel_service.template_valide(
                 getattr(item, "carrousel_template", None) or "bold", telegram_id),
+            "mode_planification": (getattr(item, "mode_planification", None)
+                                   if getattr(item, "mode_planification", None) in ("cumule", "suite")
+                                   else "cumule"),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         supabase.table("publication_schedules").upsert(

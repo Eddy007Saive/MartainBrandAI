@@ -4,14 +4,22 @@ Planification automatique.
 Pose une date de publication sur un contenu à partir des créneaux préférés
 de l'utilisateur (table publication_schedules).
 
-Règle : on prend le PROCHAIN jour préféré du réseau qui n'a pas déjà un contenu
-de la MÊME FAMILLE (feed / vidéo / story), à l'heure préférée. Les familles
-peuvent cohabiter le même jour (surfaces différentes chez les plateformes),
-avec des heures décalées pour ne pas tout publier à la même minute :
+Le RYTHME est choisi par le client, réseau par réseau
+(publication_schedules.mode_planification) :
+
+« cumulé » (défaut) — les familles cohabitent le même jour, sur des surfaces
+différentes chez les plateformes, à des heures décalées pour ne pas tout
+publier à la même minute. Le calendrier se remplit vite :
 
     feed  (Post écrit, Carrousel)  -> 1 max/jour, à l'heure préférée
     video (Reel, Short, Video)     -> 1 max/jour, heure préférée +6 h
     story (Story)                  -> 1 max/jour, heure préférée +3 h
+
+« à la suite » — UNE SEULE publication par jour, tous formats confondus :
+chaque contenu se range derrière le précédent dans la file. Le calendrier
+s'étale, mais rien ne se cannibalise.
+
+Dans les deux cas, on prend le prochain jour préféré du réseau qui est libre.
 
 Si le réseau n'a pas de cadence active, on retombe sur le prochain jour ouvré à 09:00.
 
@@ -44,9 +52,28 @@ _TYPE_TO_FAMILLE = {
 # Décalage horaire de chaque famille par rapport à l'heure préférée du réseau
 _FAMILLE_OFFSET_H = {"feed": 0, "story": 3, "video": 6}
 
+# Rythme « à la suite » : tout est dans la même file, la notion de famille disparaît.
+FILE_UNIQUE = "tout"
+MODE_DEFAUT = "cumule"
 
-def famille_de(type_contenu: str | None) -> str:
+
+def famille_de(type_contenu: str | None, mode: str = MODE_DEFAUT) -> str:
+    """Famille d'un contenu. En mode « à la suite », tous les formats partagent
+    la même file : un seul contenu par jour et par réseau."""
+    if mode == "suite":
+        return FILE_UNIQUE
     return _TYPE_TO_FAMILLE.get(type_contenu or "", "feed")
+
+
+def mode_du_reseau(telegram_id: str, platform: str) -> str:
+    """Rythme choisi par le client pour ce réseau (« cumule » par défaut)."""
+    try:
+        r = (supabase.table("publication_schedules").select("mode_planification")
+             .eq("telegram_id", telegram_id).eq("platform", platform).limit(1).execute())
+        return (r.data[0].get("mode_planification") if r.data else None) or MODE_DEFAUT
+    except Exception as e:
+        logger.warning(f"mode planification {platform}: {e}")
+        return MODE_DEFAUT
 
 
 def _parse_time(val) -> time:
@@ -59,10 +86,13 @@ def _parse_time(val) -> time:
         return DEFAULT_TIME
 
 
-def _jours_occupes(telegram_id: str, reseau_cible: str, famille: str) -> set:
-    """Dates (YYYY-MM-DD) déjà prises par un contenu daté du même réseau ET de la
-    même famille (feed/vidéo/story), hors refusés. Deux familles différentes
-    peuvent partager un jour — c'est voulu."""
+def _jours_occupes(telegram_id: str, reseau_cible: str, famille: str,
+                   mode: str = MODE_DEFAUT) -> set:
+    """Dates (YYYY-MM-DD) déjà prises sur ce réseau, hors refusés.
+
+    En « cumulé », seuls les contenus de la MÊME famille bloquent le jour : deux
+    familles différentes peuvent le partager. En « à la suite », n'importe quel
+    contenu bloque le jour."""
     try:
         r = (supabase.table("contenu")
              .select("date_publication, type, statut")
@@ -74,7 +104,7 @@ def _jours_occupes(telegram_id: str, reseau_cible: str, famille: str) -> set:
     return {row["date_publication"][:10] for row in (r.data or [])
             if row.get("date_publication")
             and row.get("statut") != "Refuse"
-            and famille_de(row.get("type")) == famille}
+            and famille_de(row.get("type"), mode) == famille}
 
 
 def prochain_creneau(telegram_id: str, reseau_cible: str | None,
@@ -86,25 +116,26 @@ def prochain_creneau(telegram_id: str, reseau_cible: str | None,
     platform = RESEAU_TO_PLATFORM.get(reseau_cible)
     if not platform:
         return None
-    famille = famille_de(type_contenu)
-
-    # Créneau préféré du réseau
+    # Créneau préféré du réseau + rythme choisi par le client
     try:
         sched = (supabase.table("publication_schedules")
-                 .select("days_of_week, preferred_time, is_active")
+                 .select("days_of_week, preferred_time, is_active, mode_planification")
                  .eq("telegram_id", telegram_id).eq("platform", platform).execute())
         row = sched.data[0] if sched.data else None
     except Exception as e:
         logger.error(f"planning schedule lookup error: {e}")
         row = None
 
+    mode = (row.get("mode_planification") if row else None) or MODE_DEFAUT
+    famille = famille_de(type_contenu, mode)
     ptime = _parse_time(row.get("preferred_time")) if row else DEFAULT_TIME
     days = set(row.get("days_of_week") or []) if row else set()
 
-    # Heure décalée selon la famille (cohabitation le même jour sans collision d'heure)
-    heure = (ptime.hour + _FAMILLE_OFFSET_H[famille]) % 24
+    # « cumulé » : heure décalée par famille pour éviter deux publications à la même
+    # minute. « à la suite » : un seul contenu par jour, donc l'heure préférée suffit.
+    heure = (ptime.hour + _FAMILLE_OFFSET_H.get(famille, 0)) % 24
 
-    occ = _jours_occupes(telegram_id, reseau_cible, famille)
+    occ = _jours_occupes(telegram_id, reseau_cible, famille, mode)
     today = datetime.now(timezone.utc).date()
 
     for i in range(1, HORIZON_DAYS + 1):

@@ -708,7 +708,12 @@
       "heure": "Hora",
       "enregistrer": "Guardar la planificación",
       "sauvegardee": "Planificación guardada",
-      "erreurSauvegarde": "Error al guardar la planificación"
+      "erreurSauvegarde": "Error al guardar la planificación",
+      "rythme": "Ritmo de publicación",
+      "cumuleTitre": "Acumulado",
+      "cumuleSous": "Un post, una story y un reel pueden salir el mismo día, a horas distintas. Tu calendario se llena rápido.",
+      "suiteTitre": "Uno tras otro",
+      "suiteSous": "Una sola publicación al día, todos los formatos juntos. Cada contenido se coloca detrás del anterior."
     },
     "abonnement": {
       "activeToast": "Suscripción activada ✨",
