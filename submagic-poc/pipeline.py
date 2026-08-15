@@ -686,8 +686,14 @@ def process(video, out, o, progress=lambda s: None):
         cmd = [base.FFMPEG, "-y", "-i", video]
         if music_path:
             # -stream_loop AVANT le -i qu'il concerne : boucle la musique si
-            # elle est plus courte que la vidéo finale (2e input, index [1:a])
-            cmd += ["-stream_loop", "-1", "-i", music_path]
+            # elle est plus courte que la vidéo finale (2e input, index [1:a]).
+            # BORNÉ par -t (même piège que les emojis/b-roll découvert plus
+            # tard : un flux -stream_loop -1 sans fin ne signale jamais l'EOF,
+            # ce qui peut bloquer la synchronisation finale du muxage même si
+            # amix (duration=first) ne l'attend pas explicitement — accroche
+            # totale et silencieuse, aucune erreur, seul symptôme observable :
+            # le rendu ne se termine jamais).
+            cmd += ["-stream_loop", "-1", "-t", f"{kept_duration + 1:.3f}", "-i", music_path]
         for ep in emoji_picks:
             # -loop 1 : une image fixe devient un flux continu qu'on peut
             # fondre/découper sur la fenêtre de temps voulue ; SANS -t la
@@ -708,7 +714,18 @@ def process(video, out, o, progress=lambda s: None):
                 "-map", final_video, "-map", final_audio, "-c:v", "libx264", "-crf", "23",
                 "-preset", "medium", "-movflags", "+faststart",
                 "-c:a", "aac", "-b:a", "128k", out]
-        subprocess.run(cmd, check=True, capture_output=True)
+        # Filet de sécurité : toutes les entrées bouclées connues sont bornées
+        # par -t (ci-dessus), mais un blocage de l'ordonnanceur ffmpeg est
+        # silencieux (0% CPU, aucune erreur) — s'il en reste un autre non
+        # découvert, ce timeout transforme une attente infinie ("génération
+        # qui ne se finit jamais" côté utilisateur) en erreur visible plutôt
+        # qu'un job bloqué pour toujours en "processing".
+        try:
+            subprocess.run(cmd, check=True, capture_output=True, timeout=1200)
+        except subprocess.TimeoutExpired:
+            raise RuntimeError("Le rendu vidéo a dépassé le délai maximum (20 min) "
+                               "et a été interrompu — réessayez, ou contactez le support "
+                               "si le problème persiste.")
 
         progress("miniature")
         thumb_out = os.path.splitext(os.path.abspath(out))[0] + ".thumb.jpg"
