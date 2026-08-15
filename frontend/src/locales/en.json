@@ -469,7 +469,9 @@
       "warnStdE": " in the text. Switch to ",
       "warnStdF": "HD image",
       "warnStdG": " for reliable text.",
-      "restantes": "left"
+      "restantes": "left",
+      "telecharger": "Download",
+      "ouvrir": "Open in a tab"
     },
     "lightbox": {
       "precedent": "Previous",

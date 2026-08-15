@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { contenuService } from '../services/contenuService';
 import { PillFabrication } from '../components/Fabrication';
 import DecoupeMusique from '../components/DecoupeMusique';
+import { lienTelechargement } from '../lib/telechargement';
 import { agentService } from '../services/agentService';
 import { userService } from '../services/userService';
 import { templateService } from '../services/templateService';
@@ -1338,19 +1339,34 @@ export default function ContenusPage() {
                   ) : Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2">
                       {selectedContenu.slides_images.map((u, i) => (
-                        <button key={i} type="button" onClick={() => setLightbox({ images: selectedContenu.slides_images, index: i })}
-                          className="group relative block w-full overflow-hidden rounded-lg ring-1 ring-white/10 hover:ring-[#5B6CFF]/50 transition-all">
-                          <img src={u} alt={t('contenus.detail.slide', { n: i + 1 })} className="w-full object-cover group-hover:scale-[1.03] transition-transform" />
+                        <div key={i} className="group relative overflow-hidden rounded-lg ring-1 ring-white/10 hover:ring-[#5B6CFF]/50 transition-all">
+                          <button type="button" onClick={() => setLightbox({ images: selectedContenu.slides_images, index: i })}
+                            className="block w-full">
+                            <img src={u} alt={t('contenus.detail.slide', { n: i + 1 })} className="w-full object-cover group-hover:scale-[1.03] transition-transform" />
+                          </button>
                           <span className="absolute bottom-1 right-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-black/60 text-white/90">{i + 1}/{selectedContenu.slides_images.length}</span>
-                        </button>
+                          <a href={lienTelechargement(u, `${selectedContenu.titre || 'slide'}-${i + 1}`)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute top-1 right-1 w-7 h-7 rounded-lg bg-black/70 border border-white/20 grid place-items-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            title={t('contenus.image.telecharger')} aria-label={t('contenus.image.telecharger')}>
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
                       ))}
                     </div>
                   ) : selectedContenu.lien_visuel ? (
-                    <img
-                      src={selectedContenu.lien_visuel}
-                      alt=""
-                      className="w-full rounded-xl object-cover ring-1 ring-white/10"
-                    />
+                    <div className="group relative">
+                      <img
+                        src={selectedContenu.lien_visuel}
+                        alt=""
+                        className="w-full rounded-xl object-cover ring-1 ring-white/10"
+                      />
+                      <a href={lienTelechargement(selectedContenu.lien_visuel, selectedContenu.titre)}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-black/70 border border-white/20 grid place-items-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        title={t('contenus.image.telecharger')} aria-label={t('contenus.image.telecharger')}>
+                        <Download className="w-4 h-4" />
+                      </a>
+                    </div>
                   ) : (
                     <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-600">
                       <ImageIcon className="w-10 h-10" />
@@ -1973,10 +1989,18 @@ export default function ContenusPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-[10.5px] tracking-[0.18em] uppercase text-slate-500 font-semibold">{t('contenus.image.apercu')}</span>
                     {imageContenu.lien_visuel && (
-                      <a href={imageContenu.lien_visuel} target="_blank" rel="noreferrer"
-                        className="w-8 h-8 rounded-lg border border-white/10 grid place-items-center text-slate-400 hover:text-white hover:border-white/20" title={t('contenus.image.ouvrirTelecharger')}>
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
+                      <div className="flex items-center gap-1.5">
+                        <a href={lienTelechargement(imageContenu.lien_visuel, imageContenu.titre)}
+                          className="w-8 h-8 rounded-lg border border-white/10 grid place-items-center text-slate-400 hover:text-[#3AFFA3] hover:border-[#3AFFA3]/40 transition-colors"
+                          title={t('contenus.image.telecharger')} aria-label={t('contenus.image.telecharger')}>
+                          <Download className="w-4 h-4" />
+                        </a>
+                        <a href={imageContenu.lien_visuel} target="_blank" rel="noreferrer"
+                          className="w-8 h-8 rounded-lg border border-white/10 grid place-items-center text-slate-400 hover:text-white hover:border-white/20"
+                          title={t('contenus.image.ouvrir')} aria-label={t('contenus.image.ouvrir')}>
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </div>
                     )}
                   </div>
                   <div className="flex-1 grid place-items-center min-h-[230px]">
@@ -2282,6 +2306,11 @@ export default function ContenusPage() {
         {lightbox && createPortal((
           <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
             onClick={() => setLightbox(null)}>
+            <a href={lienTelechargement(lightbox.images[lightbox.index], `visuel-${lightbox.index + 1}`)}
+              onClick={(e) => e.stopPropagation()} title={t('contenus.image.telecharger')} aria-label={t('contenus.image.telecharger')}
+              className="absolute top-4 right-16 w-10 h-10 rounded-full bg-white/10 hover:bg-[#3AFFA3]/20 text-white flex items-center justify-center transition-colors">
+              <Download className="w-5 h-5" />
+            </a>
             <button onClick={() => setLightbox(null)} title={t('contenus.actions.fermer')}
               className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
               <X className="w-5 h-5" />

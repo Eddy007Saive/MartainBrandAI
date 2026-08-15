@@ -469,7 +469,9 @@
       "warnStdE": " sur le texte. Passe en ",
       "warnStdF": "Image HD",
       "warnStdG": " pour un texte fiable.",
-      "restantes": "restantes"
+      "restantes": "restantes",
+      "telecharger": "Télécharger",
+      "ouvrir": "Ouvrir dans un onglet"
     },
     "lightbox": {
       "precedent": "Précédent",
