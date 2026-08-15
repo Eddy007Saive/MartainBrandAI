@@ -39,24 +39,27 @@ def _warn(user_msg, detail=None):
 WHISPER_SIZE = None  # exposé après chargement, pour affichage/diagnostic
 
 
+WHISPER_TIERS = ("medium", "small", "base")  # du plus précis au plus léger
+
+
 def _whisper():
     global _model, WHISPER_SIZE
     if _model is None:
         from faster_whisper import WhisperModel
         # cpu_threads borné explicitement (au lieu de 0 = auto/tous les
         # coeurs) : évite que ctranslate2 sur-réserve son pool de threads
-        # MKL sur cette machine à 4 coeurs / RAM limitée.
-        # "small" (~460 Mo de poids) peut échouer au chargement si la RAM
-        # libre est trop juste (mkl_malloc) ; repli automatique sur "base"
-        # (~145 Mo), qui charge de manière fiable sur cette machine.
-        for size in ("small", "base"):
+        # MKL sur une machine à RAM limitée. "medium" (~1,5 Go de poids) est
+        # nettement plus précis que "small" (moins de fautes type "proéé"
+        # pour "prouvé") mais plus gourmand ; repli en cascade sur "small"
+        # (~460 Mo) puis "base" (~145 Mo) si la RAM manque (mkl_malloc).
+        for i, size in enumerate(WHISPER_TIERS):
             try:
                 _model = WhisperModel(size, device="cpu", compute_type="int8",
                                        cpu_threads=2, num_workers=1)
                 WHISPER_SIZE = size
                 break
             except RuntimeError as e:
-                if size == "base":
+                if size == WHISPER_TIERS[-1]:
                     raise
                 _warn("Transcription : qualité légèrement réduite (mémoire serveur "
                      "insuffisante pour le modèle le plus précis).", detail=str(e))
