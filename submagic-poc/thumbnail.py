@@ -63,7 +63,9 @@ def _shortlist_candidates(video, face_track):
 
 
 def pick_best_frame(video, face_track=True, use_gemini=True):
-    """(t, frame_bgr, face_cx_norm) — meilleure frame miniature."""
+    """(t, frame_bgr, face_cx_norm, gemini_error) — gemini_error est None si
+    l'arbitrage visuel a réussi (ou n'a pas été tenté), sinon le message
+    d'erreur (repli mécanique utilisé, appelant responsable de le signaler)."""
     candidates = _shortlist_candidates(video, face_track)
     if use_gemini and len(candidates) > 1:
         try:
@@ -76,9 +78,10 @@ def pick_best_frame(video, face_track=True, use_gemini=True):
             idx = gemini_pick.pick_best_thumbnail(jpgs)
             if idx is not None:
                 _, t, frame, face_cx = candidates[idx]
-                return t, frame, face_cx
+                return t, frame, face_cx, None
         except Exception as e:
             msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
-            print(f"[miniature] gemini indisponible ({msg}) -> repli mecanique")
+            _, t, frame, face_cx = candidates[0]
+            return t, frame, face_cx, msg
     _, t, frame, face_cx = candidates[0]
-    return t, frame, face_cx
+    return t, frame, face_cx, None

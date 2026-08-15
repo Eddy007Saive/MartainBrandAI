@@ -17,6 +17,24 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 LOCK = threading.RLock()
 _model = None
 
+# Avertissements du rendu EN COURS — un seul rendu à la fois (protégé par
+# LOCK), donc une liste module-level suffit, pas besoin de thread-local.
+# Chaque repli silencieux (échec IA, téléchargement...) y ajoute un message
+# clair en français, exposé au frontend via le statut du job -> plus aucun
+# échec invisible pour l'utilisateur, même quand le montage aboutit quand
+# même (résultat dégradé mais fonctionnel).
+WARNINGS = []
+
+
+def _warn(user_msg, detail=None):
+    """user_msg : message clair en français, sans jargon technique, ajouté
+    aux avertissements exposés au frontend. detail : exception/contexte
+    technique, gardé UNIQUEMENT dans le log serveur (jamais montré à
+    l'utilisateur)."""
+    log_line = user_msg + (f" [{detail}]" if detail else "")
+    print(log_line.encode("ascii", "backslashreplace").decode("ascii"))
+    WARNINGS.append(user_msg)
+
 
 WHISPER_SIZE = None  # exposé après chargement, pour affichage/diagnostic
 
@@ -40,7 +58,8 @@ def _whisper():
             except RuntimeError as e:
                 if size == "base":
                     raise
-                print(f"[whisper] échec chargement '{size}' ({e}) -> repli 'base'")
+                _warn("Transcription : qualité légèrement réduite (mémoire serveur "
+                     "insuffisante pour le modèle le plus précis).", detail=str(e))
     return _model
 
 
@@ -250,7 +269,10 @@ def render_thumbnail(video, out_jpg, o, src_w, src_h, cw, hook_text,
     par Claude à partir du transcript, repli sur un style générique), puis y
     incruste le hook avec le même style que la vidéo."""
     import thumbnail as thumb_mod
-    _, frame, face_cx = thumb_mod.pick_best_frame(video, o.get("face_track", True))
+    _, frame, face_cx, gemini_error = thumb_mod.pick_best_frame(video, o.get("face_track", True))
+    if gemini_error:
+        _warn("Miniature : choix de la meilleure image simplifié (service IA "
+             "indisponible).", detail=gemini_error)
 
     out_w, out_h = (base.OUT_W, base.OUT_H) if o["vertical"] else (src_w, src_h)
     if o["vertical"]:
@@ -286,10 +308,14 @@ def render_thumbnail(video, out_jpg, o, src_w, src_h, cw, hook_text,
                     if _sharp(candidate) >= _sharp(frame) * 0.6:
                         frame = candidate
                     else:
-                        print("[miniature] nano banana trop floue -> frame originale conservee")
+                        _warn("Miniature : retouche IA générée mais trop floue, "
+                             "photo d'origine conservée.")
+            else:
+                _warn("Miniature : le service de retouche IA n'a renvoyé aucune "
+                     "image (refus ou quota), photo d'origine conservée.")
         except Exception as e:
-            msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
-            print(f"[miniature] nano banana echec ({msg}) -> frame brute conservee")
+            _warn("Miniature : retouche/mise en scène IA indisponible, photo "
+                 "d'origine utilisée telle quelle.", detail=str(e))
 
     base_path = os.path.splitext(os.path.abspath(out_jpg))[0]
     png_path = base_path + ".still.png"
@@ -514,6 +540,8 @@ def build_filtergraph(segs, crops, zxy, ass_path, cw, src_w, src_h, o, path,
 
 def process(video, out, o, progress=lambda s: None):
     with LOCK:
+        global WARNINGS
+        WARNINGS = []
         words_cache = transcribe(video, progress)
         language = json.load(open(words_cache, encoding="utf-8")).get("language", "fr")
         words = base.load_words(words_cache)
@@ -536,8 +564,8 @@ def process(video, out, o, progress=lambda s: None):
             try:
                 emoji_raw = emojis_mod.suggest_emojis(words, language)
             except Exception as e:
-                msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
-                print(f"[emojis] echec ({msg}) -> aucun emoji")
+                _warn("Emojis : sélection IA indisponible, aucun emoji ajouté.",
+                     detail=str(e))
 
         # b-roll : l'IA repère des concepts concrets à illustrer par un clip
         broll_raw = []
@@ -547,8 +575,8 @@ def process(video, out, o, progress=lambda s: None):
             try:
                 broll_raw = brolls_ai.suggest_brolls(words, language)
             except Exception as e:
-                msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
-                print(f"[brolls] echec selection ({msg}) -> aucun b-roll")
+                _warn("B-roll : sélection IA indisponible, aucun plan d'illustration "
+                     "ajouté.", detail=str(e))
 
         progress("analyse")
         base.ZOOM_MAX = o["zoom_max"]
@@ -594,8 +622,12 @@ def process(video, out, o, progress=lambda s: None):
             import music
             try:
                 music_path = music.local_path(o["music_id"])
+                if not music_path:
+                    _warn("Musique de fond : piste introuvable, vidéo rendue "
+                         "sans musique.", detail=f"music_id={o['music_id']!r}")
             except Exception as e:
-                print(f"[musique] échec téléchargement '{o['music_id']}' ({e}) -> ignorée")
+                _warn("Musique de fond : téléchargement de la piste impossible, "
+                     "vidéo rendue sans musique.", detail=str(e))
 
         # résout les emojis choisis en occurrences temporisées (timeline finale,
         # après coupes) + assigne à chacune un index d'input ffmpeg dédié
@@ -607,10 +639,10 @@ def process(video, out, o, progress=lambda s: None):
             try:
                 png = emoji_lib.local_path(char)
             except Exception as e:
-                msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
-                print(f"[emojis] telechargement '{char}' echoue ({msg}) -> ignore")
+                _warn(f"Emoji {char} : téléchargement impossible, ignoré.", detail=str(e))
                 continue
             if not png:
+                _warn(f"Emoji {char} : introuvable dans la bibliothèque, ignoré.")
                 continue
             start = remap(words[i]["start"])
             emoji_picks.append({"start": start, "end": start + 1.0,
@@ -627,12 +659,12 @@ def process(video, out, o, progress=lambda s: None):
             try:
                 found = broll.search(query, out_w, out_h)
                 if not found:
-                    print(f"[brolls] aucun resultat pour '{query}' -> ignore")
+                    _warn(f"B-roll « {query} » : aucun clip trouvé, ignoré.")
                     continue
                 clip_path = broll.local_path(found["id"], found["url"])
             except Exception as e:
-                msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
-                print(f"[brolls] echec '{query}' ({msg}) -> ignore")
+                _warn(f"B-roll « {query} » : téléchargement impossible, ignoré.",
+                     detail=str(e))
                 continue
             start = remap(words[i]["start"])
             broll_picks.append({"start": start, "end": start + BROLL_DURATION,
@@ -689,13 +721,13 @@ def process(video, out, o, progress=lambda s: None):
             render_thumbnail(video, thumb_out, o, src_w, src_h, cw, thumb_hook,
                             transcript, language)
         except Exception as e:
-            msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
-            print(f"[miniature] echec ({msg}) -> aucune miniature")
+            _warn("Miniature : échec complet de la génération, vidéo livrée "
+                 "sans miniature.", detail=str(e))
             thumb_out = None
 
         progress("fini")
         return {"hook": (o.get("hook") or "").strip() or None,
-                "thumbnail": thumb_out is not None}
+                "thumbnail": thumb_out is not None, "warnings": list(WARNINGS)}
 
 
 def regenerate_thumbnail(video, out_jpg, o, progress=lambda s: None):
@@ -704,6 +736,8 @@ def regenerate_thumbnail(video, out_jpg, o, progress=lambda s: None):
     quand le résultat Nano Banana ne plaît pas (aléatoire d'un essai à
     l'autre) ou pour changer le hook/style sans tout relancer."""
     with LOCK:
+        global WARNINGS
+        WARNINGS = []
         words_cache = words_cache_path(video)
         if not os.path.exists(words_cache):
             words_cache = transcribe(video, progress)
@@ -724,4 +758,4 @@ def regenerate_thumbnail(video, out_jpg, o, progress=lambda s: None):
         render_thumbnail(video, out_jpg, o, src_w, src_h, cw, thumb_hook,
                          transcript, language)
         progress("fini")
-        return {"hook": thumb_hook or None}
+        return {"hook": thumb_hook or None, "warnings": list(WARNINGS)}

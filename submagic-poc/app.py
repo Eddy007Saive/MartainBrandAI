@@ -90,16 +90,28 @@ async def process(video: UploadFile, options: str = Form("{}")):
                 src, out_mp4, opts,
                 progress=lambda s: JOBS[job_id].update(step=s))
             has_thumb = res.get("thumbnail", False)
+            warnings = list(res.get("warnings", []))
             # stockage local éphémère sur un déploiement séparé (Railway efface
             # tout à chaque redémarrage) -> Cloudinary devient la source
             # persistante ; repli silencieux sur le fichier local si l'upload
-            # échoue (clés absentes en dev local, réseau...)
+            # échoue (clés absentes en dev local, réseau...) — mais signalé
+            # quand même à l'utilisateur, la vidéo ne survivra pas alors à un
+            # redéploiement du serveur
             JOBS[job_id].update(step="stockage")
             video_url = storage.upload_video(out_mp4, job_id)
-            thumb_url = (storage.upload_image(os.path.join(job_dir, "out.thumb.jpg"), job_id)
-                        if has_thumb else None)
+            if not video_url:
+                warnings.append("Stockage : sauvegarde permanente de la vidéo "
+                               "impossible (elle restera accessible seulement "
+                               "tant que le serveur ne redémarre pas).")
+            thumb_url = None
+            if has_thumb:
+                thumb_url = storage.upload_image(os.path.join(job_dir, "out.thumb.jpg"), job_id)
+                if not thumb_url:
+                    warnings.append("Stockage : sauvegarde permanente de la miniature "
+                                   "impossible (même limite que la vidéo).")
             JOBS[job_id].update(status="done", hook=res.get("hook"),
                                 thumbnail=has_thumb, video_url=video_url, thumb_url=thumb_url,
+                                warnings=warnings,
                                 # gardés pour /regenerate_thumbnail (relancer
                                 # seulement la miniature, sans re-rendre la vidéo)
                                 video_path=src, options=opts)
@@ -127,10 +139,16 @@ async def regenerate_thumbnail(job_id: str, options: str = Form("{}")):
             res = pipeline.regenerate_thumbnail(
                 video_path, thumb_out, opts,
                 progress=lambda s: JOBS[job_id].update(step=s))
+            warnings = list(res.get("warnings", []))
             JOBS[job_id].update(step="stockage")
             thumb_url = storage.upload_image(thumb_out, job_id)
+            if not thumb_url:
+                warnings.append("Stockage : sauvegarde permanente de la miniature "
+                               "impossible (elle restera accessible seulement tant "
+                               "que le serveur ne redémarre pas).")
             JOBS[job_id].update(status="done", hook=res.get("hook"), thumbnail=True,
-                                thumb_url=thumb_url, video_path=video_path, options=opts)
+                                thumb_url=thumb_url, warnings=warnings,
+                                video_path=video_path, options=opts)
         except Exception as e:
             JOBS[job_id].update(status="error", error=str(e)[:500])
 
