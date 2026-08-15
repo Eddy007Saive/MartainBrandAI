@@ -378,6 +378,10 @@
           <label>Emojis réaction (IA)<small>l'IA place quelques emojis sur les moments forts</small></label>
           <div class="switch"><input type="checkbox" id="emojis"><span class="track"><span class="knob"></span></span></div>
         </div>
+        <div class="row">
+          <label>Plans B-roll (IA)<small>l'IA illustre les concepts concrets avec des clips stock</small></label>
+          <div class="switch"><input type="checkbox" id="brolls"><span class="track"><span class="knob"></span></span></div>
+        </div>
       </section>
 
       <section class="card tabPanel" data-tab="music">
@@ -787,7 +791,7 @@ const STEP_LABELS = {
   "génération": "Rédaction de l'accroche…", emojis: "Repérage des moments forts…",
   analyse: "Analyse de l'image…", musique: "Préparation de la musique…",
   rendu: "Montage final…", miniature: "Création de la miniature…",
-  stockage: "Sauvegarde…", fini: "Finalisation…",
+  stockage: "Sauvegarde…", fini: "Finalisation…", brolls: "Choix des plans d'illustration…",
 };
 function friendlyStep(s) { return STEP_LABELS[s] || "Traitement…"; }
 
@@ -816,6 +820,7 @@ go.onclick = async () => {
     music_id: document.getElementById("musicSelect").value,
     music_volume: +document.getElementById("musicVol").value,
     emojis: document.getElementById("emojis").checked,
+    brolls: document.getElementById("brolls").checked,
     font: state.font.ass,
     hl_color: state.color,
     fontscale: document.getElementById("size").value / 100,
@@ -831,7 +836,7 @@ go.onclick = async () => {
   try {
     const { job_id } = await (await fetch("/process", { method: "POST", body: fd })).json();
     currentJobId = job_id;
-    const order = ["transcription", "correction", "hook", "emojis", "analyse", "musique", "rendu", "miniature", "stockage"];
+    const order = ["transcription", "correction", "hook", "emojis", "brolls", "analyse", "musique", "rendu", "miniature", "stockage"];
     const fill = document.getElementById("progressFill"), pct = document.getElementById("progressPct");
     const label = document.getElementById("progressLabel");
     const poll = setInterval(async () => {

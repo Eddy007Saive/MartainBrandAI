@@ -418,7 +418,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 
 def build_filtergraph(segs, crops, zxy, ass_path, cw, src_w, src_h, o, path,
-                       kept_duration, music_path, emoji_picks):
+                       kept_duration, music_path, emoji_picks, broll_picks):
     n = len(segs)
     z, x, y = zxy
     out_w, out_h = (base.OUT_W, base.OUT_H) if o["vertical"] else (src_w, src_h)
@@ -441,13 +441,30 @@ def build_filtergraph(segs, crops, zxy, ass_path, cw, src_w, src_h, o, path,
         chains.append(f"[t{i}]atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS[a{i}];")
     concat_in = "".join(f"[v{i}][a{i}]" for i in range(n))
     ass_escaped = ass_path.replace("\\", "/").replace(":", r"\:")
-    post = ""
-    if o["zoom"]:
-        post += f"zoompan=z='{z}':x='{x}':y='{y}':d=1:s={out_w}x{out_h}:fps={base.FPS},"
-    post += f"ass='{ass_escaped}'"
     graph = (vsplit + asplit + "\n".join(chains)
-             + f"\n{concat_in}concat=n={n}:v=1:a=1[vc][ac];\n"
-             + f"[vc]{post}[vbase];\n")
+             + f"\n{concat_in}concat=n={n}:v=1:a=1[vc][ac];\n")
+
+    video_label = "[vc]"
+    if o["zoom"]:
+        graph += (f"{video_label}zoompan=z='{z}':x='{x}':y='{y}':d=1:"
+                  f"s={out_w}x{out_h}:fps={base.FPS}[vz];\n")
+        video_label = "[vz]"
+
+    # b-roll : remplace TOUT le cadre pendant sa fenêtre (contrairement aux
+    # emojis, petits et positionnés) mais reste SOUS les sous-titres ->
+    # inséré ici, avant le burn ASS (les emojis, eux, passent au-dessus de
+    # tout, après [vbase])
+    for idx, br in enumerate(broll_picks):
+        nxt = f"[vbr{idx}]"
+        graph += (
+            f"[{br['input']}:v]scale={out_w}:{out_h}:force_original_aspect_ratio=increase,"
+            f"crop={out_w}:{out_h}[brf{idx}];\n"
+            f"{video_label}[brf{idx}]overlay=x=0:y=0:"
+            f"enable='between(t,{br['start']:.3f},{br['end']:.3f})'{nxt};\n"
+        )
+        video_label = nxt
+
+    graph += f"{video_label}ass='{ass_escaped}'[vbase];\n"
 
     # emojis réaction : overlays PNG couleur chaînés au-dessus des sous-titres
     # (le texte ASS ne rend les emojis qu'en silhouette monochrome sur ce
@@ -522,6 +539,17 @@ def process(video, out, o, progress=lambda s: None):
                 msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
                 print(f"[emojis] echec ({msg}) -> aucun emoji")
 
+        # b-roll : l'IA repère des concepts concrets à illustrer par un clip
+        broll_raw = []
+        if o.get("brolls"):
+            progress("brolls")
+            import brolls_ai
+            try:
+                broll_raw = brolls_ai.suggest_brolls(words, language)
+            except Exception as e:
+                msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
+                print(f"[brolls] echec selection ({msg}) -> aucun b-roll")
+
         progress("analyse")
         base.ZOOM_MAX = o["zoom_max"]
         src_w, src_h, duration = base.probe(video)
@@ -589,13 +617,35 @@ def process(video, out, o, progress=lambda s: None):
                                 "path": png, "input": next_input})
             next_input += 1
 
+        # résout les b-rolls choisis : recherche Pexels + téléchargement +
+        # index d'input ffmpeg dédié (à la suite des emojis)
+        broll_picks = []
+        BROLL_DURATION = 1.8
+        if broll_raw:
+            import broll
+        for i, query in broll_raw:
+            try:
+                found = broll.search(query, out_w, out_h)
+                if not found:
+                    print(f"[brolls] aucun resultat pour '{query}' -> ignore")
+                    continue
+                clip_path = broll.local_path(found["id"], found["url"])
+            except Exception as e:
+                msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
+                print(f"[brolls] echec '{query}' ({msg}) -> ignore")
+                continue
+            start = remap(words[i]["start"])
+            broll_picks.append({"start": start, "end": start + BROLL_DURATION,
+                                "path": clip_path, "input": next_input})
+            next_input += 1
+
         base_path = os.path.splitext(os.path.abspath(out))[0]
         ass_path = base_path + ".ass"
         build_ass(words, remap, ass_path, out_w, out_h, o)
         graph_path = base_path + ".filtergraph"
         final_video, final_audio = build_filtergraph(
             segs, crops, base.zoom_exprs(zoom_list), ass_path, cw, src_w, src_h,
-            o, graph_path, kept_duration, music_path, emoji_picks)
+            o, graph_path, kept_duration, music_path, emoji_picks, broll_picks)
 
         progress("rendu")
         cmd = [base.FFMPEG, "-y", "-i", video]
@@ -610,6 +660,13 @@ def process(video, out, o, progress=lambda s: None):
             # bloquent l'ordonnanceur de filtres ffmpeg (testé : accroche
             # totale, 0% CPU, aucune erreur). On borne à la durée finale.
             cmd += ["-loop", "1", "-t", f"{kept_duration + 1:.3f}", "-i", ep["path"]]
+        for br in broll_picks:
+            # même piège que les emojis (overlay chaîné + flux infini sans
+            # borne = ordonnanceur ffmpeg bloqué) : -stream_loop -1 borné
+            # par -t plutôt que -loop 1 (ce sont de vrais clips vidéo, pas
+            # une image fixe) — le point de départ dans la boucle du clip
+            # n'a pas d'importance, seule la fenêtre `enable` compte.
+            cmd += ["-stream_loop", "-1", "-t", f"{kept_duration + 1:.3f}", "-i", br["path"]]
         # crf 23 + preset medium : ~60 % plus léger que crf 18, indiscernable
         # sur mobile ; faststart pour la lecture en streaming
         cmd += ["-/filter_complex", graph_path,

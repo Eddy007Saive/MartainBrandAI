@@ -43,6 +43,7 @@ DEFAULTS = {
     "music_id": "none",
     "music_volume": 30,
     "emojis": False,
+    "brolls": False,
     "font": "Arial Black",
     "hl_color": "#3AFFA3",
     "fontscale": 1.0,
