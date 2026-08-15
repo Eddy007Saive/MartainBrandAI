@@ -15,13 +15,14 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Liste explicite (pas de COPY . .) : le dossier contient de nombreux
-# scripts/vidéos de test accumulés pendant le développement du POC, à ne
-# jamais embarquer dans l'image de production.
-COPY app.py pipeline.py submagic_poc5.py envkeys.py ./
-COPY hooks.py correct.py emojis.py emoji_lib.py ./
-COPY music.py thumbnail.py nanobanana.py gemini_pick.py ./
-COPY storage.py index.html yunet.onnx ./
+# COPY . . + .dockerignore (et non une liste explicite de fichiers) : une
+# liste à la main s'est fait piéger deux fois (storage.py, puis broll.py/
+# brolls_ai.py oubliés -> ModuleNotFoundError au démarrage sur Railway,
+# invisible tant qu'on ne teste pas un déploiement complet). .dockerignore
+# exclut le dossier `jobs/`, les caches, et tous les scripts/vidéos de test
+# accumulés pendant le développement du POC — tout NOUVEAU module .py est
+# désormais embarqué automatiquement, sans édition du Dockerfile.
+COPY . .
 
 # Cache Whisper téléchargé au 1er démarrage (~460 Mo pour "small") ; sans
 # volume Railway monté sur /root/.cache, il est reperdu à chaque redéploiement
