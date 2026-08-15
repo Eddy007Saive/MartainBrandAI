@@ -402,7 +402,7 @@ export default function ContenusPage() {
   const seqToggleBanque = (img) => {
     setSeqImages((prev) => prev.some((i) => i.url === img.url)
       ? prev.filter((i) => i.url !== img.url)
-      : (prev.length >= 6 ? prev : [...prev, { url: img.url, desc: img.description || '', src: 'banque' }]));
+      : (prev.length >= 6 ? prev : [...prev, { url: img.url, desc: img.description || '', src: 'banque', apercu_url: img.apercu_url || null, type: img.type || 'image' }]));
   };
   const seqUpload = async (files) => {
     const list = Array.from(files || []).slice(0, 6 - seqImages.length);
@@ -1747,7 +1747,8 @@ export default function ContenusPage() {
                     <div className="flex flex-wrap gap-2">
                       {seqImages.map((img, idx) => (
                         <div key={img.url} className="relative w-16 h-16 rounded-lg overflow-hidden border border-[#3AFFA3]/40">
-                          <img src={img.url} alt="" className="w-full h-full object-cover" />
+                          <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover" />
+                              {img.type === 'video' && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
                           <span className="absolute bottom-0.5 left-0.5 text-[10px] font-bold text-white bg-black/60 rounded px-1">{idx + 1}</span>
                           <button type="button" onClick={() => setSeqImages((p) => p.filter((i) => i.url !== img.url))}
                             className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white text-[12px] leading-none">×</button>
@@ -1784,7 +1785,7 @@ export default function ContenusPage() {
 
                 {/* Import direct */}
                 <label className={`inline-flex items-center gap-2 text-[13px] font-inter font-semibold px-3.5 py-2 rounded-[10px] border border-dashed cursor-pointer transition-colors ${seqUploading || seqImages.length >= 6 ? 'border-white/10 text-slate-600 cursor-not-allowed' : 'border-[#5B6CFF]/50 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
-                  <input type="file" accept="image/*" multiple className="hidden" disabled={seqUploading || seqImages.length >= 6}
+                  <input type="file" accept="image/*,video/mp4,video/quicktime,.mp4,.mov" multiple className="hidden" disabled={seqUploading || seqImages.length >= 6}
                     onChange={(e) => { seqUpload(e.target.files); e.target.value = ''; }} />
                   {seqUploading ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.importer')}
                 </label>
@@ -1804,7 +1805,8 @@ export default function ContenusPage() {
                         return (
                           <button key={img.id} type="button" onClick={() => seqToggleBanque(img)} title={img.description || ''}
                             className={`relative aspect-square rounded-lg overflow-hidden border transition-all ${on ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/40' : 'border-white/10 hover:border-white/30'}`}>
-                            <img src={img.url} alt="" className="w-full h-full object-cover" />
+                            <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover" />
+                              {img.type === 'video' && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
                             {on && <span className="absolute inset-0 bg-[#3AFFA3]/20 grid place-items-center text-[#3AFFA3] font-bold">✓</span>}
                           </button>
                         );

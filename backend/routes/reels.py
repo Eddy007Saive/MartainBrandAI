@@ -195,17 +195,22 @@ def banque(payload: dict = Depends(verify_token)):
 
 @router.post("/banque")
 async def banque_ajouter(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
-    """Ajoute une image a la banque de la marque (decrite par IA vision a l'upload)."""
+    """Ajoute une image OU un extrait video a la banque (decrit par IA vision a l'upload)."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Le fichier doit etre une image")
+    ct = (file.content_type or "").lower()
+    nom = (file.filename or "").lower()
+    est_video = ct.startswith("video/") or nom.endswith((".mp4", ".mov", ".webm", ".m4v"))
+    if not (est_video or ct.startswith("image/")):
+        raise HTTPException(status_code=400, detail="Le fichier doit etre une image ou une video")
     data = await file.read()
-    if len(data) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
+    limite = 60 if est_video else 10
+    if len(data) > limite * 1024 * 1024:
+        raise HTTPException(status_code=400,
+                            detail=f"Fichier trop lourd (max {limite} Mo{' pour une video' if est_video else ''})")
     try:
-        res = banque_service.ajouter(telegram_id, data)
+        res = banque_service.ajouter(telegram_id, data, est_video=est_video)
     except Exception as e:
         logger.error(f"banque ajouter: {e}")
         raise HTTPException(status_code=500, detail="Echec de l'upload")

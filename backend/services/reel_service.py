@@ -283,6 +283,8 @@ _ROLE_SEQUENCE = (
     "- texte: 2 to 7 words per shot, punchy\n"
     "- accents: 1 or 2 words of that text to highlight (copied exactly as written)\n"
     "- image_id: ONLY an id from the provided list; if no visual fits, make it a typo shot\n"
+    "- a visual marked [VIDEO CLIP] is moving footage: give it a longer shot (3.5 to 4.5 s) "
+    "so it has time to breathe, and prefer it for showing an action, a place or a gesture\n"
     "- vary the effects: zoomIn, zoomOut, panLeft, panRight\n"
     "- bar (cta shot): 2 to 5 words (brand, website or action)\n"
     "- label (optional): shot badge when the art direction asks for it (BEFORE/AFTER, witness signature)\n"
@@ -369,6 +371,30 @@ def supprimer_musique(telegram_id: str, musique_id: str) -> dict:
     return {"ok": True}
 
 
+def _est_visuel(url: str) -> bool:
+    """Photo ou clip : tout ce qui peut occuper un plan image."""
+    return _est_image_source(url) or _est_clip(url)
+
+
+def _est_clip(url: str) -> bool:
+    """Un extrait vidéo de la banque (Cloudinary range l'audio ET la vidéo sous
+    /video/upload/ ; une vignette .jpg extraite d'un clip reste une image)."""
+    u = (url or "").lower()
+    return "/video/upload/" in u and not u.endswith((".jpg", ".png", ".webp"))
+
+
+def _clip_rendu(url: str, dur: float) -> str:
+    """Clip prêt pour le moteur : recadré 9:16, limité à la durée du plan, en 720p.
+    Découper côté serveur évite de télécharger la vidéo entière à chaque rendu.
+    (`g_auto`, le recadrage intelligent, est un module payant : non utilisé.)"""
+    if "res.cloudinary.com" not in (url or "") or "/upload/" not in url:
+        return url
+    base, _, fin = url.partition("/upload/")
+    if fin.startswith(("so_", "c_fill")):
+        return url
+    return f"{base}/upload/so_0,du_{max(1, round(float(dur) + 0.5))},c_fill,ar_9:16,w_720,q_auto/{fin}"
+
+
 def _est_image_source(url: str) -> bool:
     """Une vraie image : pas un mp4, pas un poster derive d'une video (/video/upload/)."""
     return bool(url) and not url.endswith(".mp4") and "/video/upload/" not in url
@@ -442,8 +468,13 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
     imposees=True : les visuels ont ete CHOISIS par le client -> tous utilises.
     style : injecte la direction artistique du template dans l'ecriture."""
     ids = {p["id"] for p in pool}
-    urls = {p["id"]: _img_rendu(p["url"]) for p in pool}
-    liste = "\n".join(f"- {p['id']} : {p['desc']}" for p in pool) or "(aucun visuel disponible)"
+    # Photo ou clip : on garde l'URL brute ici, la transformation dépend de la
+    # durée du plan (décidée par le scénariste) et se fait donc à l'assemblage.
+    sources = {p["id"]: p["url"] for p in pool}
+    # Le scénariste doit savoir lesquels bougent : on l'annonce dans la liste.
+    liste = "\n".join(
+        f"- {p['id']} : {'[VIDEO CLIP] ' if _est_clip(p['url']) else ''}{p['desc']}"
+        for p in pool) or "(no visual available)"
     # Langue de redaction : celle du compte, transmise explicitement (jamais deduite).
     langue = _LANGUES.get((marque.get("langue") or "fr").lower(), "French")
     role = (_ROLE_SEQUENCE
@@ -486,7 +517,11 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
             }
             if t == "image":
                 if img_id in ids:
-                    seg["image"] = urls[img_id]
+                    src = sources[img_id]
+                    if _est_clip(src):
+                        seg["video"] = _clip_rendu(src, seg["dur"])
+                    else:
+                        seg["image"] = _img_rendu(src)
                     seg["image_id"] = img_id
                     seg["effet"] = s.get("effet") if s.get("effet") in ("zoomIn", "zoomOut", "panLeft", "panRight") else "zoomIn"
                     if s.get("reveal") in _REVEALS:
@@ -517,7 +552,8 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
         for i, v in enumerate(visuels[:5]):
             txt = (phrases[1 + i] if len(phrases) > 1 + i else "Regarde.")[:60]
             segments.append({"type": "image", "dur": 3.0, "texte": txt, "accents": [],
-                             "image": _img_rendu(v["url"]), "image_id": v["id"], "effet": effets[i % 4], "tilt": [-3, 2, -2, 3][i % 4]})
+                             **({"video": _clip_rendu(v["url"], 3.0)} if _est_clip(v["url"]) else {"image": _img_rendu(v["url"])}),
+                             "image_id": v["id"], "effet": effets[i % 4], "tilt": [-3, 2, -2, 3][i % 4]})
         if not visuels:
             for p in phrases[2:4]:
                 segments.append({"type": "typo", "dur": 2.8, "texte": p[:70], "accents": []})
@@ -636,7 +672,7 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
         return {"error": "Decris ton reel : le brief est le sujet."}
     u = _charger_marque(telegram_id)
     imgs = [{"url": im.get("url"), "desc": im.get("desc")}
-            for im in (images or []) if _est_image_source(im.get("url"))]
+            for im in (images or []) if _est_visuel(im.get("url"))]
     st = style if style in _STYLES_SEQUENCE else "signature"
     if imgs:
         pool = [{"id": f"img_{i+1}", "url": im["url"],
@@ -808,7 +844,7 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
         if images:
             pool = [{"id": f"img_{i+1}", "url": im["url"],
                      "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
-                    for i, im in enumerate(images) if _est_image_source(im.get("url"))]
+                    for i, im in enumerate(images) if _est_visuel(im.get("url"))]
             scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st)
         else:
             pool = _pool_visuels(telegram_id, cur)

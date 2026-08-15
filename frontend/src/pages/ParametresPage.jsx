@@ -1105,7 +1105,7 @@ export default function ParametresPage() {
 
       <label className={`inline-flex items-center gap-2 text-[13px] font-inter font-semibold px-4 py-2.5 rounded-[10px] border border-dashed cursor-pointer transition-colors ${
         banqueUpload ? 'border-white/10 text-slate-600 cursor-not-allowed' : 'border-[#5B6CFF]/50 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
-        <input type="file" accept="image/*" multiple className="hidden" disabled={banqueUpload}
+        <input type="file" accept="image/*,video/mp4,video/quicktime,.mp4,.mov" multiple className="hidden" disabled={banqueUpload}
           onChange={(e) => { ajouterALaBanque(e.target.files); e.target.value = ''; }} />
         {banqueUpload ? <><Loader2 className="w-4 h-4 animate-spin" />{t('params.banque.envoi')}</>
                       : <><Plus className="w-4 h-4" />{t('params.banque.ajouter')}</>}
@@ -1122,7 +1122,8 @@ export default function ParametresPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
           {banque.map((img) => (
             <div key={img.id} className="group relative aspect-square rounded-xl overflow-hidden border border-white/10">
-              <img src={img.url} alt="" className="w-full h-full object-cover" />
+              <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover" />
+                              {img.type === 'video' && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
               {img.description && (
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020617] to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <p className="text-[10.5px] text-slate-200 leading-snug line-clamp-3">{img.description}</p>

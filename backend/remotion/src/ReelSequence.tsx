@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  AbsoluteFill, Audio, Img, interpolate, spring, staticFile,
+  AbsoluteFill, Audio, Img, OffthreadVideo, interpolate, spring, staticFile,
   useCurrentFrame, useVideoConfig, Sequence,
 } from 'remotion';
 
@@ -29,6 +29,7 @@ export type SequenceSegment = {
   texte: string;                                 // texte karaoké du plan
   accents?: string[];                            // mots à surligner (chips)
   image?: string | null;                         // URL du visuel (type image)
+  video?: string | null;                         // URL d'un extrait vidéo — remplace l'image sur ce plan
   effet?: 'zoomIn' | 'zoomOut' | 'panLeft' | 'panRight';
   reveal?: 'carte' | 'lamelles' | 'portes' | 'stores' | 'iris';   // comment l'image APPARAÎT
   tilt?: number;                                 // inclinaison de la carte (degrés)
@@ -384,6 +385,16 @@ const SegTypo: React.FC<{
   );
 };
 
+// ---- source d'un plan visuel : une photo ou un extrait vidéo ----
+// Le cadre, la révélation et le karaoké sont identiques dans les deux cas :
+// seule la source change. OffthreadVideo est la variante conçue pour le rendu
+// (décodage hors du navigateur, image exacte à chaque frame).
+const Visuel: React.FC<{ seg: SequenceSegment; style: React.CSSProperties }> = ({ seg, style }) => (
+  seg.video
+    ? <OffthreadVideo src={seg.video} muted style={style} />
+    : <Img src={seg.image!} style={style} />
+);
+
 // ---- plan IMAGE : cadre borné + RÉVÉLATION variable (le piment du template) ----
 // Le cadre ne bouge pas (le texte ne passe jamais sur l'image) ; c'est la façon
 // dont l'image apparaît DANS le cadre qui change : carte, lamelles, portes,
@@ -416,7 +427,7 @@ const SegImage: React.FC<{
   const N = 6;
 
   let contenu: React.ReactNode;
-  if (!seg.image) {
+  if (!seg.image && !seg.video) {
     contenu = <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.05)' }} />;
   } else if (reveal === 'lamelles') {
     // 6 bandes verticales alternées haut/bas
@@ -430,7 +441,7 @@ const SegImage: React.FC<{
             <div key={i} style={{ position: 'absolute', top: 0, bottom: 0, left: `${(100 / N) * i}%`, width: `${100 / N + 0.2}%`,
               overflow: 'hidden', transform: `translateY(${dir * (1 - pi) * 104}%)` }}>
               <div style={{ position: 'absolute', top: 0, left: `${-i * 100}%`, width: `${N * 100}%`, height: '100%' }}>
-                <Img src={seg.image!} style={imgStyle} />
+                <Visuel seg={seg} style={imgStyle} />
               </div>
             </div>
           );
@@ -442,7 +453,7 @@ const SegImage: React.FC<{
     contenu = (
       <>
         <div style={{ position: 'absolute', inset: 0, clipPath: `inset(0 ${demi}% 0 ${demi}%)` }}>
-          <Img src={seg.image} style={imgStyle} />
+          <Visuel seg={seg} style={imgStyle} />
         </div>
         {rv < 0.98 && <>
           <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${demi}%`, width: 3, background: brand.accent, opacity: 0.85 }} />
@@ -460,7 +471,7 @@ const SegImage: React.FC<{
             <div key={i} style={{ position: 'absolute', left: 0, right: 0, top: `${20 * i}%`, height: '20.3%',
               overflow: 'hidden', clipPath: `inset(0 ${(1 - pi) * 100}% 0 0)` }}>
               <div style={{ position: 'absolute', left: 0, top: `${-100 * i}%`, width: '100%', height: '500%' }}>
-                <Img src={seg.image!} style={imgStyle} />
+                <Visuel seg={seg} style={imgStyle} />
               </div>
             </div>
           );
@@ -471,12 +482,12 @@ const SegImage: React.FC<{
     const r = 8 + rv * 120;
     contenu = (
       <div style={{ position: 'absolute', inset: 0, clipPath: `circle(${r}% at 50% 46%)` }}>
-        <Img src={seg.image} style={imgStyle} />
+        <Visuel seg={seg} style={imgStyle} />
       </div>
     );
   } else {
     // 'carte' : fondu simple dans le cadre (le cadre lui-même monte déjà)
-    contenu = <div style={{ position: 'absolute', inset: 0, opacity: Math.min(1, rv * 1.8) }}><Img src={seg.image} style={imgStyle} /></div>;
+    contenu = <div style={{ position: 'absolute', inset: 0, opacity: Math.min(1, rv * 1.8) }}><Visuel seg={seg} style={imgStyle} /></div>;
   }
 
   // ---- habillage du CADRE, par style ----
