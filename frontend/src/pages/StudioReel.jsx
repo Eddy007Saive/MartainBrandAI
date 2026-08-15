@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
 import { OverlayFabrication } from '../components/Fabrication';
+import DecoupeMusique from '../components/DecoupeMusique';
 
 /**
  * Studio Reel — création LIBRE d'un reel Séquence en pleine page.
@@ -252,6 +253,10 @@ export default function StudioReel() {
                 </label>
               </div>
               <p className="text-[11px] text-slate-600 font-inter mt-1.5">{t('contenus.reel.seq.mp3Aide')}</p>
+              {(() => {
+                const p = musiques.find((m) => m.id === musique && m.category === 'perso');
+                return p ? <DecoupeMusique piste={p} onChange={(m) => setMusiques((prev) => prev.map((x) => (x.id === m.id ? { ...x, ...m } : x)))} /> : null;
+              })()}
               <audio ref={audioRef} onEnded={() => setPlaying(false)} className="hidden" />
             </div>
           )}

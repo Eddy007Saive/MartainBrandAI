@@ -239,7 +239,14 @@
         "mesMusiques": "Mes musiques",
         "mp3Aide": "Tu peux importer ta propre musique (MP3, 15 Mo max) — assure-toi d'en avoir les droits.",
         "mp3Ajoute": "« {{nom}} » ajoutée à tes musiques",
-        "mp3Echec": "Import de la musique impossible."
+        "mp3Echec": "Import de la musique impossible.",
+        "couper": "Garder un passage",
+        "debut": "Début du passage",
+        "duree": "Durée retenue · {{n}} s",
+        "ecouterExtrait": "Écouter l'extrait",
+        "garderExtrait": "Garder ce passage",
+        "coupeOk": "Passage retenu : {{debut}} pendant {{duree}} s",
+        "coupeEchec": "Découpage impossible."
       },
       "fab": {
         "titre": "Fabrication du reel",

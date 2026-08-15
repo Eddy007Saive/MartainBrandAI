@@ -239,7 +239,14 @@
         "mesMusiques": "My music",
         "mp3Aide": "You can upload your own track (MP3, 15 MB max) — make sure you hold the rights.",
         "mp3Ajoute": "\"{{nom}}\" added to your music",
-        "mp3Echec": "Could not upload the track."
+        "mp3Echec": "Could not upload the track.",
+        "couper": "Keep an excerpt",
+        "debut": "Excerpt start",
+        "duree": "Length kept · {{n}}s",
+        "ecouterExtrait": "Play the excerpt",
+        "garderExtrait": "Keep this excerpt",
+        "coupeOk": "Excerpt kept: {{debut}} for {{duree}}s",
+        "coupeEchec": "Could not trim the track."
       },
       "recommande": "Recommended",
       "fab": {

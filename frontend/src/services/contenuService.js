@@ -49,6 +49,8 @@ export const contenuService = {
     return api.post('/reels/musique', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 180000 }).then(r => r.data);
   },
   reelMusiqueSupprimer: (id) => api.delete(`/reels/musique/${id}`).then(r => r.data),
+  reelMusiqueDecouper: (id, debut_s, duree_s) =>
+    api.patch(`/reels/musique/${id}`, { debut_s, duree_s }).then(r => r.data),
   regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }, { timeout: 300000 }).then(r => r.data),
   creerReel: (extra = {}) => api.post('/reels/creer', extra, { timeout: 300000 }).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data),   // {templates, musiques, categories}

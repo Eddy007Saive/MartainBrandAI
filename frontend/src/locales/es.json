@@ -239,7 +239,14 @@
         "mesMusiques": "Mi música",
         "mp3Aide": "Puedes subir tu propia música (MP3, 15 MB máx.) — asegúrate de tener los derechos.",
         "mp3Ajoute": "«{{nom}}» añadida a tu música",
-        "mp3Echec": "No se pudo importar la música."
+        "mp3Echec": "No se pudo importar la música.",
+        "couper": "Guardar un fragmento",
+        "debut": "Inicio del fragmento",
+        "duree": "Duración guardada · {{n}} s",
+        "ecouterExtrait": "Escuchar el fragmento",
+        "garderExtrait": "Guardar este fragmento",
+        "coupeOk": "Fragmento guardado: {{debut}} durante {{duree}} s",
+        "coupeEchec": "No se pudo recortar la música."
       },
       "recommande": "Recomendado",
       "fab": {

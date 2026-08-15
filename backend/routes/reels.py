@@ -51,6 +51,23 @@ async def importer_musique(file: UploadFile = File(...), payload: dict = Depends
     return res
 
 
+class DecoupageMusique(BaseModel):
+    debut_s: float | None = None
+    duree_s: float | None = None
+
+
+@router.patch("/musique/{musique_id}")
+def decouper_musique(musique_id: str, body: DecoupageMusique, payload: dict = Depends(verify_token)):
+    """Enregistre le passage retenu d'une musique importee (les deux a null = piste entiere)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    res = music_library.decouper(telegram_id, musique_id, body.debut_s, body.duree_s)
+    if res.get("error"):
+        raise HTTPException(status_code=404, detail=res["error"])
+    return res
+
+
 @router.delete("/musique/{musique_id}")
 def supprimer_musique(musique_id: str, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")

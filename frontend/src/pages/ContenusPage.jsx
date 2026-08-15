@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { contenuService } from '../services/contenuService';
 import { PillFabrication } from '../components/Fabrication';
+import DecoupeMusique from '../components/DecoupeMusique';
 import { agentService } from '../services/agentService';
 import { userService } from '../services/userService';
 import { templateService } from '../services/templateService';
@@ -1842,6 +1843,11 @@ export default function ContenusPage() {
                       </label>
                     </div>
                     <p className="text-[11px] text-slate-600 font-inter mt-1.5">{t('contenus.reel.seq.mp3Aide')}</p>
+                    {/* Découpe : seulement sur les musiques du client (les pistes partagées sont calibrées) */}
+                    {(() => {
+                      const p = reelMusiques.find((m) => m.id === seqMusique && m.category === 'perso');
+                      return p ? <DecoupeMusique piste={p} onChange={(m) => setReelMusiques((prev) => prev.map((x) => (x.id === m.id ? { ...x, ...m } : x)))} /> : null;
+                    })()}
                     <audio ref={seqAudioRef} onEnded={() => setSeqPlaying(false)} className="hidden" />
                   </div>
                 )}

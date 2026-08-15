@@ -50,16 +50,44 @@ TAILLE_MAX_MO = 15
 
 
 def musiques_du_compte(telegram_id: str) -> list:
-    """Les MP3 importés par le client, présentés comme la bibliothèque partagée."""
+    """Les MP3 importés par le client, présentés comme la bibliothèque partagée.
+    `debut_s`/`duree_s` : passage retenu par le client (voir decouper())."""
     from config import supabase, logger
     try:
-        r = (supabase.table("brand_musiques").select("id, url, label, created_at")
+        r = (supabase.table("brand_musiques").select("id, url, label, debut_s, duree_s, created_at")
              .eq("telegram_id", telegram_id).order("created_at", desc=True).execute())
         return [{"id": m["id"], "label": m["label"], "category": "perso",
-                 "user_media_id": None, "url": m["url"]} for m in (r.data or [])]
+                 "user_media_id": None, "url": m["url"],
+                 "debut_s": m.get("debut_s"), "duree_s": m.get("duree_s")} for m in (r.data or [])]
     except Exception as e:
         logger.error(f"musiques du compte {telegram_id}: {e}")
         return []
+
+
+def decouper(telegram_id: str, musique_id: str, debut_s=None, duree_s=None) -> dict:
+    """Enregistre le passage retenu d'une musique importée. Les deux à None = piste entière."""
+    from config import supabase, logger
+
+    def _borne(v, mini=0.0):
+        if v in (None, ""):
+            return None
+        try:
+            return max(mini, round(float(v), 2))
+        except (TypeError, ValueError):
+            return None
+
+    d, du = _borne(debut_s), _borne(duree_s, 0.5)
+    try:
+        r = (supabase.table("brand_musiques").update({"debut_s": d, "duree_s": du})
+             .eq("id", musique_id).eq("telegram_id", telegram_id).execute())
+    except Exception as e:
+        logger.error(f"decoupage musique {musique_id}: {e}")
+        return {"error": "Découpage impossible."}
+    if not r.data:
+        return {"error": "Musique introuvable."}
+    m = r.data[0]
+    return {"id": m["id"], "label": m["label"], "url": m["url"], "category": "perso",
+            "debut_s": m.get("debut_s"), "duree_s": m.get("duree_s")}
 
 
 def bibliotheque(telegram_id: str = None) -> tuple:
@@ -69,7 +97,7 @@ def bibliotheque(telegram_id: str = None) -> tuple:
     return cats, perso + MUSIC_LIBRARY
 
 
-def pour_rendu(url: str | None) -> str | None:
+def pour_rendu(url: str | None, debut_s=None, duree_s=None) -> str | None:
     """Version allégée d'une piste pour le rendu Remotion.
 
     L'audio est ré-encodé à la volée par Cloudinary en 128 kbps : ~35 % de moins à
@@ -81,20 +109,32 @@ def pour_rendu(url: str | None) -> str | None:
     if not url or "res.cloudinary.com" not in url or "/upload/" not in url:
         return url
     base, _, fin = url.partition("/upload/")
-    if fin.startswith("ac_"):        # déjà encodée
+    if fin.startswith(("ac_", "so_")):   # déjà transformée
         return url
-    if fin.startswith("q_auto/"):    # q_auto n'apporte rien sur l'audio : on le remplace
+    if fin.startswith("q_auto/"):        # q_auto n'apporte rien sur l'audio : on le remplace
         fin = fin[len("q_auto/"):]
-    return f"{base}/upload/ac_mp3,br_128k/{fin}"
+    # Passage retenu par le client : so_ = début, du_ = durée. Ne transporter que
+    # ces secondes-là, au lieu du morceau entier, est le vrai gain sur un long MP3.
+    coupe = ""
+    if debut_s not in (None, "", 0):
+        coupe += f"so_{float(debut_s):g},"
+    if duree_s not in (None, ""):
+        coupe += f"du_{float(duree_s):g},"
+    return f"{base}/upload/{coupe}ac_mp3,br_128k/{fin}"
 
 
 def url_de(music_id: str | None, telegram_id: str = None, rendu: bool = False) -> str | None:
     """URL d'une piste, qu'elle vienne de la bibliothèque partagée ou du client.
-    `rendu=True` : version allégée destinée au moteur de rendu."""
+    `rendu=True` : version allégée, limitée au passage retenu par le client."""
     u = musique_url(music_id)
-    if not u and music_id and telegram_id:
-        u = next((m["url"] for m in musiques_du_compte(telegram_id) if m["id"] == music_id), None)
-    return pour_rendu(u) if rendu else u
+    if u:
+        return pour_rendu(u) if rendu else u
+    if not (music_id and telegram_id):
+        return None
+    m = next((x for x in musiques_du_compte(telegram_id) if x["id"] == music_id), None)
+    if not m:
+        return None
+    return pour_rendu(m["url"], m.get("debut_s"), m.get("duree_s")) if rendu else m["url"]
 
 
 def piste(music_id: str | None) -> dict | None:
