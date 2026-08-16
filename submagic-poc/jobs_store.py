@@ -42,6 +42,15 @@ def get(job_id):
         return None
 
 
+def delete(job_id):
+    """Repli silencieux si Supabase indisponible."""
+    try:
+        _get_client().table("studio_montage_jobs").delete().eq("job_id", job_id).execute()
+    except Exception as e:
+        msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
+        print(f"[jobs_store] echec suppression job {job_id} ({msg})")
+
+
 def list_recent(limit=24):
     """Montages termines les plus recents (avec vidéo uploadée), pour la
     galerie d'accueil. Liste vide si Supabase indisponible — pas d'erreur

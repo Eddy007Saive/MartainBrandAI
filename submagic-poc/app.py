@@ -15,6 +15,7 @@ os.environ.setdefault("KMP_NUM_THREADS", "2")
 os.environ.setdefault("OPENBLAS_NUM_THREADS", "2")
 
 import json
+import shutil
 import threading
 import uuid
 
@@ -215,6 +216,20 @@ def job_status(job_id: str):
     # du serveur (Railway), la table studio_montage_jobs survit
     job = JOBS.get(job_id) or jobs_store.get(job_id) or {"status": "unknown"}
     return JSONResponse(job)
+
+
+@app.delete("/jobs/{job_id}")
+def delete_job(job_id: str):
+    """Supprime le montage partout : Cloudinary (vidéo + miniature), la
+    ligne Supabase, le dict mémoire et le dossier local s'il est encore là
+    (dev local, ou juste après un rendu avant redéploiement)."""
+    storage.delete(job_id)
+    jobs_store.delete(job_id)
+    JOBS.pop(job_id, None)
+    job_dir = os.path.join(JOBS_DIR, job_id)
+    if os.path.isdir(job_dir):
+        shutil.rmtree(job_dir, ignore_errors=True)
+    return {"status": "deleted"}
 
 
 @app.get("/result/{job_id}")

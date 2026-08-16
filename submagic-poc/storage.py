@@ -49,6 +49,19 @@ def upload_image(path, job_id):
     return _upload(path, job_id, "image", "thumbnail")
 
 
+def delete(job_id):
+    """Supprime vidéo + miniature de Cloudinary pour ce job. Best-effort :
+    ne lève jamais (public_id déjà absent, clés manquantes, réseau — la
+    suppression côté base/local doit continuer dans tous les cas)."""
+    try:
+        _ensure_configured()
+        cloudinary.uploader.destroy(f"studio-montage/{job_id}/video", resource_type="video")
+        cloudinary.uploader.destroy(f"studio-montage/{job_id}/thumbnail", resource_type="image")
+    except Exception as e:
+        msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
+        print(f"[stockage] echec suppression job {job_id} ({msg})")
+
+
 def attachment_url(url):
     """Variante 'téléchargement forcé' d'une URL Cloudinary (l'attribut HTML
     `download` est ignoré par les navigateurs sur un lien cross-origin)."""

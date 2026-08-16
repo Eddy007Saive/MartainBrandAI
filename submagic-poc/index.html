@@ -278,7 +278,7 @@
   /* ---- galerie des montages récents ---- */
   .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
   .galleryCard {
-    display: block; border-radius: 10px; overflow: hidden; text-decoration: none; color: var(--text);
+    display: block; border-radius: 10px; overflow: hidden; color: var(--text); cursor: pointer;
     background: var(--card-2); border: 1px solid var(--border);
     transition: border-color .18s ease, transform .16s var(--ease-out);
   }
@@ -286,8 +286,16 @@
   @media (hover: hover) and (pointer: fine) { .galleryCard:hover { border-color: var(--accent); } }
   .galleryThumb {
     aspect-ratio: 9/16; background: #0b1222; display: grid; place-items: center;
-    font-size: 26px; overflow: hidden;
+    font-size: 26px; overflow: hidden; position: relative;
   }
+  .galleryDel {
+    position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.18); background: rgba(2,6,23,.65); color: #fff;
+    font-size: 13px; line-height: 1; cursor: pointer; display: grid; place-items: center;
+    transition: background-color .16s ease, transform .16s var(--ease-out);
+  }
+  .galleryDel:hover { background: #dc2626; border-color: #dc2626; }
+  .galleryDel:active { transform: scale(.9); }
   .galleryThumb img { width: 100%; height: 100%; object-fit: cover; }
   .galleryMeta { padding: 8px 10px; }
   .galleryHook {
@@ -817,13 +825,34 @@ function renderGallery(jobs) {
     return;
   }
   el.innerHTML = jobs.map(j => `
-    <a class="galleryCard" href="/result/${j.job_id}" target="_blank" rel="noopener">
-      <div class="galleryThumb">${j.thumb_url ? `<img src="${j.thumb_url}" loading="lazy" alt="">` : "🎬"}</div>
+    <div class="galleryCard" data-job="${j.job_id}">
+      <div class="galleryThumb">
+        ${j.thumb_url ? `<img src="${j.thumb_url}" loading="lazy" alt="">` : "🎬"}
+        <button type="button" class="galleryDel" data-del="${j.job_id}" title="Supprimer" aria-label="Supprimer">✕</button>
+      </div>
       <div class="galleryMeta">
         <div class="galleryHook">${j.hook ? escapeHtml(j.hook) : "Sans accroche"}</div>
         <div class="galleryDate">${timeAgo(j.created_at)}</div>
       </div>
-    </a>`).join("");
+    </div>`).join("");
+  el.querySelectorAll(".galleryCard").forEach(card => {
+    card.addEventListener("click", () => window.open("/result/" + card.dataset.job, "_blank"));
+  });
+  el.querySelectorAll(".galleryDel").forEach(btn => {
+    btn.addEventListener("click", async e => {
+      e.stopPropagation();
+      const jobId = btn.dataset.del;
+      if (!confirm("Supprimer ce montage ? Cette action est définitive.")) return;
+      btn.disabled = true;
+      try {
+        await fetch("/jobs/" + jobId, { method: "DELETE" });
+        refreshGallery();
+      } catch {
+        btn.disabled = false;
+        alert("Suppression impossible — serveur injoignable.");
+      }
+    });
+  });
 }
 function refreshGallery() {
   fetch("/jobs").then(r => r.json()).then(renderGallery).catch(() => renderGallery([]));
