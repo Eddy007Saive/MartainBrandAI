@@ -22,6 +22,7 @@ from fastapi import FastAPI, Form, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 import hooks
+import jobs_store
 import music
 import pipeline
 import storage
@@ -32,6 +33,12 @@ os.makedirs(JOBS_DIR, exist_ok=True)
 
 app = FastAPI()
 JOBS = {}
+
+
+def _sync(job_id):
+    """Reflete l'etat courant de JOBS[job_id] dans Supabase (survit a un
+    redemarrage Railway, contrairement au dict en memoire)."""
+    jobs_store.upsert(job_id, **JOBS.get(job_id, {}))
 
 DEFAULTS = {
     "preset": "classic",
@@ -82,13 +89,16 @@ async def process(video: UploadFile, options: str = Form("{}")):
             f.write(chunk)
     opts = {**DEFAULTS, **json.loads(options)}
     JOBS[job_id] = {"status": "processing", "step": "file d'attente"}
+    _sync(job_id)
+
+    def on_progress(s):
+        JOBS[job_id].update(step=s)
+        _sync(job_id)
 
     def run():
         try:
             out_mp4 = os.path.join(job_dir, "out.mp4")
-            res = pipeline.process(
-                src, out_mp4, opts,
-                progress=lambda s: JOBS[job_id].update(step=s))
+            res = pipeline.process(src, out_mp4, opts, progress=on_progress)
             has_thumb = res.get("thumbnail", False)
             warnings = list(res.get("warnings", []))
             # stockage local éphémère sur un déploiement séparé (Railway efface
@@ -117,6 +127,8 @@ async def process(video: UploadFile, options: str = Form("{}")):
                                 video_path=src, options=opts)
         except Exception as e:
             JOBS[job_id].update(status="error", error=str(e)[:500])
+        finally:
+            _sync(job_id)
 
     threading.Thread(target=run, daemon=True).start()
     return {"job_id": job_id}
@@ -133,12 +145,16 @@ async def regenerate_thumbnail(job_id: str, options: str = Form("{}")):
     video_path = job["video_path"]
     thumb_out = os.path.join(os.path.dirname(video_path), "out.thumb.jpg")
     JOBS[job_id] = {**job, "status": "processing", "step": "miniature"}
+    _sync(job_id)
+
+    def on_progress(s):
+        JOBS[job_id].update(step=s)
+        _sync(job_id)
 
     def run():
         try:
-            res = pipeline.regenerate_thumbnail(
-                video_path, thumb_out, opts,
-                progress=lambda s: JOBS[job_id].update(step=s))
+            res = pipeline.regenerate_thumbnail(video_path, thumb_out, opts,
+                                                progress=on_progress)
             warnings = list(res.get("warnings", []))
             JOBS[job_id].update(step="stockage")
             thumb_url = storage.upload_image(thumb_out, job_id)
@@ -151,6 +167,8 @@ async def regenerate_thumbnail(job_id: str, options: str = Form("{}")):
                                 video_path=video_path, options=opts)
         except Exception as e:
             JOBS[job_id].update(status="error", error=str(e)[:500])
+        finally:
+            _sync(job_id)
 
     threading.Thread(target=run, daemon=True).start()
     return {"job_id": job_id}
@@ -186,22 +204,28 @@ async def suggest_hooks(video: UploadFile):
 
 @app.get("/jobs/{job_id}")
 def job_status(job_id: str):
-    return JSONResponse(JOBS.get(job_id, {"status": "unknown"}))
+    # repli Supabase : le dict JOBS en mémoire est vide après un redémarrage
+    # du serveur (Railway), la table studio_montage_jobs survit
+    job = JOBS.get(job_id) or jobs_store.get(job_id) or {"status": "unknown"}
+    return JSONResponse(job)
 
 
 @app.get("/result/{job_id}")
 def result(job_id: str, download: bool = False):
-    url = (JOBS.get(job_id) or {}).get("video_url")
+    job = JOBS.get(job_id) or jobs_store.get(job_id) or {}
+    url = job.get("video_url")
     if url:
         return RedirectResponse(storage.attachment_url(url) if download else url)
-    # repli local : dev sans clés Cloudinary, ou upload qui a échoué
+    # repli local : dev sans clés Cloudinary, upload qui a échoué, ou fichier
+    # local encore présent (job pas encore uploadé quand le serveur a tourné)
     return FileResponse(os.path.join(JOBS_DIR, job_id, "out.mp4"),
                         media_type="video/mp4", filename="montage.mp4")
 
 
 @app.get("/thumbnail/{job_id}")
 def thumbnail(job_id: str, download: bool = False):
-    url = (JOBS.get(job_id) or {}).get("thumb_url")
+    job = JOBS.get(job_id) or jobs_store.get(job_id) or {}
+    url = job.get("thumb_url")
     if url:
         return RedirectResponse(storage.attachment_url(url) if download else url)
     return FileResponse(os.path.join(JOBS_DIR, job_id, "out.thumb.jpg"),
