@@ -447,7 +447,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 
 def build_filtergraph(segs, crops, zxy, ass_path, cw, src_w, src_h, o, path,
-                       kept_duration, music_path, emoji_picks, broll_picks):
+                       kept_duration, music_path, emoji_picks, broll_picks, fps):
     n = len(segs)
     z, x, y = zxy
     out_w, out_h = (base.OUT_W, base.OUT_H) if o["vertical"] else (src_w, src_h)
@@ -458,7 +458,16 @@ def build_filtergraph(segs, crops, zxy, ass_path, cw, src_w, src_h, o, path,
                   "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000[acl];\n")
     else:
         aclean = "[0:a]anull[acl];\n"
-    vsplit = f"[0:v]split={n}" + "".join(f"[s{i}]" for i in range(n)) + ";\n"
+    # Normalise en CFR au FPS RÉEL de la source (au lieu du 30 codé en dur
+    # utilisé plus loin par zoompan) : sans ça, une vidéo à 24/25/50/60 im/s
+    # se fait réétiqueter à 30 im/s par zoompan (d=1 + fps fixe = 1 frame
+    # d'entrée -> 1 frame de sortie espacée de 1/30s, peu importe le vrai
+    # espacement d'origine) -> durée totale fausse -> vidéo visiblement
+    # accélérée/ralentie et désynchronisée de l'audio (qui garde sa vraie
+    # durée). Bug reproduit avec le suivi de visage/zoom activé sur une
+    # source non-30fps.
+    vfix = f"[0:v]fps={fps:.6f}[v0n];\n"
+    vsplit = f"[v0n]split={n}" + "".join(f"[s{i}]" for i in range(n)) + ";\n"
     asplit = aclean + f"[acl]asplit={n}" + "".join(f"[t{i}]" for i in range(n)) + ";\n"
     chains = []
     for i, (a, b) in enumerate(segs):
@@ -470,13 +479,13 @@ def build_filtergraph(segs, crops, zxy, ass_path, cw, src_w, src_h, o, path,
         chains.append(f"[t{i}]atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS[a{i}];")
     concat_in = "".join(f"[v{i}][a{i}]" for i in range(n))
     ass_escaped = ass_path.replace("\\", "/").replace(":", r"\:")
-    graph = (vsplit + asplit + "\n".join(chains)
+    graph = (vfix + vsplit + asplit + "\n".join(chains)
              + f"\n{concat_in}concat=n={n}:v=1:a=1[vc][ac];\n")
 
     video_label = "[vc]"
     if o["zoom"]:
         graph += (f"{video_label}zoompan=z='{z}':x='{x}':y='{y}':d=1:"
-                  f"s={out_w}x{out_h}:fps={base.FPS}[vz];\n")
+                  f"s={out_w}x{out_h}:fps={fps:.6f}[vz];\n")
         video_label = "[vz]"
 
     # b-roll : remplace TOUT le cadre pendant sa fenêtre (contrairement aux
@@ -583,7 +592,7 @@ def process(video, out, o, progress=lambda s: None):
 
         progress("analyse")
         base.ZOOM_MAX = o["zoom_max"]
-        src_w, src_h, duration = base.probe(video)
+        src_w, src_h, duration, fps = base.probe(video)
         cw = int(src_h * 9 / 16) // 2 * 2
         segs = (base.keep_segments(words, duration) if o["cuts"]
                 else [(0.0, duration)])
@@ -680,7 +689,7 @@ def process(video, out, o, progress=lambda s: None):
         graph_path = base_path + ".filtergraph"
         final_video, final_audio = build_filtergraph(
             segs, crops, base.zoom_exprs(zoom_list), ass_path, cw, src_w, src_h,
-            o, graph_path, kept_duration, music_path, emoji_picks, broll_picks)
+            o, graph_path, kept_duration, music_path, emoji_picks, broll_picks, fps)
 
         progress("rendu")
         cmd = [base.FFMPEG, "-y", "-i", video]
@@ -766,7 +775,7 @@ def regenerate_thumbnail(video, out_jpg, o, progress=lambda s: None):
         if not words:
             raise RuntimeError("Aucune parole détectée dans la vidéo")
 
-        src_w, src_h, _duration = base.probe(video)
+        src_w, src_h, _duration, _fps = base.probe(video)
         cw = int(src_h * 9 / 16) // 2 * 2
         transcript = " ".join(w["text"] for w in words)
         thumb_hook = (o.get("hook") or "").strip()

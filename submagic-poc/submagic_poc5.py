@@ -45,12 +45,14 @@ OUT_W, OUT_H = 720, 1280   # format reel 9:16
 def probe(path):
     out = subprocess.check_output(
         [FFPROBE, "-v", "error", "-select_streams", "v:0",
-         "-show_entries", "stream=width,height", "-of", "csv=p=0", path],
+         "-show_entries", "stream=width,height,r_frame_rate", "-of", "csv=p=0", path],
         text=True).strip().split(",")
     dur = float(subprocess.check_output(
         [FFPROBE, "-v", "error", "-show_entries", "format=duration",
          "-of", "csv=p=0", path], text=True))
-    return int(out[0]), int(out[1]), dur
+    num, _, den = out[2].partition("/")
+    fps = float(num) / float(den) if den and float(den) else float(num or FPS)
+    return int(out[0]), int(out[1]), dur, fps
 
 
 def load_words(path):
@@ -331,7 +333,7 @@ def build_filtergraph(segs, crops, zxy, ass_path, cw, src_h, path):
 def main():
     video, words_json, out = sys.argv[1], sys.argv[2], sys.argv[3]
     base = os.path.splitext(os.path.abspath(out))[0]
-    src_w, src_h, duration = probe(video)
+    src_w, src_h, duration, _fps = probe(video)
     cw = int(src_h * 9 / 16) // 2 * 2  # largeur du crop 9:16, paire
 
     words = load_words(words_json)
