@@ -202,6 +202,13 @@ async def suggest_hooks(video: UploadFile):
     return {"job_id": job_id}
 
 
+@app.get("/jobs")
+def jobs_list():
+    """Montages récents (pour la galerie d'accueil) — liste vide si
+    Supabase indisponible, jamais d'erreur bloquante pour l'accueil."""
+    return JSONResponse(jobs_store.list_recent())
+
+
 @app.get("/jobs/{job_id}")
 def job_status(job_id: str):
     # repli Supabase : le dict JOBS en mémoire est vide après un redémarrage

@@ -275,6 +275,28 @@
     border-left: 3px solid #f59e0b;
   }
 
+  /* ---- galerie des montages récents ---- */
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+  .galleryCard {
+    display: block; border-radius: 10px; overflow: hidden; text-decoration: none; color: var(--text);
+    background: var(--card-2); border: 1px solid var(--border);
+    transition: border-color .18s ease, transform .16s var(--ease-out);
+  }
+  .galleryCard:active { transform: scale(.97); }
+  @media (hover: hover) and (pointer: fine) { .galleryCard:hover { border-color: var(--accent); } }
+  .galleryThumb {
+    aspect-ratio: 9/16; background: #0b1222; display: grid; place-items: center;
+    font-size: 26px; overflow: hidden;
+  }
+  .galleryThumb img { width: 100%; height: 100%; object-fit: cover; }
+  .galleryMeta { padding: 8px 10px; }
+  .galleryHook {
+    font-size: 12px; font-weight: 600; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .galleryDate { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+  .galleryEmpty { color: var(--muted); font-size: 13px; }
+
   @media (prefers-reduced-motion: reduce) {
     section.card { animation-duration: .01s; }
     .caption .w, .font-card, .cta, .sw, .drop { transition: none; }
@@ -290,6 +312,11 @@
       <p>Coupes, zoom visage, sous-titres karaoké, audio nettoyé — en local</p>
     </div>
   </header>
+
+  <section class="card" id="galleryCard">
+    <h2>Vidéos récentes</h2>
+    <div class="gallery" id="gallery"><p class="galleryEmpty">Chargement…</p></div>
+  </section>
 
   <div class="grid">
     <div>
@@ -773,6 +800,36 @@ fetch("/music").then(r => r.json()).then(data => {
   });
 }).catch(() => {});
 
+/* ---- galerie des montages récents ---- */
+function escapeHtml(s) {
+  const d = document.createElement("div"); d.textContent = s; return d.innerHTML;
+}
+function timeAgo(iso) {
+  const h = (Date.now() - new Date(iso)) / 36e5;
+  if (h < 1) return "à l'instant";
+  if (h < 24) return Math.round(h) + " h";
+  return Math.round(h / 24) + " j";
+}
+function renderGallery(jobs) {
+  const el = document.getElementById("gallery");
+  if (!jobs || !jobs.length) {
+    el.innerHTML = '<p class="galleryEmpty">Aucun montage pour l\'instant — lance-en un ci-dessous.</p>';
+    return;
+  }
+  el.innerHTML = jobs.map(j => `
+    <a class="galleryCard" href="/result/${j.job_id}" target="_blank" rel="noopener">
+      <div class="galleryThumb">${j.thumb_url ? `<img src="${j.thumb_url}" loading="lazy" alt="">` : "🎬"}</div>
+      <div class="galleryMeta">
+        <div class="galleryHook">${j.hook ? escapeHtml(j.hook) : "Sans accroche"}</div>
+        <div class="galleryDate">${timeAgo(j.created_at)}</div>
+      </div>
+    </a>`).join("");
+}
+function refreshGallery() {
+  fetch("/jobs").then(r => r.json()).then(renderGallery).catch(() => renderGallery([]));
+}
+refreshGallery();
+
 musicSelect.addEventListener("change", () => {
   const id = musicSelect.value;
   musicPreview.pause(); musicPlay.classList.remove("playing"); musicPlay.textContent = "▶";
@@ -919,6 +976,7 @@ go.onclick = async () => {
           tb.style.display = "block"; tc.style.display = "block";
         } else { tb.style.display = "none"; tc.style.display = "none"; }
         showWarnings(j.warnings);
+        refreshGallery();
       } else if (j.status === "error") {
         clearInterval(poll);
         go.textContent = "Lancer le montage"; go.disabled = false;

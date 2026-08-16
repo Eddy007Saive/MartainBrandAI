@@ -40,3 +40,19 @@ def get(job_id):
         msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
         print(f"[jobs_store] echec lecture job {job_id} ({msg})")
         return None
+
+
+def list_recent(limit=24):
+    """Montages termines les plus recents (avec vidéo uploadée), pour la
+    galerie d'accueil. Liste vide si Supabase indisponible — pas d'erreur
+    remontée au front, l'accueil reste utilisable sans galerie."""
+    try:
+        res = (_get_client().table("studio_montage_jobs")
+               .select("job_id,hook,thumb_url,video_url,created_at")
+               .eq("status", "done").not_.is_("video_url", "null")
+               .order("created_at", desc=True).limit(limit).execute())
+        return res.data or []
+    except Exception as e:
+        msg = str(e).encode("ascii", "backslashreplace").decode("ascii")
+        print(f"[jobs_store] echec liste des jobs ({msg})")
+        return []
