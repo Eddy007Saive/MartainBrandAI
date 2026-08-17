@@ -183,7 +183,7 @@ def _fit_fs(text, base):
     return round(base * 0.52)
 
 
-def build_html(content, p, s, a, nom, secteur, template="creme", logo=None):
+def build_html(content, p, s, a, nom, secteur, template="creme", logo=None, poses=None):
     secteur = (secteur or "").strip()
     if len(secteur) > 42:
         secteur = secteur[:42].rstrip() + "…"
@@ -198,6 +198,8 @@ def build_html(content, p, s, a, nom, secteur, template="creme", logo=None):
           "postorico": _tpl_postorico, "rico-studio": _tpl_rico_studio,
           "rico-scene": _tpl_rico_scene,
           "bold": _tpl_sombre, "instagram": _tpl_clean}.get(template, _tpl_creme)
+    if template in ("rico-studio", "rico-scene"):
+        return fn(content, p, s, a, nom, secteur, logo, poses)
     return fn(content, p, s, a, nom, secteur, logo)
 
 
@@ -755,17 +757,20 @@ def _tpl_postorico(content, p, s, a, nom, secteur, logo):
 # « Rico Studio » — éditorial clair. Rico présente le sujet sur CHAQUE slide.
 # Contraste volontaire avec le sombre : c'est la vitrine haut de gamme.
 # =============================================================================
-def _tpl_rico_studio(content, p, s, a, nom, secteur, logo):
+def _tpl_rico_studio(content, p, s, a, nom, secteur, logo, poses=None):
     P = p or "#5B6CFF"
     S = s or "#8A6CFF"
     A = a or "#3AFFA3"
     ENCRE, PAPIER = "#12131A", "#F6F3EA"
     hook, slides, cta = _parts(content)
     n = 2 + len(slides)
-    b64 = _mascotte_b64()
+    from services import rico_poses
+    choix = poses or rico_poses.choisir(hook, slides, cta["titre"])
 
-    def rico(classe):
-        return f'<img class="masc {classe}" src="data:image/png;base64,{b64}" alt="">' if b64 else ""
+    def rico(classe, i):
+        # Une pose par slide : c'est le propos de la slide qui la choisit.
+        pose = choix[i] if i < len(choix) else rico_poses.DEFAUT
+        return f'<img class="masc {classe}" src="{rico_poses.url(pose)}" alt="">'
 
     marque = (f'<span class="lg"><img src="{logo}" alt=""></span>' if logo
               else f'<span class="lg ini">{_esc((nom or "?")[:1].upper())}</span>')
@@ -834,7 +839,7 @@ def _tpl_rico_studio(content, p, s, a, nom, secteur, logo):
     marque_html = f'<div class="brand">{marque}<b>{_esc(nom)}</b></div>'
 
     out = [
-        f'<div class="slide has-hero">{fond}{rico("hero")}'
+        f'<div class="slide has-hero">{fond}{rico("hero", 0)}'
         f'<div class="top">{marque_html}<span class="idx">1/{n}</span></div>'
         f'<div class="grow"><span class="kicker">{_esc(secteur) or "Postorico"}</span>'
         f'<h1 style="font-size:{_fit_fs(hook, 38)}px">{_esc(hook)}</h1></div>'
@@ -848,14 +853,14 @@ def _tpl_rico_studio(content, p, s, a, nom, secteur, logo):
                if sl.get("pro_tip") else "")
         txt = f'<p class="sub">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else ""
         out.append(
-            f'<div class="slide {cls}">{fond}<div class="wm">{i + 1:02d}</div>{rico(cote)}'
+            f'<div class="slide {cls}">{fond}<div class="wm">{i + 1:02d}</div>{rico(cote, i + 1)}'
             f'<div class="top">{marque_html}<span class="idx">{i + 2}/{n}</span></div>'
             f'<div class="grow"><h2 style="font-size:{_fit_fs(sl.get("titre"), 27)}px">{_esc(sl.get("titre"))}</h2>'
             f'{txt}{pills}{tip}</div>'
             f'<div class="bar"><div class="dots">{_dots(n, i + 1)}</div><span class="hd">{_esc(nom)}</span></div></div>'
         )
     out.append(
-        f'<div class="slide cta has-hero"><div class="grain"></div>{rico("final")}'
+        f'<div class="slide cta has-hero"><div class="grain"></div>{rico("final", len(slides) + 1)}'
         f'<div class="top">{marque_html}<span class="idx">{n}/{n}</span></div>'
         f'<div class="grow"><h2 style="font-size:{_fit_fs(cta["titre"], 26)}px">{_esc(cta["titre"])}</h2>'
         + (f'<p class="sub">{_esc(cta["texte"])}</p>' if cta["texte"] else "")
@@ -870,17 +875,19 @@ def _tpl_rico_studio(content, p, s, a, nom, secteur, logo):
 # un cône de lumière descend sur lui, le texte occupe le haut. Chaque slide le
 # montre, à une échelle différente, pour que la série reste vivante.
 # =============================================================================
-def _tpl_rico_scene(content, p, s, a, nom, secteur, logo):
+def _tpl_rico_scene(content, p, s, a, nom, secteur, logo, poses=None):
     P = p or "#5B6CFF"
     S = s or "#8A6CFF"
     A = _acc_dark(a or "#3AFFA3")
     hook, slides, cta = _parts(content)
     n = 2 + len(slides)
-    b64 = _mascotte_b64()
+    from services import rico_poses
+    choix = poses or rico_poses.choisir(hook, slides, cta["titre"])
 
-    def rico(classe):
+    def rico(classe, i):
+        pose = choix[i] if i < len(choix) else rico_poses.DEFAUT
         return (f'<div class="scene {classe}"><span class="halo"></span><span class="sol"></span>'
-                f'<img class="masc" src="data:image/png;base64,{b64}" alt=""></div>') if b64 else ""
+                f'<img class="masc" src="{rico_poses.url(pose)}" alt=""></div>')
 
     marque = (f'<span class="lg"><img src="{logo}" alt=""></span>' if logo
               else f'<span class="lg ini">{_esc((nom or "?")[:1].upper())}</span>')
@@ -950,7 +957,7 @@ def _tpl_rico_scene(content, p, s, a, nom, secteur, logo):
     marque_html = f'<div class="brand">{marque}<b>{_esc(nom)}</b></div>'
 
     out = [
-        f'<div class="slide">{fond}{rico("grande")}'
+        f'<div class="slide">{fond}{rico("grande", 0)}'
         f'<div class="top">{marque_html}<span class="idx">1/{n}</span></div>'
         f'<div class="haut"><h1 style="font-size:{_fit_fs(hook, 36)}px">{_accroche_mint(hook, A)}</h1></div>'
         f'<div class="bar"><span class="hd">{_esc(secteur)}</span><span class="swipe">Swipe &#8594;</span></div></div>'
@@ -962,14 +969,14 @@ def _tpl_rico_scene(content, p, s, a, nom, secteur, logo):
                if sl.get("pro_tip") else "")
         txt = f'<p class="sub">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else ""
         out.append(
-            f'<div class="slide">{fond}{rico(taille)}'
+            f'<div class="slide">{fond}{rico(taille, i + 1)}'
             f'<div class="top">{marque_html}<span class="idx">{i + 2}/{n}</span></div>'
             f'<div class="haut"><div class="etape"><span></span>Étape {i + 1:02d}</div>'
             f'<h2 style="font-size:{_fit_fs(sl.get("titre"), 26)}px">{_esc(sl.get("titre"))}</h2>{txt}{pills}{tip}</div>'
             f'<div class="bar"><div class="dots">{_dots(n, i + 1)}</div><span class="hd">{_esc(nom)}</span></div></div>'
         )
     out.append(
-        f'<div class="slide cta"><div class="grain"></div>{rico("grande")}'
+        f'<div class="slide cta"><div class="grain"></div>{rico("grande", len(slides) + 1)}'
         f'<div class="top">{marque_html}<span class="idx" style="color:#fff">{n}/{n}</span></div>'
         f'<div class="haut"><h2 style="font-size:{_fit_fs(cta["titre"], 26)}px">{_accroche_mint(cta["titre"], A)}</h2>'
         + (f'<p class="sub">{_esc(cta["texte"])}</p>' if cta["texte"] else "")
