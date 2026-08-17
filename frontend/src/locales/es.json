@@ -119,7 +119,10 @@
     "lightboxHint": "{{reseau}} · desliza para ver las 5 diapositivas",
     "toastCouleursEnregistrees": "Colores del carrusel guardados ✨",
     "toastEchecEnregistrement": "Error al guardar",
-    "toastStyleEnregistre": "Estilo «{{style}}» guardado para {{reseau}}"
+    "toastStyleEnregistre": "Estilo «{{style}}» guardado para {{reseau}}",
+    "ongletModeles": "Modelos",
+    "ongletMiens": "Mis carruseles",
+    "miensAide": "Diseños creados para tu marca: son solo tuyos y no aparecen en ninguna otra cuenta."
   },
   "comments": {
     "allNetworks": "Todos",

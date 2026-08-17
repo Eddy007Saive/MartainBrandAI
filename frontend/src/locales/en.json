@@ -119,7 +119,10 @@
     "lightboxHint": "{{reseau}} · swipe to see all 5 slides",
     "toastCouleursEnregistrees": "Carousel colors saved ✨",
     "toastEchecEnregistrement": "Failed to save",
-    "toastStyleEnregistre": "“{{style}}” style saved for {{reseau}}"
+    "toastStyleEnregistre": "“{{style}}” style saved for {{reseau}}",
+    "ongletModeles": "Templates",
+    "ongletMiens": "My carousels",
+    "miensAide": "Designs built for your brand: they're yours alone and appear on no other account."
   },
   "comments": {
     "allNetworks": "All",

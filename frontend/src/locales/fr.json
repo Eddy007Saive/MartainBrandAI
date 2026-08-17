@@ -119,7 +119,10 @@
     "lightboxHint": "{{reseau}} · glisse pour voir les 5 slides",
     "toastCouleursEnregistrees": "Couleurs du carrousel enregistrées ✨",
     "toastEchecEnregistrement": "Échec de l'enregistrement",
-    "toastStyleEnregistre": "Style « {{style}} » enregistré pour {{reseau}}"
+    "toastStyleEnregistre": "Style « {{style}} » enregistré pour {{reseau}}",
+    "ongletModeles": "Modèles",
+    "ongletMiens": "Mes carrousels",
+    "miensAide": "Designs créés pour ta marque : ils n'appartiennent qu'à toi et n'apparaissent chez aucun autre compte."
   },
   "comments": {
     "allNetworks": "Tous",

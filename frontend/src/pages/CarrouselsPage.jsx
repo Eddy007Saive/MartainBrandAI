@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Loader2, Check, X, Maximize2 } from 'lucide-react';
+import { Loader2, Check, X, Maximize2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation, Trans } from 'react-i18next';
 import { useUser } from '../context/UserContext';
@@ -99,11 +99,28 @@ export default function CarrouselsPage() {
       .then((d) => { setAutorises(d?.templates || null); setImportes(d?.importes || []); })
       .catch(() => setAutorises(null));
   }, []);
-  const templatesVisibles = useMemo(() => [
-    ...TEMPLATES.filter((t) => (autorises ? autorises.includes(t.id) : !t.exclusif)),
+  // Deux familles : les modèles communs à tous, et ceux qu'un admin a créés
+  // pour CE compte (sur mesure codés en dur + gabarits HTML importés).
+  const communs = useMemo(
+    () => TEMPLATES.filter((t) => !t.exclusif && (autorises ? autorises.includes(t.id) : true)),
+    [autorises]);
+  const miens = useMemo(() => [
+    ...TEMPLATES.filter((t) => t.exclusif && autorises?.includes(t.id)),
     // Un template importé n'a pas d'aperçu JS : il affiche la vignette rendue à l'import.
     ...importes.map((t) => ({ ...t, vignette: t.preview_url })),
   ], [autorises, importes]);
+
+  const [ongletTpl, setOngletTpl] = useState('communs');
+  // Si le compte n'a aucun carrousel sur mesure, l'onglet n'a pas lieu d'être.
+  const onglets = miens.length > 0;
+  const templatesVisibles = useMemo(
+    () => (!onglets || ongletTpl === 'communs' ? communs : miens),
+    [onglets, ongletTpl, communs, miens]);
+
+  // Le modèle enregistré appartient aux sur-mesure ? on ouvre sur le bon onglet.
+  useEffect(() => {
+    if (miens.length && miens.some((t) => t.id === saved[activeNet])) setOngletTpl('miens');
+  }, [miens, saved, activeNet]);
 
   useEffect(() => {
     (async () => {
@@ -137,7 +154,9 @@ export default function CarrouselsPage() {
       const out = await scheduleService.save(rows);
       setSchedules(out || rows);
       setSaved((p) => ({ ...p, [net]: sel[net] }));
-      toast.success(t('carrousels.toastStyleEnregistre', { style: labelOf(sel[net]), reseau: NETS.find((n) => n.id === net)?.label }));
+      // Un gabarit importé n'est pas dans TEMPLATES : on prend son libellé réel.
+      const nom = [...communs, ...miens].find((x) => x.id === sel[net])?.label || labelOf(sel[net]);
+      toast.success(t('carrousels.toastStyleEnregistre', { style: nom, reseau: NETS.find((n) => n.id === net)?.label }));
     } catch (e) {
       toast.error(e?.response?.data?.detail || t('carrousels.toastEchecEnregistrement'));
     } finally { setSaving(null); }
@@ -229,6 +248,29 @@ export default function CarrouselsPage() {
                 {!dirty ? t('carrousels.dejaEnregistre') : t('carrousels.enregistrer')}
               </button>
             </div>
+
+            {onglets && (
+              <div className="flex gap-1 p-1 mb-4 bg-slate-950/60 rounded-xl border border-white/[0.04] w-fit">
+                {[
+                  { id: 'communs', label: t('carrousels.ongletModeles'), n: communs.length },
+                  { id: 'miens', label: t('carrousels.ongletMiens'), n: miens.length },
+                ].map((o) => (
+                  <button key={o.id} type="button" onClick={() => setOngletTpl(o.id)}
+                    data-testid={`carr-onglet-${o.id}`}
+                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-inter font-medium transition-all ${
+                      ongletTpl === o.id ? 'bg-[#5B6CFF]/20 text-white' : 'text-slate-500 hover:text-slate-300'}`}>
+                    {o.id === 'miens' && <Sparkles className="w-3.5 h-3.5" />}
+                    {o.label}
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      ongletTpl === o.id ? 'bg-[#5B6CFF]/30 text-white' : 'bg-slate-800 text-slate-500'}`}>{o.n}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {onglets && ongletTpl === 'miens' && (
+              <p className="text-[12px] text-slate-500 font-inter mb-3 -mt-1">{t('carrousels.miensAide')}</p>
+            )}
 
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-3.5">
               {templatesVisibles.map((t) => {
