@@ -18,11 +18,12 @@ from services.agent_service import _charger_marque
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
 
 SLIDE_W, SLIDE_H, DSF = 360, 450, 3  # 1080×1350
-TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon", "postorico"]
+TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon",
+             "postorico", "rico-studio", "rico-scene"]
 
 # Templates sur mesure : invisibles par défaut, attribués compte par compte depuis le
 # back-office (colonne users.carrousel_templates_exclusifs, liste CSV).
-EXCLUSIFS = {"postorico"}
+EXCLUSIFS = {"postorico", "rico-studio", "rico-scene"}
 
 
 def _exclusifs_du_compte(telegram_id: str) -> set:
@@ -194,7 +195,8 @@ def build_html(content, p, s, a, nom, secteur, template="creme", logo=None):
             return carrousel_custom.construire(row["html"], content, p, s, a, nom, secteur, logo)
     fn = {"creme": _tpl_creme, "sombre": _tpl_sombre, "alterne": _tpl_alterne,
           "editorial": _tpl_editorial, "pop": _tpl_pop, "clean": _tpl_clean, "neon": _tpl_neon,
-          "postorico": _tpl_postorico,
+          "postorico": _tpl_postorico, "rico-studio": _tpl_rico_studio,
+          "rico-scene": _tpl_rico_scene,
           "bold": _tpl_sombre, "instagram": _tpl_clean}.get(template, _tpl_creme)
     return fn(content, p, s, a, nom, secteur, logo)
 
@@ -742,6 +744,234 @@ def _tpl_postorico(content, p, s, a, nom, secteur, logo):
         f'<div class="slide cta has-masc"><div class="glow m"></div>{hexes}<div class="grain"></div>{masc}'
         f'<div class="top">{marque_html}<span class="idx" style="color:#fff">{n}/{n}</span></div>'
         f'<div class="grow"><h2 style="font-size:{_fit_fs(cta["titre"], 23)}px">{_accroche_mint(cta["titre"], A)}</h2>'
+        + (f'<p class="sub">{_esc(cta["texte"])}</p>' if cta["texte"] else "")
+        + '<span class="btn">Lien en bio &#8594;</span></div>'
+        f'<div class="bar"><span class="hd">{_esc(secteur)}</span><div class="dots">{_dots(n, n - 1)}</div></div></div>'
+    )
+    return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'
+
+
+# =============================================================================
+# « Rico Studio » — éditorial clair. Rico présente le sujet sur CHAQUE slide.
+# Contraste volontaire avec le sombre : c'est la vitrine haut de gamme.
+# =============================================================================
+def _tpl_rico_studio(content, p, s, a, nom, secteur, logo):
+    P = p or "#5B6CFF"
+    S = s or "#8A6CFF"
+    A = a or "#3AFFA3"
+    ENCRE, PAPIER = "#12131A", "#F6F3EA"
+    hook, slides, cta = _parts(content)
+    n = 2 + len(slides)
+    b64 = _mascotte_b64()
+
+    def rico(classe):
+        return f'<img class="masc {classe}" src="data:image/png;base64,{b64}" alt="">' if b64 else ""
+
+    marque = (f'<span class="lg"><img src="{logo}" alt=""></span>' if logo
+              else f'<span class="lg ini">{_esc((nom or "?")[:1].upper())}</span>')
+    head = ('<link href="https://fonts.googleapis.com/css2?'
+            'family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">')
+
+    css = (
+        "<style>*{box-sizing:border-box;margin:0}body{margin:0;font-family:Inter,sans-serif}"
+        f".slide{{width:{SLIDE_W}px;height:{SLIDE_H}px;position:relative;overflow:hidden;background:{PAPIER};"
+        f"color:{ENCRE};display:flex;flex-direction:column;padding:26px 26px 50px}}"
+        # Grande forme colorée en fond : c'est elle qui donne le caractère
+        f".arc{{position:absolute;width:520px;height:520px;border-radius:50%;right:-230px;top:-220px;"
+        f"background:radial-gradient(circle at 30% 70%,{S}26,{P}12 55%,transparent 72%)}}"
+        f".ligne{{position:absolute;left:26px;right:26px;top:74px;height:1px;background:{ENCRE}14}}"
+        f".grain{{position:absolute;inset:0;opacity:.30;mix-blend-mode:multiply;background-image:{_GRAIN}}}"
+        ".top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:4}"
+        ".brand{display:flex;align-items:center;gap:8px}"
+        ".lg{width:25px;height:25px;border-radius:8px;overflow:hidden;display:grid;place-items:center;flex:none}"
+        ".lg img{width:100%;height:100%;object-fit:cover;display:block}"
+        f".lg.ini{{background:linear-gradient(135deg,{P},{S});color:#fff;font-family:Sora;font-weight:800;font-size:12px}}"
+        ".brand b{font-family:Sora;font-weight:700;font-size:13.5px;letter-spacing:-.2px}"
+        f".idx{{font-family:Sora;font-weight:700;font-size:12px;color:{ENCRE}66;font-variant-numeric:tabular-nums}}"
+        ".grow{flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:4}"
+        "h1{font-family:Sora;font-weight:800;font-size:38px;line-height:1.02;letter-spacing:-1.6px}"
+        "h2{font-family:Sora;font-weight:800;font-size:27px;line-height:1.08;letter-spacing:-.8px}"
+        f".sub{{font-size:13px;line-height:1.62;color:{ENCRE}9e;margin-top:12px}}"
+        # Chiffre en filigrane : structure la page sans bruit
+        f".wm{{position:absolute;left:-6px;top:34%;font-family:Sora;font-weight:800;font-size:150px;"
+        f"line-height:.8;letter-spacing:-8px;color:{ENCRE}0d;z-index:1;user-select:none}}"
+        f".kicker{{display:inline-block;align-self:flex-start;font-size:9px;font-weight:800;letter-spacing:2px;"
+        f"text-transform:uppercase;color:{ENCRE};background:{A};padding:5px 11px;border-radius:6px;margin-bottom:14px}}"
+        ".pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}"
+        f".pill{{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:{ENCRE}b0;"
+        f"border:1px solid {ENCRE}1f;padding:6px 10px;border-radius:999px}}"
+        f".tip{{margin-top:15px;padding:11px 13px;background:#fff;border-radius:11px;border:1px solid {ENCRE}12}}"
+        f".tip .lbl{{font-size:8.5px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:{_acc_dark(A)}}}"
+        f".tip p{{font-size:11.5px;line-height:1.5;color:{ENCRE}a0;margin-top:3px}}"
+        # Rico : grand, jamais coupé, il change de place pour ne pas lasser
+        ".masc{position:absolute;z-index:3;filter:drop-shadow(0 26px 30px rgba(18,19,26,.22))}"
+        ".masc.hero{height:238px;right:-14px;bottom:48px}"
+        ".masc.droite{height:146px;right:-8px;bottom:56px}"
+        ".masc.gauche{height:140px;left:-12px;bottom:56px;transform:scaleX(-1)}"
+        ".masc.final{height:224px;right:-16px;bottom:46px}"
+        # Voile sous le bandeau : le pied de slide reste lisible quoi qu'il y ait derrière
+        ".voile{position:absolute;left:0;right:0;bottom:0;height:74px;z-index:3;background:linear-gradient(transparent,#F6F3EAe6 62%)}"
+        ".cta .voile{background:linear-gradient(transparent,rgba(60,40,160,.55))}"
+        ".has-hero .grow{max-width:62%} .has-side .grow{max-width:70%}"
+        ".has-side.g .grow{margin-left:34%;max-width:66%}"
+        ".has-side.g .wm{left:auto;right:-6px}"
+        ".bar{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;align-items:center;"
+        "justify-content:space-between;padding:0 26px 18px}"
+        f".hd{{font-size:9px;color:{ENCRE}70;font-weight:500}}"
+        ".dots{display:flex;gap:5px;align-items:center}"
+        f".dots i{{width:6px;height:6px;border-radius:50%;background:{ENCRE}1f}}"
+        f".dots i.on{{width:18px;border-radius:3px;background:{_acc_dark(A)}}}"
+        f".swipe{{font-size:9.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:{_acc_dark(A)}}}"
+        f".cta{{background:linear-gradient(160deg,{P} 0%,{S} 100%);color:#fff}}"
+        ".cta .arc,.cta .ligne{display:none}"
+        ".cta .brand b,.cta .idx{color:#fff} .cta .sub{color:rgba(255,255,255,.86)}"
+        ".cta .hd{color:rgba(255,255,255,.7)} .cta .dots i{background:rgba(255,255,255,.3)}"
+        f".btn{{align-self:flex-start;margin-top:20px;background:{A};color:#04301F;font-family:Sora;"
+        "font-weight:800;font-size:12.5px;padding:12px 21px;border-radius:11px}"
+        "</style>"
+    )
+    fond = '<div class="arc"></div><div class="ligne"></div><div class="grain"></div><div class="voile"></div>'
+    marque_html = f'<div class="brand">{marque}<b>{_esc(nom)}</b></div>'
+
+    out = [
+        f'<div class="slide has-hero">{fond}{rico("hero")}'
+        f'<div class="top">{marque_html}<span class="idx">1/{n}</span></div>'
+        f'<div class="grow"><span class="kicker">{_esc(secteur) or "Postorico"}</span>'
+        f'<h1 style="font-size:{_fit_fs(hook, 38)}px">{_esc(hook)}</h1></div>'
+        f'<div class="bar"><span class="hd">{_esc(nom)}</span><span class="swipe">Swipe &#8594;</span></div></div>'
+    ]
+    for i, sl in enumerate(slides):
+        cote = "gauche" if i % 2 else "droite"      # Rico alterne : le regard circule
+        cls = "has-side g" if i % 2 else "has-side"
+        pills = f'<div class="pills">{_pills(sl.get("pills"))}</div>' if sl.get("pills") else ""
+        tip = (f'<div class="tip"><span class="lbl">Le geste</span><p>{_esc(sl.get("pro_tip"))}</p></div>'
+               if sl.get("pro_tip") else "")
+        txt = f'<p class="sub">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else ""
+        out.append(
+            f'<div class="slide {cls}">{fond}<div class="wm">{i + 1:02d}</div>{rico(cote)}'
+            f'<div class="top">{marque_html}<span class="idx">{i + 2}/{n}</span></div>'
+            f'<div class="grow"><h2 style="font-size:{_fit_fs(sl.get("titre"), 27)}px">{_esc(sl.get("titre"))}</h2>'
+            f'{txt}{pills}{tip}</div>'
+            f'<div class="bar"><div class="dots">{_dots(n, i + 1)}</div><span class="hd">{_esc(nom)}</span></div></div>'
+        )
+    out.append(
+        f'<div class="slide cta has-hero"><div class="grain"></div>{rico("final")}'
+        f'<div class="top">{marque_html}<span class="idx">{n}/{n}</span></div>'
+        f'<div class="grow"><h2 style="font-size:{_fit_fs(cta["titre"], 26)}px">{_esc(cta["titre"])}</h2>'
+        + (f'<p class="sub">{_esc(cta["texte"])}</p>' if cta["texte"] else "")
+        + '<span class="btn">Lien en bio &#8594;</span></div>'
+        f'<div class="bar"><span class="hd">{_esc(secteur)}</span><div class="dots">{_dots(n, n - 1)}</div></div></div>'
+    )
+    return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'
+
+
+# =============================================================================
+# « Rico Scène » — sombre spectaculaire. Rico est éclairé comme sur une scène :
+# un cône de lumière descend sur lui, le texte occupe le haut. Chaque slide le
+# montre, à une échelle différente, pour que la série reste vivante.
+# =============================================================================
+def _tpl_rico_scene(content, p, s, a, nom, secteur, logo):
+    P = p or "#5B6CFF"
+    S = s or "#8A6CFF"
+    A = _acc_dark(a or "#3AFFA3")
+    hook, slides, cta = _parts(content)
+    n = 2 + len(slides)
+    b64 = _mascotte_b64()
+
+    def rico(classe):
+        return (f'<div class="scene {classe}"><span class="halo"></span><span class="sol"></span>'
+                f'<img class="masc" src="data:image/png;base64,{b64}" alt=""></div>') if b64 else ""
+
+    marque = (f'<span class="lg"><img src="{logo}" alt=""></span>' if logo
+              else f'<span class="lg ini">{_esc((nom or "?")[:1].upper())}</span>')
+    head = ('<link href="https://fonts.googleapis.com/css2?'
+            'family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">')
+
+    css = (
+        "<style>*{box-sizing:border-box;margin:0}body{margin:0;font-family:Inter,sans-serif}"
+        f".slide{{width:{SLIDE_W}px;height:{SLIDE_H}px;position:relative;overflow:hidden;background:#05060C;"
+        "color:#F4F7FF;display:flex;flex-direction:column;padding:26px 26px 48px}"
+        # Le faisceau : c'est lui qui fait la scène
+        f".beam{{position:absolute;left:50%;top:-60px;width:300px;height:430px;transform:translateX(-50%);"
+        f"background:conic-gradient(from 180deg at 50% 0%,transparent 42%,{S}2e 50%,transparent 58%);"
+        "filter:blur(14px);opacity:.9}"
+        f".aura{{position:absolute;width:430px;height:430px;border-radius:50%;left:50%;bottom:-200px;"
+        f"transform:translateX(-50%);background:radial-gradient(circle,{P}44,transparent 66%);filter:blur(40px)}}"
+        f".grain{{position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;background-image:{_GRAIN}}}"
+        ".vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,transparent 34%,rgba(2,3,8,.86) 100%)}"
+        ".top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:6}"
+        ".brand{display:flex;align-items:center;gap:8px}"
+        ".lg{width:25px;height:25px;border-radius:50%;overflow:hidden;display:grid;place-items:center;flex:none}"
+        ".lg img{width:100%;height:100%;object-fit:cover;display:block}"
+        f".lg.ini{{background:linear-gradient(135deg,{P},{S});color:#fff;font-family:Sora;font-weight:800;font-size:12px}}"
+        ".brand b{font-family:Sora;font-weight:700;font-size:13.5px;letter-spacing:-.2px}"
+        f".idx{{font-family:Sora;font-weight:700;font-size:12px;color:{A};font-variant-numeric:tabular-nums}}"
+        # Le texte vit en HAUT : Rico occupe le bas, ils ne se marchent jamais dessus
+        ".haut{position:relative;z-index:6;margin-top:20px}"
+        "h1{font-family:Sora;font-weight:800;font-size:36px;line-height:1.03;letter-spacing:-1.4px;text-transform:uppercase}"
+        "h2{font-family:Sora;font-weight:800;font-size:26px;line-height:1.08;letter-spacing:-.7px;text-transform:uppercase}"
+        ".sub{font-size:12.5px;line-height:1.6;color:#93A0C4;margin-top:11px;max-width:94%}"
+        f".etape{{display:inline-flex;align-items:center;gap:7px;font-family:Sora;font-weight:800;font-size:10px;"
+        f"letter-spacing:1.6px;text-transform:uppercase;color:{A};margin-bottom:11px}}"
+        f".etape span{{display:block;width:22px;height:1.5px;background:{A}}}"
+        ".pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}"
+        ".pill{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#DCE4FA;"
+        "border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);padding:5px 10px;border-radius:999px}"
+        f".tip{{margin-top:13px;padding-left:11px;border-left:2px solid {A}}}"
+        f".tip .lbl{{font-size:8.5px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:{A}}}"
+        ".tip p{font-size:11.5px;line-height:1.5;color:#93A0C4;margin-top:3px}"
+        # Rico sur scène : halo derrière lui, ombre portée au sol
+        ".scene{position:absolute;left:0;right:0;bottom:26px;height:262px;z-index:4;display:flex;"
+        "align-items:flex-end;justify-content:center}"
+        f".halo{{position:absolute;bottom:52px;width:220px;height:220px;border-radius:50%;"
+        f"background:radial-gradient(circle,{A}30,transparent 64%);filter:blur(26px)}}"
+        ".sol{position:absolute;bottom:44px;width:190px;height:22px;border-radius:50%;"
+        "background:radial-gradient(ellipse,rgba(0,0,0,.62),transparent 70%);filter:blur(7px)}"
+        ".masc{position:relative;filter:drop-shadow(0 16px 26px rgba(0,0,0,.6))}"
+        ".scene.grande{height:300px} .scene.grande .masc{height:284px}"
+        ".scene.moyenne .masc{height:164px}"
+        ".scene.petite{height:210px} .scene.petite .masc{height:146px}"
+        ".voile{position:absolute;left:0;right:0;bottom:0;height:78px;z-index:5;background:linear-gradient(transparent,rgba(5,6,12,.92) 64%)}"
+        ".bar{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:center;"
+        "justify-content:space-between;padding:0 26px 18px}"
+        ".hd{font-size:9px;color:#7C89AE;font-weight:500}"
+        ".dots{display:flex;gap:5px;align-items:center}"
+        ".dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.18)}"
+        f".dots i.on{{width:18px;border-radius:3px;background:{A}}}"
+        f".swipe{{font-size:9.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:{A}}}"
+        f".cta{{background:radial-gradient(ellipse at 50% 0%,{S} 0%,{_darken(P, .45)} 62%,#05060C 100%)}}"
+        ".cta .sub{color:rgba(255,255,255,.88)} .cta .hd{color:rgba(255,255,255,.7)}"
+        f".btn{{display:inline-block;margin-top:16px;background:{A};color:#04301F;font-family:Sora;"
+        "font-weight:800;font-size:12.5px;padding:12px 21px;border-radius:11px}"
+        "</style>"
+    )
+    fond = ('<div class="beam"></div><div class="aura"></div><div class="vig"></div>'
+            '<div class="grain"></div><div class="voile"></div>')
+    marque_html = f'<div class="brand">{marque}<b>{_esc(nom)}</b></div>'
+
+    out = [
+        f'<div class="slide">{fond}{rico("grande")}'
+        f'<div class="top">{marque_html}<span class="idx">1/{n}</span></div>'
+        f'<div class="haut"><h1 style="font-size:{_fit_fs(hook, 36)}px">{_accroche_mint(hook, A)}</h1></div>'
+        f'<div class="bar"><span class="hd">{_esc(secteur)}</span><span class="swipe">Swipe &#8594;</span></div></div>'
+    ]
+    for i, sl in enumerate(slides):
+        taille = "petite" if i % 2 else "moyenne"   # l'échelle varie : la série respire
+        pills = f'<div class="pills">{_pills(sl.get("pills"))}</div>' if sl.get("pills") else ""
+        tip = (f'<div class="tip"><span class="lbl">Le geste</span><p>{_esc(sl.get("pro_tip"))}</p></div>'
+               if sl.get("pro_tip") else "")
+        txt = f'<p class="sub">{_esc(sl.get("texte"))}</p>' if sl.get("texte") else ""
+        out.append(
+            f'<div class="slide">{fond}{rico(taille)}'
+            f'<div class="top">{marque_html}<span class="idx">{i + 2}/{n}</span></div>'
+            f'<div class="haut"><div class="etape"><span></span>Étape {i + 1:02d}</div>'
+            f'<h2 style="font-size:{_fit_fs(sl.get("titre"), 26)}px">{_esc(sl.get("titre"))}</h2>{txt}{pills}{tip}</div>'
+            f'<div class="bar"><div class="dots">{_dots(n, i + 1)}</div><span class="hd">{_esc(nom)}</span></div></div>'
+        )
+    out.append(
+        f'<div class="slide cta"><div class="grain"></div>{rico("grande")}'
+        f'<div class="top">{marque_html}<span class="idx" style="color:#fff">{n}/{n}</span></div>'
+        f'<div class="haut"><h2 style="font-size:{_fit_fs(cta["titre"], 26)}px">{_accroche_mint(cta["titre"], A)}</h2>'
         + (f'<p class="sub">{_esc(cta["texte"])}</p>' if cta["texte"] else "")
         + '<span class="btn">Lien en bio &#8594;</span></div>'
         f'<div class="bar"><span class="hd">{_esc(secteur)}</span><div class="dots">{_dots(n, n - 1)}</div></div></div>'
