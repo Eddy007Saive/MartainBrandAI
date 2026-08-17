@@ -28,10 +28,9 @@ export const TEMPLATES = [
   { id: 'clean', label: 'Clean' },
   { id: 'neon', label: 'Néon' },
   { id: 'postorico', label: 'Postorico', exclusif: true },
-  // Gabarits maison avec la mascotte : pas d'aperçu JS, ils affichent une vignette
-  // rendue par le backend (le rendu réel est en Python, on ne le duplique pas ici).
-  { id: 'rico-studio', label: 'Rico Studio', exclusif: true, vignette: 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_400,q_auto,f_auto/carrousels/_templates/rico-studio.png' },
-  { id: 'rico-scene', label: 'Rico Scène', exclusif: true, vignette: 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_400,q_auto,f_auto/carrousels/_templates/rico-scene.png' },
+  // Gabarits maison : aperçu JS comme les autres, mascotte qui change de pose.
+  { id: 'rico-studio', label: 'Rico Studio', exclusif: true },
+  { id: 'rico-scene', label: 'Rico Scène', exclusif: true },
 ];
 const twoTone = (t, acc) => { const w = (t || '').split(' '); if (w.length < 2) return `<span style="color:${acc}">${t || ''}</span>`; const c = Math.ceil(w.length / 2); return `${w.slice(0, c).join(' ')} <span style="color:${acc}">${w.slice(c).join(' ')}</span>`; };
 export const SLIDE_LABELS = ['Hook', 'Étape 01', 'Étape 02', 'Étape 03', 'CTA'];
@@ -196,6 +195,75 @@ function _renderRaw(tplId, colors) {
     o.push(`<div class="cz-slide" style="background:#070A14">${fond}${masc}${top(0)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.hook, 19, '63%')}<div style="width:29px;height:2.5px;border-radius:2px;background:${acc};margin-top:9px;position:relative;z-index:3"></div></div></div>`);
     CONTENT.slides.forEach((s2, i) => o.push(`<div class="cz-slide" style="background:#070A14">${fond}${top(i + 1)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:42px;line-height:.9;letter-spacing:-1.6px;color:transparent;-webkit-text-stroke:1.5px ${acc};position:relative;z-index:3">0${i + 1}</div><div style="margin-top:3px">${h(s2.t, 15)}</div><p style="font-size:7.5px;line-height:1.55;color:#8E9ABC;margin-top:6px;position:relative;z-index:3">${s2.x}</p></div></div>`));
     o.push(`<div class="cz-slide" style="background:linear-gradient(150deg,${dark(P, .55)} 0%,${P} 48%,${S} 100%)">${halos}${hex}${masc}${top(n - 1)}<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center">${h(CONTENT.cta.t, 14, '70%')}<span style="align-self:flex-start;background:${acc};color:#04301F;font-family:Sora,sans-serif;font-weight:700;font-size:7.5px;padding:6px 11px;border-radius:7px;margin-top:9px;position:relative;z-index:3">Lien en bio →</span></div></div>`);
+    return o;
+  }
+
+  if (tplId === 'rico-studio' || tplId === 'rico-scene') {
+    // Aperçu des gabarits maison : mêmes ingrédients que le rendu backend
+    // (carrousel_service.py). Rico change de pose d'une slide à l'autre — ici
+    // une rotation fixe, l'aperçu ne peut pas interroger l'IA.
+    const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_260,q_auto,f_auto/brand/rico';
+    const ROT = ['accueille', 'interroge', 'explique', 'presente-data', 'pouce-leve', 'bras-croises'];
+    const pose = (i) => RICO + '/' + (i === n - 1 ? 'celebre' : ROT[i % ROT.length]) + '.png';
+    const acc = accD;
+    const o = [];
+
+    if (tplId === 'rico-studio') {
+      const ENCRE = '#12131A', PAPIER = '#F6F3EA';
+      const fond = `<div style="position:absolute;width:290px;height:290px;border-radius:50%;right:-128px;top:-122px;background:radial-gradient(circle at 30% 70%,${S}26,${P}12 55%,transparent 72%)"></div>`
+        + `<div style="position:absolute;left:14px;right:14px;top:41px;height:1px;background:${ENCRE}14"></div>`
+        + `<div style="position:absolute;left:0;right:0;bottom:0;height:41px;background:linear-gradient(transparent,${PAPIER}e6 62%)"></div>`;
+      const top = (i, clair) => `<div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:4">`
+        + `<div style="display:flex;align-items:center;gap:5px;font-family:Sora,sans-serif;font-weight:700;font-size:7.5px;color:${clair ? '#fff' : ENCRE}">${av(P, '#fff')}<span>${nom}</span></div>`
+        + `<span style="font-family:Sora,sans-serif;font-weight:700;font-size:6.5px;color:${clair ? 'rgba(255,255,255,.8)' : ENCRE + '66'}">${i + 1}/${n}</span></div>`;
+      const masc = (i, cls) => `<img src="${pose(i)}" alt="" style="position:absolute;z-index:3;${cls};filter:drop-shadow(0 14px 16px rgba(18,19,26,.22))">`;
+      o.push(`<div class="cz-slide" style="background:${PAPIER}">${fond}${masc(0, 'height:139px;right:-8px;bottom:27px')}${top(0)}`
+        + `<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center;max-width:62%;position:relative;z-index:4">`
+        + `<span style="align-self:flex-start;font-size:5.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:${ENCRE};background:${A};padding:3px 6px;border-radius:4px;margin-bottom:8px">${nom}</span>`
+        + `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fitFs(CONTENT.hook, 21)}px;line-height:1.02;letter-spacing:-.9px;color:${ENCRE}">${CONTENT.hook}</div></div></div>`);
+      CONTENT.slides.forEach((s2, i) => {
+        const g = i % 2 === 1;
+        o.push(`<div class="cz-slide" style="background:${PAPIER}">${fond}`
+          + `<div style="position:absolute;${g ? 'right:-4px' : 'left:-4px'};top:34%;font-family:Sora,sans-serif;font-weight:800;font-size:84px;line-height:.8;letter-spacing:-4px;color:${ENCRE}0d;z-index:1">0${i + 1}</div>`
+          + masc(i + 1, g ? 'height:82px;left:-7px;bottom:31px;transform:scaleX(-1)' : 'height:85px;right:-5px;bottom:31px')
+          + top(i + 1)
+          + `<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center;position:relative;z-index:4;${g ? 'margin-left:34%;max-width:66%' : 'max-width:70%'}">`
+          + `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fitFs(s2.t, 15)}px;line-height:1.08;letter-spacing:-.5px;color:${ENCRE}">${s2.t}</div>`
+          + `<p style="font-size:7px;line-height:1.6;color:${ENCRE}9e;margin-top:6px">${s2.x}</p>`
+          + (s2.tip ? `<div style="margin-top:8px;padding:6px 7px;background:#fff;border-radius:6px;border:1px solid ${ENCRE}12"><span style="font-size:5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${acc}">Le geste</span><p style="font-size:6.5px;line-height:1.5;color:${ENCRE}a0;margin-top:2px">${s2.tip}</p></div>` : '')
+          + `</div></div>`);
+      });
+      o.push(`<div class="cz-slide" style="background:linear-gradient(160deg,${P} 0%,${S} 100%)">${masc(n - 1, 'height:130px;right:-9px;bottom:25px')}${top(n - 1, true)}`
+        + `<div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center;max-width:62%;position:relative;z-index:4">`
+        + `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fitFs(CONTENT.cta.t, 15)}px;line-height:1.08;color:#fff">${CONTENT.cta.t}</div>`
+        + `<span style="align-self:flex-start;background:${A};color:#04301F;font-family:Sora,sans-serif;font-weight:800;font-size:7px;padding:6px 11px;border-radius:6px;margin-top:11px">Lien en bio &#8594;</span></div></div>`);
+      return o;
+    }
+
+    // rico-scene : Rico éclairé comme sur une scène, le texte en haut
+    const fondS = `<div style="position:absolute;left:50%;top:-33px;width:167px;height:239px;transform:translateX(-50%);background:conic-gradient(from 180deg at 50% 0%,transparent 42%,${S}2e 50%,transparent 58%);filter:blur(9px)"></div>`
+      + `<div style="position:absolute;width:239px;height:239px;border-radius:50%;left:50%;bottom:-111px;transform:translateX(-50%);background:radial-gradient(circle,${P}44,transparent 66%);filter:blur(22px)"></div>`
+      + `<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,transparent 34%,rgba(2,3,8,.86) 100%)"></div>`
+      + `<div style="position:absolute;left:0;right:0;bottom:0;height:43px;background:linear-gradient(transparent,rgba(5,6,12,.92) 64%);z-index:5"></div>`;
+    const topS = (i) => `<div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:6">`
+      + `<div style="display:flex;align-items:center;gap:5px;font-family:Sora,sans-serif;font-weight:700;font-size:7.5px;color:#F4F7FF">${av(P, '#fff')}<span>${nom}</span></div>`
+      + `<span style="font-family:Sora,sans-serif;font-weight:700;font-size:6.5px;color:${acc}">${i + 1}/${n}</span></div>`;
+    const scene = (i, hMasc) => `<div style="position:absolute;left:0;right:0;bottom:14px;height:${hMasc + 24}px;z-index:4;display:flex;align-items:flex-end;justify-content:center">`
+      + `<span style="position:absolute;bottom:29px;width:122px;height:122px;border-radius:50%;background:radial-gradient(circle,${acc}30,transparent 64%);filter:blur(14px)"></span>`
+      + `<span style="position:absolute;bottom:24px;width:105px;height:12px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.62),transparent 70%);filter:blur(4px)"></span>`
+      + `<img src="${pose(i)}" alt="" style="position:relative;height:${hMasc}px;filter:drop-shadow(0 9px 14px rgba(0,0,0,.6))"></div>`;
+    const hS = (t, fs) => `<div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fs}px;line-height:1.04;letter-spacing:-.8px;text-transform:uppercase;color:#F4F7FF;position:relative;z-index:6">${twoTone(t, acc)}</div>`;
+    o.push(`<div class="cz-slide" style="background:#05060C">${fondS}${scene(0, 158)}${topS(0)}<div style="margin-top:11px;position:relative;z-index:6">${hS(CONTENT.hook, fitFs(CONTENT.hook, 20))}</div></div>`);
+    CONTENT.slides.forEach((s2, i) => o.push(`<div class="cz-slide" style="background:#05060C">${fondS}${scene(i + 1, i % 2 ? 81 : 91)}${topS(i + 1)}`
+      + `<div style="margin-top:11px;position:relative;z-index:6">`
+      + `<div style="display:inline-flex;align-items:center;gap:4px;font-family:Sora,sans-serif;font-weight:800;font-size:5.5px;letter-spacing:1px;text-transform:uppercase;color:${acc};margin-bottom:6px"><span style="display:block;width:12px;height:1px;background:${acc}"></span>Étape 0${i + 1}</div>`
+      + hS(s2.t, fitFs(s2.t, 14.5))
+      + `<p style="font-size:7px;line-height:1.6;color:#93A0C4;margin-top:6px">${s2.x}</p>`
+      + (s2.tip ? `<div style="margin-top:7px;padding-left:6px;border-left:1px solid ${acc}"><span style="font-size:5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${acc}">Le geste</span><p style="font-size:6.5px;line-height:1.5;color:#93A0C4;margin-top:2px">${s2.tip}</p></div>` : '')
+      + `</div></div>`));
+    o.push(`<div class="cz-slide" style="background:radial-gradient(ellipse at 50% 0%,${S} 0%,${dark(P, .45)} 62%,#05060C 100%)">${scene(n - 1, 152)}${topS(n - 1)}`
+      + `<div style="margin-top:11px;position:relative;z-index:6">${hS(CONTENT.cta.t, fitFs(CONTENT.cta.t, 14.5))}`
+      + `<span style="display:inline-block;background:${A};color:#04301F;font-family:Sora,sans-serif;font-weight:800;font-size:7px;padding:6px 11px;border-radius:6px;margin-top:9px">Lien en bio &#8594;</span></div></div>`);
     return o;
   }
 
