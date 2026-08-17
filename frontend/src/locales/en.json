@@ -392,6 +392,7 @@
     },
     "retouche": {
       "titre": "Touch up",
+      "style": "Style",
       "apercuInstantane": "↑ instant preview",
       "fond": "Background",
       "secondaire": "Secondary",

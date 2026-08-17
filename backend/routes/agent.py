@@ -878,7 +878,12 @@ async def carrousel_recolor(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=422, detail="Ce carrousel n'a pas ses slides enregistrées (généré avant cette fonction). Régénère-le une fois pour activer la retouche.")
     reseau = (data.get("reseau_cible") or "linkedin").lower()
     scheds = plan_service._schedules(telegram_id) or []
-    template = next((s.get("carrousel_template") for s in scheds if (s.get("platform") or "").lower() == reseau), None) or "creme"
+    # Style : choix ponctuel pour CE carrousel s'il est fourni, sinon celui du réseau.
+    # template_valide() retombe sur « creme » si le client n'y a pas droit.
+    template = (body.get("template")
+                or next((s.get("carrousel_template") for s in scheds
+                         if (s.get("platform") or "").lower() == reseau), None) or "creme")
+    template = carrousel_service.template_valide(template, telegram_id)
     colors = body.get("colors") if isinstance(body.get("colors"), dict) else None
     font = body.get("font")
     font_corps = body.get("font_corps")

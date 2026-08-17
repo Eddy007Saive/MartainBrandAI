@@ -392,6 +392,7 @@
     },
     "retouche": {
       "titre": "Retoucher",
+      "style": "Style",
       "apercuInstantane": "↑ aperçu instantané",
       "fond": "Fond",
       "secondaire": "Secondaire",

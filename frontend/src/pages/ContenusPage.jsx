@@ -37,7 +37,7 @@ import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
-import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, renderSlides, SLIDE_CSS } from '../lib/carrouselPreview';
+import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, renderSlides, SLIDE_CSS, TEMPLATES } from '../lib/carrouselPreview';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
@@ -271,6 +271,17 @@ export default function ContenusPage() {
   const [czRBusy, setCzRBusy] = useState(false);
   const [czSlide, setCzSlide] = useState(0); // slide affichée dans l'aperçu
   const [czTemplates, setCzTemplates] = useState({}); // template de carrousel par réseau
+  // Styles proposables à ce compte (communs + sur mesure attribués), pour le choix ponctuel.
+  const [czStyles, setCzStyles] = useState([]);
+  useEffect(() => {
+    agentService.carrouselTemplates()
+      .then((d) => {
+        const autorises = d?.templates || [];
+        const importes = (d?.importes || []).map((x) => ({ id: x.id, label: x.label }));
+        setCzStyles([...TEMPLATES.filter((x) => autorises.includes(x.id)), ...importes]);
+      })
+      .catch(() => setCzStyles([]));
+  }, []);
   useEffect(() => {
     scheduleService.getAll().then((rows) => {
       const m = {}; (rows || []).forEach((r) => { m[(r.platform || '').toLowerCase()] = r.carrousel_template || 'creme'; });
@@ -515,7 +526,7 @@ export default function ContenusPage() {
     if (!selectedContenu || !czR || czRBusy) return;
     setCzRBusy(true);
     try {
-      const d = await agentService.recolorCarrousel(selectedContenu.id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || '');
+      const d = await agentService.recolorCarrousel(selectedContenu.id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || '', czR.tpl);
       const imgs = d.images || [];
       if (imgs.length) {
         const patch = { slides_images: imgs, lien_visuel: imgs[0], carrousel_pdf: d.pdf };
@@ -530,7 +541,8 @@ export default function ContenusPage() {
   // Aperçu LIVE (client-side) du vrai carrousel avec la retouche — instantané, sans backend
   const czPreviewSlides = () => {
     if (!selectedContenu || !czR || !selectedContenu.carrousel_data) return null;
-    const tpl = czTemplates[(selectedContenu.reseau_cible || '').toLowerCase()] || 'creme';
+    // Style ponctuel choisi pour CE carrousel, sinon celui du reseau.
+    const tpl = czR.tpl || czTemplates[(selectedContenu.reseau_cible || '').toLowerCase()] || 'creme';
     return renderSlides(tpl, {
       p: czR.p, s: czR.s, a: czR.a, font: czR.font || '', fontBody: czR.fontBody || '',
       logo: user?.logo_url, nom: user?.nom || user?.username,
@@ -541,7 +553,7 @@ export default function ContenusPage() {
   const validerContenu = async (id) => {
     if (czR && selectedContenu?.carrousel_data) {
       setCzRBusy(true);
-      try { await agentService.recolorCarrousel(id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || ''); }
+      try { await agentService.recolorCarrousel(id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || '', czR.tpl); }
       catch (e) { /* on valide quand même avec les images existantes */ }
       finally { setCzRBusy(false); }
     }
@@ -1391,6 +1403,19 @@ export default function ContenusPage() {
                         <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('contenus.retouche.titre')}</span>
                         <span className="text-[10.5px] text-[#3AFFA3] font-semibold">{t('contenus.retouche.apercuInstantane')}</span>
                       </div>
+                      {/* Style : par défaut celui du réseau (cohérence du feed), modifiable
+                          pour CE carrousel seulement — sans toucher au réglage du réseau. */}
+                      {czStyles.length > 1 && (
+                        <div>
+                          <label className="block text-[10.5px] text-slate-500 font-inter mb-1">{t('contenus.retouche.style')}</label>
+                          <select value={czR.tpl || czTemplates[(selectedContenu.reseau_cible || '').toLowerCase()] || 'creme'}
+                            onChange={(e) => setCzR((p) => ({ ...p, tpl: e.target.value }))}
+                            data-testid="retouche-style"
+                            className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[12.5px] font-inter rounded-lg px-2.5 py-1.5 outline-none focus:border-[#5B6CFF]/50">
+                            {czStyles.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+                          </select>
+                        </div>
+                      )}
                       <div className="grid grid-cols-3 gap-2">
                         <ColorField label={t('contenus.retouche.fond')} name="p" value={czR.p} onChange={setCzRColor} />
                         <ColorField label={t('contenus.retouche.secondaire')} name="s" value={czR.s} onChange={setCzRColor} />
