@@ -30,8 +30,8 @@ export const TEMPLATES = [
   { id: 'postorico', label: 'Postorico', exclusif: true },
   // Gabarits maison avec la mascotte : pas d'aperçu JS, ils affichent une vignette
   // rendue par le backend (le rendu réel est en Python, on ne le duplique pas ici).
-  { id: 'rico-studio', label: 'Rico Studio', exclusif: true, vignette: 'https://res.cloudinary.com/dy9gp5pim/image/upload/carrousels/_templates/rico-studio.png' },
-  { id: 'rico-scene', label: 'Rico Scène', exclusif: true, vignette: 'https://res.cloudinary.com/dy9gp5pim/image/upload/carrousels/_templates/rico-scene.png' },
+  { id: 'rico-studio', label: 'Rico Studio', exclusif: true, vignette: 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_400,q_auto,f_auto/carrousels/_templates/rico-studio.png' },
+  { id: 'rico-scene', label: 'Rico Scène', exclusif: true, vignette: 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_400,q_auto,f_auto/carrousels/_templates/rico-scene.png' },
 ];
 const twoTone = (t, acc) => { const w = (t || '').split(' '); if (w.length < 2) return `<span style="color:${acc}">${t || ''}</span>`; const c = Math.ceil(w.length / 2); return `${w.slice(0, c).join(' ')} <span style="color:${acc}">${w.slice(c).join(' ')}</span>`; };
 export const SLIDE_LABELS = ['Hook', 'Étape 01', 'Étape 02', 'Étape 03', 'CTA'];

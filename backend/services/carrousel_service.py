@@ -1021,4 +1021,7 @@ async def apercu_custom(tpl_id: str, html_gabarit: str) -> str | None:
         BytesIO(png), folder="carrousels/_templates", public_id=tpl_id,
         overwrite=True, resource_type="image", format="png",
     )
-    return up.get("secure_url")
+    # Vignette de galerie : la servir en pleine definition (1080x1350, ~800 Ko)
+    # fait ramer le selecteur. 400 px suffisent pour une carte de choix.
+    url = up.get("secure_url") or ""
+    return url.replace("/upload/", "/upload/w_400,q_auto,f_auto/", 1) if url else url
