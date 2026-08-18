@@ -1,6 +1,7 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAffiliateRef } from "./hooks/useAffiliateRef";
+import PopupRdv from "./components/PopupRdv";
 import { Toaster } from "./components/ui/sonner";
 import MarketingLayout from "./pages/marketing/MarketingLayout";
 import HomeCine from "./pages/marketing/HomeCine";
@@ -40,6 +41,9 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
+        {/* Proposition de rendez-vous apres une minute sur le site public.
+            Le composant se tait de lui-meme partout ailleurs. */}
+        <PopupRdv />
         <Routes>
           {/* Home cinématique (plein écran, sa propre nav — hors layout vitrine) */}
           <Route path="/" element={<HomeCine />} />

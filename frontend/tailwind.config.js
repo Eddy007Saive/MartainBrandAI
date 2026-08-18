@@ -61,6 +61,14 @@ module.exports = {
   			'in-out-strong': 'cubic-bezier(0.77, 0, 0.175, 1)'
   		},
   		keyframes: {
+  			fondu: {
+  				from: {
+  					opacity: '0'
+  				},
+  				to: {
+  					opacity: '1'
+  				}
+  			},
   			// L'ombre de contact de la mascotte : elle respire, sinon Rico flotte.
   			respirer: {
   				'50%': {
@@ -96,6 +104,7 @@ module.exports = {
   			}
   		},
   		animation: {
+  			fondu: 'fondu 200ms ease-out both',
   			respirer: 'respirer 2.4s ease-in-out infinite',
   			monter: 'monter 260ms cubic-bezier(0.23, 1, 0.32, 1) both',
   			'accordion-down': 'accordion-down 0.2s ease-out',

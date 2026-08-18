@@ -2275,5 +2275,13 @@
     "appSous": "Push notifications and quick access from your phone.",
     "appTelecharger": "Download",
     "emailPh": "you@email.com"
+  },
+  "rdv": {
+    "titre": "Shall we look at your online presence together?",
+    "texte": "Twenty minutes, on a call. We go through your channels and you leave with three things to fix — whether you work with us or not.",
+    "cta": "Request my audit",
+    "plusTard": "Later",
+    "fermer": "Close",
+    "rassurance": "Free, no strings. We don't call twice."
   }
 }

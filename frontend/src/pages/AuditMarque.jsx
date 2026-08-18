@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { rdvDejaPris } from '../components/PopupRdv';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { onboardingService } from '../services/onboardingService';
@@ -265,6 +266,7 @@ export default function AuditMarque() {
     const marque = val('marque') || 'Sans nom';
     try {
       await onboardingService.submitAudit({ marque, email, answers: { ...answers, email }, recap, _hp: hpRef.current, cf_turnstile_token: tsToken });
+      rdvDejaPris();   // il vient de convertir : plus rien a lui proposer
       setModal({ type: 'success' });
     } catch (e) {
       // 403 = anti-bot refusé : le token est à usage unique, on réarme le widget.

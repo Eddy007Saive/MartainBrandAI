@@ -2275,5 +2275,13 @@
     "appSous": "Notifications push + accès rapide depuis ton téléphone.",
     "appTelecharger": "Télécharger",
     "emailPh": "votre@email.com"
+  },
+  "rdv": {
+    "titre": "On regarde ta présence en ligne ensemble ?",
+    "texte": "Vingt minutes, en visio. On passe tes réseaux en revue et tu repars avec trois choses à corriger — que tu travailles avec nous ou non.",
+    "cta": "Demander mon audit",
+    "plusTard": "Plus tard",
+    "fermer": "Fermer",
+    "rassurance": "Gratuit, sans engagement. On ne rappelle pas deux fois."
   }
 }
