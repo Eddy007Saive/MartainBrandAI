@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Clapperboard } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { ChargementRico } from './ChargementRico';
 
 /**
  * Indicateurs de FABRICATION longue (reel ~2 min, carrousel, slides).
@@ -30,22 +31,25 @@ function useEtapes(actif) {
 
 export function OverlayFabrication({ actif }) {
   const { t } = useTranslation();
-  const { etape, mmss, pct } = useEtapes(actif);
+  const { mmss, pct } = useEtapes(actif);
   if (!actif) return null;
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center bg-[#020617]/88 backdrop-blur-md">
-      <div className="w-[min(420px,90vw)] rounded-2xl border border-white/[0.08] bg-[#0f172a] p-7 text-center shadow-2xl">
-        <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-[#5B6CFF]/25 to-[#8A6CFF]/25 grid place-items-center mb-4">
-          <Clapperboard className="w-6 h-6 text-[#8A6CFF] animate-pulse" />
-        </div>
-        <h3 className="font-sora font-bold text-white text-lg">{t('contenus.reel.fab.titre')}</h3>
-        <p className="text-[13px] text-slate-400 font-inter mt-1.5 min-h-[20px]">{etape}</p>
+      <div className="w-[min(460px,90vw)] rounded-2xl border border-white/[0.08] bg-[#0f172a] p-7 shadow-2xl">
+        <h3 className="font-sora font-bold text-white text-lg text-center">{t('contenus.reel.fab.titre')}</h3>
+        {/* Deux minutes d'attente : la mascotte raconte l'avancement plutot
+            qu'un picto qui clignote dans le vide. */}
+        <ChargementRico className="mt-5" hauteur={152} etapes={[
+          { pose: 'lit-tablette', jusqua: 18, texte: t('contenus.reel.fab.etape1') },
+          { pose: 'ecrans-action', jusqua: 95, texte: t('contenus.reel.fab.etape2') },
+          { pose: 'presente-data', jusqua: 9999, texte: t('contenus.reel.fab.etape3') },
+        ]} />
         <div className="mt-5 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
           <div className="h-full rounded-full bg-gradient-to-r from-[#5B6CFF] to-[#3AFFA3] transition-all duration-1000"
             style={{ width: `${pct}%` }} />
         </div>
-        <div className="mt-2 text-[11px] text-slate-500 font-inter tabular-nums">{mmss}</div>
-        <p className="text-[11.5px] text-slate-500 font-inter mt-4 leading-relaxed">{t('contenus.reel.fab.note')}</p>
+        <div className="mt-2 text-[11px] text-slate-500 font-inter tabular-nums text-center">{mmss}</div>
+        <p className="text-[11.5px] text-slate-500 font-inter mt-4 leading-relaxed text-center">{t('contenus.reel.fab.note')}</p>
       </div>
     </div>
   );

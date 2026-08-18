@@ -102,6 +102,18 @@
     }
   },
   "analyseSite": {
+  "etape": {
+      "ouvrir": "Abro tu web",
+      "lire": "Leo lo que cuentas",
+      "deduire": "Extraigo tu voz y tus colores",
+      "preparer": "Preparo tu ficha"
+    },
+    "parole": {
+      "ouvrir": "Como lo haría un visitante, JavaScript incluido.",
+      "lire": "Tus ofertas, tu vocabulario, lo que destacas.",
+      "deduire": "Los colores se leen en tus botones y títulos.",
+      "preparer": "Unos segundos más."
+    },
     "titre": "Empezar desde tu web",
     "description": "Pega la dirección de tu web: la leemos y te proponemos tu ficha de marca. Luego corriges lo que no se parezca a ti.",
     "analyser": "Analizar mi web",

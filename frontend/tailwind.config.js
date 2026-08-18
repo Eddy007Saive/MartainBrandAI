@@ -54,7 +54,30 @@ module.exports = {
   				'5': 'hsl(var(--chart-5))'
   			}
   		},
+  		transitionTimingFunction: {
+  			// Les courbes natives manquent de nerf. Celles-ci partent vite et
+  			// s'arretent en douceur : l'interface repond avant qu'on l'attende.
+  			'out-strong': 'cubic-bezier(0.23, 1, 0.32, 1)',
+  			'in-out-strong': 'cubic-bezier(0.77, 0, 0.175, 1)'
+  		},
   		keyframes: {
+  			// L'ombre de contact de la mascotte : elle respire, sinon Rico flotte.
+  			respirer: {
+  				'50%': {
+  					transform: 'translateX(-50%) scale(0.9)',
+  					opacity: '0.5'
+  				}
+  			},
+  			monter: {
+  				from: {
+  					opacity: '0',
+  					transform: 'translateY(6px)'
+  				},
+  				to: {
+  					opacity: '1',
+  					transform: 'translateY(0)'
+  				}
+  			},
   			'accordion-down': {
   				from: {
   					height: '0'
@@ -73,6 +96,8 @@ module.exports = {
   			}
   		},
   		animation: {
+  			respirer: 'respirer 2.4s ease-in-out infinite',
+  			monter: 'monter 260ms cubic-bezier(0.23, 1, 0.32, 1) both',
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		}

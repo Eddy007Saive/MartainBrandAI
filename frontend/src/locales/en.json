@@ -102,6 +102,18 @@
     }
   },
   "analyseSite": {
+  "etape": {
+      "ouvrir": "Opening your site",
+      "lire": "Reading what you say there",
+      "deduire": "Drawing out your voice and colours",
+      "preparer": "Putting your profile together"
+    },
+    "parole": {
+      "ouvrir": "The way a visitor would, JavaScript included.",
+      "lire": "Your offers, your wording, what you put forward.",
+      "deduire": "Colours come from your buttons and headings.",
+      "preparer": "A few more seconds."
+    },
     "titre": "Start from your website",
     "description": "Paste your website address: we read it and draft your brand profile. You then fix whatever doesn't sound like you.",
     "analyser": "Analyse my site",

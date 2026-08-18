@@ -4,8 +4,9 @@ import { toast } from 'sonner';
 import { Globe, Sparkles, Loader2 } from 'lucide-react';
 
 import { Button } from './ui/button';
+import { ChargementRico } from './ChargementRico';
 import { Input } from './ui/input';
-import userService from '../services/userService';
+import { userService } from '../services/userService';
 
 // Partir d'une page blanche est l'endroit où l'on perd les gens. Le client colle
 // l'adresse de son site, on la lit et on lui propose sa fiche pré-remplie ;
@@ -73,7 +74,15 @@ export default function RemplirDepuisSite({ user, onChange }) {
             : <><Sparkles className="w-4 h-4 mr-2" />{t('analyseSite.analyser')}</>}
         </Button>
       </div>
-      {analyse && <p className="text-[11.5px] text-slate-500 font-inter mt-2">{t('analyseSite.patience')}</p>}
+      {/* Trente secondes sans rien voir, c'est long. Rico raconte ce qu'il fait. */}
+      {analyse && (
+        <ChargementRico className="mt-4" etapes={[
+          { pose: 'lit-tablette', jusqua: 7, texte: t('analyseSite.etape.ouvrir'), parole: t('analyseSite.parole.ouvrir') },
+          { pose: 'ecrans-data', jusqua: 17, texte: t('analyseSite.etape.lire'), parole: t('analyseSite.parole.lire') },
+          { pose: 'ecrans-action', jusqua: 30, texte: t('analyseSite.etape.deduire'), parole: t('analyseSite.parole.deduire') },
+          { pose: 'presente-data', jusqua: 9999, texte: t('analyseSite.etape.preparer'), parole: t('analyseSite.parole.preparer') },
+        ]} />
+      )}
 
       {fiche && (
         <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/50 p-4" data-testid="site-proposition">

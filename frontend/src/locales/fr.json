@@ -102,6 +102,18 @@
     }
   },
   "analyseSite": {
+  "etape": {
+      "ouvrir": "J'ouvre ton site",
+      "lire": "Je lis ce que tu y racontes",
+      "deduire": "J'en tire ta voix et tes couleurs",
+      "preparer": "Je te prépare ta fiche"
+    },
+    "parole": {
+      "ouvrir": "Comme le ferait un visiteur, JavaScript compris.",
+      "lire": "Tes offres, ton vocabulaire, ce que tu mets en avant.",
+      "deduire": "Les couleurs se lisent sur tes boutons et tes titres.",
+      "preparer": "Encore quelques secondes."
+    },
     "titre": "Partir de ton site",
     "description": "Colle l'adresse de ton site : on le lit et on te propose ta fiche pré-remplie. Tu corriges ensuite ce qui ne te ressemble pas.",
     "analyser": "Analyser mon site",
