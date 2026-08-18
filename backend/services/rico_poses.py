@@ -16,7 +16,10 @@ import re
 from config import logger
 from services.agent_service import _messages_create
 
-_BASE = "https://res.cloudinary.com/dy9gp5pim/image/upload/q_auto/brand/rico"
+# rico-v2 et non rico : Cloudinary sert ces images avec un cache d'un an, donc
+# reecrire au meme identifiant laisserait tous les navigateurs sur l'ancienne
+# planche. Un chemin neuf est une adresse que personne n'a en cache.
+_BASE = "https://res.cloudinary.com/dy9gp5pim/image/upload/q_auto/brand/rico-v2"
 
 # id -> ce que la pose RACONTE. Ces phrases sont lues par l'IA : elles décrivent
 # l'intention, pas l'anatomie, car c'est l'intention qui doit coller au propos.
