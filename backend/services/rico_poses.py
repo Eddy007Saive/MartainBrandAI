@@ -24,7 +24,9 @@ POSES = {
     "accueille":      "ailes ouvertes en signe d'accueil — ouvre un sujet, souhaite la bienvenue",
     "celebre":        "ailes grandes ouvertes, joyeux — une victoire, un résultat obtenu, une bonne nouvelle",
     "brandit-badge":  "brandit un badge hexagonal — une preuve, une garantie, un label, un chiffre clé",
-    "fier":           "ailes croisées, menton haut — l'assurance, la maîtrise, l'expertise affirmée",
+    # « fier » est retiré tant que sa planche n'est pas refaite : l'image encore
+    # en ligne est l'ancien modèle, hors charte, et jurerait au milieu des autres.
+    # « bras-croises » couvre la même intention en attendant.
     "debout":         "debout, calme, neutre — pose passe-partout quand rien de plus précis ne colle",
     "presente-cote":  "présente quelque chose sur le côté — introduit une idée, montre une direction",
     "bras-croises":   "ailes croisées, sourire tranquille — la sérénité, le problème déjà réglé",
