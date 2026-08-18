@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { lireAffiliateRef } from '../hooks/useAffiliateRef';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -75,6 +76,8 @@ export default function Register() {
         username: formData.username || undefined,
         // La langue du contenu généré démarre sur la langue de l'interface
         langue: (i18n.resolvedLanguage || 'fr').slice(0, 2),
+        // Parrainage : code capté à l'arrivée sur le site, valable 30 jours
+        ref: lireAffiliateRef() || undefined,
       };
 
       const data = await authService.register(payload);

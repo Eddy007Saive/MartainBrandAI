@@ -292,3 +292,33 @@ def audit_reply_html(marque: str, message: str) -> str:
       </p>
     </td></tr>"""
     return _shell(inner, width=520)
+
+
+def releve_affilie_html(nom: str, periode: str, montant: float, devise: str, nb: int) -> tuple:
+    """Relevé mensuel envoyé à l'apporteur d'affaires : c'est son signal pour
+    nous envoyer sa facture. Le virement se fait ensuite hors plateforme.
+    Retourne (sujet, html)."""
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    devise_sym = "€" if (devise or "EUR").upper() == "EUR" else devise
+    montant_txt = f"{montant:.2f}".replace(".", ",").removesuffix(",00")
+    mois = _html.escape(periode)
+    sujet = f"Ton relevé d'affiliation {mois} — {montant_txt} {devise_sym}"
+    ventes = "1 vente commissionnée" if nb == 1 else f"{nb} ventes commissionnées"
+    inner = f"""<tr><td style="padding:16px 32px 24px;">
+      <h1 style="color:#ffffff;font-size:20px;margin:0 0 12px;">Ton relevé du mois 💸</h1>
+      <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 20px;">{salutation}</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;margin:0 0 24px;">
+        <tr><td style="padding:18px 22px;">
+          <p style="color:#94a3b8;font-size:12px;margin:0 0 4px;text-transform:uppercase;letter-spacing:0.08em;">Période {mois}</p>
+          <p style="color:#ffffff;font-size:15px;font-weight:bold;margin:0 0 6px;">{ventes}</p>
+          <p style="color:#3AFFA3;font-size:22px;font-weight:bold;margin:0;">{montant_txt} {devise_sym}</p>
+        </td></tr>
+      </table>
+      <p style="color:#cbd5e1;font-size:14px;line-height:1.6;margin:0 0 20px;">
+        Envoie-nous ta facture de ce montant en réponse à cet email, et on lance le virement.
+      </p>
+      <p style="color:#64748b;font-size:12px;line-height:1.6;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+        Le détail de tes commissions est dans ton espace Affiliation. Merci de porter Postorico 🙏
+      </p>
+    </td></tr>"""
+    return sujet, _shell(inner, width=480)

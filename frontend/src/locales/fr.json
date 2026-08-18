@@ -55,6 +55,52 @@
     "toastStillPending": "Votre compte est toujours en attente de validation",
     "toastReconnect": "Veuillez vous reconnecter pour vérifier votre statut"
   },
+  "affiliation": {
+    "titre": "Affiliation",
+    "sousTitre": "Recommande Postorico, touche une commission",
+    "sousTitreActif": "Ton lien, tes filleuls, tes gains",
+    "pitch": {
+      "setup": "sur le Pack Fondations de chaque client que tu apportes, une fois",
+      "recurrent": "sur son abonnement, chaque mois, tant qu'il reste client",
+      "detail": "Tu partages ton lien. Toute personne qui s'inscrit dans les 30 jours t'est rattachée définitivement dès son premier paiement. On te récapitule tes commissions chaque mois : tu nous envoies ta facture, on vire."
+    },
+    "iban": "Ton IBAN",
+    "ibanNote": "Chiffré en base, visible seulement par l'administration au moment du virement.",
+    "ibanRequis": "Renseigne ton IBAN pour être payé.",
+    "postuler": "Demander mon lien",
+    "envoi": "Envoi…",
+    "chargement": "Chargement…",
+    "erreur": "Une erreur est survenue.",
+    "demandeEnvoyee": "Demande envoyée, on revient vers toi vite.",
+    "enAttente": "Ta demande est en cours d'examen. Tu recevras ton lien dès validation.",
+    "refusee": "Ta demande n'a pas été retenue.",
+    "tonLien": "Ton lien d'affiliation",
+    "tauxRappel": "{{setup}} % sur le Pack Fondations · {{recurrent}} % sur l'abonnement, chaque mois",
+    "clics": "Clics",
+    "filleuls": "Filleuls",
+    "gainsEnAttente": "À venir",
+    "gainsPayes": "Déjà versé",
+    "mesCommissions": "Mes commissions",
+    "aucuneCommission": "Aucune commission pour l'instant.",
+    "type": {
+      "setup": "Pack Fondations",
+      "recurrent": "Abonnement"
+    },
+    "statut": {
+      "enAttente": "En attente",
+      "validee": "Validée",
+      "aFacturer": "À facturer",
+      "payee": "Payée",
+      "annulee": "Annulée"
+    },
+    "col": {
+      "date": "Date",
+      "type": "Type",
+      "vente": "Vente",
+      "commission": "Commission",
+      "statut": "Statut"
+    }
+  },
   "nav": {
     "home": "Accueil",
     "studio": "Studio IA",
@@ -65,6 +111,7 @@
     "planning": "Planification",
     "carousels": "Carrousels",
     "videos": "Studio Vidéo",
+    "affiliation": "Affiliation",
     "settings": "Paramètres",
     "logout": "Déconnexion",
     "settingsGroup": "Réglages",

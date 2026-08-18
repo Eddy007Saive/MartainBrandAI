@@ -430,6 +430,22 @@ def _facture_payload(uid: str, montant_cents: int, devise: str, libelle: str,
     }
 
 
+def _commission(type_: str, ref_id, montant_cents, devise, telegram_id=None,
+                email=None, libelle=None, code_affilie=None):
+    """Cree la commission d'affiliation liee a un encaissement.
+
+    Isole et silencieux : une erreur d'affiliation ne doit jamais empecher
+    l'activation d'un abonnement ni l'envoi d'une facture.
+    """
+    try:
+        from services import affiliation_service
+        affiliation_service.creer_commission(
+            type_, ref_id, montant_cents, devise, telegram_id=telegram_id,
+            email=email, libelle=libelle, code_force=code_affilie)
+    except Exception as e:
+        logger.warning(f"commission affiliation ignoree ({ref_id}): {e}")
+
+
 def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     if not _ready():
         return {"ok": False}
@@ -458,6 +474,16 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
                 # on envoie le reçu depuis la session.
                 facture = _facture_payload(meta.get("telegram_id"), obj.get("amount_total"),
                                            obj.get("currency"), f"Pack {meta.get('action_type') or 'crédits'}")
+            elif (meta.get("produit") or "").lower() in ("fondations", "pack_fondations"):
+                # Pack Fondations paye par lien Stripe : commission setup (25 %).
+                # Le code de l'affilie est depose dans la metadata du lien ;
+                # sinon on retombe sur le parrain connu du client.
+                _commission("setup", obj.get("id"), obj.get("amount_total"),
+                            obj.get("currency"), meta.get("telegram_id"),
+                            (obj.get("customer_details") or {}).get("email"),
+                            "Pack Fondations", meta.get("affilie"))
+                facture = _facture_payload(meta.get("telegram_id"), obj.get("amount_total"),
+                                           obj.get("currency"), "Pack Fondations")
             elif obj.get("subscription"):
                 # active l'abo tout de suite ; la notif "nouvel abonnement" est gérée
                 # par customer.subscription.created (évite le doublon + ne dépend pas de cet event).
@@ -478,8 +504,13 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
             # -> email au client avec lien Stripe + PDF. Montant nul (essai) : pas d'envoi.
             lignes = ((obj.get("lines") or {}).get("data") or [])
             libelle = (lignes[0].get("description") if lignes else None) or "Abonnement Postorico"
+            uid = _uid_by_customer(obj.get("customer"))
+            # Commission recurrente (10 %) : a chaque mensualite encaissee, tant
+            # que le client reste. Le montant suit la devise de la facture.
+            _commission("recurrent", obj.get("id"), obj.get("amount_paid"),
+                        obj.get("currency"), uid, obj.get("customer_email"), libelle)
             facture = _facture_payload(
-                _uid_by_customer(obj.get("customer")), obj.get("amount_paid"), obj.get("currency"),
+                uid, obj.get("amount_paid"), obj.get("currency"),
                 libelle, numero=obj.get("number"),
                 url=obj.get("hosted_invoice_url"), pdf=obj.get("invoice_pdf"))
         elif etype == "invoice.payment_failed":

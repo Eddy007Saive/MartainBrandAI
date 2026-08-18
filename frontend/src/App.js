@@ -1,5 +1,6 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAffiliateRef } from "./hooks/useAffiliateRef";
 import { Toaster } from "./components/ui/sonner";
 import MarketingLayout from "./pages/marketing/MarketingLayout";
 import HomeCine from "./pages/marketing/HomeCine";
@@ -27,11 +28,15 @@ import CommentairesPage from "./pages/CommentairesPage";
 import Performance from "./pages/Performance";
 import PlanificationPage from "./pages/PlanificationPage";
 import CarrouselsPage from "./pages/CarrouselsPage";
+import Affiliation from "./pages/Affiliation";
 import ParametresPage from "./pages/ParametresPage";
 import Admin from "./pages/Admin";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 
 function App() {
+  // Un visiteur peut arriver par un lien d'affiliation sur n'importe quelle
+  // page : on capte le code partout, pas seulement sur l'inscription.
+  useAffiliateRef();
   return (
     <div className="App">
       <BrowserRouter>
@@ -76,6 +81,8 @@ function App() {
             <Route path="performance" element={<Performance />} />
             <Route path="planification" element={<PlanificationPage />} />
             <Route path="carrousels" element={<CarrouselsPage />} />
+            <Route path="affiliation" element={<Affiliation />} />
+            <Route path="affiliation" element={<Affiliation />} />
             <Route path="parametres" element={<ParametresPage />} />
           </Route>
           

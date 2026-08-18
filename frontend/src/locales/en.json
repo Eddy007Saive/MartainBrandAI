@@ -55,6 +55,52 @@
     "toastStillPending": "Your account is still awaiting validation",
     "toastReconnect": "Please sign in again to check your status"
   },
+  "affiliation": {
+    "titre": "Affiliate",
+    "sousTitre": "Recommend Postorico, earn a commission",
+    "sousTitreActif": "Your link, your referrals, your earnings",
+    "pitch": {
+      "setup": "on the Foundations Pack of every client you bring, once",
+      "recurrent": "on their subscription, every month, for as long as they stay",
+      "detail": "You share your link. Anyone who signs up within 30 days is tied to you for good from their first payment. We send you a monthly statement: you invoice us, we transfer."
+    },
+    "iban": "Your IBAN",
+    "ibanNote": "Encrypted at rest, readable only by the admin at transfer time.",
+    "ibanRequis": "Enter your IBAN so we can pay you.",
+    "postuler": "Request my link",
+    "envoi": "Sending…",
+    "chargement": "Loading…",
+    "erreur": "Something went wrong.",
+    "demandeEnvoyee": "Request sent, we'll get back to you shortly.",
+    "enAttente": "Your request is under review. You'll get your link once approved.",
+    "refusee": "Your request wasn't accepted.",
+    "tonLien": "Your affiliate link",
+    "tauxRappel": "{{setup}}% on the Foundations Pack · {{recurrent}}% on the subscription, every month",
+    "clics": "Clicks",
+    "filleuls": "Referrals",
+    "gainsEnAttente": "Upcoming",
+    "gainsPayes": "Already paid",
+    "mesCommissions": "My commissions",
+    "aucuneCommission": "No commission yet.",
+    "type": {
+      "setup": "Foundations Pack",
+      "recurrent": "Subscription"
+    },
+    "statut": {
+      "enAttente": "Pending",
+      "validee": "Approved",
+      "aFacturer": "To invoice",
+      "payee": "Paid",
+      "annulee": "Cancelled"
+    },
+    "col": {
+      "date": "Date",
+      "type": "Type",
+      "vente": "Sale",
+      "commission": "Commission",
+      "statut": "Status"
+    }
+  },
   "nav": {
     "home": "Home",
     "studio": "AI Studio",
@@ -65,6 +111,7 @@
     "planning": "Scheduling",
     "carousels": "Carousels",
     "videos": "Video Studio",
+    "affiliation": "Affiliate",
     "settings": "Settings",
     "logout": "Log out",
     "settingsGroup": "Preferences",

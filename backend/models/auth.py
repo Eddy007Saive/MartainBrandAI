@@ -8,6 +8,7 @@ class UserRegister(BaseModel):
     username: Optional[str] = None
     password: str
     langue: Optional[str] = None  # langue de l'interface à l'inscription -> langue du contenu (fr | en | es)
+    ref: Optional[str] = None     # code d'affiliation capté dans l'URL (?ref=CODE)
 
 
 class UserLogin(BaseModel):

@@ -5,7 +5,7 @@ from services.auth_service import (
     login_user, login_admin, register_user, create_token,
     find_user_by_email, create_reset_token, reset_password,
 )
-from services import mail_service, rate_limit
+from services import mail_service, rate_limit, affiliation_service
 from services.social_service import create_late_profile
 from config import FRONTEND_URL, logger
 
@@ -40,7 +40,7 @@ def _record_login_fail(keys):
 
 
 @router.post("/register")
-async def register(user_data: UserRegister):
+async def register(user_data: UserRegister, request: Request):
     try:
         result = register_user(
             nom=user_data.nom,
@@ -54,6 +54,16 @@ async def register(user_data: UserRegister):
             raise HTTPException(status_code=400, detail=result["error"])
 
         telegram_id = result["telegram_id"]
+
+        # Parrainage : le front transmet le code capté dans l'URL. Best-effort,
+        # une attribution ratée ne doit jamais faire échouer une inscription.
+        if user_data.ref:
+            try:
+                affiliation_service.attribuer(user_data.ref, telegram_id=telegram_id,
+                                              email=result.get("email"),
+                                              ip=_client_ip(request))
+            except Exception as e:
+                logger.warning(f"attribution affiliation ignorée pour {telegram_id}: {e}")
 
         # Compte actif immédiatement -> on crée son profil Late (best-effort)
         try:

@@ -55,6 +55,52 @@
     "toastStillPending": "Tu cuenta sigue pendiente de validación",
     "toastReconnect": "Vuelve a iniciar sesión para comprobar tu estado"
   },
+  "affiliation": {
+    "titre": "Afiliación",
+    "sousTitre": "Recomienda Postorico y gana una comisión",
+    "sousTitreActif": "Tu enlace, tus referidos, tus ganancias",
+    "pitch": {
+      "setup": "sobre el Pack Fundaciones de cada cliente que traigas, una vez",
+      "recurrent": "sobre su suscripción, cada mes, mientras siga siendo cliente",
+      "detail": "Compartes tu enlace. Quien se registre en los 30 días siguientes queda vinculado a ti para siempre desde su primer pago. Te enviamos un resumen cada mes: nos mandas tu factura y transferimos."
+    },
+    "iban": "Tu IBAN",
+    "ibanNote": "Cifrado en la base, visible solo para la administración al hacer la transferencia.",
+    "ibanRequis": "Indica tu IBAN para poder cobrar.",
+    "postuler": "Solicitar mi enlace",
+    "envoi": "Enviando…",
+    "chargement": "Cargando…",
+    "erreur": "Ha ocurrido un error.",
+    "demandeEnvoyee": "Solicitud enviada, te respondemos pronto.",
+    "enAttente": "Tu solicitud está en revisión. Recibirás tu enlace en cuanto se apruebe.",
+    "refusee": "Tu solicitud no ha sido aceptada.",
+    "tonLien": "Tu enlace de afiliación",
+    "tauxRappel": "{{setup}} % sobre el Pack Fundaciones · {{recurrent}} % sobre la suscripción, cada mes",
+    "clics": "Clics",
+    "filleuls": "Referidos",
+    "gainsEnAttente": "Pendiente",
+    "gainsPayes": "Ya pagado",
+    "mesCommissions": "Mis comisiones",
+    "aucuneCommission": "Aún no hay comisiones.",
+    "type": {
+      "setup": "Pack Fundaciones",
+      "recurrent": "Suscripción"
+    },
+    "statut": {
+      "enAttente": "Pendiente",
+      "validee": "Validada",
+      "aFacturer": "Por facturar",
+      "payee": "Pagada",
+      "annulee": "Anulada"
+    },
+    "col": {
+      "date": "Fecha",
+      "type": "Tipo",
+      "vente": "Venta",
+      "commission": "Comisión",
+      "statut": "Estado"
+    }
+  },
   "nav": {
     "home": "Inicio",
     "studio": "Estudio IA",
@@ -65,6 +111,7 @@
     "planning": "Programación",
     "carousels": "Carruseles",
     "videos": "Estudio de vídeo",
+    "affiliation": "Afiliación",
     "settings": "Ajustes",
     "logout": "Cerrar sesión",
     "settingsGroup": "Preferencias",

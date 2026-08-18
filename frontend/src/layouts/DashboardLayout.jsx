@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
 import { openTawk, identifyTawk, hideTawk, resetTawk } from '../lib/tawk';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, Handshake } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -25,6 +25,7 @@ const navItems = [
   { path: '/dashboard/performance', label: 'nav.performance', icon: BarChart3 },
   { path: '/dashboard/planification', label: 'nav.planning', icon: Calendar },
   { path: '/dashboard/carrousels', label: 'nav.carousels', icon: LayoutGrid },
+  { path: '/dashboard/affiliation', label: 'nav.affiliation', icon: Handshake },
   { path: '/dashboard/parametres', label: 'nav.settings', icon: Settings },
 ];
 
