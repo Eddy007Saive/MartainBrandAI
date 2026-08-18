@@ -137,6 +137,13 @@
       "hooks": "Ganchos",
       "ctas": "Llamadas a la acción",
       "couleurs": "Colores"
+    },
+    "logo": {
+      "trouve": "Logo encontrado en tu web",
+      "faviconSeule": "Solo se encontró el favicon — suele ser pequeño para un carrusel.",
+      "utiliser": "Usarlo",
+      "repris": "Logo guardado",
+      "echec": "No se ha podido recuperar este logo."
     }
   },
   "nav": {

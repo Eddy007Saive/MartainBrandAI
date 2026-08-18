@@ -64,6 +64,32 @@ _EXTRACTION = r"""
     const s = getComputedStyle(n);
     return s.display !== 'none' && s.visibility !== 'hidden' && n.offsetHeight > 0;
   };
+  // Le logo se cherche AVANT de nettoyer la page : sur la plupart des sites
+  // recents il est en SVG dans l'en-tete, et on le supprimerait juste apres.
+  const meta = (n) => document.querySelector(`meta[property="${n}"],meta[name="${n}"]`)?.content || '';
+  let logo = '', logoType = '';
+  const img = document.querySelector(
+    'header img[alt*="logo" i], [class*=logo i] img, header a[href="/"] img, header img, nav img');
+  if (img && img.src && img.naturalWidth !== 1) { logo = img.src; logoType = 'image'; }
+  if (!logo) {
+    // Logo dessine en SVG dans la page : on le serialise tel quel.
+    const svg = document.querySelector('header svg, [class*=logo i] svg, nav svg');
+    if (svg && svg.getBoundingClientRect().width > 24) {
+      const c = svg.cloneNode(true);
+      if (!c.getAttribute('xmlns')) c.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      logo = 'data:image/svg+xml;base64,' +
+        btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(c))));
+      logoType = 'svg';
+    }
+  }
+  if (!logo && meta('og:image')) { logo = meta('og:image'); logoType = 'og'; }
+  if (!logo) {
+    // Dernier recours : la favicon. Souvent minuscule, d'ou le type renvoye —
+    // l'interface previendra que ce n'est pas vraiment un logo.
+    const ico = document.querySelector('link[rel="apple-touch-icon"], link[rel*="icon"]');
+    if (ico) { logo = ico.href; logoType = 'favicon'; }
+  }
+
   document.querySelectorAll('script,style,noscript,svg').forEach((n) => n.remove());
 
   // Les couleurs de marque vivent sur ce qui appelle a l'action, pas sur le fond
@@ -87,16 +113,12 @@ _EXTRACTION = r"""
     });
   const couleurs = Object.entries(compte).sort((a, b) => b[1] - a[1]).slice(0, 6).map((x) => x[0]);
 
-  const meta = (n) => document.querySelector(`meta[property="${n}"],meta[name="${n}"]`)?.content || '';
-  const logo = document.querySelector('header img, [class*=logo] img, img[alt*="logo" i]')?.src
-    || meta('og:image')
-    || document.querySelector('link[rel*="icon"]')?.href || '';
-
   return {
     titre: document.title || '',
     description: meta('description') || meta('og:description'),
     couleurs,
     logo,
+    logoType,
     texte: (document.body.innerText || '').replace(/\s+/g, ' ').trim().slice(0, %d),
     liens: [...document.querySelectorAll('a')].map((a) => a.innerText.trim())
       .filter((t) => t && t.length < 40).slice(0, 40),
@@ -150,6 +172,7 @@ def _lire_sans_navigateur(url: str) -> dict:
         "description": meta("description") or meta("og:description"),
         "couleurs": [c for c, _ in sorted(compte.items(), key=lambda x: -x[1])[:6]],
         "logo": urljoin(str(r.url), meta("og:image")) if meta("og:image") else "",
+        "logoType": "og" if meta("og:image") else "",
         "texte": texte,
         "liens": [],
     }
@@ -210,7 +233,8 @@ def _lire_avec_navigateur(url: str) -> dict:
             brut = page.evaluate(_EXTRACTION)
             brut["url"] = page.url
             if brut.get("logo"):
-                brut["logo"] = urljoin(page.url, brut["logo"])
+                if not brut["logo"].startswith("data:"):
+                    brut["logo"] = urljoin(page.url, brut["logo"])
         finally:
             navigateur.close()
 
@@ -301,7 +325,49 @@ async def analyser(url: str, langue: str = "fr") -> dict:
     fiche = await asyncio.to_thread(deduire, brut, langue)
     if brut.get("logo"):
         fiche["logo_url"] = brut["logo"]
+        fiche["logo_type"] = brut.get("logoType") or "image"
     fiche["_source"] = {"url": brut.get("url"), "titre": brut.get("titre"),
                         "couleurs": brut.get("couleurs")}
     logger.info(f"site analysé : {brut.get('url')} -> {fiche.get('secteur')}")
     return fiche
+
+
+# --- Récupération du logo ----------------------------------------------------
+LOGO_MAX = 5 * 1024 * 1024
+_TYPES_LOGO = ("image/png", "image/jpeg", "image/webp", "image/svg+xml", "image/gif")
+
+
+def telecharger_logo(url: str) -> bytes:
+    """Récupère le logo repéré sur le site, prêt à être poussé sur Cloudinary.
+
+    L'adresse est refaite passer par le garde-fou : même si elle vient de notre
+    propre analyse, elle transite par le navigateur du client et pourrait être
+    remplacée avant de nous revenir.
+    """
+    import base64
+    import binascii
+    import httpx
+
+    url = (url or "").strip()
+    if not url:
+        raise SiteIllisible("Aucun logo à récupérer.")
+
+    # Logo dessiné en SVG dans la page : on l'a déjà, il voyage en data URI.
+    if url.startswith("data:image/svg+xml;base64,"):
+        try:
+            donnees = base64.b64decode(url.split(",", 1)[1], validate=True)
+        except (binascii.Error, ValueError):
+            raise SiteIllisible("Ce logo est illisible.")
+        if len(donnees) > LOGO_MAX:
+            raise SiteIllisible("Logo trop lourd.")
+        return donnees
+
+    r = httpx.get(normaliser(url), timeout=20, follow_redirects=True,
+                  headers={"user-agent": _NAVIGATEUR})
+    r.raise_for_status()
+    type_ = (r.headers.get("content-type") or "").split(";")[0].strip().lower()
+    if type_ not in _TYPES_LOGO:
+        raise SiteIllisible("Ce fichier n'est pas une image.")
+    if len(r.content) > LOGO_MAX:
+        raise SiteIllisible("Logo trop lourd.")
+    return r.content

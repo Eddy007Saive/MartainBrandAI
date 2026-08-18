@@ -137,6 +137,13 @@
       "hooks": "Hooks",
       "ctas": "Calls to action",
       "couleurs": "Colours"
+    },
+    "logo": {
+      "trouve": "Logo found on your site",
+      "faviconSeule": "Only the favicon was found — usually too small for a carousel.",
+      "utiliser": "Use it",
+      "repris": "Logo saved",
+      "echec": "This logo could not be retrieved."
     }
   },
   "nav": {

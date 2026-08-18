@@ -9,6 +9,11 @@ export const userService = {
   analyserSite: (url, langue) =>
     api.post('/users/me/analyser-site', { url, langue }, { timeout: 90000 }).then(r => r.data),
 
+  // Reprend le logo repere sur le site : le backend en fait une copie chez
+  // nous, on ne pointe jamais vers le site du client.
+  logoDepuisSite: (url) =>
+    api.post('/users/me/logo-depuis-site', { url }).then(r => r.data),
+
   updateMe: (data) =>
     api.patch('/users/me', data).then(r => r.data),
 

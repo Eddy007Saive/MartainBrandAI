@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from dependencies import verify_token
 from models.user import UserUpdate, SocialConnectRequest
@@ -139,6 +141,28 @@ async def upload_my_avatar(file: UploadFile = File(...), payload: dict = Depends
     except Exception as e:
         logger.error(f"Upload avatar error: {e}")
         raise HTTPException(status_code=500, detail="Échec de l'upload de l'avatar")
+
+
+@router.post("/me/logo-depuis-site")
+async def logo_depuis_site(body: dict, payload: dict = Depends(verify_token)):
+    """Reprend le logo repéré sur le site du client et le pousse sur Cloudinary.
+
+    On ne garde jamais l'adresse du site du client telle quelle : elle pourrait
+    disparaître, changer, ou bloquer les appels depuis un autre domaine — et le
+    logo est utilisé dans chaque carrousel. On en fait donc une copie chez nous,
+    par le même chemin qu'un envoi manuel (l'ancien logo est remplacé).
+    """
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        donnees = await asyncio.to_thread(site_service.telecharger_logo, body.get("url"))
+        return {"logo_url": user_service.upload_logo(telegram_id, donnees)}
+    except site_service.SiteIllisible as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"logo depuis site: {e}")
+        raise HTTPException(status_code=502, detail="Impossible de récupérer ce logo.")
 
 
 @router.post("/me/logo")

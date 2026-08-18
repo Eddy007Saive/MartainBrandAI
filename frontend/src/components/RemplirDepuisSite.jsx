@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { ChargementRico } from './ChargementRico';
 import { Input } from './ui/input';
 import { userService } from '../services/userService';
+import { useUser } from '../context/UserContext';
 
 // Partir d'une page blanche est l'endroit où l'on perd les gens. Le client colle
 // l'adresse de son site, on la lit et on lui propose sa fiche pré-remplie ;
@@ -20,9 +21,12 @@ const CHAMPS = ['secteur', 'audience', 'voix_marque', 'piliers', 'hooks', 'ctas'
 
 export default function RemplirDepuisSite({ user, onChange }) {
   const { t, i18n } = useTranslation();
+  const { refetchUser } = useUser();
   const [url, setUrl] = useState('');
   const [analyse, setAnalyse] = useState(false);
   const [fiche, setFiche] = useState(null);
+  // Une favicon n'est pas un logo : on la propose sans la cocher d'avance.
+  const [prendreLogo, setPrendreLogo] = useState(true);
 
   const lancer = async () => {
     if (!url.trim()) return toast.error(t('analyseSite.adresseRequise'));
@@ -31,6 +35,7 @@ export default function RemplirDepuisSite({ user, onChange }) {
     try {
       const f = await userService.analyserSite(url.trim(), (i18n.resolvedLanguage || 'fr').slice(0, 2));
       setFiche(f);
+      setPrendreLogo(!!f.logo_url && f.logo_type !== 'favicon');
     } catch (e) {
       toast.error(e?.response?.data?.detail || t('analyseSite.echec'));
     } finally {
@@ -40,7 +45,7 @@ export default function RemplirDepuisSite({ user, onChange }) {
 
   // Par défaut on ne remplit que le vide : ce que le client a déjà écrit vaut
   // toujours mieux qu'une déduction faite à partir de son site.
-  const appliquer = (toutRemplacer) => {
+  const appliquer = async (toutRemplacer) => {
     const remplis = CHAMPS.filter((c) => {
       const propose = enTexte(fiche[c]);
       if (!propose) return false;
@@ -48,8 +53,24 @@ export default function RemplirDepuisSite({ user, onChange }) {
       onChange(c, propose);
       return true;
     });
-    if (!remplis.length) return toast.info(t('analyseSite.rienAremplir'));
-    toast.success(t('analyseSite.champsRemplis', { count: remplis.length }));
+
+    // Le logo suit un autre chemin que les champs texte : il part tout de suite
+    // sur Cloudinary, parce qu'on n'enregistre jamais l'adresse du site du
+    // client — elle peut disparaître, et le logo sert dans chaque carrousel.
+    let logo = false;
+    if (fiche.logo_url && prendreLogo) {
+      try {
+        await userService.logoDepuisSite(fiche.logo_url);
+        await refetchUser?.();
+        logo = true;
+      } catch {
+        toast.error(t('analyseSite.logo.echec'));
+      }
+    }
+
+    if (!remplis.length && !logo) return toast.info(t('analyseSite.rienAremplir'));
+    toast.success(logo && !remplis.length ? t('analyseSite.logo.repris')
+      : t('analyseSite.champsRemplis', { count: remplis.length }));
     setFiche(null);
   };
 
@@ -99,6 +120,28 @@ export default function RemplirDepuisSite({ user, onChange }) {
                 </div>
               ))}
           </dl>
+
+          {fiche.logo_url && (
+            <div className="mt-3.5 flex items-center gap-3 rounded-xl border border-white/10 bg-slate-950/40 p-3">
+              {/* Fond clair : la plupart des logos sont dessines pour du blanc
+                  et disparaitraient sur notre fond sombre. */}
+              <div className="w-[68px] h-[42px] rounded-lg bg-white/95 grid place-items-center flex-shrink-0 p-1.5">
+                <img src={fiche.logo_url} alt="" className="max-w-full max-h-full object-contain" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[12.5px] text-slate-200 font-inter">{t('analyseSite.logo.trouve')}</div>
+                {fiche.logo_type === 'favicon' && (
+                  <div className="text-[11.5px] text-amber-400/90 font-inter mt-0.5">{t('analyseSite.logo.faviconSeule')}</div>
+                )}
+              </div>
+              <label className="flex items-center gap-2 text-[12.5px] text-slate-400 font-inter cursor-pointer flex-shrink-0">
+                <input type="checkbox" checked={prendreLogo} data-testid="site-prendre-logo"
+                  onChange={(e) => setPrendreLogo(e.target.checked)}
+                  className="w-4 h-4 accent-[#5B6CFF] cursor-pointer" />
+                {t('analyseSite.logo.utiliser')}
+              </label>
+            </div>
+          )}
 
           {fiche.couleur_principale && (
             <div className="flex items-center gap-2 mt-3.5">

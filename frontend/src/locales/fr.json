@@ -137,6 +137,13 @@
       "hooks": "Accroches",
       "ctas": "Appels à l'action",
       "couleurs": "Couleurs"
+    },
+    "logo": {
+      "trouve": "Logo repéré sur ton site",
+      "faviconSeule": "Seule la favicon a été trouvée — souvent trop petite pour un carrousel.",
+      "utiliser": "Le reprendre",
+      "repris": "Logo repris",
+      "echec": "Ce logo n'a pas pu être récupéré."
     }
   },
   "nav": {
