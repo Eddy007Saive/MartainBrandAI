@@ -4,6 +4,66 @@ import { Check, X, Eye, Banknote, RefreshCw } from 'lucide-react';
 
 import { Button } from '../ui/button';
 import affiliationService from '../../services/affiliationService';
+import billingService from '../../services/billingService';
+
+// Lien de paiement du Pack Fondations, généré après le rendez-vous. Le code de
+// l'apporteur y est déposé : c'est ce qui déclenche les 25 %. La devise suit le
+// marché — dollar pour l'hispanophone (Colombie), euro sinon.
+function LienPack({ affilies }) {
+  const [email, setEmail] = useState('');
+  const [affilie, setAffilie] = useState('');
+  const [devise, setDevise] = useState('eur');
+  const [lien, setLien] = useState('');
+  const [occupe, setOccupe] = useState(false);
+
+  const generer = async () => {
+    if (!email.trim()) return toast.error('Email du client requis');
+    setOccupe(true);
+    try {
+      const r = await billingService.lienPack({ email: email.trim(), affilie: affilie || undefined, devise });
+      setLien(r.url);
+      navigator.clipboard.writeText(r.url);
+      toast.success(`Lien ${r.devise} copié`);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || 'Génération impossible');
+    } finally {
+      setOccupe(false);
+    }
+  };
+
+  const champ = 'bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-1.5 outline-none focus:border-[#5B6CFF]/50';
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#0f172a] p-5">
+      <h3 className="text-[15px] font-bold text-white font-sora mb-1">Lien de paiement — Pack Fondations</h3>
+      <p className="text-[12.5px] text-slate-500 font-inter mb-4">
+        À envoyer après le rendez-vous. 1 499 € en euro, 699 $ pour le marché hispanophone.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email du client"
+          data-testid="pack-email" className={`${champ} flex-1 min-w-[200px]`} />
+        <select value={affilie} onChange={(e) => setAffilie(e.target.value)} data-testid="pack-affilie" className={champ}>
+          <option value="">Sans apporteur</option>
+          {affilies.filter((a) => a.statut === 'actif').map((a) => (
+            <option key={a.id} value={a.code}>{a.nom} · {a.code}</option>
+          ))}
+        </select>
+        <select value={devise} onChange={(e) => setDevise(e.target.value)} data-testid="pack-devise" className={champ}>
+          <option value="eur">EUR · 1 499 €</option>
+          <option value="usd">USD · 699 $</option>
+        </select>
+        <Button onClick={generer} disabled={occupe} data-testid="pack-generer"
+          className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]">
+          {occupe ? 'Génération…' : 'Générer'}
+        </Button>
+      </div>
+      {lien && (
+        <p className="text-[12px] text-slate-400 font-mono mt-3 break-all">
+          {lien} <span className="text-slate-600 font-inter">— copié, valable 24 h</span>
+        </p>
+      )}
+    </div>
+  );
+}
 
 // Back-office de l'affiliation : les demandes à valider, puis le mois par mois
 // — qui a vendu, pour combien, et où en est le paiement.
@@ -97,6 +157,8 @@ export default function AffiliationTab() {
           </Button>
         </div>
       </div>
+
+      <LienPack affilies={affilies} />
 
       {/* Demandes à traiter */}
       {enAttente.length > 0 && (

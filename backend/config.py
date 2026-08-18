@@ -8,9 +8,15 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 load_dotenv(ROOT_DIR.parent / '.env')  # .env à la racine du projet (contient api_claude)
 
-# Supabase
+# Supabase — le backend utilise la cle service_role (bypasse RLS, cote serveur UNIQUEMENT).
+# La cle anon reste utilisee cote client (aucun ici) ; RLS doit rester actif/restrictif pour elle.
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_ANON_KEY')
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '')
+SUPABASE_ANON_KEY = os.environ.get('SUPABASE_ANON_KEY', '')
+# TEMPORAIRE : la service_role fournie n'est pas valide (401 Invalid API key) -> on retombe sur
+# anon (comportement identique a la prod actuelle) tant qu'une vraie cle sb_secret_... n'est pas
+# fournie. A remettre en priorite une fois la bonne cle recuperee (voir echange du 2026-08-04).
+SUPABASE_KEY = SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Secrets
@@ -73,6 +79,10 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 STRIPE_PRICE_PRO = os.environ.get('STRIPE_PRICE_PRO', '')          # price_xxx (abonnement Pro)
 STRIPE_PRICE_BUSINESS = os.environ.get('STRIPE_PRICE_BUSINESS', '')  # price_xxx (abonnement Business)
+# Pack Fondations (paiement unique, vendu apres un rendez-vous). Deux devises :
+# l'euro pour le marche francophone, le dollar pour l'hispanophone (Colombie).
+STRIPE_PRICE_PACK_EUR = os.environ.get('STRIPE_PRICE_PACK_EUR', '')
+STRIPE_PRICE_PACK_USD = os.environ.get('STRIPE_PRICE_PACK_USD', '')
 
 # Logging
 logging.basicConfig(

@@ -1,9 +1,27 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
-from dependencies import verify_token
+from dependencies import verify_token, verify_admin_token
 from services import billing_service, mail_service
 from config import logger, ADMIN_NOTIF_EMAIL
 
 router = APIRouter(prefix="/billing", tags=["billing"])
+
+
+@router.post("/admin/lien-pack")
+async def lien_pack(body: dict, payload: dict = Depends(verify_admin_token)):
+    """Génère le lien de paiement du Pack Fondations pour un client précis.
+
+    C'est le lien qu'on envoie après le rendez-vous. Le code de l'apporteur
+    d'affaires y est déposé en metadata : sans lui, la commission de 25 %
+    retombe sur le parrain déjà connu du client, et sinon il n'y en a pas.
+    La devise suit le marché — dollar pour l'hispanophone, euro sinon.
+    """
+    res = billing_service.lien_pack(
+        email=body.get("email"), telegram_id=body.get("telegram_id"),
+        affilie=body.get("affilie"), devise=body.get("devise"),
+        langue=body.get("langue"))
+    if not res.get("ok"):
+        raise HTTPException(status_code=400, detail=res.get("error"))
+    return res
 
 
 @router.post("/checkout")

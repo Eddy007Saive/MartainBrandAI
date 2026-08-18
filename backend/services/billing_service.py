@@ -8,6 +8,7 @@ import stripe
 from config import (
     supabase, logger, FRONTEND_URL,
     STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_PRO, STRIPE_PRICE_BUSINESS,
+    STRIPE_PRICE_PACK_EUR, STRIPE_PRICE_PACK_USD,
 )
 
 # Statut Stripe -> statut interne de l'abonnement (pilote les quotas)
@@ -344,6 +345,66 @@ def create_pack_checkout(telegram_id: str, pack_id: str) -> dict:
     except Exception as e:
         logger.error(f"pack checkout error: {e}")
         return {"ok": False, "error": "Impossible de créer la session de paiement."}
+
+
+# --- Pack Fondations -------------------------------------------------------
+# Prestation de lancement, paiement unique, vendue apres un rendez-vous. On ne
+# publie pas de lien fixe : chaque lien est genere pour un client precis, avec
+# le code de son apporteur d'affaires en metadata. C'est ce code, et le
+# marqueur produit=fondations, que le webhook lit pour creer la commission.
+PACK_PRIX = {"eur": STRIPE_PRICE_PACK_EUR, "usd": STRIPE_PRICE_PACK_USD}
+
+
+def devise_du_marche(langue: str) -> str:
+    """Le marche hispanophone (Colombie) paie en dollars, le reste en euros."""
+    return "usd" if (langue or "").lower().startswith("es") else "eur"
+
+
+def lien_pack(email: str, telegram_id: str = None, affilie: str = None,
+              devise: str = None, langue: str = None) -> dict:
+    """Cree un lien de paiement du Pack Fondations, a envoyer apres le call."""
+    if not _ready():
+        return {"ok": False, "error": "Stripe non configuré."}
+
+    devise = (devise or devise_du_marche(langue)).lower()
+    price = PACK_PRIX.get(devise)
+    if not price:
+        return {"ok": False, "error": f"Aucun prix configuré en {devise.upper()} "
+                                      f"(STRIPE_PRICE_PACK_{devise.upper()} manquant)."}
+
+    # Le client peut ne pas encore avoir de compte : dans ce cas l'attribution
+    # se fera sur son email, ou sur le code depose ici.
+    row = {}
+    if telegram_id:
+        r = (supabase.table("users").select("stripe_customer_id, email, langue")
+             .eq("telegram_id", telegram_id).execute())
+        row = r.data[0] if r.data else {}
+        if not devise and row.get("langue"):
+            devise = devise_du_marche(row["langue"])
+    email = email or row.get("email")
+
+    meta = {"produit": "fondations"}
+    if telegram_id:
+        meta["telegram_id"] = str(telegram_id)
+    if affilie:
+        meta["affilie"] = affilie.strip().upper()
+
+    try:
+        sess = stripe.checkout.Session.create(
+            mode="payment",
+            line_items=[{"price": price, "quantity": 1}],
+            success_url=f"{FRONTEND_URL}/dashboard?pack=ok",
+            cancel_url=f"{FRONTEND_URL}/tarifs?pack=annule",
+            metadata=meta,
+            client_reference_id=str(telegram_id) if telegram_id else None,
+            **({"customer": row["stripe_customer_id"]} if row.get("stripe_customer_id")
+               else {"customer_email": email} if email else {}),
+        )
+        return {"ok": True, "url": sess.url, "devise": devise.upper(),
+                "expire_le": sess.expires_at}
+    except Exception as e:
+        logger.error(f"lien pack fondations: {e}")
+        return {"ok": False, "error": "Impossible de créer le lien de paiement."}
 
 
 def sync_subscription(telegram_id: str) -> dict:
