@@ -9,7 +9,7 @@
 create table if not exists affiliates (
   id              uuid primary key default gen_random_uuid(),
   -- null = affilie externe (influenceur, blogueur) sans compte client
-  telegram_id     bigint references users(telegram_id) on delete set null,
+  telegram_id     uuid references users(telegram_id) on delete set null,
   code            text unique not null,
   nom             text not null,
   email           text not null,
@@ -21,7 +21,7 @@ create table if not exists affiliates (
   motif           text,                                  -- motif de refus / note admin
   created_at      timestamptz not null default now(),
   approuve_le     timestamptz,
-  approuve_par    bigint
+  approuve_par    uuid
 );
 create index if not exists affiliates_statut_idx on affiliates(statut);
 create index if not exists affiliates_telegram_idx on affiliates(telegram_id);
@@ -42,7 +42,7 @@ create index if not exists affiliate_clicks_aff_idx on affiliate_clicks(affiliat
 create table if not exists affiliate_referrals (
   id            uuid primary key default gen_random_uuid(),
   affiliate_id  uuid not null references affiliates(id) on delete cascade,
-  telegram_id   bigint unique references users(telegram_id) on delete cascade,
+  telegram_id   uuid unique references users(telegram_id) on delete cascade,
   email         text,                                    -- lead pack, avant creation du compte
   statut        text not null default 'active',          -- active | expiree | verrouillee
   expire_le     timestamptz,                             -- fenetre d'attribution
@@ -58,7 +58,7 @@ create index if not exists affiliate_referrals_email_idx on affiliate_referrals(
 create table if not exists affiliate_commissions (
   id                uuid primary key default gen_random_uuid(),
   affiliate_id      uuid not null references affiliates(id) on delete cascade,
-  telegram_id       bigint,                              -- le filleul
+  telegram_id       uuid,                              -- le filleul
   filleul_email     text,
   type              text not null,                       -- setup | recurrent
   stripe_invoice_id text unique not null,                -- id facture, session ou reference manuelle
