@@ -102,7 +102,7 @@
     }
   },
   "analyseSite": {
-  "etape": {
+    "etape": {
       "ouvrir": "Abro tu web",
       "lire": "Leo lo que cuentas",
       "deduire": "Extraigo tu voz y tus colores",
@@ -664,7 +664,8 @@
       "pasUneImage": "{{name}}: no es una imagen",
       "tropLourde": "{{name}}: demasiado pesada (máx. 10 MB)",
       "echecUpload": "Error al subir el archivo",
-      "echecSuppression": "Error al eliminar"
+      "echecSuppression": "Error al eliminar",
+      "nonEnregistre": "Cambios sin guardar"
     },
     "entete": {
       "titre": "Ajustes",
@@ -756,7 +757,31 @@
       "reglesPlaceholder": "P. ej.:\n1. Un solo CTA por post.\n2. Elige un pilar + un hook del banco (o uno nuevo con el mismo espíritu).\n3. Respeta la estructura y adáptala a la plataforma solicitada.\n4. Prohibido: promesas con cifras garantizadas, jerga corporativa…\nNunca incumples una regla de la sección 4.",
       "exemplesTitre": "Ejemplos de posts (por red)",
       "exemplesIntro": "Pega de 1 a 3 de tus mejores posts para cada red (sepáralos con una línea <sep>---</sep>). Es lo que mejor calibra el estilo de los contenidos generados. Opcional pero muy recomendable.",
-      "exemplesPlaceholder": "Pega aquí tus mejores posts de {{reseau}}…\n\nPost 1\n---\nPost 2"
+      "exemplesPlaceholder": "Pega aquí tus mejores posts de {{reseau}}…\n\nPost 1\n---\nPost 2",
+      "surTotal": "de {{total}} rellenados",
+      "positionnementSous": "Quién eres y a quién le hablas.",
+      "voixContenuSous": "Cómo suena cuando hablas tú — y qué sonaría falso.",
+      "matiere": "Material para escribir",
+      "matiereSous": "Tus temas, tus ganchos, tus llamadas a la acción. Una idea por línea.",
+      "secteurPlaceholder": "Consulta de fisioterapia deportiva",
+      "audiencePlaceholder": "Deportistas aficionados de 30 a 50 años con lesiones recurrentes",
+      "exemplesIntroCourt": "Pega dos o tres publicaciones de las que estés orgulloso. Es lo que más ayuda.",
+      "ajouterPilier": "Añadir un pilar",
+      "ajouterHook": "Añadir un gancho",
+      "ajouterCta": "Añadir una llamada a la acción",
+      "piliersEx": [
+        "Prevención de lesiones",
+        "Entre bastidores",
+        "Ideas equivocadas frecuentes"
+      ],
+      "hooksEx": [
+        "¿Te cruje la rodilla? No es lo que crees.",
+        "He visto 400 corredores este año. Tres errores se repiten."
+      ],
+      "ctasEx": [
+        "Reserva tu valoración",
+        "Escríbeme « CARRERA »"
+      ]
     },
     "reseaux": {
       "intro": "Conecta tus cuentas para programar y publicar automáticamente, desde un solo lugar.",

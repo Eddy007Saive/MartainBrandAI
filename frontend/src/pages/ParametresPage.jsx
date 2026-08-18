@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import RemplirDepuisSite from '../components/RemplirDepuisSite';
+import { ChampMarque, ChampListe } from '../components/ChampsMarque';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -120,21 +121,21 @@ function FileDropZone({ label, description, accept, file, onFileChange, id }) {
   );
 }
 
-// --- TextareaField (champs longs de la voix de marque) ---
-function TextareaField({ label, name, value, placeholder, onChange, rows = 3, hint }) {
+// Carte de section. Le liseré de lumière en haut est ce qui souleve une
+// surface sombre : une ombre noire sur un fond noir ne se voit pas.
+function Bloc({ titre, sous, phare, children }) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-sm font-medium text-slate-300 font-inter">{label}</label>
-      {hint && <p className="text-xs text-slate-500 font-inter">{hint}</p>}
-      <textarea
-        value={value || ''}
-        onChange={(e) => onChange(name, e.target.value)}
-        placeholder={placeholder}
-        rows={rows}
-        className="w-full rounded-lg bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-sm px-3 py-2 outline-none resize-y font-inter placeholder:text-slate-600"
-        data-testid={`field-${name}`}
-      />
-    </div>
+    <section className={`relative rounded-2xl border p-5 ${phare
+      ? 'border-[#5B6CFF]/[0.28] bg-gradient-to-b from-[#5B6CFF]/[0.06] to-[#5B6CFF]/[0.02] shadow-[inset_0_1px_0_rgba(160,175,255,0.1),0_1px_2px_rgba(0,0,0,0.35),0_16px_40px_-14px_rgba(91,108,255,0.28)]'
+      : 'border-white/[0.07] bg-[#0f172a] shadow-[inset_0_1px_0_rgba(255,255,255,0.045),0_1px_2px_rgba(0,0,0,0.35),0_6px_18px_-6px_rgba(0,0,0,0.5)]'}`}>
+      {titre && (
+        <div className="mb-4">
+          <div className="font-sora text-[14px] font-bold text-white">{titre}</div>
+          {sous && <p className="text-[12.5px] text-slate-500 font-inter mt-1 max-w-[56ch]">{sous}</p>}
+        </div>
+      )}
+      {children}
+    </section>
   );
 }
 
@@ -150,6 +151,13 @@ export default function ParametresPage() {
   const [connecting, setConnecting] = useState(null);
   const [socialMeta, setSocialMeta] = useState({}); // {platform: {username, name, avatar, url, followers}}
   const [exReseau, setExReseau] = useState('linkedin');
+  // Reference du dernier etat enregistre : sert a savoir s'il reste quelque
+  // chose a sauvegarder, et donc a afficher la barre du bas.
+  const [refSauve, setRefSauve] = useState(null);
+  useEffect(() => {
+    if (user && refSauve === null) setRefSauve(JSON.stringify(user));
+  }, [user, refSauve]);
+  const nonEnregistre = refSauve !== null && !!user && JSON.stringify(user) !== refSauve;
 
   // Schedules
   const connectedPlatforms = SOCIAL_PLATFORMS.filter(p => user?.[p.field]);
@@ -527,6 +535,7 @@ export default function ParametresPage() {
     try {
       const data = await userService.updateMe(user);
       setUser(data);
+      setRefSauve(JSON.stringify(data));
       toast.success(t('params.entete.profilMisAJour'));
     } catch (error) {
       toast.error(t('params.entete.erreurSauvegarde'));
@@ -751,100 +760,121 @@ export default function ParametresPage() {
     </div>
   );
 
-  const renderMarque = () => (
-    <div className="space-y-5">
-      <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-[#5B6CFF]/[0.06] border border-[#5B6CFF]/20">
-        <Info className="w-4 h-4 text-[#5B6CFF] mt-0.5 flex-shrink-0" />
-        <p className="text-xs text-slate-300 font-inter leading-relaxed">
-          <Trans i18nKey="params.marque.intro" components={{ studio: <span className="text-white font-medium" /> }} />
-        </p>
+  // Ce qui compte pour la jauge : les huit champs de fond, plus « au moins un
+  // exemple de post » — quatre reseaux remplis ne valent pas huit fois mieux.
+  const CHAMPS_MARQUE = ['secteur', 'audience', 'voix_marque', 'a_eviter',
+    'piliers', 'hooks', 'ctas', 'regles'];
+  const RESEAUX_EX = [
+    { id: 'linkedin', label: 'LinkedIn' },
+    { id: 'instagram', label: 'Instagram' },
+    { id: 'facebook', label: 'Facebook' },
+    { id: 'tiktok', label: 'TikTok' },
+  ];
+
+  const renderMarque = () => {
+    const remplis = CHAMPS_MARQUE.filter((c) => String(user?.[c] || '').trim()).length
+      + (RESEAUX_EX.some((r) => String(user?.[`exemples_${r.id}`] || '').trim()) ? 1 : 0);
+    const total = CHAMPS_MARQUE.length + 1;
+
+    return (
+      <div className="space-y-3.5">
+        {/* L'avancement : une fiche de marque se remplit en plusieurs fois, il
+            faut pouvoir savoir ou on en est sans tout relire. */}
+        <div className="flex items-end justify-between gap-5">
+          <p className="text-[13px] text-slate-400 font-inter max-w-[52ch]">
+            <Trans i18nKey="params.marque.intro" components={{ studio: <span className="text-white font-medium" /> }} />
+          </p>
+          <div className="text-right flex-shrink-0">
+            <b className="font-sora text-[15px] text-white font-bold tabular-nums">{remplis}</b>
+            <span className="block text-[12px] text-slate-500 font-inter">{t('params.marque.surTotal', { total })}</span>
+          </div>
+        </div>
+        <div className="h-[3px] rounded-full bg-white/[0.07] overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]
+                          transition-[width] [transition-duration:420ms] ease-out-strong"
+            style={{ width: `${Math.round((remplis / total) * 100)}%` }} />
+        </div>
+
+        <RemplirDepuisSite user={user} onChange={handleChange} />
+
+        {/* POSITIONNEMENT */}
+        <Bloc titre={t('params.marque.positionnement')} sous={t('params.marque.positionnementSous')}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ChampMarque multi={false} label={t('params.marque.secteur')} name="secteur"
+              value={user?.secteur} onChange={handleChange} hint={t('params.marque.secteurHint')}
+              placeholder={t('params.marque.secteurPlaceholder')} />
+            <ChampMarque multi={false} label={t('params.marque.audience')} name="audience"
+              value={user?.audience} onChange={handleChange} hint={t('params.marque.audienceHint')}
+              placeholder={t('params.marque.audiencePlaceholder')} />
+          </div>
+        </Bloc>
+
+        {/* VOIX & TON */}
+        <Bloc titre={t('params.marque.voixContenu')} sous={t('params.marque.voixContenuSous')}>
+          <div className="space-y-4">
+            <ChampMarque label={t('params.marque.voixTon')} name="voix_marque" lignes={3}
+              value={user?.voix_marque} onChange={handleChange} hint={t('params.marque.voixTonHint')}
+              placeholder={t('params.marque.voixTonPlaceholder')} />
+            <ChampMarque label={t('params.marque.aEviter')} name="a_eviter" lignes={2}
+              value={user?.a_eviter} onChange={handleChange} hint={t('params.marque.aEviterHint')}
+              placeholder={t('params.marque.aEviterPlaceholder')} />
+          </div>
+        </Bloc>
+
+        {/* MATIERE A ECRIRE — trois listes, une idee par ligne */}
+        <Bloc titre={t('params.marque.matiere')} sous={t('params.marque.matiereSous')}>
+          <div className="space-y-6">
+            <ChampListe label={t('params.marque.piliers')} name="piliers" value={user?.piliers}
+              onChange={handleChange} hint={t('params.marque.piliersHint')}
+              placeholders={t('params.marque.piliersEx', { returnObjects: true })}
+              ajouter={{ label: t('params.marque.ajouterPilier'), retirer: t('params.commun.supprimer') }} />
+            <ChampListe label={t('params.marque.hooks')} name="hooks" value={user?.hooks}
+              onChange={handleChange} hint={t('params.marque.hooksHint')}
+              placeholders={t('params.marque.hooksEx', { returnObjects: true })}
+              ajouter={{ label: t('params.marque.ajouterHook'), retirer: t('params.commun.supprimer') }} />
+            <ChampListe label={t('params.marque.ctas')} name="ctas" value={user?.ctas}
+              onChange={handleChange} hint={t('params.marque.ctasHint')}
+              placeholders={t('params.marque.ctasEx', { returnObjects: true })}
+              ajouter={{ label: t('params.marque.ajouterCta'), retirer: t('params.commun.supprimer') }} />
+          </div>
+        </Bloc>
+
+        {/* REGLES EDITORIALES — la bible. Ombre teintee plutot que plus forte :
+            la couleur suffit a la faire ressortir sans la faire flotter. */}
+        <Bloc phare titre={t('params.marque.regles')} sous={t('params.marque.reglesHint')}>
+          <ChampMarque name="regles" lignes={6} value={user?.regles} onChange={handleChange}
+            placeholder={t('params.marque.reglesPlaceholder')} />
+        </Bloc>
+
+        {/* EXEMPLES PAR RESEAU */}
+        <Bloc titre={t('params.marque.exemplesTitre')} sous={t('params.marque.exemplesIntroCourt')}>
+          <div className="flex flex-wrap gap-[7px] mb-3">
+            {RESEAUX_EX.map((r) => {
+              const actif = exReseau === r.id;
+              return (
+                <button key={r.id} type="button" onClick={() => setExReseau(r.id)}
+                  role="tab" aria-selected={actif} data-testid={`exemples-tab-${r.id}`}
+                  className={`inline-flex items-center gap-1.5 rounded-[9px] border px-3 py-1.5 text-[12.5px]
+                              font-medium font-inter active:scale-[0.97]
+                              transition-[color,border-color,background-color,transform,box-shadow]
+                              duration-150 ease-out-strong ${actif
+                    ? 'bg-[#5B6CFF]/[0.14] border-[#5B6CFF]/50 text-white shadow-[inset_0_1px_0_rgba(160,175,255,0.16),0_4px_12px_-4px_rgba(91,108,255,0.4)]'
+                    : 'border-white/[0.07] text-slate-400 hover:text-white hover:border-white/[0.14]'}`}>
+                  {r.label}
+                  {/* Une pastille sur l'onglet rempli : on voit ce qui reste sans cliquer. */}
+                  {!!String(user?.[`exemples_${r.id}`] || '').trim()
+                    && <span className="w-[5px] h-[5px] rounded-full bg-[#3AFFA3]" />}
+                </button>
+              );
+            })}
+          </div>
+          <ChampMarque name={`exemples_${exReseau}`} lignes={6}
+            value={user?.[`exemples_${exReseau}`]} onChange={handleChange}
+            placeholder={t('params.marque.exemplesPlaceholder', { reseau: exReseau })} />
+        </Bloc>
       </div>
-
-      <RemplirDepuisSite user={user} onChange={handleChange} />
-
-      {/* POSITIONNEMENT */}
-      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-4">{t('params.marque.positionnement')}</div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
-          <Field label={t('params.marque.secteur')} name="secteur" value={user?.secteur} onChange={handleChange}
-            hint={t('params.marque.secteurHint')} />
-          <Field label={t('params.marque.audience')} name="audience" value={user?.audience} onChange={handleChange}
-            hint={t('params.marque.audienceHint')} />
-        </div>
-      </section>
-
-      {/* VOIX & CONTENU */}
-      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5 space-y-4">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter">{t('params.marque.voixContenu')}</div>
-        <TextareaField label={t('params.marque.voixTon')} name="voix_marque" value={user?.voix_marque} onChange={handleChange} rows={4}
-          hint={t('params.marque.voixTonHint')}
-          placeholder={t('params.marque.voixTonPlaceholder')} />
-        <TextareaField label={t('params.marque.piliers')} name="piliers" value={user?.piliers} onChange={handleChange} rows={3}
-          hint={t('params.marque.piliersHint')}
-          placeholder={t('params.marque.piliersPlaceholder')} />
-        <TextareaField label={t('params.marque.aEviter')} name="a_eviter" value={user?.a_eviter} onChange={handleChange} rows={3}
-          hint={t('params.marque.aEviterHint')}
-          placeholder={t('params.marque.aEviterPlaceholder')} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <TextareaField label={t('params.marque.hooks')} name="hooks" value={user?.hooks} onChange={handleChange} rows={5}
-            hint={t('params.marque.hooksHint')}
-            placeholder={t('params.marque.hooksPlaceholder')} />
-          <TextareaField label={t('params.marque.ctas')} name="ctas" value={user?.ctas} onChange={handleChange} rows={5}
-            hint={t('params.marque.ctasHint')}
-            placeholder={t('params.marque.ctasPlaceholder')} />
-        </div>
-      </section>
-
-      {/* RÈGLES ÉDITORIALES (la "bible") */}
-      <section className="rounded-2xl border border-[#5B6CFF]/25 bg-[#5B6CFF]/[0.05] p-5">
-        <TextareaField label={t('params.marque.regles')} name="regles" value={user?.regles} onChange={handleChange} rows={9}
-          hint={t('params.marque.reglesHint')}
-          placeholder={t('params.marque.reglesPlaceholder')} />
-      </section>
-
-      {/* EXEMPLES DE POSTS PAR RÉSEAU */}
-      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5 space-y-2">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter">{t('params.marque.exemplesTitre')}</div>
-        <p className="text-xs text-slate-500 font-inter">
-          <Trans i18nKey="params.marque.exemplesIntro" components={{ sep: <span className="text-slate-400" /> }} />
-        </p>
-        <div className="flex flex-wrap gap-2 pt-1">
-          {[
-            { id: 'linkedin', label: 'LinkedIn' },
-            { id: 'instagram', label: 'Instagram' },
-            { id: 'facebook', label: 'Facebook' },
-            { id: 'tiktok', label: 'TikTok' },
-          ].map((r) => {
-            const rempli = !!user?.[`exemples_${r.id}`];
-            return (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => setExReseau(r.id)}
-                data-testid={`exemples-tab-${r.id}`}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium font-inter transition-all border flex items-center gap-1.5 ${
-                  exReseau === r.id
-                    ? 'bg-[#5B6CFF]/15 text-white border-[#5B6CFF]/50'
-                    : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'
-                }`}
-              >
-                {r.label}
-                {rempli && <Check className="w-3 h-3 text-emerald-400" />}
-              </button>
-            );
-          })}
-        </div>
-        <textarea
-          value={user?.[`exemples_${exReseau}`] || ''}
-          onChange={(e) => handleChange(`exemples_${exReseau}`, e.target.value)}
-          rows={8}
-          placeholder={t('params.marque.exemplesPlaceholder', { reseau: exReseau })}
-          className="w-full rounded-lg bg-slate-950/50 border border-slate-800 focus:border-[#5B6CFF] text-slate-200 text-sm px-3 py-2 outline-none resize-y font-inter placeholder:text-slate-600"
-          data-testid={`field-exemples-${exReseau}`}
-        />
-      </section>
-    </div>
-  );
+    );
+  };
 
   const CONNECT_HINTS = {
     instagram: 'params.reseaux.hintInstagram',
@@ -1652,6 +1682,24 @@ export default function ParametresPage() {
           </>
         }
       />
+
+      {/* Tant qu'il n'y a rien a enregistrer, un bouton ne fait qu'occuper
+          l'ecran : la barre ne monte qu'une fois quelque chose modifie. */}
+      <div data-testid="barre-enregistrer"
+        className={`fixed left-0 right-0 bottom-0 z-40 border-t border-white/[0.07] bg-[#020617]/[0.88]
+                    backdrop-blur-xl shadow-[0_-1px_0_rgba(255,255,255,0.04),0_-18px_44px_rgba(0,0,0,0.55)]
+                    transition-transform [transition-duration:260ms] ease-out-strong
+                    ${nonEnregistre ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className="max-w-[900px] mx-auto px-5 py-3 flex items-center justify-between gap-4">
+          <span className="text-[12.5px] text-slate-400 font-inter">{t('params.commun.nonEnregistre')}</span>
+          <Button onClick={handleSave} disabled={saving} size="sm" data-testid="save-btn-barre"
+            className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-inter text-[13px]
+                       active:scale-[0.97] transition-transform duration-150 ease-out-strong">
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
+            {t('params.commun.sauvegarder')}
+          </Button>
+        </div>
+      </div>
 
       {/* Profile incomplete warning */}
       {!isProfileComplete && (

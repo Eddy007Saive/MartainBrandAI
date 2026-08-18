@@ -102,7 +102,7 @@
     }
   },
   "analyseSite": {
-  "etape": {
+    "etape": {
       "ouvrir": "Opening your site",
       "lire": "Reading what you say there",
       "deduire": "Drawing out your voice and colours",
@@ -664,7 +664,8 @@
       "pasUneImage": "{{name}}: not an image",
       "tropLourde": "{{name}}: too large (10 MB max)",
       "echecUpload": "Upload failed",
-      "echecSuppression": "Deletion failed"
+      "echecSuppression": "Deletion failed",
+      "nonEnregistre": "Unsaved changes"
     },
     "entete": {
       "titre": "Settings",
@@ -756,7 +757,31 @@
       "reglesPlaceholder": "E.g.:\n1. One single CTA per post.\n2. Pick a pillar + a hook from the bank (or a new one in the same spirit).\n3. Follow the structure and adapt to the requested platform.\n4. Forbidden: guaranteed-number promises, corporate jargon…\nYou never break a rule from section 4.",
       "exemplesTitre": "Post examples (per network)",
       "exemplesIntro": "Paste 1 to 3 of your best posts for each network (separate them with a <sep>---</sep> line). This is what best calibrates the style of generated content. Optional but strongly recommended.",
-      "exemplesPlaceholder": "Paste your best {{reseau}} posts here…\n\nPost 1\n---\nPost 2"
+      "exemplesPlaceholder": "Paste your best {{reseau}} posts here…\n\nPost 1\n---\nPost 2",
+      "surTotal": "of {{total}} filled in",
+      "positionnementSous": "Who you are, and who you speak to.",
+      "voixContenuSous": "How it sounds when you speak — and what would ring false.",
+      "matiere": "Raw material",
+      "matiereSous": "Your themes, your hooks, your calls to action. One idea per line.",
+      "secteurPlaceholder": "Sports physiotherapy practice",
+      "audiencePlaceholder": "Amateur athletes aged 30 to 50 with recurring injuries",
+      "exemplesIntroCourt": "Paste two or three posts you're proud of. Nothing helps more.",
+      "ajouterPilier": "Add a pillar",
+      "ajouterHook": "Add a hook",
+      "ajouterCta": "Add a call to action",
+      "piliersEx": [
+        "Injury prevention",
+        "Behind the scenes",
+        "Myths worth busting"
+      ],
+      "hooksEx": [
+        "Your knee cracks? It's not what you think.",
+        "I saw 400 runners this year. Three mistakes keep coming back."
+      ],
+      "ctasEx": [
+        "Book your assessment",
+        "Send me « RUN » in a message"
+      ]
     },
     "reseaux": {
       "intro": "Connect your accounts to schedule and publish automatically, all from one place.",

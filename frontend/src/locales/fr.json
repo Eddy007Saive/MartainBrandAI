@@ -102,7 +102,7 @@
     }
   },
   "analyseSite": {
-  "etape": {
+    "etape": {
       "ouvrir": "J'ouvre ton site",
       "lire": "Je lis ce que tu y racontes",
       "deduire": "J'en tire ta voix et tes couleurs",
@@ -664,7 +664,8 @@
       "pasUneImage": "{{name}} : pas une image",
       "tropLourde": "{{name}} : trop lourde (10 Mo max)",
       "echecUpload": "Échec de l'upload",
-      "echecSuppression": "Échec de la suppression"
+      "echecSuppression": "Échec de la suppression",
+      "nonEnregistre": "Modifications non enregistrées"
     },
     "entete": {
       "titre": "Paramètres",
@@ -756,7 +757,31 @@
       "reglesPlaceholder": "Ex:\n1. Un seul CTA par post.\n2. Choisis un pilier + un hook de la banque (ou un neuf dans le même esprit).\n3. Respecte la structure et adapte à la plateforme demandée.\n4. Interdits : promesses chiffrées garanties, jargon corporate…\nTu ne violes jamais une règle de la section 4.",
       "exemplesTitre": "Exemples de posts (par réseau)",
       "exemplesIntro": "Colle 1 à 3 de tes meilleurs posts pour chaque réseau (sépare-les par une ligne <sep>---</sep>). C'est ce qui calibre le mieux le style des contenus générés. Optionnel mais fortement recommandé.",
-      "exemplesPlaceholder": "Colle ici tes meilleurs posts {{reseau}}…\n\nPost 1\n---\nPost 2"
+      "exemplesPlaceholder": "Colle ici tes meilleurs posts {{reseau}}…\n\nPost 1\n---\nPost 2",
+      "surTotal": "sur {{total}} renseignés",
+      "positionnementSous": "Qui tu es, et à qui tu parles.",
+      "voixContenuSous": "Comment ça sonne quand c'est toi qui parles — et ce qui sonnerait faux.",
+      "matiere": "Matière à écrire",
+      "matiereSous": "Tes thèmes, tes accroches, tes appels à l'action. Une idée par ligne.",
+      "secteurPlaceholder": "Cabinet de kinésithérapie du sport",
+      "audiencePlaceholder": "Sportifs amateurs de 30 à 50 ans, blessés récurrents",
+      "exemplesIntroCourt": "Colle deux ou trois posts dont tu es fier. C'est ce qui fait le plus de différence.",
+      "ajouterPilier": "Ajouter un pilier",
+      "ajouterHook": "Ajouter une accroche",
+      "ajouterCta": "Ajouter un appel à l'action",
+      "piliersEx": [
+        "Prévention des blessures",
+        "Coulisses du cabinet",
+        "Réponses aux idées reçues"
+      ],
+      "hooksEx": [
+        "Ton genou craque ? Ce n'est pas ce que tu crois.",
+        "J'ai vu 400 coureurs cette année. Trois erreurs reviennent."
+      ],
+      "ctasEx": [
+        "Réserve ton bilan",
+        "Envoie-moi « COURSE » en message"
+      ]
     },
     "reseaux": {
       "intro": "Connecte tes comptes pour programmer et publier automatiquement, depuis un seul endroit.",
