@@ -4,6 +4,11 @@ export const userService = {
   getMe: () =>
     api.get('/users/me').then(r => r.data),
 
+  // Lit le site du client et propose sa fiche de marque. Long (20-40 s) :
+  // le serveur ouvre un vrai navigateur pour rendre le JavaScript.
+  analyserSite: (url, langue) =>
+    api.post('/users/me/analyser-site', { url, langue }, { timeout: 90000 }).then(r => r.data),
+
   updateMe: (data) =>
     api.patch('/users/me', data).then(r => r.data),
 

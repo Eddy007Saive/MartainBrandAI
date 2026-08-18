@@ -2,12 +2,29 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from dependencies import verify_token
 from models.user import UserUpdate, SocialConnectRequest
 from models.schedule import ScheduleUpdate
-from services import user_service, schedule_service, auth_service
+from services import user_service, schedule_service, auth_service, site_service
 from services.social_service import VALID_PLATFORMS, connect_platform, disconnect_platform, list_connected_accounts
 from config import logger
 import httpx
 
 router = APIRouter(prefix="/users", tags=["users"])
+
+
+@router.post("/me/analyser-site")
+async def analyser_site(body: dict, payload: dict = Depends(verify_token)):
+    """Pré-remplit la fiche de marque à partir du site web du client.
+
+    On renvoie la proposition sans rien enregistrer : le client relit, corrige,
+    puis enregistre comme d'habitude. Une marque déduite d'un site reste une
+    hypothèse, elle ne doit jamais écraser ce qu'il a déjà écrit.
+    """
+    try:
+        return await site_service.analyser(body.get("url"), body.get("langue") or "fr")
+    except site_service.SiteIllisible as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"analyse de site: {e}")
+        raise HTTPException(status_code=502, detail="Analyse du site impossible pour le moment.")
 
 
 @router.get("/me")

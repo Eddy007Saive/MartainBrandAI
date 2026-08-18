@@ -101,6 +101,32 @@
       "statut": "Estado"
     }
   },
+  "analyseSite": {
+    "titre": "Empezar desde tu web",
+    "description": "Pega la dirección de tu web: la leemos y te proponemos tu ficha de marca. Luego corriges lo que no se parezca a ti.",
+    "analyser": "Analizar mi web",
+    "lecture": "Leyendo…",
+    "patience": "Abrimos tu web como lo haría un visitante. Cuenta unos treinta segundos.",
+    "adresseRequise": "Indica la dirección de tu web.",
+    "echec": "No se ha podido leer esta web.",
+    "proposition": "Lo que hemos entendido de tu web",
+    "utiliser": "Rellenar los campos vacíos",
+    "toutRemplacer": "Reemplazar todo",
+    "ignorer": "Descartar",
+    "champsRemplis_one": "1 campo rellenado",
+    "champsRemplis_other": "{{count}} campos rellenados",
+    "rienAremplir": "Tus campos ya están rellenados — usa « Reemplazar todo » si quieres sobrescribirlos.",
+    "rappelEnregistrer": "Repásalo, corrígelo y guarda al final de la página.",
+    "champ": {
+      "secteur": "Sector",
+      "audience": "Audiencia",
+      "voix_marque": "Voz y tono",
+      "piliers": "Pilares de contenido",
+      "hooks": "Ganchos",
+      "ctas": "Llamadas a la acción",
+      "couleurs": "Colores"
+    }
+  },
   "nav": {
     "home": "Inicio",
     "studio": "Estudio IA",

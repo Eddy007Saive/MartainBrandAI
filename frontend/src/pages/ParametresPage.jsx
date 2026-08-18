@@ -8,6 +8,7 @@ import {
   Plus, Image as ImageIcon, X, Repeat,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import RemplirDepuisSite from '../components/RemplirDepuisSite';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -758,6 +759,8 @@ export default function ParametresPage() {
           <Trans i18nKey="params.marque.intro" components={{ studio: <span className="text-white font-medium" /> }} />
         </p>
       </div>
+
+      <RemplirDepuisSite user={user} onChange={handleChange} />
 
       {/* POSITIONNEMENT */}
       <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5">

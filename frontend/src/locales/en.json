@@ -101,6 +101,32 @@
       "statut": "Status"
     }
   },
+  "analyseSite": {
+    "titre": "Start from your website",
+    "description": "Paste your website address: we read it and draft your brand profile. You then fix whatever doesn't sound like you.",
+    "analyser": "Analyse my site",
+    "lecture": "Reading…",
+    "patience": "We open your site the way a visitor would. Give it about thirty seconds.",
+    "adresseRequise": "Enter your website address.",
+    "echec": "This site could not be read.",
+    "proposition": "What we understood from your site",
+    "utiliser": "Fill the empty fields",
+    "toutRemplacer": "Replace everything",
+    "ignorer": "Dismiss",
+    "champsRemplis_one": "1 field filled",
+    "champsRemplis_other": "{{count}} fields filled",
+    "rienAremplir": "Your fields are already filled — use « Replace everything » to overwrite them.",
+    "rappelEnregistrer": "Read it over, fix it, then save at the bottom of the page.",
+    "champ": {
+      "secteur": "Industry",
+      "audience": "Audience",
+      "voix_marque": "Voice & tone",
+      "piliers": "Content pillars",
+      "hooks": "Hooks",
+      "ctas": "Calls to action",
+      "couleurs": "Colours"
+    }
+  },
   "nav": {
     "home": "Home",
     "studio": "AI Studio",

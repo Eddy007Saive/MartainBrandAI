@@ -101,6 +101,32 @@
       "statut": "Statut"
     }
   },
+  "analyseSite": {
+    "titre": "Partir de ton site",
+    "description": "Colle l'adresse de ton site : on le lit et on te propose ta fiche pré-remplie. Tu corriges ensuite ce qui ne te ressemble pas.",
+    "analyser": "Analyser mon site",
+    "lecture": "Lecture…",
+    "patience": "On ouvre ton site comme le ferait un visiteur. Compte une trentaine de secondes.",
+    "adresseRequise": "Indique l'adresse de ton site.",
+    "echec": "Impossible de lire ce site.",
+    "proposition": "Ce qu'on a compris de ton site",
+    "utiliser": "Remplir les champs vides",
+    "toutRemplacer": "Tout remplacer",
+    "ignorer": "Ignorer",
+    "champsRemplis_one": "1 champ rempli",
+    "champsRemplis_other": "{{count}} champs remplis",
+    "rienAremplir": "Tes champs sont déjà remplis — utilise « Tout remplacer » si tu veux les écraser.",
+    "rappelEnregistrer": "Relis, corrige, puis enregistre en bas de page.",
+    "champ": {
+      "secteur": "Secteur",
+      "audience": "Audience",
+      "voix_marque": "Voix & ton",
+      "piliers": "Piliers de contenu",
+      "hooks": "Accroches",
+      "ctas": "Appels à l'action",
+      "couleurs": "Couleurs"
+    }
+  },
   "nav": {
     "home": "Accueil",
     "studio": "Studio IA",
