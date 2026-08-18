@@ -143,7 +143,8 @@
       "faviconSeule": "Only the favicon was found — usually too small for a carousel.",
       "utiliser": "Use it",
       "repris": "Logo saved",
-      "echec": "This logo could not be retrieved."
+      "echec": "This logo could not be retrieved.",
+      "pasUnLogo": "No logo found in the header — this is the site's share image, worth a look."
     }
   },
   "nav": {

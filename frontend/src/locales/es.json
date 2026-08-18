@@ -143,7 +143,8 @@
       "faviconSeule": "Solo se encontró el favicon — suele ser pequeño para un carrusel.",
       "utiliser": "Usarlo",
       "repris": "Logo guardado",
-      "echec": "No se ha podido recuperar este logo."
+      "echec": "No se ha podido recuperar este logo.",
+      "pasUnLogo": "No se encontró logo en la cabecera — esta es la imagen para compartir, revísala."
     }
   },
   "nav": {

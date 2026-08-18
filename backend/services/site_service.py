@@ -9,6 +9,7 @@ carrousels) et non par un simple GET : la moitié des sites d'aujourd'hui sont
 en React, un GET n'y renvoie qu'une coquille vide.
 """
 import asyncio
+import base64
 import ipaddress
 import re
 import socket
@@ -72,14 +73,50 @@ _EXTRACTION = r"""
     'header img[alt*="logo" i], [class*=logo i] img, header a[href="/"] img, header img, nav img');
   if (img && img.src && img.naturalWidth !== 1) { logo = img.src; logoType = 'image'; }
   if (!logo) {
-    // Logo dessine en SVG dans la page : on le serialise tel quel.
-    const svg = document.querySelector('header svg, [class*=logo i] svg, nav svg');
-    if (svg && svg.getBoundingClientRect().width > 24) {
+    // Logo dessine en SVG dans la page. Trois pieges, dans l'ordre ou ils
+    // cassent le rendu une fois le SVG sorti de sa page :
+    for (const svg of document.querySelectorAll('header svg, [class*=logo i] svg, nav svg')) {
+      const r = svg.getBoundingClientRect();
+      if (r.width < 24 || r.height < 8) continue;
       const c = svg.cloneNode(true);
+
+      // 1. <use href="#id"> pointe vers un symbole defini ailleurs dans la
+      //    page : sorti de son contexte, le SVG est vide. On recopie la cible.
+      let creux = false;
+      c.querySelectorAll('use').forEach((u) => {
+        const id = (u.getAttribute('href') || u.getAttribute('xlink:href') || '');
+        const cible = id.startsWith('#') ? document.querySelector(id) : null;
+        if (cible) {
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          [...cible.cloneNode(true).childNodes].forEach((n) => g.appendChild(n));
+          u.replaceWith(g);
+        } else { creux = true; }
+      });
+      if (creux) continue;
+
+      // 2. Sans trace de dessin, c'est une coquille : on passe au suivant.
+      if (!c.querySelector('path,rect,circle,ellipse,polygon,polyline,line,text,image')) continue;
+
+      // 3. currentColor et les classes CSS ne suivent pas hors de la page :
+      //    le logo deviendrait noir sur noir, ou invisible. On fige la
+      //    couleur reellement calculee.
+      const couleur = getComputedStyle(svg).color || '#111';
+      c.querySelectorAll('*').forEach((n) => {
+        ['fill', 'stroke'].forEach((p) => {
+          const v = n.getAttribute(p);
+          if (v === 'currentColor' || (!v && n.className)) n.setAttribute(p, couleur);
+        });
+        n.removeAttribute('class');
+      });
       if (!c.getAttribute('xmlns')) c.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      if (!c.getAttribute('viewBox') && r.width) c.setAttribute('viewBox', `0 0 ${Math.round(r.width)} ${Math.round(r.height)}`);
+      c.setAttribute('width', Math.round(r.width));
+      c.setAttribute('height', Math.round(r.height));
+
       logo = 'data:image/svg+xml;base64,' +
         btoa(unescape(encodeURIComponent(new XMLSerializer().serializeToString(c))));
       logoType = 'svg';
+      break;
     }
   }
   if (!logo && meta('og:image')) { logo = meta('og:image'); logoType = 'og'; }
@@ -323,9 +360,18 @@ async def analyser(url: str, langue: str = "fr") -> dict:
     # le serveur pendant une trentaine de secondes.
     brut = await asyncio.to_thread(lire, url)
     fiche = await asyncio.to_thread(deduire, brut, langue)
+    # On ne propose un logo qu'apres l'avoir reellement recupere, et on le
+    # renvoie inline : sinon un serveur qui refuse les appels d'un autre
+    # domaine laisserait le client devant un cadre vide.
     if brut.get("logo"):
-        fiche["logo_url"] = brut["logo"]
-        fiche["logo_type"] = brut.get("logoType") or "image"
+        try:
+            donnees, type_ = telecharger_logo(brut["logo"])
+            if len(donnees) <= LOGO_INLINE:
+                fiche["logo_url"] = "data:%s;base64,%s" % (
+                    type_, base64.b64encode(donnees).decode())
+                fiche["logo_type"] = brut.get("logoType") or "image"
+        except Exception as e:
+            logger.info(f"logo ecarte ({brut.get('logoType')}): {e}")
     fiche["_source"] = {"url": brut.get("url"), "titre": brut.get("titre"),
                         "couleurs": brut.get("couleurs")}
     logger.info(f"site analysé : {brut.get('url')} -> {fiche.get('secteur')}")
@@ -334,15 +380,18 @@ async def analyser(url: str, langue: str = "fr") -> dict:
 
 # --- Récupération du logo ----------------------------------------------------
 LOGO_MAX = 5 * 1024 * 1024
+# Au-dela, on ne le fait pas transiter dans la reponse d'analyse : un apercu ne
+# justifie pas d'alourdir la page a ce point.
+LOGO_INLINE = 400 * 1024
 _TYPES_LOGO = ("image/png", "image/jpeg", "image/webp", "image/svg+xml", "image/gif")
 
 
-def telecharger_logo(url: str) -> bytes:
+def telecharger_logo(url: str) -> tuple:
     """Récupère le logo repéré sur le site, prêt à être poussé sur Cloudinary.
 
-    L'adresse est refaite passer par le garde-fou : même si elle vient de notre
-    propre analyse, elle transite par le navigateur du client et pourrait être
-    remplacée avant de nous revenir.
+    Renvoie (octets, type MIME). L'adresse est refaite passer par le garde-fou :
+    même si elle vient de notre propre analyse, elle transite par le navigateur
+    du client et pourrait être remplacée avant de nous revenir.
     """
     import base64
     import binascii
@@ -352,15 +401,20 @@ def telecharger_logo(url: str) -> bytes:
     if not url:
         raise SiteIllisible("Aucun logo à récupérer.")
 
-    # Logo dessiné en SVG dans la page : on l'a déjà, il voyage en data URI.
-    if url.startswith("data:image/svg+xml;base64,"):
+    # Logo deja en main : soit serialise depuis la page, soit inline par
+    # l'analyse pour que l'apercu du client montre exactement ce qu'on garde.
+    if url.startswith("data:image/"):
+        entete, _, charge = url.partition(",")
+        type_ = entete[5:].split(";")[0].lower()
+        if type_ not in _TYPES_LOGO:
+            raise SiteIllisible("Ce fichier n'est pas une image.")
         try:
-            donnees = base64.b64decode(url.split(",", 1)[1], validate=True)
+            donnees = base64.b64decode(charge, validate=True)
         except (binascii.Error, ValueError):
             raise SiteIllisible("Ce logo est illisible.")
         if len(donnees) > LOGO_MAX:
             raise SiteIllisible("Logo trop lourd.")
-        return donnees
+        return donnees, type_
 
     r = httpx.get(normaliser(url), timeout=20, follow_redirects=True,
                   headers={"user-agent": _NAVIGATEUR})
@@ -370,4 +424,4 @@ def telecharger_logo(url: str) -> bytes:
         raise SiteIllisible("Ce fichier n'est pas une image.")
     if len(r.content) > LOGO_MAX:
         raise SiteIllisible("Logo trop lourd.")
-    return r.content
+    return r.content, type_

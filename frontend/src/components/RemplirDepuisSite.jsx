@@ -35,7 +35,10 @@ export default function RemplirDepuisSite({ user, onChange }) {
     try {
       const f = await userService.analyserSite(url.trim(), (i18n.resolvedLanguage || 'fr').slice(0, 2));
       setFiche(f);
-      setPrendreLogo(!!f.logo_url && f.logo_type !== 'favicon');
+      // Seuls un vrai logo d'en-tete ou un SVG sont coches d'avance. Une
+      // favicon fait 32 pixels, une og:image est une banniere de partage :
+      // ni l'un ni l'autre n'a sa place dans un carrousel sans un regard.
+      setPrendreLogo(!!f.logo_url && ['image', 'svg'].includes(f.logo_type));
     } catch (e) {
       toast.error(e?.response?.data?.detail || t('analyseSite.echec'));
     } finally {
@@ -130,8 +133,10 @@ export default function RemplirDepuisSite({ user, onChange }) {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-[12.5px] text-slate-200 font-inter">{t('analyseSite.logo.trouve')}</div>
-                {fiche.logo_type === 'favicon' && (
-                  <div className="text-[11.5px] text-amber-400/90 font-inter mt-0.5">{t('analyseSite.logo.faviconSeule')}</div>
+                {!['image', 'svg'].includes(fiche.logo_type) && (
+                  <div className="text-[11.5px] text-amber-400/90 font-inter mt-0.5">
+                    {t(fiche.logo_type === 'favicon' ? 'analyseSite.logo.faviconSeule' : 'analyseSite.logo.pasUnLogo')}
+                  </div>
                 )}
               </div>
               <label className="flex items-center gap-2 text-[12.5px] text-slate-400 font-inter cursor-pointer flex-shrink-0">

@@ -143,7 +143,8 @@
       "faviconSeule": "Seule la favicon a été trouvée — souvent trop petite pour un carrousel.",
       "utiliser": "Le reprendre",
       "repris": "Logo repris",
-      "echec": "Ce logo n'a pas pu être récupéré."
+      "echec": "Ce logo n'a pas pu être récupéré.",
+      "pasUnLogo": "Aucun logo trouvé dans l'en-tête — voici l'image de partage du site, à vérifier."
     }
   },
   "nav": {

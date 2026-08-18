@@ -156,7 +156,7 @@ async def logo_depuis_site(body: dict, payload: dict = Depends(verify_token)):
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     try:
-        donnees = await asyncio.to_thread(site_service.telecharger_logo, body.get("url"))
+        donnees, _ = await asyncio.to_thread(site_service.telecharger_logo, body.get("url"))
         return {"logo_url": user_service.upload_logo(telegram_id, donnees)}
     except site_service.SiteIllisible as e:
         raise HTTPException(status_code=400, detail=str(e))
