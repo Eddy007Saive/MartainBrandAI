@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { PLANS, Check, SectionHead, BOOKING_URL } from './shared';
+import { PLANS, Check, SectionHead, propsRdv } from './shared';
 
 // Prestation de lancement : une seule offre, paiement unique.
 // Textes = clés de traduction (résolues avec t() au rendu).
@@ -43,7 +43,7 @@ export default function Pricing() {
             <div className="pcred">{t('lp.pricing.oneTime')}</div>
             <p style={{ color: 'var(--muted)', fontSize: 13.5, margin: '6px 0 4px' }}>{t('lp.pricing.setup.pack.desc')}</p>
             <ul>{PACK_FONDATIONS.featKeys.map((f) => <li key={f}><Check />{t(f)}</li>)}</ul>
-            <a className="btn btn-grad pbtn" href={BOOKING_URL}>{t('lp.pricing.setup.cta')}</a>
+            <a className="btn btn-grad pbtn" {...propsRdv()}>{t('lp.pricing.setup.cta')}</a>
           </div>
         </div>
         <p className="note" style={{ textAlign: 'center', marginTop: 18 }}>{t('lp.pricing.setup.note')}</p>
@@ -77,7 +77,7 @@ export default function Pricing() {
             <div className="pcred">{t('lp.pricing.multi.tag')}</div>
             <p style={{ color: 'var(--muted)', fontSize: 13.5, margin: '6px 0 4px' }}>{t('lp.pricing.multi.desc')}</p>
             <ul>{MULTI_FEATS.map((f) => <li key={f}><Check />{t(f)}</li>)}</ul>
-            <a className="btn btn-soft pbtn" href={BOOKING_URL}>{t('lp.pricing.multi.cta')}</a>
+            <a className="btn btn-soft pbtn" {...propsRdv()}>{t('lp.pricing.multi.cta')}</a>
           </div>
         </div>
         <p className="note" style={{ textAlign: 'center', marginTop: 18 }}>{t('lp.pricing.multi.note')}</p>
@@ -89,7 +89,7 @@ export default function Pricing() {
           <h2>{t('lp.pricing.agency.title', { price: AGENCY_PRICE })} <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{t('lp.pricing.agency.titleAccent')}</span></h2>
           <p>{t('lp.pricing.agency.text')}</p>
           <div className="cta-row center">
-            <a className="btn btn-grad" href={BOOKING_URL}>{t('lp.pricing.agency.ctaCall')}</a>
+            <a className="btn btn-grad" {...propsRdv()}>{t('lp.pricing.agency.ctaCall')}</a>
             <Link className="btn btn-soft" to="/register">{t('lp.pricing.agency.ctaSignup')}</Link>
           </div>
         </div>

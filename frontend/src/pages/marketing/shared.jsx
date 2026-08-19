@@ -65,7 +65,21 @@ export const GOODTIME = {
 };
 
 // Lien de réservation du call de setup — TODO Martin : remplacer par ton Calendly/Cal.com
-export const BOOKING_URL = 'mailto:martindumoulin88@gmail.com?subject=Call%20setup%20Presence%20OS';
+// Prise de rendez-vous. L'adresse vit dans REACT_APP_BOOKING_URL : changer
+// d'agenda ne doit pas demander de toucher au code ni de redeployer le front.
+// Sans reglage, on retombe sur le courriel — jamais de bouton mort.
+export const BOOKING_URL = process.env.REACT_APP_BOOKING_URL
+  || 'mailto:martindumoulin88@gmail.com?subject=Call%20setup%20Presence%20OS';
+
+/** Attributs d'un lien de rendez-vous.
+ *  Un agenda s'ouvre dans un onglet neuf — on ne fait pas quitter le site a
+ *  quelqu'un qui vient de decider de reserver. Un mailto, lui, reste sur place :
+ *  un onglet vide s'ouvrirait puis resterait la. */
+export const propsRdv = () => (
+  /^https?:/i.test(BOOKING_URL)
+    ? { href: BOOKING_URL, target: '_blank', rel: 'noopener noreferrer' }
+    : { href: BOOKING_URL }
+);
 
 // Coordonnées de l'éditeur (à compléter par Martin)
 export const LEGAL = {

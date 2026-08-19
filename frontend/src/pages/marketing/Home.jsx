@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { APK_URL } from '../../lib/appDownload';
 import HeroPreview from './HeroPreview';
-import { SectionHead, GOODTIME, BOOKING_URL } from './shared';
+import { SectionHead, GOODTIME, propsRdv } from './shared';
 
 const STATS = [
   ['5', 'réseaux connectés'],
@@ -113,7 +113,7 @@ export default function Home() {
         <h1>On installe ton système marketing.<br /><span className="g">Tu le pilotes en 2 h par mois.</span></h1>
         <p className="sub">Nos experts étudient ton entreprise, ton positionnement et ton ton de marque, puis bâtissent ton studio de contenu sur-mesure — calibré sur ta voix. Ensuite, c’est toi aux commandes : tu génères tes posts et visuels sur LinkedIn, Instagram, Facebook, TikTok &amp; YouTube, tu valides, tu publies. La régularité d’une agence, le contrôle total, sans la facture mensuelle.</p>
         <div className="cta-row">
-          <a className="btn btn-grad" href={BOOKING_URL}>Réserve ton call de setup →</a>
+          <a className="btn btn-grad" {...propsRdv()}>Réserve ton call de setup →</a>
           <Link className="btn btn-soft" to="/register">Créer mon compte</Link>
           <a className="btn btn-ghost" href={APK_URL}>↓ App Android</a>
         </div>
@@ -190,7 +190,7 @@ export default function Home() {
           <p><b>Nous :</b> on étudie ta marque, on paramètre tout, on crée tes modèles de visuels. — <b>Toi :</b> ~2 h par mois pour générer, valider et publier. Tu gardes le contrôle, on porte la complexité.</p>
         </div>
         <div className="cta-row center" style={{ marginTop: 32 }}>
-          <a className="btn btn-grad" href={BOOKING_URL}>Réserve ton call de setup →</a>
+          <a className="btn btn-grad" {...propsRdv()}>Réserve ton call de setup →</a>
         </div>
       </div></section>
 
@@ -234,7 +234,7 @@ export default function Home() {
           <h2>Prêt à reprendre le contrôle de ta présence ?</h2>
           <p>Réserve ton call de setup, crée ton compte en 2 minutes, ou installe l’app pour piloter depuis ton téléphone.</p>
           <div className="cta-row center">
-            <a className="btn btn-grad" href={BOOKING_URL}>Réserve ton call de setup →</a>
+            <a className="btn btn-grad" {...propsRdv()}>Réserve ton call de setup →</a>
             <Link className="btn btn-soft" to="/register">Créer mon compte</Link>
             <a className="btn btn-ghost" href={APK_URL}>↓ App Android</a>
           </div>

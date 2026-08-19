@@ -7,7 +7,7 @@ import Lenis from 'lenis';
 import { APK_URL } from '../../lib/appDownload';
 import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
 import LangSwitcher from '../../components/LangSwitcher';
-import { BOOKING_URL } from './shared';
+import { propsRdv } from './shared';
 import './homeCine.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -297,7 +297,7 @@ export default function HomeCine() {
             <p className="hero-sub"><Trans i18nKey="lp.hero.sub" components={{ b: <b /> }} /></p>
             <div className="nets"><b>LinkedIn</b><i>·</i><b>Instagram</b><i>·</i><b>Facebook</b><i>·</i><b>TikTok</b><i>·</i><b>YouTube</b><i>·</i><b>Google Business</b></div>
             <div className="cta-row">
-              <a className="btn grad" href={BOOKING_URL}>{t('lp.cta.call')}</a>
+              <a className="btn grad" {...propsRdv()}>{t('lp.cta.call')}</a>
               <Link className="btn ghost" to="/register">{t('lp.cta.account')}</Link>
               <a className="btn apk" href={APK_URL}>{t('lp.cta.apk')}</a>
             </div>
@@ -459,7 +459,7 @@ export default function HomeCine() {
             <p><Trans i18nKey="lp.flow.roles.text" components={{ b: <b /> }} /></p>
           </div>
           <div className="cta-row center" style={{ marginTop: 32 }}>
-            <a className="btn grad" href={BOOKING_URL}>{t('lp.cta.call')}</a>
+            <a className="btn grad" {...propsRdv()}>{t('lp.cta.call')}</a>
           </div>
         </div></section>
 
@@ -503,7 +503,7 @@ export default function HomeCine() {
             <h2>{t('lp.final.title')}</h2>
             <p>{t('lp.final.text')}</p>
             <div className="cta-row">
-              <a className="btn grad" href={BOOKING_URL}>{t('lp.cta.call')}</a>
+              <a className="btn grad" {...propsRdv()}>{t('lp.cta.call')}</a>
               <Link className="btn ghost" to="/register">{t('lp.cta.account')}</Link>
             </div>
           </div>
@@ -536,7 +536,7 @@ export default function HomeCine() {
               </>
             )}
             <a href={APK_URL}>{t('lp.footer.apk')}</a>
-            <a href={BOOKING_URL}>{t('lp.footer.book')}</a>
+            <a {...propsRdv()}>{t('lp.footer.book')}</a>
           </div>
           <div className="fcol">
             <h4>{t('lp.footer.legal')}</h4>
