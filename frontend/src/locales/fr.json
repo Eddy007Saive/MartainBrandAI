@@ -2282,6 +2282,12 @@
     "cta": "Demander mon audit",
     "plusTard": "Plus tard",
     "fermer": "Fermer",
-    "rassurance": "Gratuit, sans engagement. On ne rappelle pas deux fois."
+    "rassurance": "Gratuit, sans engagement. On ne rappelle pas deux fois.",
+    "surTitre": "Audit offert",
+    "jalon": {
+      "duree": "20 minutes",
+      "axes": "3 axes concrets",
+      "compteRendu": "Compte rendu écrit"
+    }
   }
 }

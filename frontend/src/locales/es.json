@@ -2282,6 +2282,12 @@
     "cta": "Pedir mi auditoría",
     "plusTard": "Más tarde",
     "fermer": "Cerrar",
-    "rassurance": "Gratis y sin compromiso. No insistimos."
+    "rassurance": "Gratis y sin compromiso. No insistimos.",
+    "surTitre": "Auditoría gratuita",
+    "jalon": {
+      "duree": "20 minutos",
+      "axes": "3 puntos concretos",
+      "compteRendu": "Resumen por escrito"
+    }
   }
 }

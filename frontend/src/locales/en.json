@@ -2282,6 +2282,12 @@
     "cta": "Request my audit",
     "plusTard": "Later",
     "fermer": "Close",
-    "rassurance": "Free, no strings. We don't call twice."
+    "rassurance": "Free, no strings. We don't call twice.",
+    "surTitre": "Free audit",
+    "jalon": {
+      "duree": "20 minutes",
+      "axes": "3 concrete fixes",
+      "compteRendu": "Written summary"
+    }
   }
 }

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Popup rendez-vous — deux directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fond:#020617; --carte:#0f172a; --bord:rgba(255,255,255,.09);
+  --texte:#e2e8f0; --doux:#94a3b8; --faible:#64748b; --tres-faible:#475569;
+  --primaire:#5B6CFF; --primaire2:#8A6CFF; --accent:#3AFFA3;
+  --sortie:cubic-bezier(.23,1,.32,1);
+  --sora:'Sora',ui-sans-serif,system-ui,'Segoe UI',sans-serif;
+  --inter:'Inter',ui-sans-serif,system-ui,'Segoe UI',sans-serif;
+  --lumiere:inset 0 1px 0 rgba(255,255,255,.06);
+  --ombre-3:0 8px 20px rgba(0,0,0,.5), 0 34px 68px -14px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{margin:0;background:#070a16;color:var(--texte);font-family:var(--inter);font-size:14px;
+     line-height:1.5;-webkit-font-smoothing:antialiased;padding:34px 20px 70px}
+.page{max-width:1120px;margin:0 auto}
+h1{font-family:var(--sora);font-size:20px;font-weight:800;margin:0 0 4px;color:#fff;letter-spacing:-.3px}
+.chapeau{color:var(--doux);font-size:13px;margin:0 0 26px;max-width:70ch}
+.etiq{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+      padding:3px 9px;border-radius:6px;background:rgba(91,108,255,.16);color:#b9c1ff;margin-bottom:11px}
+.note{font-size:12.5px;color:var(--faible);margin:11px 0 30px;max-width:74ch}
+
+/* ---------- la boite de dialogue ---------- */
+.modale{position:relative;display:flex;overflow:hidden;border-radius:20px;
+        border:1px solid var(--bord);background:var(--carte);
+        box-shadow:var(--lumiere),var(--ombre-3);
+        animation:entrer 280ms var(--sortie) both}
+@keyframes entrer{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+.modale{width:min(660px,100%)}
+
+/* La colonne visuelle. Un halo, pas une photo posee : la mascotte doit avoir
+   l'air d'etre dans un lieu, meme abstrait. */
+.visuel{position:relative;flex:0 0 244px;overflow:hidden;
+        background:radial-gradient(ellipse at 50% 108%,rgba(91,108,255,.42),transparent 66%),
+                   linear-gradient(165deg,#141a33,#0b1024)}
+.visuel::before{content:'';position:absolute;left:50%;top:-46px;width:210px;height:300px;
+  transform:translateX(-50%);
+  background:conic-gradient(from 180deg at 50% 0%,transparent 42%,rgba(138,108,255,.34) 50%,transparent 58%);
+  filter:blur(12px)}
+.halo{position:absolute;left:50%;bottom:44px;width:168px;height:168px;transform:translateX(-50%);
+  border-radius:50%;background:radial-gradient(circle,rgba(58,255,163,.20),transparent 64%);filter:blur(16px)}
+.sol{position:absolute;left:50%;bottom:34px;width:132px;height:13px;transform:translateX(-50%);
+  border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.62),transparent 70%);filter:blur(5px)}
+/* Rico deborde le bas du cadre : une silhouette qui touche le bord a l'air
+   dessinee dedans, pas collee dessus. */
+.rico{position:absolute;left:50%;bottom:14px;height:262px;transform:translateX(-50%);
+  filter:drop-shadow(0 12px 18px rgba(0,0,0,.55))}
+.grain{position:absolute;inset:0;opacity:.5;
+  background:radial-gradient(circle at 24% 30%,rgba(255,255,255,.05),transparent 42%)}
+
+/* ---------- la colonne texte ---------- */
+.propos{flex:1;padding:30px 30px 26px;min-width:0}
+.sur-titre{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.sur-titre .pt{width:5px;height:5px;border-radius:50%;background:var(--accent)}
+.modale h2{font-family:var(--sora);font-size:22px;font-weight:800;line-height:1.18;letter-spacing:-.5px;
+  margin:0;color:#fff}
+.modale p.dit{font-size:13.5px;color:var(--doux);line-height:1.62;margin:11px 0 0}
+.jalons{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0 0}
+.jalon{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#cbd5e1;
+  border:1px solid var(--bord);border-radius:8px;padding:5px 10px;background:rgba(255,255,255,.02);
+  box-shadow:var(--lumiere)}
+.jalon svg{color:var(--accent);flex-shrink:0}
+.actions{display:flex;align-items:center;gap:14px;margin-top:20px}
+.btn{border:0;border-radius:11px;padding:11px 20px;font:inherit;font-size:13.5px;font-weight:600;color:#fff;
+  cursor:pointer;background:linear-gradient(135deg,var(--primaire),var(--primaire2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 5px rgba(0,0,0,.3),
+             0 10px 24px -7px rgba(91,108,255,.55);
+  transition:transform 150ms var(--sortie),filter 150ms var(--sortie),box-shadow 150ms var(--sortie)}
+.btn:hover{filter:brightness(1.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 3px 7px rgba(0,0,0,.32),
+             0 14px 30px -7px rgba(91,108,255,.65)}
+/* Presse = pose : l'ombre se resserre pendant que le bouton retrecit. */
+.btn:active{transform:scale(.97);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.4),
+             0 2px 7px -2px rgba(91,108,255,.4)}
+.plus-tard{background:none;border:0;font:inherit;font-size:12.5px;color:var(--faible);cursor:pointer;
+  padding:4px 2px;transition:color 150ms var(--sortie)}
+.plus-tard:hover{color:var(--texte)}
+.rassure{font-size:11.5px;color:var(--tres-faible);margin:14px 0 0}
+.fermer{position:absolute;top:13px;right:13px;z-index:3;width:30px;height:30px;border:0;border-radius:9px;
+  background:rgba(255,255,255,.04);color:var(--faible);cursor:pointer;display:grid;place-items:center;
+  transition:color 150ms var(--sortie),background-color 150ms var(--sortie),transform 150ms var(--sortie)}
+.fermer:hover{color:#fff;background:rgba(255,255,255,.1)}
+.fermer:active{transform:scale(.9)}
+
+/* ---------- direction B : le panneau colore ---------- */
+.b .visuel{background:linear-gradient(155deg,var(--primaire) 0%,var(--primaire2) 58%,#5a2fb0 100%)}
+.b .visuel::before{background:conic-gradient(from 180deg at 50% 0%,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%)}
+.b .halo{background:radial-gradient(circle,rgba(255,255,255,.24),transparent 62%)}
+.b .sol{background:radial-gradient(ellipse,rgba(40,14,90,.6),transparent 70%)}
+
+/* ---------- mobile : la colonne devient un bandeau ---------- */
+.mobile{width:376px}
+.mobile .modale{flex-direction:column;width:100%}
+.mobile .visuel{flex:0 0 176px;width:100%}
+.mobile .rico{height:196px;bottom:-4px}
+.mobile .halo{width:140px;height:140px;bottom:26px}
+.mobile .sol{bottom:20px;width:104px}
+.mobile .propos{padding:22px 22px 20px}
+.mobile .modale h2{font-size:19px}
+.duo{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Proposition de rendez-vous — deux directions</h1>
+  <p class="chapeau">Même structure : la mascotte à gauche, le propos à droite. Ce qui change, c'est le
+    registre du panneau visuel. Survole et clique les boutons, les états sont réels.</p>
+
+  <!-- A -->
+  <span class="etiq">Direction A · le halo</span>
+  <div class="modale a">
+    <button class="fermer" aria-label="Fermer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="visuel">
+      <div class="grain"></div><div class="halo"></div><div class="sol"></div>
+      <img class="rico" src="https://res.cloudinary.com/dy9gp5pim/image/upload/w_420,q_auto,f_auto/brand/rico-v2/accueille.png" alt="">
+    </div>
+    <div class="propos">
+      <span class="sur-titre"><span class="pt"></span>Audit offert</span>
+      <h2>On regarde ta présence en ligne ensemble ?</h2>
+      <p class="dit">Vingt minutes en visio. On passe tes réseaux en revue et tu repars avec trois choses
+        à corriger — que tu travailles avec nous ou non.</p>
+      <div class="jalons">
+        <span class="jalon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>20 minutes</span>
+        <span class="jalon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>3 axes concrets</span>
+        <span class="jalon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>Compte rendu écrit</span>
+      </div>
+      <div class="actions">
+        <button class="btn">Demander mon audit</button>
+        <button class="plus-tard">Plus tard</button>
+      </div>
+      <p class="rassure">Gratuit, sans engagement. On ne rappelle pas deux fois.</p>
+    </div>
+  </div>
+  <p class="note">Le panneau reste sombre : la fenêtre garde le registre du site, et le violet de Rico
+    ressort sur le bleu nuit. Le halo mint sous ses pieds le pose dans un lieu au lieu de le laisser flotter.</p>
+
+  <!-- B -->
+  <span class="etiq">Direction B · le panneau de marque</span>
+  <div class="modale b">
+    <button class="fermer" aria-label="Fermer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="visuel">
+      <div class="grain"></div><div class="halo"></div><div class="sol"></div>
+      <img class="rico" src="https://res.cloudinary.com/dy9gp5pim/image/upload/w_420,q_auto,f_auto/brand/rico-v2/pouce-leve.png" alt="">
+    </div>
+    <div class="propos">
+      <span class="sur-titre"><span class="pt"></span>Audit offert</span>
+      <h2>On regarde ta présence en ligne ensemble ?</h2>
+      <p class="dit">Vingt minutes en visio. On passe tes réseaux en revue et tu repars avec trois choses
+        à corriger — que tu travailles avec nous ou non.</p>
+      <div class="jalons">
+        <span class="jalon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>20 minutes</span>
+        <span class="jalon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>3 axes concrets</span>
+      </div>
+      <div class="actions">
+        <button class="btn">Demander mon audit</button>
+        <button class="plus-tard">Plus tard</button>
+      </div>
+      <p class="rassure">Gratuit, sans engagement. On ne rappelle pas deux fois.</p>
+    </div>
+  </div>
+  <p class="note">Le dégradé de marque prend la moitié gauche. Plus affirmé, plus reconnaissable dans un
+    flux de captures d'écran — mais le violet de Rico se bat un peu avec le fond, il ressort moins.</p>
+
+  <!-- mobile -->
+  <span class="etiq">Sur téléphone</span>
+  <div class="duo">
+    <div class="mobile">
+      <div class="modale a">
+        <button class="fermer" aria-label="Fermer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+        <div class="visuel">
+          <div class="grain"></div><div class="halo"></div><div class="sol"></div>
+          <img class="rico" src="https://res.cloudinary.com/dy9gp5pim/image/upload/w_420,q_auto,f_auto/brand/rico-v2/accueille.png" alt="">
+        </div>
+        <div class="propos">
+          <span class="sur-titre"><span class="pt"></span>Audit offert</span>
+          <h2>On regarde ta présence en ligne ensemble ?</h2>
+          <p class="dit">Vingt minutes en visio. Tu repars avec trois choses à corriger — que tu
+            travailles avec nous ou non.</p>
+          <div class="actions">
+            <button class="btn" style="flex:1">Demander mon audit</button>
+          </div>
+          <p class="rassure">Gratuit, sans engagement.</p>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="flex:1;min-width:260px;margin-top:0">La colonne bascule en bandeau : Rico garde
+      sa place mais perd de la hauteur, et les jalons disparaissent. Sur un écran de téléphone, trois
+      étiquettes de plus font descendre le bouton sous la ligne de flottaison — c'est exactement ce qu'il
+      ne faut pas.</p>
+  </div>
+</div>
+</body>
+</html>
