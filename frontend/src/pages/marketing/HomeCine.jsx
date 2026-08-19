@@ -17,7 +17,10 @@ const CLD = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
 // Vidéos de fond par chapitre de la page (fondu enchaîné au scroll).
 // `sel` = la section qui déclenche le clip ; un fichier manquant est ignoré (repli sur le précédent).
 const BG_CLIPS = [
-  { src: '/videos/hero-bg.mp4' },                     // hero : le coq tape puis réfléchit (bulle d'idée)
+  // scale(1) : le CSS applique scale(.86) a toutes les couches, ce qui laissait
+  // du fond nu de chaque cote sur grand ecran. Le clip d'accueil, lui, doit
+  // remplir la largeur — c'est la premiere image du site.
+  { src: '/videos/hero-bg.mp4', transform: 'scale(1)' },  // hero : le coq tape puis reflechit
   { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },   // « Plutôt que… » : bras croisés, regard caméra, clin d'œil
   // recadrage : Hailuo a rendu le coq ~20 % plus petit sur ce clip -> on aligne sur les autres.
   // NB : ce transform inline REMPLACE le scale(.86) du CSS -> on combine (.86 x 1.2 = 1.032).
