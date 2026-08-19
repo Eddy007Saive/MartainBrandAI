@@ -921,7 +921,7 @@ export default function ParametresPage() {
           const hint = CONNECT_HINTS[platform.id] ? t(CONNECT_HINTS[platform.id]) : t('params.reseaux.hintDefault');
           return (
             <div key={platform.id} data-testid={`connect-card-${platform.id}`}
-              className={`group relative overflow-hidden rounded-2xl border bg-[#0f172a] p-5 flex flex-col gap-4 transition-all duration-300 ease-[cubic-bezier(.23,1,.32,1)] hover:-translate-y-0.5 hover:border-white/[0.14] hover:shadow-[0_14px_34px_rgba(0,0,0,0.4)] ${needsReconnect ? 'border-amber-500/30' : isConnected ? 'border-[#3AFFA3]/20' : 'border-white/[0.07]'}`}>
+              className={`group relative overflow-hidden rounded-2xl border bg-[#0f172a] p-5 flex flex-col gap-4 transition-all duration-300 ease-out-strong hover:-translate-y-0.5 hover:border-white/[0.14] hover:shadow-[0_14px_34px_rgba(0,0,0,0.4)] ${needsReconnect ? 'border-amber-500/30' : isConnected ? 'border-[#3AFFA3]/20' : 'border-white/[0.07]'}`}>
               {/* Barre d'accent marque */}
               <span className="absolute inset-x-0 top-0 h-[3px]" style={{ background: platform.brand }} />
 
@@ -981,14 +981,14 @@ export default function ParametresPage() {
                 {needsReconnect ? (
                   <div className="flex gap-2">
                     <button disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`reconnect-${platform.id}`}
-                      className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-500/90 text-[#0b1322] font-inter font-semibold text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] hover:bg-amber-400 disabled:opacity-60 disabled:active:scale-100">
+                      className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-500/90 text-[#0b1322] font-inter font-semibold text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-out-strong active:scale-[0.97] hover:bg-amber-400 disabled:opacity-60 disabled:active:scale-100">
                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
                       {t('params.reseaux.reconnecter')}
                     </button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <button data-testid={`disconnect-${platform.id}`} title={t('params.reseaux.deconnecter')}
-                          className="shrink-0 inline-flex items-center justify-center w-[42px] rounded-xl border border-white/[0.07] text-slate-400 transition-all duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] hover:text-white hover:border-white/20">
+                          className="shrink-0 inline-flex items-center justify-center w-[42px] rounded-xl border border-white/[0.07] text-slate-400 transition-all duration-150 ease-out-strong active:scale-[0.97] hover:text-white hover:border-white/20">
                           <Unplug className="w-4 h-4" />
                         </button>
                       </AlertDialogTrigger>
@@ -1008,7 +1008,7 @@ export default function ParametresPage() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <button data-testid={`disconnect-${platform.id}`}
-                        className="w-full inline-flex items-center justify-center gap-1.5 text-[13px] font-medium text-slate-400 rounded-xl px-4 py-2.5 border border-white/[0.07] bg-transparent transition-all duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] hover:text-white hover:border-white/20 font-inter">
+                        className="w-full inline-flex items-center justify-center gap-1.5 text-[13px] font-medium text-slate-400 rounded-xl px-4 py-2.5 border border-white/[0.07] bg-transparent transition-all duration-150 ease-out-strong active:scale-[0.97] hover:text-white hover:border-white/20 font-inter">
                         <Unplug className="w-3.5 h-3.5" />{t('params.reseaux.deconnecter')}
                       </button>
                     </AlertDialogTrigger>
@@ -1025,7 +1025,7 @@ export default function ParametresPage() {
                   </AlertDialog>
                 ) : (
                   <button disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`connect-${platform.id}`}
-                    className="w-full inline-flex items-center justify-center gap-2 bg-[#e7ecf5] text-[#0b1322] font-inter font-medium text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-[cubic-bezier(.23,1,.32,1)] active:scale-[0.97] hover:bg-white disabled:opacity-60 disabled:active:scale-100">
+                    className="w-full inline-flex items-center justify-center gap-2 bg-[#e7ecf5] text-[#0b1322] font-inter font-medium text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-out-strong active:scale-[0.97] hover:bg-white disabled:opacity-60 disabled:active:scale-100">
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
                     {t('params.reseaux.connecter')}
                   </button>
