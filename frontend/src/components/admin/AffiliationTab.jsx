@@ -4,7 +4,7 @@ import { Check, X, Eye, Banknote, RefreshCw } from 'lucide-react';
 
 import { Button } from '../ui/button';
 import affiliationService from '../../services/affiliationService';
-import billingService from '../../services/billingService';
+import { billingService } from '../../services/billingService';
 
 // Lien de paiement du Pack Fondations, généré après le rendez-vous. Le code de
 // l'apporteur y est déposé : c'est ce qui déclenche les 25 %. La devise suit le
