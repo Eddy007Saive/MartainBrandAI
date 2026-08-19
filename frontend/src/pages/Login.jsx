@@ -86,13 +86,14 @@ export default function Login() {
         
         {/* Logo & Name */}
         <div className="relative">
-          <div className="flex items-center gap-4">
+          <Link to="/" data-testid="auth-retour-site"
+            className="flex items-center gap-4 active:scale-[0.99] transition-transform duration-150 ease-out-strong">
             <img src="/logo.png" alt="Postorico" className="w-14 h-14 object-contain" />
             <div>
               <h1 className="text-3xl font-bold font-sora text-white">Postorico</h1>
               <p className="text-slate-400 font-inter text-sm">{t('auth.tagline')}</p>
             </div>
-          </div>
+          </Link>
         </div>
         
         {/* Main content */}
@@ -139,10 +140,12 @@ export default function Login() {
       {/* Right side - Login Form */}
       <div className="w-full lg:w-1/2 xl:w-[45%] flex items-center justify-center p-6 sm:p-12 relative z-10">
         {/* Mobile logo */}
-        <div className="lg:hidden absolute top-6 left-6 flex items-center gap-3">
+        <Link to="/" data-testid="auth-retour-site-mobile"
+          className="lg:hidden absolute top-6 left-6 flex items-center gap-3
+                     active:scale-[0.98] transition-transform duration-150 ease-out-strong">
           <img src="/logo.png" alt="Postorico" className="w-10 h-10 object-contain" />
           <span className="text-xl font-bold text-white font-sora">Postorico</span>
-        </div>
+        </Link>
         
         {/* Sélecteur de langue de l'interface */}
         <div className="absolute top-6 right-6">

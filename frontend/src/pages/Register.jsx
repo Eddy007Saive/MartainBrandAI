@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import EnteteAuth from '../components/EnteteAuth';
 import { lireAffiliateRef } from '../hooks/useAffiliateRef';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, Link } from 'react-router-dom';
@@ -98,7 +99,8 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#020617] relative overflow-hidden py-12 px-4">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#020617] relative overflow-hidden py-24 sm:py-12 px-4">
+      <EnteteAuth vers="login" />
       {/* Background gradient orb */}
       <div className="bg-violet-600/20 blur-[100px] w-[500px] h-[500px] rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       
