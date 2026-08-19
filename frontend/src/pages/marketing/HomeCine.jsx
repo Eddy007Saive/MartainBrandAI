@@ -21,7 +21,10 @@ const BG_CLIPS = [
   // du fond nu de chaque cote sur grand ecran. Le clip d'accueil, lui, doit
   // remplir la largeur — c'est la premiere image du site.
   { src: '/videos/hero-bg.mp4', transform: 'scale(1)' },  // hero : le coq tape puis reflechit
-  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },   // « Plutôt que… » : bras croisés, regard caméra, clin d'œil
+  // Pas de scale(1) ici, contrairement au hero : le texte de ce chapitre est
+  // CENTRE. A pleine echelle la mascotte se retrouve derriere le tableau et se
+  // bat avec lui. Le scale(.86) du CSS et son masque la remettent en retrait.
+  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },   // « Plutot que... » : bras croises, clin d'oeil
   // recadrage : Hailuo a rendu le coq ~20 % plus petit sur ce clip -> on aligne sur les autres.
   // NB : ce transform inline REMPLACE le scale(.86) du CSS -> on combine (.86 x 1.2 = 1.032).
   { src: '/videos/bg-point.mp4', sel: '.aud', transform: 'scale(1.032) translateY(2.5%)' },  // « Pour qui » : pointe le titre + clin d'œil
