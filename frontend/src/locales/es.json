@@ -2277,17 +2277,17 @@
     "emailPh": "tu@email.com"
   },
   "rdv": {
-    "titre": "¿Miramos juntos tu presencia online?",
-    "texte": "Veinte minutos, por videollamada. Repasamos tus redes y te vas con tres cosas que corregir — trabajes con nosotros o no.",
-    "cta": "Pedir mi auditoría",
+    "surTitre": "Demo gratuita",
+    "titre": "¿Te enseñamos Postorico en veinte minutos?",
+    "texte": "Una demo en directo, sobre tu propia marca: generamos una publicación, un carrusel, y ves exactamente cómo quedaría en tus redes.",
+    "cta": "Reservar una demo",
     "plusTard": "Más tarde",
     "fermer": "Cerrar",
     "rassurance": "Gratis y sin compromiso. No insistimos.",
-    "surTitre": "Auditoría gratuita",
     "jalon": {
       "duree": "20 minutos",
-      "axes": "3 puntos concretos",
-      "compteRendu": "Resumen por escrito"
+      "axes": "En directo sobre tu marca",
+      "compteRendu": "Sin compromiso"
     }
   }
 }

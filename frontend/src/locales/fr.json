@@ -2277,17 +2277,17 @@
     "emailPh": "votre@email.com"
   },
   "rdv": {
-    "titre": "On regarde ta présence en ligne ensemble ?",
-    "texte": "Vingt minutes, en visio. On passe tes réseaux en revue et tu repars avec trois choses à corriger — que tu travailles avec nous ou non.",
-    "cta": "Demander mon audit",
+    "surTitre": "Démo gratuite",
+    "titre": "On te montre Postorico en vingt minutes ?",
+    "texte": "Une démo en direct, sur ta marque à toi : on génère un post, un carrousel, et tu vois exactement ce que ça donnerait sur tes réseaux.",
+    "cta": "Réserver une démo",
     "plusTard": "Plus tard",
     "fermer": "Fermer",
     "rassurance": "Gratuit, sans engagement. On ne rappelle pas deux fois.",
-    "surTitre": "Audit offert",
     "jalon": {
       "duree": "20 minutes",
-      "axes": "3 axes concrets",
-      "compteRendu": "Compte rendu écrit"
+      "axes": "En direct sur ta marque",
+      "compteRendu": "Sans engagement"
     }
   }
 }

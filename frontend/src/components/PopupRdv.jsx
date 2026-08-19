@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { X, Clock, Check, FileText } from 'lucide-react';
+import { X, Clock, Sparkles, ShieldCheck } from 'lucide-react';
 
 import { isAuthenticated, isAdminAuthenticated } from '../lib/auth';
 import { isNativeApp } from '../lib/appDownload';
+import { propsRdv } from '../lib/rdv';
 
 /**
  * Proposition de rendez-vous après une minute passée sur le site public.
@@ -58,7 +59,6 @@ const Jalon = ({ icone: Icone, children }) => (
 export default function PopupRdv() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const [ouvert, setOuvert] = useState(false);
   const [sortie, setSortie] = useState(false);
   const boutonRef = useRef(null);
@@ -96,8 +96,6 @@ export default function PopupRdv() {
   }, [ouvert]);
 
   if (!ouvert) return null;
-
-  const aller = () => { marquerVu(); setOuvert(false); navigate('/audit-marque'); };
 
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="rdv-titre" data-testid="popup-rdv"
@@ -157,19 +155,23 @@ export default function PopupRdv() {
               le bouton sous la ligne de flottaison. */}
           <div className="hidden sm:flex flex-wrap gap-[7px] mt-4">
             <Jalon icone={Clock}>{t('rdv.jalon.duree')}</Jalon>
-            <Jalon icone={Check}>{t('rdv.jalon.axes')}</Jalon>
-            <Jalon icone={FileText}>{t('rdv.jalon.compteRendu')}</Jalon>
+            <Jalon icone={Sparkles}>{t('rdv.jalon.axes')}</Jalon>
+            <Jalon icone={ShieldCheck}>{t('rdv.jalon.compteRendu')}</Jalon>
           </div>
 
           <div className="flex items-center gap-3.5 mt-5">
-            <button ref={boutonRef} onClick={aller} data-testid="popup-rdv-ok"
-              className="flex-1 sm:flex-none rounded-[11px] px-5 py-2.5 font-inter font-semibold text-[13.5px]
+            {/* Un lien, pas un bouton : c'est une navigation. Il herite au
+                passage de l'ouverture en onglet neuf, et le clic droit ou le
+                Ctrl+clic fonctionnent comme le visiteur s'y attend. */}
+            <a ref={boutonRef} {...propsRdv()} onClick={() => { marquerVu(); setOuvert(false); }}
+              data-testid="popup-rdv-ok"
+              className="flex-1 sm:flex-none text-center rounded-[11px] px-5 py-2.5 font-inter font-semibold text-[13.5px]
                          text-white bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] active:scale-[0.97]
                          shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_5px_rgba(0,0,0,0.3),0_10px_24px_-7px_rgba(91,108,255,0.55)]
                          hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_3px_7px_rgba(0,0,0,0.32),0_14px_30px_-7px_rgba(91,108,255,0.65)]
                          transition-[transform,box-shadow,filter] duration-150 ease-out-strong hover:brightness-110">
               {t('rdv.cta')}
-            </button>
+            </a>
             <button onClick={fermer}
               className="hidden sm:block text-[12.5px] text-slate-500 hover:text-slate-200 font-inter
                          transition-colors duration-150 ease-out-strong">

@@ -2277,17 +2277,17 @@
     "emailPh": "you@email.com"
   },
   "rdv": {
-    "titre": "Shall we look at your online presence together?",
-    "texte": "Twenty minutes, on a call. We go through your channels and you leave with three things to fix — whether you work with us or not.",
-    "cta": "Request my audit",
+    "surTitre": "Free demo",
+    "titre": "Shall we show you Postorico in twenty minutes?",
+    "texte": "A live demo on your own brand: we generate a post, a carousel, and you see exactly how it would look on your channels.",
+    "cta": "Book a demo",
     "plusTard": "Later",
     "fermer": "Close",
     "rassurance": "Free, no strings. We don't call twice.",
-    "surTitre": "Free audit",
     "jalon": {
       "duree": "20 minutes",
-      "axes": "3 concrete fixes",
-      "compteRendu": "Written summary"
+      "axes": "Live on your brand",
+      "compteRendu": "No commitment"
     }
   }
 }
