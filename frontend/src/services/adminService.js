@@ -1,4 +1,3 @@
-import api from '../lib/api';
 import { getAdminToken, removeAdminToken } from '../lib/auth';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -74,9 +73,9 @@ export const adminService = {
   // Analyse du site d'un client, depuis le back-office : c'est l'equipe qui
   // pose la fiche de marque, pas le client.
   analyserSite: (url, langue) =>
-    api.post('/admin/analyser-site', { url, langue }).then((r) => r.data),
+    adminFetch('/admin/analyser-site', { method: 'POST', body: JSON.stringify({ url, langue }) }),
   appliquerMarque: (telegramId, payload) =>
-    api.post(`/admin/users/${telegramId}/appliquer-marque`, payload).then((r) => r.data),
+    adminFetch(`/admin/users/${telegramId}/appliquer-marque`, { method: 'POST', body: JSON.stringify(payload) }),
 
 
   getUser: (telegramId) => adminFetch(`/admin/users/${telegramId}`),
