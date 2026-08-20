@@ -17,10 +17,11 @@ const CLD = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
 // Vidéos de fond par chapitre de la page (fondu enchaîné au scroll).
 // `sel` = la section qui déclenche le clip ; un fichier manquant est ignoré (repli sur le précédent).
 const BG_CLIPS = [
-  // scale(1) : le CSS applique scale(.86) a toutes les couches, ce qui laissait
-  // du fond nu de chaque cote sur grand ecran. Le clip d'accueil, lui, doit
-  // remplir la largeur — c'est la premiere image du site.
-  { src: '/videos/hero-bg.mp4', transform: 'scale(1)' },  // hero : le coq tape puis reflechit
+  // La mascotte etait trop imposante. Le fichier garde desormais toute la
+  // largeur d'origine (2,36:1 au lieu d'un recadrage 16:9), et on reduit un
+  // peu : a 0,88 le masque radial du CSS dissout encore les bords, a 0,82 le
+  // cadre se voit. On la pousse a droite pour degager l'accroche.
+  { src: '/videos/hero-bg.mp4', transform: 'scale(0.88) translateX(7%)' },  // hero : il tape puis reflechit
   // La planche v2 place enfin la mascotte a droite : le rattrapage est bien plus
   // leger qu'avant, juste de quoi degager le tableau comparatif sans laisser de bord.
   { src: '/videos/bg-idle-wink.mp4', sel: '.cmp', transform: 'scale(1.12) translateX(7%)' },
