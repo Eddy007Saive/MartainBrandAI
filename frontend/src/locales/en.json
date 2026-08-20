@@ -1832,20 +1832,56 @@
       "cta": "Start for free →",
       "list": {
         "1": {
-          "q": "Is it really free to get started?",
-          "a": "Yes — the Free plan lets you try it with no credit card. You only move to a paid plan if you need more credits or more features."
+          "q": "What exactly is Postorico?",
+          "a": "It's a communications agency, inside a piece of software. Our experts lay your brand's foundations — tone, editorial line, art direction — then the tool generates, schedules and publishes your content across your 5 networks (LinkedIn, Instagram, Facebook, TikTok, YouTube) and your Google listing. You approve, and you stay in control. The result: the consistency of an agency, for a fraction of the price, in a few hours a month."
         },
         "2": {
-          "q": "Which networks can I publish to?",
-          "a": "LinkedIn, Instagram, Facebook, TikTok and YouTube — you connect your accounts in a few clicks."
+          "q": "Won't the content sound generic, like all AI?",
+          "a": "That's the first worry, and it's a fair one. What makes the difference here is what happens before: our experts study your brand, your positioning and the way you speak, then calibrate the tool on YOU. So it doesn't come out as “an AI” — it comes out as your content, in your voice. That's exactly what sets Postorico apart from an off-the-shelf post generator."
         },
         "3": {
-          "q": "How do credits work?",
-          "a": "Each generation (post, carousel, image, video script) uses credits depending on the quality you choose. You see your balance in real time."
+          "q": "Is it fully automatic? Does it publish on its own?",
+          "a": "No, and that's deliberate. The tool does the heavy lifting: it generates your ideas, your copy, your visuals, your calendar. But nothing goes live without your approval. You read it, you adjust, you approve — only then does publishing happen automatically. It's your brand: you always keep your hands on it."
         },
         "4": {
-          "q": "Is my data safe?",
-          "a": "Your social accounts are connected through official OAuth: we never store your passwords, and you can disconnect a network at any time."
+          "q": "How much of my time does it take each month?",
+          "a": "A few hours a month, once the system is in place. The tool prepares everything; you approve. You go from “I really should post” (never done) to “it's ready, I'll approve it”."
+        },
+        "5": {
+          "q": "How much does it cost?",
+          "a": "Two parts. The Foundations Pack (the upfront work by our experts): €1,499, once. Then the subscription to run your presence day to day: €279 a month. Compare that to an agency, which typically bills €2,000 to €3,000 a month, forever."
+        },
+        "6": {
+          "q": "Why a €1,499 Foundations Pack up front?",
+          "a": "Because the quality of your content depends on getting the base right. Our experts do genuine agency work: brand audit, tone of voice, editorial line, art direction, feed templates and custom carousels. That's what guarantees everything that follows looks like you, from day one. An agency would bill this at €3,000 or more — and keep billing you every month afterwards."
+        },
+        "7": {
+          "q": "Can I start without the Foundations Pack?",
+          "a": "The Foundations Pack is strongly recommended, because it's what guarantees content that truly looks like you. But the tool can be used on your own if you'd rather set your own bases. We'll talk it through on the call and see what suits you."
+        },
+        "8": {
+          "q": "I already have an apprentice running my networks. Is Postorico here to replace them?",
+          "a": "No — it's here to free them up. An apprentice spending their days writing posts is wasted potential. With Postorico, the tool becomes the content machine (copy, visuals, volume, consistency), and your apprentice focuses on what a machine will never do: shooting reels, filming the field, capturing the real thing. The right team is both."
+        },
+        "9": {
+          "q": "What happens the day the person running my networks leaves?",
+          "a": "That's one of the biggest advantages. With Postorico, the strategy and the editorial line live in the system, not in one person's head. If someone leaves, your brand's presence doesn't move: the next person picks up with the same direction, the same voice, the same quality. No break."
+        },
+        "10": {
+          "q": "Does it really handle my Google listing?",
+          "a": "Yes, and it's too often overlooked. Your Google listing is frequently the first place a customer discovers you, before your website. Postorico feeds it regularly, like your networks, so you show up — and reassure — when someone searches for your service nearby."
+        },
+        "11": {
+          "q": "Which networks does it work with?",
+          "a": "LinkedIn, Instagram, Facebook, TikTok and YouTube — plus your Google Business Profile. All run from a single place, with content adapted to each platform."
+        },
+        "12": {
+          "q": "I have several locations / several brands. Do you handle that?",
+          "a": "Yes. We have a Multi-account offer, priced on request, built for networks, franchises and groups: one coherent brand rolled out across all your locations, each with its own networks and local Google listing, managed centrally. Tell us about your network and we'll build your quote."
+        },
+        "13": {
+          "q": "How do I get started?",
+          "a": "With a call. We look at your current presence together, we show you the software on your own business, and we see whether Postorico is right for you. No pressure. Book your slot, we'll take care of the rest."
         }
       }
     },

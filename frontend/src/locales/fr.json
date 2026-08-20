@@ -1832,20 +1832,56 @@
       "cta": "Démarrer gratuitement →",
       "list": {
         "1": {
-          "q": "C’est vraiment gratuit pour démarrer ?",
-          "a": "Oui — l’offre Gratuite te laisse tester sans carte bancaire. Tu passes à une offre payante seulement si tu as besoin de plus de crédits ou de fonctionnalités."
+          "q": "Concrètement, Postorico c'est quoi ?",
+          "a": "C'est l'agence de com', dans un logiciel. Nos experts posent les fondations de ta marque (ton, ligne éditoriale, direction artistique), puis l'outil génère, planifie et publie ton contenu sur tes 5 réseaux (LinkedIn, Instagram, Facebook, TikTok, YouTube) et ta fiche Google. Toi, tu valides et tu gardes le contrôle. Résultat : la régularité d'une agence, pour une fraction du prix, en quelques heures par mois."
         },
         "2": {
-          "q": "Sur quels réseaux puis-je publier ?",
-          "a": "LinkedIn, Instagram, Facebook, TikTok et YouTube — tu connectes tes comptes en quelques clics."
+          "q": "Est-ce que le contenu ne va pas sonner « générique », comme toute l'IA ?",
+          "a": "C'est la première crainte, et elle est légitime. La différence chez nous, c'est ce qui se passe avant : nos experts étudient ta marque, ton positionnement et ta façon de parler, et calibrent l'outil sur TOI. Du coup, ça ne sort pas « une IA » — ça sort ton contenu, à ta voix. C'est exactement ce qui distingue Postorico d'un générateur de posts lambda."
         },
         "3": {
-          "q": "Comment fonctionnent les crédits ?",
-          "a": "Chaque génération (post, carrousel, image, script vidéo) consomme des crédits selon la qualité choisie. Tu vois ton solde en temps réel."
+          "q": "Est-ce que c'est 100 % automatique ? Ça publie tout seul ?",
+          "a": "Non, et c'est volontaire. L'outil fait le gros du travail : il génère tes idées, tes textes, tes visuels, ton calendrier. Mais rien ne part en ligne sans ta validation. Tu relis, tu ajustes, tu valides — ensuite seulement, la publication se fait automatiquement. C'est ta marque : tu gardes toujours la main."
         },
         "4": {
-          "q": "Mes données sont-elles en sécurité ?",
-          "a": "Tes comptes sociaux sont connectés via OAuth officiel : on ne stocke jamais tes mots de passe, et tu peux déconnecter un réseau à tout moment."
+          "q": "Combien de temps ça me prend par mois ?",
+          "a": "Quelques heures par mois, une fois le système en place. L'outil prépare tout ; toi, tu valides. Tu passes de « je devrais poster » (jamais fait) à « c'est déjà prêt, je valide »."
+        },
+        "5": {
+          "q": "Combien ça coûte ?",
+          "a": "Deux éléments. Le Pack Fondations (le travail de départ par nos experts) : 1 499 €, une seule fois. Puis l'abonnement pour piloter ta présence au quotidien : 279 € par mois. À comparer à une agence, qui facture généralement 2 000 à 3 000 € par mois, en continu."
+        },
+        "6": {
+          "q": "Pourquoi un Pack Fondations à 1 499 € au départ ?",
+          "a": "Parce que la qualité de ton contenu dépend d'un bon réglage de base. Nos experts font un vrai travail d'agence : audit de ta marque, ton de voix, ligne éditoriale, direction artistique, templates de feed et carrousels personnalisés. C'est ce qui garantit que tout ce qui sortira ensuite soit à ton image, dès le premier jour. Une agence facturerait ce travail 3 000 € ou plus — et te facturerait encore chaque mois derrière."
+        },
+        "7": {
+          "q": "Je peux commencer sans le Pack Fondations ?",
+          "a": "Le Pack Fondations est fortement recommandé, parce que c'est lui qui garantit un contenu vraiment à ton image. Mais l'outil reste utilisable en autonomie si tu préfères poser toi-même tes bases. On en parle pendant l'appel pour voir ce qui te convient."
+        },
+        "8": {
+          "q": "J'ai déjà un alternant qui s'occupe de mes réseaux. Postorico, c'est pour le remplacer ?",
+          "a": "Non — c'est pour le libérer. Un alternant qui passe ses journées à écrire des posts, c'est du potentiel gaspillé. Avec Postorico, l'outil devient la machine à contenu (rédaction, visuels, volume, régularité), et ton alternant se concentre sur ce qu'une machine ne fera jamais : tourner les reels, filmer le terrain, capter l'authentique. La bonne équipe, c'est les deux."
+        },
+        "9": {
+          "q": "Et le jour où la personne qui gère mes réseaux s'en va ?",
+          "a": "C'est justement un des grands avantages. Avec Postorico, la stratégie et la ligne éditoriale vivent dans le système, pas dans la tête d'une personne. Si quelqu'un part, la présence de ta marque ne bouge pas : la personne suivante reprend avec le même cap, la même voix, la même qualité. Zéro rupture."
+        },
+        "10": {
+          "q": "Ça gère vraiment ma fiche Google ?",
+          "a": "Oui, et c'est souvent négligé à tort. Ta fiche Google est fréquemment le premier endroit où un client te découvre, avant même ton site. Postorico l'alimente régulièrement, comme tes réseaux, pour que tu apparaisses — et rassures — quand quelqu'un cherche ton service près de chez lui."
+        },
+        "11": {
+          "q": "Sur quels réseaux ça fonctionne ?",
+          "a": "LinkedIn, Instagram, Facebook, TikTok et YouTube — plus ta fiche Google Business Profile. Le tout piloté depuis un seul endroit, avec du contenu adapté à chaque plateforme."
+        },
+        "12": {
+          "q": "J'ai plusieurs établissements / plusieurs marques. Vous gérez ça ?",
+          "a": "Oui. On a une offre Multicompte sur devis, pensée pour les réseaux, franchises et groupes : une marque cohérente déclinée sur tous tes établissements, chacun avec ses réseaux et sa fiche Google locale, piloté de façon centralisée. Parle-nous de ton réseau, on construit ton devis."
+        },
+        "13": {
+          "q": "Comment je commence ?",
+          "a": "Par un appel. On regarde ta présence actuelle ensemble, on te montre le logiciel sur ton activité, et on voit si Postorico est fait pour toi. Sans pression. Réserve ton créneau, on s'occupe du reste."
         }
       }
     },

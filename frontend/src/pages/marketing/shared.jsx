@@ -55,6 +55,15 @@ export const FAQ = [
   ['lp.faq.list.2.q', 'lp.faq.list.2.a'],
   ['lp.faq.list.3.q', 'lp.faq.list.3.a'],
   ['lp.faq.list.4.q', 'lp.faq.list.4.a'],
+  ['lp.faq.list.5.q', 'lp.faq.list.5.a'],
+  ['lp.faq.list.6.q', 'lp.faq.list.6.a'],
+  ['lp.faq.list.7.q', 'lp.faq.list.7.a'],
+  ['lp.faq.list.8.q', 'lp.faq.list.8.a'],
+  ['lp.faq.list.9.q', 'lp.faq.list.9.a'],
+  ['lp.faq.list.10.q', 'lp.faq.list.10.a'],
+  ['lp.faq.list.11.q', 'lp.faq.list.11.a'],
+  ['lp.faq.list.12.q', 'lp.faq.list.12.a'],
+  ['lp.faq.list.13.q', 'lp.faq.list.13.a'],
 ];
 
 // Éditeur : GoodTime BNB (gt-bnb.com)

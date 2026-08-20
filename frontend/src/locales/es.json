@@ -1832,20 +1832,56 @@
       "cta": "Empezar gratis →",
       "list": {
         "1": {
-          "q": "¿De verdad es gratis para empezar?",
-          "a": "Sí — el plan Gratis te deja probarlo sin tarjeta bancaria. Solo pasas a un plan de pago si necesitas más créditos o más funcionalidades."
+          "q": "¿Qué es Postorico exactamente?",
+          "a": "Es una agencia de comunicación, dentro de un software. Nuestros expertos sientan las bases de tu marca (tono, línea editorial, dirección artística) y luego la herramienta genera, programa y publica tu contenido en tus 5 redes (LinkedIn, Instagram, Facebook, TikTok, YouTube) y en tu ficha de Google. Tú validas y mantienes el control. Resultado: la constancia de una agencia, por una fracción del precio, en unas horas al mes."
         },
         "2": {
-          "q": "¿En qué redes puedo publicar?",
-          "a": "LinkedIn, Instagram, Facebook, TikTok y YouTube — conectas tus cuentas en unos pocos clics."
+          "q": "¿El contenido no va a sonar genérico, como toda la IA?",
+          "a": "Es el primer miedo, y es legítimo. La diferencia aquí está en lo que pasa antes: nuestros expertos estudian tu marca, tu posicionamiento y tu forma de hablar, y calibran la herramienta sobre TI. Así no sale «una IA» — sale tu contenido, con tu voz. Es justo lo que distingue a Postorico de un generador de publicaciones cualquiera."
         },
         "3": {
-          "q": "¿Cómo funcionan los créditos?",
-          "a": "Cada generación (publicación, carrusel, imagen, guion de vídeo) consume créditos según la calidad elegida. Ves tu saldo en tiempo real."
+          "q": "¿Es 100 % automático? ¿Publica solo?",
+          "a": "No, y es a propósito. La herramienta hace el grueso del trabajo: genera tus ideas, tus textos, tus visuales, tu calendario. Pero nada se publica sin tu validación. Lo revisas, lo ajustas, lo validas — y solo entonces la publicación se hace automáticamente. Es tu marca: siempre llevas el timón."
         },
         "4": {
-          "q": "¿Están seguros mis datos?",
-          "a": "Tus cuentas sociales se conectan mediante OAuth oficial: nunca guardamos tus contraseñas y puedes desconectar una red cuando quieras."
+          "q": "¿Cuánto tiempo me lleva al mes?",
+          "a": "Unas horas al mes, una vez montado el sistema. La herramienta lo prepara todo; tú validas. Pasas de «debería publicar» (nunca hecho) a «ya está listo, valido»."
+        },
+        "5": {
+          "q": "¿Cuánto cuesta?",
+          "a": "Dos elementos. El Pack Fundaciones (el trabajo inicial de nuestros expertos): 1 499 €, una sola vez. Después la suscripción para pilotar tu presencia a diario: 279 € al mes. Compáralo con una agencia, que suele facturar entre 2 000 y 3 000 € al mes, de forma continua."
+        },
+        "6": {
+          "q": "¿Por qué un Pack Fundaciones de 1 499 € al principio?",
+          "a": "Porque la calidad de tu contenido depende de un buen ajuste de partida. Nuestros expertos hacen un trabajo de agencia de verdad: auditoría de marca, tono de voz, línea editorial, dirección artística, plantillas de feed y carruseles personalizados. Es lo que garantiza que todo lo que salga después sea a tu imagen, desde el primer día. Una agencia facturaría este trabajo a 3 000 € o más — y te seguiría facturando cada mes."
+        },
+        "7": {
+          "q": "¿Puedo empezar sin el Pack Fundaciones?",
+          "a": "El Pack Fundaciones es muy recomendable, porque es lo que garantiza un contenido realmente a tu imagen. Pero la herramienta se puede usar de forma autónoma si prefieres sentar tú mismo las bases. Lo hablamos en la llamada y vemos qué te conviene."
+        },
+        "8": {
+          "q": "Ya tengo a alguien en prácticas que lleva mis redes. ¿Postorico viene a sustituirlo?",
+          "a": "No — viene a liberarlo. Alguien que se pasa el día escribiendo publicaciones es potencial desaprovechado. Con Postorico, la herramienta se convierte en la máquina de contenido (redacción, visuales, volumen, constancia), y esa persona se centra en lo que una máquina nunca hará: grabar los reels, filmar el terreno, captar lo auténtico. El buen equipo son los dos."
+        },
+        "9": {
+          "q": "¿Y el día que se va la persona que lleva mis redes?",
+          "a": "Es justamente una de las grandes ventajas. Con Postorico, la estrategia y la línea editorial viven en el sistema, no en la cabeza de una persona. Si alguien se va, la presencia de tu marca no se mueve: quien llegue retoma con el mismo rumbo, la misma voz, la misma calidad. Cero ruptura."
+        },
+        "10": {
+          "q": "¿Gestiona de verdad mi ficha de Google?",
+          "a": "Sí, y se descuida demasiado a menudo. Tu ficha de Google suele ser el primer sitio donde un cliente te descubre, incluso antes que tu web. Postorico la alimenta con regularidad, como tus redes, para que aparezcas — y des confianza — cuando alguien busca tu servicio cerca."
+        },
+        "11": {
+          "q": "¿En qué redes funciona?",
+          "a": "LinkedIn, Instagram, Facebook, TikTok y YouTube — más tu ficha de Google Business Profile. Todo pilotado desde un solo sitio, con contenido adaptado a cada plataforma."
+        },
+        "12": {
+          "q": "Tengo varios establecimientos / varias marcas. ¿Lo gestionáis?",
+          "a": "Sí. Tenemos una oferta Multicuenta a presupuesto, pensada para redes, franquicias y grupos: una marca coherente declinada en todos tus establecimientos, cada uno con sus redes y su ficha de Google local, gestionado de forma centralizada. Cuéntanos cómo es tu red y construimos tu presupuesto."
+        },
+        "13": {
+          "q": "¿Cómo empiezo?",
+          "a": "Con una llamada. Miramos juntos tu presencia actual, te enseñamos el software sobre tu propia actividad, y vemos si Postorico es para ti. Sin presión. Reserva tu hueco, del resto nos ocupamos nosotros."
         }
       }
     },
