@@ -25,7 +25,14 @@
     "toastSuccess": "Connexion réussie",
     "toastError": "Email ou mot de passe incorrect",
     "toastAdminOk": "Accès administrateur",
-    "toastAdminError": "Identifiants administrateur invalides"
+    "toastAdminError": "Identifiants administrateur invalides",
+    "google": "Continuer avec Google",
+    "googleBientot": "Connexion Google bientôt disponible",
+    "ou": "ou",
+    "forgotShort": "Oublié ?",
+    "noAccountPre": "Pas encore de compte ?",
+    "createAccount": "Créer mon compte",
+    "androidApp": "Application Android"
   },
   "register": {
     "title": "Inscription",
@@ -44,7 +51,13 @@
     "errPasswordMatch": "Les mots de passe ne correspondent pas",
     "toastWelcome": "Bienvenue sur Postorico 🎉",
     "toastEmailExists": "Cet email est déjà utilisé",
-    "toastError": "Erreur lors de l'inscription"
+    "toastError": "Erreur lors de l'inscription",
+    "haveAccountPre": "Déjà un compte ?",
+    "optional": "facultatif",
+    "strength": "Robustesse",
+    "strengthWeak": "faible",
+    "strengthMedium": "correcte",
+    "strengthStrong": "solide"
   },
   "pending": {
     "title": "Compte en attente",

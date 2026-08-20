@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion — proposition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fond:#020617; --carte:#0f172a; --bord:rgba(255,255,255,.09);
+  --texte:#e2e8f0; --doux:#94a3b8; --faible:#64748b; --tres-faible:#475569;
+  --primaire:#5B6CFF; --primaire2:#8A6CFF; --accent:#3AFFA3;
+  --sortie:cubic-bezier(.23,1,.32,1);
+  --sora:'Sora',ui-sans-serif,system-ui,'Segoe UI',sans-serif;
+  --inter:'Inter',ui-sans-serif,system-ui,'Segoe UI',sans-serif;
+  --lumiere:inset 0 1px 0 rgba(255,255,255,.055);
+  --ombre-2:0 2px 4px rgba(0,0,0,.4), 0 18px 40px -12px rgba(0,0,0,.66);
+  --creux:inset 0 1px 2px rgba(0,0,0,.45), inset 0 -1px 0 rgba(255,255,255,.02);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--fond);color:var(--texte);font-family:var(--inter);
+     font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.ecran{min-height:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+
+/* ======== Colonne mascotte ======== */
+/* Rico occupe la moitie gauche. C'est ce que les gens retiennent de la marque —
+   l'absence de mascotte etait le vrai manque de l'ecran precedent. */
+/* overflow visible : Rico deborde sur la colonne du formulaire, comme
+   dans la proposition B. Le decor est rentre dans la boite pour que rien
+   d'autre ne s'echappe. */
+.scene{position:relative;overflow:visible;display:flex;flex-direction:column;
+  gap:22px;padding:34px 40px 0;
+  background:radial-gradient(ellipse at 46% 104%,rgba(58,255,163,.16),transparent 52%),
+             radial-gradient(ellipse at 46% 112%,rgba(91,108,255,.34),transparent 64%),
+             linear-gradient(160deg,#111731 0%,#0a0f22 55%,#070b18 100%)}
+.scene::before{content:'';position:absolute;left:46%;top:-90px;width:420px;height:620px;
+  transform:translateX(-50%);filter:blur(26px);
+  background:conic-gradient(from 180deg at 50% 0%,transparent 42%,rgba(138,108,255,.3) 50%,transparent 58%)}
+/* Les hexagones ne se voyaient plus : ils etaient disperses sur toute la
+   scene et noyes dans le degrade. Ils forment maintenant une constellation
+   derriere le coq — c'est lui qui les fait exister, et eux qui le detachent
+   du fond. */
+/* En SVG et non en clip-path : decouper la BORDURE d'un rectangle en
+   hexagone n'en laisse que deux traits au centre — c'est pour ca qu'on ne
+   les voyait plus. Ici le trace est un vrai polygone. */
+.hexa{position:absolute;overflow:visible;opacity:.6;
+  animation:respire 6s ease-in-out infinite}
+.hexa polygon{fill:none;stroke:currentColor;stroke-width:2;vector-effect:non-scaling-stroke}
+.h1{width:230px;height:256px;right:14%;bottom:26%;color:rgba(138,108,255,.9)}
+.h2{width:132px;height:148px;right:1%;bottom:50%;
+  animation-delay:-2s;color:rgba(58,255,163,.9)}
+.h3{width:176px;height:196px;right:36%;bottom:4%;
+  animation-delay:-4s;color:rgba(58,255,163,.55)}
+@keyframes respire{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.marque{position:relative;z-index:3;display:flex;align-items:center;gap:11px}
+.pastille{width:54px;height:54px;object-fit:contain;
+  filter:drop-shadow(0 6px 16px rgba(91,108,255,.4))}
+.marque b{font-family:var(--sora);font-size:30px;font-weight:700;color:#fff;display:block;line-height:36px}
+.marque span{font-size:14px;color:var(--faible)}
+.marque span span{color:var(--doux);letter-spacing:.005em}
+/* Sans halo ni ombre de contact, un personnage detoure flotte dans le vide. */
+/* Rico prend toute la place restante et deborde le bas du cadre : une
+   silhouette qui touche le bord a l'air dessinee dedans, pas posee dessus. */
+/* Les quatre atouts : ils disent ce que fait le produit avant meme la
+   connexion. Ils tiennent dans la bande laissee libre a gauche par le coq —
+   d'ou la largeur bridee : au-dela ils lui rentreraient dedans. */
+.atouts{position:relative;z-index:3;display:grid;gap:9px;grid-template-columns:1fr;
+  max-width:248px;margin-top:4px;
+  animation:monter 620ms var(--sortie) 260ms both}
+.atout{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:13px;
+  background:rgba(15,23,42,.72);border:1px solid var(--bord);box-shadow:var(--lumiere);
+  transition:border-color 200ms ease,background 200ms ease}
+.atout:hover{border-color:rgba(138,108,255,.4);background:rgba(15,23,42,.9)}
+.atout i{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:9px;
+  background:rgba(91,108,255,.16);color:#a5b0ff}
+.atout span{font-size:12.5px;color:var(--doux);line-height:1.25}
+/* Deux colonnes seulement quand la place existe VRAIMENT : le coq garde une
+   largeur fixe (412px), il faut donc 1850px de fenetre pour que 520px de
+   cartes tiennent a sa gauche. Verifie a 1560/1600/1700/1800/1920. */
+@media(min-width:1850px){
+  .atouts{grid-template-columns:1fr 1fr;max-width:520px;gap:10px}
+  .atout span{font-size:13px}
+}
+
+.socle{position:relative;flex:1;min-height:0;z-index:2;
+  --largeur-rico:min(74%,412px);   /* un cran plus petit qu'avant */
+  --debord:112px}                  /* 40px rattrapent le padding, 72px mordent sur la couture */
+.halo{position:absolute;right:calc(var(--largeur-rico) / 2 - var(--debord) - 260px);
+  bottom:0;width:520px;height:470px;
+  border-radius:50%;filter:blur(34px);
+  background:radial-gradient(circle,rgba(58,255,163,.3),transparent 66%)}
+.sol{position:absolute;right:calc(var(--largeur-rico) / 2 - var(--debord) - 155px);
+  bottom:0;width:280px;height:26px;
+  border-radius:50%;filter:blur(11px);
+  background:radial-gradient(ellipse,rgba(0,0,0,.6),transparent 70%)}
+.rico{position:absolute;right:calc(-1 * var(--debord));bottom:0;
+  width:var(--largeur-rico);height:auto;z-index:3;
+  filter:drop-shadow(0 18px 26px rgba(0,0,0,.55));
+  /* Animation dediee : la generique se termine sur transform:none, ce qui
+     effacerait le translateX(-50%) et decalerait la mascotte d'une demi-largeur. */
+  animation:monteRico 620ms var(--sortie) both}
+@keyframes monteRico{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.mot{position:relative;z-index:3;max-width:100%}
+.mot h1{font-family:var(--sora);font-size:48px;font-weight:700;line-height:48px;letter-spacing:-1.2px;
+  margin:0;color:#fff}
+/* Le violet seul manquait de vert : la seconde ligne va du violet de marque
+   au mint de l'accent, les deux couleurs de la palette dans un meme mot. */
+.mot h1 em{font-style:normal;display:block;
+  background:linear-gradient(96deg,var(--primaire2) 0%,#7fd7d0 34%,var(--accent) 72%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.mot p{margin:18px 0 0;font-size:16px;color:var(--doux);line-height:1.6;max-width:42ch}
+
+/* ======== Colonne formulaire ======== */
+.cote{display:grid;place-items:center;padding:34px 24px;position:relative}
+.langues{position:absolute;top:26px;right:30px;display:flex;gap:3px;padding:3px;border-radius:9px;
+  background:rgba(255,255,255,.04);border:1px solid var(--bord)}
+.langues button{border:0;background:none;font:inherit;font-size:11.5px;font-weight:600;color:var(--faible);
+  padding:4px 9px;border-radius:6px;cursor:pointer;transition:color 150ms var(--sortie),background-color 150ms var(--sortie)}
+.langues button[aria-pressed="true"]{background:rgba(255,255,255,.08);color:#fff}
+.langues button:hover{color:var(--texte)}
+
+.carte{width:min(420px,100%);border-radius:20px;border:1px solid var(--bord);background:var(--carte);
+  padding:30px;box-shadow:var(--lumiere),var(--ombre-2)}
+.carte h2{font-family:var(--sora);font-size:24px;font-weight:700;margin:0;color:#fff;letter-spacing:-.4px}
+.carte .sous{font-size:14px;color:var(--faible);margin:7px 0 24px}
+
+/* Google en tete : c'est le chemin le plus court, il passe devant. Le
+   bouton reste sobre (surface sombre, filet) pour ne pas concurrencer
+   « Se connecter », qui garde le degrade de la marque. */
+.google{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:11px 12px;border-radius:12px;cursor:pointer;font:inherit;font-size:14px;
+  font-weight:500;font-family:var(--inter);color:var(--texte);
+  background:rgba(255,255,255,.045);border:1px solid var(--bord);box-shadow:var(--lumiere);
+  transition:background 180ms var(--sortie),border-color 180ms var(--sortie),transform 160ms var(--sortie);
+  animation:monte 320ms var(--sortie) 30ms both}
+.google:hover{background:rgba(255,255,255,.075);border-color:rgba(255,255,255,.16)}
+.google:active{transform:scale(.97)}
+
+/* Separateur : un filet coupe par le mot, pas un mot pose sur un filet. */
+.ou{display:flex;align-items:center;gap:12px;margin:16px 0 18px;
+  font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tres-faible);
+  animation:monte 320ms var(--sortie) 45ms both}
+.ou::before,.ou::after{content:'';flex:1;height:1px;background:var(--bord)}
+
+.champ{margin-bottom:15px;animation:monte 320ms var(--sortie) both}
+.champ:nth-of-type(1){animation-delay:75ms}
+.champ:nth-of-type(2){animation-delay:120ms}
+.tete-champ{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.tete-champ label{font-size:14px;font-weight:500;color:var(--texte)}
+.tete-champ a{font-size:12.5px;color:var(--faible);text-decoration:none;transition:color 150ms var(--sortie)}
+.tete-champ a:hover{color:var(--accent)}
+.boite{position:relative}
+/* Un champ n'est pas une surface posee, c'est un creux : l'ombre part vers
+   l'interieur et la lumiere passe en bas. */
+input{width:100%;background:rgba(2,6,23,.6);border:1px solid #1e293b;border-radius:11px;
+  padding:12px 14px;font:inherit;font-size:14px;color:var(--texte);outline:none;
+  box-shadow:var(--creux);
+  transition:border-color 150ms var(--sortie),box-shadow 150ms var(--sortie),background-color 150ms var(--sortie)}
+input::placeholder{color:#3f4c63}
+input:hover{border-color:#2c3a52}
+input:focus{border-color:var(--primaire);background:rgba(2,6,23,.85);
+  box-shadow:var(--creux),0 0 0 3px rgba(91,108,255,.16)}
+.oeil{position:absolute;right:9px;top:50%;transform:translateY(-50%);width:30px;height:30px;
+  border:0;background:none;color:var(--tres-faible);border-radius:8px;cursor:pointer;
+  display:grid;place-items:center;
+  transition:color 150ms var(--sortie),background-color 150ms var(--sortie)}
+.oeil:hover{color:var(--texte);background:rgba(255,255,255,.05)}
+
+.principal{width:100%;margin-top:8px;border:0;border-radius:12px;padding:12px;cursor:pointer;
+  font:inherit;font-size:14px;font-weight:500;color:#fff;font-family:var(--inter);
+  background:linear-gradient(135deg,var(--primaire),var(--primaire2));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 2px 5px rgba(0,0,0,.3),
+             0 12px 26px -8px rgba(91,108,255,.55);
+  transition:transform 150ms var(--sortie),filter 150ms var(--sortie),box-shadow 150ms var(--sortie)}
+.principal:hover{filter:brightness(1.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 3px 7px rgba(0,0,0,.32),0 16px 32px -8px rgba(91,108,255,.66)}
+/* Presse = pose : l'ombre se resserre pendant que le bouton retrecit. */
+.principal:active{transform:scale(.97);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 2px rgba(0,0,0,.4),0 2px 7px -2px rgba(91,108,255,.4)}
+
+.dessous{text-align:center;font-size:13.5px;color:var(--faible);margin:18px 0 0}
+.dessous a{color:var(--accent);text-decoration:none;font-weight:600}
+.dessous a:hover{color:#7dffc4}
+/* L'application n'est pas l'action principale : un lien discret, pas un second
+   bouton qui crie plus fort que la connexion. */
+.appli{display:flex;align-items:center;justify-content:center;gap:6px;margin:18px 0 0;
+  padding-top:16px;border-top:1px solid rgba(255,255,255,.05);
+  font-size:12px;color:var(--tres-faible);text-decoration:none;
+  transition:color 150ms var(--sortie)}
+.appli:hover{color:var(--doux)}
+
+@keyframes monte{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ======== Telephone ======== */
+@media(max-width:900px){
+  .ecran{grid-template-columns:1fr}
+  /* Sur telephone on ne garde QUE le formulaire : la scene mangeait la
+     moitie de l'ecran pour une image qu'on ne peut de toute facon pas
+     lire a cette taille, et repoussait la saisie sous la ligne de
+     flottaison. La marque revient dans la carte. */
+  .scene{display:none}
+  /* En empile le selecteur de langue tombait sur le bord de la carte. */
+  .cote{padding:52px 18px 40px}
+  .langues{top:14px;bottom:auto}
+  .carte::before{content:'';display:block;width:46px;height:46px;margin:0 auto 14px;
+    background:url('/logo.png') center/contain no-repeat;
+    filter:drop-shadow(0 6px 16px rgba(91,108,255,.4))}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="ecran">
+
+  <!-- Mascotte -->
+  <section class="scene">
+    <svg class="hexa h1" viewBox="0 0 100 112" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="25,2 75,2 99,56 75,110 25,110 1,56"/></svg>
+    <svg class="hexa h2" viewBox="0 0 100 112" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="25,2 75,2 99,56 75,110 25,110 1,56"/></svg>
+    <svg class="hexa h3" viewBox="0 0 100 112" preserveAspectRatio="none" aria-hidden="true">
+      <polygon points="25,2 75,2 99,56 75,110 25,110 1,56"/></svg>
+    <div class="marque">
+      <img class="pastille" src="/logo.png" alt="">
+      <span><b>Postorico</b><span>Votre présence, amplifiée</span></span>
+    </div>
+
+    <div class="mot">
+      <h1>Gérez votre présence<em>sur les réseaux sociaux</em></h1>
+      <p>Automatisez la création de contenu, planifiez vos publications et analysez
+         vos performances. Tout en un seul endroit.</p>
+    </div>
+
+    <div class="atouts">
+      <div class="atout">
+        <i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8L4 10.7l6.1 1.9L12 18.4l1.9-5.8L20 10.7l-6.1-1.9z"/></svg></i>
+        <span>Génération de contenu IA</span>
+      </div>
+      <div class="atout">
+        <i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg></i>
+        <span>Planification intelligente</span>
+      </div>
+      <div class="atout">
+        <i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg></i>
+        <span>Analytics & Performance</span>
+      </div>
+      <div class="atout">
+        <i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12.5a7.5 7.5 0 0 1-8.1 7.5L4 21l1.1-3.9A7.5 7.5 0 1 1 20.5 12.5z"/></svg></i>
+        <span>Gestion des commentaires</span>
+      </div>
+    </div>
+
+    <div class="socle">
+      <div class="halo"></div><div class="sol"></div>
+      <img class="rico" alt=""
+        src="https://res.cloudinary.com/dy9gp5pim/image/upload/w_760,q_auto,f_auto/brand/rico-v3/presente-cote.png">
+    </div>
+  </section>
+
+  <!-- Formulaire -->
+  <section class="cote">
+    <div class="langues">
+      <button aria-pressed="true">FR</button><button aria-pressed="false">EN</button><button aria-pressed="false">ES</button>
+    </div>
+
+    <div class="carte">
+      <h2>Connexion</h2>
+      <p class="sous">Accédez à votre espace personnel</p>
+
+      <button class="google" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M23.52 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.66z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.96-1.08 7.95-2.91l-3.88-3.01c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.28v3.09A11.99 11.99 0 0 0 12 24z"/>
+          <path fill="#FBBC05" d="M5.27 14.28a7.2 7.2 0 0 1 0-4.56V6.63H1.28a12 12 0 0 0 0 10.74l3.99-3.09z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.28 6.63l3.99 3.09C6.22 6.86 8.87 4.75 12 4.75z"/>
+        </svg>
+        Continuer avec Google
+      </button>
+
+      <div class="ou">ou</div>
+
+      <div class="champ">
+        <div class="tete-champ"><label for="e">Email</label></div>
+        <div class="boite"><input id="e" type="email" placeholder="toi@tonentreprise.fr"></div>
+      </div>
+
+      <div class="champ">
+        <div class="tete-champ">
+          <label for="p">Mot de passe</label>
+          <a href="#">Oublié ?</a>
+        </div>
+        <div class="boite">
+          <input id="p" type="password" placeholder="••••••••">
+          <button class="oeil" id="voir" aria-label="Afficher le mot de passe">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="principal">Se connecter</button>
+
+      <p class="dessous">Pas encore de compte ? <a href="#">Créer mon compte</a></p>
+
+      <a class="appli" href="#">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+        Application Android
+      </a>
+    </div>
+  </section>
+</div>
+
+<script>
+const p = document.getElementById('p'), o = document.getElementById('voir');
+o.addEventListener('click', () => {
+  p.type = p.type === 'password' ? 'text' : 'password';
+  o.setAttribute('aria-label', p.type === 'password' ? 'Afficher le mot de passe' : 'Masquer le mot de passe');
+  p.focus();
+});
+</script>
+</body>
+</html>

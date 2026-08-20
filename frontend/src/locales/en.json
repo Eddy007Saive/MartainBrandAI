@@ -25,7 +25,14 @@
     "toastSuccess": "Signed in successfully",
     "toastError": "Incorrect email or password",
     "toastAdminOk": "Administrator access granted",
-    "toastAdminError": "Invalid administrator credentials"
+    "toastAdminError": "Invalid administrator credentials",
+    "google": "Continue with Google",
+    "googleBientot": "Google sign-in coming soon",
+    "ou": "or",
+    "forgotShort": "Forgot?",
+    "noAccountPre": "No account yet?",
+    "createAccount": "Create my account",
+    "androidApp": "Android app"
   },
   "register": {
     "title": "Sign up",
@@ -44,7 +51,13 @@
     "errPasswordMatch": "Passwords do not match",
     "toastWelcome": "Welcome to Postorico 🎉",
     "toastEmailExists": "This email is already in use",
-    "toastError": "Registration failed"
+    "toastError": "Registration failed",
+    "haveAccountPre": "Already have an account?",
+    "optional": "optional",
+    "strength": "Strength",
+    "strengthWeak": "weak",
+    "strengthMedium": "fair",
+    "strengthStrong": "strong"
   },
   "pending": {
     "title": "Account pending",

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Eye, EyeOff, Loader2, Sparkles, BarChart3, MessageSquare, Calendar, Download } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Download } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -10,6 +10,9 @@ import { authService } from '../services/authService';
 import { setToken, isAuthenticated, isAdminAuthenticated } from '../lib/auth';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 import LangSwitcher from '../components/LangSwitcher';
+import AfficheAuth from '../components/AfficheAuth';
+import BoutonGoogle from '../components/BoutonGoogle';
+import { CARTE_AUTH, CHAMP_AUTH, LOGO_CARTE } from '../components/auth-styles';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,6 +23,7 @@ export default function Login() {
     if (isAdminAuthenticated()) navigate('/admin', { replace: true });
     else if (isAuthenticated()) navigate('/dashboard', { replace: true });
   }, [navigate]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +32,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const data = await authService.login(email, password);
       setToken(data.token);
@@ -52,190 +56,88 @@ export default function Login() {
     }
   };
 
-  const features = [
-    { icon: Sparkles, text: t('auth.feat1') },
-    { icon: Calendar, text: t('auth.feat2') },
-    { icon: BarChart3, text: t('auth.feat3') },
-    { icon: MessageSquare, text: t('auth.feat4') },
-  ];
-
   return (
-    <div className="min-h-screen w-full flex bg-[#020617] relative overflow-hidden">
-      {/* Noise overlay */}
-      <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-      
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] relative z-10 flex-col justify-between p-12 bg-gradient-to-br from-slate-900/50 to-slate-950/80">
-        {/* Background gradient orbs */}
-        <div className="absolute top-20 left-20 w-72 h-72 bg-[#5B6CFF]/20 rounded-full blur-[100px]" />
-        <div className="absolute bottom-40 right-20 w-96 h-96 bg-[#8A6CFF]/15 rounded-full blur-[120px]" />
-        
-        {/* Logo & Name */}
-        <div className="relative">
-          <Link to="/" data-testid="auth-retour-site"
-            className="flex items-center gap-4 active:scale-[0.99] transition-transform duration-150 ease-out-strong">
-            <img src="/logo.png" alt="Postorico" className="w-14 h-14 object-contain" />
-            <div>
-              <h1 className="text-3xl font-bold font-sora text-white">Postorico</h1>
-              <p className="text-slate-400 font-inter text-sm">{t('auth.tagline')}</p>
-            </div>
-          </Link>
-        </div>
-        
-        {/* Main content */}
-        <div className="relative space-y-8">
-          <div>
-            <h2 className="text-4xl xl:text-5xl font-bold font-sora text-white leading-tight">
-              {t('auth.heroTitle1')}<br />
-              <span className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] bg-clip-text text-transparent">
-                {t('auth.heroTitle2')}
-              </span>
-            </h2>
-            <p className="mt-6 text-lg text-slate-400 font-inter max-w-md leading-relaxed">
-              {t('auth.heroSub')}
-            </p>
-          </div>
-          
-          {/* Features */}
-          <div className="grid grid-cols-2 gap-4">
-            {features.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <div 
-                  key={index}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/5 backdrop-blur-sm"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#5B6CFF]/20 to-[#8A6CFF]/20 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-[#8A6CFF]" />
-                  </div>
-                  <span className="text-sm text-slate-300 font-inter">{feature.text}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        
-        {/* Footer */}
-        <div className="relative">
-          <p className="text-slate-500 text-sm font-inter">
-            {t('auth.rights')}
-          </p>
-        </div>
-      </div>
-      
-      {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/2 xl:w-[45%] flex items-center justify-center p-6 sm:p-12 relative z-10">
-        {/* Mobile logo */}
-        <Link to="/" data-testid="auth-retour-site-mobile"
-          className="lg:hidden absolute top-6 left-6 flex items-center gap-3
-                     active:scale-[0.98] transition-transform duration-150 ease-out-strong">
-          <img src="/logo.png" alt="Postorico" className="w-10 h-10 object-contain" />
-          <span className="text-xl font-bold text-white font-sora">Postorico</span>
-        </Link>
-        
-        {/* Sélecteur de langue de l'interface */}
-        <div className="absolute top-6 right-6">
+    <div className="min-h-screen w-full grid lg:grid-cols-2 bg-[#020617]">
+      <AfficheAuth />
+
+      <section className="relative z-[1] grid place-items-center px-5 py-14 sm:px-6 lg:p-8">
+        <div className="absolute top-4 right-5 lg:top-6 lg:right-8">
           <LangSwitcher />
         </div>
 
-        <div className="w-full max-w-md">
-          <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold font-sora text-white">
-                {t('auth.login')}
-              </h2>
-              <p className="text-slate-400 mt-2 font-inter text-sm">
-                {t('auth.loginSub')}
-              </p>
+        <div className={CARTE_AUTH}>
+          {/* Sur telephone l'affiche disparait : sans ce logo la page n'aurait
+              plus aucune identite de marque. */}
+          <Link to="/" data-testid="auth-retour-site-mobile" className={LOGO_CARTE}>
+            <img src="/logo.png" alt="Postorico"
+              className="w-[46px] h-[46px] object-contain drop-shadow-[0_6px_16px_rgba(91,108,255,.4)]" />
+          </Link>
+
+          <h2 className="font-sora text-2xl font-bold tracking-[-0.4px] text-white">{t('auth.login')}</h2>
+          <p className="mt-[7px] mb-6 text-sm text-slate-500 font-inter">{t('auth.loginSub')}</p>
+
+          <BoutonGoogle testid="login-google" />
+
+          <form onSubmit={handleLogin} className="space-y-[15px]">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-slate-200 font-inter">{t('auth.email')}</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('app.emailPh')} required data-testid="login-email" className={CHAMP_AUTH} />
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-300 font-inter">{t('auth.email')}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('app.emailPh')}
-                  required
-                  data-testid="login-email"
-                  className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500"
-                />
+            <div className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <Label htmlFor="password" className="text-slate-200 font-inter">{t('auth.password')}</Label>
+                <Link to="/forgot-password" data-testid="forgot-password-link"
+                  className="text-[12.5px] text-slate-500 hover:text-[#3AFFA3] transition-colors font-inter">
+                  {t('auth.forgotShort')}
+                </Link>
               </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-slate-300 font-inter">{t('auth.password')}</Label>
-                  <Link
-                    to="/forgot-password"
-                    data-testid="forgot-password-link"
-                    className="text-xs text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter"
-                  >
-                    {t('auth.forgot')}
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    data-testid="login-password"
-                    className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
-                    data-testid="toggle-login-password"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
+              <div className="relative">
+                <Input id="password" type={showPassword ? 'text' : 'password'} value={password}
+                  onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required
+                  data-testid="login-password" className={`${CHAMP_AUTH} pr-10`} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  data-testid="toggle-login-password" aria-label={t('auth.password')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500
+                             hover:text-slate-200 transition-colors">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
-
-              <Button
-                type="submit"
-                disabled={loading}
-                data-testid="login-submit"
-                className="w-full bg-[#e7ecf5] text-[#0b1322] hover:bg-white transition-all duration-300 font-inter"
-              >
-                {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                {t('auth.signIn')}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <Link
-                to="/register"
-                data-testid="register-link"
-                className="text-sm text-slate-400 hover:text-[#5B6CFF] transition-colors font-inter"
-              >
-                {t('auth.noAccount')}
-              </Link>
             </div>
 
-            {/* Télécharger l'app Android (web uniquement, masqué si déjà téléchargé) */}
-            {!downloadHidden() && (
-              <a
-                href={APK_URL}
-                onClick={markDownloaded}
-                data-testid="download-android"
-                className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#3AFFA3]/30 bg-[#3AFFA3]/[0.06] text-[#3AFFA3] text-sm font-medium font-inter hover:bg-[#3AFFA3]/[0.12] transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                {t('auth.downloadApp')}
+            <Button type="submit" disabled={loading} data-testid="login-submit"
+              className="w-full h-11 mt-2 rounded-xl font-inter text-sm font-medium text-white
+                         bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF]
+                         shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_12px_28px_-8px_rgba(91,108,255,.6)]
+                         transition-transform duration-150 ease-out-strong
+                         hover:brightness-110 active:scale-[0.97]">
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {t('auth.signIn')}
+            </Button>
+          </form>
+
+          <p className="mt-[18px] text-center text-[13.5px] text-slate-500 font-inter">
+            {t('auth.noAccountPre')}{' '}
+            <Link to="/register" data-testid="register-link"
+              className="font-semibold text-[#3AFFA3] hover:text-[#7dffc4] transition-colors">
+              {t('auth.createAccount')}
+            </Link>
+          </p>
+
+          {/* Telechargement de l'APK : web uniquement, masque une fois fait. */}
+          {!downloadHidden() && (
+            <div className="mt-6 pt-[18px] border-t border-white/[0.07] text-center">
+              <a href={APK_URL} onClick={markDownloaded} data-testid="download-android"
+                className="inline-flex items-center gap-[7px] text-[12.5px] text-slate-500
+                           hover:text-slate-200 transition-colors font-inter">
+                <Download className="w-[13px] h-[13px]" />
+                {t('auth.androidApp')}
               </a>
-            )}
-
-          </div>
+            </div>
+          )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

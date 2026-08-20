@@ -86,6 +86,16 @@ module.exports = {
   					transform: 'translateY(0)'
   				}
   			},
+  			// Les hexagones derriere la mascotte : une derive lente, decalee
+  			// d'un hexagone a l'autre, sinon les trois battent a l'unisson.
+  			flotter: {
+  				'0%, 100%': {
+  					transform: 'translateY(0)'
+  				},
+  				'50%': {
+  					transform: 'translateY(-9px)'
+  				}
+  			},
   			'accordion-down': {
   				from: {
   					height: '0'
@@ -107,6 +117,7 @@ module.exports = {
   			fondu: 'fondu 200ms ease-out both',
   			respirer: 'respirer 2.4s ease-in-out infinite',
   			monter: 'monter 260ms cubic-bezier(0.23, 1, 0.32, 1) both',
+  			flotter: 'flotter 6s ease-in-out infinite',
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		}

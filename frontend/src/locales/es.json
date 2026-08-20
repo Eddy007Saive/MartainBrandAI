@@ -25,7 +25,14 @@
     "toastSuccess": "Sesión iniciada",
     "toastError": "Email o contraseña incorrectos",
     "toastAdminOk": "Acceso de administrador concedido",
-    "toastAdminError": "Credenciales de administrador no válidas"
+    "toastAdminError": "Credenciales de administrador no válidas",
+    "google": "Continuar con Google",
+    "googleBientot": "Acceso con Google próximamente",
+    "ou": "o",
+    "forgotShort": "¿Olvidada?",
+    "noAccountPre": "¿Aún no tienes cuenta?",
+    "createAccount": "Crear mi cuenta",
+    "androidApp": "Aplicación Android"
   },
   "register": {
     "title": "Registro",
@@ -44,7 +51,13 @@
     "errPasswordMatch": "Las contraseñas no coinciden",
     "toastWelcome": "Bienvenido a Postorico 🎉",
     "toastEmailExists": "Este email ya está en uso",
-    "toastError": "Error al registrarse"
+    "toastError": "Error al registrarse",
+    "haveAccountPre": "¿Ya tienes cuenta?",
+    "optional": "opcional",
+    "strength": "Seguridad",
+    "strengthWeak": "débil",
+    "strengthMedium": "correcta",
+    "strengthStrong": "sólida"
   },
   "pending": {
     "title": "Cuenta pendiente",

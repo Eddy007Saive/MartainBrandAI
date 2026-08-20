@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connexion — proposition B</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   PROPOSITION B — « L'affiche »
+   ---------------------------------------------------------------------
+   Parti pris opposé a la proposition A, pour qu'il y ait un vrai choix
+   et pas deux fois le meme ecran :
+
+   A : nuit indigo, lueurs, carte flottante, degrade sur le titre.
+   B : aplat vert de marque (#003D2E, la couleur principale par defaut
+       des profils Postorico), grille editoriale, AUCUNE carte — le
+       formulaire est pose a meme la page, champs soulignes.
+
+   Trois decisions et leur raison :
+   1. Le vert. Teste au prealable : sur mint Rico se noie, sur #003D2E
+      il se detache franchement. C'est aussi la seule couleur de la
+      palette que la page A n'utilise pas — donc la vraie variante.
+   2. Rico deborde sur la couture. Il presente le formulaire de la main
+      droite ; le chevauchement cree la profondeur sans une seule ombre
+      portee ni halo.
+   3. Le mint ne sert QUE de signal d'action : soulignement du titre,
+      et le trait qui se remplit sous le champ actif. Une couleur, un role.
+
+   Textes, tailles et polices : identiques a la version A.
+   ===================================================================== */
+:root{
+  --vert:#0A3A6B; --vert-clair:#1b4c80;
+  --fond:#020617; --bord:rgba(255,255,255,.10);
+  --texte:#e2e8f0; --doux:#94a3b8; --faible:#64748b;
+  --primaire:#5B6CFF; --primaire2:#8A6CFF; --accent:#3AFFA3;
+  --sortie:cubic-bezier(.23,1,.32,1);
+  --sora:'Sora',ui-sans-serif,system-ui,'Segoe UI',sans-serif;
+  --inter:'Inter',ui-sans-serif,system-ui,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--fond);color:var(--texte);font-family:var(--inter);
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+.page{min-height:100vh;display:grid;grid-template-columns:53% 47%}
+
+/* ---------- Colonne gauche : l'affiche ---------- */
+.affiche{position:relative;z-index:2;background:var(--vert);
+  padding:44px 56px 0;display:flex;flex-direction:column;
+  /* Le degrade est ici un modele de lumiere, pas une decoration : il
+     eclaire le coin haut gauche d'ou « vient » la lecture. */
+  background-image:radial-gradient(120% 90% at 8% 0%,var(--vert-clair),transparent 58%)}
+
+.marque{display:flex;align-items:center;gap:14px;
+  animation:parait 560ms var(--sortie) both}
+.marque img{width:54px;height:54px;object-fit:contain}
+.marque .nom{font-family:var(--sora);font-weight:700;font-size:30px;line-height:1;color:#fff}
+.marque .quoi{font-size:12.5px;color:rgba(255,255,255,.6);margin-top:5px;letter-spacing:.01em}
+
+/* La regle horizontale tient la grille : c'est elle qui donne le ton
+   « editorial » plutot que « landing page ». */
+.regle{height:1px;background:rgba(255,255,255,.16);margin:34px 0 40px;
+  transform-origin:left;animation:trace 700ms var(--sortie) 120ms both}
+
+.mot h1{font-family:var(--sora);font-weight:700;font-size:48px;line-height:48px;
+  letter-spacing:-.021em;color:#fff;text-wrap:balance;
+  animation:parait 620ms var(--sortie) 180ms both}
+/* Le mint souligne au lieu de colorer le texte : plus franc qu'un
+   degrade, et lisible meme en tout petit. */
+.mot h1 em{font-style:normal;display:inline;box-shadow:inset 0 -7px 0 rgba(58,255,163,.55)}
+.mot p{font-size:16px;line-height:1.62;color:rgba(255,255,255,.72);
+  max-width:29ch;margin-top:20px;text-wrap:pretty;
+  animation:parait 620ms var(--sortie) 260ms both}
+
+/* Rico : pose sur le bas de page, il deborde sur la couture et presente
+   le formulaire. Pas d'ombre portee — l'aplat suffit. */
+.rico{position:absolute;right:-76px;bottom:0;width:min(58%,486px);height:auto;
+  z-index:3;pointer-events:none;
+  animation:monteRico 720ms var(--sortie) 300ms both}
+@keyframes monteRico{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* ---------- Colonne droite : l'acces ---------- */
+.acces{position:relative;z-index:1;display:grid;place-items:center;padding:48px 56px}
+.forme{width:100%;max-width:372px;animation:parait 620ms var(--sortie) 200ms both}
+
+.langues{position:absolute;top:32px;right:40px;display:flex;gap:2px}
+.langues button{background:none;border:0;color:var(--faible);font-family:var(--inter);
+  font-size:12px;font-weight:600;letter-spacing:.04em;padding:6px 9px;border-radius:7px;
+  cursor:pointer;transition:color 160ms ease,background 160ms ease}
+.langues button:hover{color:var(--texte)}
+.langues button[aria-current="true"]{color:#fff;background:rgba(255,255,255,.07)}
+
+.forme h2{font-family:var(--sora);font-weight:700;font-size:24px;line-height:1.2;
+  letter-spacing:-.012em;color:#fff}
+.forme .sous{font-size:14px;color:var(--doux);margin-top:7px}
+
+.champ{margin-top:26px}
+.tete{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.tete label{font-size:14px;font-weight:500;color:var(--texte)}
+.tete a{font-size:12.5px;color:var(--faible);text-decoration:none;transition:color 160ms ease}
+.tete a:hover{color:var(--accent)}
+
+/* Champ souligne plutot qu'encadre : moins de matiere, plus de calme.
+   Le trait mint se remplit de gauche a droite au focus — c'est le seul
+   detail pousse a 120 % de cette page. */
+.ligne{position:relative;display:flex;align-items:center;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--bord)}
+.ligne::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:var(--accent);transform:scaleX(0);transform-origin:left;
+  transition:transform 260ms var(--sortie)}
+.ligne:focus-within::after{transform:scaleX(1)}
+.ligne input{flex:1;background:none;border:0;outline:0;color:var(--texte);
+  font-family:var(--inter);font-size:15px;line-height:1.4}
+.ligne input::placeholder{color:#3f4a5f}
+.oeil{background:none;border:0;color:var(--faible);cursor:pointer;display:grid;
+  place-items:center;padding:2px;border-radius:6px;transition:color 160ms ease}
+.oeil:hover{color:var(--texte)}
+
+.principal{width:100%;margin-top:32px;height:48px;border:0;border-radius:12px;
+  background:linear-gradient(120deg,var(--primaire),var(--primaire2));
+  color:#fff;font-family:var(--inter);font-size:14px;font-weight:600;letter-spacing:.01em;
+  cursor:pointer;box-shadow:0 10px 24px -12px rgba(91,108,255,.85);
+  transition:transform 160ms var(--sortie),box-shadow 200ms ease}
+.principal:hover{box-shadow:0 14px 30px -12px rgba(91,108,255,1)}
+.principal:active{transform:scale(.98)}
+
+.dessous{font-size:13px;color:var(--doux);text-align:center;margin-top:18px}
+.dessous a{color:#fff;font-weight:600;text-decoration:none}
+.dessous a:hover{color:var(--accent)}
+
+.pied{margin-top:28px;padding-top:18px;border-top:1px solid rgba(255,255,255,.07);
+  text-align:center}
+.pied a{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--faible);
+  text-decoration:none;transition:color 160ms ease}
+.pied a:hover{color:var(--texte)}
+
+/* --- variante claire (essai « papier ») --- */
+.page.clair .marque .nom{color:#12100E}
+.page.clair .marque .quoi{color:rgba(18,16,14,.6)}
+.page.clair .regle{background:rgba(18,16,14,.18)}
+.page.clair .mot h1{color:#12100E}
+.page.clair .mot p{color:rgba(18,16,14,.7)}
+.page.clair .mot h1 em{box-shadow:inset 0 -7px 0 #00B87A}
+
+/* --- barre d'essai : sert a choisir, elle saute a l'integration --- */
+.essai{position:fixed;left:18px;bottom:18px;z-index:9;display:flex;gap:7px;align-items:center;
+  padding:8px 11px;border-radius:999px;background:rgba(2,6,23,.82);border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(8px)}
+.essai span{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#64748b;margin-right:3px}
+.essai button{width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.28);
+  cursor:pointer;padding:0;transition:transform 160ms cubic-bezier(.23,1,.32,1)}
+.essai button:hover{transform:scale(1.14)}
+.essai button[aria-current="true"]{box-shadow:0 0 0 2px #020617,0 0 0 4px #3AFFA3}
+
+@keyframes parait{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes trace{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* ---------- Ecrans etroits : l'affiche devient un bandeau ---------- */
+@media (max-width:980px){
+  .page{grid-template-columns:1fr}
+  /* Empile : plus de colonne de droite pour absorber le debord de Rico,
+     on recadre dans le bandeau sinon la page scrolle lateralement. */
+  .affiche{padding:32px 28px 0;min-height:340px;overflow:hidden}
+  .regle{margin:24px 0 28px}
+  /* Rico passe a cote du texte et non plus dessous : on lui reserve sa
+     colonne, sinon il mange la fin du paragraphe. */
+  .mot{padding-right:236px}
+  .mot h1{font-size:36px;line-height:38px}
+  .mot p{max-width:none;font-size:15px}
+  .rico{width:216px;right:-14px}
+  /* La grille centree ferait flotter le selecteur de langue au milieu. */
+  .acces{display:block;padding:34px 28px 56px}
+  .forme{margin:0 auto}
+  .langues{position:static;justify-content:flex-end;margin:0 auto 22px;max-width:372px}
+}
+@media (max-width:640px){
+  .affiche{min-height:0;padding-bottom:0}
+  .mot{padding-right:134px}
+  .mot h1{font-size:28px;line-height:31px}
+  /* Sur trois lignes le surlignage devient un barbouillage : a cette
+     taille le mint passe dans le texte lui-meme. */
+  .mot h1 em{box-shadow:none;color:var(--accent)}
+  .mot p{font-size:14px;margin-top:14px}
+  .rico{width:138px;right:-10px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============ L'affiche ============ -->
+  <section class="affiche">
+    <div class="marque">
+      <img src="/logo.png" alt="">
+      <div>
+        <div class="nom">Postorico</div>
+        <div class="quoi">Votre présence, amplifiée</div>
+      </div>
+    </div>
+
+    <div class="regle"></div>
+
+    <div class="mot">
+      <h1>Gérez votre présence<br><em>sur les réseaux sociaux</em></h1>
+      <p>Automatisez la création de contenu, planifiez vos publications et analysez vos performances. Tout en un seul endroit.</p>
+    </div>
+
+    <img class="rico" alt=""
+      src="https://res.cloudinary.com/dy9gp5pim/image/upload/w_760,q_auto,f_auto/brand/rico-v3/presente-cote.png">
+  </section>
+
+  <!-- ============ L'acces ============ -->
+  <section class="acces">
+    <div class="langues">
+      <button aria-current="true">FR</button><button>EN</button><button>ES</button>
+    </div>
+
+    <div class="forme">
+      <h2>Connexion</h2>
+      <p class="sous">Accédez à votre espace personnel</p>
+
+      <div class="champ">
+        <div class="tete"><label for="e">Email</label></div>
+        <div class="ligne"><input id="e" type="email" placeholder="toi@tonentreprise.fr" autocomplete="email"></div>
+      </div>
+
+      <div class="champ">
+        <div class="tete">
+          <label for="p">Mot de passe</label>
+          <a href="#">Oublié ?</a>
+        </div>
+        <div class="ligne">
+          <input id="p" type="password" placeholder="••••••••" autocomplete="current-password">
+          <button class="oeil" type="button" aria-label="Afficher le mot de passe" onclick="basculer()">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="principal">Se connecter</button>
+
+      <p class="dessous">Pas encore de compte ? <a href="#">Créer mon compte</a></p>
+
+      <div class="pied">
+        <a href="#">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/>
+          </svg>
+          Application Android
+        </a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Barre d'essai des fonds — a retirer au moment de l'integration -->
+<div class="essai" id="essai"><span>Fond</span></div>
+
+<script>
+  const FONDS = [
+    ['#0A3A6B','#1b4c80','bleu de Prusse',0],
+    ['#062A54','#1c3d64','bleu nuit',0],
+    ['#04203F','#1a3453','bleu abysse',0],
+    ['#043B44','#1a4d56','canard',0],
+    ['#003D2E','#0a4e3c','vert foret',0],
+    ['#5A2210','#6d3927','terre brulee',0],
+    ['#F1EDE4','#faf8f3','papier',1],
+  ];
+  const barre = document.getElementById('essai');
+  FONDS.forEach(([f, fc, nom, clair], i) => {
+    const b = document.createElement('button');
+    b.style.background = f; b.title = nom + '  ' + f;
+    if (i === 0) b.setAttribute('aria-current', 'true');
+    b.onclick = () => {
+      const r = document.documentElement.style;
+      r.setProperty('--vert', f); r.setProperty('--vert-clair', fc);
+      document.querySelector('.page').classList.toggle('clair', !!clair);
+      barre.querySelectorAll('button').forEach(x => x.removeAttribute('aria-current'));
+      b.setAttribute('aria-current', 'true');
+    };
+    barre.appendChild(b);
+  });
+</script>
+<script>
+  function basculer(){
+    const c = document.getElementById('p');
+    c.type = c.type === 'password' ? 'text' : 'password';
+  }
+</script>
+</body>
+</html>
