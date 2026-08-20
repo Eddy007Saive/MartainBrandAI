@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Eye, EyeOff, Loader2, Shield, Sparkles, BarChart3, MessageSquare, Calendar, Download } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Sparkles, BarChart3, MessageSquare, Calendar, Download } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
-import { setToken, setAdminToken, isAuthenticated, isAdminAuthenticated } from '../lib/auth';
+import { setToken, isAuthenticated, isAdminAuthenticated } from '../lib/auth';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 import LangSwitcher from '../components/LangSwitcher';
 
@@ -24,10 +24,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminEmail, setAdminEmail] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
-  const [adminLoading, setAdminLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,7 +32,13 @@ export default function Login() {
     try {
       const data = await authService.login(email, password);
       setToken(data.token);
-      if (data.pending) {
+      // Meme formulaire pour tout le monde : c'est le compte qui decide ou l'on
+      // atterrit. Un administrateur reste un utilisateur, il peut revenir sur
+      // son tableau de bord sans se reconnecter.
+      if (data.is_admin) {
+        toast.success(t('auth.toastAdminOk'));
+        navigate('/admin');
+      } else if (data.pending) {
         toast.info(t('auth.toastPending'));
         navigate('/pending');
       } else {
@@ -47,22 +49,6 @@ export default function Login() {
       toast.error(t('auth.toastError'));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleAdminLogin = async (e) => {
-    e.preventDefault();
-    setAdminLoading(true);
-    
-    try {
-      const data = await authService.adminLogin(adminEmail, adminPassword);
-      setAdminToken(data.token);
-      toast.success(t('auth.toastAdminOk'));
-      navigate('/admin');
-    } catch (error) {
-      toast.error(error.response?.data?.detail || t('auth.toastAdminError'));
-    } finally {
-      setAdminLoading(false);
     }
   };
 
@@ -247,49 +233,6 @@ export default function Login() {
               </a>
             )}
 
-            {/* Admin login toggle */}
-            <div className="mt-8 pt-6 border-t border-white/5">
-              <button
-                onClick={() => setShowAdminLogin(!showAdminLogin)}
-                data-testid="admin-toggle"
-                className="w-full flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-slate-400 transition-colors font-inter"
-              >
-                <Shield className="w-3 h-3" />
-                {t('auth.adminAccess')}
-              </button>
-              
-              {showAdminLogin && (
-                <form onSubmit={handleAdminLogin} className="mt-4 space-y-3 animate-fade-in">
-                  <Input
-                    type="email"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder={t('auth.adminEmail')}
-                    data-testid="admin-email"
-                    className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 text-sm"
-                  />
-                  <Input
-                    type="password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder={t('auth.adminPassword')}
-                    data-testid="admin-password"
-                    className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 text-sm"
-                  />
-                  <Button
-                    type="submit"
-                    disabled={adminLoading}
-                    data-testid="admin-submit"
-                    className="w-full bg-slate-800 hover:bg-slate-700 text-sm font-inter"
-                  >
-                    {adminLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : null}
-                    {t('auth.adminSignIn')}
-                  </Button>
-                </form>
-              )}
-            </div>
           </div>
         </div>
       </div>

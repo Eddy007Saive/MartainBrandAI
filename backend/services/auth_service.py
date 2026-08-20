@@ -145,17 +145,27 @@ def login_user(email: str, password: str) -> dict:
     if not verify_password(password, user.get("password_hash", "")):
         return {"error": "invalid"}
 
-    token = create_token({
+    # Un administrateur est un compte `users` avec is_admin=true : il se connecte
+    # par le MÊME formulaire. On fusionne l'entrée, pas la politique — un jeton
+    # admin reste valable 8 h là où un jeton client vit 7 jours, parce qu'un
+    # accès administrateur qui traîne une semaine dans un navigateur n'a pas la
+    # même portée.
+    est_admin = bool(user.get("is_admin"))
+    claims = {
         "telegram_id": user["telegram_id"],
         "email": user["email"],
-        "is_admin": False,
+        "is_admin": est_admin,
         "fp": _pwd_fingerprint(user.get("password_hash", "")),
-    })
+    }
+    if est_admin:
+        claims["role"] = "admin"
+    token = create_token(claims, expires_delta=timedelta(hours=8) if est_admin else timedelta(days=7))
 
     return {
         "token": token,
         "user": sanitize_user(user),
-        "pending": not user.get("actif", False)
+        "is_admin": est_admin,
+        "pending": False if est_admin else not user.get("actif", False),
     }
 
 
