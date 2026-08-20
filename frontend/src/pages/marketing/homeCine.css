@@ -125,7 +125,11 @@
 }
 
 /* ===== Bulles de logos qui montent depuis l'écran ===== */
-.cine .rise{position:absolute;left:70vw;bottom:24vh;width:0;height:0;pointer-events:none;z-index:4}
+/* Point de depart cale sur l'ecran du laptop dans la video : les bulles
+   doivent sembler en sortir. En pourcentage et non en vw, car le conteneur
+   est .hero (centre, largeur plafonnee) et non la fenetre — un vw partait
+   16 points trop a droite. A refaire si le cadrage du clip change. */
+.cine .rise{position:absolute;left:59%;bottom:33vh;width:0;height:0;pointer-events:none;z-index:4}
 .cine .rlogo{position:absolute;left:0;bottom:0;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;
        background:rgba(15,23,42,.82);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);
        box-shadow:0 0 20px rgba(138,108,255,.35),0 8px 22px rgba(0,0,0,.4);
@@ -138,11 +142,14 @@
 .cine .rlogo.yt{color:#ff6b6b;animation-delay:4.8s;margin-left:-26px}
 .cine .rlogo.gb{color:#7ab8ff;animation-delay:6s;margin-left:2px}
 .cine .rlogo.x{color:#e7ecf5;animation-delay:7.2s;margin-left:-8px}
+/* Derive vers la DROITE : elles sortent de l'ecran du laptop, qui se trouve
+   juste sous le bec de la mascotte. En montant tout droit elles lui passaient
+   en plein visage ; en s'ecartant, elles rejoignent la zone vide. */
 @keyframes cineRise{
   0%{transform:translate(0,0) scale(.5);opacity:0}
-  10%{transform:translate(-.3vw,-4vh) scale(1);opacity:1}
+  10%{transform:translate(.4vw,-4vh) scale(1);opacity:1}
   75%{opacity:.95}
-  100%{transform:translate(-2.5vw,-44vh) scale(.85);opacity:0}
+  100%{transform:translate(4.5vw,-44vh) scale(.85);opacity:0}
 }
 @media(max-width:1000px),(prefers-reduced-motion:reduce){.cine .rise{display:none}}
 
