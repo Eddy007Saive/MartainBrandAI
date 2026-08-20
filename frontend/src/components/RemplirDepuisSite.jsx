@@ -7,7 +7,6 @@ import { Button } from './ui/button';
 import { ChargementRico } from './ChargementRico';
 import { Input } from './ui/input';
 import { userService } from '../services/userService';
-import { useUser } from '../context/UserContext';
 
 // Partir d'une page blanche est l'endroit où l'on perd les gens. Le client colle
 // l'adresse de son site, on la lit et on lui propose sa fiche pré-remplie ;
@@ -25,10 +24,12 @@ const CHAMPS = ['secteur', 'audience', 'voix_marque', 'piliers', 'hooks', 'ctas'
  * @param {object}   admin     { analyser, appliquer } : en back-office, l'analyse
  *                             et l'enregistrement passent par des routes qui
  *                             ciblent un client precis, pas le compte connecte.
+ * @param {function} onRefetch recharge la fiche apres coup. Passe en prop et non
+ *                             pris dans le contexte : le composant est aussi
+ *                             monte dans l'admin, qui n'a pas de UserProvider.
  */
-export default function RemplirDepuisSite({ user, onChange, admin }) {
+export default function RemplirDepuisSite({ user, onChange, admin, onRefetch }) {
   const { t, i18n } = useTranslation();
-  const { refetchUser } = useUser();
   const [url, setUrl] = useState('');
   const [analyse, setAnalyse] = useState(false);
   const [fiche, setFiche] = useState(null);
@@ -84,7 +85,7 @@ export default function RemplirDepuisSite({ user, onChange, admin }) {
         logo = veutLogo;
       } else if (veutLogo) {
         await userService.logoDepuisSite(fiche.logo_url);
-        await refetchUser?.();
+        await onRefetch?.();
         logo = true;
       }
     } catch {
