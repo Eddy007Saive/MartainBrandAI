@@ -22,12 +22,13 @@ const BG_CLIPS = [
   // peu : a 0,88 le masque radial du CSS dissout encore les bords, a 0,82 le
   // cadre se voit. On la pousse a droite pour degager l'accroche.
   { src: '/videos/hero-bg.mp4', transform: 'scale(0.88) translateX(7%)' },  // hero : il tape puis reflechit
-  // La planche v2 place enfin la mascotte a droite : le rattrapage est bien plus
-  // leger qu'avant, juste de quoi degager le tableau comparatif sans laisser de bord.
-  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp', transform: 'scale(1.12) translateX(7%)' },
+  // Reduit comme la banniere : a 0,78 le masque radial dissout encore les bords
+  // et le tableau comparatif respire, en dessous le cadre de la video se voit.
+  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp', transform: 'scale(0.78) translateX(7%)' },
   // recadrage : Hailuo a rendu le coq ~20 % plus petit sur ce clip -> on aligne sur les autres.
   // NB : ce transform inline REMPLACE le scale(.86) du CSS -> on combine (.86 x 1.2 = 1.032).
-  { src: '/videos/bg-point.mp4', sel: '.aud', transform: 'scale(1.032) translateY(2.5%)' },  // « Pour qui » : pointe le titre + clin d'œil
+  // Meme reduction : la mascotte ecrasait les trois cartes.
+  { src: '/videos/bg-point.mp4', sel: '.aud', transform: 'scale(0.78) translateX(6%)' },  // « Pour qui » : pointe le titre + clin d'œil
   // Meme cas que « Plutot que... » : mascotte centree dans la source, texte
   // centre dans la page. On agrandit puis on la pousse a droite.
   // Source centree ET zoomee : la mascotte y est bien plus grosse que sur les
