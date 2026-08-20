@@ -71,6 +71,13 @@ export const adminService = {
   getApiBalances: () => adminFetch('/admin/api-balances'),
   getAnalyticsProduit: () => adminFetch('/admin/analytics-produit'),
   refreshAnalytics: () => adminFetch('/admin/analytics/refresh', { method: 'POST' }),
+  // Analyse du site d'un client, depuis le back-office : c'est l'equipe qui
+  // pose la fiche de marque, pas le client.
+  analyserSite: (url, langue) =>
+    api.post('/admin/analyser-site', { url, langue }).then((r) => r.data),
+  appliquerMarque: (telegramId, payload) =>
+    api.post(`/admin/users/${telegramId}/appliquer-marque`, payload).then((r) => r.data),
+
 
   getUser: (telegramId) => adminFetch(`/admin/users/${telegramId}`),
 

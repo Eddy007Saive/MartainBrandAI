@@ -399,6 +399,51 @@ async def get_api_balances(payload: dict = Depends(verify_admin_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/analyser-site")
+async def analyser_site_admin(body: dict, payload: dict = Depends(verify_admin_token)):
+    """Lit le site d'un prospect ou d'un client et propose sa fiche de marque.
+
+    Rien n'est écrit : la fiche est renvoyée pour relecture. C'est
+    `appliquer-marque` qui décide de la poser sur un compte.
+    """
+    from services import site_service
+    try:
+        return await site_service.analyser(body.get("url"), body.get("langue") or "fr")
+    except site_service.SiteIllisible as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"analyse de site (admin): {e}")
+        raise HTTPException(status_code=502, detail="Analyse du site impossible pour le moment.")
+
+
+@router.post("/users/{telegram_id}/appliquer-marque")
+async def appliquer_marque(telegram_id: str, body: dict,
+                           payload: dict = Depends(verify_admin_token)):
+    """Pose sur le compte du client la fiche déduite de son site.
+
+    Le logo suit un autre chemin que les champs texte : il est recopié sur
+    notre Cloudinary. On ne pointe jamais vers le site du client, qui peut
+    disparaître, alors que le logo sert dans chaque carrousel.
+    """
+    import asyncio
+    from services import marque_service, site_service, user_service
+
+    champs = {k: v for k, v in (body.get("champs") or {}).items()}
+    ecrits = marque_service.enregistrer(telegram_id, champs) if champs else {}
+
+    logo = None
+    if body.get("logo_url"):
+        try:
+            donnees, _ = await asyncio.to_thread(site_service.telecharger_logo, body["logo_url"])
+            logo = user_service.upload_logo(telegram_id, donnees)
+        except Exception as e:
+            logger.warning(f"logo depuis site (admin) pour {telegram_id}: {e}")
+
+    logger.info(f"AUDIT fiche de marque posee sur {telegram_id} par admin "
+                f"{payload.get('telegram_id')} — {len(ecrits)} champ(s)")
+    return {"champs": list(ecrits), "logo_url": logo}
+
+
 @router.post("/analytics/refresh")
 async def refresh_analytics(payload: dict = Depends(verify_admin_token)):
     from services import analytics_service

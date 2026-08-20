@@ -19,7 +19,14 @@ const enTexte = (v) => (Array.isArray(v) ? v.join('\n') : v || '');
 const CHAMPS = ['secteur', 'audience', 'voix_marque', 'piliers', 'hooks', 'ctas', 'a_eviter',
   'couleur_principale', 'couleur_secondaire', 'couleur_accent'];
 
-export default function RemplirDepuisSite({ user, onChange }) {
+/**
+ * @param {object}   user      la fiche a completer (le client concerne)
+ * @param {function} onChange  (champ, valeur) — laisse vide en mode admin
+ * @param {object}   admin     { analyser, appliquer } : en back-office, l'analyse
+ *                             et l'enregistrement passent par des routes qui
+ *                             ciblent un client precis, pas le compte connecte.
+ */
+export default function RemplirDepuisSite({ user, onChange, admin }) {
   const { t, i18n } = useTranslation();
   const { refetchUser } = useUser();
   const [url, setUrl] = useState('');
@@ -33,7 +40,9 @@ export default function RemplirDepuisSite({ user, onChange }) {
     setAnalyse(true);
     setFiche(null);
     try {
-      const f = await userService.analyserSite(url.trim(), (i18n.resolvedLanguage || 'fr').slice(0, 2));
+      const langue = (i18n.resolvedLanguage || 'fr').slice(0, 2);
+      const f = admin ? await admin.analyser(url.trim(), langue)
+                      : await userService.analyserSite(url.trim(), langue);
       setFiche(f);
       // Seuls un vrai logo d'en-tete ou un SVG sont coches d'avance. Une
       // favicon fait 32 pixels, une og:image est une banniere de partage :
@@ -53,7 +62,7 @@ export default function RemplirDepuisSite({ user, onChange }) {
       const propose = enTexte(fiche[c]);
       if (!propose) return false;
       if (!toutRemplacer && String(user?.[c] || '').trim()) return false;
-      onChange(c, propose);
+      onChange?.(c, propose);
       return true;
     });
 
@@ -61,14 +70,25 @@ export default function RemplirDepuisSite({ user, onChange }) {
     // sur Cloudinary, parce qu'on n'enregistre jamais l'adresse du site du
     // client — elle peut disparaître, et le logo sert dans chaque carrousel.
     let logo = false;
-    if (fiche.logo_url && prendreLogo) {
-      try {
+    const veutLogo = !!(fiche.logo_url && prendreLogo);
+    try {
+      if (admin) {
+        // En back-office rien n'est pose tant qu'on ne l'a pas demande : on
+        // envoie les champs retenus et le logo en une fois.
+        const champs = {};
+        CHAMPS.forEach((c) => {
+          const propose = enTexte(fiche[c]);
+          if (propose && (toutRemplacer || !String(user?.[c] || '').trim())) champs[c] = propose;
+        });
+        await admin.appliquer({ champs, logo_url: veutLogo ? fiche.logo_url : undefined });
+        logo = veutLogo;
+      } else if (veutLogo) {
         await userService.logoDepuisSite(fiche.logo_url);
         await refetchUser?.();
         logo = true;
-      } catch {
-        toast.error(t('analyseSite.logo.echec'));
       }
+    } catch {
+      toast.error(t('analyseSite.logo.echec'));
     }
 
     if (!remplis.length && !logo) return toast.info(t('analyseSite.rienAremplir'));

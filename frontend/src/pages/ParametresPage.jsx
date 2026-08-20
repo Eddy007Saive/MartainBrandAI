@@ -8,7 +8,6 @@ import {
   Plus, Image as ImageIcon, X, Repeat,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import RemplirDepuisSite from '../components/RemplirDepuisSite';
 import { ChampMarque, ChampListe } from '../components/ChampsMarque';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -795,7 +794,6 @@ export default function ParametresPage() {
             style={{ width: `${Math.round((remplis / total) * 100)}%` }} />
         </div>
 
-        <RemplirDepuisSite user={user} onChange={handleChange} />
 
         {/* POSITIONNEMENT */}
         <Bloc titre={t('params.marque.positionnement')} sous={t('params.marque.positionnementSous')}>

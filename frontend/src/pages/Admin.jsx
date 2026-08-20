@@ -14,6 +14,7 @@ import QuotaConfigTab from '../components/admin/QuotaConfigTab';
 import AuditsTab from '../components/admin/AuditsTab';
 import BillingTab from '../components/admin/BillingTab';
 import AffiliationTab from '../components/admin/AffiliationTab';
+import RemplirDepuisSite from '../components/RemplirDepuisSite';
 import AdminPromos from './AdminPromos';
 import {
   AlertDialog,
@@ -1358,6 +1359,17 @@ export default function Admin() {
               )}
           {selectedUser && (
             <div className="space-y-3.5">
+              {/* La fiche de marque est posee par l'equipe, pas par le client :
+                  c'est le coeur du Pack Fondations. On lit son site, on relit,
+                  on applique sur SON compte. */}
+              <RemplirDepuisSite
+                user={selectedUser}
+                admin={{
+                  analyser: adminService.analyserSite,
+                  appliquer: (payload) => adminService
+                    .appliquerMarque(selectedUser.telegram_id, payload)
+                    .then((r) => { loadUserDetail(selectedUser.telegram_id); return r; }),
+                }} />
               {/* Identité */}
               <div className="flex items-center gap-3.5 pb-3.5 border-b border-white/[0.06]">
                 <div className="w-[46px] h-[46px] rounded-[14px] bg-gradient-to-br from-red-500 to-orange-500 grid place-items-center text-white font-sora font-bold text-base shrink-0">
