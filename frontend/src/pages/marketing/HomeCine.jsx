@@ -28,7 +28,12 @@ const BG_CLIPS = [
   // recadrage : Hailuo a rendu le coq ~20 % plus petit sur ce clip -> on aligne sur les autres.
   // NB : ce transform inline REMPLACE le scale(.86) du CSS -> on combine (.86 x 1.2 = 1.032).
   { src: '/videos/bg-point.mp4', sel: '.aud', transform: 'scale(1.032) translateY(2.5%)' },  // « Pour qui » : pointe le titre + clin d'œil
-  { src: '/videos/bg-work.mp4', sel: '.flow', transform: 'scale(1.032) translateY(2.5%)' },  // « Accompagnement » : il travaille, concentré
+  // Meme cas que « Plutot que... » : mascotte centree dans la source, texte
+  // centre dans la page. On agrandit puis on la pousse a droite.
+  // Source centree ET zoomee : la mascotte y est bien plus grosse que sur les
+  // autres clips. On la pousse a droite ET vers le bas pour degager le titre,
+  // avec juste assez d'agrandissement pour ne pas laisser de bord nu.
+  { src: '/videos/bg-work.mp4', sel: '.flow', transform: 'scale(1.05) translateX(18%) translateY(8%)' },  // « Accompagnement » : il travaille
   { none: true, sel: '.testi' },                      // Témoignages : fond noir, toute l'attention sur la vidéo client
   // { src: '/videos/bg-wave.mp4', sel: '.final' },   // CTA final : il salue (à activer quand le clip sera généré)
 ];
