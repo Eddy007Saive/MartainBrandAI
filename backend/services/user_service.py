@@ -147,10 +147,20 @@ def get_user(telegram_id: str) -> dict | None:
     return user
 
 
+# Clés que `get_user` RECOMPOSE à la lecture depuis d'autres tables : elles
+# n'existent plus comme colonnes de `users`. Le frontend renvoyant l'objet
+# utilisateur entier à l'enregistrement, elles reviendraient en écriture et
+# feraient échouer toute la sauvegarde.
+DERIVEES = {"is_subaccount"} | {f"late_account_{p}" for p in
+            ("instagram", "facebook", "linkedin", "youtube", "tiktok",
+             "googlebusiness", "twitter")}
+
+
 def update_user(telegram_id: str, update_data: dict) -> dict | None:
     # La page Paramètres envoie compte et marque dans la même requête : chaque champ
     # part dans sa table, `users` ne reçoit plus que ce qui décrit le compte.
     from services import marque_service
+    update_data = {k: v for k, v in (update_data or {}).items() if k not in DERIVEES}
     champs_compte, champs_marque = marque_service.separer(update_data)
     if champs_marque:
         marque_service.enregistrer(telegram_id, champs_marque)
