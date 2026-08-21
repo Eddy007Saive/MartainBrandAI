@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useLocation, Link, NavLink, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import Link, { NavLienLangue as NavLink } from '../../components/LienLangue';
 import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
 import { isNativeApp } from '../../lib/appDownload';
 import LangSwitcher from '../../components/LangSwitcher';

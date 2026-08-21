@@ -877,7 +877,7 @@
       "inclus4": "20 HD images",
       "inclus5": "10 carousels",
       "etAussi": "And also",
-      "feats1": "All 5 networks",
+      "feats1": "All 6 networks",
       "feats2": "Carousels + scheduling",
       "feats3": "Analytics + comments",
       "feats4": "Push notifications",
@@ -1754,89 +1754,150 @@
     "pricing": {
       "badge": {
         "recommended": "Recommended",
-        "popular": "Most popular"
+        "popular": "Popular",
+        "allIn": "All-inclusive"
       },
-      "oneTime": "One-off payment",
-      "perMonth": "/month",
-      "setup": {
-        "head": {
-          "eyebrow": "We set it up for you",
-          "title": "First, we lay your foundations",
-          "lead": "An agency's real work, once. After that, you're on your own two feet."
-        },
-        "cta": "Book your call →",
-        "note": "Free call · We study your business before proposing anything.",
-        "pack": {
-          "name": "Foundations Pack",
-          "desc": "The turnkey launch: you don't start from a blank page, but with a system already tuned to your brand.",
-          "feat": {
-            "1": "Your brand audit (positioning, audience, competitors)",
-            "2": "Your tone of voice, defined",
-            "3": "Your editorial line (pillars, topics, strategy)",
-            "4": "Your custom hooks and calls to action",
-            "5": "Your brand's visual identity (art direction)",
-            "6": "Your 9 Instagram feed templates",
-            "7": "Your 2 custom carousels, ready to publish"
-          }
-        }
+      "oneTime": "one time",
+      "perMonth": "/ month",
+      "perMonthAll": "/ month · all-inclusive",
+      "head": {
+        "eyebrow": "Pricing",
+        "title": "One simple price. Your online presence, finally handled.",
+        "lead": "An all-inclusive subscription to run your networks and your Google listing. Start on your own in minutes, or let us set it up for you."
       },
       "sub": {
-        "head": {
-          "eyebrow": "Then you steer",
-          "title": "The monthly subscription",
-          "lead": "Once the system is live: unlimited generation, multi-network scheduling, approval and stats. No commitment, cancel any time."
+        "name": "Postorico subscription",
+        "desc": "Your presence on 6 networks + your Google listing, run in a few hours a month.",
+        "feat": {
+          "1": "Content generated in your voice (posts, carousels, visuals)",
+          "2": "Publishing to LinkedIn, Instagram, Facebook, TikTok, YouTube & X",
+          "3": "Your Google Business Profile, handled",
+          "4": "Editorial calendar + scheduling",
+          "5": "You approve — nothing goes out without your green light",
+          "6": "No commitment, cancel any time"
         },
-        "note": "Prefer to start on your own? The Free plan lets you try it with no credit card."
+        "cta": "Start my trial",
+        "cta2": "Book a demo",
+        "note": "14 days to try it. You only pay at the end of the trial, and you can stop whenever you want."
       },
-      "plans": {
-        "free": {
-          "name": "Free",
-          "tag": "To try it out, no card needed",
-          "feat": {
-            "1": "1 connected network",
-            "2": "Post generation",
-            "3": "Community support"
-          },
-          "cta": "Get started"
+      "pack": {
+        "name": "Foundations Pack — optional",
+        "desc": "Real agency work, once. After that, you're on your own two feet.",
+        "feat": {
+          "1": "Brand audit (positioning, audience, competitors)",
+          "2": "Your tone of voice + editorial line",
+          "3": "Your custom hooks & calls to action",
+          "4": "Your brand art direction",
+          "5": "9 Instagram feed templates",
+          "6": "2 custom carousels, ready to publish"
         },
-        "pro": {
-          "name": "Pro",
-          "tag": "Everything included · no commitment",
-          "feat": {
-            "1": "All 5 networks",
-            "2": "Carousels + scheduling",
-            "3": "Analytics + comments",
-            "4": "Video studio (reels)",
-            "5": "Push notifications"
+        "cta": "Book my kickoff call",
+        "note": "You leave with a complete system, not 2 visuals to “adapt” forever inside the tool."
+      },
+      "transition": {
+        "eyebrow": "How to start",
+        "title": "You can start alone. We can also set it all up for you.",
+        "lead": "The subscription lets you start on your own, right away. And if you'd rather have experts calibrate your brand before you publish, that's what the Foundations Pack is for."
+      },
+      "keynote": {
+        "eyebrow": "The secret to content that looks like you",
+        "title": "Everything comes down to the setup.",
+        "p1": "Even an excellent tool depends on how it's tuned. Badly calibrated, it produces generic output. Well calibrated, it produces <b>your</b> content.",
+        "p2": "Without the Pack, our setup assistant walks you through laying your foundations: it asks the right questions and fills in your brand profile with you.",
+        "p3": "With the <b>Foundations Pack</b>, you don't do the work: <b>our experts do it for you</b>. They study your brand, write your editorial line and deliver your templates."
+      },
+      "compare": {
+        "title": "With or without the Foundations Pack?",
+        "lead": "Both work. The Pack is an accelerator, not a requirement.",
+        "colA": "Subscription alone",
+        "colB": "Subscription + Foundations Pack",
+        "row": {
+          "start": {
+            "l": "Getting started",
+            "a": "On your own, you set it all",
+            "b": "Turnkey, by our experts"
           },
-          "cta": "Choose Pro"
+          "brand": {
+            "l": "Calibrated brand",
+            "a": "By you",
+            "b": "By our experts"
+          },
+          "tpl": {
+            "l": "Templates & carousels",
+            "a": "Yours to create",
+            "b": "Delivered, personalised"
+          },
+          "who": {
+            "l": "Best for",
+            "a": "Testing, staying independent",
+            "b": "Starting at agency level"
+          },
+          "price": {
+            "l": "Price",
+            "a": "€279 / month",
+            "b": "€1,499 once + €279 / month"
+          }
         }
-      },
-      "agency": {
-        "title": "An agency costs you {{price}}",
-        "titleAccent": "every month.",
-        "text": "With Postorico: one setup, once, then a light subscription you steer in about 2 hours a month. The consistency of an agency, without the recurring invoice.",
-        "ctaCall": "Book your setup call →",
-        "ctaSignup": "Create my account",
-        "note": "Indicative prices, subject to change."
       },
       "multi": {
         "eyebrow": "Several locations?",
         "title": "Postorico Multi-account",
         "lead": "For networks, franchises and multi-location groups.",
         "name": "Multi-account",
-        "price": "On quote",
-        "tag": "Volume pricing by number of accounts",
-        "desc": "A strong brand nationally, powerful visibility locally. Central steering, execution at every location.",
-        "note": "The editorial line lives in the system, not in one person's head: a manager leaves, the presence doesn't move.",
-        "cta": "Request a quote",
+        "price": "On request",
+        "tarif": "Rate decreases with the number of accounts",
+        "desc": "A strong brand nationally, powerful visibility locally. Centrally run, executed at every location.",
         "feat": {
           "1": "One Foundations Pack per brand or location",
-          "2": "Every account managed from a single interface",
-          "3": "Brand consistency guaranteed, with local variation per location",
-          "4": "The Google Business profile of each location",
-          "5": "Dedicated support throughout the rollout"
+          "2": "Every account run from a single interface",
+          "3": "Brand consistency guaranteed, adapted locally per location",
+          "4": "The Google Business listing of every point of sale",
+          "5": "Dedicated support for the rollout"
+        },
+        "cta": "Request your quote"
+      },
+      "faq": {
+        "title": "Frequently asked questions",
+        "q": {
+          "1": {
+            "q": "Do I have to take the Foundations Pack?",
+            "a": "No. You can start with the subscription alone and tune your brand yourself in the tool. The Foundations Pack is an accelerator: our experts lay your foundations for you."
+          },
+          "2": {
+            "q": "Is it fully automatic?",
+            "a": "No, and that's deliberate. The tool prepares everything — ideas, copy, visuals, calendar — but nothing is published without your approval."
+          },
+          "3": {
+            "q": "Won't the content sound generic?",
+            "a": "No. Your brand, your tone and your style are calibrated up front. The content comes out in your voice, not as a generic AI."
+          },
+          "4": {
+            "q": "How much of my time does it take each month?",
+            "a": "A few hours. The tool prepares, you read and approve. You go from “I should post” to “it's already ready”."
+          },
+          "5": {
+            "q": "Which networks does it work with?",
+            "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube and X — plus your Google Business Profile. All from a single interface."
+          },
+          "6": {
+            "q": "Can I cancel whenever I want?",
+            "a": "Yes. The subscription has no commitment and can be cancelled at any time."
+          }
         }
+      },
+      "news": {
+        "eyebrow": "Rico's letter",
+        "title": "What actually changes on social media, every week",
+        "lead": "Platform news, the formats that work, and one concrete action to apply this week.",
+        "ph": "your@email.com",
+        "cta": "Subscribe",
+        "note": "One letter a week. Unsubscribe in one click, any time.",
+        "ok": "Noted — you'll get the next letter.",
+        "err": "Could not sign you up right now."
+      },
+      "final": {
+        "title": "Ready to take back control of your presence?",
+        "lead": "Start your trial, or book a call: we look at your presence together and show you the tool on your own brand."
       }
     },
     "faq": {
@@ -1848,7 +1909,7 @@
       "list": {
         "1": {
           "q": "What exactly is Postorico?",
-          "a": "It's a communications agency, inside a piece of software. Our experts lay your brand's foundations — tone, editorial line, art direction — then the tool generates, schedules and publishes your content across your 5 networks (LinkedIn, Instagram, Facebook, TikTok, YouTube) and your Google listing. You approve, and you stay in control. The result: the consistency of an agency, for a fraction of the price, in a few hours a month."
+          "a": "It's a communications agency, inside a piece of software. Our experts lay your brand's foundations — tone, editorial line, art direction — then the tool generates, schedules and publishes your content across your 6 networks (LinkedIn, Instagram, Facebook, TikTok, YouTube, X) and your Google listing. You approve, and you stay in control. The result: the consistency of an agency, for a fraction of the price, in a few hours a month."
         },
         "2": {
           "q": "Won't the content sound generic, like all AI?",
@@ -1864,15 +1925,15 @@
         },
         "5": {
           "q": "How much does it cost?",
-          "a": "Two parts. The Foundations Pack (the upfront work by our experts): €1,499, once. Then the subscription to run your presence day to day: €279 a month. Compare that to an agency, which typically bills €2,000 to €3,000 a month, forever."
+          "a": "The subscription is €279 a month, all-inclusive, no commitment, with a 14-day trial. If you'd like experts to lay your brand's foundations before you publish, the Foundations Pack is €1,499, once — it's optional. Compare that to an agency, which typically bills €2,000 to €3,000 a month, forever."
         },
         "6": {
-          "q": "Why a €1,499 Foundations Pack up front?",
-          "a": "Because the quality of your content depends on getting the base right. Our experts do genuine agency work: brand audit, tone of voice, editorial line, art direction, feed templates and custom carousels. That's what guarantees everything that follows looks like you, from day one. An agency would bill this at €3,000 or more — and keep billing you every month afterwards."
+          "q": "What is the Foundations Pack for, if it's optional?",
+          "a": "Saving time, and starting right. Our experts do genuine agency work: brand audit, tone of voice, editorial line, art direction, feed templates and custom carousels. That's what guarantees everything that follows looks like you, from day one. An agency would bill this at €3,000 or more — and keep billing you every month."
         },
         "7": {
           "q": "Can I start without the Foundations Pack?",
-          "a": "The Foundations Pack is strongly recommended, because it's what guarantees content that truly looks like you. But the tool can be used on your own if you'd rather set your own bases. We'll talk it through on the call and see what suits you."
+          "a": "Yes, and many do. You take the subscription alone and tune your brand yourself: the setup assistant asks the right questions and fills in your profile with you. The Pack is for those who'd rather delegate that groundwork."
         },
         "8": {
           "q": "I already have an apprentice running my networks. Is Postorico here to replace them?",
@@ -1888,7 +1949,7 @@
         },
         "11": {
           "q": "Which networks does it work with?",
-          "a": "LinkedIn, Instagram, Facebook, TikTok and YouTube — plus your Google Business Profile. All run from a single place, with content adapted to each platform."
+          "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube and X — plus your Google Business Profile. All run from a single place, with content adapted to each platform."
         },
         "12": {
           "q": "I have several locations / several brands. Do you handle that?",

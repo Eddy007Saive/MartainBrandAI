@@ -4,7 +4,9 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import fr from './locales/fr.json';
 import en from './locales/en.json';
 import es from './locales/es.json';
-import { langueDuChemin } from './lib/langues';
+import { estPageTraduite, langueDuChemin } from './lib/langues';
+
+const chemin = typeof window !== 'undefined' ? window.location.pathname : '/';
 
 // Langue de l'INTERFACE (indépendante de user.langue = langue du contenu généré).
 //
@@ -20,7 +22,11 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    lng: langueDuChemin(typeof window !== 'undefined' ? window.location.pathname : '/'),
+    // L'adresse ne decide QUE sur les pages traduites. Sur le tableau de bord,
+    // qui n'a pas de prefixe, forcer la langue du chemin ramenerait au francais
+    // quelqu'un qui vient de se connecter depuis /en/login. On laisse alors le
+    // detecteur faire son travail : le choix memorise, puis le navigateur.
+    ...(estPageTraduite(chemin) ? { lng: langueDuChemin(chemin) } : {}),
     resources: { fr: { translation: fr }, en: { translation: en }, es: { translation: es } },
     fallbackLng: 'fr',
     supportedLngs: ['fr', 'en', 'es'],

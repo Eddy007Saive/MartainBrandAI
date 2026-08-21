@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { cheminPourLangue, estPagePublique, langueDuChemin } from '../lib/langues';
+import { cheminPourLangue, estPageTraduite, langueDuChemin } from '../lib/langues';
 
 const LANGS = [
   { id: 'fr', label: 'FR' },
@@ -27,7 +27,7 @@ export default function LangSwitcher({ className = '', onChanged }) {
   const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
 
-  const publique = estPagePublique(pathname);
+  const publique = estPageTraduite(pathname);
   // Sur une page publique, l'adresse fait foi ; ailleurs, l'état d'i18next.
   const current = publique ? langueDuChemin(pathname)
     : (i18n.resolvedLanguage || 'fr').slice(0, 2);

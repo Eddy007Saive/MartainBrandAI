@@ -53,6 +53,14 @@ const routesPubliques = () => (
       <Route path="mentions-legales" element={<MentionsLegales />} />
     </Route>
     <Route path="audit-marque" element={<AuditMarque />} />
+    {/* Publiques et traduites, mais exclues de l'indexation par robots.txt :
+        un visiteur espagnol qui clique « Empezar » depuis /es/tarifs doit
+        trouver un formulaire en espagnol, pas un retour au francais. */}
+    <Route path="login" element={<Login />} />
+    <Route path="register" element={<Register />} />
+    <Route path="pending" element={<Pending />} />
+    <Route path="forgot-password" element={<ForgotPassword />} />
+    <Route path="reset-password" element={<ResetPassword />} />
   </>
 );
 
@@ -76,11 +84,6 @@ function App() {
             <Route key={l} path={`/${l}`}>{routesPubliques()}</Route>
           ))}
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/pending" element={<Pending />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
           
           {/* Dashboard routes with layout */}
           <Route

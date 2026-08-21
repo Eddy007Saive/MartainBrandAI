@@ -19,11 +19,20 @@ export const LANGUE_DEFAUT = 'fr';
 // Les langues qui portent un prefixe (toutes sauf celle par defaut).
 export const PREFIXEES = LANGUES.filter((l) => l !== LANGUE_DEFAUT);
 
-/** Les pages publiques traduites. Le tableau de bord n'en fait pas partie :
- *  il est prive, aucun robot ne le lit, et son adresse n'a pas a changer. */
+/** Les pages INDEXEES : celles qui portent canonical + hreflang et qu'on
+ *  prerend. Le tableau de bord n'en fait pas partie, il est prive. */
 export const PAGES_PUBLIQUES = [
   '/', '/fonctionnalites', '/comment-ca-marche', '/tarifs', '/faq',
   '/audit-marque', '/cgu', '/confidentialite', '/mentions-legales',
+];
+
+/** Les pages TRADUITES PAR ADRESSE. Sur-ensemble des precedentes : connexion
+ *  et inscription sont publiques et traduites, mais exclues de l'indexation
+ *  (robots.txt). Sans elles ici, un visiteur espagnol qui clique « Empezar »
+ *  depuis /es/tarifs retombait sur un formulaire en francais. */
+export const PAGES_TRADUITES = [
+  ...PAGES_PUBLIQUES,
+  '/login', '/register', '/pending', '/forgot-password', '/reset-password',
 ];
 
 /** Extrait la langue d'un chemin. `/es/tarifs` -> 'es' ; `/tarifs` -> 'fr'. */
@@ -49,8 +58,12 @@ export function cheminPourLangue(chemin, langue) {
   return nu === '/' ? `/${langue}` : `/${langue}${nu}`;
 }
 
-/** Vrai si le chemin correspond a une page publique traduite. Sert a ne pas
- *  poser de balises de langue sur le tableau de bord. */
+/** Vrai si la page est indexee : c'est elle qui porte canonical et hreflang. */
 export function estPagePublique(chemin) {
   return PAGES_PUBLIQUES.includes(cheminSansLangue(chemin));
+}
+
+/** Vrai si la page suit la langue de l'adresse (indexee ou non). */
+export function estPageTraduite(chemin) {
+  return PAGES_TRADUITES.includes(cheminSansLangue(chemin));
 }

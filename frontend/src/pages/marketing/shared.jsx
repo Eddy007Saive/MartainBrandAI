@@ -276,6 +276,68 @@ export const CSS = `
 .lp .qa{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
 .lp .qa .q{font-family:Sora;font-weight:600;font-size:15.5px}
 .lp .qa .a{color:var(--muted);font-size:14px;line-height:1.6;margin-top:9px}
+/* ---- Page Tarifs ------------------------------------------------------
+   L'abonnement et le Pack cote a cote : la colonne de gauche est plus large,
+   c'est l'offre principale. En dessous de 900px on empile, l'abonnement
+   restant en premier. */
+.lp .duo{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;margin-top:46px;align-items:start}
+.lp .duo .plan .pdesc{color:var(--muted);font-size:13.5px;margin-top:6px;min-height:40px}
+.lp .duo .plan .pbtn+.pbtn{margin-top:10px}
+.lp .duo .plan .note{margin-top:14px;text-align:center}
+@media(max-width:900px){.lp .duo{grid-template-columns:1fr}}
+
+/* Le parametrage : encadre vert, la couleur de l'accent — c'est le seul
+   endroit de la page ou l'on explique POURQUOI ca marche. */
+.lp .keynote{margin-top:34px;padding:34px;border-radius:20px;
+  border:1px solid rgba(58,255,163,.3);
+  background:linear-gradient(180deg,rgba(58,255,163,.07),transparent 60%),var(--card)}
+.lp .keynote h3{font-family:Sora;font-weight:800;font-size:24px;letter-spacing:-.01em;margin:10px 0 12px}
+.lp .keynote p{color:var(--muted);font-size:15px;line-height:1.66;max-width:76ch;margin-bottom:12px}
+.lp .keynote p:last-child{margin-bottom:0}
+.lp .keynote p b{color:var(--ink);font-weight:600}
+
+/* Le tableau deborde sur telephone : il defile SEUL, la page ne bouge pas. */
+.lp .tblwrap{margin-top:40px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.lp table.tcompare{width:100%;min-width:560px;border-collapse:collapse;background:var(--card);
+  border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.lp table.tcompare th,.lp table.tcompare td{padding:15px 20px;text-align:left;font-size:14px;
+  border-bottom:1px solid var(--line)}
+.lp table.tcompare th{background:var(--panel);color:var(--muted);font-size:12px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.05em}
+.lp table.tcompare th.hi{color:#a5b0ff}
+.lp table.tcompare td{color:var(--muted)}
+.lp table.tcompare td b{color:var(--ink);font-weight:600}
+.lp table.tcompare td.hi{background:rgba(91,108,255,.06)}
+.lp table.tcompare tr:last-child td{border-bottom:none}
+
+.lp .plan.mc{max-width:680px;margin:46px auto 0}
+
+/* Accordeon : six questions repliees tiennent en un ecran, depliees non. */
+.lp .acc{max-width:760px;margin:40px auto 0;display:flex;flex-direction:column;gap:12px}
+.lp .acc details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 22px}
+.lp .acc details[open]{border-color:rgba(138,108,255,.4)}
+.lp .acc summary{padding:18px 0;font-family:Sora;font-weight:600;font-size:15.5px;
+  cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.lp .acc summary::-webkit-details-marker{display:none}
+.lp .acc summary::after{content:'+';color:#a5b0ff;font-size:22px;font-weight:400;line-height:1}
+.lp .acc details[open] summary::after{content:'3'}
+.lp .acc details p{color:var(--muted);font-size:14px;line-height:1.65;padding:0 0 20px}
+
+/* Newsletter */
+.lp .nl-form{display:flex;gap:12px;justify-content:center;max-width:560px;margin:34px auto 0;flex-wrap:wrap}
+.lp .nl-form input{flex:1;min-width:240px;background:var(--card);border:1px solid var(--line);
+  border-radius:12px;padding:14px 18px;color:var(--ink);font:inherit;font-size:15px}
+.lp .nl-form input::placeholder{color:var(--dim)}
+.lp .nl-form input:focus{outline:none;border-color:var(--primaire,#5B6CFF)}
+.lp .nl-form .btn{width:auto;white-space:nowrap}
+.lp .nl-note{text-align:center;margin-top:14px}
+.lp .nl-note.err{color:#f87171}
+
+.lp .final{text-align:center}
+.lp .final h2{font-family:Sora;font-weight:800;font-size:30px;letter-spacing:-.02em}
+.lp .final p{color:var(--muted);margin:12px auto 26px;max-width:560px}
+.lp .finalbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
 .lp .ctaband{background:radial-gradient(600px 240px at 50% 0%,rgba(91,108,255,.16),transparent),var(--panel);border:1px solid rgba(138,108,255,.3);border-radius:26px;padding:60px;text-align:center;position:relative;overflow:hidden}
 .lp .ctaband h2{font-family:Sora;font-weight:800;font-size:34px;letter-spacing:-.02em}
 .lp .ctaband p{color:var(--muted);margin:14px auto 30px;max-width:480px}

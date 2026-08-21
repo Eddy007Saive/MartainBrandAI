@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import {
-  LANGUE_DEFAUT, PREFIXEES, cheminPourLangue, estPagePublique,
+  LANGUE_DEFAUT, PREFIXEES, cheminPourLangue, estPagePublique, estPageTraduite,
   langueDuChemin,
 } from '../lib/langues';
 
@@ -65,9 +65,14 @@ export default function LangueParUrl() {
   }, [pathname, navigate]);
 
   useEffect(() => {
-    const langue = langueDuChemin(pathname);
+    // L'adresse ne fait foi QUE sur les pages traduites. Le tableau de bord
+    // n'a pas de préfixe : forcer la langue de son chemin le ramènerait au
+    // français, et quelqu'un qui vient de se connecter depuis /en/login se
+    // retrouverait en français sans avoir rien demandé.
+    const courante = (i18n.resolvedLanguage || LANGUE_DEFAUT).slice(0, 2);
+    const langue = estPageTraduite(pathname) ? langueDuChemin(pathname) : courante;
 
-    if ((i18n.resolvedLanguage || '').slice(0, 2) !== langue) {
+    if (courante !== langue) {
       i18n.changeLanguage(langue);
     }
     document.documentElement.setAttribute('lang', langue);

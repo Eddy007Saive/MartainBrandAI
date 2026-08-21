@@ -877,7 +877,7 @@
       "inclus4": "20 imágenes HD",
       "inclus5": "10 carruseles",
       "etAussi": "Y además",
-      "feats1": "Las 5 redes",
+      "feats1": "Las 6 redes",
       "feats2": "Carruseles + planificación",
       "feats3": "Analytics + comentarios",
       "feats4": "Notificaciones push",
@@ -1754,89 +1754,150 @@
     "pricing": {
       "badge": {
         "recommended": "Recomendado",
-        "popular": "El más elegido"
+        "popular": "Popular",
+        "allIn": "Todo incluido"
       },
-      "oneTime": "Pago único",
-      "perMonth": "/mes",
-      "setup": {
-        "head": {
-          "eyebrow": "Lo montamos por ti",
-          "title": "Primero, ponemos tus cimientos",
-          "lead": "El trabajo real de una agencia, una sola vez. Después, eres autónomo."
-        },
-        "cta": "Reserva tu llamada →",
-        "note": "Llamada gratuita · Estudiamos tu empresa antes de proponer nada.",
-        "pack": {
-          "name": "Pack Cimientos",
-          "desc": "El lanzamiento llave en mano: no empiezas ante una página en blanco, sino con un sistema ya ajustado a tu imagen.",
-          "feat": {
-            "1": "La auditoría de tu marca (posicionamiento, público, competencia)",
-            "2": "La definición de tu tono de voz",
-            "3": "Tu línea editorial (pilares, temas, estrategia)",
-            "4": "Tus ganchos y llamadas a la acción a medida",
-            "5": "La creación gráfica de tu marca (dirección artística)",
-            "6": "Tus 9 plantillas de feed de Instagram",
-            "7": "Tus 2 carruseles personalizados, listos para publicar"
-          }
-        }
+      "oneTime": "una sola vez",
+      "perMonth": "/ mes",
+      "perMonthAll": "/ mes · todo incluido",
+      "head": {
+        "eyebrow": "Precios",
+        "title": "Un precio simple. Tu presencia en línea, por fin resuelta.",
+        "lead": "Una suscripción todo incluido para pilotar tus redes y tu ficha de Google. Empieza solo en unos minutos, o déjanos la configuración."
       },
       "sub": {
-        "head": {
-          "eyebrow": "Y después pilotas tú",
-          "title": "La suscripción mensual",
-          "lead": "Con el sistema ya montado: generación ilimitada, planificación multirred, validación y estadísticas. Sin permanencia, cancelas cuando quieras."
+        "name": "Suscripción Postorico",
+        "desc": "Tu presencia en 6 redes + tu ficha de Google, pilotada en unas horas al mes.",
+        "feat": {
+          "1": "Generación de tus contenidos con tu voz (publicaciones, carruseles, visuales)",
+          "2": "Publicación en LinkedIn, Instagram, Facebook, TikTok, YouTube y X",
+          "3": "Gestión de tu ficha de Google Business Profile",
+          "4": "Calendario editorial + programación",
+          "5": "Tú validas, tú mantienes el control — nada sale sin tu visto bueno",
+          "6": "Sin permanencia, cancelable en cualquier momento"
         },
-        "note": "¿Prefieres empezar por tu cuenta? El plan Gratis te deja probarlo sin tarjeta."
+        "cta": "Empezar mi prueba",
+        "cta2": "Reservar una demo",
+        "note": "14 días para probarlo. Solo pagas al final de la prueba, y puedes parar cuando quieras."
       },
-      "plans": {
-        "free": {
-          "name": "Gratis",
-          "tag": "Para probar, sin tarjeta",
-          "feat": {
-            "1": "1 red conectada",
-            "2": "Generación de publicaciones",
-            "3": "Soporte de la comunidad"
-          },
-          "cta": "Empezar"
+      "pack": {
+        "name": "Pack Fundaciones — opcional",
+        "desc": "El trabajo real de una agencia, una sola vez. Después, eres autónomo.",
+        "feat": {
+          "1": "Auditoría de tu marca (posicionamiento, público, competencia)",
+          "2": "Tu tono de voz + tu línea editorial",
+          "3": "Tus ganchos y llamadas a la acción a medida",
+          "4": "La dirección artística de tu marca",
+          "5": "9 plantillas de feed de Instagram",
+          "6": "2 carruseles personalizados, listos para publicar"
         },
-        "pro": {
-          "name": "Pro",
-          "tag": "Todo incluido · sin permanencia",
-          "feat": {
-            "1": "Las 5 redes",
-            "2": "Carruseles + planificación",
-            "3": "Analíticas + comentarios",
-            "4": "Estudio de vídeo (reels)",
-            "5": "Notificaciones push"
+        "cta": "Reservar mi llamada de lanzamiento",
+        "note": "Te llevas un sistema completo, no 2 visuales « para adaptar » luego hasta el infinito en la herramienta."
+      },
+      "transition": {
+        "eyebrow": "Cómo empezar",
+        "title": "Puedes empezar solo. También podemos dejártelo todo montado.",
+        "lead": "La suscripción te permite empezar por tu cuenta, ahora mismo. Y si prefieres que unos expertos calibren tu marca antes de publicar, para eso está el Pack Fundaciones."
+      },
+      "keynote": {
+        "eyebrow": "El secreto de un contenido a tu imagen",
+        "title": "Todo se juega en la configuración.",
+        "p1": "Una herramienta, por excelente que sea, depende de cómo esté ajustada. Mal calibrada, saca contenido genérico. Bien calibrada, saca <b>tu</b> contenido.",
+        "p2": "Sin el Pack, nuestro asistente de configuración te acompaña para sentar tus bases: te hace las preguntas correctas y rellena tu ficha de marca contigo.",
+        "p3": "Con el <b>Pack Fundaciones</b>, no haces tú el trabajo: <b>nuestros expertos lo hacen por ti</b>. Analizan tu marca, escriben tu línea editorial y entregan tus plantillas."
+      },
+      "compare": {
+        "title": "¿Con o sin Pack Fundaciones?",
+        "lead": "Los dos funcionan. El Pack es un acelerador, no una obligación.",
+        "colA": "Solo suscripción",
+        "colB": "Suscripción + Pack Fundaciones",
+        "row": {
+          "start": {
+            "l": "Arranque",
+            "a": "Autónomo, lo ajustas todo",
+            "b": "Llave en mano por nuestros expertos"
           },
-          "cta": "Elegir Pro"
+          "brand": {
+            "l": "Marca calibrada",
+            "a": "Por ti",
+            "b": "Por nuestros expertos"
+          },
+          "tpl": {
+            "l": "Plantillas y carruseles",
+            "a": "Los creas tú",
+            "b": "Entregados personalizados"
+          },
+          "who": {
+            "l": "Ideal para",
+            "a": "Probar, seguir siendo autónomo",
+            "b": "Arrancar a nivel de agencia"
+          },
+          "price": {
+            "l": "Precio",
+            "a": "279 € / mes",
+            "b": "1 499 € una vez + 279 € / mes"
+          }
         }
-      },
-      "agency": {
-        "title": "Una agencia te cuesta {{price}}",
-        "titleAccent": "cada mes.",
-        "text": "Con Postorico: un setup una sola vez y luego una suscripción ligera que pilotas en unas 2 h al mes. La constancia de una agencia, sin la factura recurrente.",
-        "ctaCall": "Reserva tu llamada de setup →",
-        "ctaSignup": "Crear mi cuenta",
-        "note": "Precios orientativos, sujetos a cambios."
       },
       "multi": {
         "eyebrow": "¿Varios establecimientos?",
         "title": "Postorico Multicuenta",
         "lead": "Para redes, franquicias y grupos con varios establecimientos.",
         "name": "Multicuenta",
-        "price": "Presupuesto a medida",
-        "tag": "Tarifa decreciente según el número de cuentas",
+        "price": "A presupuesto",
+        "tarif": "Tarifa decreciente según el número de cuentas",
         "desc": "Una marca fuerte a nivel nacional, una visibilidad potente en local. Pilotaje centralizado, ejecución en cada punto de venta.",
-        "note": "La línea editorial vive en el sistema, no en la cabeza de una persona: si un responsable se va, la presencia no se mueve.",
-        "cta": "Pide tu presupuesto",
         "feat": {
-          "1": "Un Pack Cimientos por marca o establecimiento",
-          "2": "Todas las cuentas pilotadas desde una sola interfaz",
-          "3": "Coherencia de marca garantizada, con adaptación local",
+          "1": "Un Pack Fundaciones por marca o establecimiento",
+          "2": "Pilotaje de todas las cuentas desde una sola interfaz",
+          "3": "Coherencia de marca garantizada, adaptación local por establecimiento",
           "4": "La ficha de Google Business de cada punto de venta",
           "5": "Un acompañamiento dedicado para el despliegue"
+        },
+        "cta": "Pedir tu presupuesto"
+      },
+      "faq": {
+        "title": "Preguntas frecuentes",
+        "q": {
+          "1": {
+            "q": "¿Estoy obligado a contratar el Pack Fundaciones?",
+            "a": "No. Puedes empezar solo con la suscripción y ajustar tu marca tú mismo en la herramienta. El Pack Fundaciones es un acelerador: nuestros expertos sientan tus bases por ti."
+          },
+          "2": {
+            "q": "¿Es 100 % automático?",
+            "a": "No, y es a propósito. La herramienta lo prepara todo — ideas, textos, visuales, calendario — pero nada se publica sin tu validación."
+          },
+          "3": {
+            "q": "¿El contenido no va a sonar « genérico »?",
+            "a": "No. Tu marca, tu tono y tu estilo se calibran antes. El contenido sale con tu voz, no como una IA genérica."
+          },
+          "4": {
+            "q": "¿Cuánto tiempo me lleva al mes?",
+            "a": "Unas horas. La herramienta prepara, tú lees y validas. Pasas de « debería publicar » a « ya está listo »."
+          },
+          "5": {
+            "q": "¿En qué redes funciona?",
+            "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube y X — más tu ficha de Google Business Profile. Todo desde una sola interfaz."
+          },
+          "6": {
+            "q": "¿Puedo cancelar cuando quiera?",
+            "a": "Sí. La suscripción no tiene permanencia y se puede cancelar en cualquier momento."
+          }
         }
+      },
+      "news": {
+        "eyebrow": "La carta de Rico",
+        "title": "Lo que cambia de verdad en las redes, cada semana",
+        "lead": "Las novedades de las plataformas, los formatos que funcionan y una acción concreta para aplicar esta semana.",
+        "ph": "tu@email.com",
+        "cta": "Me suscribo",
+        "note": "Una carta por semana. Baja en un clic, cuando quieras.",
+        "ok": "Anotado — recibirás la próxima carta.",
+        "err": "No se pudo completar la suscripción ahora mismo."
+      },
+      "final": {
+        "title": "¿Listo para recuperar el control de tu presencia?",
+        "lead": "Empieza tu prueba, o reserva una llamada: miramos tu presencia juntos y te enseñamos la herramienta sobre tu propia marca."
       }
     },
     "faq": {
@@ -1848,7 +1909,7 @@
       "list": {
         "1": {
           "q": "¿Qué es Postorico exactamente?",
-          "a": "Es una agencia de comunicación, dentro de un software. Nuestros expertos sientan las bases de tu marca (tono, línea editorial, dirección artística) y luego la herramienta genera, programa y publica tu contenido en tus 5 redes (LinkedIn, Instagram, Facebook, TikTok, YouTube) y en tu ficha de Google. Tú validas y mantienes el control. Resultado: la constancia de una agencia, por una fracción del precio, en unas horas al mes."
+          "a": "Es una agencia de comunicación, dentro de un software. Nuestros expertos sientan las bases de tu marca (tono, línea editorial, dirección artística) y luego la herramienta genera, programa y publica tu contenido en tus 6 redes (LinkedIn, Instagram, Facebook, TikTok, YouTube, X) y en tu ficha de Google. Tú validas y mantienes el control. Resultado: la constancia de una agencia, por una fracción del precio, en unas horas al mes."
         },
         "2": {
           "q": "¿El contenido no va a sonar genérico, como toda la IA?",
@@ -1864,15 +1925,15 @@
         },
         "5": {
           "q": "¿Cuánto cuesta?",
-          "a": "Dos elementos. El Pack Fundaciones (el trabajo inicial de nuestros expertos): 1 499 €, una sola vez. Después la suscripción para pilotar tu presencia a diario: 279 € al mes. Compáralo con una agencia, que suele facturar entre 2 000 y 3 000 € al mes, de forma continua."
+          "a": "La suscripción cuesta 279 € al mes, todo incluido, sin permanencia y con 14 días de prueba. Si quieres que unos expertos sienten las bases de tu marca antes de publicar, el Pack Fundaciones cuesta 1 499 €, una sola vez — es opcional. Compáralo con una agencia, que suele facturar entre 2 000 y 3 000 € al mes, de forma continua."
         },
         "6": {
-          "q": "¿Por qué un Pack Fundaciones de 1 499 € al principio?",
-          "a": "Porque la calidad de tu contenido depende de un buen ajuste de partida. Nuestros expertos hacen un trabajo de agencia de verdad: auditoría de marca, tono de voz, línea editorial, dirección artística, plantillas de feed y carruseles personalizados. Es lo que garantiza que todo lo que salga después sea a tu imagen, desde el primer día. Una agencia facturaría este trabajo a 3 000 € o más — y te seguiría facturando cada mes."
+          "q": "¿Para qué sirve el Pack Fundaciones, si es opcional?",
+          "a": "Para ganar tiempo y arrancar bien. Nuestros expertos hacen un trabajo de agencia de verdad: auditoría de marca, tono de voz, línea editorial, dirección artística, plantillas de feed y carruseles personalizados. Es lo que garantiza que todo lo que salga después sea a tu imagen, desde el primer día. Una agencia facturaría este trabajo a 3 000 € o más — y te seguiría facturando cada mes."
         },
         "7": {
           "q": "¿Puedo empezar sin el Pack Fundaciones?",
-          "a": "El Pack Fundaciones es muy recomendable, porque es lo que garantiza un contenido realmente a tu imagen. Pero la herramienta se puede usar de forma autónoma si prefieres sentar tú mismo las bases. Lo hablamos en la llamada y vemos qué te conviene."
+          "a": "Sí, y muchos lo hacen. Contratas solo la suscripción y ajustas tu marca tú mismo: el asistente de configuración te hace las preguntas correctas y rellena tu ficha contigo. El Pack es para quien prefiere delegar ese trabajo previo."
         },
         "8": {
           "q": "Ya tengo a alguien en prácticas que lleva mis redes. ¿Postorico viene a sustituirlo?",
@@ -1888,7 +1949,7 @@
         },
         "11": {
           "q": "¿En qué redes funciona?",
-          "a": "LinkedIn, Instagram, Facebook, TikTok y YouTube — más tu ficha de Google Business Profile. Todo pilotado desde un solo sitio, con contenido adaptado a cada plataforma."
+          "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube y X — más tu ficha de Google Business Profile. Todo pilotado desde un solo sitio, con contenido adaptado a cada plataforma."
         },
         "12": {
           "q": "Tengo varios establecimientos / varias marcas. ¿Lo gestionáis?",

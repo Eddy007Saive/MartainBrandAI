@@ -877,7 +877,7 @@
       "inclus4": "20 images HD",
       "inclus5": "10 carrousels",
       "etAussi": "Et aussi",
-      "feats1": "Les 5 réseaux",
+      "feats1": "Les 6 réseaux",
       "feats2": "Carrousels + planification",
       "feats3": "Analytics + commentaires",
       "feats4": "Notifications push",
@@ -1754,71 +1754,90 @@
     "pricing": {
       "badge": {
         "recommended": "Recommandé",
-        "popular": "Populaire"
+        "popular": "Populaire",
+        "allIn": "Tout compris"
       },
-      "oneTime": "Paiement unique",
-      "perMonth": "/mois",
-      "setup": {
-        "head": {
-          "eyebrow": "On installe pour toi",
-          "title": "D'abord, on pose tes fondations",
-          "lead": "Le vrai travail d'une agence, une fois. Ensuite, tu es autonome."
-        },
-        "cta": "Réserve ton call →",
-        "note": "Échange gratuit · On étudie ta boîte avant de proposer quoi que ce soit.",
-        "pack": {
-          "name": "Pack Fondations",
-          "desc": "Le lancement clé en main : tu ne démarres pas devant une page blanche, mais avec un système déjà réglé à ton image.",
-          "feat": {
-            "1": "L'audit de ta marque (positionnement, cible, concurrents)",
-            "2": "La définition de ton ton de voix",
-            "3": "Ta ligne éditoriale (piliers, sujets, stratégie)",
-            "4": "Tes hooks et tes CTA sur-mesure",
-            "5": "Ta création graphique de marque (direction artistique)",
-            "6": "Tes 9 templates de feed Instagram",
-            "7": "Tes 2 carrousels personnalisés, prêts à publier"
-          }
-        }
+      "oneTime": "une seule fois",
+      "perMonth": "/ mois",
+      "perMonthAll": "/ mois · tout compris",
+      "head": {
+        "eyebrow": "Tarifs",
+        "title": "Un tarif simple. Ta présence en ligne, enfin réglée.",
+        "lead": "Un abonnement tout compris pour piloter tes réseaux et ta fiche Google. Démarre seul en quelques minutes, ou confie-nous le paramétrage."
       },
       "sub": {
-        "head": {
-          "eyebrow": "Puis tu pilotes",
-          "title": "L'abonnement mensuel",
-          "lead": "Une fois le système en place : génération illimitée, planification multi-réseaux, validation et stats. Sans engagement, résiliable à tout moment."
+        "name": "Abonnement Postorico",
+        "desc": "Ta présence sur 6 réseaux + ta fiche Google, pilotée en quelques heures par mois.",
+        "feat": {
+          "1": "Génération de tes contenus à ta voix (posts, carrousels, visuels)",
+          "2": "Publication sur LinkedIn, Instagram, Facebook, TikTok, YouTube & X",
+          "3": "Pilotage de ta fiche Google Business Profile",
+          "4": "Calendrier éditorial + programmation",
+          "5": "Tu valides, tu gardes le contrôle — rien ne part sans ton feu vert",
+          "6": "Sans engagement, annulable à tout moment"
         },
-        "note": "Tu préfères démarrer seul ? L'offre Gratuite te laisse tester sans carte bancaire."
+        "cta": "Démarrer mon essai",
+        "cta2": "Réserver une démo",
+        "note": "14 jours pour tester. Tu ne paies qu'à la fin de l'essai, et tu peux arrêter quand tu veux."
       },
-      "plans": {
-        "free": {
-          "name": "Gratuit",
-          "tag": "Pour tester, sans carte",
-          "feat": {
-            "1": "1 réseau connecté",
-            "2": "Génération de posts",
-            "3": "Support communauté"
-          },
-          "cta": "Commencer"
+      "pack": {
+        "name": "Pack Fondations — optionnel",
+        "desc": "Le vrai travail d'une agence, une fois. Ensuite, tu es autonome.",
+        "feat": {
+          "1": "Audit de ta marque (positionnement, cible, concurrents)",
+          "2": "Ton ton de voix + ta ligne éditoriale",
+          "3": "Tes hooks & CTA sur-mesure",
+          "4": "Ta direction artistique de marque",
+          "5": "9 templates de feed Instagram",
+          "6": "2 carrousels personnalisés, prêts à publier"
         },
-        "pro": {
-          "name": "Pro",
-          "tag": "Tout inclus · sans engagement",
-          "feat": {
-            "1": "Les 5 réseaux",
-            "2": "Carrousels + planification",
-            "3": "Analytics + commentaires",
-            "4": "Studio vidéo (reels)",
-            "5": "Notifications push"
+        "cta": "Réserver mon appel de lancement",
+        "note": "Tu repars avec un système complet, pas 2 visuels « à décliner » ensuite à l'infini dans l'outil."
+      },
+      "transition": {
+        "eyebrow": "Comment démarrer",
+        "title": "Tu peux commencer seul. On peut aussi tout poser pour toi.",
+        "lead": "L'abonnement te permet de démarrer en autonomie, tout de suite. Et si tu veux que ta marque soit calibrée par des experts avant de publier, le Pack Fondations est là pour ça."
+      },
+      "keynote": {
+        "eyebrow": "Le secret d'un contenu à ton image",
+        "title": "Tout se joue au paramétrage.",
+        "p1": "Un outil, même excellent, dépend de la façon dont il est réglé. Mal calibré, il sort du générique. Bien calibré, il sort <b>ton</b> contenu.",
+        "p2": "Sans le Pack, notre assistant de configuration t'accompagne pour poser tes fondations : il te pose les bonnes questions et remplit ta fiche de marque avec toi.",
+        "p3": "Avec le <b>Pack Fondations</b>, tu ne fais pas le travail : <b>nos experts le font pour toi</b>. Ils analysent ta marque, écrivent ta ligne éditoriale et livrent tes gabarits."
+      },
+      "compare": {
+        "title": "Avec ou sans Pack Fondations ?",
+        "lead": "Les deux fonctionnent. Le Pack est un accélérateur, pas une obligation.",
+        "colA": "Abonnement seul",
+        "colB": "Abonnement + Pack Fondations",
+        "row": {
+          "start": {
+            "l": "Démarrage",
+            "a": "Autonome, tu règles tout",
+            "b": "Clé en main par nos experts"
           },
-          "cta": "Choisir Pro"
+          "brand": {
+            "l": "Marque calibrée",
+            "a": "Par toi",
+            "b": "Par nos experts"
+          },
+          "tpl": {
+            "l": "Templates & carrousels",
+            "a": "À toi de les créer",
+            "b": "Livrés personnalisés"
+          },
+          "who": {
+            "l": "Idéal pour",
+            "a": "Tester, rester autonome",
+            "b": "Démarrer au niveau agence"
+          },
+          "price": {
+            "l": "Prix",
+            "a": "279 € / mois",
+            "b": "1 499 € une fois + 279 € / mois"
+          }
         }
-      },
-      "agency": {
-        "title": "Une agence te coûte {{price}}",
-        "titleAccent": "chaque mois.",
-        "text": "Avec Postorico : un setup une seule fois, puis un abonnement léger que tu pilotes en ~2 h par mois. La régularité d'une agence, sans la facture récurrente.",
-        "ctaCall": "Réserve ton call de setup →",
-        "ctaSignup": "Créer mon compte",
-        "note": "Tarifs indicatifs, susceptibles d'évoluer."
       },
       "multi": {
         "eyebrow": "Plusieurs établissements ?",
@@ -1826,17 +1845,59 @@
         "lead": "Pour les réseaux, les franchises et les groupes multi-établissements.",
         "name": "Multicompte",
         "price": "Sur devis",
-        "tag": "Tarif dégressif au nombre de comptes",
+        "tarif": "Tarif dégressif au nombre de comptes",
         "desc": "Une marque forte au national, une visibilité puissante en local. Pilotage centralisé, exécution sur chaque point de vente.",
-        "note": "La ligne éditoriale vit dans le système, pas dans la tête d'une personne : un responsable part, la présence ne bouge pas.",
-        "cta": "Demande ton devis",
         "feat": {
           "1": "Un Pack Fondations par marque ou établissement",
           "2": "Pilotage de tous les comptes depuis une seule interface",
           "3": "Cohérence de marque garantie, déclinaison locale par établissement",
           "4": "La fiche Google Business de chaque point de vente",
           "5": "Un accompagnement dédié pour le déploiement"
+        },
+        "cta": "Demander ton devis"
+      },
+      "faq": {
+        "title": "Questions fréquentes",
+        "q": {
+          "1": {
+            "q": "Suis-je obligé de prendre le Pack Fondations ?",
+            "a": "Non. Tu peux démarrer avec l'abonnement seul et régler ta marque toi-même dans l'outil. Le Pack Fondations est un accélérateur : nos experts posent tes fondations à ta place."
+          },
+          "2": {
+            "q": "Est-ce que c'est 100 % automatique ?",
+            "a": "Non, et c'est volontaire. L'outil prépare tout — idées, textes, visuels, calendrier — mais rien n'est publié sans ta validation."
+          },
+          "3": {
+            "q": "Le contenu ne va pas sonner « générique » ?",
+            "a": "Non. Ta marque, ton ton et ton style sont calibrés en amont. Le contenu sort à ta voix, pas comme une IA générique."
+          },
+          "4": {
+            "q": "Combien de temps ça me prend par mois ?",
+            "a": "Quelques heures. L'outil prépare, tu relis et tu valides. Tu passes de « je devrais poster » à « c'est déjà prêt »."
+          },
+          "5": {
+            "q": "Sur quels réseaux ça fonctionne ?",
+            "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube et X — plus ta fiche Google Business Profile. Le tout depuis une seule interface."
+          },
+          "6": {
+            "q": "Puis-je annuler quand je veux ?",
+            "a": "Oui. L'abonnement est sans engagement, annulable à tout moment."
+          }
         }
+      },
+      "news": {
+        "eyebrow": "La lettre de Rico",
+        "title": "Ce qui change vraiment sur les réseaux, chaque semaine",
+        "lead": "Les nouveautés des plateformes, les formats qui marchent et une action concrète à appliquer dans la semaine.",
+        "ph": "ton@email.com",
+        "cta": "Je m'abonne",
+        "note": "Une lettre par semaine. Désinscription en un clic, à tout moment.",
+        "ok": "C'est noté — tu recevras la prochaine lettre.",
+        "err": "Inscription impossible pour le moment."
+      },
+      "final": {
+        "title": "Prêt à reprendre le contrôle de ta présence ?",
+        "lead": "Démarre ton essai, ou réserve un appel : on regarde ta présence ensemble et on te montre l'outil sur ta marque."
       }
     },
     "faq": {
@@ -1848,7 +1909,7 @@
       "list": {
         "1": {
           "q": "Concrètement, Postorico c'est quoi ?",
-          "a": "C'est l'agence de com', dans un logiciel. Nos experts posent les fondations de ta marque (ton, ligne éditoriale, direction artistique), puis l'outil génère, planifie et publie ton contenu sur tes 5 réseaux (LinkedIn, Instagram, Facebook, TikTok, YouTube) et ta fiche Google. Toi, tu valides et tu gardes le contrôle. Résultat : la régularité d'une agence, pour une fraction du prix, en quelques heures par mois."
+          "a": "C'est l'agence de com', dans un logiciel. Nos experts posent les fondations de ta marque (ton, ligne éditoriale, direction artistique), puis l'outil génère, planifie et publie ton contenu sur tes 6 réseaux (LinkedIn, Instagram, Facebook, TikTok, YouTube, X) et ta fiche Google. Toi, tu valides et tu gardes le contrôle. Résultat : la régularité d'une agence, pour une fraction du prix, en quelques heures par mois."
         },
         "2": {
           "q": "Est-ce que le contenu ne va pas sonner « générique », comme toute l'IA ?",
@@ -1864,15 +1925,15 @@
         },
         "5": {
           "q": "Combien ça coûte ?",
-          "a": "Deux éléments. Le Pack Fondations (le travail de départ par nos experts) : 1 499 €, une seule fois. Puis l'abonnement pour piloter ta présence au quotidien : 279 € par mois. À comparer à une agence, qui facture généralement 2 000 à 3 000 € par mois, en continu."
+          "a": "L'abonnement est à 279 € par mois, tout compris, sans engagement, avec 14 jours d'essai. Si tu veux que des experts posent les bases de ta marque avant de publier, le Pack Fondations est à 1 499 €, une seule fois — il est optionnel. Compare à une agence, qui facture plutôt 2 000 à 3 000 € par mois, en continu."
         },
         "6": {
-          "q": "Pourquoi un Pack Fondations à 1 499 € au départ ?",
-          "a": "Parce que la qualité de ton contenu dépend d'un bon réglage de base. Nos experts font un vrai travail d'agence : audit de ta marque, ton de voix, ligne éditoriale, direction artistique, templates de feed et carrousels personnalisés. C'est ce qui garantit que tout ce qui sortira ensuite soit à ton image, dès le premier jour. Une agence facturerait ce travail 3 000 € ou plus — et te facturerait encore chaque mois derrière."
+          "q": "À quoi sert le Pack Fondations, s'il est optionnel ?",
+          "a": "À gagner du temps et à partir juste. Nos experts font un vrai travail d'agence : audit de marque, ton de voix, ligne éditoriale, direction artistique, gabarits de feed et carrousels personnalisés. C'est ce qui garantit que tout ce qui sortira ensuite te ressemble, dès le premier jour. Une agence facturerait ce travail 3 000 € ou plus — et continuerait de te facturer tous les mois."
         },
         "7": {
-          "q": "Je peux commencer sans le Pack Fondations ?",
-          "a": "Le Pack Fondations est fortement recommandé, parce que c'est lui qui garantit un contenu vraiment à ton image. Mais l'outil reste utilisable en autonomie si tu préfères poser toi-même tes bases. On en parle pendant l'appel pour voir ce qui te convient."
+          "q": "Je peux démarrer sans le Pack Fondations ?",
+          "a": "Oui, et beaucoup le font. Tu prends l'abonnement seul et tu règles ta marque toi-même : l'assistant de configuration te pose les bonnes questions et remplit ta fiche avec toi. Le Pack sert à ceux qui préfèrent déléguer ce cadrage."
         },
         "8": {
           "q": "J'ai déjà un alternant qui s'occupe de mes réseaux. Postorico, c'est pour le remplacer ?",
@@ -1888,7 +1949,7 @@
         },
         "11": {
           "q": "Sur quels réseaux ça fonctionne ?",
-          "a": "LinkedIn, Instagram, Facebook, TikTok et YouTube — plus ta fiche Google Business Profile. Le tout piloté depuis un seul endroit, avec du contenu adapté à chaque plateforme."
+          "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube et X — plus ta fiche Google Business Profile. Le tout piloté depuis un seul endroit, avec du contenu adapté à chaque plateforme."
         },
         "12": {
           "q": "J'ai plusieurs établissements / plusieurs marques. Vous gérez ça ?",
