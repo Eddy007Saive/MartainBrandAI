@@ -34,6 +34,36 @@ function robustesse(mdp) {
 
 const TEINTES = ['bg-red-500', 'bg-amber-400', 'bg-[#3AFFA3]'];
 
+/**
+ * Un champ et son message d'erreur.
+ *
+ * Declares au niveau du MODULE, et non dans Register : une fonction definie
+ * dans le corps du composant est recreee a chaque rendu, React y voit un
+ * composant d'un autre type, demonte le champ et le remonte — et le focus
+ * part a chaque lettre tapee.
+ *
+ * La marque « facultatif » remplace les asterisques rouges : un seul champ sur
+ * cinq l'est, autant marquer l'exception plutot que la regle.
+ */
+const Champ = ({ id, label, facultatif, erreur, optionnel, children }) => (
+  <div className="space-y-1.5 min-w-0">
+    <Label htmlFor={id} className="flex items-baseline gap-1.5 text-slate-200 font-inter">
+      {label}
+      {facultatif && <span className="text-[11px] font-normal text-slate-600">{optionnel}</span>}
+    </Label>
+    {children}
+    {erreur && <p className="text-xs text-red-400 font-inter">{erreur}</p>}
+  </div>
+);
+
+const Oeil = ({ visible, bascule, testid, libelle }) => (
+  <button type="button" onClick={bascule} data-testid={testid} aria-label={libelle}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500
+               hover:text-slate-200 transition-colors">
+    {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+  </button>
+);
+
 export default function Register() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -135,30 +165,6 @@ export default function Register() {
   const force = robustesse(formData.password);
   const bord = (champ) => (errors[champ] ? ' border-red-500' : '');
 
-  // Un champ et son message d'erreur. La marque « facultatif » remplace les
-  // asterisques rouges : un seul champ sur cinq l'est, autant marquer
-  // l'exception plutot que la regle.
-  const Champ = ({ id, label, facultatif, children }) => (
-    <div className="space-y-1.5 min-w-0">
-      <Label htmlFor={id} className="flex items-baseline gap-1.5 text-slate-200 font-inter">
-        {label}
-        {facultatif && (
-          <span className="text-[11px] font-normal text-slate-600">{t('register.optional')}</span>
-        )}
-      </Label>
-      {children}
-      {errors[id] && <p className="text-xs text-red-400 font-inter">{errors[id]}</p>}
-    </div>
-  );
-
-  const Oeil = ({ visible, bascule, testid, libelle }) => (
-    <button type="button" onClick={bascule} data-testid={testid} aria-label={libelle}
-      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500
-                 hover:text-slate-200 transition-colors">
-      {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-    </button>
-  );
-
   return (
     <div className="min-h-screen w-full grid lg:grid-cols-2 bg-[#020617]">
       <AfficheAuth />
@@ -190,27 +196,27 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-[15px]">
             {/* Identite : deux champs courts sur une ligne. */}
             <div className="grid sm:grid-cols-2 gap-[15px]">
-              <Champ id="nom" label={t('register.name')}>
+              <Champ id="nom" label={t('register.name')} erreur={errors.nom} optionnel={t('register.optional')}>
                 <Input id="nom" name="nom" value={formData.nom} onChange={handleChange}
                   placeholder={t('register.namePlaceholder')} data-testid="register-nom"
                   className={CHAMP_AUTH + bord('nom')} />
               </Champ>
 
-              <Champ id="username" label={t('register.username')} facultatif>
+              <Champ id="username" label={t('register.username')} facultatif erreur={errors.username} optionnel={t('register.optional')}>
                 <Input id="username" name="username" value={formData.username} onChange={handleChange}
                   placeholder="@username" data-testid="register-username" className={CHAMP_AUTH} />
               </Champ>
             </div>
 
             {/* L'email porte l'identifiant de connexion : il garde toute la ligne. */}
-            <Champ id="email" label={t('auth.email')}>
+            <Champ id="email" label={t('auth.email')} erreur={errors.email} optionnel={t('register.optional')}>
               <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange}
                 placeholder={t('app.emailPh')} data-testid="register-email"
                 className={CHAMP_AUTH + bord('email')} />
             </Champ>
 
             <div className="grid sm:grid-cols-2 gap-[15px]">
-              <Champ id="password" label={t('auth.password')}>
+              <Champ id="password" label={t('auth.password')} erreur={errors.password} optionnel={t('register.optional')}>
                 <div className="relative">
                   <Input id="password" name="password" type={showPassword ? 'text' : 'password'}
                     value={formData.password} onChange={handleChange} placeholder="••••••••"
@@ -221,7 +227,7 @@ export default function Register() {
                 </div>
               </Champ>
 
-              <Champ id="confirmPassword" label={t('register.confirmPassword')}>
+              <Champ id="confirmPassword" label={t('register.confirmPassword')} erreur={errors.confirmPassword} optionnel={t('register.optional')}>
                 <div className="relative">
                   <Input id="confirmPassword" name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
