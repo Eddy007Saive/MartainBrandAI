@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
+import capStudio from '../../assets/captures/studio.jpg';
+import capContenus from '../../assets/captures/contenus.jpg';
+import capPlanification from '../../assets/captures/planification.jpg';
+import capCommentaires from '../../assets/captures/commentaires.jpg';
+import capPerformance from '../../assets/captures/performance.jpg';
+import capCarrousels from '../../assets/captures/carrousels.jpg';
 
 const SIDEBAR = ['Studio IA', 'Contenus', 'Planification', 'Commentaires', 'Performance', 'Carrousels'];
 
 // Le shell du hero (fenêtre + sidebar + points) reste factice ; SEULES les images changent :
 // le panneau central affiche de VRAIES captures de l'app (public/images), en fondu enchaîné.
 const SCENES = [
-  { label: 'Studio IA', src: '/images/studio.jpg' },
-  { label: 'Contenus', src: '/images/contenus.jpg' },
-  { label: 'Planification', src: '/images/planification.jpg' },
-  { label: 'Commentaires', src: '/images/commentaires.jpg' },
-  { label: 'Performance', src: '/images/performance.jpg' },
-  { label: 'Carrousels', src: '/images/carrousels.jpg' },
+  { label: 'Studio IA', src: capStudio },
+  { label: 'Contenus', src: capContenus },
+  { label: 'Planification', src: capPlanification },
+  { label: 'Commentaires', src: capCommentaires },
+  { label: 'Performance', src: capPerformance },
+  { label: 'Carrousels', src: capCarrousels },
 ];
 
 export default function HeroPreview() {

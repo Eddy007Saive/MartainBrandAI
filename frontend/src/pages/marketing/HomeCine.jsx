@@ -73,15 +73,28 @@ const FondHexagones = () => (
   </span>
 );
 
+// Les captures sont IMPORTEES, pas referencees par leur chemin. Webpack leur
+// pose alors un condense de leur contenu dans le nom (contenus.a1b2c3.jpg) :
+// remplacer l'image change son nom, donc plus aucun cache a purger. C'est le
+// meme mecanisme qui rend le reste du build fiable — et il remplace le cache
+// d'un jour de /images, qui faisait qu'une capture changee hier s'affichait
+// encore le lendemain.
+import capStudio from '../../assets/captures/studio.jpg';
+import capContenus from '../../assets/captures/contenus.jpg';
+import capPlanification from '../../assets/captures/planification.jpg';
+import capCommentaires from '../../assets/captures/commentaires.jpg';
+import capPerformance from '../../assets/captures/performance.jpg';
+import capCarrousels from '../../assets/captures/carrousels.jpg';
+
 // Scènes de la galerie (vraies captures produit)
 // `id` sert de clé React stable (indépendante de la langue) ; les libellés viennent de i18n.
 const SCENES = [
-  { id: 'studio', src: '/images/studio.jpg', labelKey: 'lp.scenes.studio.label', tagKey: 'lp.scenes.studio.tag', descKey: 'lp.scenes.studio.desc' },
-  { id: 'contenus', src: '/images/contenus.jpg', labelKey: 'lp.scenes.contenus.label', tagKey: 'lp.scenes.contenus.tag', descKey: 'lp.scenes.contenus.desc' },
-  { id: 'planification', src: '/images/planification.jpg', labelKey: 'lp.scenes.planification.label', tagKey: 'lp.scenes.planification.tag', descKey: 'lp.scenes.planification.desc' },
-  { id: 'commentaires', src: '/images/commentaires.jpg', labelKey: 'lp.scenes.commentaires.label', tagKey: 'lp.scenes.commentaires.tag', descKey: 'lp.scenes.commentaires.desc' },
-  { id: 'performance', src: '/images/performance.jpg', labelKey: 'lp.scenes.performance.label', tagKey: 'lp.scenes.performance.tag', descKey: 'lp.scenes.performance.desc' },
-  { id: 'carrousels', src: '/images/carrousels.jpg', labelKey: 'lp.scenes.carrousels.label', tagKey: 'lp.scenes.carrousels.tag', descKey: 'lp.scenes.carrousels.desc' },
+  { id: 'studio', src: capStudio, labelKey: 'lp.scenes.studio.label', tagKey: 'lp.scenes.studio.tag', descKey: 'lp.scenes.studio.desc' },
+  { id: 'contenus', src: capContenus, labelKey: 'lp.scenes.contenus.label', tagKey: 'lp.scenes.contenus.tag', descKey: 'lp.scenes.contenus.desc' },
+  { id: 'planification', src: capPlanification, labelKey: 'lp.scenes.planification.label', tagKey: 'lp.scenes.planification.tag', descKey: 'lp.scenes.planification.desc' },
+  { id: 'commentaires', src: capCommentaires, labelKey: 'lp.scenes.commentaires.label', tagKey: 'lp.scenes.commentaires.tag', descKey: 'lp.scenes.commentaires.desc' },
+  { id: 'performance', src: capPerformance, labelKey: 'lp.scenes.performance.label', tagKey: 'lp.scenes.performance.tag', descKey: 'lp.scenes.performance.desc' },
+  { id: 'carrousels', src: capCarrousels, labelKey: 'lp.scenes.carrousels.label', tagKey: 'lp.scenes.carrousels.tag', descKey: 'lp.scenes.carrousels.desc' },
 ];
 
 // Légende d'une scène : « <b>Titre</b> — <em>accroche</em> · description »
