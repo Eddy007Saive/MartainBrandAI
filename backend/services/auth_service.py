@@ -44,15 +44,18 @@ def register_user(nom: str, email: str, username: str, password: str, master_id:
         "username": username,
         "password_hash": password_hash,
         "actif": True,
-        "plan": "gratuit",
-        "credits": 100,
+        # Ni "plan" ni "credits" : ces deux colonnes ont ete supprimees de
+        # `users` au passage aux quotas. Elles etaient encore ecrites ici, et
+        # Supabase refusait l'insertion entiere (PGRST204) — plus AUCUNE
+        # inscription ne passait. Le forfait vit desormais dans
+        # `subscriptions`, la consommation dans les quotas.
         # La palette de marque est posée dans `marques` (marque_service.creer ci-dessous).
         # Le contenu généré démarre dans la langue de l'interface choisie à l'inscription
         "langue": langue if langue in ("fr", "en", "es") else "fr",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
-    # Sous-compte rattaché à un master (regroupement + switch). Facturation PAR COMPTE :
-    # le sous-compte garde ses propres crédits + forfait (définis ci-dessus).
+    # Sous-compte rattaché à un master (regroupement + switch). Facturation PAR
+    # COMPTE : le sous-compte a son propre abonnement dans `subscriptions`.
     if master_id:
         new_user["master_id"] = master_id
 
