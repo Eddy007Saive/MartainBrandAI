@@ -58,7 +58,8 @@
     "strength": "Strength",
     "strengthWeak": "weak",
     "strengthMedium": "fair",
-    "strengthStrong": "strong"
+    "strengthStrong": "strong",
+    "paiementIndisponible": "Payment is unavailable right now — your account is created, add your card from the dashboard."
   },
   "pending": {
     "title": "Account pending",
@@ -2400,6 +2401,13 @@
       "duree": "20 minutes",
       "axes": "Live on your brand",
       "compteRendu": "No commitment"
+    }
+  },
+  "quota": {
+    "sansCarte": {
+      "titre": "Add your card to get started",
+      "texte": "Your account is ready. All that's left is your card to start your 14-day trial — nothing is charged today, and you can stop any time before it ends.",
+      "cta": "Start my 14 days"
     }
   }
 }

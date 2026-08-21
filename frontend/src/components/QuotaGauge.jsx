@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Sparkles, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { agentService } from '../services/agentService';
 import { billingService } from '../services/billingService';
 
@@ -54,6 +55,7 @@ function Bar({ g, onRachat }) {
 }
 
 export default function QuotaGauge() {
+  const { t } = useTranslation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [rachat, setRachat] = useState(null); // { label, packs, loading }
@@ -88,6 +90,35 @@ export default function QuotaGauge() {
     return (
       <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6 flex items-center justify-center">
         <Loader2 className="w-5 h-5 animate-spin text-[#5B6CFF]" />
+      </div>
+    );
+  }
+  // Compte sans abonnement : quelqu'un a referme la page Stripe. Renvoyer
+  // null le laissait devant un tableau de bord muet, sans comprendre pourquoi
+  // rien ne fonctionne. On lui redonne la main, avec un seul bouton.
+  if (data && !data.subscription) {
+    return (
+      <div className="rounded-xl border border-[#5B6CFF]/30 bg-[#5B6CFF]/[0.06] p-6"
+        data-testid="carte-manquante">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF]
+                          grid place-items-center flex-shrink-0">
+            <Sparkles className="w-[18px] h-[18px] text-white" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-sora font-semibold text-white text-[15px]">{t('quota.sansCarte.titre')}</h3>
+            <p className="text-[13px] text-slate-400 font-inter mt-1 max-w-[52ch]">
+              {t('quota.sansCarte.texte')}
+            </p>
+            <button onClick={() => billingService.checkout('pro', true)}
+              data-testid="ajouter-carte"
+              className="mt-4 inline-flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-medium
+                         text-white font-inter bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF]
+                         transition-transform duration-150 ease-out-strong active:scale-[0.97]">
+              {t('quota.sansCarte.cta')}
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

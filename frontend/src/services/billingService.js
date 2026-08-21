@@ -1,9 +1,11 @@
 import api from '../lib/api';
 
 export const billingService = {
-  // Crée une session de paiement Stripe pour un plan ('pro' | 'business') et redirige
-  checkout: async (plan) => {
-    const { data } = await api.post('/billing/checkout', { plan });
+  // Crée une session de paiement Stripe pour un plan ('pro' | 'business') et redirige.
+  // essai=true : parcours d'inscription — la carte est saisie, rien n'est prélevé,
+  // et Stripe déclenche lui-même le premier paiement au 14e jour.
+  checkout: async (plan, essai = false) => {
+    const { data } = await api.post('/billing/checkout', { plan, essai });
     if (data?.url) window.location.href = data.url;
     return data;
   },

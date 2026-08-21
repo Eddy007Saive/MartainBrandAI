@@ -58,7 +58,8 @@
     "strength": "Seguridad",
     "strengthWeak": "débil",
     "strengthMedium": "correcta",
-    "strengthStrong": "sólida"
+    "strengthStrong": "sólida",
+    "paiementIndisponible": "El pago no está disponible ahora — tu cuenta está creada, añade tu tarjeta desde el panel."
   },
   "pending": {
     "title": "Cuenta pendiente",
@@ -2400,6 +2401,13 @@
       "duree": "20 minutos",
       "axes": "En directo sobre tu marca",
       "compteRendu": "Sin compromiso"
+    }
+  },
+  "quota": {
+    "sansCarte": {
+      "titre": "Añade tu tarjeta para empezar",
+      "texte": "Tu cuenta está creada. Solo falta tu tarjeta para iniciar tus 14 días de prueba — hoy no se cobra nada, y puedes parar cuando quieras antes del final.",
+      "cta": "Empezar mis 14 días"
     }
   }
 }

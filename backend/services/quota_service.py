@@ -52,10 +52,23 @@ def is_paid(telegram_id: str) -> bool:
 
 
 def ensure_subscription(telegram_id: str) -> None:
-    """Crée un essai 14 jours (plan Essai) si le compte n'a aucun abonnement."""
+    """Pose un essai local si le compte n'a aucun abonnement.
+
+    UNIQUEMENT quand Stripe n'est pas configure. Depuis que l'essai passe par
+    Stripe avec carte, accorder ici quatorze jours gratuits sans carte serait
+    une porte derobee : il suffirait de refermer la page de paiement pour
+    obtenir la meme chose sans rien donner.
+
+    Le compte sans abonnement n'est pas casse pour autant : le tableau de bord
+    lit cet etat et affiche « Ajoute ta carte pour demarrer », avec un bouton
+    qui renvoie vers Stripe. Rien n'est perdu, la carte est simplement due.
+    """
+    from config import STRIPE_SECRET_KEY
     try:
         r = supabase.table("subscriptions").select("id").eq("user_id", telegram_id).limit(1).execute()
         if r.data:
+            return
+        if STRIPE_SECRET_KEY:
             return
         plan_id = _trial_plan_id()
         if not plan_id:

@@ -58,7 +58,8 @@
     "strength": "Robustesse",
     "strengthWeak": "faible",
     "strengthMedium": "correcte",
-    "strengthStrong": "solide"
+    "strengthStrong": "solide",
+    "paiementIndisponible": "Paiement indisponible pour le moment — ton compte est créé, ajoute ta carte depuis le tableau de bord."
   },
   "pending": {
     "title": "Compte en attente",
@@ -2400,6 +2401,13 @@
       "duree": "20 minutes",
       "axes": "En direct sur ta marque",
       "compteRendu": "Sans engagement"
+    }
+  },
+  "quota": {
+    "sansCarte": {
+      "titre": "Ajoute ta carte pour démarrer",
+      "texte": "Ton compte est créé. Il ne manque que ta carte pour lancer tes 14 jours d'essai — rien n'est prélevé aujourd'hui, et tu peux arrêter à tout moment avant la fin.",
+      "cta": "Démarrer mes 14 jours"
     }
   }
 }
