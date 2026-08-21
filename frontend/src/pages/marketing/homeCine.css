@@ -14,10 +14,18 @@
 .cine a{text-decoration:none}
 
 /* ===== Couches fond ===== */
+/* Plus de scale(.86) ici : il rapetissait TOUTES les videos de fond, et le
+   hero — seul clip sans transformation propre — se retrouvait avec des bandes
+   sombres sur les bords. Les autres plans portent leur propre transform en
+   ligne, qui remplace celle-ci : ils ne bougent pas. transform-origin reste,
+   il leur sert.
+   Le masque est elargi dans le meme mouvement : a 95% et 68% l'estompe
+   commencait bien avant le bord, ce qui donnait une image flottante au lieu
+   d'un fond. */
 .cine .bg-video{position:fixed;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;object-position:72% 32%;
-          transform:scale(.86);transform-origin:70% 85%;
-          -webkit-mask-image:radial-gradient(95% 95% at 62% 52%, #000 68%, transparent 100%);
-          mask-image:radial-gradient(95% 95% at 62% 52%, #000 68%, transparent 100%)}
+          transform-origin:70% 85%;
+          -webkit-mask-image:radial-gradient(125% 125% at 62% 52%, #000 82%, transparent 100%);
+          mask-image:radial-gradient(125% 125% at 62% 52%, #000 82%, transparent 100%)}
 .cine .bg-tint{position:fixed;inset:0;z-index:1;pointer-events:none;
          background:linear-gradient(to right, rgba(2,6,23,.82) 0%, rgba(2,6,23,.55) 38%, rgba(2,6,23,.12) 58%, rgba(2,6,23,0) 75%)}
 .cine .grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;
@@ -125,33 +133,72 @@
 }
 
 /* ===== Bulles de logos qui montent depuis l'écran ===== */
-/* Point de depart cale sur l'ecran du laptop dans la video : les bulles
-   doivent sembler en sortir. En pourcentage et non en vw, car le conteneur
-   est .hero (centre, largeur plafonnee) et non la fenetre — un vw partait
-   16 points trop a droite. A refaire si le cadrage du clip change. */
-.cine .rise{position:absolute;left:59%;bottom:33vh;width:0;height:0;pointer-events:none;z-index:4}
+/* Point de depart cale sur l'ecran du laptop de la planche v4.
+   Calcul, et non tatonnement : le capot occupe x 614-763 et son bord haut
+   y 295 dans la source 1024x448 ; avec « cover » et object-position 72% 32%,
+   cela tombe a 65% de la largeur et 34vh du bas — verifie identique a
+   1280x800, 1440x900 et 1920x1080, la hauteur commandant le cadrage dans les
+   trois cas. A refaire si le cadrage du clip change. */
+/* bottom:22vh et non 34 : a 34 les bulles naissaient AU-DESSUS du capot, donc
+   sur le plastron de la mascotte, et rien ne les rattachait a l'ecran. A 22
+   elles apparaissent au milieu de la dalle et montent jusqu'a son bord haut —
+   elles en sortent, ce qui etait tout l'objet. */
+.cine .rise{position:absolute;left:65%;bottom:22vh;width:0;height:0;pointer-events:none;z-index:4}
 .cine .rlogo{position:absolute;left:0;bottom:0;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;
        background:rgba(15,23,42,.82);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);
        box-shadow:0 0 20px rgba(138,108,255,.35),0 8px 22px rgba(0,0,0,.4);
        opacity:0;will-change:transform,opacity;animation:cineRise 8.4s linear infinite}
 .cine .rlogo svg{width:17px;height:17px;fill:currentColor}
-.cine .rlogo.li{color:#61a8f0;animation-delay:0s;margin-left:-30px}
-.cine .rlogo.ig{color:#ff5c8a;animation-delay:1.2s;margin-left:10px}
-.cine .rlogo.fb{color:#7aa7ff;animation-delay:2.4s;margin-left:-14px}
-.cine .rlogo.tk{color:#e7ecf5;animation-delay:3.6s;margin-left:26px}
-.cine .rlogo.yt{color:#ff6b6b;animation-delay:4.8s;margin-left:-26px}
-.cine .rlogo.gb{color:#7ab8ff;animation-delay:6s;margin-left:2px}
-.cine .rlogo.x{color:#e7ecf5;animation-delay:7.2s;margin-left:-8px}
+.cine .rlogo.li{color:#61a8f0;animation-delay:0s;margin-left:-96px}
+.cine .rlogo.ig{color:#ff5c8a;animation-delay:1.2s;margin-left:-40px}
+.cine .rlogo.fb{color:#7aa7ff;animation-delay:2.4s;margin-left:16px}
+.cine .rlogo.tk{color:#e7ecf5;animation-delay:3.6s;margin-left:72px}
+.cine .rlogo.yt{color:#ff6b6b;animation-delay:4.8s;margin-left:-68px}
+.cine .rlogo.gb{color:#7ab8ff;animation-delay:6s;margin-left:44px}
+.cine .rlogo.x{color:#e7ecf5;animation-delay:7.2s;margin-left:-12px}
 /* Derive vers la DROITE : elles sortent de l'ecran du laptop, qui se trouve
    juste sous le bec de la mascotte. En montant tout droit elles lui passaient
    en plein visage ; en s'ecartant, elles rejoignent la zone vide. */
+/* Le corps de la mascotte se trouve JUSTE au-dessus du laptop : tout ce qui
+   monte lui passe sur le torse. A -44vh puis -28vh les bulles finissaient sur
+   son plastron et l'on ne comprenait plus d'ou elles venaient. A -11vh elles
+   effleurent l'ecran et s'eteignent aussitot : c'est court, et c'est ce qui
+   les rattache au laptop. */
 @keyframes cineRise{
-  0%{transform:translate(0,0) scale(.5);opacity:0}
-  10%{transform:translate(.4vw,-4vh) scale(1);opacity:1}
-  75%{opacity:.95}
-  100%{transform:translate(4.5vw,-44vh) scale(.85);opacity:0}
+  0%{transform:translate(0,0) scale(.4);opacity:0}
+  18%{transform:translate(.2vw,-4vh) scale(1);opacity:1}
+  60%{opacity:.85}
+  100%{transform:translate(1.4vw,-11vh) scale(.8);opacity:0}
 }
 @media(max-width:1000px),(prefers-reduced-motion:reduce){.cine .rise{display:none}}
+
+/* ===== Hexagones flottants du bas de page =====================
+   Meme forme que la page de connexion et que le decor des clips : c'est le
+   motif de la marque, pas une decoration de plus. Contours seuls, opacite
+   basse, et une lueur legere pour retrouver le neon des videos.
+   z-index 0 et le contenu a 1 : ils passent DERRIERE, y compris derriere
+   les cartes d'avis. */
+.cine .hex-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.cine .hex-layer+.wrap{position:relative;z-index:1}
+.cine .testi,.cine .avis-sec,.cine .final{position:relative}
+.cine .hexf{position:absolute;will-change:transform;
+  animation-name:hexFlotte;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.cine .hexf--v{color:#8A6CFF;filter:drop-shadow(0 0 6px rgba(138,108,255,.45))}
+.cine .hexf--m{color:#3AFFA3;filter:drop-shadow(0 0 6px rgba(58,255,163,.4))}
+/* Deux mouvements combines : une derive verticale lente et une rotation
+   encore plus lente. Separement l'un ou l'autre se lit comme une boucle ;
+   ensemble le motif ne se repete pas a l'oeil. */
+@keyframes hexFlotte{
+  0%,100%{transform:translateY(0) rotate(var(--r))}
+  50%{transform:translateY(-26px) rotate(calc(var(--r) + 8deg))}
+}
+@media(prefers-reduced-motion:reduce){.cine .hexf{animation:none}}
+/* Sur telephone : moins d'hexagones, et plus petits. Sept elements animes
+   sur un ecran etroit, c'est de la batterie pour un decor a moitie vu. */
+@media(max-width:760px){
+  .cine .hexf{transform:scale(.7)}
+  .cine .hexf:nth-child(n+5){display:none}
+}
 
 /* ===== Impact ===== */
 .cine .impact{height:100vh;display:flex;align-items:center}

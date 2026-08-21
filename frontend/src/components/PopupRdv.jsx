@@ -23,12 +23,10 @@ import { propsRdv } from '../lib/rdv';
 const DELAI_MS = 60_000;
 const CLE = 'postorico_rdv_vu';
 const REPOS_JOURS = 30;
-// rico-v3 : la planche v2 n'est plus celle du produit. « celebre », ailes
-// grandes ouvertes, remplace « accueille » — c'est la pose d'accueil de la
-// nouvelle planche. Chemin neuf a chaque planche : Cloudinary sert ces images
-// avec un cache d'un an, reecrire au meme identifiant laisserait les visiteurs
-// sur l'ancienne pendant des mois.
-const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_420,q_auto,f_auto/brand/rico-v3/celebre.png';
+// rico-v4 : chemin neuf a chaque planche, Cloudinary sert ces images avec un
+// cache d'un an. « accueille », ailes grandes ouvertes : c'est une invitation
+// qu'on pose a l'ecran, la pose doit l'etre aussi.
+const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_420,q_auto,f_auto/brand/rico-v4/accueille.png';
 
 // Pages où la proposition n'a pas lieu d'être : on y est déjà en train de
 // convertir, ou on n'est pas un visiteur.

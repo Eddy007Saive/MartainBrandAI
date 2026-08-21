@@ -17,27 +17,61 @@ const CLD = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
 // Vidéos de fond par chapitre de la page (fondu enchaîné au scroll).
 // `sel` = la section qui déclenche le clip ; un fichier manquant est ignoré (repli sur le précédent).
 const BG_CLIPS = [
-  // La mascotte etait trop imposante. Le fichier garde desormais toute la
-  // largeur d'origine (2,36:1 au lieu d'un recadrage 16:9), et on reduit un
-  // peu : a 0,88 le masque radial du CSS dissout encore les bords, a 0,82 le
-  // cadre se voit. On la pousse a droite pour degager l'accroche.
-  { src: '/videos/hero-bg.mp4', transform: 'scale(0.88) translateX(7%)' },  // hero : il tape puis reflechit
-  // Reduit comme la banniere : a 0,78 le masque radial dissout encore les bords
-  // et le tableau comparatif respire, en dessous le cadre de la video se voit.
-  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp', transform: 'scale(0.78) translateX(7%)' },
-  // recadrage : Hailuo a rendu le coq ~20 % plus petit sur ce clip -> on aligne sur les autres.
-  // NB : ce transform inline REMPLACE le scale(.86) du CSS -> on combine (.86 x 1.2 = 1.032).
-  // Meme reduction : la mascotte ecrasait les trois cartes.
-  { src: '/videos/bg-point.mp4', sel: '.aud', transform: 'scale(0.78) translateX(6%)' },  // « Pour qui » : pointe le titre + clin d'œil
-  // Meme cas que « Plutot que... » : mascotte centree dans la source, texte
-  // centre dans la page. On agrandit puis on la pousse a droite.
-  // Source centree ET zoomee : la mascotte y est bien plus grosse que sur les
-  // autres clips. On la pousse a droite ET vers le bas pour degager le titre,
-  // avec juste assez d'agrandissement pour ne pas laisser de bord nu.
-  { src: '/videos/bg-work.mp4', sel: '.flow', transform: 'scale(1.05) translateX(18%) translateY(8%)' },  // « Accompagnement » : il travaille
+  // Aucune transformation sur le hero : « object-fit: cover » remplit deja tout
+  // l'ecran, et toute reduction rouvre des bandes sur les bords. La planche v4
+  // est cadree pour ca — la mascotte y est plus petite et decalee a droite,
+  // le tiers gauche reste libre pour l'accroche.
+  { src: '/videos/hero-bg.mp4' },  // hero : il tape au clavier
+  // Pleine largeur, comme le hero et « Pour qui ». Attention : ce clip est
+  // encore l'ANCIENNE mascotte, et il etait cadre pour etre reduit — la
+  // mascotte y prend donc plus de place que sur les plans v4. A regenerer.
+  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },
+  // Comme le hero : aucune transformation, « cover » remplit l'ecran. Le clip
+  // v4 est cadre pour ca — le coq est deja a droite, le tiers gauche est vide.
+  { src: '/videos/bg-point.mp4', sel: '.aud' },  // « Pour qui » : il pointe le titre
+  // Pleine largeur comme les autres plans v4 : meme cadrage source, donc les
+  // recadrages taillees pour l'ancien clip n'ont plus lieu d'etre.
+  { src: '/videos/bg-work.mp4', sel: '.flow' },  // « Comment ca marche » : il travaille, puis boit son cafe
   { none: true, sel: '.testi' },                      // Témoignages : fond noir, toute l'attention sur la vidéo client
   // { src: '/videos/bg-wave.mp4', sel: '.final' },   // CTA final : il salue (à activer quand le clip sera généré)
 ];
+
+/**
+ * Hexagones flottants du bas de page.
+ *
+ * Les quatre premieres sections sont portees par une video ; a partir des
+ * temoignages plus rien ne bouge, et la page tombe d'un coup. Ces hexagones
+ * reprennent EXACTEMENT le motif de la page de connexion et du decor des
+ * clips — meme trace, meme violet, meme mint : c'est la forme de la marque,
+ * on ne va pas en inventer une seconde pour le bas de page.
+ *
+ * Contours seuls, jamais pleins : un aplat attirerait l'oeil, or c'est un
+ * fond. Positions et durees toutes differentes, sinon les sept battent a
+ * l'unisson et l'on voit la mecanique.
+ */
+const HEXAGONES = [
+  { x: '6%',  y: '12%', t: 104, d: 26, r: -8,  c: 'v', o: 0.20 },
+  { x: '22%', y: '68%', t: 58,  d: 19, r: 12,  c: 'm', o: 0.16 },
+  { x: '41%', y: '24%', t: 40,  d: 23, r: 4,   c: 'v', o: 0.12 },
+  { x: '63%', y: '78%', t: 78,  d: 17, r: -14, c: 'm', o: 0.15 },
+  { x: '78%', y: '18%', t: 64,  d: 29, r: 7,   c: 'v', o: 0.18 },
+  { x: '90%', y: '58%', t: 46,  d: 21, r: -5,  c: 'm', o: 0.14 },
+  { x: '52%', y: '92%', t: 32,  d: 25, r: 18,  c: 'v', o: 0.11 },
+];
+
+const FondHexagones = () => (
+  <span className="hex-layer" aria-hidden="true">
+    {HEXAGONES.map((g, i) => (
+      <svg key={i} className={`hexf hexf--${g.c}`} viewBox="0 0 100 112"
+        width={g.t} height={g.t * 1.12}
+        style={{ left: g.x, top: g.y, animationDuration: `${g.d}s`, animationDelay: `${-i * 3}s`,
+                 opacity: g.o, '--r': `${g.r}deg` }}>
+        <polygon points="25,2 75,2 99,56 75,110 25,110 1,56" fill="none" stroke="currentColor"
+          strokeWidth="2" vectorEffect="non-scaling-stroke" />
+      </svg>
+    ))}
+  </span>
+);
 
 // Scènes de la galerie (vraies captures produit)
 // `id` sert de clé React stable (indépendante de la langue) ; les libellés viennent de i18n.
@@ -476,7 +510,7 @@ export default function HomeCine() {
         </div></section>
 
         {/* TÉMOIGNAGES */}
-        <section className="testi"><div className="wrap">
+        <section className="testi"><FondHexagones /><div className="wrap">
           <div className="eyebrow">{t('lp.testi.eyebrow')}</div>
           <h2>{t('lp.testi.title')}</h2>
           <div className="tgrid tgrid--solo">
@@ -488,7 +522,7 @@ export default function HomeCine() {
         </div></section>
 
         {/* CARROUSEL D'AVIS */}
-        <section className="sec avis-sec" style={{ paddingTop: 0 }}><div className="wrap">
+        <section className="sec avis-sec" style={{ paddingTop: 0 }}><FondHexagones /><div className="wrap">
           <div className="avis">
             <div className="avis-track" style={{ transform: `translateX(-${avisIdx * 100}%)` }}>
               {AVIS.map((a) => (
@@ -509,7 +543,7 @@ export default function HomeCine() {
         </div></section>
 
         {/* CTA FINAL */}
-        <section className="final"><div className="wrap">
+        <section className="final"><FondHexagones /><div className="wrap">
           <div className="ctaband">
             {!isTouch && <video className="mascot-wave" src={`${CLD}/q_auto/marketing/mascotte-wave.mp4`} autoPlay muted loop playsInline aria-hidden="true" />}
             <h2>{t('lp.final.title')}</h2>

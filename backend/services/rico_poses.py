@@ -16,32 +16,32 @@ import re
 from config import logger
 from services.agent_service import _messages_create
 
-# rico-v3 : chemin neuf a chaque planche. Cloudinary sert ces images avec un
+# rico-v4 : chemin neuf a chaque planche. Cloudinary sert ces images avec un
 # cache d'un an — reecrire au meme identifiant laisserait tous les navigateurs,
 # clients compris, sur l'ancienne planche pendant des mois.
-_BASE = "https://res.cloudinary.com/dy9gp5pim/image/upload/q_auto/brand/rico-v3"
+_BASE = "https://res.cloudinary.com/dy9gp5pim/image/upload/q_auto/brand/rico-v4"
 
 # id -> ce que la pose RACONTE. Ces phrases sont lues par l'IA : elles décrivent
 # l'intention, pas l'anatomie, car c'est l'intention qui doit coller au propos.
 #
-# Onze poses, et non seize : la planche v3 n'en couvre pas davantage. Mieux vaut
-# onze intentions dans un style cohérent que seize dont cinq jurent — un
-# carrousel n'en montre que cinq de toute façon.
+# Onze poses. La planche v4 n'en couvre pas davantage — et notamment aucune
+# pose « au travail devant des écrans » : les écrans de chargement restent donc
+# sur l'ancienne planche, faute d'équivalent ici.
 POSES = {
-    "celebre":        "ailes grandes ouvertes, joyeux — une victoire, un résultat obtenu, une bonne nouvelle ; sert aussi à ouvrir un sujet",
-    "brandit-badge":  "brandit un badge hexagonal — une preuve, une garantie, un label, un chiffre clé",
-    "fier":           "ailes croisées, menton haut — l'assurance, la maîtrise, l'expertise affirmée",
-    "bras-croises":   "ailes croisées, sourire tranquille — la sérénité, le problème déjà réglé ; pose passe-partout",
-    "presente-cote":  "présente quelque chose sur le côté — introduit une idée, montre une direction",
-    "pointe":         "pointe du doigt vers le côté — insiste sur un point précis, désigne l'essentiel",
-    "interroge":      "ailes levées, l'air interrogatif — un problème, un doute, une erreur courante",
-    "explique":       "ailes écartées, en train d'expliquer — une démonstration, un mécanisme détaillé",
-    "ecrans-data":    "entouré d'écrans holographiques — la donnée, les statistiques, l'analyse",
-    "ecrans-action":  "en action au milieu d'écrans — le travail en cours, l'automatisation, l'outil qui tourne",
-    "lit-tablette":   "lit une tablette — la veille, la lecture, l'apprentissage, un conseil de méthode",
+    "accueille":        "ailes grandes ouvertes, accueillant — une ouverture, une bienvenue, une bonne nouvelle",
+    "pouce-leve":       "deux pouces levés — une validation, un résultat obtenu, une recommandation",
+    "annonce":          "gros plan, les deux mains qui désignent, bouche grande ouverte — une annonce forte, le chiffre qui claque",
+    "clin-oeil":        "un clin d'œil en désignant du doigt — la complicité, l'astuce, le raccourci qu'on partage",
+    "idee":             "index levé — une idée, un point clé, la chose à retenir",
+    "pointe-haut":      "pointe vers le haut, l'autre aile croisée — ce qui monte, une tendance, un objectif",
+    "presente-cote":    "présente sur le côté, main ouverte, souriant — introduit une idée, montre une direction",
+    "presente-produit": "présente quelque chose de la main, enthousiaste — met en avant un outil, une offre",
+    "presente-calme":   "présente d'un geste posé — une explication tranquille, un constat",
+    "de-dos":           "vu de dos, il se retourne — ce qu'on laisse derrière, l'avant/après, le changement de cap",
+    "curieux":          "penché, il regarde entre ses pattes — la recherche, le détail qu'on ne voit pas, une note d'humour",
 }
 
-DEFAUT = "bras-croises"
+DEFAUT = "presente-cote"
 
 
 def url(pose_id: str) -> str:
@@ -86,8 +86,8 @@ def choisir(hook: str, slides: list, cta_titre: str) -> list:
     except Exception as e:
         logger.warning(f"choix des poses Rico : {e}")
     # Repli : une rotation qui suit la dramaturgie d'un carrousel
-    rotation = ["presente-cote", "interroge", "explique", "ecrans-data",
-                "pointe", "bras-croises", "lit-tablette", "ecrans-action"]
+    rotation = ["presente-cote", "idee", "presente-calme", "pointe-haut",
+                "clin-oeil", "presente-produit", "annonce", "de-dos"]
     return _sans_repetition([rotation[i % len(rotation)] for i in range(n - 1)] + ["celebre"])
 
 

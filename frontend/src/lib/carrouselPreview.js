@@ -202,9 +202,11 @@ function _renderRaw(tplId, colors) {
     // Aperçu des gabarits maison : mêmes ingrédients que le rendu backend
     // (carrousel_service.py). Rico change de pose d'une slide à l'autre — ici
     // une rotation fixe, l'aperçu ne peut pas interroger l'IA.
-    const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_260,q_auto,f_auto/brand/rico-v3';
-    const ROT = ['presente-cote', 'interroge', 'explique', 'ecrans-data', 'pointe', 'bras-croises'];
-    const pose = (i) => RICO + '/' + (i === n - 1 ? 'celebre' : ROT[i % ROT.length]) + '.png';
+    const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_260,q_auto,f_auto/brand/rico-v4';
+    // Memes identifiants que le repli de rico_poses.py cote backend : deux
+    // listes qui divergent, et l'apercu montre autre chose que le rendu final.
+    const ROT = ['presente-cote', 'idee', 'presente-calme', 'pointe-haut', 'clin-oeil', 'presente-produit'];
+    const pose = (i) => RICO + '/' + (i === n - 1 ? 'pouce-leve' : ROT[i % ROT.length]) + '.png';
     const acc = accD;
     const o = [];
 

@@ -14,8 +14,11 @@ import { Sparkles, BarChart3, MessageSquare, Calendar } from 'lucide-react';
  * Masquée sous 1024 px : sur téléphone, la page ne montre que le formulaire.
  */
 const AFFICHE = { '--rico': 'min(64%, 412px)', '--debord': '72px' };
+// rico-v4 : chemin neuf a chaque planche (cache d'un an chez Cloudinary).
+// « presente-cote » : il presente le formulaire, ce qui donne une raison a la
+// mise en page — la mascotte regarde ou l'on veut que le visiteur aille.
 const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_760,q_auto,f_auto/'
-           + 'brand/rico-v3/presente-cote.png';
+           + 'brand/rico-v4/presente-cote.png';
 
 // Les hexagones sont tracés en SVG et non découpés au clip-path : découper la
 // BORDURE d'un rectangle en hexagone n'en laisse que deux traits au centre.
