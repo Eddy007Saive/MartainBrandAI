@@ -7,6 +7,7 @@ Couleurs du client + logo injectés. CONTRASTE AUTOMATIQUE : la couleur du texte
 calculée selon la luminosité du fond (toujours lisible), les fonds "sombres" sont
 forcés en quasi-noir teinté.
 """
+import asyncio
 import html as _html
 from io import BytesIO
 from PIL import Image
@@ -18,6 +19,43 @@ from services.agent_service import _charger_marque
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
 
 SLIDE_W, SLIDE_H, DSF = 360, 450, 3  # 1080×1350
+
+# --- Atelier de rendu : combien de Chromium tournent en meme temps ---------
+#
+# Mesure du 21/08/2026 sur le chemin exact de production (6 slides en
+# 1080x1350, facteur d'echelle 3) : 341 Mo de pic et 6,5 s par rendu.
+#
+# Le conteneur Railway offre 8 Go et 8 vCPU. La memoire n'est donc pas la
+# contrainte (elle en tolererait une vingtaine) : c'est le processeur, chaque
+# rendu occupant un a deux coeurs pendant qu'il rastérise. Trois laissent de
+# quoi continuer a servir l'API pendant les rendus.
+#
+# Sans cette borne, rien n'empechait cinq clients de lancer cinq Chromium a la
+# fois. Ce n'est pas le rendu de trop qui tombe alors, c'est le conteneur
+# entier — donc les connexions et les publications de tout le monde.
+RENDUS_SIMULTANES = 3
+ATTENTE_MAX_S = 45          # au-dela, le proxy coupera de toute facon
+_atelier = asyncio.Semaphore(RENDUS_SIMULTANES)
+
+
+class AtelierSature(Exception):
+    """Trop de rendus en cours : l'appelant doit repondre 503, pas faire attendre."""
+
+
+async def _rendre(fonction, *args):
+    """Execute un rendu Playwright hors de la boucle, une place a la fois.
+
+    Attendre son tour, oui ; attendre indefiniment, non : le client verrait une
+    erreur de passerelle pendant que le serveur continue de travailler pour rien.
+    """
+    try:
+        await asyncio.wait_for(_atelier.acquire(), timeout=ATTENTE_MAX_S)
+    except asyncio.TimeoutError:
+        raise AtelierSature()
+    try:
+        return await asyncio.to_thread(fonction, *args)
+    finally:
+        _atelier.release()
 TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon",
              "postorico", "rico-studio", "rico-scene"]
 
@@ -595,10 +633,14 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     res = {"images": [], "pdf": None}
     for attempt in (1, 2):
         try:
-            res = await asyncio.to_thread(_render_and_upload, *args)
+            res = await _rendre(_render_and_upload, *args)
             if res.get("images"):
                 break
             logger.warning(f"Carrousel {base}: 0 slide rendue (essai {attempt})")
+        except AtelierSature:
+            # Ne PAS reessayer : la boucle rendrait l'attente de 45 s deux fois
+            # avant de renvoyer un carrousel vide. L'appelant doit repondre 503.
+            raise
         except Exception as e:
             logger.error(f"Carrousel render error (essai {attempt}): {e}")
     return res
@@ -1016,7 +1058,7 @@ async def apercu_custom(tpl_id: str, html_gabarit: str) -> str | None:
             browser.close()
         return png
 
-    png = await asyncio.to_thread(_shot)
+    png = await _rendre(_shot)
     up = cloudinary.uploader.upload(
         BytesIO(png), folder="carrousels/_templates", public_id=tpl_id,
         overwrite=True, resource_type="image", format="png",

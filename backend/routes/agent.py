@@ -216,6 +216,9 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                         ).eq("id", cid).execute()
                     else:
                         errors.append({"sujet": sujet, "reseau": reseau_low, "err": "render_vide"})
+                except carrousel_service.AtelierSature:
+                    logger.warning("rafale carrousel : atelier sature")
+                    errors.append({"sujet": sujet, "reseau": reseau_low, "err": "atelier_sature"})
                 except Exception as e:
                     logger.error(f"rafale carrousel render error: {e}")
                     errors.append({"sujet": sujet, "reseau": reseau_low, "err": "render"})
