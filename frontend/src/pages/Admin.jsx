@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Activity, Settings, LogOut, Search, Download,
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
-  Loader2, ChevronRight, ChevronLeft, Clock, CheckCircle, XCircle, RefreshCw,
+  Loader2, ChevronRight, ChevronLeft, ChevronDown, Clock, CheckCircle, XCircle, RefreshCw,
   Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
   Plus, Minus, DollarSign, Wifi, Inbox, Copy, BarChart3, Handshake } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -34,20 +34,45 @@ import { adminService } from '../services/adminService';
 import CarrouselTemplateImport from '../components/CarrouselTemplateImport';
 import { enterVision } from '../lib/vision';
 
-const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { id: 'users', label: 'Utilisateurs', icon: Users },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'avatars', label: 'Avatars', icon: Video },
-  { id: 'audits', label: 'Audits', icon: Inbox },
-  { id: 'quotas', label: 'Offres & quotas', icon: Coins },
-  { id: 'promos', label: 'Codes promo', icon: DollarSign },
-  { id: 'facturation', label: 'Facturation', icon: FileText },
-  { id: 'affiliation', label: 'Affiliation', icon: Handshake },
-  { id: 'activity', label: 'Activité', icon: Activity },
-  { id: 'settings', label: 'Paramètres', icon: Settings },
+// Douze entrees a plat, c'est une liste qu'on parcourt du regard a chaque
+// fois. Regroupees par intention — piloter, gerer les clients, suivre l'argent
+// — on va droit a la bonne famille.
+//
+// « Parametres » reste hors groupe : un parent a un seul enfant n'est pas un
+// classement, c'est un pli inutile.
+const navGroupes = [
+  {
+    id: 'pilotage', label: 'Pilotage', icon: LayoutDashboard,
+    enfants: [
+      { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+      { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+      { id: 'activity', label: 'Activité', icon: Activity },
+    ],
+  },
+  {
+    id: 'clients', label: 'Clients', icon: Users,
+    enfants: [
+      { id: 'users', label: 'Utilisateurs', icon: Users },
+      { id: 'audits', label: 'Audits', icon: Inbox },
+      { id: 'avatars', label: 'Avatars', icon: Video },
+      { id: 'notifications', label: 'Notifications', icon: Bell },
+    ],
+  },
+  {
+    id: 'revenus', label: 'Revenus', icon: DollarSign,
+    enfants: [
+      { id: 'quotas', label: 'Offres & quotas', icon: Coins },
+      { id: 'facturation', label: 'Facturation', icon: FileText },
+      { id: 'promos', label: 'Codes promo', icon: DollarSign },
+      { id: 'affiliation', label: 'Affiliation', icon: Handshake },
+    ],
+  },
 ];
+const navSeuls = [{ id: 'settings', label: 'Paramètres', icon: Settings }];
+
+// Le groupe qui contient un onglet — sert a rouvrir le bon au chargement.
+const groupeDe = (tabId) =>
+  navGroupes.find((g) => g.enfants.some((e) => e.id === tabId))?.id || null;
 
 const PLAN_CFG = {
   gratuit: { label: 'Gratuit', color: 'text-slate-300', bg: 'bg-slate-500/20' },
@@ -75,6 +100,23 @@ export default function Admin() {
   const [searchParams, setSearchParams] = useSearchParams();
   const viewedUser = searchParams.get('u');
   const activeTab = viewedUser ? 'client' : (searchParams.get('tab') || 'dashboard');
+  // Un seul groupe ouvert a la fois : deux ouverts et l'on retrouve la liste a
+  // plat qu'on cherchait a eviter.
+  //
+  // Pas de memorisation en stockage local : l'ouverture suit l'onglet actif,
+  // qui est lui-meme dans l'URL. Un souvenir separe serait ecrase a chaque
+  // chargement par l'effet ci-dessous — une promesse que le code ne tient pas.
+  const [groupeOuvert, setGroupeOuvert] = useState(() => groupeDe(activeTab) || 'pilotage');
+
+  // Arriver sur un onglet par un lien direct ou le retour arriere ouvre son
+  // groupe. Depend du seul activeTab : ouvrir un autre groupe a la main pour
+  // regarder ce qu'il contient ne doit pas le refermer aussitot.
+  useEffect(() => {
+    const g = groupeDe(activeTab);
+    if (g) setGroupeOuvert(g);
+  }, [activeTab]);
+
+  const basculerGroupe = (id) => setGroupeOuvert((ouvert) => (ouvert === id ? null : id));
   const setActiveTab = (t) => setSearchParams(t === 'dashboard' ? {} : { tab: t });
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
@@ -415,25 +457,94 @@ export default function Admin() {
           <p className="text-xs text-slate-500 mt-1 font-inter">Gestion de la plateforme</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navGroupes.map((groupe) => {
+            const Icone = groupe.icon;
+            const ouvert = groupeOuvert === groupe.id;
+            // Un point sur le parent replie dit ou l'on se trouve sans l'ouvrir.
+            const contientActif = groupe.enfants.some(
+              (e) => e.id === activeTab || (e.id === 'users' && activeTab === 'client'));
             return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 font-inter",
-                  (activeTab === item.id || (item.id === 'users' && activeTab === 'client'))
-                    ? "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white border-l-2 border-red-500"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
-                )}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="text-sm font-medium">{item.label}</span>
-              </button>
+              <div key={groupe.id}>
+                <button
+                  onClick={() => basculerGroupe(groupe.id)}
+                  aria-expanded={ouvert}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left font-inter",
+                    "transition-colors duration-200",
+                    contientActif && !ouvert ? "text-white" : "text-slate-300 hover:text-white hover:bg-slate-800/40",
+                  )}
+                >
+                  <Icone className="w-[18px] h-[18px] flex-shrink-0" />
+                  <span className="text-[13px] font-semibold tracking-wide flex-1">{groupe.label}</span>
+                  {contientActif && !ouvert && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                  )}
+                  <ChevronDown className={cn(
+                    "w-4 h-4 flex-shrink-0 transition-transform duration-200 ease-out-strong",
+                    ouvert ? "rotate-0" : "-rotate-90")} />
+                </button>
+
+                {/* Replie par la hauteur plutot que par display:none : la
+                    transition existe, et le contenu reste dans le DOM pour la
+                    recherche du navigateur. */}
+                <div className={cn(
+                  "grid transition-[grid-template-rows] duration-200 ease-out-strong",
+                  ouvert ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+                  <div className="overflow-hidden">
+                    <div className="pt-1 pb-1 space-y-0.5">
+                      {groupe.enfants.map((item) => {
+                        const Icon = item.icon;
+                        const actif = activeTab === item.id
+                          || (item.id === 'users' && activeTab === 'client');
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            tabIndex={ouvert ? 0 : -1}
+                            className={cn(
+                              "w-full flex items-center gap-3 pl-6 pr-4 py-2.5 rounded-lg text-left",
+                              "transition-colors duration-200 font-inter",
+                              actif
+                                ? "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white border-l-2 border-red-500"
+                                : "text-slate-400 hover:text-white hover:bg-slate-800/50",
+                            )}
+                          >
+                            <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+                            <span className="text-sm font-medium">{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           })}
+
+          {/* Hors groupe : voir « Systeme > Parametres » couterait un pli pour
+              une seule entree. */}
+          <div className="pt-2 mt-2 border-t border-white/5">
+            {navSeuls.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left",
+                    "transition-colors duration-200 font-inter",
+                    activeTab === item.id
+                      ? "bg-gradient-to-r from-red-500/20 to-orange-500/20 text-white border-l-2 border-red-500"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/50",
+                  )}
+                >
+                  <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </nav>
 
         <div className="p-4 border-t border-white/5">
