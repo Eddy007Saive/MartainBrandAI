@@ -768,6 +768,8 @@ export default function ParametresPage() {
     { id: 'instagram', label: 'Instagram' },
     { id: 'facebook', label: 'Facebook' },
     { id: 'tiktok', label: 'TikTok' },
+    { id: 'googlebusiness', label: 'Fiche Google' },
+    { id: 'twitter', label: 'Twitter/X' },
   ];
 
   const renderMarque = () => {
@@ -868,7 +870,8 @@ export default function ParametresPage() {
           </div>
           <ChampMarque name={`exemples_${exReseau}`} lignes={6}
             value={user?.[`exemples_${exReseau}`]} onChange={handleChange}
-            placeholder={t('params.marque.exemplesPlaceholder', { reseau: exReseau })} />
+            placeholder={t('params.marque.exemplesPlaceholder', {
+              reseau: RESEAUX_EX.find((r) => r.id === exReseau)?.label || exReseau })} />
         </Bloc>
       </div>
     );
@@ -881,6 +884,7 @@ export default function ParametresPage() {
     youtube: 'params.reseaux.hintYoutube',
     tiktok: 'params.reseaux.hintTiktok',
     googlebusiness: 'params.reseaux.hintGooglebusiness',
+    twitter: 'params.reseaux.hintTwitter',
   };
 
   const renderConnections = () => {

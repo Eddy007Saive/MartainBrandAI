@@ -145,6 +145,7 @@ CREATE TABLE public.marques (
   secteur text, voix_marque text, audience text, piliers text, a_eviter text,
   hooks text, ctas text, regles text,
   exemples_linkedin text, exemples_instagram text, exemples_facebook text, exemples_tiktok text,
+  exemples_googlebusiness text, exemples_twitter text,
   couleur_principale text DEFAULT '#003D2E',
   couleur_secondaire text DEFAULT '#0077FF',
   couleur_accent text DEFAULT '#3AFFA3',

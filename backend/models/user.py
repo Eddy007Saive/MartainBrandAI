@@ -19,6 +19,8 @@ class UserUpdate(BaseModel):
     exemples_instagram: Optional[str] = None
     exemples_facebook: Optional[str] = None
     exemples_tiktok: Optional[str] = None
+    exemples_googlebusiness: Optional[str] = None
+    exemples_twitter: Optional[str] = None
     photo_url: Optional[str] = None
     use_photo: Optional[bool] = None
     use_inspirations: Optional[bool] = None

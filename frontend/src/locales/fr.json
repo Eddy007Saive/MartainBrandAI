@@ -831,7 +831,8 @@
       "deconnecteToast": "{{platform}} déconnecté",
       "erreurConnexion": "Erreur lors de la connexion",
       "serveurInjoignable": "Impossible de contacter le serveur",
-      "erreurDeconnexion": "Erreur lors de la déconnexion"
+      "erreurDeconnexion": "Erreur lors de la déconnexion",
+      "hintTwitter": "Publie des messages courts et réactifs. Idéal pour réagir à l'actualité de ton secteur."
     },
     "planif": {
       "intro": "Fréquence et jours de publication par réseau.",

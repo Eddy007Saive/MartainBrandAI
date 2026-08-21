@@ -14,11 +14,12 @@ miroir (rollback immédiat possible) mais ne sont plus lues.
 """
 from config import supabase, logger
 
-# Les 22 champs déplacés. Sert à la fois à lire, à écrire et à router les
+# Les 24 champs déplacés. Sert à la fois à lire, à écrire et à router les
 # mises à jour envoyées par la page Paramètres.
 CHAMPS = (
     "secteur", "voix_marque", "audience", "piliers", "a_eviter", "hooks", "ctas", "regles",
     "exemples_linkedin", "exemples_instagram", "exemples_facebook", "exemples_tiktok",
+    "exemples_googlebusiness", "exemples_twitter",
     "couleur_principale", "couleur_secondaire", "couleur_accent", "logo_url",
     "carrousel_couleur_principale", "carrousel_couleur_secondaire", "carrousel_couleur_accent",
     "carrousel_font", "carrousel_font_corps", "carrousel_templates_exclusifs",

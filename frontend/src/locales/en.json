@@ -831,7 +831,8 @@
       "deconnecteToast": "{{platform}} disconnected",
       "erreurConnexion": "Error while connecting",
       "serveurInjoignable": "Unable to reach the server",
-      "erreurDeconnexion": "Error while disconnecting"
+      "erreurDeconnexion": "Error while disconnecting",
+      "hintTwitter": "Posts short, reactive updates. Ideal for reacting to news in your industry."
     },
     "planif": {
       "intro": "Publishing frequency and days per network.",
