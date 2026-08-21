@@ -50,7 +50,9 @@ export default function Login() {
         navigate('/dashboard');
       }
     } catch (error) {
-      toast.error(t('auth.toastError'));
+      // Un 401 = identifiants faux. Une reponse qui n'est pas une session =
+      // panne de configuration : le dire, plutot que d'accuser l'utilisateur.
+      toast.error(error?.__reponseInvalide ? t('auth.toastServeur') : t('auth.toastError'));
     } finally {
       setLoading(false);
     }

@@ -32,7 +32,8 @@
     "forgotShort": "¿Olvidada?",
     "noAccountPre": "¿Aún no tienes cuenta?",
     "createAccount": "Crear mi cuenta",
-    "androidApp": "Aplicación Android"
+    "androidApp": "Aplicación Android",
+    "toastServeur": "No se pudo iniciar sesión: el servidor no devolvió una sesión válida."
   },
   "register": {
     "title": "Registro",

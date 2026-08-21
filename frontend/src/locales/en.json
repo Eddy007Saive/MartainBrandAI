@@ -32,7 +32,8 @@
     "forgotShort": "Forgot?",
     "noAccountPre": "No account yet?",
     "createAccount": "Create my account",
-    "androidApp": "Android app"
+    "androidApp": "Android app",
+    "toastServeur": "Sign-in failed: the server did not return a valid session."
   },
   "register": {
     "title": "Sign up",

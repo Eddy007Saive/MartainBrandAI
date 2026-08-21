@@ -32,7 +32,8 @@
     "forgotShort": "Oublié ?",
     "noAccountPre": "Pas encore de compte ?",
     "createAccount": "Créer mon compte",
-    "androidApp": "Application Android"
+    "androidApp": "Application Android",
+    "toastServeur": "Connexion impossible : le serveur n'a pas renvoyé de session valide."
   },
   "register": {
     "title": "Inscription",

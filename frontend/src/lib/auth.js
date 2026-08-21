@@ -13,8 +13,50 @@ const persist = (key, value) => {
   else Preferences.set({ key, value }).catch(() => {});
 };
 
-export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const setToken = (token) => { localStorage.setItem(TOKEN_KEY, token); persist(TOKEN_KEY, token); };
+/**
+ * Un JWT a trois segments et une charge utile lisible. Sans cette
+ * verification, localStorage.setItem(undefined) enregistre la CHAINE
+ * « undefined » — une valeur non vide, donc « connectee » aux yeux de
+ * isAuthenticated(). C'est ainsi qu'on atterrissait sur le tableau de bord
+ * avec des identifiants inexistants des que l'API ne repondait pas du JSON.
+ */
+export const jetonValide = (jeton) => {
+  if (typeof jeton !== 'string') return false;
+  if (!jeton || jeton === 'undefined' || jeton === 'null') return false;
+  const parts = jeton.split('.');
+  if (parts.length !== 3) return false;
+  try {
+    const charge = JSON.parse(
+      decodeURIComponent(escape(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')))),
+    );
+    // exp absent : on ne refuse pas, c'est le serveur qui tranchera par un 401.
+    // exp depasse : inutile de laisser entrer pour se faire ejecter au premier appel.
+    if (charge.exp && charge.exp * 1000 < Date.now()) return false;
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const getToken = () => {
+  const jeton = localStorage.getItem(TOKEN_KEY);
+  if (jeton && !jetonValide(jeton)) {
+    // Reste d'une session cassee : on nettoie plutot que de le trainer.
+    localStorage.removeItem(TOKEN_KEY);
+    persist(TOKEN_KEY, null);
+    return null;
+  }
+  return jeton;
+};
+
+export const setToken = (token) => {
+  if (!jetonValide(token)) {
+    throw new Error('jeton invalide : la reponse du serveur ne contient pas de session');
+  }
+  localStorage.setItem(TOKEN_KEY, token);
+  persist(TOKEN_KEY, token);
+};
+
 export const removeToken = () => { localStorage.removeItem(TOKEN_KEY); persist(TOKEN_KEY, null); };
 
 // Administrateur et client entrent par le MEME formulaire, avec le MEME jeton.
@@ -54,7 +96,7 @@ export const hydrateAuth = async () => {
       Preferences.get({ key: TOKEN_KEY }),
       Preferences.get({ key: ADMIN_TOKEN_KEY }),
     ]);
-    if (t && !localStorage.getItem(TOKEN_KEY)) localStorage.setItem(TOKEN_KEY, t);
+    if (jetonValide(t) && !localStorage.getItem(TOKEN_KEY)) localStorage.setItem(TOKEN_KEY, t);
     if (a && !localStorage.getItem(ADMIN_TOKEN_KEY)) localStorage.setItem(ADMIN_TOKEN_KEY, a);
   } catch {
     /* ignore */

@@ -32,7 +32,7 @@ import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
 import { contenuService } from '../services/contenuService';
 import { templateService } from '../services/templateService';
-import { removeToken, setToken } from '../lib/auth';
+import { logout, removeToken, setToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { DAYS, DEFAULT_SCHEDULE } from '../constants/schedules';
@@ -488,7 +488,16 @@ export default function ParametresPage() {
     setChangingPwd(true);
     try {
       const data = await userService.changePassword(pwdOld, pwdNew);
-      if (data?.token) setToken(data.token);  // garde CET appareil connecté ; les autres seront déconnectés
+      // Le mot de passe EST change a ce stade. Si le jeton de rafraichissement
+      // est inutilisable, setToken leve : on ne doit pas pour autant annoncer
+      // un echec — on termine proprement la session au lieu de mentir.
+      try {
+        if (data?.token) setToken(data.token);  // garde CET appareil connecté ; les autres seront déconnectés
+      } catch {
+        logout();
+        window.location.href = '/login';
+        return;
+      }
       toast.success(t('params.identite.mdpChange'));
       setPwdOld(''); setPwdNew('');
     } catch (err) {

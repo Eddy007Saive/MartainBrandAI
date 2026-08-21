@@ -103,7 +103,7 @@ export default function Register() {
       };
 
       const data = await authService.register(payload);
-      if (data?.token) setToken(data.token);
+      setToken(data.token);   // authService a deja verifie qu'il y en a un
       track('inscription');
       toast.success(t('register.toastWelcome'));
       navigate('/dashboard');
@@ -111,6 +111,8 @@ export default function Register() {
       const detail = error.response?.data?.detail;
       if (detail === 'email_exists') {
         toast.error(t('register.toastEmailExists'));
+      } else if (error?.__reponseInvalide) {
+        toast.error(t('auth.toastServeur'));
       } else {
         toast.error(t('register.toastError'));
       }
