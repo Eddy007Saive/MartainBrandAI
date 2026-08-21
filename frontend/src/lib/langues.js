@@ -63,7 +63,14 @@ export function estPagePublique(chemin) {
   return PAGES_PUBLIQUES.includes(cheminSansLangue(chemin));
 }
 
+/** Vrai si l'adresse porte un prefixe de langue explicite (`/es/...`).
+ *  Sert aux pages qui ne figurent dans aucune liste — la page introuvable :
+ *  `/es/nimporte-quoi` doit s'afficher en espagnol, pas en francais. */
+export function aPrefixeDeLangue(chemin) {
+  return PREFIXEES.includes((chemin || '/').split('/')[1]);
+}
+
 /** Vrai si la page suit la langue de l'adresse (indexee ou non). */
 export function estPageTraduite(chemin) {
-  return PAGES_TRADUITES.includes(cheminSansLangue(chemin));
+  return PAGES_TRADUITES.includes(cheminSansLangue(chemin)) || aPrefixeDeLangue(chemin);
 }

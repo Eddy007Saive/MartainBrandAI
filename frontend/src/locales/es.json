@@ -2409,5 +2409,15 @@
       "texte": "Tu cuenta está creada. Solo falta tu tarjeta para iniciar tus 14 días de prueba — hoy no se cobra nada, y puedes parar cuando quieras antes del final.",
       "cta": "Empezar mis 14 días"
     }
+  },
+  "err404": {
+    "onglet": "Página no encontrada",
+    "titre1": "Rico ha buscado por todas partes.",
+    "titre2": "Esta página no existe.",
+    "texte": "Puede que el enlace haya caducado o que la dirección tenga una errata. No se pierde nada: el resto del sitio está a un clic.",
+    "adresse": "Dirección solicitada:",
+    "accueil": "Volver al inicio",
+    "tarifs": "Ver precios",
+    "aide": "¿Alguna duda? Las FAQ responden a 13"
   }
 }

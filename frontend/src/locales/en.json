@@ -2409,5 +2409,15 @@
       "texte": "Your account is ready. All that's left is your card to start your 14-day trial — nothing is charged today, and you can stop any time before it ends.",
       "cta": "Start my 14 days"
     }
+  },
+  "err404": {
+    "onglet": "Page not found",
+    "titre1": "Rico looked everywhere.",
+    "titre2": "This page doesn't exist.",
+    "texte": "The link may be out of date, or the address has a typo. Nothing is lost — the rest of the site is one click away.",
+    "adresse": "Address requested:",
+    "accueil": "Back to home",
+    "tarifs": "See pricing",
+    "aide": "A question? The FAQ answers 13 of them"
   }
 }

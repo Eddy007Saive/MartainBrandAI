@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Sparkles, BarChart3, MessageSquare, Calendar } from 'lucide-react';
 
+import Hexagone from './Hexagone';
+
 /**
  * L'affiche des pages de connexion et d'inscription.
  *
@@ -20,24 +22,13 @@ const AFFICHE = { '--rico': 'min(64%, 412px)', '--debord': '72px' };
 const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_760,q_auto,f_auto/'
            + 'brand/rico-v4/presente-cote.png';
 
-// Les hexagones sont tracés en SVG et non découpés au clip-path : découper la
-// BORDURE d'un rectangle en hexagone n'en laisse que deux traits au centre.
+// Le tracé de l'hexagone vit dans `Hexagone` : la page introuvable pose le
+// même décor, et deux copies finissent toujours par diverger.
 const HEXAGONES = [
   { cls: 'w-[230px] h-[256px] right-[14%] bottom-[26%] text-[#8A6CFF]/70', delai: '0s' },
   { cls: 'w-[132px] h-[148px] right-[1%] bottom-[50%] text-[#3AFFA3]/70', delai: '-2s' },
   { cls: 'w-[176px] h-[196px] right-[36%] bottom-[4%] text-[#3AFFA3]/40', delai: '-4s' },
 ];
-
-function Hexagone({ cls, delai }) {
-  return (
-    <svg viewBox="0 0 100 112" preserveAspectRatio="none" aria-hidden="true"
-      style={{ animationDelay: delai }}
-      className={`absolute opacity-60 animate-flotter pointer-events-none ${cls}`}>
-      <polygon points="25,2 75,2 99,56 75,110 25,110 1,56" fill="none"
-        stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
 
 export default function AfficheAuth() {
   const { t } = useTranslation();

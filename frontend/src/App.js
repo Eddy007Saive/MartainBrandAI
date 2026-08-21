@@ -34,6 +34,7 @@ import CarrouselsPage from "./pages/CarrouselsPage";
 import Affiliation from "./pages/Affiliation";
 import ParametresPage from "./pages/ParametresPage";
 import Admin from "./pages/Admin";
+import NotFound from "./pages/NotFound";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 
 // Les pages publiques existent en trois langues. Le francais garde ses
@@ -61,6 +62,9 @@ const routesPubliques = () => (
     <Route path="pending" element={<Pending />} />
     <Route path="forgot-password" element={<ForgotPassword />} />
     <Route path="reset-password" element={<ResetPassword />} />
+    {/* Tout le reste : une page introuvable, dans la langue de l'adresse.
+        Sans elle, une faute de frappe donnait un ecran entierement blanc. */}
+    <Route path="*" element={<NotFound />} />
   </>
 );
 
@@ -104,7 +108,6 @@ function App() {
             <Route path="performance" element={<Performance />} />
             <Route path="planification" element={<PlanificationPage />} />
             <Route path="carrousels" element={<CarrouselsPage />} />
-            <Route path="affiliation" element={<Affiliation />} />
             <Route path="affiliation" element={<Affiliation />} />
             <Route path="parametres" element={<ParametresPage />} />
           </Route>
