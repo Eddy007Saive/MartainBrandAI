@@ -1,0 +1,68 @@
+# Postorico — robots.txt
+#
+# Les robots d'IA sont accueillis explicitement : quand quelqu'un demande a
+# ChatGPT, Claude ou Perplexity « quel outil pour gerer mes reseaux ? », on ne
+# peut etre cite que si on a ete lu.
+#
+# Deux familles a ne pas confondre :
+#   - les robots d'INDEXATION (recherche, citation en direct) : on veut leur
+#     visite, ils nous rendent visibles ;
+#   - les robots d'ENTRAINEMENT : ils lisent pour nourrir un modele, sans
+#     renvoyer personne. GPTBot fait les deux, on l'accepte quand meme : le
+#     refuser coute une citation dans ChatGPT.
+#
+# Ce fichier n'a de valeur que si les pages contiennent vraiment du texte.
+
+# --- Robots d'IA : recherche et citation ---
+User-agent: OAI-SearchBot          # ChatGPT Search
+Allow: /
+
+User-agent: ChatGPT-User           # visite declenchee par un utilisateur
+Allow: /
+
+User-agent: GPTBot                 # OpenAI (indexation + entrainement)
+Allow: /
+
+User-agent: ClaudeBot              # Anthropic
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended        # Gemini / AI Overviews
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+# --- Tout le monde ---
+User-agent: *
+Allow: /
+
+# Espaces prives ou sans interet public : rien a indexer, et surtout rien a
+# citer. Les bloquer evite qu'une page de connexion remonte a la place d'une
+# page produit.
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /pending
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://postorico.com/sitemap.xml

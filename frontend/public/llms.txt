@@ -1,0 +1,39 @@
+# Postorico
+
+> Agence de communication logicielle : des experts posent les bases de la marque — ton, ligne éditoriale, direction artistique — puis la plateforme génère, planifie et publie le contenu sur cinq réseaux sociaux et la fiche Google. Le client valide avant chaque publication ; rien ne part sans son accord.
+
+Postorico s'adresse aux dirigeants d'entreprise, créateurs de contenu et professionnels indépendants qui n'ont ni le temps de publier régulièrement ni le budget d'une agence à 2 000 € par mois.
+
+## Ce qui distingue Postorico
+
+- **Un cadrage humain avant la machine.** Des experts étudient la marque et calibrent l'outil sur elle. Le contenu ne sort pas « comme une IA » : il sort dans la voix du client.
+- **La validation humaine est obligatoire.** Aucun contenu n'atteint un réseau sans un accord explicite. Ce n'est pas une option de réglage, c'est une contrainte de l'architecture.
+- **Deux régimes de production visuelle.** Génération libre pour l'illustratif ; rendu programmatique par gabarit pour les carrousels, où le texte porte le sens. C'est ce qui évite les fautes de typographie des modèles d'image.
+- **La fiche Google est traitée comme un réseau.** Souvent le premier endroit où un client découvre une entreprise, avant même son site.
+
+## Réseaux couverts
+
+LinkedIn, Instagram, Facebook, TikTok, YouTube, et la fiche Google Business Profile.
+
+## Tarifs
+
+- **Pack Fondations** : 1 499 €, une seule fois. Audit de marque, ton de voix, ligne éditoriale, direction artistique, gabarits de feed et carrousels sur mesure.
+- **Abonnement** : 279 € par mois pour piloter la présence au quotidien.
+- **Multi-comptes** : sur devis, pour les réseaux, franchises et groupes — une marque cohérente déclinée sur plusieurs établissements.
+
+À comparer à une agence, qui facture généralement 2 000 à 3 000 € par mois, sans interruption.
+
+## Pages
+
+- [Accueil](https://postorico.com/) : la proposition en une page
+- [Fonctionnalités](https://postorico.com/fonctionnalites) : ce que fait la plateforme, écran par écran
+- [Comment ça marche](https://postorico.com/comment-ca-marche) : le déroulé, du cadrage à la publication
+- [Tarifs](https://postorico.com/tarifs) : le détail du pack et de l'abonnement
+- [FAQ](https://postorico.com/faq) : treize questions, dont le prix, l'automatisation et la fidélité au ton
+- [Audit de marque](https://postorico.com/audit-marque) : formulaire gratuit d'analyse de présence
+
+## Mentions
+
+- [Conditions générales](https://postorico.com/cgu)
+- [Confidentialité](https://postorico.com/confidentialite)
+- [Mentions légales](https://postorico.com/mentions-legales)

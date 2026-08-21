@@ -1,6 +1,8 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAffiliateRef } from "./hooks/useAffiliateRef";
+import LangueParUrl from "./components/LangueParUrl";
+import { PREFIXEES } from "./lib/langues";
 import PopupRdv from "./components/PopupRdv";
 import { Toaster } from "./components/ui/sonner";
 import MarketingLayout from "./pages/marketing/MarketingLayout";
@@ -34,6 +36,26 @@ import ParametresPage from "./pages/ParametresPage";
 import Admin from "./pages/Admin";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 
+// Les pages publiques existent en trois langues. Le francais garde ses
+// adresses actuelles ; l'anglais et l'espagnol sont prefixes. Le bloc est
+// declare une fois et monte trois fois : une page ajoutee ici l'est dans les
+// trois langues, sans recopie.
+const routesPubliques = () => (
+  <>
+    <Route index element={<HomeCine />} />
+    <Route element={<MarketingLayout />}>
+      <Route path="fonctionnalites" element={<Features />} />
+      <Route path="comment-ca-marche" element={<HowItWorks />} />
+      <Route path="tarifs" element={<Pricing />} />
+      <Route path="faq" element={<Faq />} />
+      <Route path="cgu" element={<Cgu />} />
+      <Route path="confidentialite" element={<Confidentialite />} />
+      <Route path="mentions-legales" element={<MentionsLegales />} />
+    </Route>
+    <Route path="audit-marque" element={<AuditMarque />} />
+  </>
+);
+
 function App() {
   // Un visiteur peut arriver par un lien d'affiliation sur n'importe quelle
   // page : on capte le code partout, pas seulement sur l'inscription.
@@ -44,22 +66,16 @@ function App() {
         {/* Proposition de rendez-vous apres une minute sur le site public.
             Le composant se tait de lui-meme partout ailleurs. */}
         <PopupRdv />
+        {/* L'adresse fait foi pour la langue, et pose canonical + hreflang. */}
+        <LangueParUrl />
         <Routes>
-          {/* Home cinématique (plein écran, sa propre nav — hors layout vitrine) */}
-          <Route path="/" element={<HomeCine />} />
+          {/* Francais : les adresses d'origine, inchangees. */}
+          <Route path="/">{routesPubliques()}</Route>
+          {/* Anglais et espagnol : les memes pages, prefixees. */}
+          {PREFIXEES.map((l) => (
+            <Route key={l} path={`/${l}`}>{routesPubliques()}</Route>
+          ))}
 
-          {/* Site vitrine (pages séparées, layout commun) */}
-          <Route element={<MarketingLayout />}>
-            <Route path="/fonctionnalites" element={<Features />} />
-            <Route path="/comment-ca-marche" element={<HowItWorks />} />
-            <Route path="/tarifs" element={<Pricing />} />
-            <Route path="/faq" element={<Faq />} />
-            <Route path="/cgu" element={<Cgu />} />
-            <Route path="/confidentialite" element={<Confidentialite />} />
-            <Route path="/mentions-legales" element={<MentionsLegales />} />
-          </Route>
-
-          <Route path="/audit-marque" element={<AuditMarque />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/pending" element={<Pending />} />

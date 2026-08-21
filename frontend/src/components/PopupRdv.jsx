@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+
+import { cheminSansLangue } from '../lib/langues';
 import { useTranslation } from 'react-i18next';
 import { X, Clock, Sparkles, ShieldCheck } from 'lucide-react';
 
@@ -69,7 +71,11 @@ export default function PopupRdv() {
   const boutonRef = useRef(null);
   const focusAvant = useRef(null);
 
-  const horsSujet = EXCLUES.some((p) => pathname.startsWith(p))
+  // Le chemin est dépouillé de son préfixe de langue avant d'être comparé :
+  // « /es/audit-marque » ne commence pas par « /audit-marque », et le popup
+  // s'inviterait au milieu d'un formulaire d'audit espagnol.
+  const chemin = cheminSansLangue(pathname);
+  const horsSujet = EXCLUES.some((p) => chemin.startsWith(p))
     || isAuthenticated() || isAdminAuthenticated() || isNativeApp();
 
   useEffect(() => {
