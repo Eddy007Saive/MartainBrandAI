@@ -62,7 +62,37 @@ def _plan_for_price(price_id: str):
     return None
 
 
-def create_checkout(telegram_id: str, plan: str) -> dict:
+ESSAI_JOURS = 14
+
+
+def a_deja_eu_un_abonnement(telegram_id: str) -> bool:
+    """Un essai par compte, jamais deux.
+
+    Sans ce garde-fou, il suffit de resilier puis de se reabonner pour
+    repartir sur quatorze jours gratuits, indefiniment. On regarde l'historique
+    complet, pas seulement l'abonnement en cours.
+    """
+    try:
+        r = (supabase.table("subscriptions").select("id, status")
+             .eq("user_id", telegram_id).limit(5).execute())
+        # Un essai LOCAL (sans carte, pose par quota_service) ne compte pas :
+        # il n'est jamais passe par Stripe, le client n'a rien consomme de payant.
+        return any(x.get("status") in ("active", "past_due", "canceled") for x in (r.data or []))
+    except Exception as e:
+        logger.warning(f"a_deja_eu_un_abonnement {telegram_id}: {e}")
+        return False
+
+
+
+def create_checkout(telegram_id: str, plan: str, essai_jours: int = 0) -> dict:
+    """Session d'abonnement Stripe.
+
+    essai_jours > 0 : la carte est SAISIE mais rien n'est preleve. Stripe cree
+    l'abonnement en statut « trialing » et declenche lui-meme le premier
+    prelevement au terme de l'essai — nous n'avons aucun minuteur a tenir, et
+    c'est ce qui rend le mecanisme fiable : meme si notre serveur est arrete
+    le 14e jour, le prelevement a lieu et le webhook nous rattrape ensuite.
+    """
     if not _ready():
         return {"ok": False, "error": "Paiement indisponible : Stripe non configuré (contacte le support)."}
     price = _price_for(plan)
@@ -84,7 +114,14 @@ def create_checkout(telegram_id: str, plan: str) -> dict:
             cancel_url=f"{FRONTEND_URL}/dashboard/parametres?paiement=annule",
             client_reference_id=telegram_id,
             metadata={"telegram_id": telegram_id, "plan": plan},
-            subscription_data={"metadata": {"telegram_id": telegram_id, "plan": plan}},
+            subscription_data={
+                "metadata": {"telegram_id": telegram_id, "plan": plan},
+                **({"trial_period_days": essai_jours} if essai_jours else {}),
+            },
+            # « always » et non « if_required » : sans cela Stripe n'exige PAS
+            # la carte quand la premiere facture est a zero. On la demande
+            # quand meme, c'est tout l'objet de l'essai avec carte.
+            **({"payment_method_collection": "always"} if essai_jours else {}),
             allow_promotion_codes=True,
             # Societe bulgare facturant des clients pro dans l'UE : la TVA doit etre calculee
             # (autoliquidation si le client B2B fournit un numero de TVA intracommunautaire

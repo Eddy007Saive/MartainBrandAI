@@ -32,7 +32,14 @@ async def checkout(body: dict, payload: dict = Depends(verify_token)):
     plan = (body.get("plan") or "pro").lower()  # offre unique pour l'instant
     if plan != "pro":
         raise HTTPException(status_code=400, detail="Offre invalide")
-    r = billing_service.create_checkout(telegram_id, plan)
+    # essai=true : parcours d'inscription. La carte est saisie, rien n'est
+    # preleve, et Stripe declenche lui-meme le premier paiement au 14e jour.
+    # On ne l'accorde qu'une fois : un compte qui a deja eu un abonnement
+    # repasse en paiement immediat, sinon l'essai se renouvelle a volonte en
+    # resiliant puis en se reabonnant.
+    essai = billing_service.ESSAI_JOURS if (
+        body.get("essai") and not billing_service.a_deja_eu_un_abonnement(telegram_id)) else 0
+    r = billing_service.create_checkout(telegram_id, plan, essai_jours=essai)
     if not r.get("ok"):
         raise HTTPException(status_code=400, detail=r.get("error"))
     return {"url": r["url"]}
