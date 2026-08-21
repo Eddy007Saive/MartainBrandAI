@@ -61,34 +61,37 @@ Options -Indexes
 
 # ---------------------------------------------------------------------
 #  4. Cache
-#     Les fichiers de build/static portent un condensé dans leur nom
-#     (main.a18cd88d.js) : leur contenu ne change JAMAIS sans que le nom
-#     change aussi. On peut donc les garder un an sans risque.
 #
-#     index.html, lui, ne doit JAMAIS être mis en cache : c'est le seul
-#     fichier qui désigne les autres. S'il est gardé, le navigateur
-#     réclame un script qui n'existe plus après un déploiement et la page
-#     reste blanche.
+#     La distinction n'est pas le TYPE de fichier mais son EMPLACEMENT.
+#
+#     /static/...  est produit par le build. Chaque nom porte un condense du
+#                  contenu (main.9e2a4183.js) : remplacer le fichier change
+#                  son nom. On peut donc le figer un an sans jamais servir
+#                  une version perimee.
+#
+#     le reste     (logo.png, /images, /videos) garde son nom d'une version a
+#                  l'autre. Le figer un an, ce serait condamner celui qui a
+#                  vu l'ancienne image a la revoir pendant douze mois — la
+#                  mesaventure deja vecue sur Cloudinary avec les planches de
+#                  la mascotte. Une journee, avec revalidation.
+#
+#     index.html   n'est JAMAIS garde : c'est le seul fichier qui designe les
+#                  autres. S'il l'est, le navigateur reclame apres un
+#                  deploiement un script qui n'existe plus, et la page reste
+#                  blanche.
 # ---------------------------------------------------------------------
-<IfModule mod_expires.c>
-  ExpiresActive On
-  ExpiresDefault                          "access plus 1 month"
-  ExpiresByType text/html                 "access plus 0 seconds"
-  ExpiresByType application/javascript    "access plus 1 year"
-  ExpiresByType text/css                  "access plus 1 year"
-  ExpiresByType image/png                 "access plus 1 year"
-  ExpiresByType image/jpeg                "access plus 1 year"
-  ExpiresByType image/webp                "access plus 1 year"
-  ExpiresByType image/svg+xml             "access plus 1 year"
-  ExpiresByType font/woff2                "access plus 1 year"
-  ExpiresByType video/mp4                 "access plus 1 year"
-</IfModule>
-
 <IfModule mod_headers.c>
-  <FilesMatch "\.(js|css|woff2|png|jpe?g|webp|svg|mp4)$">
-    Header set Cache-Control "public, max-age=31536000, immutable"
-  </FilesMatch>
-  <FilesMatch "\.(html|json)$">
+  # SetEnvIf plutot que <If> : compatible Apache 2.2 comme LiteSpeed.
+  # Pas de « setifempty » non plus, qui exige Apache 2.4.7 — une directive
+  # inconnue dans un .htaccess repond 500, pas un avertissement.
+  SetEnvIf Request_URI "^/static/" FIGE
+
+  # L'ordre compte : la seconde ligne ecrase la premiere la ou elle
+  # s'applique, et les blocs <FilesMatch> sont fusionnes en dernier.
+  Header set Cache-Control "public, max-age=86400, must-revalidate" env=!FIGE
+  Header set Cache-Control "public, max-age=31536000, immutable" env=FIGE
+
+  <FilesMatch "\.(html|json|webmanifest)$">
     Header set Cache-Control "no-cache, must-revalidate"
   </FilesMatch>
 </IfModule>
