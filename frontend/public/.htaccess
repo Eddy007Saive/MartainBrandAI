@@ -1,0 +1,133 @@
+# =====================================================================
+#  Postorico — application React sur hébergement Apache / LiteSpeed
+#  (Hostinger lit bien ce fichier : son serveur est un LiteSpeed
+#   compatible .htaccess)
+#
+#  Ce fichier vit dans public/ : Create React App recopie tout ce
+#  dossier tel quel dans build/ au moment de la compilation. Il n'y a
+#  donc rien à déposer à la main après un build.
+#
+#  Le point vraiment indispensable est le bloc 3. Sans lui, seul « / »
+#  répond : /login, /tarifs, /dashboard renvoient un 404 d'Apache,
+#  parce que ces chemins n'existent pas sur le disque — c'est React
+#  qui les fabrique dans le navigateur.
+# =====================================================================
+
+
+# ---------------------------------------------------------------------
+#  1. Ne jamais lister le contenu d'un dossier
+# ---------------------------------------------------------------------
+Options -Indexes
+
+
+# ---------------------------------------------------------------------
+#  2. Fichiers qui ne doivent jamais sortir
+#     Un .env oublié dans un build est la fuite la plus banale qui soit.
+# ---------------------------------------------------------------------
+<FilesMatch "^\.|(\.env|\.log|\.md|\.json\.map|\.map)$">
+  Require all denied
+</FilesMatch>
+# Sauf ceux-là, qui sont publics par nature.
+<FilesMatch "^(manifest\.json|asset-manifest\.json|robots\.txt|sitemap\.xml)$">
+  Require all granted
+</FilesMatch>
+
+
+# ---------------------------------------------------------------------
+#  3. Le routage de l'application (indispensable)
+# ---------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # HTTPS. À laisser commenté si tu as déjà activé « Forcer HTTPS » dans
+  # le panneau Hostinger : les deux ensemble provoquent une boucle de
+  # redirection sur certaines configurations.
+  # RewriteCond %{HTTPS} off
+  # RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # Un fichier ou un dossier qui existe est servi tel quel : images,
+  # scripts, feuilles de style. Sans ces deux conditions, la règle
+  # suivante avalerait tout le site.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Tout le reste part vers React, qui décidera de la page à afficher.
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+
+# ---------------------------------------------------------------------
+#  4. Cache
+#     Les fichiers de build/static portent un condensé dans leur nom
+#     (main.a18cd88d.js) : leur contenu ne change JAMAIS sans que le nom
+#     change aussi. On peut donc les garder un an sans risque.
+#
+#     index.html, lui, ne doit JAMAIS être mis en cache : c'est le seul
+#     fichier qui désigne les autres. S'il est gardé, le navigateur
+#     réclame un script qui n'existe plus après un déploiement et la page
+#     reste blanche.
+# ---------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresDefault                          "access plus 1 month"
+  ExpiresByType text/html                 "access plus 0 seconds"
+  ExpiresByType application/javascript    "access plus 1 year"
+  ExpiresByType text/css                  "access plus 1 year"
+  ExpiresByType image/png                 "access plus 1 year"
+  ExpiresByType image/jpeg                "access plus 1 year"
+  ExpiresByType image/webp                "access plus 1 year"
+  ExpiresByType image/svg+xml             "access plus 1 year"
+  ExpiresByType font/woff2                "access plus 1 year"
+  ExpiresByType video/mp4                 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2|png|jpe?g|webp|svg|mp4)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(html|json)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+
+# ---------------------------------------------------------------------
+#  5. Compression
+# ---------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE application/xml image/svg+xml
+  # Les images et les vidéos sont déjà compressées : les repasser au
+  # gzip coûte du processeur et ne gagne rien.
+</IfModule>
+
+
+# ---------------------------------------------------------------------
+#  6. En-têtes de sécurité
+#     Pas de Content-Security-Policy ici : l'application charge des
+#     ressources de Cloudinary, Stripe, Google Fonts et Tawk. Une CSP
+#     écrite sans inventaire complet casserait le site au premier
+#     chargement. À écrire séparément, en observant les requêtes réelles.
+# ---------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+
+# ---------------------------------------------------------------------
+#  7. Types MIME que certains hébergements ne connaissent pas
+# ---------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType application/manifest+json  .webmanifest
+  AddType font/woff2                 .woff2
+  AddType image/webp                 .webp
+  AddType image/avif                 .avif
+  AddType video/mp4                  .mp4
+</IfModule>

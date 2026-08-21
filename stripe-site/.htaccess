@@ -1,0 +1,67 @@
+# =====================================================================
+#  Site statique Postorico (pages légales et contact) sur Hostinger
+#
+#  Contrairement à l'application React, ce site n'a pas besoin de
+#  réécriture pour fonctionner : chaque page est un fichier réel. Ce
+#  fichier ne fait donc que du confort et de l'hygiène.
+# =====================================================================
+
+Options -Indexes
+DirectoryIndex index.html
+
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+
+# ---------------------------------------------------------------------
+#  Adresses sans extension : /cgv plutôt que /cgv.html
+#  Les deux continuent de fonctionner ; c'est la forme courte qui est
+#  affichée dans la barre d'adresse.
+# ---------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # HTTPS : à décommenter seulement si « Forcer HTTPS » n'est PAS activé
+  # dans le panneau Hostinger, sinon boucle de redirection.
+  # RewriteCond %{HTTPS} off
+  # RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # /cgv.html -> /cgv (une seule adresse indexée par page)
+  RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+  RewriteRule ^ /%1 [R=301,L,NE]
+
+  # /cgv -> sert cgv.html sans changer l'adresse affichée
+  RewriteCond %{REQUEST_FILENAME}.html -f
+  RewriteRule ^(.+)$ $1.html [L]
+</IfModule>
+
+
+# ---------------------------------------------------------------------
+#  Page d'erreur : on renvoie vers l'accueil plutôt qu'une page blanche
+#  d'Apache. Le 404 reste un vrai 404 pour les moteurs.
+# ---------------------------------------------------------------------
+ErrorDocument 404 /index.html
+
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html   "access plus 0 seconds"
+  ExpiresByType text/css    "access plus 1 month"
+  ExpiresByType image/png   "access plus 1 year"
+  ExpiresByType image/jpeg  "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
