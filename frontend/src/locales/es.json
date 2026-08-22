@@ -2415,7 +2415,8 @@
       "stripe": "Pago seguro con Stripe. Nunca vemos tu número de tarjeta.",
       "erreur": "Pago no disponible en este momento."
     },
-    "verrou": "Añade tu tarjeta para desbloquear"
+    "verrou": "Añade tu tarjeta para desbloquear",
+    "verrouCourt": "Bloqueado"
   },
   "err404": {
     "onglet": "Página no encontrada",

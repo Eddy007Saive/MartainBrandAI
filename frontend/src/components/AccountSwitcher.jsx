@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChevronsUpDown, Plus, Check, Loader2, Briefcase, Trash2, X } from 'lucide-react';
+import { ChevronsUpDown, Plus, Check, Loader2, Briefcase, Trash2, X, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { accountService } from '../services/accountService';
+import { useAbonnement } from '../context/AbonnementContext';
 import { setToken } from '../lib/auth';
 
 export default function AccountSwitcher() {
+  const { t } = useTranslation();
+  const { sansAbonnement } = useAbonnement();
   const [accounts, setAccounts] = useState([]);
   const [open, setOpen] = useState(false);
   const [switching, setSwitching] = useState(null);
@@ -70,6 +74,31 @@ export default function AccountSwitcher() {
       toast.error(e.response?.data?.detail || 'Suppression impossible');
     }
   };
+
+  // Sans abonnement, le sélecteur est fermé comme le reste. Ouvrir une
+  // deuxième marque avant d'avoir activé la première n'a pas de sens : chaque
+  // marque a son propre forfait, et celle-ci n'en a pas encore.
+  if (sansAbonnement) {
+    return (
+      <div aria-disabled="true" title={t('quota.verrou')} data-testid="marques-verrouille"
+        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/[0.02]
+                   border border-white/[0.06] cursor-not-allowed select-none">
+        <span className="w-7 h-7 rounded-lg bg-white/[0.05] grid place-items-center
+                         text-slate-600 shrink-0">
+          <Briefcase className="w-3.5 h-3.5" />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[13px] font-semibold text-slate-500 truncate">
+            {current?.nom || 'Ma marque'}
+          </span>
+          {/* Une seule ligne : la phrase entiere passait sur deux lignes et
+              faisait grossir le bloc. Elle reste dans l'infobulle. */}
+          <span className="block text-[10.5px] text-slate-700">{t('quota.verrouCourt')}</span>
+        </span>
+        <Lock className="w-3.5 h-3.5 text-slate-700 shrink-0" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative" ref={ref}>

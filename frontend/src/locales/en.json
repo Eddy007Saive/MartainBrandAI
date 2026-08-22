@@ -2415,7 +2415,8 @@
       "stripe": "Secure payment by Stripe. We never see your card number.",
       "erreur": "Payment unavailable right now."
     },
-    "verrou": "Add your card to unlock"
+    "verrou": "Add your card to unlock",
+    "verrouCourt": "Locked"
   },
   "err404": {
     "onglet": "Page not found",

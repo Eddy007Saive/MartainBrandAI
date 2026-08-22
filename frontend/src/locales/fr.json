@@ -2415,7 +2415,8 @@
       "stripe": "Paiement sécurisé par Stripe. Nous ne voyons jamais votre numéro de carte.",
       "erreur": "Paiement indisponible pour le moment."
     },
-    "verrou": "Ajoutez votre carte pour déverrouiller"
+    "verrou": "Ajoutez votre carte pour déverrouiller",
+    "verrouCourt": "Verrouillé"
   },
   "err404": {
     "onglet": "Page introuvable",
