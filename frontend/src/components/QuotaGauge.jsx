@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Loader2, Sparkles, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { agentService } from '../services/agentService';
+import { useAbonnement } from '../context/AbonnementContext';
 import { billingService } from '../services/billingService';
 
 // Ordre d'affichage + on ne propose le rachat QUE sur les postes chers (image HD + carrousels)
@@ -56,14 +56,13 @@ function Bar({ g, onRachat }) {
 
 export default function QuotaGauge() {
   const { t } = useTranslation();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // L'etat vient du contexte du tableau de bord : la navigation, l'accueil et
+  // ces jauges lisaient sinon trois fois la meme reponse, et pouvaient se
+  // contredire le temps d'un chargement.
+  const { usage: data, pret } = useAbonnement();
+  const loading = !pret;
   const [rachat, setRachat] = useState(null); // { label, packs, loading }
   const [buying, setBuying] = useState(null);
-
-  useEffect(() => {
-    agentService.usage().then(setData).catch(() => {}).finally(() => setLoading(false));
-  }, []);
 
   const openRachat = async (g) => {
     setRachat({ label: g.label, packs: [], loading: true });

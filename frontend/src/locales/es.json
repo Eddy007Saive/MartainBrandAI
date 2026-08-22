@@ -2407,8 +2407,15 @@
     "sansCarte": {
       "titre": "Añade tu tarjeta para empezar",
       "texte": "Tu cuenta está creada. Solo falta tu tarjeta para iniciar tus 14 días de prueba — hoy no se cobra nada, y puedes parar cuando quieras antes del final.",
-      "cta": "Empezar mis 14 días"
-    }
+      "cta": "Empezar mis 14 días",
+      "surTitre": "Último paso",
+      "g1": "Hoy no se cobra nada.",
+      "g2": "El primer pago se hace el dia 14, no antes.",
+      "g3": "Cancelable con un clic desde Ajustes, cuando quieras.",
+      "stripe": "Pago seguro con Stripe. Nunca vemos tu número de tarjeta.",
+      "erreur": "Pago no disponible en este momento."
+    },
+    "verrou": "Añade tu tarjeta para desbloquear"
   },
   "err404": {
     "onglet": "Página no encontrada",

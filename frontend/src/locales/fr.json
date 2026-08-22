@@ -2407,8 +2407,15 @@
     "sansCarte": {
       "titre": "Ajoute ta carte pour démarrer",
       "texte": "Ton compte est créé. Il ne manque que ta carte pour lancer tes 14 jours d'essai — rien n'est prélevé aujourd'hui, et tu peux arrêter à tout moment avant la fin.",
-      "cta": "Démarrer mes 14 jours"
-    }
+      "cta": "Démarrer mes 14 jours",
+      "surTitre": "Dernière étape",
+      "g1": "Rien n'est prélevé aujourd'hui.",
+      "g2": "Le premier paiement a lieu le 14e jour, pas avant.",
+      "g3": "Annulable en un clic depuis Paramètres, à tout moment.",
+      "stripe": "Paiement sécurisé par Stripe. Nous ne voyons jamais votre numéro de carte.",
+      "erreur": "Paiement indisponible pour le moment."
+    },
+    "verrou": "Ajoutez votre carte pour déverrouiller"
   },
   "err404": {
     "onglet": "Page introuvable",

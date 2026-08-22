@@ -2407,8 +2407,15 @@
     "sansCarte": {
       "titre": "Add your card to get started",
       "texte": "Your account is ready. All that's left is your card to start your 14-day trial — nothing is charged today, and you can stop any time before it ends.",
-      "cta": "Start my 14 days"
-    }
+      "cta": "Start my 14 days",
+      "surTitre": "Last step",
+      "g1": "Nothing is charged today.",
+      "g2": "The first payment happens on day 14, not before.",
+      "g3": "Cancel in one click from Settings, any time.",
+      "stripe": "Secure payment by Stripe. We never see your card number.",
+      "erreur": "Payment unavailable right now."
+    },
+    "verrou": "Add your card to unlock"
   },
   "err404": {
     "onglet": "Page not found",
