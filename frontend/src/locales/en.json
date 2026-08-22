@@ -1388,7 +1388,8 @@
       "start": "Get started",
       "menu": "Menu",
       "tagline": "AI content studio",
-      "howItWorks": "How it works"
+      "howItWorks": "How it works",
+      "blog": "Blog"
     },
     "brand": {
       "tagline": "AI content studio"
@@ -1601,7 +1602,8 @@
       "made": "Made with 🐓 in France",
       "productOf": "A product by",
       "pricing": "Pricing",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "blog": "Blog"
     },
     "feat": {
       "head": {
@@ -1972,6 +1974,24 @@
       "merci": "You're in — the next letter is on its way.",
       "erreur": "Could not sign you up right now.",
       "legal": "One letter a week. Unsubscribe in one click, any time."
+    },
+    "blog": {
+      "head": {
+        "eyebrow": "The blog",
+        "title": "Resources",
+        "lead": "Concrete methods to keep a social presence without spending your days on it. No theory: what we apply with our clients."
+      },
+      "lire": "Read the article",
+      "minutes": "{{n}} min read",
+      "sommaire": "Contents",
+      "maj": "updated {{date}}",
+      "suite": "Read next",
+      "vide": "Articles in this language are coming soon.",
+      "cta": {
+        "titre": "What if you no longer had to think about it?",
+        "texte": "Postorico writes your posts in your voice, schedules them and publishes them. You review, you decide.",
+        "bouton": "Try it for 14 days"
+      }
     }
   },
   "manuel": {

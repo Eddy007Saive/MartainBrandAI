@@ -13,6 +13,8 @@
  *   /en/tarifs     anglais
  *   /es/tarifs     espagnol
  */
+import { articleTraduit, estCheminBlog } from './blog';
+
 export const LANGUES = ['fr', 'en', 'es'];
 export const LANGUE_DEFAUT = 'fr';
 
@@ -54,6 +56,15 @@ export function cheminSansLangue(chemin) {
 /** Compose l'adresse d'une page dans une langue donnee. */
 export function cheminPourLangue(chemin, langue) {
   const nu = cheminSansLangue(chemin);
+  // Un article ne se traduit pas en collant un prefixe devant son adresse :
+  // « /es/definir-sa-ligne-editoriale » n'existe pas, c'est « /es/blog/
+  // definir-tu-linea-editorial ». Faute de traduction, on renvoie vers
+  // l'index du blog dans la langue demandee plutot que vers une 404.
+  if (estCheminBlog(nu) && nu !== '/blog') {
+    const traduit = articleTraduit(chemin, langue);
+    if (traduit) return traduit;
+    return langue === LANGUE_DEFAUT ? '/blog' : `/${langue}/blog`;
+  }
   if (langue === LANGUE_DEFAUT) return nu;
   return nu === '/' ? `/${langue}` : `/${langue}${nu}`;
 }
@@ -72,5 +83,7 @@ export function aPrefixeDeLangue(chemin) {
 
 /** Vrai si la page suit la langue de l'adresse (indexee ou non). */
 export function estPageTraduite(chemin) {
-  return PAGES_TRADUITES.includes(cheminSansLangue(chemin)) || aPrefixeDeLangue(chemin);
+  return PAGES_TRADUITES.includes(cheminSansLangue(chemin))
+    || estCheminBlog(cheminSansLangue(chemin))
+    || aPrefixeDeLangue(chemin);
 }

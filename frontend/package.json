@@ -72,7 +72,8 @@
   },
   "scripts": {
     "start": "craco start",
-    "prebuild": "node scripts/verifier-env.js",
+    "prestart": "node scripts/blog.mjs",
+    "prebuild": "node scripts/verifier-env.js && node scripts/blog.mjs",
     "build": "craco build",
     "postbuild": "node scripts/prerendu.js",
     "test": "craco test"
@@ -101,6 +102,7 @@
     "eslint-plugin-react": "7.37.4",
     "eslint-plugin-react-hooks": "5.2.0",
     "globals": "15.15.0",
+    "marked": "^18.0.10",
     "postcss": "^8.4.49",
     "puppeteer": "^25.8.0",
     "tailwindcss": "^3.4.17"

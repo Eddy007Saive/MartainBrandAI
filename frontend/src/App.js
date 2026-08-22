@@ -11,6 +11,8 @@ import Features from "./pages/marketing/Features";
 import HowItWorks from "./pages/marketing/HowItWorks";
 import Pricing from "./pages/marketing/Pricing";
 import Faq from "./pages/marketing/Faq";
+import Blog from "./pages/marketing/Blog";
+import Article from "./pages/marketing/Article";
 import Cgu from "./pages/marketing/Cgu";
 import Confidentialite from "./pages/marketing/Confidentialite";
 import MentionsLegales from "./pages/marketing/MentionsLegales";
@@ -49,6 +51,11 @@ const routesPubliques = () => (
       <Route path="comment-ca-marche" element={<HowItWorks />} />
       <Route path="tarifs" element={<Pricing />} />
       <Route path="faq" element={<Faq />} />
+      {/* Le blog partage la mise en page marketing : c'est elle qui porte le
+          menu et le pied de page, donc les liens internes vers les pages
+          produit. Un article isole ne transmettrait rien. */}
+      <Route path="blog" element={<Blog />} />
+      <Route path="blog/:slug" element={<Article />} />
       <Route path="cgu" element={<Cgu />} />
       <Route path="confidentialite" element={<Confidentialite />} />
       <Route path="mentions-legales" element={<MentionsLegales />} />

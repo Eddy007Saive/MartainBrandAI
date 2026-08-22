@@ -1388,7 +1388,8 @@
       "start": "Commencer",
       "menu": "Menu",
       "tagline": "Studio de contenu IA",
-      "howItWorks": "Comment ça marche"
+      "howItWorks": "Comment ça marche",
+      "blog": "Blog"
     },
     "brand": {
       "tagline": "Studio de contenu IA"
@@ -1601,7 +1602,8 @@
       "made": "Fait avec 🐓 en France",
       "productOf": "Un produit",
       "pricing": "Tarifs",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "blog": "Blog"
     },
     "feat": {
       "head": {
@@ -1972,6 +1974,24 @@
       "merci": "C'est noté — tu recevras la prochaine lettre.",
       "erreur": "Inscription impossible pour le moment.",
       "legal": "Une lettre par semaine. Désinscription en un clic, à tout moment."
+    },
+    "blog": {
+      "head": {
+        "eyebrow": "Le blog",
+        "title": "Ressources",
+        "lead": "Des méthodes concrètes pour tenir une présence sur les réseaux sans y passer ses journées. Pas de théorie : ce qu'on applique chez nos clients."
+      },
+      "lire": "Lire l'article",
+      "minutes": "{{n}} min de lecture",
+      "sommaire": "Au sommaire",
+      "maj": "mis à jour le {{date}}",
+      "suite": "À lire aussi",
+      "vide": "Les articles de cette langue arrivent bientôt.",
+      "cta": {
+        "titre": "Et si vous n'aviez plus à y penser ?",
+        "texte": "Postorico écrit vos publications à votre voix, les planifie et les publie. Vous relisez, vous décidez.",
+        "bouton": "Essayer 14 jours"
+      }
     }
   },
   "manuel": {

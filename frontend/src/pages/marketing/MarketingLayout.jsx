@@ -13,6 +13,7 @@ const LINKS = [
   { to: '/comment-ca-marche', labelKey: 'lp.nav.howItWorks' },
   { to: '/tarifs', labelKey: 'lp.nav.pricing' },
   { to: '/faq', labelKey: 'lp.nav.faq' },
+  { to: '/blog', labelKey: 'lp.nav.blog' },
 ];
 
 export default function MarketingLayout() {
@@ -81,6 +82,7 @@ export default function MarketingLayout() {
         <div className="flinks">
           <Link to="/tarifs">{t('lp.footer.pricing')}</Link>
           <Link to="/faq">{t('lp.footer.faq')}</Link>
+          <Link to="/blog">{t('lp.footer.blog')}</Link>
           <Link to="/cgu">{t('lp.footer.cgu')}</Link>
           <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
           <Link to="/mentions-legales">{t('lp.footer.legal')}</Link>

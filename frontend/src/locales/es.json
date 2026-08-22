@@ -1388,7 +1388,8 @@
       "start": "Empezar",
       "menu": "Menú",
       "tagline": "Estudio de contenido con IA",
-      "howItWorks": "Cómo funciona"
+      "howItWorks": "Cómo funciona",
+      "blog": "Blog"
     },
     "brand": {
       "tagline": "Estudio de contenido IA"
@@ -1601,7 +1602,8 @@
       "made": "Hecho con 🐓 en Francia",
       "productOf": "Un producto de",
       "pricing": "Precios",
-      "faq": "FAQ"
+      "faq": "FAQ",
+      "blog": "Blog"
     },
     "feat": {
       "head": {
@@ -1972,6 +1974,24 @@
       "merci": "Listo — recibirás la próxima carta.",
       "erreur": "No se pudo completar la suscripción.",
       "legal": "Una carta por semana. Baja en un clic, cuando quieras."
+    },
+    "blog": {
+      "head": {
+        "eyebrow": "El blog",
+        "title": "Recursos",
+        "lead": "Métodos concretos para mantener una presencia en redes sin dedicarle el día entero. Sin teoría: lo que aplicamos con nuestros clientes."
+      },
+      "lire": "Leer el artículo",
+      "minutes": "{{n}} min de lectura",
+      "sommaire": "Contenido",
+      "maj": "actualizado el {{date}}",
+      "suite": "Leer también",
+      "vide": "Los artículos en este idioma llegan pronto.",
+      "cta": {
+        "titre": "¿Y si dejaras de pensar en ello?",
+        "texte": "Postorico escribe tus publicaciones con tu voz, las planifica y las publica. Tú las revisas, tú decides.",
+        "bouton": "Probar 14 días"
+      }
     }
   },
   "manuel": {

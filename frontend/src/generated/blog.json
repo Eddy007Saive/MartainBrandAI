@@ -1,0 +1,451 @@
+{
+ "_": "Genere par scripts/blog.mjs a partir de content/blog — ne pas editer a la main.",
+ "articles": [
+  {
+   "id": "automatiser-sans-perdre-sa-voix",
+   "langue": "es",
+   "slug": "automatizar-redes-sociales-sin-perder-tu-voz",
+   "chemin": "/es/blog/automatizar-redes-sociales-sin-perder-tu-voz",
+   "titre": "Automatizar tus redes sociales sin perder tu voz",
+   "description": "Lo que de verdad ahorra tiempo, lo que nunca hay que delegar en una máquina, y cómo se reconoce un contenido escrito por una IA dejada sola.",
+   "date": "2026-08-19",
+   "maj": "2026-08-19",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "ia",
+    "automatizacion",
+    "redaccion"
+   ],
+   "pose": "presente-produit",
+   "minutes": 4,
+   "mots": 739,
+   "sommaire": [
+    {
+     "id": "lo-que-se-delega-sin-perder-nada",
+     "texte": "Lo que se delega sin perder nada"
+    },
+    {
+     "id": "lo-que-nunca-se-delega",
+     "texte": "Lo que nunca se delega"
+    },
+    {
+     "id": "como-se-reconoce-una-ia-dejada-sola",
+     "texte": "Cómo se reconoce una IA dejada sola"
+    },
+    {
+     "id": "la-configuracion-que-lo-cambia-todo",
+     "texte": "La configuración que lo cambia todo"
+    },
+    {
+     "id": "la-forma-correcta-de-medir-la-ganancia",
+     "texte": "La forma correcta de medir la ganancia"
+    },
+    {
+     "id": "nuestra-manera-de-hacerlo",
+     "texte": "Nuestra manera de hacerlo"
+    }
+   ],
+   "html": "<p>La objeción es legítima y la escuchamos cada semana: «si una IA escribe por mí, ya no seré yo». Es cierta —para una IA dejada sola. Deja de serlo en cuanto se separa correctamente lo que se delega de lo que no.</p>\n<p>Esta es esa frontera, tal y como la trazamos.</p>\n<h2 id=\"lo-que-se-delega-sin-perder-nada\">Lo que se delega sin perder nada</h2>\n<p><strong>El formato.</strong> Cortar un texto en párrafos legibles, producir tres variantes de entrada, adaptar un mismo mensaje al formato de cada red: ese trabajo existe, lleva tiempo, y nadie reconocerá tu voz en la forma en que colocas los saltos de línea.</p>\n<p><strong>La planificación.</strong> Decidir que una publicación sale el martes a las 8:30 y no el domingo a las 23:00 no implica ningún juicio editorial. Es logística.</p>\n<p><strong>El primer borrador.</strong> Este es el punto que sorprende. Un primer borrador no es un texto, es un punto de partida — y la página en blanco es lo más caro de una semana cargada. Recibir tres propuestas imperfectas para corregir cuesta diez minutos; escribir desde cero cuesta sesenta.</p>\n<p><strong>El reciclaje.</strong> Recuperar lo que funcionó bien hace seis meses y reformularlo es trabajo de archivero. Una máquina lo hace mejor que tú, porque no olvida nada.</p>\n<h2 id=\"lo-que-nunca-se-delega\">Lo que nunca se delega</h2>\n<p><strong>El tema.</strong> De lo que hablas esta semana sale de tu semana: un cliente difícil, un error visto en una obra, una pregunta repetida tres veces. Ningún modelo tiene acceso a eso. Una IA que elige sola tus temas produce generalidades — que es exactamente lo que se le reprocha al contenido automatizado.</p>\n<p><strong>La opinión.</strong> Una toma de postura compromete a alguien. Debe comprometerte a ti.</p>\n<p><strong>La última pasada.</strong> Treinta segundos de relectura bastan para quitar las dos palabras que tú nunca usas. Esa pasada es la diferencia entre un texto que suena a ti y un texto que suena a internet.</p>\n<p><strong>La respuesta a los comentarios.</strong> Es el único sitio donde ocurre una conversación real. Automatizarla es perder precisamente aquello por lo que se publica.</p>\n<h2 id=\"como-se-reconoce-una-ia-dejada-sola\">Cómo se reconoce una IA dejada sola</h2>\n<p>Cuatro señales, fáciles de detectar una vez que las conoces:</p>\n<ul>\n<li><strong>El entusiasmo sin objeto.</strong> «Encantado de compartir», «oportunidad increíble», adjetivos que no describen nada.</li>\n<li><strong>Las listas de tres que no cuestan nada.</strong> Tres consejos ciertos, generales, que el lector ya conocía.</li>\n<li><strong>La ausencia de cifras y de nombres propios.</strong> Un contenido que no menciona ninguna situación concreta probablemente no ocurrió.</li>\n<li><strong>La pregunta final automática.</strong> «¿Y tú qué opinas?» planteada sin intención real de leer las respuestas.</li>\n</ul>\n<p>Si relees un borrador y marcas tres de esas cuatro casillas, el texto no está listo, lo haya escrito quien lo haya escrito.</p>\n<h2 id=\"la-configuracion-que-lo-cambia-todo\">La configuración que lo cambia todo</h2>\n<p>Un modelo produce la media de lo que ha leído, salvo que le des con qué apartarse de ella. Ese «con qué» es corto:</p>\n<ol>\n<li><strong>Tus pilares</strong> — los tres o cuatro temas en los que eres legítimo.</li>\n<li><strong>Tus prohibiciones</strong> — las palabras y giros que nunca usas. Es el ajuste más eficaz y el que más se olvida.</li>\n<li><strong>Cinco textos tuyos</strong> — publicaciones reales, escritas a mano. Una muestra de tu ritmo de frase vale más que diez adjetivos describiendo tu tono.</li>\n<li><strong>Tu audiencia</strong> — a quién le hablas y qué ha probado ya.</li>\n</ol>\n<p>Con esos cuatro elementos, la pregunta deja de ser «¿esto suena a mí?» y pasa a ser «¿valido este borrador?». No es la misma conversación.</p>\n<h2 id=\"la-forma-correcta-de-medir-la-ganancia\">La forma correcta de medir la ganancia</h2>\n<p>No cuentes el tiempo de escritura, cuenta el número de semanas en las que has publicado. Es la única cifra que importa, y es la que la automatización mejora de verdad: no hace mejores tus publicaciones, evita que desaparezcas tres semanas porque la semana ha sido dura.</p>\n<p>Una cuenta llevada a mano durante dos meses y luego abandonada vale menos que una cuenta asistida mantenida dos años. Esa es la comparación de la que hay que partir, no la que enfrenta un texto escrito a mano con uno generado.</p>\n<h2 id=\"nuestra-manera-de-hacerlo\">Nuestra manera de hacerlo</h2>\n<p>Postorico produce las propuestas, tú las relees, tú decides. La generación parte de tu perfil de marca —pilares, voz, prohibiciones, audiencia— y no de una consigna genérica. Nada sale sin tu validación, y los comentarios vuelven a ti para que los respondas tú mismo.</p>\n<p>Es una elección asumida: una cadena totalmente automática publicaría más rápido, y publicaría contenidos que nadie leería.</p>\n"
+  },
+  {
+   "id": "automatiser-sans-perdre-sa-voix",
+   "langue": "en",
+   "slug": "automate-social-media-without-losing-your-voice",
+   "chemin": "/en/blog/automate-social-media-without-losing-your-voice",
+   "titre": "Automating social media without losing your voice",
+   "description": "What genuinely saves time, what should never be handed to a machine, and how to spot content written by an AI left on its own.",
+   "date": "2026-08-19",
+   "maj": "2026-08-19",
+   "auteur": "The Postorico team",
+   "tags": [
+    "ai",
+    "automation",
+    "writing"
+   ],
+   "pose": "presente-produit",
+   "minutes": 4,
+   "mots": 720,
+   "sommaire": [
+    {
+     "id": "what-can-be-delegated-with-nothing-lost",
+     "texte": "What can be delegated with nothing lost"
+    },
+    {
+     "id": "what-must-never-be-delegated",
+     "texte": "What must never be delegated"
+    },
+    {
+     "id": "how-to-spot-an-ai-left-on-its-own",
+     "texte": "How to spot an AI left on its own"
+    },
+    {
+     "id": "the-setup-that-changes-everything",
+     "texte": "The setup that changes everything"
+    },
+    {
+     "id": "the-right-way-to-measure-the-gain",
+     "texte": "The right way to measure the gain"
+    },
+    {
+     "id": "how-we-do-it",
+     "texte": "How we do it"
+    }
+   ],
+   "html": "<p>The objection is fair and we hear it every week: &quot;if an AI writes for me, it won&#39;t be me anymore.&quot; It holds — for an AI left on its own. It stops holding as soon as you draw the right line between what can be delegated and what cannot.</p>\n<p>Here is that line, as we draw it.</p>\n<h2 id=\"what-can-be-delegated-with-nothing-lost\">What can be delegated with nothing lost</h2>\n<p><strong>Formatting.</strong> Breaking a text into readable paragraphs, producing three opening variants, adapting one message to each network&#39;s format: that work is real, it takes time, and nobody will recognise your voice in the way you place your line breaks.</p>\n<p><strong>Scheduling.</strong> Deciding a post goes out Tuesday at 8:30 rather than Sunday at 11 p.m. involves no editorial judgement. It is logistics.</p>\n<p><strong>The first draft.</strong> This is the point that surprises people. A first draft is not a text, it is a starting point — and the blank page is the most expensive thing in a busy week. Receiving three imperfect drafts to fix takes ten minutes; writing from scratch takes sixty.</p>\n<p><strong>Recycling.</strong> Digging out what worked well six months ago and rewording it is archivist&#39;s work. A machine does it better than you, because it forgets nothing.</p>\n<h2 id=\"what-must-never-be-delegated\">What must never be delegated</h2>\n<p><strong>The subject.</strong> What you talk about this week comes from your week: a difficult client, a mistake spotted on site, a question asked three times. No model has access to that. An AI choosing your subjects alone produces generalities — which is exactly what people hold against automated content.</p>\n<p><strong>The opinion.</strong> A stance commits someone. It must commit you.</p>\n<p><strong>The final pass.</strong> Thirty seconds of proofreading is enough to remove the two words you never use. That pass is the difference between a text that sounds like you and a text that sounds like the internet.</p>\n<p><strong>Replying to comments.</strong> It is the only place where a real conversation happens. Automating it means losing precisely what you publish for.</p>\n<h2 id=\"how-to-spot-an-ai-left-on-its-own\">How to spot an AI left on its own</h2>\n<p>Four signs, easy to catch once you know them:</p>\n<ul>\n<li><strong>Enthusiasm about nothing.</strong> &quot;Thrilled to share&quot;, &quot;incredible opportunity&quot;, adjectives that describe nothing.</li>\n<li><strong>Lists of three that cost nothing.</strong> Three tips, true, generic, that the reader already knew.</li>\n<li><strong>No numbers and no proper nouns.</strong> Content mentioning no specific situation probably describes nothing that happened.</li>\n<li><strong>The automatic closing question.</strong> &quot;What do you think?&quot; asked with no real intention of reading the answers.</li>\n</ul>\n<p>If you re-read a draft and tick three of those four boxes, the text is not ready — whatever wrote it.</p>\n<h2 id=\"the-setup-that-changes-everything\">The setup that changes everything</h2>\n<p>A model produces the average of what it has read, unless you give it something to deviate from. That &quot;something&quot; is short:</p>\n<ol>\n<li><strong>Your pillars</strong> — the three or four subjects you are legitimate on.</li>\n<li><strong>Your bans</strong> — the words and turns of phrase you never use. It is the most effective setting, and the one most often skipped.</li>\n<li><strong>Five texts of your own</strong> — real posts, written by hand. A sample of your sentence rhythm beats ten adjectives describing your tone.</li>\n<li><strong>Your audience</strong> — who you talk to, and what they have already tried.</li>\n</ol>\n<p>With those four in place, the question is no longer &quot;does this sound like me?&quot; but &quot;do I approve this draft?&quot;. That is not the same conversation.</p>\n<h2 id=\"the-right-way-to-measure-the-gain\">The right way to measure the gain</h2>\n<p>Don&#39;t count writing time, count the number of weeks you actually published. It is the only figure that matters, and the one automation genuinely improves: it does not make your posts better, it stops you disappearing for three weeks because the week was hard.</p>\n<p>An account run by hand for two months and then abandoned is worth less than an assisted account run for two years. That is the comparison to start from, not the one between a handwritten text and a generated one.</p>\n<h2 id=\"how-we-do-it\">How we do it</h2>\n<p>Postorico produces the drafts, you review them, you decide. Generation starts from your brand profile — pillars, voice, bans, audience — not from a generic prompt. Nothing goes out without your approval, and comments come back to you so you answer them yourself.</p>\n<p>It is a deliberate choice: a fully automatic pipeline would publish faster, and would publish content nobody reads.</p>\n"
+  },
+  {
+   "id": "automatiser-sans-perdre-sa-voix",
+   "langue": "fr",
+   "slug": "automatiser-reseaux-sociaux-sans-perdre-sa-voix",
+   "chemin": "/blog/automatiser-reseaux-sociaux-sans-perdre-sa-voix",
+   "titre": "Automatiser ses réseaux sociaux sans perdre sa voix",
+   "description": "Ce qui gagne vraiment du temps, ce qu'il ne faut jamais déléguer à une machine, et comment on reconnaît un contenu écrit par une IA laissée seule.",
+   "date": "2026-08-19",
+   "maj": "2026-08-19",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "ia",
+    "automatisation",
+    "redaction"
+   ],
+   "pose": "presente-produit",
+   "minutes": 4,
+   "mots": 792,
+   "sommaire": [
+    {
+     "id": "ce-qui-se-delegue-sans-rien-perdre",
+     "texte": "Ce qui se délègue sans rien perdre"
+    },
+    {
+     "id": "ce-qui-ne-se-delegue-jamais",
+     "texte": "Ce qui ne se délègue jamais"
+    },
+    {
+     "id": "comment-on-reconnait-une-ia-laissee-seule",
+     "texte": "Comment on reconnaît une IA laissée seule"
+    },
+    {
+     "id": "le-parametrage-qui-change-tout",
+     "texte": "Le paramétrage qui change tout"
+    },
+    {
+     "id": "la-bonne-facon-de-mesurer-le-gain",
+     "texte": "La bonne façon de mesurer le gain"
+    },
+    {
+     "id": "notre-facon-de-faire",
+     "texte": "Notre façon de faire"
+    }
+   ],
+   "html": "<p>L&#39;objection est légitime et nous l&#39;entendons chaque semaine : « si une IA écrit à ma place, ça ne sera plus moi. » Elle est fondée — pour une IA laissée seule. Elle cesse de l&#39;être dès qu&#39;on sépare correctement ce qui se délègue de ce qui ne se délègue pas.</p>\n<p>Voici cette frontière, telle que nous la traçons.</p>\n<h2 id=\"ce-qui-se-delegue-sans-rien-perdre\">Ce qui se délègue sans rien perdre</h2>\n<p><strong>La mise en forme.</strong> Découper un texte en paragraphes lisibles, produire trois variantes d&#39;accroche, adapter un même propos au format de chaque réseau : ce travail est réel, il prend du temps, et personne ne reconnaîtra votre voix à la façon dont vous placez vos retours à la ligne.</p>\n<p><strong>La planification.</strong> Décider qu&#39;un post part mardi 8 h 30 plutôt que dimanche 23 h n&#39;engage aucun jugement éditorial. C&#39;est de la logistique.</p>\n<p><strong>Le premier jet.</strong> C&#39;est le point qui surprend. Un premier jet n&#39;est pas un texte, c&#39;est un point de départ — et la page blanche est ce qui coûte le plus cher dans une semaine chargée. Recevoir trois propositions imparfaites à corriger demande dix minutes ; écrire de zéro en demande soixante.</p>\n<p><strong>Le recyclage.</strong> Retrouver ce qui a bien marché il y a six mois et le reformuler est un travail d&#39;archiviste. Une machine le fait mieux que vous, parce qu&#39;elle n&#39;oublie rien.</p>\n<h2 id=\"ce-qui-ne-se-delegue-jamais\">Ce qui ne se délègue jamais</h2>\n<p><strong>Le sujet.</strong> Ce dont vous parlez cette semaine vient de votre semaine : un client difficile, une erreur observée sur un chantier, une question posée trois fois. Aucun modèle n&#39;a accès à ça. Une IA qui choisit seule vos sujets produit des généralités — et c&#39;est exactement ce qu&#39;on reproche aux contenus automatisés.</p>\n<p><strong>L&#39;opinion.</strong> Une prise de position engage quelqu&#39;un. Elle doit engager vous.</p>\n<p><strong>Le dernier passage.</strong> Trente secondes de relecture suffisent à retirer les deux mots que vous n&#39;employez jamais. C&#39;est ce passage qui fait la différence entre un texte qui sonne comme vous et un texte qui sonne comme internet.</p>\n<p><strong>La réponse aux commentaires.</strong> C&#39;est le seul endroit où une vraie conversation a lieu. L&#39;automatiser, c&#39;est perdre précisément ce pour quoi on publie.</p>\n<h2 id=\"comment-on-reconnait-une-ia-laissee-seule\">Comment on reconnaît une IA laissée seule</h2>\n<p>Quatre signes, faciles à repérer une fois qu&#39;on les connaît :</p>\n<ul>\n<li><strong>L&#39;enthousiasme sans objet.</strong> « Ravi de partager », « incroyable opportunité », des adjectifs qui ne décrivent rien.</li>\n<li><strong>Les listes de trois qui ne coûtent rien.</strong> Trois conseils vrais, généraux, que le lecteur connaissait déjà.</li>\n<li><strong>L&#39;absence de chiffre et de nom propre.</strong> Un contenu qui ne mentionne aucune situation précise n&#39;a probablement pas eu lieu.</li>\n<li><strong>La question finale automatique.</strong> « Et vous, qu&#39;en pensez-vous ? » posée sans intention réelle de lire les réponses.</li>\n</ul>\n<p>Si vous relisez un brouillon et cochez trois de ces quatre cases, le texte n&#39;est pas prêt — quelle qu&#39;en soit l&#39;origine.</p>\n<h2 id=\"le-parametrage-qui-change-tout\">Le paramétrage qui change tout</h2>\n<p>Un modèle produit la moyenne de ce qu&#39;il a lu, sauf si on lui donne de quoi s&#39;en écarter. Ce « de quoi » tient en peu de choses :</p>\n<ol>\n<li><strong>Vos piliers</strong> — les trois ou quatre sujets sur lesquels vous êtes légitime.</li>\n<li><strong>Vos interdits</strong> — les mots et les tournures que vous n&#39;employez jamais. C&#39;est le réglage le plus efficace, et le plus souvent oublié.</li>\n<li><strong>Cinq textes de vous</strong> — de vrais posts, écrits à la main. Un échantillon de votre rythme de phrase vaut mieux que dix adjectifs pour décrire votre ton.</li>\n<li><strong>Votre audience</strong> — à qui vous parlez, et ce qu&#39;elle a déjà essayé.</li>\n</ol>\n<p>Avec ces quatre éléments, la question n&#39;est plus « est-ce que ça sonne comme moi ? » mais « est-ce que je valide ce jet-là ? ». Ce n&#39;est pas la même conversation.</p>\n<h2 id=\"la-bonne-facon-de-mesurer-le-gain\">La bonne façon de mesurer le gain</h2>\n<p>Ne comptez pas le temps d&#39;écriture, comptez le nombre de semaines où vous avez publié. C&#39;est le seul chiffre qui compte, et c&#39;est celui que l&#39;automatisation améliore vraiment : elle ne rend pas vos posts meilleurs, elle vous empêche de disparaître trois semaines parce que la semaine a été dure.</p>\n<p>Un compte tenu à la main pendant deux mois puis abandonné vaut moins qu&#39;un compte assisté tenu pendant deux ans. C&#39;est de cette comparaison-là qu&#39;il faut partir, pas de celle entre un texte écrit à la main et un texte généré.</p>\n<h2 id=\"notre-facon-de-faire\">Notre façon de faire</h2>\n<p>Postorico produit les propositions, vous les relisez, vous décidez. La génération part de votre profil de marque — piliers, voix, interdits, audience — et non d&#39;une consigne générique. Rien ne part sans votre validation, et les commentaires vous reviennent pour que vous y répondiez vous-même.</p>\n<p>C&#39;est un choix assumé : une chaîne entièrement automatique publierait plus vite, et publierait des contenus que personne ne lirait.</p>\n"
+  },
+  {
+   "id": "ligne-editoriale",
+   "langue": "es",
+   "slug": "definir-tu-linea-editorial",
+   "chemin": "/es/blog/definir-tu-linea-editorial",
+   "titre": "Línea editorial: definirla en una sola página",
+   "description": "Un método en cinco bloques para poner por escrito de qué hablas, a quién y con qué voz — con la plantilla para copiar.",
+   "date": "2026-08-11",
+   "maj": "2026-08-11",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "estrategia",
+    "redaccion",
+    "marca"
+   ],
+   "pose": "idee",
+   "minutes": 4,
+   "mots": 717,
+   "sommaire": [
+    {
+     "id": "bloque-1-a-quien-le-hablas-con-precision",
+     "texte": "Bloque 1 — A quién le hablas, con precisión"
+    },
+    {
+     "id": "bloque-2-tus-tres-o-cuatro-pilares",
+     "texte": "Bloque 2 — Tus tres o cuatro pilares"
+    },
+    {
+     "id": "bloque-3-tu-voz-en-tres-adjetivos-y-tres-prohibiciones",
+     "texte": "Bloque 3 — Tu voz, en tres adjetivos y tres prohibiciones"
+    },
+    {
+     "id": "bloque-4-tus-formatos-recurrentes",
+     "texte": "Bloque 4 — Tus formatos recurrentes"
+    },
+    {
+     "id": "bloque-5-que-quieres-que-ocurra",
+     "texte": "Bloque 5 — Qué quieres que ocurra"
+    },
+    {
+     "id": "la-plantilla-para-copiar",
+     "texte": "La plantilla para copiar"
+    },
+    {
+     "id": "que-hacer-con-ella-despues",
+     "texte": "Qué hacer con ella después"
+    }
+   ],
+   "html": "<p>Una línea editorial no es un documento de treinta páginas hecho por una agencia. Es una página que relees antes de escribir y que responde a tres preguntas: de qué hablo, a quién y con qué voz. Sin ella, cada publicación empieza de cero y tu cuenta acaba pareciendo una sucesión de contenidos sin relación — algo que tu audiencia percibe antes que tú.</p>\n<p>Este es el método que usamos para configurar una cuenta, en cinco bloques.</p>\n<h2 id=\"bloque-1-a-quien-le-hablas-con-precision\">Bloque 1 — A quién le hablas, con precisión</h2>\n<p>Escribe una persona, no un segmento. «Las pymes» no es una audiencia; «el director de una empresa de diez a cincuenta empleados que no tiene departamento de marketing y firma él mismo los contratos grandes» sí lo es.</p>\n<p>Bastan tres elementos:</p>\n<ul>\n<li><strong>Su situación</strong> — su oficio, su tamaño, su día a día.</li>\n<li><strong>Su problema</strong> — el que tú resuelves, formulado con sus palabras, no con las tuyas.</li>\n<li><strong>Lo que ya ha probado</strong> — es lo que te evitará escribir consejos que se sabe de memoria.</li>\n</ul>\n<p>Este último punto es el más olvidado y el más rentable. Un contenido que empieza donde tu lector se quedó vale por diez que empiezan desde el principio.</p>\n<h2 id=\"bloque-2-tus-tres-o-cuatro-pilares\">Bloque 2 — Tus tres o cuatro pilares</h2>\n<p>Un pilar es un tema sobre el que puedes escribir treinta veces sin repetirte. Con tres o cuatro basta; más allá, tu cuenta pierde coherencia.</p>\n<p>Para un techador, por ejemplo: las obras comentadas, los errores caros de los particulares, los materiales, el día a día del equipo. Para un consultor: el método, los casos de cliente, los tópicos del sector, las opiniones.</p>\n<p>Prueba cada pilar así: enumera cinco temas de artículo debajo, ahora mismo, sin pensar más de dos minutos. Si no lo consigues, no es un pilar: es una idea de publicación.</p>\n<h2 id=\"bloque-3-tu-voz-en-tres-adjetivos-y-tres-prohibiciones\">Bloque 3 — Tu voz, en tres adjetivos y tres prohibiciones</h2>\n<p>Los adjetivos por sí solos no sirven: todo el mundo se define como «auténtico, experto y cercano». Son las prohibiciones las que hacen reconocible una voz.</p>\n<p>Un ejemplo concreto:</p>\n<blockquote>\n<p><strong>Somos</strong> directos, concretos, un poco punzantes.\n<strong>Nunca somos</strong> sermoneadores, ni jergosos, ni falsamente entusiastas.\n<strong>Nunca decimos</strong> «revolucionario», «game changer», «encantado de anunciar».</p>\n</blockquote>\n<p>Esa lista de prohibiciones es lo que más releerás. Y es también lo que hay que darle a una herramienta de escritura asistida: sin ella, producirá la media de internet.</p>\n<h2 id=\"bloque-4-tus-formatos-recurrentes\">Bloque 4 — Tus formatos recurrentes</h2>\n<p>Un formato es un molde que reutilizas. Divide por dos el tiempo de producción, porque dejas de reinventar la estructura cada vez.</p>\n<p>Con cuatro formatos basta para empezar:</p>\n<ol>\n<li><strong>La experiencia contada</strong> — una situación, qué hiciste, qué resultó.</li>\n<li><strong>El error frecuente</strong> — qué hacen mal tus clientes, por qué, qué hacer en su lugar.</li>\n<li><strong>El detrás de cámaras</strong> — un momento de tu semana que muestra cómo trabajas.</li>\n<li><strong>La toma de postura</strong> — una opinión asumida sobre tu sector.</li>\n</ol>\n<p>Asigna un pilar a cada formato y obtienes una parrilla de temas que aguanta varios meses.</p>\n<h2 id=\"bloque-5-que-quieres-que-ocurra\">Bloque 5 — Qué quieres que ocurra</h2>\n<p>Una línea editorial sin objetivo produce contenido agradable y sin efecto. Elige uno solo, formulado como una acción observable: «que un directivo me escriba para hablar de su proyecto», «que me citen como referencia cuando alguien busca un techador en la provincia».</p>\n<p>Uno solo. Dos objetivos que compiten producen dos cuentas mezcladas.</p>\n<h2 id=\"la-plantilla-para-copiar\">La plantilla para copiar</h2>\n<pre><code>AUDIENCIA\n  Situación:\n  Problema (con sus palabras):\n  Lo que ya ha probado:\n\nPILARES\n  1.        2.        3.        4.\n\nVOZ\n  Somos:\n  Nunca somos:\n  Palabras prohibidas:\n\nFORMATOS\n  1.        2.        3.        4.\n\nOBJETIVO ÚNICO\n</code></pre>\n<p>Quince líneas. Si no consigues rellenarlas, el problema no es tu línea editorial: es que el posicionamiento previo no está decidido, y ninguna cantidad de publicaciones lo compensará.</p>\n<h2 id=\"que-hacer-con-ella-despues\">Qué hacer con ella después</h2>\n<p>Relee esa página antes de cada sesión de escritura, durante un mes. Pasado ese plazo la habrás integrado y solo la necesitarás en los momentos de duda.</p>\n<p>Si trabajas con una herramienta de generación, esas quince líneas son exactamente lo que hay que darle. Es lo que pide Postorico al crear el perfil de marca: sin pilares ni prohibiciones, una IA escribe lo que escribe todo el mundo. Con ellos, escribe lo que <strong>tú</strong> habrías escrito en un buen día.</p>\n"
+  },
+  {
+   "id": "ligne-editoriale",
+   "langue": "en",
+   "slug": "define-your-content-strategy",
+   "chemin": "/en/blog/define-your-content-strategy",
+   "titre": "Your content strategy, defined on a single page",
+   "description": "A five-block method to write down what you talk about, who you talk to and in what voice — with the template to copy.",
+   "date": "2026-08-11",
+   "maj": "2026-08-11",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy",
+    "writing",
+    "brand"
+   ],
+   "pose": "idee",
+   "minutes": 3,
+   "mots": 692,
+   "sommaire": [
+    {
+     "id": "block-1-who-you-are-talking-to-precisely",
+     "texte": "Block 1 — Who you are talking to, precisely"
+    },
+    {
+     "id": "block-2-your-three-or-four-pillars",
+     "texte": "Block 2 — Your three or four pillars"
+    },
+    {
+     "id": "block-3-your-voice-in-three-adjectives-and-three-bans",
+     "texte": "Block 3 — Your voice, in three adjectives and three bans"
+    },
+    {
+     "id": "block-4-your-recurring-formats",
+     "texte": "Block 4 — Your recurring formats"
+    },
+    {
+     "id": "block-5-what-you-want-to-happen",
+     "texte": "Block 5 — What you want to happen"
+    },
+    {
+     "id": "the-template-to-copy",
+     "texte": "The template to copy"
+    },
+    {
+     "id": "what-to-do-with-it-next",
+     "texte": "What to do with it next"
+    }
+   ],
+   "html": "<p>A content strategy is not a thirty-page document produced by an agency. It is one page you re-read before writing, answering three questions: what do I talk about, to whom, and in what voice. Without it, every post starts from scratch and your account ends up looking like a series of unrelated pieces — which your audience notices before you do.</p>\n<p>Here is the method we use to set up an account, in five blocks.</p>\n<h2 id=\"block-1-who-you-are-talking-to-precisely\">Block 1 — Who you are talking to, precisely</h2>\n<p>Write down a person, not a segment. &quot;SMEs&quot; is not an audience; &quot;the owner of a ten-to-fifty-person company with no marketing team, who signs the big contracts personally&quot; is one.</p>\n<p>Three elements are enough:</p>\n<ul>\n<li><strong>Their situation</strong> — their trade, their size, their daily reality.</li>\n<li><strong>Their problem</strong> — the one you solve, phrased in their words, not yours.</li>\n<li><strong>What they have already tried</strong> — this is what stops you writing advice they know by heart.</li>\n</ul>\n<p>That last point is the most neglected and the most profitable. Content that starts where your reader stopped is worth ten pieces that start from the beginning.</p>\n<h2 id=\"block-2-your-three-or-four-pillars\">Block 2 — Your three or four pillars</h2>\n<p>A pillar is a subject you can write about thirty times without repeating yourself. Three or four is enough; beyond that, your account loses its coherence.</p>\n<p>For a roofer, for instance: job sites explained, the costly mistakes homeowners make, materials, life inside the team. For a consultant: the method, client cases, industry myths, opinions.</p>\n<p>Test each pillar this way: list five article ideas underneath it, right now, without thinking for more than two minutes. If you can&#39;t, it isn&#39;t a pillar — it&#39;s a post idea.</p>\n<h2 id=\"block-3-your-voice-in-three-adjectives-and-three-bans\">Block 3 — Your voice, in three adjectives and three bans</h2>\n<p>Adjectives alone are useless: everyone describes themselves as &quot;authentic, expert and approachable&quot;. It is the bans that make a voice recognisable.</p>\n<p>A concrete example:</p>\n<blockquote>\n<p><strong>We are</strong> direct, concrete, slightly sharp.\n<strong>We are never</strong> preachy, jargon-heavy, or falsely enthusiastic.\n<strong>We never say</strong> &quot;revolutionary&quot;, &quot;game changer&quot;, &quot;thrilled to announce&quot;.</p>\n</blockquote>\n<p>That list of bans is what you will re-read most often. It is also what you must hand to any writing assistant: without it, it will produce the average of the internet.</p>\n<h2 id=\"block-4-your-recurring-formats\">Block 4 — Your recurring formats</h2>\n<p>A format is a mould you reuse. It halves production time, because you stop reinventing the structure every time.</p>\n<p>Four formats are enough to start:</p>\n<ol>\n<li><strong>The field report</strong> — a situation, what you did, how it turned out.</li>\n<li><strong>The common mistake</strong> — what your clients get wrong, why, what to do instead.</li>\n<li><strong>Behind the scenes</strong> — a moment from your week showing how you work.</li>\n<li><strong>The stance</strong> — an opinion you own about your industry.</li>\n</ol>\n<p>Assign a pillar to each format and you get a topic grid that lasts several months.</p>\n<h2 id=\"block-5-what-you-want-to-happen\">Block 5 — What you want to happen</h2>\n<p>A content strategy with no objective produces pleasant, ineffective content. Pick exactly one, phrased as an observable action: &quot;a company owner messages me about their project&quot;, &quot;people cite me when someone looks for a roofer in the county&quot;.</p>\n<p>One only. Two competing objectives produce two accounts mixed together.</p>\n<h2 id=\"the-template-to-copy\">The template to copy</h2>\n<pre><code>AUDIENCE\n  Situation:\n  Problem (in their words):\n  What they already tried:\n\nPILLARS\n  1.        2.        3.        4.\n\nVOICE\n  We are:\n  We are never:\n  Banned words:\n\nFORMATS\n  1.        2.        3.        4.\n\nSINGLE OBJECTIVE\n</code></pre>\n<p>Fifteen lines. If you cannot fill them in, the problem is not your content strategy — it is that the positioning upstream has not been settled, and no amount of posting will compensate for that.</p>\n<h2 id=\"what-to-do-with-it-next\">What to do with it next</h2>\n<p>Re-read that page before every writing session, for a month. After that it will be internalised and you will only need it in moments of doubt.</p>\n<p>If you work with a generation tool, those fifteen lines are exactly what it needs. That is what Postorico asks for when you create your brand profile: without pillars and bans, an AI writes what everyone writes. With them, it writes what <strong>you</strong> would have written on a good day.</p>\n"
+  },
+  {
+   "id": "ligne-editoriale",
+   "langue": "fr",
+   "slug": "definir-sa-ligne-editoriale",
+   "chemin": "/blog/definir-sa-ligne-editoriale",
+   "titre": "Ligne éditoriale : la définir en une page",
+   "description": "Une méthode en cinq blocs pour écrire noir sur blanc de quoi vous parlez, à qui, et sur quel ton — avec le modèle à recopier.",
+   "date": "2026-08-11",
+   "maj": "2026-08-11",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "redaction",
+    "marque"
+   ],
+   "pose": "idee",
+   "minutes": 4,
+   "mots": 779,
+   "sommaire": [
+    {
+     "id": "bloc-1-a-qui-vous-parlez-precisement",
+     "texte": "Bloc 1 — À qui vous parlez, précisément"
+    },
+    {
+     "id": "bloc-2-vos-trois-ou-quatre-piliers",
+     "texte": "Bloc 2 — Vos trois ou quatre piliers"
+    },
+    {
+     "id": "bloc-3-votre-voix-en-trois-adjectifs-et-trois-interdits",
+     "texte": "Bloc 3 — Votre voix, en trois adjectifs et trois interdits"
+    },
+    {
+     "id": "bloc-4-vos-formats-recurrents",
+     "texte": "Bloc 4 — Vos formats récurrents"
+    },
+    {
+     "id": "bloc-5-ce-que-vous-voulez-qu-il-se-passe",
+     "texte": "Bloc 5 — Ce que vous voulez qu'il se passe"
+    },
+    {
+     "id": "le-modele-a-recopier",
+     "texte": "Le modèle à recopier"
+    },
+    {
+     "id": "ce-qu-il-faut-en-faire-ensuite",
+     "texte": "Ce qu'il faut en faire ensuite"
+    }
+   ],
+   "html": "<p>Une ligne éditoriale n&#39;est pas un document de trente pages produit par une agence. C&#39;est une page que vous relisez avant d&#39;écrire, et qui répond à trois questions : de quoi je parle, à qui, et avec quelle voix. Sans elle, chaque publication redémarre de zéro et votre compte finit par ressembler à une succession de contenus sans lien — ce que votre audience perçoit avant vous.</p>\n<p>Voici la méthode que nous utilisons pour paramétrer un compte, en cinq blocs.</p>\n<h2 id=\"bloc-1-a-qui-vous-parlez-precisement\">Bloc 1 — À qui vous parlez, précisément</h2>\n<p>Écrivez une personne, pas un segment. « Les PME » n&#39;est pas une audience ; « le dirigeant d&#39;une entreprise de dix à cinquante salariés qui n&#39;a pas de service marketing et signe lui-même ses gros contrats » en est une.</p>\n<p>Trois éléments suffisent :</p>\n<ul>\n<li><strong>Sa situation</strong> — son métier, sa taille, son quotidien.</li>\n<li><strong>Son problème</strong> — celui que vous résolvez, formulé avec ses mots à lui, pas les vôtres.</li>\n<li><strong>Ce qu&#39;il a déjà essayé</strong> — c&#39;est ce qui vous évitera d&#39;écrire des conseils qu&#39;il connaît par cœur.</li>\n</ul>\n<p>Ce dernier point est le plus négligé et le plus rentable. Un contenu qui commence là où votre lecteur s&#39;est arrêté vaut dix contenus qui reprennent depuis le début.</p>\n<h2 id=\"bloc-2-vos-trois-ou-quatre-piliers\">Bloc 2 — Vos trois ou quatre piliers</h2>\n<p>Un pilier est un sujet sur lequel vous pouvez écrire trente fois sans vous répéter. Trois ou quatre suffisent ; au-delà, votre compte perd sa cohérence.</p>\n<p>Pour un artisan couvreur, par exemple : les chantiers commentés, les erreurs coûteuses des particuliers, les matériaux, les coulisses de l&#39;équipe. Pour un consultant : la méthode, les cas clients, les idées reçues du secteur, les prises de position.</p>\n<p>Testez chaque pilier ainsi : listez cinq sujets d&#39;articles dessous, tout de suite, sans réfléchir plus de deux minutes. Si vous n&#39;y arrivez pas, ce n&#39;est pas un pilier — c&#39;est une idée de post.</p>\n<h2 id=\"bloc-3-votre-voix-en-trois-adjectifs-et-trois-interdits\">Bloc 3 — Votre voix, en trois adjectifs et trois interdits</h2>\n<p>Les adjectifs seuls ne servent à rien : tout le monde se dit « authentique, expert et accessible ». Ce sont les interdits qui rendent une voix reconnaissable.</p>\n<p>Un exemple concret :</p>\n<blockquote>\n<p><strong>On est</strong> direct, concret, un peu piquant.\n<strong>On n&#39;est jamais</strong> donneur de leçons, jargonnant, ni faussement enthousiaste.\n<strong>On ne dit jamais</strong> « révolutionnaire », « game changer », « je suis ravi d&#39;annoncer ».</p>\n</blockquote>\n<p>Cette liste d&#39;interdits est ce que vous relirez le plus souvent. C&#39;est aussi ce qu&#39;il faut donner à un outil d&#39;écriture assistée : sans elle, il produira la moyenne d&#39;internet.</p>\n<h2 id=\"bloc-4-vos-formats-recurrents\">Bloc 4 — Vos formats récurrents</h2>\n<p>Un format est un moule que vous réutilisez. Il divise le temps de production par deux, parce que vous ne réinventez plus la structure à chaque fois.</p>\n<p>Quatre formats suffisent pour commencer :</p>\n<ol>\n<li><strong>Le retour d&#39;expérience</strong> — une situation, ce que vous avez fait, ce que ça a donné.</li>\n<li><strong>L&#39;erreur fréquente</strong> — ce que vos clients font mal, pourquoi, quoi faire à la place.</li>\n<li><strong>La coulisse</strong> — un moment de votre semaine qui montre comment vous travaillez.</li>\n<li><strong>La prise de position</strong> — une opinion assumée sur votre secteur.</li>\n</ol>\n<p>Attribuez un pilier à chaque format et vous obtenez une grille de sujets qui tient plusieurs mois.</p>\n<h2 id=\"bloc-5-ce-que-vous-voulez-qu-il-se-passe\">Bloc 5 — Ce que vous voulez qu&#39;il se passe</h2>\n<p>Une ligne éditoriale sans objectif produit du contenu agréable et sans effet. Choisissez-en un seul, formulé en action observable : « qu&#39;un dirigeant m&#39;envoie un message pour parler de son projet », « qu&#39;on me cite comme référence quand quelqu&#39;un cherche un couvreur dans le département ».</p>\n<p>Un seul. Deux objectifs concurrents produisent deux comptes mélangés.</p>\n<h2 id=\"le-modele-a-recopier\">Le modèle à recopier</h2>\n<pre><code>AUDIENCE\n  Situation :\n  Problème (avec ses mots) :\n  Ce qu&#39;il a déjà essayé :\n\nPILIERS\n  1.        2.        3.        4.\n\nVOIX\n  On est :\n  On n&#39;est jamais :\n  Mots interdits :\n\nFORMATS\n  1.        2.        3.        4.\n\nOBJECTIF UNIQUE\n</code></pre>\n<p>Quinze lignes. Si vous ne parvenez pas à les remplir, le problème n&#39;est pas votre ligne éditoriale — c&#39;est que le positionnement en amont n&#39;est pas tranché, et aucune quantité de publications ne le compensera.</p>\n<h2 id=\"ce-qu-il-faut-en-faire-ensuite\">Ce qu&#39;il faut en faire ensuite</h2>\n<p>Relisez cette page avant chaque session d&#39;écriture, pendant un mois. Passé ce délai, elle sera intégrée et vous n&#39;en aurez plus besoin qu&#39;aux moments de doute.</p>\n<p>Si vous travaillez avec un outil de génération, ces quinze lignes sont exactement ce qu&#39;il faut lui transmettre. C&#39;est ce que Postorico demande à la création du profil de marque : sans piliers ni interdits, une IA écrit ce que tout le monde écrit. Avec, elle écrit ce que <strong>vous</strong> auriez écrit un bon jour.</p>\n"
+  },
+  {
+   "id": "frequence-publication",
+   "langue": "es",
+   "slug": "con-que-frecuencia-publicar-en-redes-sociales",
+   "chemin": "/es/blog/con-que-frecuencia-publicar-en-redes-sociales",
+   "titre": "¿Con qué frecuencia publicar en LinkedIn, Instagram y Facebook?",
+   "description": "El ritmo recomendado red por red, el mínimo por debajo del cual una cuenta se apaga, y el método para encontrar la cadencia que realmente vas a mantener.",
+   "date": "2026-08-04",
+   "maj": "2026-08-04",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "linkedin",
+    "instagram",
+    "facebook",
+    "ritmo"
+   ],
+   "pose": "annonce",
+   "minutes": 4,
+   "mots": 857,
+   "sommaire": [
+    {
+     "id": "la-respuesta-corta-red-por-red",
+     "texte": "La respuesta corta, red por red"
+    },
+    {
+     "id": "por-que-la-constancia-gana-al-volumen",
+     "texte": "Por qué la constancia gana al volumen"
+    },
+    {
+     "id": "como-encontrar-tu-frecuencia",
+     "texte": "Cómo encontrar tu frecuencia"
+    },
+    {
+     "id": "los-tres-errores-mas-caros",
+     "texte": "Los tres errores más caros"
+    },
+    {
+     "id": "y-si-no-mantienes-el-ritmo",
+     "texte": "¿Y si no mantienes el ritmo?"
+    },
+    {
+     "id": "lo-que-hay-que-retener",
+     "texte": "Lo que hay que retener"
+    }
+   ],
+   "html": "<p>La pregunta vuelve siempre, y está mal planteada. «¿Cuántas veces por semana hay que publicar?» da por hecho que existe un número mágico. No existe. Sí existe un umbral por debajo del cual una cuenta se apaga, un techo por encima del cual tu audiencia desconecta y, sobre todo, un ritmo que <strong>tú</strong> puedes mantener doce meses seguidos. Ese último lo decide todo.</p>\n<h2 id=\"la-respuesta-corta-red-por-red\">La respuesta corta, red por red</h2>\n<div class=\"tbl\"><table>\n<thead>\n<tr>\n<th>Red</th>\n<th>Ritmo cómodo</th>\n<th>Mínimo vital</th>\n<th>Lo que más cuenta</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>LinkedIn</td>\n<td>3 a 5 publicaciones / semana</td>\n<td>1 por semana</td>\n<td>La constancia y los comentarios</td>\n</tr>\n<tr>\n<td>Instagram (feed)</td>\n<td>3 a 4 / semana</td>\n<td>2 por semana</td>\n<td>La calidad visual</td>\n</tr>\n<tr>\n<td>Instagram (stories)</td>\n<td>cada día laborable</td>\n<td>3 por semana</td>\n<td>La presencia, no la producción</td>\n</tr>\n<tr>\n<td>Facebook (página)</td>\n<td>2 a 3 / semana</td>\n<td>1 por semana</td>\n<td>El formato nativo, nunca un enlace suelto</td>\n</tr>\n<tr>\n<td>TikTok / Reels</td>\n<td>4 a 7 / semana</td>\n<td>3 por semana</td>\n<td>El volumen, de verdad</td>\n</tr>\n</tbody></table></div>\n<p>Estos rangos son puntos de partida, no leyes. Un despacho de abogados que publica un análisis sólido por semana en LinkedIn superará a un competidor que publica cinco obviedades. Un profesional que enseña tres obras por semana en stories superará a una cuenta impecable actualizada una vez al mes.</p>\n<h2 id=\"por-que-la-constancia-gana-al-volumen\">Por qué la constancia gana al volumen</h2>\n<p>Tres razones, por orden de importancia.</p>\n<p><strong>Los algoritmos premian la previsibilidad.</strong> Una cuenta que publica de forma estable obtiene una distribución más estable que otra que alterna ráfagas y silencios. No hay magia: la plataforma aprende a quién mostrar tus contenidos, y ese aprendizaje se pierde cuando desapareces tres semanas.</p>\n<p><strong>Tu audiencia adquiere un hábito.</strong> Quienes te siguen no registran tu ritmo conscientemente, pero lo integran. Publicar martes y jueves durante dos meses crea una cita. Publicar siete veces en tres días y luego nada crea ruido.</p>\n<p><strong>La constancia se acumula.</strong> Treinta publicaciones normales repartidas en tres meses producen más que treinta publicaciones normales en tres semanas, porque cada una alcanza una parte distinta de tu audiencia y los efectos se suman.</p>\n<h2 id=\"como-encontrar-tu-frecuencia\">Cómo encontrar tu frecuencia</h2>\n<h3 id=\"1-mide-tu-capacidad-real-no-la-sonada\">1. Mide tu capacidad real, no la soñada</h3>\n<p>Cronométrate una sola vez: ¿cuánto tiempo te lleva una publicación, de la idea a la publicación? Con el visual y la relectura incluidos. La mayoría de los autónomos descubre una cifra entre 40 y 90 minutos. Multiplícala por la frecuencia que tienes en mente. Si el total supera lo que puedes liberar de verdad cada semana, la frecuencia es falsa, por muy «recomendada» que sea.</p>\n<h3 id=\"2-divide-esa-cifra-por-dos\">2. Divide esa cifra por dos</h3>\n<p>Es contraintuitivo y es el mejor consejo de esta página. El ritmo que mantendrás en una semana cargada, de vacaciones o en plena urgencia es más o menos la mitad del que imaginas un domingo por la noche con energía.</p>\n<h3 id=\"3-mantenlo-ocho-semanas-antes-de-juzgar\">3. Mantenlo ocho semanas antes de juzgar</h3>\n<p>Dos meses es el plazo mínimo para distinguir una señal de un accidente. Por debajo solo mides la varianza. A las ocho semanas hay dos salidas: o el ritmo es cómodo y puedes subir un escalón, o te cuesta demasiado y hay que reducirlo, no abandonarlo.</p>\n<h2 id=\"los-tres-errores-mas-caros\">Los tres errores más caros</h2>\n<p><strong>La ráfaga seguida de silencio.</strong> Cinco publicaciones en una semana y después un mes en blanco. Es el patrón más extendido y el más costoso: pagas el precio de la producción sin cobrar el de la constancia.</p>\n<p><strong>El mismo contenido copiado igual en todas partes.</strong> Lo que funciona en LinkedIn —un texto largo, un razonamiento— muere en Instagram. No es un problema de ritmo, pero acaba siéndolo: duplicar da la sensación de publicar mucho sin llegar realmente a nadie.</p>\n<p><strong>Publicar para el algoritmo.</strong> Publicar porque «hace tres días» produce contenido que no tiene nada que decir, y tu audiencia lo nota antes que tú. Mejor saltarse un día que publicar vacío.</p>\n<h2 id=\"y-si-no-mantienes-el-ritmo\">¿Y si no mantienes el ritmo?</h2>\n<p>Tres palancas, de la más barata a la más cara.</p>\n<p><strong>Agrupa la producción.</strong> Escribir seis publicaciones en una sesión de dos horas lleva mucho menos tiempo que seis sesiones de veinte minutos: pagas una sola vez el coste de volver a situarte.</p>\n<p><strong>Recicla sin complejos.</strong> Un contenido que funcionó hace seis meses solo lo vio una parte de tu audiencia. Reformulado, volverá a funcionar. Las cuentas que publican mucho no lo crean todo desde cero.</p>\n<p><strong>Apóyate en una herramienta.</strong> Ese es el papel de Postorico: producir las propuestas con tu voz, planificarlas y publicar en el momento adecuado. Tú conservas la decisión y la relectura —que es lo que impide que el resultado suene genérico— pero ya no partes de la página en blanco cada vez.</p>\n<h2 id=\"lo-que-hay-que-retener\">Lo que hay que retener</h2>\n<p>El buen ritmo es el que sobrevive a una semana difícil. Empieza por debajo de la frecuencia recomendada, mantenla dos meses y súbela después. Una cuenta que publica dos veces por semana desde hace un año gana siempre a una cuenta que publicó a diario durante seis semanas antes de apagarse.</p>\n"
+  },
+  {
+   "id": "frequence-publication",
+   "langue": "en",
+   "slug": "how-often-to-post-on-social-media",
+   "chemin": "/en/blog/how-often-to-post-on-social-media",
+   "titre": "How often should you post on LinkedIn, Instagram and Facebook?",
+   "description": "The recommended pace network by network, the floor below which an account goes quiet, and how to find the cadence you will actually hold.",
+   "date": "2026-08-04",
+   "maj": "2026-08-04",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "instagram",
+    "facebook",
+    "cadence"
+   ],
+   "pose": "annonce",
+   "minutes": 4,
+   "mots": 837,
+   "sommaire": [
+    {
+     "id": "the-short-answer-network-by-network",
+     "texte": "The short answer, network by network"
+    },
+    {
+     "id": "why-consistency-beats-volume",
+     "texte": "Why consistency beats volume"
+    },
+    {
+     "id": "how-to-find-your-own-pace",
+     "texte": "How to find your own pace"
+    },
+    {
+     "id": "the-three-most-expensive-mistakes",
+     "texte": "The three most expensive mistakes"
+    },
+    {
+     "id": "what-if-you-can-t-hold-the-pace",
+     "texte": "What if you can't hold the pace?"
+    },
+    {
+     "id": "what-to-take-away",
+     "texte": "What to take away"
+    }
+   ],
+   "html": "<p>The question comes up every time, and it is the wrong one. &quot;How many times a week should I post?&quot; assumes there is a magic number. There isn&#39;t. There is a floor below which an account goes quiet, a ceiling above which your audience tunes out, and — above all — a pace <strong>you</strong> can hold for twelve months straight. That last one decides everything.</p>\n<h2 id=\"the-short-answer-network-by-network\">The short answer, network by network</h2>\n<div class=\"tbl\"><table>\n<thead>\n<tr>\n<th>Network</th>\n<th>Comfortable pace</th>\n<th>Bare minimum</th>\n<th>What matters most</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>LinkedIn</td>\n<td>3 to 5 posts / week</td>\n<td>1 per week</td>\n<td>Consistency and comments</td>\n</tr>\n<tr>\n<td>Instagram (feed)</td>\n<td>3 to 4 / week</td>\n<td>2 per week</td>\n<td>Visual quality</td>\n</tr>\n<tr>\n<td>Instagram (stories)</td>\n<td>every working day</td>\n<td>3 per week</td>\n<td>Presence, not production</td>\n</tr>\n<tr>\n<td>Facebook (page)</td>\n<td>2 to 3 / week</td>\n<td>1 per week</td>\n<td>Native formats, never a bare link</td>\n</tr>\n<tr>\n<td>TikTok / Reels</td>\n<td>4 to 7 / week</td>\n<td>3 per week</td>\n<td>Volume, genuinely</td>\n</tr>\n</tbody></table></div>\n<p>These ranges are starting points, not laws. A law firm publishing one thorough analysis a week on LinkedIn will beat a competitor posting five platitudes. A tradesperson showing three job sites a week in stories will beat a perfectly polished account updated once a month.</p>\n<h2 id=\"why-consistency-beats-volume\">Why consistency beats volume</h2>\n<p>Three reasons, in order of importance.</p>\n<p><strong>Algorithms reward predictability.</strong> An account that publishes on a steady rhythm gets more stable distribution than one alternating between bursts and silence. There is no magic to it: the platform learns who to show your content to, and that learning decays when you disappear for three weeks.</p>\n<p><strong>Your audience forms a habit.</strong> The people following you don&#39;t consciously note your rhythm, but they absorb it. Posting on Tuesdays and Thursdays for two months creates an appointment. Posting seven times in three days and then nothing creates noise.</p>\n<p><strong>Consistency compounds.</strong> Thirty average posts spread over three months produce more than thirty average posts published in three weeks, because each one reaches a different slice of your audience and the effects stack.</p>\n<h2 id=\"how-to-find-your-own-pace\">How to find your own pace</h2>\n<h3 id=\"1-measure-your-real-capacity-not-your-imagined-one\">1. Measure your real capacity, not your imagined one</h3>\n<p>Time yourself once: how long does one post take, from idea to publication? Visual included, proofreading included. Most independents land somewhere between 40 and 90 minutes. Multiply by the frequency you have in mind. If the total exceeds what you can genuinely free up each week, the frequency is wrong — however &quot;recommended&quot; it may be.</p>\n<h3 id=\"2-halve-that-number\">2. Halve that number</h3>\n<p>It is counter-intuitive and it is the most useful advice on this page. The pace you will hold during a busy week, on holiday, in the middle of an urgent project, is roughly half the one you imagine while planning on a motivated Sunday evening.</p>\n<h3 id=\"3-hold-it-for-eight-weeks-before-judging\">3. Hold it for eight weeks before judging</h3>\n<p>Two months is the minimum needed to tell a signal from an accident. Below that, you are only measuring variance. After eight weeks there are two outcomes: either the pace is comfortable and you can step it up, or it costs too much and you should reduce it — not abandon it.</p>\n<h2 id=\"the-three-most-expensive-mistakes\">The three most expensive mistakes</h2>\n<p><strong>The burst followed by silence.</strong> Five posts in one week, then a month of nothing. It is the most common pattern and the costliest: you pay the price of production without collecting the reward of consistency.</p>\n<p><strong>The same content copied identically everywhere.</strong> What works on LinkedIn — long text, an argument — dies on Instagram. That isn&#39;t a pacing problem, but it becomes one: duplicating feels like publishing a lot while genuinely reaching no one.</p>\n<p><strong>Posting for the algorithm.</strong> Publishing because &quot;it&#39;s been three days&quot; produces content with nothing to say, and your audience feels it before you do. Better to skip a day than to publish emptiness.</p>\n<h2 id=\"what-if-you-can-t-hold-the-pace\">What if you can&#39;t hold the pace?</h2>\n<p>Three levers, from cheapest to most expensive.</p>\n<p><strong>Batch the production.</strong> Writing six posts in one two-hour session takes far less time than six twenty-minute sessions: you pay the cost of getting back into context only once.</p>\n<p><strong>Recycle without shame.</strong> Content that worked well six months ago was seen by a fraction of your audience. Reworded, it will work again. Accounts that publish a lot do not create everything from scratch.</p>\n<p><strong>Get help from a tool.</strong> That is Postorico&#39;s role: producing drafts in your voice, scheduling them, publishing at the right time. You keep the decision and the final read — which is what stops the result from sounding generic — but you no longer start from a blank page every time.</p>\n<h2 id=\"what-to-take-away\">What to take away</h2>\n<p>The right pace is the one that survives a hard week. Start below the recommended frequency, hold it for two months, then increase. An account posting twice a week for a year consistently beats an account that posted daily for six weeks before going dark.</p>\n"
+  },
+  {
+   "id": "frequence-publication",
+   "langue": "fr",
+   "slug": "frequence-publication-reseaux-sociaux",
+   "chemin": "/blog/frequence-publication-reseaux-sociaux",
+   "titre": "À quelle fréquence publier sur LinkedIn, Instagram et Facebook ?",
+   "description": "Le rythme conseillé réseau par réseau, le minimum en dessous duquel un compte s'endort, et la méthode pour trouver la cadence que vous tiendrez vraiment.",
+   "date": "2026-08-04",
+   "maj": "2026-08-04",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "instagram",
+    "facebook",
+    "rythme"
+   ],
+   "pose": "annonce",
+   "minutes": 5,
+   "mots": 907,
+   "sommaire": [
+    {
+     "id": "la-reponse-courte-reseau-par-reseau",
+     "texte": "La réponse courte, réseau par réseau"
+    },
+    {
+     "id": "pourquoi-la-regularite-bat-le-volume",
+     "texte": "Pourquoi la régularité bat le volume"
+    },
+    {
+     "id": "comment-trouver-votre-frequence",
+     "texte": "Comment trouver votre fréquence"
+    },
+    {
+     "id": "les-trois-erreurs-qui-coutent-le-plus-cher",
+     "texte": "Les trois erreurs qui coûtent le plus cher"
+    },
+    {
+     "id": "et-si-vous-ne-tenez-pas-le-rythme",
+     "texte": "Et si vous ne tenez pas le rythme ?"
+    },
+    {
+     "id": "ce-qu-il-faut-retenir",
+     "texte": "Ce qu'il faut retenir"
+    }
+   ],
+   "html": "<p>La question revient à chaque fois, et elle est mal posée. « Combien de fois par semaine faut-il publier ? » suppose qu&#39;il existe un nombre magique. Il n&#39;y en a pas. Il existe en revanche un seuil en dessous duquel un compte s&#39;endort, un plafond au-delà duquel votre audience décroche, et surtout un rythme que <strong>vous</strong> pouvez tenir douze mois d&#39;affilée. C&#39;est ce dernier qui décide de tout.</p>\n<h2 id=\"la-reponse-courte-reseau-par-reseau\">La réponse courte, réseau par réseau</h2>\n<div class=\"tbl\"><table>\n<thead>\n<tr>\n<th>Réseau</th>\n<th>Rythme confortable</th>\n<th>Minimum vital</th>\n<th>Ce qui compte le plus</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>LinkedIn</td>\n<td>3 à 5 posts / semaine</td>\n<td>1 par semaine</td>\n<td>La régularité et les commentaires</td>\n</tr>\n<tr>\n<td>Instagram (feed)</td>\n<td>3 à 4 / semaine</td>\n<td>2 par semaine</td>\n<td>La qualité visuelle</td>\n</tr>\n<tr>\n<td>Instagram (stories)</td>\n<td>tous les jours ouvrés</td>\n<td>3 par semaine</td>\n<td>La présence, pas la production</td>\n</tr>\n<tr>\n<td>Facebook (page)</td>\n<td>2 à 3 / semaine</td>\n<td>1 par semaine</td>\n<td>Le format natif, jamais un lien nu</td>\n</tr>\n<tr>\n<td>TikTok / Reels</td>\n<td>4 à 7 / semaine</td>\n<td>3 par semaine</td>\n<td>Le volume, réellement</td>\n</tr>\n</tbody></table></div>\n<p>Ces fourchettes sont des points de départ, pas des lois. Un cabinet d&#39;avocats qui publie une analyse fouillée par semaine sur LinkedIn fera mieux qu&#39;un concurrent qui poste cinq banalités. Un artisan qui montre trois chantiers par semaine en stories fera mieux qu&#39;un compte parfaitement léché mis à jour une fois par mois.</p>\n<h2 id=\"pourquoi-la-regularite-bat-le-volume\">Pourquoi la régularité bat le volume</h2>\n<p>Trois raisons, dans cet ordre d&#39;importance.</p>\n<p><strong>Les algorithmes récompensent la constance.</strong> Un compte qui publie de façon prévisible obtient une distribution plus stable qu&#39;un compte qui alterne rafales et silences. Ce n&#39;est pas de la magie : la plateforme apprend à qui montrer vos contenus, et cet apprentissage se perd quand vous disparaissez trois semaines.</p>\n<p><strong>Votre audience prend une habitude.</strong> Les gens qui vous suivent ne notent pas votre rythme consciemment, mais ils l&#39;intègrent. Publier le mardi et le jeudi pendant deux mois crée un rendez-vous. Publier sept fois en trois jours puis rien crée du bruit.</p>\n<p><strong>La régularité compose.</strong> Trente posts moyens répartis sur trois mois produisent plus de résultats que trente posts moyens publiés en trois semaines, parce que chacun touche une fraction différente de votre audience et que les effets s&#39;additionnent.</p>\n<h2 id=\"comment-trouver-votre-frequence\">Comment trouver votre fréquence</h2>\n<h3 id=\"1-mesurez-votre-capacite-reelle-pas-votre-capacite-revee\">1. Mesurez votre capacité réelle, pas votre capacité rêvée</h3>\n<p>Chronométrez une seule fois : combien de temps vous prend un post, de l&#39;idée à la publication ? Visuel compris, relecture comprise. La plupart des indépendants découvrent un chiffre entre 40 et 90 minutes. Multipliez par la fréquence envisagée. Si le total dépasse ce que vous pouvez réellement libérer chaque semaine, la fréquence est fausse — même si elle est « recommandée ».</p>\n<h3 id=\"2-divisez-ce-chiffre-par-deux\">2. Divisez ce chiffre par deux</h3>\n<p>C&#39;est contre-intuitif et c&#39;est le conseil le plus utile de cette page. Le rythme que vous tiendrez en semaine chargée, en vacances, en pleine mission urgente, est environ la moitié de celui que vous imaginez en le planifiant un dimanche soir motivé.</p>\n<h3 id=\"3-tenez-huit-semaines-avant-de-juger\">3. Tenez huit semaines avant de juger</h3>\n<p>Deux mois, c&#39;est le délai minimum pour distinguer un signal d&#39;un accident. En dessous, vous ne mesurez que la variance. Au bout de huit semaines, deux issues : soit le rythme est confortable et vous pouvez l&#39;augmenter d&#39;un cran, soit il vous coûte trop et il faut le réduire — pas l&#39;abandonner.</p>\n<h2 id=\"les-trois-erreurs-qui-coutent-le-plus-cher\">Les trois erreurs qui coûtent le plus cher</h2>\n<p><strong>La rafale suivie du silence.</strong> Cinq posts en une semaine, puis un mois de rien. C&#39;est le schéma le plus répandu et le plus coûteux : vous payez le prix de la production sans récolter celui de la constance.</p>\n<p><strong>Le même contenu copié à l&#39;identique partout.</strong> Ce qui fonctionne sur LinkedIn — un texte long, un raisonnement — meurt sur Instagram. Ce n&#39;est pas un problème de rythme mais il le devient : dupliquer donne l&#39;impression de publier beaucoup tout en n&#39;atteignant réellement personne.</p>\n<p><strong>Publier pour l&#39;algorithme.</strong> Poster parce que « ça fait trois jours » produit du contenu qui n&#39;a rien à dire, et votre audience le sent avant vous. Mieux vaut sauter un jour que publier du vide.</p>\n<h2 id=\"et-si-vous-ne-tenez-pas-le-rythme\">Et si vous ne tenez pas le rythme ?</h2>\n<p>Trois leviers, du moins coûteux au plus coûteux.</p>\n<p><strong>Groupez la production.</strong> Écrire six posts en une session de deux heures prend beaucoup moins de temps que six sessions de vingt minutes : vous ne payez qu&#39;une fois le coût de remise en contexte.</p>\n<p><strong>Recyclez sans honte.</strong> Un contenu qui a bien marché il y a six mois n&#39;a été vu que par une fraction de votre audience. Reformulé, il fonctionnera à nouveau. Les comptes qui publient beaucoup ne créent pas tout de zéro.</p>\n<p><strong>Faites-vous aider par un outil.</strong> C&#39;est le rôle de Postorico : produire les propositions à votre voix, les planifier, publier au bon moment. Vous gardez la décision et la relecture — c&#39;est ce qui empêche le résultat de sonner générique — mais vous ne repartez plus de la page blanche à chaque fois.</p>\n<h2 id=\"ce-qu-il-faut-retenir\">Ce qu&#39;il faut retenir</h2>\n<p>Le bon rythme est celui qui survit à une semaine difficile. Commencez sous la fréquence recommandée, tenez deux mois, augmentez ensuite. Un compte qui publie deux fois par semaine depuis un an bat systématiquement un compte qui a publié tous les jours pendant six semaines avant de s&#39;éteindre.</p>\n"
+  }
+ ],
+ "traductions": {
+  "automatiser-sans-perdre-sa-voix": {
+   "es": "/es/blog/automatizar-redes-sociales-sin-perder-tu-voz",
+   "en": "/en/blog/automate-social-media-without-losing-your-voice",
+   "fr": "/blog/automatiser-reseaux-sociaux-sans-perdre-sa-voix"
+  },
+  "ligne-editoriale": {
+   "es": "/es/blog/definir-tu-linea-editorial",
+   "en": "/en/blog/define-your-content-strategy",
+   "fr": "/blog/definir-sa-ligne-editoriale"
+  },
+  "frequence-publication": {
+   "es": "/es/blog/con-que-frecuencia-publicar-en-redes-sociales",
+   "en": "/en/blog/how-often-to-post-on-social-media",
+   "fr": "/blog/frequence-publication-reseaux-sociaux"
+  }
+ }
+}
