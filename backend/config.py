@@ -23,7 +23,12 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 JWT_SECRET = os.environ.get('JWT_SECRET', 'your-secret-key-change-in-production')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 N8N_WEBHOOK_BASE = os.environ.get('N8N_WEBHOOK_BASE', 'https://n8n.srv903010.hstgr.cloud/webhook')
-CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
+# Plusieurs origines se separent par une virgule :
+#   CORS_ORIGINS=https://postorico.com,https://www.postorico.com
+# Les espaces autour sont retires : « a.com, b.com » produisait sinon une
+# seconde origine commencant par une espace, qui ne correspondait a rien — et
+# le navigateur refusait la requete sans qu'aucun journal ne le dise.
+CORS_ORIGINS = [o.strip() for o in os.environ.get('CORS_ORIGINS', '*').split(',') if o.strip()]
 
 # Claude (Anthropic) — clé dans le .env racine sous le nom `api_claude`
 CLAUDE_API_KEY = os.environ.get('api_claude') or os.environ.get('ANTHROPIC_API_KEY', '')
