@@ -184,7 +184,8 @@
     "avatar": "Avatar de vídeo",
     "soon": "Pronto",
     "support": "Contactar con soporte",
-    "banque": "Banco de imágenes"
+    "banque": "Banco de imágenes",
+    "administration": "Administración"
   },
   "accueil": {
     "greeting": "Hola, {{name}} 👋",

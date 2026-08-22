@@ -4,7 +4,7 @@ import uuid
 import hashlib
 import time
 from datetime import datetime, timezone, timedelta
-from config import JWT_SECRET, supabase, logger
+from config import JWT_SECRET, supabase, logger, ADMIN_SESSION_HEURES
 
 
 def hash_password(password: str) -> str:
@@ -158,11 +158,19 @@ def login_user(email: str, password: str) -> dict:
         "telegram_id": user["telegram_id"],
         "email": user["email"],
         "is_admin": est_admin,
+        # « origine » : le compte qui s'est REELLEMENT authentifie. Il ne change
+        # jamais, meme quand on bascule vers une autre marque. C'est lui qui
+        # porte la qualite d'administrateur, parce que celle-ci appartient a la
+        # personne connectee et non a la marque qu'elle est en train de
+        # regarder. Sans cette distinction, la bascule ne peut ni conserver le
+        # droit (on le perd), ni le relire sur la cible (on le donnerait a une
+        # sous-marque qui bascule vers un master administrateur).
+        "origine": user["telegram_id"],
         "fp": _pwd_fingerprint(user.get("password_hash", "")),
     }
     if est_admin:
         claims["role"] = "admin"
-    token = create_token(claims, expires_delta=timedelta(hours=8) if est_admin else timedelta(days=7))
+    token = create_token(claims, expires_delta=timedelta(hours=ADMIN_SESSION_HEURES) if est_admin else timedelta(days=7))
 
     return {
         "token": token,
@@ -191,10 +199,10 @@ def change_password(telegram_id: str, old_password: str, new_password: str) -> d
     _invalidate_fp(telegram_id)
     is_admin = bool(user.get("is_admin"))
     claims = {"telegram_id": telegram_id, "email": user.get("email"), "is_admin": is_admin,
-              "fp": _pwd_fingerprint(new_hash)}
+              "origine": telegram_id, "fp": _pwd_fingerprint(new_hash)}
     if is_admin:
         claims["role"] = "admin"
-    token = create_token(claims, expires_delta=timedelta(hours=8) if is_admin else timedelta(days=7))
+    token = create_token(claims, expires_delta=timedelta(hours=ADMIN_SESSION_HEURES) if is_admin else timedelta(days=7))
     return {"success": True, "token": token}
 
 
@@ -214,5 +222,5 @@ def login_admin(email: str, password: str) -> dict:
         "is_admin": True,
         "role": "admin",
         "fp": _pwd_fingerprint(user.get("password_hash", "")),
-    }, expires_delta=timedelta(hours=8))
+    }, expires_delta=timedelta(hours=ADMIN_SESSION_HEURES))
     return {"token": token}

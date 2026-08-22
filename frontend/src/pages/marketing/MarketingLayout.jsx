@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import Link, { NavLienLangue as NavLink } from '../../components/LienLangue';
-import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
+import { isAuthenticated, isAdminAuthenticated, espaceParDefaut } from '../../lib/auth';
 import { isNativeApp } from '../../lib/appDownload';
 import LangSwitcher from '../../components/LangSwitcher';
 import { CSS, GOODTIME } from './shared';
@@ -25,8 +25,7 @@ export default function MarketingLayout() {
   const skip = isNativeApp() || isAuthenticated() || isAdminAuthenticated();
 
   useEffect(() => {
-    if (isAdminAuthenticated()) navigate('/admin', { replace: true });
-    else if (isAuthenticated()) navigate('/dashboard', { replace: true });
+    if (isAuthenticated()) navigate(espaceParDefaut(), { replace: true });
     else if (isNativeApp()) navigate('/login', { replace: true });
   }, [navigate]);
 

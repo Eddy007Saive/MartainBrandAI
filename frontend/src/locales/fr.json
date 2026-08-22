@@ -184,7 +184,8 @@
     "avatar": "Avatar vidéo",
     "soon": "Bientôt",
     "support": "Contacter le support",
-    "banque": "Banque d'images"
+    "banque": "Banque d'images",
+    "administration": "Administration"
   },
   "accueil": {
     "greeting": "Bonjour, {{name}} 👋",

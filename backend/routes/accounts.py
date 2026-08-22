@@ -5,9 +5,10 @@ Comptes liés : un master gère plusieurs sous-comptes (marques), pool de crédi
   en conservant l'identité du master dans le claim `master_id` pour autoriser les bascules suivantes.
 """
 from fastapi import APIRouter, HTTPException, Depends
+from datetime import timedelta
 from dependencies import verify_token
 from services import auth_service, credit_service
-from config import supabase, logger
+from config import supabase, logger, ADMIN_SESSION_HEURES
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -22,8 +23,25 @@ _CHILD_TABLES = [
 
 
 def _effective_master(payload: dict) -> str:
-    """Le master de la "famille" : claim master_id du token (si on a basculé), sinon soi-même."""
-    return payload.get("master_id") or payload.get("telegram_id")
+    """Le master de la « famille » : le compte qui possede les autres.
+
+    Le jeton ne porte `master_id` qu'apres une bascule ; celui qu'on recoit en
+    se connectant ne l'a pas. Un compte qui est LUI-MEME une sous-marque se
+    croyait donc seul au monde : son selecteur ne montrait que lui, et toute
+    bascule vers une marque soeur repartait en 403. On relit le rattachement
+    en base quand le jeton se tait.
+    """
+    if payload.get("master_id"):
+        return payload["master_id"]
+    me = payload.get("telegram_id")
+    try:
+        r = (supabase.table("users").select("master_id")
+             .eq("telegram_id", me).limit(1).execute())
+        if r.data and r.data[0].get("master_id"):
+            return r.data[0]["master_id"]
+    except Exception as e:
+        logger.warning(f"_effective_master {me}: {e}")
+    return me
 
 
 @router.get("")
@@ -91,7 +109,8 @@ async def switch_account(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="telegram_id requis")
     master = _effective_master(payload)
 
-    res = supabase.table("users").select("telegram_id, email, master_id, nom").eq("telegram_id", target).execute()
+    res = (supabase.table("users").select("telegram_id, email, master_id, nom, is_admin")
+           .eq("telegram_id", target).execute())
     if not res.data:
         raise HTTPException(status_code=404, detail="Compte introuvable")
     row = res.data[0]
@@ -100,12 +119,31 @@ async def switch_account(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=403, detail="Accès non autorisé à ce compte")
 
     is_sub = target != master
+
+    # La qualite d'administrateur suit la PERSONNE connectee, pas la marque
+    # qu'elle regarde. Elle etait ecrite en dur a False : un administrateur qui
+    # basculait vers une de ses marques la perdait, et definitivement — en
+    # revenant sur son compte principal il recevait encore un jeton sans la
+    # revendication. Il fallait se deconnecter pour la retrouver.
+    #
+    # On la relit donc sur « origine », le compte qui s'est authentifie. La
+    # relire sur la CIBLE serait une elevation de privilege : une sous-marque
+    # ordinaire a le droit de basculer vers son master, et si ce master est
+    # administrateur, elle repartirait avec ses droits.
+    origine = payload.get("origine") or payload.get("telegram_id")
+    if origine == target:
+        est_admin = bool(row.get("is_admin"))
+    else:
+        o = supabase.table("users").select("is_admin").eq("telegram_id", origine).execute()
+        est_admin = bool(o.data and o.data[0].get("is_admin"))
+
     token = auth_service.create_token({
         "telegram_id": target,
         "email": row.get("email"),
-        "is_admin": False,
+        "is_admin": est_admin,
+        "origine": origine,
         "master_id": master if is_sub else None,
-    })
+    }, expires_delta=timedelta(hours=ADMIN_SESSION_HEURES) if est_admin else timedelta(days=7))
     return {"token": token, "telegram_id": target, "nom": row.get("nom")}
 
 

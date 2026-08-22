@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
 import { openTawk, identifyTawk, hideTawk, resetTawk } from '../lib/tawk';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, Handshake, Lock } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, Handshake, Lock, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -10,7 +10,7 @@ import { UserProvider, useUser } from '../context/UserContext';
 import { AbonnementProvider, useAbonnement } from '../context/AbonnementContext';
 import CarteActivation from '../components/CarteActivation';
 import { userService } from '../services/userService';
-import { removeToken } from '../lib/auth';
+import { removeToken, isAdminAuthenticated, memoriserEspace } from '../lib/auth';
 import { cn } from '../lib/utils';
 import NotificationsBell from '../components/NotificationsBell';
 import LangSwitcher from '../components/LangSwitcher';
@@ -289,6 +289,19 @@ function DashboardContent() {
           {user?.email && <p className="text-[11px] text-slate-500 font-inter truncate">{user.email}</p>}
         </div>
       </div>
+      {/* Le retour vers l'administration, pour qui a les deux casquettes.
+          Il n'existait pas : une fois dans son espace client, un
+          administrateur devait se deconnecter pour revenir administrer. */}
+      {isAdminAuthenticated() && (
+        <button
+          onClick={() => { memoriserEspace('admin'); navigate('/admin'); }}
+          data-testid="vers-admin"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-150 text-sm font-medium font-inter"
+        >
+          <ShieldCheck className="w-[18px] h-[18px]" />
+          <span>{t('nav.administration')}</span>
+        </button>
+      )}
       <button
         onClick={handleLogout}
         data-testid="logout-btn"

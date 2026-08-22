@@ -5,7 +5,7 @@ import {
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
   Loader2, ChevronRight, ChevronLeft, ChevronDown, Clock, CheckCircle, XCircle, RefreshCw,
   Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
-  Plus, Minus, DollarSign, Wifi, Inbox, Copy, BarChart3, Handshake } from 'lucide-react';
+  Plus, Minus, DollarSign, Wifi, Inbox, Copy, BarChart3, Handshake, Briefcase } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -28,7 +28,7 @@ import {
 } from '../components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as ChartTooltip, CartesianGrid } from 'recharts';
-import { removeAdminToken } from '../lib/auth';
+import { removeAdminToken, memoriserEspace } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { adminService } from '../services/adminService';
 import CarrouselTemplateImport from '../components/CarrouselTemplateImport';
@@ -547,7 +547,18 @@ export default function Admin() {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t border-white/5 space-y-1">
+          {/* Un administrateur gere souvent ses propres marques. Sans ce
+              passage, son espace client n'etait accessible qu'en tapant
+              l'adresse : toutes les portes d'entree menaient ici. */}
+          <button
+            onClick={() => { memoriserEspace('client'); navigate('/dashboard'); }}
+            data-testid="vers-espace-client"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all duration-200 font-inter"
+          >
+            <Briefcase className="w-5 h-5" />
+            <span className="text-sm font-medium">Mon espace client</span>
+          </button>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 font-inter"

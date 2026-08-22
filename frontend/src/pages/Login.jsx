@@ -7,7 +7,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
-import { setToken, isAuthenticated, isAdminAuthenticated } from '../lib/auth';
+import { setToken, isAuthenticated, espaceParDefaut } from '../lib/auth';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 import LangSwitcher from '../components/LangSwitcher';
 import AfficheAuth from '../components/AfficheAuth';
@@ -20,8 +20,9 @@ export default function Login() {
 
   // Déjà connecté ? -> on évite l'écran de login (l'app mobile démarre toujours sur "/")
   useEffect(() => {
-    if (isAdminAuthenticated()) navigate('/admin', { replace: true });
-    else if (isAuthenticated()) navigate('/dashboard', { replace: true });
+    // `espaceParDefaut` tient compte du dernier espace choisi : un
+    // administrateur qui travaillait dans son espace client y revient.
+    if (isAuthenticated()) navigate(espaceParDefaut(), { replace: true });
   }, [navigate]);
 
   const [email, setEmail] = useState('');
@@ -41,7 +42,7 @@ export default function Login() {
       // son tableau de bord sans se reconnecter.
       if (data.is_admin) {
         toast.success(t('auth.toastAdminOk'));
-        navigate('/admin');
+        navigate(espaceParDefaut());
       } else if (data.pending) {
         toast.info(t('auth.toastPending'));
         navigate('/pending');

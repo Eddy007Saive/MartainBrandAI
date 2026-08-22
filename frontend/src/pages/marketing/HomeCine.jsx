@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { APK_URL } from '../../lib/appDownload';
-import { isAuthenticated, isAdminAuthenticated } from '../../lib/auth';
+import { isAuthenticated, isAdminAuthenticated, espaceParDefaut } from '../../lib/auth';
 import LangSwitcher from '../../components/LangSwitcher';
 import { propsRdv } from './shared';
 import './homeCine.css';
@@ -149,7 +149,7 @@ export default function HomeCine() {
 
   // Utilisateur déjà connecté -> « Mon dashboard » remplace Se connecter / Commencer
   const connecte = isAuthenticated() || isAdminAuthenticated();
-  const dashTo = isAdminAuthenticated() ? '/admin' : '/dashboard';
+  const dashTo = espaceParDefaut();
 
   // Galerie desktop : carrousel autonome (avance seul, pause au survol, sidebar/points cliquables)
   const [scenePause, setScenePause] = useState(false);

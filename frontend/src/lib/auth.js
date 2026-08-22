@@ -80,10 +80,34 @@ export const isAdminAuthenticated = () => {
   return !!jeton && revendications(jeton).is_admin === true;
 };
 
+// L'espace ou l'on travaille : « admin » ou « client ».
+//
+// Un administrateur qui gere aussi ses propres marques a DEUX espaces. Toutes
+// les portes d'entree l'envoyaient sur l'administration — connexion, retour
+// sur le site, bouton « Tableau de bord » — et son espace client n'etait
+// accessible qu'en tapant l'adresse a la main. On memorise donc le dernier
+// espace choisi explicitement, et c'est lui qui decide ou l'on atterrit.
+const ESPACE_KEY = 'espace';
+
+export const memoriserEspace = (espace) => {
+  try { localStorage.setItem(ESPACE_KEY, espace); } catch { /* refuse : tant pis */ }
+};
+
+/** Ou envoyer quelqu'un qui vient de se connecter, ou qui revient sur le site. */
+export const espaceParDefaut = () => {
+  if (!isAdminAuthenticated()) return '/dashboard';
+  let choisi = null;
+  try { choisi = localStorage.getItem(ESPACE_KEY); } catch { /* refuse */ }
+  // Sans choix memorise, un administrateur va a l'administration : c'est ce
+  // qu'il fait neuf fois sur dix, et le passage dans l'autre sens est a un clic.
+  return choisi === 'client' ? '/dashboard' : '/admin';
+};
+
 export const logout = () => {
   removeToken();
   // Ancienne cle des sessions ouvertes avant la fusion des connexions.
   localStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem(ESPACE_KEY);
   persist(ADMIN_TOKEN_KEY, null);
 };
 

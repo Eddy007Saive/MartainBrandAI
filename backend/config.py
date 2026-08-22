@@ -28,6 +28,18 @@ N8N_WEBHOOK_BASE = os.environ.get('N8N_WEBHOOK_BASE', 'https://n8n.srv903010.hst
 # Les espaces autour sont retires : « a.com, b.com » produisait sinon une
 # seconde origine commencant par une espace, qui ne correspondait a rien — et
 # le navigateur refusait la requete sans qu'aucun journal ne le dise.
+# Duree d'une session administrateur, en heures.
+#
+# Elle etait de 8 h contre 7 jours pour un client : un administrateur voit les
+# donnees de tout le monde, une session courte limite la casse si son poste est
+# laisse ouvert ou vole. Mais quand l'administrateur est aussi le client — il
+# gere ses propres marques depuis le meme compte — se faire deconnecter trois
+# fois par jour de son espace de travail n'a plus de sens.
+#
+# Le reglage vit ici pour qu'on puisse resserrer le jour ou l'equipe grandit,
+# sans repartir chercher la valeur dans quatre fichiers.
+ADMIN_SESSION_HEURES = int(os.environ.get('ADMIN_SESSION_HEURES', 24 * 7))
+
 CORS_ORIGINS = [o.strip() for o in os.environ.get('CORS_ORIGINS', '*').split(',') if o.strip()]
 
 # Claude (Anthropic) — clé dans le .env racine sous le nom `api_claude`
