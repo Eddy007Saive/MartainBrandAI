@@ -5,6 +5,8 @@ description: Le rythme conseillé réseau par réseau, le minimum en dessous duq
 date: 2026-08-04
 auteur: L'équipe Postorico
 tags: [linkedin, instagram, facebook, rythme]
+illustration: A large calendar grid. A small mint-green dot sits in the same two cells of every week, forming a steady vertical rhythm down the grid. All the other cells are empty and dim. Nothing else in the frame.
+image: https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372217/blog/frequence-publication-v2.png
 pose: annonce
 ---
 

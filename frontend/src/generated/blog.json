@@ -2,6 +2,167 @@
  "_": "Genere par scripts/blog.mjs a partir de content/blog — ne pas editer a la main.",
  "articles": [
   {
+   "id": "tarif-community-manager",
+   "langue": "fr",
+   "slug": "community-manager-freelance-tarif",
+   "chemin": "/blog/community-manager-freelance-tarif",
+   "titre": "Community manager freelance : quels tarifs, et comment choisir ?",
+   "description": "Les tarifs réels d'un community manager freelance — TJM, forfaits mensuels, comparaison avec une agence — et les questions à poser avant de signer.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "budget",
+    "freelance",
+    "agence"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372336/blog/tarif-community-manager-v2.png",
+   "pose": "idee",
+   "minutes": 8,
+   "mots": 1654,
+   "sommaire": [
+    {
+     "id": "l-essentiel",
+     "texte": "L'essentiel"
+    },
+    {
+     "id": "ce-que-fait-vraiment-un-community-manager",
+     "texte": "Ce que fait vraiment un community manager"
+    },
+    {
+     "id": "les-tarifs-pratiques",
+     "texte": "Les tarifs pratiqués"
+    },
+    {
+     "id": "freelance-agence-ou-outil-ce-qui-les-separe",
+     "texte": "Freelance, agence ou outil : ce qui les sépare"
+    },
+    {
+     "id": "comment-savoir-si-le-budget-en-vaut-la-peine",
+     "texte": "Comment savoir si le budget en vaut la peine"
+    },
+    {
+     "id": "ce-qu-il-faut-retenir",
+     "texte": "Ce qu'il faut retenir"
+    },
+    {
+     "id": "questions-frequentes",
+     "texte": "Questions fréquentes"
+    },
+    {
+     "id": "sources",
+     "texte": "Sources"
+    }
+   ],
+   "html": "<h2 id=\"l-essentiel\">L&#39;essentiel</h2>\n<ul>\n<li>Un community manager freelance coûte entre <strong>250 et 500 € par jour</strong> selon l&#39;expérience, ou entre <strong>800 et 3 500 € par mois</strong> en forfait.</li>\n<li>Le prix dépend surtout du nombre de réseaux, du volume de contenu, et de la présence ou non d&#39;une stratégie à construire.</li>\n<li>Un bon freelance coûte cher. Un mauvais ne sert à rien. La vraie question est le rapport entre ce que vous payez et ce que vous obtenez.</li>\n</ul>\n<h2 id=\"ce-que-fait-vraiment-un-community-manager\">Ce que fait vraiment un community manager</h2>\n<p>Un community manager freelance, ce n&#39;est pas quelqu&#39;un qui « poste sur Instagram ». C&#39;est un profil qui pilote votre présence sur un périmètre défini avec vous.</p>\n<p>Ses missions couvrent en général :</p>\n<ul>\n<li><strong>La création de contenu</strong> : textes, visuels, vidéos courtes, carrousels, adaptés à chaque plateforme.</li>\n<li><strong>L&#39;animation et la modération</strong> : réponses aux commentaires, messages privés, interaction avec la communauté.</li>\n<li><strong>La veille</strong> : ce que font vos concurrents, les tendances, les signaux faibles.</li>\n<li><strong>Le reporting</strong> : taux d&#39;engagement, portée, croissance de la communauté, et les ajustements qui en découlent.</li>\n</ul>\n<p>Ce qu&#39;il ne fait <strong>pas</strong> par défaut : le référencement de votre site, vos campagnes Google Ads, vos newsletters, ou la refonte de votre identité visuelle. Si vous attendez tout cela, précisez-le dans le brief — et adaptez le budget.</p>\n<p>Un bon freelance pose des questions dès le premier échange. S&#39;il accepte tout sans broncher, c&#39;est un signal.</p>\n<h2 id=\"les-tarifs-pratiques\">Les tarifs pratiqués</h2>\n<h3 id=\"le-tarif-journalier\">Le tarif journalier</h3>\n<p>En France, le tarif journalier d&#39;un community manager freelance se situe entre <strong>250 et 500 €</strong> pour la grande majorité des profils.</p>\n<div class=\"tbl\"><table>\n<thead>\n<tr>\n<th>Expérience</th>\n<th>Tarif journalier constaté</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Junior (0 à 2 ans)</td>\n<td>200 – 300 €</td>\n</tr>\n<tr>\n<td>Confirmé (3 à 7 ans)</td>\n<td>300 – 400 €</td>\n</tr>\n<tr>\n<td>Senior (8 ans et plus)</td>\n<td>400 – 500 €</td>\n</tr>\n<tr>\n<td>Spécialiste d&#39;un secteur</td>\n<td>500 € et plus</td>\n</tr>\n</tbody></table></div>\n<p>Le baromètre Malt situe la moyenne nationale autour de <strong>310 à 407 € par jour</strong> pour les profils les plus courants. La majorité des freelances actifs ont plus de cinq ans d&#39;expérience : attendez-vous à des devis dans le haut de cette fourchette.</p>\n<p>Le tarif journalier s&#39;applique surtout aux missions ponctuelles : lancement d&#39;un compte, gestion de crise, campagne événementielle. Pour une présence continue, la plupart proposent un forfait mensuel.</p>\n<h3 id=\"les-forfaits-mensuels\">Les forfaits mensuels</h3>\n<p>C&#39;est le modèle le plus répandu pour une prestation dans la durée.</p>\n<div class=\"tbl\"><table>\n<thead>\n<tr>\n<th>Niveau</th>\n<th>Tarif mensuel</th>\n<th>Ce qui est inclus</th>\n</tr>\n</thead>\n<tbody><tr>\n<td>Basique</td>\n<td>500 – 900 €</td>\n<td>1 réseau, 8 à 12 posts par mois, modération légère</td>\n</tr>\n<tr>\n<td>Standard</td>\n<td>900 – 1 500 €</td>\n<td>2 à 3 réseaux, plan éditorial, reporting simple</td>\n</tr>\n<tr>\n<td>Avancé</td>\n<td>1 500 – 3 500 €</td>\n<td>Multi-réseaux, stratégie, création vidéo, reporting détaillé</td>\n</tr>\n</tbody></table></div>\n<p><strong>En dessous de 800 € par mois</strong>, il est difficile d&#39;obtenir un travail suivi sur deux réseaux. C&#39;est arithmétique : si le freelance facture 350 € par jour, 800 € représentent à peine deux jours de travail mensuel — création, publication et modération comprises.</p>\n<h3 id=\"ce-qui-fait-varier-le-prix\">Ce qui fait varier le prix</h3>\n<p>Trois leviers expliquent l&#39;essentiel des écarts.</p>\n<ol>\n<li><strong>L&#39;expérience et la spécialisation.</strong> Un profil spécialisé en B2B ou en commerce en ligne, avec des résultats mesurables à montrer, facturera plus qu&#39;un généraliste débutant. C&#39;est normal.</li>\n<li><strong>Le périmètre.</strong> Gérer un compte LinkedIn avec trois posts par semaine n&#39;a rien à voir avec quatre réseaux, de la vidéo, une modération quotidienne et un rapport mensuel.</li>\n<li><strong>La localisation.</strong> Un freelance parisien facture en moyenne 15 à 20 % de plus qu&#39;un profil en région. L&#39;écart se réduit avec le travail à distance, mais il existe encore.</li>\n</ol>\n<p>D&#39;autres facteurs pèsent : la réactivité attendue — sept jours sur sept ou en semaine seulement ? —, la langue de travail, et le fait qu&#39;il y ait ou non une stratégie à construire de zéro.</p>\n<h2 id=\"freelance-agence-ou-outil-ce-qui-les-separe\">Freelance, agence ou outil : ce qui les sépare</h2>\n<h3 id=\"le-freelance\">Le freelance</h3>\n<p><strong>Ses forces :</strong> la relation est directe et le coût inférieur à celui d&#39;une agence à périmètre égal. Vous parlez à la personne qui fait le travail, pas à un chef de projet qui transmet.</p>\n<p><strong>Ses limites :</strong> une seule paire de mains. S&#39;il est en vacances ou malade, la continuité n&#39;est pas garantie. Et si vous avez besoin en même temps de vidéo, de design et de publicité payante, il faudra soit un profil très polyvalent, soit plusieurs prestataires.</p>\n<p><strong>Pour qui :</strong> TPE, PME et jeunes entreprises avec un ou deux réseaux à animer, et un budget de 800 à 2 500 € par mois.</p>\n<h3 id=\"l-agence\">L&#39;agence</h3>\n<p>Une agence mobilise une équipe : chef de projet, un ou plusieurs community managers, parfois un graphiste et un spécialiste de la publicité. C&#39;est sa valeur ajoutée, et c&#39;est ce que vous payez.</p>\n<p>Les tarifs démarrent autour de <strong>900 à 1 500 € par mois</strong> en entrée de gamme, et montent vite à <strong>3 000 à 8 000 €</strong> pour une prestation complète avec production vidéo et campagnes sponsorisées.</p>\n<p><strong>Ses forces :</strong> continuité assurée, ressources variées, capacité à monter en charge rapidement.</p>\n<p><strong>Ses limites :</strong> le prix, nettement plus élevé qu&#39;un freelance à périmètre comparable. Et une relation moins directe : vous financez aussi la structure, les réunions et les marges.</p>\n<p><strong>Pour qui :</strong> entreprises avec plusieurs plateformes, de la vidéo régulière, ou des campagnes payantes complexes.</p>\n<h3 id=\"un-outil-avec-ou-sans-accompagnement\">Un outil, avec ou sans accompagnement</h3>\n<p>Troisième option, souvent écartée trop vite. Un outil permet de planifier, publier et analyser depuis une seule interface. Le coût mensuel se compte en dizaines d&#39;euros, pas en milliers.</p>\n<p><strong>Ses forces :</strong> un coût sans commune mesure avec les deux autres options, et l&#39;autonomie conservée.</p>\n<p><strong>Ses limites :</strong> un outil de planification ne crée pas le contenu. Si personne n&#39;écrit, il ne se passe rien. C&#39;est la différence entre un outil qui programme et un service qui produit.</p>\n<p><strong>Pour qui :</strong> les structures où quelqu&#39;un écrit déjà, et qui perdent du temps sur la publication plutôt que sur la création.</p>\n<h2 id=\"comment-savoir-si-le-budget-en-vaut-la-peine\">Comment savoir si le budget en vaut la peine</h2>\n<h3 id=\"les-questions-a-poser-avant-de-signer\">Les questions à poser avant de signer</h3>\n<p>Jugez la qualité des réponses autant que leur contenu.</p>\n<ul>\n<li><strong>Quels réseaux gérez-vous, et à quelle fréquence ?</strong> Un bon freelance répond avec des chiffres précis, pas par « ça dépend ».</li>\n<li><strong>Qui crée les visuels et les vidéos ?</strong> Vous, lui, ou un sous-traitant — et à quel coût ?</li>\n<li><strong>Quel rapport vais-je recevoir, et à quel rythme ?</strong> Un tableau de bord mensuel avec les indicateurs clés est le minimum.</li>\n<li><strong>Avez-vous des références dans mon secteur ?</strong> Quelqu&#39;un qui connaît déjà les codes de votre audience démarre avec une longueur d&#39;avance.</li>\n<li><strong>Que se passe-t-il si vous êtes indisponible ?</strong> La réponse en dit long sur le sérieux du profil.</li>\n</ul>\n<h3 id=\"les-signaux-qui-doivent-vous-arreter\">Les signaux qui doivent vous arrêter</h3>\n<ul>\n<li>Le devis reste flou sur le nombre de publications, les réseaux inclus et les livrables exacts.</li>\n<li>On vous promet des résultats garantis en abonnés ou en ventes. Personne ne peut garantir cela.</li>\n<li>Pas de portfolio, pas de références vérifiables, ou un compte personnel vide depuis six mois.</li>\n<li>On accepte tout sans poser de question sur votre audience, vos objectifs ou votre ton.</li>\n<li>Le tarif est anormalement bas — moins de 200 € par mois pour « tout gérer ». À ce prix, soit le travail est bâclé, soit quelqu&#39;un apprend sur vos réseaux.</li>\n</ul>\n<p>Un bon freelance refuse parfois une mission qui ne lui correspond pas. C&#39;est un signe de maturité, pas un défaut.</p>\n<h2 id=\"ce-qu-il-faut-retenir\">Ce qu&#39;il faut retenir</h2>\n<p>Le tarif d&#39;un community manager freelance va de 250 à 500 € par jour, ou de 800 à 3 500 € par mois en forfait, selon l&#39;expérience, le périmètre et la localisation. C&#39;est un investissement, pas une dépense : un bon profil qui génère de l&#39;engagement qualifié et protège votre réputation rapporte plus qu&#39;il ne coûte.</p>\n<p>L&#39;agence coûte plus cher mais apporte une équipe et une continuité. L&#39;outil coûte beaucoup moins, mais suppose que quelqu&#39;un écrive.</p>\n<p>La vraie question n&#39;est donc pas « comment payer moins ? » mais « quel niveau de résultat je veux, et quel budget je suis prêt à y mettre ? ».</p>\n<p>Entre l&#39;outil nu et la délégation complète, il existe une voie intermédiaire : faire cadrer sa marque une fois par des humains — ton, ligne éditoriale, direction artistique — puis laisser une plateforme produire les propositions à cette voix, qu&#39;on relit avant publication. C&#39;est le principe de Postorico : 279 € par mois, soit le tiers du premier forfait freelance sérieux, avec la contrepartie que la relecture reste la vôtre.</p>\n<h2 id=\"questions-frequentes\">Questions fréquentes</h2>\n<p><strong>Quel est le tarif moyen d&#39;un community manager freelance ?</strong>\nEntre 300 et 407 € par jour pour un profil confirmé de trois à huit ans d&#39;expérience, selon le baromètre Malt. En forfait mensuel, comptez 800 à 1 500 € pour une gestion standard de deux à trois réseaux.</p>\n<p><strong>Vaut-il mieux passer par un freelance ou par une agence ?</strong>\nCela dépend du périmètre. Le freelance convient à une TPE ou une PME avec un ou deux réseaux et un budget inférieur à 2 500 € par mois. L&#39;agence devient pertinente quand il faut une équipe complète — stratégie, vidéo, publicité payante — et une continuité garantie, mais son prix est nettement plus élevé.</p>\n<p><strong>Comment savoir si un freelance est vraiment compétent ?</strong>\nDemandez un portfolio avec des résultats chiffrés : taux d&#39;engagement, croissance de communauté, exemples de campagnes. Regardez ses propres comptes. Et commencez par une mission courte ou un audit de votre présence actuelle avant de vous engager sur la durée.</p>\n<h2 id=\"sources\">Sources</h2>\n<ul>\n<li><a href=\"https://www.malt.fr/t/barometre-tarifs/communication/community-manager\" target=\"_blank\" rel=\"noopener noreferrer\">Malt — Baromètre des tarifs : community manager</a></li>\n<li><a href=\"https://www.lafabriquedunet.fr/agences/tendances/tarif-community-manager-couts-et-prestations-types\" target=\"_blank\" rel=\"noopener noreferrer\">La Fabrique du Net — Tarifs community manager</a></li>\n<li><a href=\"https://www.free-work.com/fr/tech-it/community-manager-social-media-manager/rate-tjm-freelance\" target=\"_blank\" rel=\"noopener noreferrer\">Free-Work — Tarif journalier community manager</a></li>\n</ul>\n"
+  },
+  {
+   "id": "logiciel-reseaux-sociaux",
+   "langue": "fr",
+   "slug": "logiciel-gestion-reseaux-sociaux-petite-entreprise",
+   "chemin": "/blog/logiciel-gestion-reseaux-sociaux-petite-entreprise",
+   "titre": "Quel logiciel de gestion des réseaux sociaux pour une petite entreprise ?",
+   "description": "Buffer, Hootsuite, Metricool — comparatif honnête pour une TPE ou un indépendant, avec les prix vérifiés, les limites réelles et ce qu'aucun outil ne fera.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "outils",
+    "comparatif",
+    "planification"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372308/blog/logiciel-reseaux-sociaux-v2.png",
+   "pose": "pointe-haut",
+   "minutes": 8,
+   "mots": 1538,
+   "sommaire": [
+    {
+     "id": "l-essentiel",
+     "texte": "L'essentiel"
+    },
+    {
+     "id": "ce-qu-un-logiciel-fait-et-ce-qu-il-ne-fait-pas",
+     "texte": "Ce qu'un logiciel fait — et ce qu'il ne fait pas"
+    },
+    {
+     "id": "les-outils-les-plus-utilises",
+     "texte": "Les outils les plus utilisés"
+    },
+    {
+     "id": "comment-choisir-selon-votre-situation-reelle",
+     "texte": "Comment choisir selon votre situation réelle"
+    },
+    {
+     "id": "ce-qu-aucun-outil-ne-remplacera",
+     "texte": "Ce qu'aucun outil ne remplacera"
+    },
+    {
+     "id": "ce-qu-il-faut-retenir",
+     "texte": "Ce qu'il faut retenir"
+    },
+    {
+     "id": "questions-frequentes",
+     "texte": "Questions fréquentes"
+    },
+    {
+     "id": "sources",
+     "texte": "Sources"
+    }
+   ],
+   "html": "<h2 id=\"l-essentiel\">L&#39;essentiel</h2>\n<ul>\n<li>Un logiciel de gestion des réseaux sociaux planifie et publie vos posts. Il ne crée pas le contenu et ne définit pas votre stratégie.</li>\n<li>Buffer reste l&#39;option la plus accessible, à partir de 5 $ par canal et par mois ; Hootsuite est puissant mais cher, 99 $ par mois minimum ; Metricool offre le meilleur équilibre, avec une version gratuite réellement utilisable.</li>\n<li>Si vous partez de zéro, sans ligne éditoriale ni contenu prêt, un outil seul ne réglera pas votre problème.</li>\n</ul>\n<h2 id=\"ce-qu-un-logiciel-fait-et-ce-qu-il-ne-fait-pas\">Ce qu&#39;un logiciel fait — et ce qu&#39;il ne fait pas</h2>\n<p>Un logiciel de gestion des réseaux sociaux est avant tout un outil de planification. Vous préparez vos publications à l&#39;avance, vous les programmez sur un calendrier, l&#39;outil les publie à l&#39;heure choisie. C&#39;est tout.</p>\n<p>Ce que cela change concrètement :</p>\n<ul>\n<li><strong>Vous gagnez du temps</strong> en regroupant création et programmation sur un seul créneau hebdomadaire.</li>\n<li><strong>Vous tenez une régularité</strong> sans vous connecter chaque matin sur chaque réseau.</li>\n<li><strong>Vous voyez votre calendrier</strong> éditorial d&#39;un coup d&#39;œil.</li>\n</ul>\n<p>Ce que cela ne fait pas — et c&#39;est là que beaucoup de dirigeants se font piéger :</p>\n<ul>\n<li><strong>Il ne crée pas le contenu.</strong> Vous rédigez toujours vos textes, préparez vos visuels, trouvez vos idées.</li>\n<li><strong>Il ne définit pas votre stratégie.</strong> Quel réseau ? Quelle fréquence ? Quel ton ? Ces questions restent entières.</li>\n<li><strong>Il ne génère pas d&#39;engagement.</strong> Répondre aux commentaires, échanger avec votre communauté : c&#39;est du travail humain.</li>\n<li><strong>Il n&#39;améliore pas un contenu médiocre.</strong> Publier automatiquement des posts sans intérêt, c&#39;est automatiser l&#39;inefficacité.</li>\n</ul>\n<p>La planification est un gain réel — à condition d&#39;avoir quelque chose à planifier.</p>\n<h2 id=\"les-outils-les-plus-utilises\">Les outils les plus utilisés</h2>\n<p>Les tarifs ci-dessous ont été relevés sur les pages officielles des éditeurs en août 2026. Ils changent régulièrement : vérifiez avant de vous abonner.</p>\n<h3 id=\"buffer\">Buffer</h3>\n<p>Buffer est le plus simple à prendre en main. L&#39;interface est épurée, la courbe d&#39;apprentissage quasi nulle. En moins d&#39;une heure, vous connectez vos comptes et programmez vos premiers posts.</p>\n<ul>\n<li><strong>Gratuit</strong> : 3 canaux, 10 posts programmés par canal, 1 utilisateur.</li>\n<li><strong>Essentials</strong> : <strong>5 $ par canal et par mois</strong> en facturation annuelle (60 $ à l&#39;année), un peu plus au mois. Posts illimités, statistiques avancées.</li>\n<li><strong>Team</strong> : 10 $ par canal et par mois en annuel, avec utilisateurs illimités et circuit de validation.</li>\n</ul>\n<p>Pour une petite structure avec trois à cinq réseaux actifs, comptez <strong>15 à 25 $ par mois</strong> sur Essentials. Buffer couvre Instagram, Facebook, X, LinkedIn, TikTok, Pinterest et YouTube, avec des remises au-delà de dix canaux.</p>\n<p><strong>Sa limite :</strong> les statistiques restent basiques, il n&#39;y a pas de veille de marque ni de gestion des commentaires intégrée. C&#39;est un outil de publication, pas une suite complète.</p>\n<p><strong>Pour qui :</strong> indépendants et TPE qui veulent programmer leurs posts sans y penser.</p>\n<h3 id=\"hootsuite\">Hootsuite</h3>\n<p>Hootsuite est la référence historique. Il fait beaucoup plus que Buffer : veille, gestion des commentaires, tableaux de bord analytiques avancés, intégrations multiples.</p>\n<ul>\n<li><strong>Standard</strong> : <strong>99 $ par utilisateur et par mois</strong> en annuel, jusqu&#39;à 10 comptes sociaux.</li>\n<li><strong>Professional</strong> : 199 $ par utilisateur et par mois, comptes illimités.</li>\n<li><strong>Advanced</strong> : 399 $ par utilisateur et par mois.</li>\n<li><strong>Plus aucune formule gratuite</strong> — seulement un essai de 14 jours.</li>\n</ul>\n<p>C&#39;est là que le bât blesse pour une petite entreprise. Quatre-vingt-dix-neuf dollars par mois, c&#39;est un budget marketing à part entière pour un indépendant. Et le tarif est <strong>par utilisateur</strong> : à deux, il double.</p>\n<p><strong>Sa limite :</strong> il ne crée pas de contenu non plus, et sa complexité décourage qui n&#39;a pas de bagage marketing. Comptez plusieurs jours de prise en main.</p>\n<p><strong>Pour qui :</strong> PME avec un budget dédié et un vrai besoin de reporting. Pas la première option pour un artisan ou un commerce local.</p>\n<h3 id=\"metricool\">Metricool</h3>\n<p>Metricool est l&#39;alternative qui monte en Europe. Son point fort : <strong>une version gratuite réellement utilisable</strong>.</p>\n<ul>\n<li><strong>Gratuit</strong> : 1 marque, 20 contenus programmés par mois, 30 jours d&#39;historique, analyse de 5 concurrents. LinkedIn et X sont exclus de cette formule.</li>\n<li><strong>Starter</strong> : à partir de <strong>20 € par mois</strong>, environ 15 € en facturation annuelle. Jusqu&#39;à 10 marques, publications illimitées, accès à X, 100 concurrents suivis.</li>\n<li><strong>Advanced</strong> : à partir de 54 € par mois, pour les équipes, avec validation de contenu.</li>\n</ul>\n<p>Metricool couvre Instagram, Facebook, X, LinkedIn, TikTok, YouTube, Pinterest, Twitch — et <strong>la fiche Google Business Profile</strong>, ce qui est un vrai avantage pour un commerce local. C&#39;est souvent le premier endroit où un client découvre une entreprise, avant même son site.</p>\n<p><strong>Sa limite :</strong> l&#39;exclusion de LinkedIn dans la version gratuite est gênante si c&#39;est votre réseau principal. Et, comme les autres, il ne remplace pas une stratégie.</p>\n<p><strong>Pour qui :</strong> TPE et PME qui veulent un outil complet sans payer le prix de Hootsuite. Un bon point d&#39;entrée pour tester.</p>\n<h3 id=\"les-autres\">Les autres</h3>\n<ul>\n<li><strong>Later</strong> : orienté visuel, apprécié pour Instagram et TikTok. Pertinent si votre communication repose sur l&#39;image.</li>\n<li><strong>SocialPilot</strong> : bon rapport fonctionnalités-prix pour les petites agences qui gèrent plusieurs clients.</li>\n<li><strong>Publer</strong> : moins connu, solide sur le recyclage de contenu.</li>\n</ul>\n<h2 id=\"comment-choisir-selon-votre-situation-reelle\">Comment choisir selon votre situation réelle</h2>\n<h3 id=\"vous-avez-deja-une-strategie-et-du-contenu-pret\">Vous avez déjà une stratégie et du contenu prêt</h3>\n<p>C&#39;est le cas idéal. Vous savez quoi publier, où, à quelle fréquence. Vous cherchez juste à ne plus y penser chaque jour.</p>\n<p><strong>Buffer ou Metricool</strong> suffisent amplement. Commencez par la formule gratuite de Metricool ou l&#39;Essentials de Buffer, testez un mois, mesurez le temps réellement gagné, puis ajustez.</p>\n<h3 id=\"vous-partez-de-zero\">Vous partez de zéro</h3>\n<p>Pas de ligne éditoriale, pas de contenu en stock, pas de routine. Un outil de planification ne réglera rien.</p>\n<p>Ce dont vous avez besoin d&#39;abord : <strong>définir votre positionnement</strong>, choisir un ou deux réseaux — pas cinq — et fixer un rythme tenable. Deux posts par semaine valent mieux que dix en janvier et le silence en février.</p>\n<p>L&#39;outil vient après. Pas avant.</p>\n<h3 id=\"vous-voulez-deleguer-pas-seulement-planifier\">Vous voulez déléguer, pas seulement planifier</h3>\n<p>Si votre objectif est de ne plus vous occuper des réseaux du tout — ni stratégie, ni contenu, ni publication — aucun logiciel de planification ne le fera. Ce sont deux métiers différents : programmer un post et l&#39;écrire.</p>\n<p>Vos options sont alors un freelance, une agence, ou un service qui combine le cadrage humain et la production. La différence de prix entre ces trois voies est considérable, et c&#39;est le sujet d&#39;un autre article.</p>\n<h2 id=\"ce-qu-aucun-outil-ne-remplacera\">Ce qu&#39;aucun outil ne remplacera</h2>\n<p><strong>Décider de votre positionnement.</strong> Sur quoi vous exprimez-vous ? Quel est votre angle ? Ces choix conditionnent tout le reste.</p>\n<p><strong>Écrire quelque chose qui résonne.</strong> Un post qui fonctionne parle à une vraie personne d&#39;un vrai problème. Cela demande de connaître votre audience, du temps, et souvent une plume.</p>\n<p><strong>Tenir la relation avec votre communauté.</strong> Répondre, échanger, traiter les messages privés : non automatisable sans perdre ce pour quoi on publie.</p>\n<p><strong>Interpréter les chiffres.</strong> Les outils en donnent beaucoup. Comprendre pourquoi un post a marché et en tirer une conclusion pour le suivant, c&#39;est une compétence.</p>\n<p>Pour une petite structure sans équipe marketing, gérer ses réseaux sérieusement représente <strong>trois à cinq heures par semaine, même avec le meilleur outil du monde</strong>. C&#39;est le chiffre à avoir en tête avant de s&#39;abonner à quoi que ce soit.</p>\n<h2 id=\"ce-qu-il-faut-retenir\">Ce qu&#39;il faut retenir</h2>\n<ul>\n<li>Un logiciel de planification est utile si — et seulement si — vous avez déjà du contenu et une direction.</li>\n<li><strong>Buffer</strong> est le plus simple et le moins cher pour débuter. <strong>Metricool</strong> offre le meilleur équilibre, avec une gratuité utilisable. <strong>Hootsuite</strong> se justifie avec un budget et des besoins avancés.</li>\n<li>Si vous cherchez à déléguer l&#39;ensemble, un outil seul ne suffira pas.</li>\n</ul>\n<p>C&#39;est précisément l&#39;écart que Postorico cherche à combler : le cadrage de la marque est fait par des humains — ton, ligne éditoriale, direction artistique — puis la plateforme produit les propositions à cette voix, les planifie et les publie une fois que vous les avez validées. Ce n&#39;est pas la même dépense qu&#39;un outil de planification à 20 € par mois, et ce n&#39;est pas le même travail non plus.</p>\n<h2 id=\"questions-frequentes\">Questions fréquentes</h2>\n<p><strong>Un logiciel peut-il remplacer un community manager ?</strong>\nNon. Il automatise la publication d&#39;un contenu que vous avez préparé. Il ne remplace ni la réflexion stratégique, ni l&#39;écriture, ni la gestion des interactions. Un outil bien choisi fait gagner du temps, mais il faut quelqu&#39;un derrière.</p>\n<p><strong>Quelle est la meilleure alternative à Buffer ou Hootsuite pour une petite structure ?</strong>\nMetricool, dans la plupart des cas en Europe : version gratuite fonctionnelle, tarifs raisonnables, et prise en charge de la fiche Google Business Profile en plus des réseaux classiques. Later est préférable si votre communication est très visuelle.</p>\n<p><strong>Combien de temps faut-il pour prendre ces outils en main ?</strong>\nBuffer : moins d&#39;une heure pour les bases. Metricool : une demi-journée pour en faire le tour. Hootsuite : plusieurs jours, et une vraie formation pour exploiter les tableaux de bord. Pour une petite entreprise, la simplicité compte souvent plus que la richesse fonctionnelle.</p>\n<h2 id=\"sources\">Sources</h2>\n<ul>\n<li><a href=\"https://buffer.com/pricing\" target=\"_blank\" rel=\"noopener noreferrer\">Buffer — Tarifs officiels</a></li>\n<li><a href=\"https://www.hootsuite.com/plans\" target=\"_blank\" rel=\"noopener noreferrer\">Hootsuite — Plans et tarifs</a></li>\n<li><a href=\"https://metricool.com/fr/nos-tarifs/\" target=\"_blank\" rel=\"noopener noreferrer\">Metricool — Nos tarifs</a></li>\n</ul>\n"
+  },
+  {
+   "id": "gestion-deleguer-ou-pas",
+   "langue": "fr",
+   "slug": "gestion-reseaux-sociaux-deleguer-ou-faire-soi-meme",
+   "chemin": "/blog/gestion-reseaux-sociaux-deleguer-ou-faire-soi-meme",
+   "titre": "Gestion des réseaux sociaux : faut-il le faire soi-même ou déléguer ?",
+   "description": "Gérer ses réseaux sociaux seul ou déléguer ? On compare les options concrètement — temps, coût, résultats — pour que vous fassiez le bon choix.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "delegation",
+    "budget"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372247/blog/gestion-deleguer-ou-pas-v2.png",
+   "pose": "presente-calme",
+   "minutes": 7,
+   "mots": 1396,
+   "sommaire": [
+    {
+     "id": "l-essentiel",
+     "texte": "L'essentiel"
+    },
+    {
+     "id": "gerer-ses-reseaux-sociaux-soi-meme-ce-que-ca-coute-vraiment",
+     "texte": "Gérer ses réseaux sociaux soi-même : ce que ça coûte vraiment"
+    },
+    {
+     "id": "les-trois-facons-de-deleguer",
+     "texte": "Les trois façons de déléguer"
+    },
+    {
+     "id": "comment-choisir-selon-votre-situation",
+     "texte": "Comment choisir selon votre situation"
+    },
+    {
+     "id": "ce-qu-il-faut-retenir-avant-de-decider",
+     "texte": "Ce qu'il faut retenir avant de décider"
+    },
+    {
+     "id": "questions-frequentes",
+     "texte": "Questions fréquentes"
+    },
+    {
+     "id": "sources",
+     "texte": "Sources"
+    }
+   ],
+   "html": "<h2 id=\"l-essentiel\">L&#39;essentiel</h2>\n<ul>\n<li><strong>Gérer seul coûte du temps</strong> : entre 6 et 10 heures par semaine pour une PME qui s&#39;y investit vraiment.</li>\n<li><strong>Déléguer coûte de l&#39;argent</strong> : de 500 € par mois pour un freelance à plus de 4 500 € chargés pour un salarié.</li>\n<li><strong>Le bon choix dépend de votre situation</strong> : budget disponible, temps libre, et niveau de régularité que vous pouvez tenir.</li>\n</ul>\n<h2 id=\"gerer-ses-reseaux-sociaux-soi-meme-ce-que-ca-coute-vraiment\">Gérer ses réseaux sociaux soi-même : ce que ça coûte vraiment</h2>\n<p>On entend souvent que les réseaux sociaux, c&#39;est gratuit. C&#39;est vrai sur le papier. En pratique, c&#39;est une autre histoire.</p>\n<p>Selon l&#39;étude Bpifrance Le Lab menée auprès de 1 650 dirigeants de PME et d&#39;ETI, <strong>le premier frein à une présence active sur les réseaux est le manque de temps</strong> — cité par 84 % des entreprises interrogées. Ce n&#39;est pas un hasard.</p>\n<h3 id=\"le-temps-le-cout-invisible\">Le temps, le coût invisible</h3>\n<p>Pour gérer ses réseaux sociaux correctement — publier régulièrement, répondre aux commentaires, analyser les résultats, créer des visuels — une PME y consacre couramment <strong>entre 6 et 10 heures par semaine</strong>.</p>\n<p>Faites le calcul. À 10 heures par semaine, c&#39;est <strong>40 heures par mois</strong>. Si votre temps vaut 50 € de l&#39;heure, ce qui est une estimation basse pour un dirigeant, cela représente <strong>2 000 € de coût d&#39;opportunité mensuel</strong>. Autant d&#39;heures non consacrées à votre cœur de métier, à vos clients, à votre développement commercial.</p>\n<p>Ce coût-là n&#39;apparaît jamais dans un bilan. Mais il est bien réel.</p>\n<h3 id=\"le-probleme-de-la-regularite\">Le problème de la régularité</h3>\n<p>Gérer seul, c&#39;est aussi se battre contre l&#39;irrégularité. Quand le travail s&#39;accumule, les réseaux passent à la trappe en premier.</p>\n<p>Résultat : une page Instagram active en janvier, silencieuse en mars, relancée en juin. Ce type de présence erratique nuit plus qu&#39;il n&#39;aide. L&#39;algorithme pénalise l&#39;irrégularité, et les visiteurs qui tombent sur un compte inactif depuis trois mois passent leur chemin.</p>\n<p><strong>La régularité est la compétence la plus difficile à tenir seul</strong> — pas la créativité, pas la technique. C&#39;est le simple fait de publier, semaine après semaine, même quand on est débordé.</p>\n<h2 id=\"les-trois-facons-de-deleguer\">Les trois façons de déléguer</h2>\n<p>Déléguer la gestion de vos réseaux sociaux peut prendre trois formes très différentes. Chacune a ses avantages et ses limites concrètes.</p>\n<h3 id=\"le-community-manager-salarie\">Le community manager salarié</h3>\n<p>C&#39;est la solution la plus complète — et la plus chère. Un community manager salarié junior coûte entre <strong>2 800 et 3 500 € bruts par mois</strong>, soit environ <strong>4 500 à 5 200 € chargés</strong> une fois les cotisations patronales ajoutées.</p>\n<p>Pour une TPE ou un indépendant, c&#39;est rarement justifiable. Cette option s&#39;adresse aux entreprises qui ont déjà une stratégie digitale structurée, plusieurs plateformes à gérer, et un volume de contenu suffisant pour occuper quelqu&#39;un à plein temps.</p>\n<p><strong>Son avantage :</strong> disponibilité totale, connaissance approfondie de l&#39;entreprise, réactivité immédiate.\n<strong>Sa limite :</strong> un coût fixe élevé, même en période creuse.</p>\n<h3 id=\"le-freelance\">Le freelance</h3>\n<p>Le freelance est souvent la solution la plus adaptée aux TPE et PME. Les forfaits mensuels vont généralement de <strong>500 à 1 500 € pour une gestion de base</strong> — deux ou trois plateformes, trois à quatre publications par semaine — et jusqu&#39;à <strong>2 500 à 3 000 €</strong> pour une prise en charge complète incluant la création de contenu, la publicité et le reporting.</p>\n<p>Le tarif journalier moyen relevé par le baromètre Malt tourne autour de <strong>400 €</strong>, avec des écarts larges selon l&#39;expérience et la spécialisation.</p>\n<p><strong>Son avantage :</strong> flexibilité, coût ajustable selon le volume, pas de charges sociales.\n<strong>Sa limite :</strong> moins de disponibilité qu&#39;un salarié, et une qualité qui dépend entièrement du brief que vous lui donnez au départ.</p>\n<h3 id=\"un-outil-avec-ou-sans-accompagnement\">Un outil, avec ou sans accompagnement</h3>\n<p>C&#39;est le troisième chemin, souvent sous-estimé. Un outil de planification permet d&#39;automatiser une partie du travail — programmation des publications, analyse des performances — tout en laissant la main au dirigeant.</p>\n<p>Cette option convient à ceux qui veulent <strong>garder le contrôle de leur voix</strong> sans y passer des heures. Le coût est nettement inférieur à un freelance ou à un salarié.</p>\n<p><strong>Son avantage :</strong> coût maîtrisé, autonomie conservée, régularité facilitée.\n<strong>Sa limite :</strong> un outil de planification ne crée pas le contenu. Il vous fait gagner du temps sur la publication, pas sur l&#39;écriture.</p>\n<h2 id=\"comment-choisir-selon-votre-situation\">Comment choisir selon votre situation</h2>\n<p>Pas de réponse universelle. Voici trois profils concrets pour vous situer.</p>\n<h3 id=\"vous-avez-du-temps-mais-pas-de-budget\">Vous avez du temps mais pas de budget</h3>\n<p>Vous démarrez, votre trésorerie est serrée, mais vous pouvez bloquer cinq à six heures par semaine. Dans ce cas, <strong>gérer vous-même avec un outil de planification</strong> est la bonne option.</p>\n<p>Soyez honnête avec vous-même : si ces cinq heures n&#39;existent pas vraiment dans votre agenda, ou si elles disparaissent dès que le carnet de commandes se remplit, ce n&#39;est pas une solution durable. Mieux vaut une présence modeste et régulière qu&#39;une présence ambitieuse et abandonnée.</p>\n<h3 id=\"vous-avez-un-budget-mais-pas-de-temps\">Vous avez un budget mais pas de temps</h3>\n<p>Vous êtes à l&#39;aise financièrement, mais chaque heure compte. Externaliser à un freelance ou à une micro-agence est probablement le meilleur rapport qualité-prix.</p>\n<p>Prévoyez <strong>au minimum 800 à 1 000 € par mois</strong> pour une gestion sérieuse sur deux plateformes. En dessous, vous risquez d&#39;obtenir du contenu générique qui ne reflète pas votre entreprise. Et investissez du temps au départ pour briefer correctement votre prestataire : c&#39;est là que se joue la qualité de ce qui sera produit.</p>\n<h3 id=\"vous-voulez-un-equilibre-entre-cout-et-resultat\">Vous voulez un équilibre entre coût et résultat</h3>\n<p>C&#39;est le cas le plus fréquent. Vous ne voulez pas tout déléguer, parce que vous tenez à votre voix, mais vous ne pouvez pas non plus y passer dix heures par semaine.</p>\n<p>La combinaison qui fonctionne : <strong>un outil pour la régularité, un freelance quelques heures par mois pour la stratégie et la création</strong>. Vous gardez la main sur les échanges avec votre communauté, vous déléguez la production. Comptez entre 300 et 700 € par mois selon le volume.</p>\n<h2 id=\"ce-qu-il-faut-retenir-avant-de-decider\">Ce qu&#39;il faut retenir avant de décider</h2>\n<p>La gestion des réseaux sociaux n&#39;est pas une question de talent ni de maîtrise des outils. C&#39;est une question de <strong>régularité et de ressources</strong> — du temps ou de l&#39;argent, les deux se compensent.</p>\n<p>Quatre points fermes avant de trancher :</p>\n<ul>\n<li><strong>Ne sous-estimez pas le coût du « je le fais moi-même ».</strong> Huit heures par semaine, c&#39;est une journée de travail. Valorisez-la.</li>\n<li><strong>Ne surestimez pas ce qu&#39;un petit budget peut acheter.</strong> Un forfait à 200 € par mois ne vous donnera pas une stratégie, juste de la présence.</li>\n<li><strong>La continuité vaut mieux que la perfection.</strong> Un post moyen publié chaque semaine bat un post parfait publié une fois par trimestre.</li>\n<li><strong>Testez avant de vous engager.</strong> Un freelance sur une mission de trois mois vous coûtera moins cher qu&#39;un mauvais recrutement.</li>\n</ul>\n<p>Il existe une quatrième voie, entre l&#39;outil nu et la délégation complète : faire cadrer sa marque par des humains — ton, ligne éditoriale, direction artistique — puis laisser une plateforme produire les propositions à cette voix, qu&#39;on relit et qu&#39;on valide une par une. C&#39;est ce que fait Postorico, pour 279 € par mois. Vous gardez la décision et le dernier mot ; ce que vous déléguez, c&#39;est la page blanche.</p>\n<h2 id=\"questions-frequentes\">Questions fréquentes</h2>\n<p><strong>Combien de temps faut-il consacrer à ses réseaux sociaux par semaine ?</strong>\nPour une présence sérieuse sur deux ou trois plateformes, comptez entre 6 et 10 heures par semaine : création de contenu, programmation, modération et analyse. En dessous de trois heures, il est difficile de tenir une régularité suffisante pour obtenir des résultats visibles.</p>\n<p><strong>Vaut-il mieux un freelance ou un community manager salarié pour une PME ?</strong>\nDans la grande majorité des cas, le freelance est plus adapté : flexibilité, coût ajustable, pas de charges fixes. Un salarié se justifie quand le volume dépasse trois à quatre jours de travail par semaine et que vous avez besoin de quelqu&#39;un totalement immergé dans votre entreprise.</p>\n<p><strong>Peut-on déléguer ses réseaux sociaux sans perdre son authenticité ?</strong>\nOui, à condition de bien briefer. Partagez vos valeurs, votre ton, des exemples de contenus que vous aimez, et les sujets à ne jamais aborder. L&#39;authenticité se construit dans le brief, pas dans le fait de tout écrire soi-même.</p>\n<h2 id=\"sources\">Sources</h2>\n<ul>\n<li><a href=\"https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme\" target=\"_blank\" rel=\"noopener noreferrer\">France Num — La présence sur Internet des TPE et PME</a></li>\n<li><a href=\"https://presse.bpifrance.fr/pme-eti-et-reseaux-sociaux-des-espaces-virtuels-aux-opportunites-reelles\" target=\"_blank\" rel=\"noopener noreferrer\">Bpifrance Le Lab — PME-ETI et réseaux sociaux</a></li>\n<li><a href=\"https://www.malt.fr/t/barometre-tarifs/communication/community-manager\" target=\"_blank\" rel=\"noopener noreferrer\">Malt — Baromètre des tarifs : community manager</a></li>\n</ul>\n"
+  },
+  {
    "id": "automatiser-sans-perdre-sa-voix",
    "langue": "es",
    "slug": "automatizar-redes-sociales-sin-perder-tu-voz",
@@ -16,6 +177,7 @@
     "automatizacion",
     "redaccion"
    ],
+   "image": null,
    "pose": "presente-produit",
    "minutes": 4,
    "mots": 739,
@@ -62,6 +224,7 @@
     "automation",
     "writing"
    ],
+   "image": null,
    "pose": "presente-produit",
    "minutes": 4,
    "mots": 720,
@@ -108,6 +271,7 @@
     "automatisation",
     "redaction"
    ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372184/blog/automatiser-sans-perdre-sa-voix-v2.png",
    "pose": "presente-produit",
    "minutes": 4,
    "mots": 792,
@@ -154,6 +318,7 @@
     "redaccion",
     "marca"
    ],
+   "image": null,
    "pose": "idee",
    "minutes": 4,
    "mots": 717,
@@ -204,6 +369,7 @@
     "writing",
     "brand"
    ],
+   "image": null,
    "pose": "idee",
    "minutes": 3,
    "mots": 692,
@@ -254,6 +420,7 @@
     "redaction",
     "marque"
    ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372576/blog/ligne-editoriale-v3.png",
    "pose": "idee",
    "minutes": 4,
    "mots": 779,
@@ -305,6 +472,7 @@
     "facebook",
     "ritmo"
    ],
+   "image": null,
    "pose": "annonce",
    "minutes": 4,
    "mots": 857,
@@ -352,6 +520,7 @@
     "facebook",
     "cadence"
    ],
+   "image": null,
    "pose": "annonce",
    "minutes": 4,
    "mots": 837,
@@ -399,6 +568,7 @@
     "facebook",
     "rythme"
    ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372217/blog/frequence-publication-v2.png",
    "pose": "annonce",
    "minutes": 5,
    "mots": 907,
@@ -432,6 +602,15 @@
   }
  ],
  "traductions": {
+  "tarif-community-manager": {
+   "fr": "/blog/community-manager-freelance-tarif"
+  },
+  "logiciel-reseaux-sociaux": {
+   "fr": "/blog/logiciel-gestion-reseaux-sociaux-petite-entreprise"
+  },
+  "gestion-deleguer-ou-pas": {
+   "fr": "/blog/gestion-reseaux-sociaux-deleguer-ou-faire-soi-meme"
+  },
   "automatiser-sans-perdre-sa-voix": {
    "es": "/es/blog/automatizar-redes-sociales-sin-perder-tu-voz",
    "en": "/en/blog/automate-social-media-without-losing-your-voice",

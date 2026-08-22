@@ -80,9 +80,25 @@ export function dateLisible(iso, langue) {
   }
 }
 
-// L'illustration : une pose de Rico, recadrée par Cloudinary. Pas de photo de
-// banque d'images — elle ne raconterait rien et ressemblerait à celle de tout
-// le monde. Le format 1200x630 est celui qu'attendent les aperçus sociaux.
+// L'illustration. Deux cas : l'article porte une image propre (produite par
+// scripts/illustrer.mjs et deposee sur Cloudinary), ou il retombe sur une pose
+// de la mascotte. Pas de photo de banque d'images — elle ne raconterait rien
+// et se retrouve sur mille autres blogs.
+//
+// Le format 1200x630 est celui qu'attendent les apercus sociaux : plus petit,
+// LinkedIn et X affichent une vignette carree minuscule au lieu d'une banniere.
 const CLOUD = 'https://res.cloudinary.com/dy9gp5pim/image/upload';
+const transformer = (url, t) => url.replace('/image/upload/', `/image/upload/${t}/`);
+
 export const posePetite = (pose) => `${CLOUD}/w_320,q_auto,f_auto/brand/rico-v4/${pose}.png`;
 export const poseOuverture = (pose) => `${CLOUD}/w_1200,h_630,c_pad,b_rgb:0f172a,q_auto,f_auto/brand/rico-v4/${pose}.png`;
+
+/** La vignette de la carte : l'image de l'article, sinon la mascotte. */
+export const vignette = (a) => (a.image
+  ? transformer(a.image, 'w_640,h_360,c_fill,q_auto,f_auto')
+  : posePetite(a.pose));
+
+/** L'image d'ouverture (bandeau de l'article et aperçu social). */
+export const ouverture = (a) => (a.image
+  ? transformer(a.image, 'w_1200,h_630,c_fill,q_auto,f_auto')
+  : poseOuverture(a.pose));

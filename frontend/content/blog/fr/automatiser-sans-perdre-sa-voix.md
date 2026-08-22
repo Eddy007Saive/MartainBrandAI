@@ -5,6 +5,8 @@ description: Ce qui gagne vraiment du temps, ce qu'il ne faut jamais déléguer 
 date: 2026-08-19
 auteur: L'équipe Postorico
 tags: [ia, automatisation, redaction]
+illustration: A single continuous sound waveform travelling from left to right, passing through a simple funnel in the middle of the frame, and coming out on the right with exactly the same shape it had on the left.
+image: https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372184/blog/automatiser-sans-perdre-sa-voix-v2.png
 pose: presente-produit
 ---
 

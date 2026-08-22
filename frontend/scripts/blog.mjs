@@ -125,9 +125,11 @@ for (const langue of LANGUES) {
       maj: champs.maj || champs.date,
       auteur: champs.auteur || 'Postorico',
       tags: champs.tags || [],
-      // La pose de Rico qui illustre la carte : la mascotte tient lieu
-      // d'illustration, plutôt qu'une photo de banque d'images qui ne
-      // raconterait rien et ressemblerait à tous les autres blogs.
+      // L'illustration. `image` est une adresse Cloudinary produite par
+      // scripts/illustrer.mjs ; à défaut on retombe sur une pose de la
+      // mascotte, qui vaut toujours mieux qu'une photo de banque d'images —
+      // elle ne raconterait rien et se retrouve sur mille autres blogs.
+      image: champs.image || null,
       pose: champs.pose || 'presente-cote',
       minutes: Math.max(1, Math.round(mots / 200)),
       mots,

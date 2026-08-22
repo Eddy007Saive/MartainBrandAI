@@ -7,7 +7,7 @@ import Metas from '../../components/Metas';
 import NotFound from '../NotFound';
 import {
   aLireAussi, articleParChemin, dateLisible, languesDe, cheminDe,
-  posePetite, poseOuverture,
+  ouverture, vignette,
 } from '../../lib/blog';
 import { cheminPourLangue, langueDuChemin } from '../../lib/langues';
 import './blog.css';
@@ -51,7 +51,7 @@ export default function Article() {
       wordCount: article.mots,
       inLanguage: article.langue,
       keywords: article.tags.join(', '),
-      image: poseOuverture(article.pose),
+      image: ouverture(article),
       author: { '@type': 'Organization', name: article.auteur, url: SITE },
       publisher: {
         '@type': 'Organization',
@@ -91,7 +91,7 @@ export default function Article() {
       <Metas
         titre={`${article.titre} · Postorico`}
         description={article.description}
-        image={poseOuverture(article.pose)}
+        image={ouverture(article)}
         type="article"
         canonique={article.chemin}
         alternatives={alternatives}
@@ -122,6 +122,13 @@ export default function Article() {
               )}
             </span>
           </div>
+
+          {/* Le bandeau vient APRES le chapeau et la signature : une image
+              posee avant le titre repousse le texte sous la ligne de flottaison,
+              et c'est le titre qui doit accueillir le lecteur, pas un decor. */}
+          {article.image && (
+            <img className="bhero" src={ouverture(article)} alt="" aria-hidden="true" />
+          )}
 
           {article.sommaire.length >= 3 && (
             <nav className="toc" aria-label={t('lp.blog.sommaire')}>
@@ -159,8 +166,8 @@ export default function Article() {
               <div className="bgrid" style={{ marginTop: 20 }}>
                 {suite.map((a) => (
                   <Link key={a.id} to={a.chemin} className="bcard" data-testid={`blog-suite-${a.id}`}>
-                    <div className="bcover">
-                      <img src={posePetite(a.pose)} alt="" aria-hidden="true" loading="lazy" />
+                    <div className={`bcover ${a.image ? 'illu' : 'mascotte'}`}>
+                      <img src={vignette(a)} alt="" aria-hidden="true" loading="lazy" />
                     </div>
                     <div className="bbody">
                       <span className="bmeta">

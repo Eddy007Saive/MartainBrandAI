@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Link from '../../components/LienLangue';
 import Metas from '../../components/Metas';
 import { SectionHead } from './shared';
-import { articlesDe, dateLisible, posePetite } from '../../lib/blog';
+import { articlesDe, dateLisible, vignette } from '../../lib/blog';
 import { LANGUES, cheminPourLangue, langueDuChemin } from '../../lib/langues';
 import './blog.css';
 
@@ -76,8 +76,11 @@ export default function Blog() {
           <div className="bgrid">
             {articles.map((a) => (
               <Link key={a.id} to={a.chemin} className="bcard" data-testid={`blog-carte-${a.id}`}>
-                <div className="bcover">
-                  <img src={posePetite(a.pose)} alt="" aria-hidden="true" loading="lazy" />
+                {/* Deux traitements : une illustration remplit le cadre,
+                    une mascotte detouree se pose au sol. Le meme CSS pour les
+                    deux donnerait un coq etire ou une image flottante. */}
+                <div className={`bcover ${a.image ? 'illu' : 'mascotte'}`}>
+                  <img src={vignette(a)} alt="" aria-hidden="true" loading="lazy" />
                 </div>
                 <div className="bbody">
                   <span className="bmeta">

@@ -5,6 +5,8 @@ description: Une méthode en cinq blocs pour écrire noir sur blanc de quoi vous
 date: 2026-08-11
 auteur: L'équipe Postorico
 tags: [strategie, redaction, marque]
+illustration: A single sheet of white paper standing upright, seen straight on, resting on top of four slender vertical pillars of equal height. The pillars are plain smooth rectangular columns — NOT stacks of coins, NOT discs, NOT cylinders. The sheet shows four short abstract grey lines suggesting handwriting, never readable letters. Nothing else in the frame.
+image: https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372576/blog/ligne-editoriale-v3.png
 pose: idee
 ---
 
