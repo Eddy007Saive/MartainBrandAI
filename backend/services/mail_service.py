@@ -414,6 +414,57 @@ def audit_reply_html(marque: str, message: str) -> str:
     return _shell(inner, width=520, apercu=debut)
 
 
+def rappel_prelevement_html(nom: str, montant: float, devise: str, date: str,
+                            lien: str, apres_pack: bool = False) -> tuple:
+    """Le rappel envoye trois jours avant le premier prelevement.
+
+    Deux situations, un seul gabarit. Le client du Parcours 2 termine son essai
+    gratuit ; celui du Parcours 1 a paye son Pack et voit son abonnement
+    demarrer apres le parametrage. Leur dire la meme phrase serait faux dans un
+    cas sur deux — on ne parle pas d'« essai qui se termine » a quelqu'un qui a
+    deja regle 1 499 EUR.
+
+    Ce que les deux ont en commun : de l'argent va partir dans trois jours. Le
+    montant, la date et le moyen de resilier sont donc au meme endroit, en
+    clair. Un rappel qui enterre ces trois informations est une mauvaise
+    surprise deguisee en courtoisie.
+    """
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    devise_sym = "€" if (devise or "EUR").upper() == "EUR" else devise.upper()
+    montant_txt = f"{montant:.2f}".replace(".", ",").removesuffix(",00")
+    jour = _html.escape(date)
+
+    if apres_pack:
+        sujet = f"Ton abonnement Postorico démarre le {date}"
+        titre = "Ton abonnement démarre bientôt"
+        contexte = ("Ton paramétrage touche à sa fin. Comme prévu, ton abonnement prend le relais "
+                    "et le premier prélèvement aura lieu dans trois jours.")
+    else:
+        sujet = f"Tes 14 jours se terminent le {date}"
+        titre = "Tes 14 jours se terminent"
+        contexte = ("Ton essai arrive à son terme. Si tu continues, rien à faire : "
+                    "l'abonnement prend le relais automatiquement.")
+
+    inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
+      <h1 class="titre" style="color:#ffffff;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">{titre}</h1>
+      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#94a3b8;font-size:14.5px;line-height:1.65;margin:0 0 22px;">{contexte}</p>
+      {_encadre("Premier prélèvement", f"Le {jour}", f"{montant_txt} {devise_sym}")}
+      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 20px;">
+        Puis {montant_txt}&nbsp;{devise_sym} chaque mois, tant que tu restes. Tu peux arrêter
+        quand tu veux&nbsp;: la résiliation prend effet à la fin de la période déjà payée,
+        et tu gardes l'accès jusque-là.
+      </p>
+      {_bouton(lien, "Gérer mon abonnement")}
+      <p style="color:#64748b;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+        Si tu ne veux pas être prélevé, c'est le moment&nbsp;: résilie avant le {jour} et rien ne partira.
+      </p>
+      {_signature()}
+    </td></tr>"""
+    return sujet, _shell(inner, width=480, teinte="alerte",
+                         apercu=f"{montant_txt} {devise_sym} le {date} · résiliable avant")
+
+
 def releve_affilie_html(nom: str, periode: str, montant: float, devise: str, nb: int) -> tuple:
     """Relevé mensuel envoyé à l'apporteur d'affaires : c'est son signal pour
     nous envoyer sa facture. Le virement se fait ensuite hors plateforme.

@@ -99,6 +99,21 @@ async def stripe_webhook(request: Request):
     sig = request.headers.get("stripe-signature")
     try:
         result = billing_service.handle_webhook(raw, sig)
+        # Un evenement REFUSE doit repondre en erreur, jamais 200.
+        #
+        # On renvoyait 200 meme sur signature invalide : Stripe croyait donc
+        # l'evenement traite, ne le rejouait jamais, et n'affichait aucun taux
+        # d'erreur. Un secret mal configure — ou le mauvais endpoint conserve
+        # apres un menage — devenait totalement invisible : les abonnements
+        # cessaient de s'activer sans que rien ne le signale.
+        #
+        # 400 sur une signature invalide, 500 quand c'est notre configuration
+        # qui manque. Dans les deux cas Stripe reessaie et le probleme se voit.
+        if isinstance(result, dict) and not result.get("ok"):
+            motif = result.get("error") or "webhook refusé"
+            code = 500 if "configur" in str(motif) else 400
+            logger.error(f"stripe webhook refusé ({code}) : {motif}")
+            raise HTTPException(status_code=code, detail=motif)
         # Abonnement terminé (fin de cycle) -> on déconnecte ses réseaux (stoppe le coût Late)
         uid = result.get("canceled_uid") if isinstance(result, dict) else None
         if uid:
@@ -133,7 +148,23 @@ async def stripe_webhook(request: Request):
                 await mail_service.send_email(facture["email"], sujet, html)
             except Exception as e:
                 logger.error(f"webhook facture client: {e}")
+        # Rappel au CLIENT, trois jours avant le premier prélèvement.
+        rappel = result.get("rappel") if isinstance(result, dict) else None
+        if rappel:
+            try:
+                from config import FRONTEND_URL
+                sujet, html = mail_service.rappel_prelevement_html(
+                    rappel.get("nom"), rappel["montant"], rappel["devise"], rappel["date"],
+                    f"{FRONTEND_URL}/dashboard/parametres?s=abonnement", rappel["apres_pack"])
+                await mail_service.send_email(rappel["email"], sujet, html)
+            except Exception as e:
+                logger.error(f"webhook rappel client: {e}")
         return result
+    except HTTPException:
+        raise
     except Exception as e:
+        # Une panne de NOTRE cote : on le dit a Stripe, qui rejouera. Les
+        # traitements sensibles sont deja proteges contre le doublon (commission
+        # unique par facture, abonnement non recree s'il existe deja).
         logger.error(f"stripe webhook error: {e}")
-        return {"ok": False}
+        raise HTTPException(status_code=500, detail="traitement impossible")

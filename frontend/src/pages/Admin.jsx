@@ -29,6 +29,7 @@ import {
 import { toast } from 'sonner';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as ChartTooltip, CartesianGrid } from 'recharts';
 import { removeAdminToken, memoriserEspace } from '../lib/auth';
+import BlocFacturation from '../components/admin/BlocFacturation';
 import { cn } from '../lib/utils';
 import { adminService } from '../services/adminService';
 import CarrouselTemplateImport from '../components/CarrouselTemplateImport';
@@ -1512,6 +1513,10 @@ export default function Admin() {
                   Mode Vision
                 </Button>
               </div>
+
+              {/* Facturation : la carte laissée au Pack, et le bouton qui
+                  démarre l'abonnement quand le paramétrage est livré. */}
+              <BlocFacturation telegramId={selectedUser.telegram_id} />
 
               {/* Stats — bande unique, séparateurs hairline */}
               {selectedUser.stats && (

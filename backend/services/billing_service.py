@@ -3,12 +3,13 @@ Abonnements Stripe -> plan utilisateur + crédits mensuels.
 
 No-op propre si Stripe non configuré (l'app marche en mode gratuit sans Stripe).
 """
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import os
 import stripe
 from config import (
     supabase, logger, FRONTEND_URL,
     STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_PRO, STRIPE_PRICE_BUSINESS,
-    STRIPE_PRICE_PACK_EUR, STRIPE_PRICE_PACK_USD,
+    STRIPE_PRICE_PACK_EUR, STRIPE_PRICE_PACK_USD, STRIPE_PRICE_PRO_USD,
 )
 
 # Statut Stripe -> statut interne de l'abonnement (pilote les quotas)
@@ -50,12 +51,28 @@ def _ready() -> bool:
     return True
 
 
-def _price_for(plan: str):
-    return {"pro": STRIPE_PRICE_PRO, "business": STRIPE_PRICE_BUSINESS}.get(plan)
+def _price_for(plan: str, devise: str = "eur"):
+    """Le prix d'un abonnement, dans la devise du marche.
+
+    Le Pack savait deja choisir sa monnaie, l'abonnement non : un seul prix
+    etait ecrit en dur. Un client latino-americain reglait donc son Pack en
+    dollars, puis se voyait facturer son abonnement en euros.
+
+    Faute de prix dans la devise demandee, on retombe sur l'euro plutot que
+    d'echouer : mieux vaut une facture dans la mauvaise monnaie qu'un
+    abonnement qui ne demarre pas.
+    """
+    devise = (devise or "eur").lower()
+    if plan == "pro":
+        return (STRIPE_PRICE_PRO_USD if devise == "usd" and STRIPE_PRICE_PRO_USD
+                else STRIPE_PRICE_PRO)
+    if plan == "business":
+        return STRIPE_PRICE_BUSINESS
+    return None
 
 
 def _plan_for_price(price_id: str):
-    if price_id and price_id == STRIPE_PRICE_PRO:
+    if price_id and price_id in (STRIPE_PRICE_PRO, STRIPE_PRICE_PRO_USD):
         return "pro"
     if price_id and price_id == STRIPE_PRICE_BUSINESS:
         return "business"
@@ -63,6 +80,11 @@ def _plan_for_price(price_id: str):
 
 
 ESSAI_JOURS = 14
+
+# Parcours 1 : au-dela de ce delai apres le paiement du Pack, l'abonnement part
+# tout seul si personne ne l'a declenche. Mettre 0 desactive le filet et rend la
+# main entiere a l'equipe.
+PACK_DELAI_JOURS = int(os.environ.get("PACK_DELAI_JOURS", "14"))
 
 
 def a_deja_eu_un_abonnement(telegram_id: str) -> bool:
@@ -392,8 +414,28 @@ def create_pack_checkout(telegram_id: str, pack_id: str) -> dict:
 PACK_PRIX = {"eur": STRIPE_PRICE_PACK_EUR, "usd": STRIPE_PRICE_PACK_USD}
 
 
-def devise_du_marche(langue: str) -> str:
-    """Le marche hispanophone (Colombie) paie en dollars, le reste en euros."""
+# Les fuseaux disent le PAYS ; la langue ne le dit pas. C'est toute la
+# difference entre Madrid et Bogota, qui ecrivent le meme « es ».
+_CONTINENT_EURO = ("Europe/", "Africa/", "Atlantic/")
+_CONTINENT_DOLLAR = ("America/", "Pacific/")
+
+
+def devise_du_marche(langue: str = None, fuseau: str = None) -> str:
+    """La monnaie de facturation d'un client.
+
+    Le fuseau prime, parce qu'il designe un pays : un Espagnol installe a
+    Bogota paie en dollars, et c'est correct — sa banque est la-bas.
+
+    La langue ne sert plus que de repli, et c'est un mauvais repli : elle
+    envoyait l'Espagne, qui est en zone euro, payer en dollars. On la garde
+    faute de mieux quand le fuseau est inconnu, mais elle ne decide plus des
+    qu'on sait ou vit le client.
+    """
+    f = (fuseau or "").strip()
+    if f.startswith(_CONTINENT_DOLLAR):
+        return "usd"
+    if f.startswith(_CONTINENT_EURO):
+        return "eur"
     return "usd" if (langue or "").lower().startswith("es") else "eur"
 
 
@@ -413,11 +455,11 @@ def lien_pack(email: str, telegram_id: str = None, affilie: str = None,
     # se fera sur son email, ou sur le code depose ici.
     row = {}
     if telegram_id:
-        r = (supabase.table("users").select("stripe_customer_id, email, langue")
+        r = (supabase.table("users").select("stripe_customer_id, email, langue, timezone")
              .eq("telegram_id", telegram_id).execute())
         row = r.data[0] if r.data else {}
-        if not devise and row.get("langue"):
-            devise = devise_du_marche(row["langue"])
+        if not devise and (row.get("timezone") or row.get("langue")):
+            devise = devise_du_marche(row.get("langue"), row.get("timezone"))
     email = email or row.get("email")
 
     meta = {"produit": "fondations"}
@@ -427,21 +469,157 @@ def lien_pack(email: str, telegram_id: str = None, affilie: str = None,
         meta["affilie"] = affilie.strip().upper()
 
     try:
+        # La carte est ENREGISTREE au passage (`setup_future_usage`).
+        #
+        # C'est ce qui permet de declencher l'abonnement plus tard, quand le
+        # parametrage est livre, sans redemander sa carte au client — trois
+        # semaines apres qu'il ait paye 1 499 EUR, c'est le pire moment pour
+        # lui redemander quoi que ce soit. Cette option ne se rattrape pas
+        # apres coup : un lien parti sans elle oblige a repasser par le client.
+        #
+        # `customer_creation` est indispensable en mode paiement : sans client
+        # Stripe, la carte n'est rattachee a personne et devient inutilisable.
+        # Les deux options s'excluent, d'ou l'aiguillage.
+        client = ({"customer": row["stripe_customer_id"]} if row.get("stripe_customer_id")
+                  else {"customer_creation": "always",
+                        **({"customer_email": email} if email else {})})
         sess = stripe.checkout.Session.create(
             mode="payment",
             line_items=[{"price": price, "quantity": 1}],
+            payment_intent_data={"setup_future_usage": "off_session", "metadata": meta},
             success_url=f"{FRONTEND_URL}/dashboard?pack=ok",
             cancel_url=f"{FRONTEND_URL}/tarifs?pack=annule",
             metadata=meta,
             client_reference_id=str(telegram_id) if telegram_id else None,
-            **({"customer": row["stripe_customer_id"]} if row.get("stripe_customer_id")
-               else {"customer_email": email} if email else {}),
+            **client,
         )
         return {"ok": True, "url": sess.url, "devise": devise.upper(),
                 "expire_le": sess.expires_at}
     except Exception as e:
         logger.error(f"lien pack fondations: {e}")
         return {"ok": False, "error": "Impossible de créer le lien de paiement."}
+
+
+def _lier_client_stripe(telegram_id: str, email: str, customer: str) -> None:
+    """Retient l'identifiant client Stripe sur le compte.
+
+    Le Pack se paie souvent AVANT que le compte existe : dans ce cas on
+    rattrape par l'email, qui est la seule chose commune entre le paiement et
+    l'inscription.
+    """
+    if not customer:
+        return
+    try:
+        if telegram_id:
+            supabase.table("users").update({"stripe_customer_id": customer}) \
+                .eq("telegram_id", telegram_id).execute()
+        elif email:
+            supabase.table("users").update({"stripe_customer_id": customer}) \
+                .eq("email", email.lower()).execute()
+    except Exception as e:
+        logger.warning(f"lier client stripe: {e}")
+
+
+def carte_enregistree(telegram_id: str) -> dict:
+    """Ce que le back-office a besoin de savoir avant de declencher l'abonnement.
+
+    Rien n'est stocke chez nous : Stripe est la source, et une carte peut
+    expirer ou etre retiree entre le Pack et le declenchement.
+    """
+    if not _ready():
+        return {"ok": False, "error": "Stripe non configuré."}
+    r = supabase.table("users").select("stripe_customer_id").eq("telegram_id", telegram_id).execute()
+    cust = r.data[0].get("stripe_customer_id") if r.data else None
+    if not cust:
+        return {"ok": True, "carte": None, "abonnement": None}
+    try:
+        pms = stripe.Customer.list_payment_methods(cust, type="card", limit=1)
+        carte = None
+        if pms.data:
+            c = pms.data[0].card
+            carte = {"marque": c.brand, "fin": c.last4,
+                     "expire": f"{c.exp_month:02d}/{c.exp_year}"}
+        subs = stripe.Subscription.list(customer=cust, status="all", limit=1)
+        abo = subs.data[0].status if subs.data else None
+        return {"ok": True, "carte": carte, "abonnement": abo}
+    except Exception as e:
+        logger.error(f"carte_enregistree: {e}")
+        return {"ok": False, "error": "Lecture Stripe impossible."}
+
+
+def demarrer_abonnement(telegram_id: str, devise: str = None) -> dict:
+    """Declenche l'abonnement Pro sur la carte laissee au paiement du Pack.
+
+    C'est le geste que fait l'equipe quand le parametrage est livre. Aucun
+    essai : ce client a paye, il entre directement en facturation.
+
+    Le prelevement a lieu hors la presence du client (`off_session`). La
+    plupart des banques l'acceptent, la carte ayant ete authentifiee « pour un
+    usage futur » au moment du Pack. Il arrive qu'une banque exige malgre tout
+    une confirmation : Stripe met alors l'abonnement en « incomplete » et
+    envoie lui-meme un courriel au client. On remonte ce cas tel quel plutot
+    que de le presenter comme un succes.
+    """
+    if not _ready():
+        return {"ok": False, "error": "Stripe non configuré."}
+    r = (supabase.table("users").select("stripe_customer_id, email, langue, timezone")
+         .eq("telegram_id", telegram_id).execute())
+    if not r.data:
+        return {"ok": False, "error": "Compte introuvable."}
+    row = r.data[0]
+    cust = row.get("stripe_customer_id")
+    if not cust:
+        return {"ok": False, "error": "Ce compte n'a jamais payé par Stripe — aucune carte à utiliser."}
+
+    devise = (devise or devise_du_marche(row.get("langue"), row.get("timezone"))).lower()
+    price = _price_for("pro", devise)
+    if not price:
+        return {"ok": False, "error": "Aucun prix d'abonnement configuré."}
+
+    try:
+        deja = stripe.Subscription.list(customer=cust, status="all", limit=10)
+        vivant = next((x for x in deja.data if x.status in ("active", "trialing", "past_due")), None)
+        if vivant and vivant.status == "trialing":
+            # Le cas normal depuis que l'abonnement nait avec le Pack : il
+            # existe deja et attend son terme. Le bouton de l'equipe ne le cree
+            # pas, il ECOURTE l'attente — le parametrage est livre, la
+            # facturation peut commencer.
+            sub = stripe.Subscription.modify(vivant.id, trial_end="now")
+            _apply_subscription(sub)
+            return {"ok": True, "status": sub.status, "devise": "—", "ecourte": True,
+                    "prochain_prelevement": None}
+        if vivant:
+            return {"ok": False, "error": f"Ce compte a déjà un abonnement ({vivant.status})."}
+
+        pms = stripe.Customer.list_payment_methods(cust, type="card", limit=1)
+        if not pms.data:
+            return {"ok": False, "error": "Aucune carte enregistrée sur ce client. "
+                                          "Le Pack a probablement été réglé avant la mise en place "
+                                          "de l'enregistrement de carte : envoie-lui un lien d'abonnement."}
+        pm = pms.data[0].id
+
+        sub = stripe.Subscription.create(
+            customer=cust,
+            items=[{"price": price}],
+            default_payment_method=pm,
+            off_session=True,
+            metadata={"telegram_id": str(telegram_id), "origine": "pack_fondations"},
+            expand=["latest_invoice.payment_intent"],
+        )
+    except Exception as e:
+        logger.error(f"demarrer_abonnement {telegram_id}: {e}")
+        return {"ok": False, "error": f"Stripe a refusé : {str(e)[:160]}"}
+
+    _apply_subscription(sub)
+    # La date de fin de periode a migre a la racine vers les ITEMS dans les
+    # versions recentes de l'API : lue au mauvais endroit, elle vaut None et
+    # le back-office affiche « prochain prelevement : jamais ».
+    fin = sub.get("current_period_end")
+    if fin is None:
+        items = (sub.get("items") or {}).get("data") or []
+        fin = items[0].get("current_period_end") if items else None
+    return {"ok": True, "status": sub.status, "devise": devise.upper(),
+            "prochain_prelevement": fin}
 
 
 def sync_subscription(telegram_id: str) -> dict:
@@ -544,6 +722,93 @@ def _commission(type_: str, ref_id, montant_cents, devise, telegram_id=None,
         logger.warning(f"commission affiliation ignoree ({ref_id}): {e}")
 
 
+def _abonnement_apres_pack(customer: str, telegram_id: str = None, email: str = None) -> None:
+    """Cree l'abonnement Pro des l'encaissement du Pack, premier prelevement differe.
+
+    C'est STRIPE qui tient le compteur, pas nous. Un minuteur cote serveur —
+    une boucle quotidienne qui cherche les Packs a echeance — dependrait de
+    notre disponibilite : Railway qui redemarre, et la facturation glisse.
+    Ici, l'abonnement existe des le premier jour et Stripe preleve au terme,
+    que nous soyons la ou non.
+
+    Le mot « essai » n'est qu'un mecanisme : ce n'est pas une periode gratuite,
+    c'est un abonnement dont le premier paiement attend la livraison du
+    parametrage. Le client a deja paye son Pack.
+
+    L'equipe peut ecourter ce delai a tout moment depuis la fiche client
+    (`demarrer_abonnement`), le jour ou le parametrage est livre.
+    """
+    if not customer or PACK_DELAI_JOURS <= 0:
+        return
+    try:
+        # Un abonnement vivant : on ne double pas.
+        deja = stripe.Subscription.list(customer=customer, status="all", limit=10)
+        if any(x.status in ("active", "trialing", "past_due") for x in deja.data):
+            return
+
+        # La carte laissee au paiement du Pack. Sans elle, rien a prelever au
+        # terme : on s'arrete la plutot que de creer un abonnement mort-ne.
+        pms = stripe.Customer.list_payment_methods(customer, type="card", limit=1)
+        if not pms.data:
+            logger.warning(f"Pack paye sans carte enregistree ({customer}) — abonnement non cree")
+            return
+
+        row = {}
+        if telegram_id or email:
+            q = supabase.table("users").select("telegram_id, langue, timezone")
+            q = q.eq("telegram_id", telegram_id) if telegram_id else q.eq("email", (email or "").lower())
+            r = q.execute()
+            row = r.data[0] if r.data else {}
+        devise = devise_du_marche(row.get("langue"), row.get("timezone"))
+
+        sub = stripe.Subscription.create(
+            customer=customer,
+            items=[{"price": _price_for("pro", devise)}],
+            default_payment_method=pms.data[0].id,
+            trial_period_days=PACK_DELAI_JOURS,
+            metadata={"telegram_id": str(row.get("telegram_id") or telegram_id or ""),
+                      "origine": "pack_fondations"},
+        )
+        _apply_subscription(sub)
+        logger.info(f"Abonnement cree apres le Pack ({customer}) — premier prelevement "
+                    f"dans {PACK_DELAI_JOURS} jours, en {devise.upper()}")
+    except Exception as e:
+        logger.error(f"_abonnement_apres_pack {customer}: {e}")
+
+
+def _rappel_payload(sub: dict) -> dict | None:
+    """Ce qu'il faut pour ecrire le rappel J-3, lu sur l'abonnement Stripe.
+
+    Le montant vient du PRIX de l'abonnement, pas d'une constante : le client
+    latino-americain paie 140 USD, l'europeen 279 EUR, et un rappel qui
+    annoncerait le mauvais montant vaudrait mieux ne pas etre envoye.
+
+    `origine` distingue les deux parcours : on ne dit pas « ton essai se
+    termine » a quelqu'un qui a deja regle 1 499 EUR de Pack.
+    """
+    uid = _uid_by_customer(sub.get("customer"))
+    if not uid:
+        return None
+    try:
+        u = (supabase.table("users").select("email, nom").eq("telegram_id", uid).execute())
+        if not u.data or not u.data[0].get("email"):
+            return None
+        items = (sub.get("items") or {}).get("data") or []
+        prix = (items[0].get("price") or {}) if items else {}
+        fin = sub.get("trial_end")
+        return {
+            "email": u.data[0]["email"],
+            "nom": u.data[0].get("nom"),
+            "montant": (prix.get("unit_amount") or 0) / 100,
+            "devise": (prix.get("currency") or "eur").upper(),
+            "date": datetime.fromtimestamp(fin, tz=timezone.utc).strftime("%d/%m/%Y") if fin else "",
+            "apres_pack": (sub.get("metadata") or {}).get("origine") == "pack_fondations",
+        }
+    except Exception as e:
+        logger.warning(f"_rappel_payload: {e}")
+        return None
+
+
 def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     if not _ready():
         return {"ok": False}
@@ -562,6 +827,7 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     canceled_uid = None  # à déconnecter (abo terminé) -> géré async par la route
     notify = None        # {"kind","nom","email",...} -> email admin envoyé par la route (async)
     facture = None       # {"email","montant",...} -> email facture CLIENT envoyé par la route (async)
+    rappel = None        # {"email","montant","date",...} -> rappel J-3 au CLIENT (async)
     try:
         if etype == "checkout.session.completed":
             meta = obj.get("metadata") or {}
@@ -580,6 +846,16 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
                             obj.get("currency"), meta.get("telegram_id"),
                             (obj.get("customer_details") or {}).get("email"),
                             "Pack Fondations", meta.get("affilie"))
+                # Le client Stripe est rattache au compte : c'est lui qui porte
+                # la carte enregistree, et sans ce lien on ne saurait plus a qui
+                # elle appartient au moment de declencher l'abonnement.
+                _lier_client_stripe(meta.get("telegram_id"),
+                                    (obj.get("customer_details") or {}).get("email"),
+                                    obj.get("customer"))
+                # L'abonnement demarre ici, avec son premier prelevement
+                # differe. Stripe tient le compteur a partir de maintenant.
+                _abonnement_apres_pack(obj.get("customer"), meta.get("telegram_id"),
+                                       (obj.get("customer_details") or {}).get("email"))
                 facture = _facture_payload(meta.get("telegram_id"), obj.get("amount_total"),
                                            obj.get("currency"), "Pack Fondations")
             elif obj.get("subscription"):
@@ -611,8 +887,14 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
                 uid, obj.get("amount_paid"), obj.get("currency"),
                 libelle, numero=obj.get("number"),
                 url=obj.get("hosted_invoice_url"), pdf=obj.get("invoice_pdf"))
+        elif etype == "customer.subscription.trial_will_end":
+            # Stripe previent trois jours avant le premier prelevement. On s'y
+            # branche plutot que de tenir notre propre minuteur : c'est la meme
+            # raison qui nous a fait confier le compteur a Stripe.
+            rappel = _rappel_payload(obj)
         elif etype == "invoice.payment_failed":
             notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed")
     except Exception as e:
         logger.error(f"stripe webhook handle error: {e}")
-    return {"ok": True, "event": etype, "canceled_uid": canceled_uid, "notify": notify, "facture": facture}
+    return {"ok": True, "event": etype, "canceled_uid": canceled_uid, "notify": notify,
+            "facture": facture, "rappel": rappel}

@@ -100,6 +100,10 @@ STRIPE_PRICE_BUSINESS = os.environ.get('STRIPE_PRICE_BUSINESS', '')  # price_xxx
 # l'euro pour le marche francophone, le dollar pour l'hispanophone (Colombie).
 STRIPE_PRICE_PACK_EUR = os.environ.get('STRIPE_PRICE_PACK_EUR', '')
 STRIPE_PRICE_PACK_USD = os.environ.get('STRIPE_PRICE_PACK_USD', '')
+# Abonnement en dollars (marche latino-americain). Absent : on facture en
+# euros, ce que le code sait faire — mieux vaut la mauvaise monnaie qu'un
+# abonnement qui ne demarre pas.
+STRIPE_PRICE_PRO_USD = os.environ.get('STRIPE_PRICE_PRO_USD', '')
 
 # Logging
 logging.basicConfig(

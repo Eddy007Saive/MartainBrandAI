@@ -179,6 +179,32 @@ async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(v
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/users/{telegram_id}/facturation")
+async def facturation(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+    """Carte enregistree et abonnement en cours, lus dans Stripe.
+
+    Rien n'est stocke chez nous : une carte peut expirer ou etre retiree entre
+    le paiement du Pack et le declenchement de l'abonnement.
+    """
+    from services import billing_service
+    return billing_service.carte_enregistree(telegram_id)
+
+
+@router.post("/users/{telegram_id}/demarrer-abonnement")
+async def demarrer_abonnement(telegram_id: str, body: dict = None,
+                              payload: dict = Depends(verify_admin_token)):
+    """Declenche l'abonnement Pro sur la carte laissee au paiement du Pack.
+
+    Le geste de l'equipe quand le parametrage est livre : le client entre en
+    facturation immediatement, sans essai — il a deja paye son Pack.
+    """
+    from services import billing_service
+    res = billing_service.demarrer_abonnement(telegram_id, (body or {}).get("devise"))
+    if not res.get("ok"):
+        raise HTTPException(status_code=400, detail=res.get("error"))
+    return res
+
+
 @router.post("/users/{telegram_id}/vision")
 async def start_vision(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     """Mode Vision : délivre un token UTILISATEUR temporaire (1 h) pour voir/agir comme le client.

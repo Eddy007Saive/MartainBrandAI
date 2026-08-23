@@ -40,6 +40,12 @@ export const adminService = {
     adminFetch(`/admin/users/${telegramId}/plan`, { method: 'PATCH', body: JSON.stringify({ plan, reset_credits }) }),
 
   // Mode Vision : token utilisateur temporaire (1 h) pour voir l'app comme le client
+  // Facturation : ce que Stripe sait de ce client (carte laissee au paiement
+  // du Pack, abonnement en cours). Rien n'est recopie chez nous.
+  facturation: (telegramId) => adminFetch(`/admin/users/${telegramId}/facturation`),
+  demarrerAbonnement: (telegramId) =>
+    adminFetch(`/admin/users/${telegramId}/demarrer-abonnement`, { method: 'POST' }),
+
   startVision: (telegramId) => adminFetch(`/admin/users/${telegramId}/vision`, { method: 'POST' }),
 
   // Quotas du client (jauges de la période courante) + bonus individuel par type
