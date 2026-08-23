@@ -21,9 +21,14 @@ Trois décisions qui structurent le reste :
      réception affiche le premier texte trouvé — « Postorico », déjà écrit
      dans l'expéditeur. Une ligne perdue à l'endroit qui décide de l'ouverture.
 
-  3. `color-scheme: dark` déclaré. Nos emails sont sombres ; sans cette
-     déclaration, Gmail et Apple Mail en mode nuit ré-inversent les couleurs
-     et rendent le texte clair sur fond clair.
+  3. Fond CLAIR, et `color-scheme: light` déclaré. Un email sombre se lit
+     comme une newsletter, pas comme un message d'un fournisseur — et il
+     pose trois problèmes concrets : le mode nuit l'inverse, il s'imprime
+     mal, et une facture transférée à un comptable arrive illisible.
+
+     Le passage au clair n'est pas qu'une inversion : le vert d'accent
+     (#3AFFA3) tombe à 1,4:1 de contraste sur blanc. Les montants et les
+     accents de texte utilisent un vert soutenu (#0b7a53).
 
 --- Le tutoiement ---
 
@@ -93,7 +98,7 @@ def _preheader(texte: str) -> str:
     """
     bourrage = "&#847;&zwnj;&nbsp;" * 60
     return (f'<div class="apercu" style="display:none;max-height:0;overflow:hidden;'
-            f'mso-hide:all;font-size:1px;line-height:1px;color:#020617;opacity:0;">'
+            f'mso-hide:all;font-size:1px;line-height:1px;color:#f4f6fb;opacity:0;">'
             f'{_html.escape(texte)}{bourrage}</div>')
 
 
@@ -113,18 +118,24 @@ def _bouton(url: str, libelle: str) -> str:
 
 def _lien_secours(url: str) -> str:
     """Le lien en toutes lettres, pour le client qui n'affiche pas les boutons."""
-    return f"""<p style="color:#64748b;font-size:12px;line-height:1.6;margin:0 0 4px;">Si le bouton ne fonctionne pas, copie ce lien :</p>
-      <p style="margin:0 0 22px;"><a href="{url}" target="_blank" style="color:#8A6CFF;font-size:12px;word-break:break-all;">{url}</a></p>"""
+    return f"""<p style="color:#6b7688;font-size:12px;line-height:1.6;margin:0 0 4px;">Si le bouton ne fonctionne pas, copie ce lien :</p>
+      <p style="margin:0 0 22px;"><a href="{url}" target="_blank" style="color:#6d4fe0;font-size:12px;word-break:break-all;">{url}</a></p>"""
 
 
-def _encadre(surtitre: str, titre: str, valeur: str = "", couleur: str = "#3AFFA3") -> str:
+# Le vert de marque (#3AFFA3) tombe a 1,4:1 de contraste sur blanc : sur un
+# montant, c'est illisible. Ce vert-la reste celui de la barre de registre,
+# ou il n'a rien a dire ; le texte prend un vert soutenu.
+VERT_TEXTE = "#0b7a53"
+
+
+def _encadre(surtitre: str, titre: str, valeur: str = "", couleur: str = VERT_TEXTE) -> str:
     """Le bloc chiffré : montant d'une facture, total d'un relevé."""
     val = (f'<p style="color:{couleur};font-size:24px;font-weight:bold;margin:0;'
            f'font-family:{_POLICE};">{valeur}</p>') if valeur else ""
-    return f"""<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#0b1120;border:1px solid rgba(255,255,255,0.08);border-radius:12px;margin:0 0 24px;">
+    return f"""<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f7f8fc;border:1px solid #e6e9f2;border-radius:12px;margin:0 0 24px;">
         <tr><td style="padding:18px 22px;">
-          <p style="color:#94a3b8;font-size:11px;margin:0 0 6px;text-transform:uppercase;letter-spacing:0.09em;">{surtitre}</p>
-          <p style="color:#ffffff;font-size:15px;font-weight:bold;margin:0 0 {'8px' if valeur else '0'};">{titre}</p>
+          <p style="color:#5b6a82;font-size:11px;margin:0 0 6px;text-transform:uppercase;letter-spacing:0.09em;">{surtitre}</p>
+          <p style="color:#0f172a;font-size:15px;font-weight:bold;margin:0 0 {'8px' if valeur else '0'};">{titre}</p>
           {val}
         </td></tr>
       </table>"""
@@ -136,31 +147,35 @@ def _signature() -> str:
     Une image seule ne porte jamais d'information : la moitié des clients les
     bloquent par défaut. Rico est ici décoratif, le texte se suffit.
     """
-    return f"""<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 0;border-top:1px solid rgba(255,255,255,0.06);width:100%;">
+    return f"""<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:26px 0 0;border-top:1px solid #e9ecf4;width:100%;">
         <tr>
-          <td width="46" style="padding:18px 12px 0 0;vertical-align:middle;">
-            <img src="{_RICO_URL}" width="46" alt="" style="display:block;width:46px;height:auto;border:0;">
+          <td width="64" style="padding:16px 13px 0 0;vertical-align:middle;">
+            <img src="{_RICO_URL}" width="64" alt="" style="display:block;width:64px;height:auto;border:0;">
           </td>
-          <td style="padding:18px 0 0;vertical-align:middle;color:#64748b;font-size:12.5px;line-height:1.6;">
+          <td style="padding:18px 0 0;vertical-align:middle;color:#6b7688;font-size:12.5px;line-height:1.6;">
             L'équipe Postorico<br>
-            <span style="color:#475569;">Une question&nbsp;? Réponds simplement à cet email.</span>
+            <span style="color:#6b7688;">Une question&nbsp;? Réponds simplement à cet email.</span>
           </td>
         </tr>
       </table>"""
 
 
 def _header(teinte: str = "marque") -> str:
-    """Barre de registre + logo + nom. La barre dit le ton avant la lecture."""
+    """Barre de registre + logo + nom. La barre dit le ton avant la lecture.
+
+    Sur fond clair, la pastille blanche sous le logo n'a plus de raison
+    d'etre : elle servait a le detacher du sombre.
+    """
     plein, degrade = _TEINTES.get(teinte, _TEINTES["marque"])
     return f"""<tr><td bgcolor="{plein}" height="4" style="height:4px;line-height:4px;font-size:0;background-color:{plein};background-image:{degrade};">&nbsp;</td></tr>
     <tr><td style="padding:26px 32px 12px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="background:#ffffff;border-radius:11px;padding:6px;line-height:0;">
+        <td style="line-height:0;">
           <img src="{_LOGO_URL}" width="34" height="34" alt="Postorico" style="display:block;width:34px;height:34px;border:0;">
         </td>
-        <td style="padding-left:12px;font-family:{_POLICE};">
-          <span style="display:block;color:#ffffff;font-size:17px;font-weight:bold;letter-spacing:-.01em;line-height:1.2;">Postorico</span>
-          <span style="display:block;color:#64748b;font-size:11.5px;line-height:1.4;">Votre présence, amplifiée</span>
+        <td style="padding-left:11px;font-family:{_POLICE};">
+          <span style="display:block;color:#0f172a;font-size:17px;font-weight:bold;letter-spacing:-.01em;line-height:1.2;">Postorico</span>
+          <span style="display:block;color:#6b7688;font-size:11.5px;line-height:1.4;">Votre présence, amplifiée</span>
         </td>
       </tr></table>
     </td></tr>"""
@@ -169,14 +184,14 @@ def _header(teinte: str = "marque") -> str:
 def _footer(internal: bool = False) -> str:
     """Pied de page. `internal=True` -> notification admin, pas de désinscription."""
     if internal:
-        return """<tr><td style="padding:18px 32px;border-top:1px solid rgba(255,255,255,0.06);color:#475569;font-size:11px;">
+        return """<tr><td style="padding:18px 32px;border-top:1px solid #e9ecf4;color:#6b7688;font-size:11px;">
           © 2026 Postorico — notification interne automatique
         </td></tr>"""
-    return f"""<tr><td style="padding:20px 32px;border-top:1px solid rgba(255,255,255,0.06);">
-      <p style="margin:0;color:#475569;font-size:11px;line-height:1.7;">
+    return f"""<tr><td style="padding:20px 32px;border-top:1px solid #e9ecf4;">
+      <p style="margin:0;color:#6b7688;font-size:11px;line-height:1.7;">
         © 2026 Postorico ·
-        <a href="mailto:{REPLY_TO}" style="color:#64748b;text-decoration:none;">{REPLY_TO}</a> ·
-        <a href="{_UNSUB}" style="color:#475569;text-decoration:underline;">Se désinscrire</a>
+        <a href="mailto:{REPLY_TO}" style="color:#6b7688;text-decoration:none;">{REPLY_TO}</a> ·
+        <a href="{_UNSUB}" style="color:#6b7688;text-decoration:underline;">Se désinscrire</a>
       </p>
     </td></tr>"""
 
@@ -193,10 +208,10 @@ def _shell(inner: str, width: int = 520, internal: bool = False,
 <!-- Sans ces deux lignes, le mode nuit de Gmail et d'Apple Mail ré-inverse
      nos couleurs : le texte clair repasse en sombre sur un fond redevenu
      clair, et l'email devient illisible. -->
-<meta name="color-scheme" content="dark">
-<meta name="supported-color-schemes" content="dark">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
 <style>
-  :root {{ color-scheme: dark; supported-color-schemes: dark; }}
+  :root {{ color-scheme: light; supported-color-schemes: light; }}
   @media only screen and (max-width:600px) {{
     .carte {{ width:100% !important; border-radius:0 !important; }}
     .marge {{ padding-left:22px !important; padding-right:22px !important; }}
@@ -204,11 +219,11 @@ def _shell(inner: str, width: int = 520, internal: bool = False,
   }}
 </style>
 </head>
-<body style="margin:0;padding:0;background:#020617;font-family:{_POLICE};-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background:#f4f6fb;font-family:{_POLICE};-webkit-font-smoothing:antialiased;">
   {_preheader(apercu) if apercu else ""}
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#020617;padding:32px 12px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6fb;padding:32px 12px;">
     <tr><td align="center">
-      <table role="presentation" class="carte" width="{width}" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:{width}px;background:#0f172a;border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;">
+      <table role="presentation" class="carte" width="{width}" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:{width}px;background:#ffffff;border:1px solid #e6e9f2;border-radius:16px;overflow:hidden;">
         {_header(teinte)}
         {inner}
         {_footer(internal)}
@@ -281,16 +296,16 @@ def admin_payment_html(kind: str, nom: str, email: str, detail: str = "") -> tup
     plein, _ = _TEINTES[teinte]
     who = _html.escape(nom or "Client")
     mail = _html.escape(email or "—")
-    extra = f'<p style="margin:10px 0 0;color:#e2e8f0;font-size:14px;line-height:1.6;">{_html.escape(detail)}</p>' if detail else ""
+    extra = f'<p style="margin:10px 0 0;color:#1f2937;font-size:14px;line-height:1.6;">{_html.escape(detail)}</p>' if detail else ""
     subject = f"{emoji_subj} — {who}"
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
       <div style="border-left:3px solid {plein};padding:2px 0 2px 16px;">
-        <h1 class="titre" style="margin:0 0 8px;font-size:19px;color:#ffffff;font-weight:bold;">{titre}</h1>
-        <p style="margin:0;color:#cbd5e1;font-size:15px;"><b style="color:#ffffff;">{who}</b> &lt;{mail}&gt;</p>
+        <h1 class="titre" style="margin:0 0 8px;font-size:19px;color:#0f172a;font-weight:bold;">{titre}</h1>
+        <p style="margin:0;color:#334155;font-size:15px;"><b style="color:#0f172a;">{who}</b> &lt;{mail}&gt;</p>
         {extra}
       </div>
-      <p style="margin:18px 0 0;color:#94a3b8;font-size:13.5px;line-height:1.7;">{note}</p>
-      <p style="margin:14px 0 0;color:#64748b;font-size:12.5px;line-height:1.6;">
+      <p style="margin:18px 0 0;color:#5b6a82;font-size:13.5px;line-height:1.7;">{note}</p>
+      <p style="margin:14px 0 0;color:#6b7688;font-size:12.5px;line-height:1.6;">
         Le détail complet — montant, dates, historique des paiements — est dans le tableau de bord administrateur, section Facturation.
       </p>
     </td></tr>"""
@@ -302,15 +317,15 @@ def reset_email_html(nom: str, link: str) -> str:
     """Email de réinitialisation du mot de passe."""
     salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
-      <h1 class="titre" style="color:#ffffff;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Réinitialise ton mot de passe</h1>
-      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
-      <p style="color:#94a3b8;font-size:14.5px;line-height:1.65;margin:0 0 24px;">
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Réinitialise ton mot de passe</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 24px;">
         Tu as demandé à changer ton mot de passe. Le bouton ci-dessous t'emmène sur la page où en définir un nouveau.
-        Ce lien expire dans <strong style="color:#cbd5e1;">une heure</strong>.
+        Ce lien expire dans <strong style="color:#334155;">une heure</strong>.
       </p>
       {_bouton(link, "Choisir un nouveau mot de passe")}
       {_lien_secours(link)}
-      <p style="color:#64748b;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
         Tu n'es pas à l'origine de cette demande&nbsp;? Ignore cet email : ton mot de passe reste inchangé, et personne d'autre ne peut utiliser ce lien.
       </p>
     </td></tr>"""
@@ -328,15 +343,15 @@ def facture_html(nom: str, montant: float, devise: str, libelle: str,
     num = f" n°{_html.escape(numero)}" if numero else ""
     sujet = f"Ta facture Postorico{num} — {montant_txt} {devise_sym}"
     bouton = _bouton(url, "Voir ma facture") if url else ""
-    lien_pdf = (f"""<p style="margin:0 0 22px;"><a href="{pdf}" target="_blank" style="color:#8A6CFF;font-size:13px;">Télécharger le PDF</a></p>"""
+    lien_pdf = (f"""<p style="margin:0 0 22px;"><a href="{pdf}" target="_blank" style="color:#6d4fe0;font-size:13px;">Télécharger le PDF</a></p>"""
                 if pdf else "")
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
-      <h1 class="titre" style="color:#ffffff;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Paiement bien reçu</h1>
-      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 22px;">{salutation}</p>
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Paiement bien reçu</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 22px;">{salutation}</p>
       {_encadre(f"Facture{num}", _html.escape(libelle), f"{montant_txt} {devise_sym}")}
       {bouton}
       {lien_pdf}
-      <p style="color:#64748b;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
         Toutes tes factures sont dans Paramètres → Abonnement.
       </p>
       {_signature()}
@@ -352,20 +367,20 @@ def account_disconnected_html(nom: str, reseau: str, link: str) -> str:
     salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
     reseau_cap = _html.escape((reseau or "").capitalize())
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
-      <h1 class="titre" style="color:#ffffff;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Ton compte {reseau_cap} s'est déconnecté</h1>
-      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
-      <p style="color:#94a3b8;font-size:14.5px;line-height:1.65;margin:0 0 18px;">
-        La connexion entre Postorico et ton compte <strong style="color:#cbd5e1;">{reseau_cap}</strong> a expiré.
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Ton compte {reseau_cap} s'est déconnecté</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 18px;">
+        La connexion entre Postorico et ton compte <strong style="color:#334155;">{reseau_cap}</strong> a expiré.
         Les réseaux invalident cet accès de temps en temps, ce n'est pas un problème de ton côté.
       </p>
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:rgba(245,158,11,0.09);border:1px solid rgba(245,158,11,0.3);border-radius:10px;margin:0 0 24px;">
-        <tr><td style="padding:14px 18px;color:#fcd34d;font-size:13.5px;line-height:1.6;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#fff8ec;border:1px solid #f6d9a6;border-radius:10px;margin:0 0 24px;">
+        <tr><td style="padding:14px 18px;color:#8a5a00;font-size:13.5px;line-height:1.6;">
           Tes publications prévues sur {reseau_cap} sont <strong>en pause</strong> tant que le compte n'est pas reconnecté.
         </td></tr>
       </table>
       {_bouton(link, "Reconnecter mon compte")}
       {_lien_secours(link)}
-      <p style="color:#64748b;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
         La reconnexion prend trente secondes : tu cliques, tu autorises, et les publications en attente repartent toutes seules.
       </p>
     </td></tr>"""
@@ -379,14 +394,14 @@ def audit_notification_html(marque: str, email: str, recap: str, admin_url: str)
     email_txt = _html.escape(email or "—")
     recap_html = _nl2br(recap)
     inner = f"""<tr><td class="marge" style="padding:12px 32px 26px;">
-      <span style="display:inline-block;background:rgba(58,255,163,0.12);color:#3AFFA3;font-size:11px;font-weight:bold;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:99px;">Nouveau lead</span>
-      <h1 class="titre" style="color:#ffffff;font-size:20px;font-weight:bold;margin:14px 0 6px;">Nouvel audit de marque reçu</h1>
-      <p style="color:#94a3b8;font-size:14px;line-height:1.7;margin:0 0 20px;">
-        <strong style="color:#e2e8f0;">Marque :</strong> {marque_txt}<br>
-        <strong style="color:#e2e8f0;">Email :</strong> <a href="mailto:{email_txt}" style="color:#8A6CFF;">{email_txt}</a>
+      <span style="display:inline-block;background:#e7faf1;color:#0b7a53;font-size:11px;font-weight:bold;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:99px;">Nouveau lead</span>
+      <h1 class="titre" style="color:#0f172a;font-size:20px;font-weight:bold;margin:14px 0 6px;">Nouvel audit de marque reçu</h1>
+      <p style="color:#5b6a82;font-size:14px;line-height:1.7;margin:0 0 20px;">
+        <strong style="color:#1f2937;">Marque :</strong> {marque_txt}<br>
+        <strong style="color:#1f2937;">Email :</strong> <a href="mailto:{email_txt}" style="color:#6d4fe0;">{email_txt}</a>
       </p>
       {_bouton(admin_url, "Ouvrir dans l'admin")}
-      <div style="background:#0b1120;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px 18px;color:#cbd5e1;font-size:12.5px;line-height:1.75;font-family:ui-monospace,Menlo,Consolas,monospace;">
+      <div style="background:#f7f8fc;border:1px solid #e6e9f2;border-radius:12px;padding:16px 18px;color:#334155;font-size:12.5px;line-height:1.75;font-family:ui-monospace,Menlo,Consolas,monospace;">
         {recap_html}
       </div>
     </td></tr>"""
@@ -407,8 +422,8 @@ def audit_reply_html(marque: str, message: str) -> str:
     # d'un vrai email, et c'est plus juste que n'importe quelle phrase posée.
     debut = re.sub(r"\s+", " ", (message or "")).strip()[:110]
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
-      <p style="color:#cbd5e1;font-size:15px;line-height:1.7;margin:0 0 16px;">{salutation}</p>
-      <div style="color:#e2e8f0;font-size:15px;line-height:1.75;">{body_html}</div>
+      <p style="color:#334155;font-size:15px;line-height:1.7;margin:0 0 16px;">{salutation}</p>
+      <div style="color:#1f2937;font-size:15px;line-height:1.75;">{body_html}</div>
       {_signature()}
     </td></tr>"""
     return _shell(inner, width=520, apercu=debut)
@@ -446,17 +461,17 @@ def rappel_prelevement_html(nom: str, montant: float, devise: str, date: str,
                     "l'abonnement prend le relais automatiquement.")
 
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
-      <h1 class="titre" style="color:#ffffff;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">{titre}</h1>
-      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
-      <p style="color:#94a3b8;font-size:14.5px;line-height:1.65;margin:0 0 22px;">{contexte}</p>
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">{titre}</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 22px;">{contexte}</p>
       {_encadre("Premier prélèvement", f"Le {jour}", f"{montant_txt} {devise_sym}")}
-      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 20px;">
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 20px;">
         Puis {montant_txt}&nbsp;{devise_sym} chaque mois, tant que tu restes. Tu peux arrêter
         quand tu veux&nbsp;: la résiliation prend effet à la fin de la période déjà payée,
         et tu gardes l'accès jusque-là.
       </p>
       {_bouton(lien, "Gérer mon abonnement")}
-      <p style="color:#64748b;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
         Si tu ne veux pas être prélevé, c'est le moment&nbsp;: résilie avant le {jour} et rien ne partira.
       </p>
       {_signature()}
@@ -476,13 +491,13 @@ def releve_affilie_html(nom: str, periode: str, montant: float, devise: str, nb:
     sujet = f"Ton relevé d'affiliation {mois} — {montant_txt} {devise_sym}"
     ventes = "1 vente commissionnée" if nb == 1 else f"{nb} ventes commissionnées"
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
-      <h1 class="titre" style="color:#ffffff;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Ton relevé du mois</h1>
-      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 22px;">{salutation}</p>
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Ton relevé du mois</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 22px;">{salutation}</p>
       {_encadre(f"Période {mois}", ventes, f"{montant_txt} {devise_sym}")}
-      <p style="color:#cbd5e1;font-size:14.5px;line-height:1.65;margin:0 0 20px;">
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 20px;">
         Envoie-nous ta facture de ce montant en réponse à cet email, et on lance le virement.
       </p>
-      <p style="color:#64748b;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;">
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
         Le détail de tes commissions est dans ton espace Affiliation. Merci de porter Postorico.
       </p>
       {_signature()}
