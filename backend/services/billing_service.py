@@ -814,24 +814,57 @@ RAISONS = {"prix", "temps", "resultats", "complexite", "fonctionnalite",
 PAUSE_MOIS_MAX = 3
 
 
-def _journal_depart(telegram_id: str, raison: str, commentaire: str = None,
-                    issue: str = "partie", detail: str = None, fin=None) -> None:
-    """Enregistre ce qu'on a appris de ce depart. Silencieux par construction.
+def ouvrir_parcours(telegram_id: str, raison: str, commentaire: str = None) -> dict:
+    """Enregistre la raison DES QU'ELLE EST DONNEE, avant toute decision.
 
-    On journalise AUSSI les parcours qui n'aboutissent pas — « retenue »,
-    « pause ». Quelqu'un qui entame la resiliation puis reste nous apprend
-    autant que celui qui part : c'est meme la seule facon de savoir si une
-    offre de retention sert a quelque chose.
+    C'est le coeur du dispositif, et il etait manquant. Le journal n'ecrivait
+    qu'au moment de la decision finale — resiliation, remise, pause. Quelqu'un
+    qui cochait « trop cher », ecrivait un commentaire, puis cliquait « Rester
+    actif » ne laissait AUCUNE trace : il venait pourtant de dire pourquoi il
+    avait voulu partir, et il est encore client, ce qui rend l'information
+    d'autant plus utile.
+
+    La ligne nait donc « entamee » et son issue est mise a jour ensuite. Le
+    compte des parcours entames devient exact du meme coup — il ne comptait
+    jusqu'ici que ceux qui avaient pris une offre, et flattait mecaniquement le
+    taux de retention.
+    """
+    if raison not in RAISONS:
+        raison = "autre"
+    try:
+        r = supabase.table("resiliations").insert({
+            "telegram_id": telegram_id, "raison": raison,
+            "commentaire": (commentaire or "").strip()[:2000] or None,
+            "issue": "entamee",
+        }).execute()
+        return {"ok": True, "id": (r.data or [{}])[0].get("id")}
+    except Exception as e:
+        logger.warning(f"ouverture du parcours ({telegram_id}) : {e}")
+        return {"ok": True, "id": None}   # jamais bloquant
+
+
+def _journal_depart(telegram_id: str, raison: str, commentaire: str = None,
+                    issue: str = "partie", detail: str = None, fin=None,
+                    parcours: str = None) -> None:
+    """Note l'issue du parcours : partie, retenue, pause.
+
+    Met a jour la ligne ouverte a l'ecran de la raison quand on en connait
+    l'identifiant ; en cree une sinon — un appel direct a l'API, ou un parcours
+    dont l'ouverture a echoue, ne doit pas disparaitre des statistiques.
 
     Une erreur ici ne doit jamais empecher la resiliation. Retenir quelqu'un
     parce qu'on n'a pas su ecrire la raison de son depart serait le comble.
     """
+    champs = {"issue": issue, "detail": detail, "fin_acces_le": fin}
     try:
+        if parcours:
+            supabase.table("resiliations").update(champs) \
+                .eq("id", parcours).eq("telegram_id", telegram_id).execute()
+            return
         supabase.table("resiliations").insert({
             "telegram_id": telegram_id, "raison": raison or "autre",
             "commentaire": (commentaire or "").strip()[:2000] or None,
-            "issue": issue, "detail": detail,
-            "fin_acces_le": fin,
+            **champs,
         }).execute()
     except Exception as e:
         logger.warning(f"journal de depart ({telegram_id}) : {e}")
@@ -855,7 +888,8 @@ def _abonnement_courant(telegram_id: str):
         return ligne, None
 
 
-def resilier(telegram_id: str, raison: str, commentaire: str = None) -> dict:
+def resilier(telegram_id: str, raison: str, commentaire: str = None,
+             parcours: str = None) -> dict:
     """Arrete le renouvellement. L'acces reste ouvert jusqu'au terme deja paye.
 
     On ne supprime rien et on ne coupe rien tout de suite : la periode a ete
@@ -886,12 +920,13 @@ def resilier(telegram_id: str, raison: str, commentaire: str = None) -> dict:
             logger.error(f"resiliation locale {telegram_id}: {e}")
             return {"ok": False, "error": "Résiliation impossible pour le moment."}
 
-    _journal_depart(telegram_id, raison, commentaire, issue="partie", fin=fin)
+    _journal_depart(telegram_id, raison, commentaire, issue="partie", fin=fin,
+                    parcours=parcours)
     return {"ok": True, "fin_acces_le": fin}
 
 
 def mettre_en_pause(telegram_id: str, mois: int, raison: str = None,
-                    commentaire: str = None) -> dict:
+                    commentaire: str = None, parcours: str = None) -> dict:
     """Suspend la facturation ET l'acces, pour un a trois mois.
 
     L'acces est suspendu : sans cela, la pause serait un abonnement gratuit et
@@ -929,8 +964,21 @@ def mettre_en_pause(telegram_id: str, mois: int, raison: str = None,
         return {"ok": False, "error": "Pause indisponible (configuration incomplète)."}
 
     _journal_depart(telegram_id, raison or "autre", commentaire,
-                    issue="pause", detail=f"{mois} mois", fin=reprise.isoformat())
+                    issue="pause", detail=f"{mois} mois", fin=reprise.isoformat(),
+                    parcours=parcours)
     return {"ok": True, "reprise_le": reprise.isoformat(), "mois": mois}
+
+
+def noter_retenue(telegram_id: str, parcours: str, detail: str = None) -> dict:
+    """Le parcours s'arrete parce que la personne RESTE, sans prendre d'offre.
+
+    Cas le plus frequent apres la remise, et le plus silencieux : elle ferme la
+    fenetre et continue. Sans cette note, sa raison resterait « entamee » pour
+    toujours et on la compterait comme indecise alors qu'elle est restee.
+    """
+    _journal_depart(telegram_id, None, None, issue="retenue", detail=detail,
+                    parcours=parcours)
+    return {"ok": True}
 
 
 def reprendre(telegram_id: str) -> dict:
@@ -1001,7 +1049,7 @@ def _coupon_retention():
 
 
 def accorder_remise(telegram_id: str, raison: str = "prix",
-                    commentaire: str = None) -> dict:
+                    commentaire: str = None, parcours: str = None) -> dict:
     """Applique la remise de retention a l'abonnement en cours.
 
     Elle est reellement posee chez Stripe : sans cela le client croirait avoir
@@ -1037,7 +1085,8 @@ def accorder_remise(telegram_id: str, raison: str = "prix",
         return {"ok": False, "error": "Remise impossible pour le moment."}
 
     _journal_depart(telegram_id, raison, commentaire, issue="retenue",
-                    detail=f"remise -{REMISE_PCT}% pendant {REMISE_MOIS} mois")
+                    detail=f"remise -{REMISE_PCT}% pendant {REMISE_MOIS} mois",
+                    parcours=parcours)
     return {"ok": True, "pourcent": REMISE_PCT, "mois": REMISE_MOIS}
 
 

@@ -73,10 +73,13 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
   // refuser au clic est pire que ne pas l'annoncer : on fait esperer quelqu'un
   // qui hesitait deja a partir.
   const [remiseDispo, setRemiseDispo] = useState(true);
+  // L'identifiant de la ligne ouverte a l'ecran du motif : les issues la
+  // mettent a jour au lieu d'en creer une seconde.
+  const [parcours, setParcours] = useState(null);
 
   useEffect(() => {
     if (!ouvert) return undefined;
-    setEcran(1); setRaison(null); setCommentaire(''); setFin(null);
+    setEcran(1); setRaison(null); setCommentaire(''); setFin(null); setParcours(null);
     const auClavier = (e) => { if (e.key === 'Escape') surFermeture(); };
     document.addEventListener('keydown', auClavier);
     return () => document.removeEventListener('keydown', auClavier);
@@ -96,7 +99,7 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
   const partir = async () => {
     setEnvoi(true);
     try {
-      const r = await billingService.resilier(raison || 'autre', commentaire);
+      const r = await billingService.resilier(raison || 'autre', commentaire, parcours);
       setFin(r.fin_acces_le || null);
       setEcran(5);
       surChangement?.();
@@ -110,7 +113,7 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
   const pause = async (mois) => {
     setEnvoi(true);
     try {
-      const r = await billingService.pause(mois, raison, commentaire);
+      const r = await billingService.pause(mois, raison, commentaire, parcours);
       toast.success(t('resil.pauseOk', { date: new Date(r.reprise_le).toLocaleDateString('fr-FR') }));
       surChangement?.();
       surFermeture();
@@ -126,10 +129,10 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
   // recevrait pas — et s'en apercevrait sur sa prochaine facture, au pire
   // moment : celui où il hésitait déjà à partir.
   const accepterOffre = async () => {
-    if (offre !== 'remise') { surFermeture(); return; }
+    if (offre !== 'remise') { resterEtNoter(`attend : ${offre}`); return; }
     setEnvoi(true);
     try {
-      const res = await billingService.remiseRetention(raison, commentaire);
+      const res = await billingService.remiseRetention(raison, commentaire, parcours);
       toast.success(t('resil.e3.remise.ok', { pct: res.pourcent, mois: res.mois }));
       surChangement?.();
       surFermeture();
@@ -142,13 +145,28 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
   // Après la raison : l'offre ciblée s'il y en a une, sinon la pause. Pendant
   // l'essai, ni l'une ni l'autre — on n'a rien encaissé, il n'y a rien à
   // sauver, et retenir quelqu'un qui n'a pas payé serait déplacé.
-  const apresRaison = () => {
+  const apresRaison = async () => {
+    // La raison part MAINTENANT, avant toute decision. Ce qui suit peut se
+    // terminer par un depart, une offre acceptee, ou une fermeture de fenetre —
+    // dans ce dernier cas, sans cet appel, tout serait perdu.
+    if (!parcours) {
+      try {
+        const o = await billingService.motifDepart(raison, commentaire);
+        setParcours(o?.id || null);
+      } catch { /* jamais bloquant : on ne retient personne pour un journal */ }
+    }
     if (enEssai) return partir();
     const offreDuMotif = OFFRES[raison];
     // « prix » sans remise disponible : on saute l'ecran d'offre plutot que de
     // montrer une porte fermee. Il reste la pause, qui a de la valeur.
     if (offreDuMotif === 'remise' && !remiseDispo) return setEcran(4);
     return setEcran(offreDuMotif ? 3 : 4);
+  };
+
+  /** Elle reste, sans prendre d'offre. On note l'issue et on ferme. */
+  const resterEtNoter = (detail) => {
+    if (parcours) billingService.parcoursRetenu(parcours, detail).catch(() => {});
+    surFermeture();
   };
 
   const offre = OFFRES[raison];
@@ -226,7 +244,19 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
                          text-slate-200 text-[13.5px] px-3.5 py-2.5 outline-none resize-none
                          focus:border-[#5B6CFF]/50 font-inter" />
             <div className="mt-5 flex flex-col sm:flex-row gap-3">
-              <Bouton variante="rester" onClick={surFermeture} data-testid="resil-rester-2">
+              <Bouton variante="rester" data-testid="resil-rester-2"
+                onClick={async () => {
+                  // Elle a coche un motif et peut-etre ecrit un commentaire :
+                  // fermer sans l'enregistrer perdrait justement ce qu'on
+                  // cherchait a savoir.
+                  if (raison) {
+                    try {
+                      const o = await billingService.motifDepart(raison, commentaire);
+                      if (o?.id) await billingService.parcoursRetenu(o.id, 'a renonce');
+                    } catch { /* jamais bloquant */ }
+                  }
+                  surFermeture();
+                }}>
                 {t('resil.e1.rester')}
               </Bouton>
               <Bouton onClick={apresRaison} disabled={!raison || envoi} data-testid="resil-continuer-2">

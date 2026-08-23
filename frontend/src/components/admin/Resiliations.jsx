@@ -27,6 +27,10 @@ const LIBELLES = {
 };
 
 const ISSUES = {
+  // « entamée » : la personne a donné sa raison puis fermé la fenêtre sans
+  // rien décider. Elle est toujours cliente — et c'est la ligne la plus utile
+  // du tableau, celle d'un client qui a failli partir et n'a rien dit d'autre.
+  entamee: ['Indécis', '#94a3b8'],
   partie: ['Parti', '#f87171'],
   retenue: ['Retenu', '#3AFFA3'],
   pause: ['En pause', '#8A6CFF'],

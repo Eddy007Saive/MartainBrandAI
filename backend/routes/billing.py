@@ -104,7 +104,8 @@ async def resilier(body: dict, payload: dict = Depends(verify_token)):
     """
     telegram_id = payload.get("telegram_id")
     res = billing_service.resilier(telegram_id, (body or {}).get("raison"),
-                                   (body or {}).get("commentaire"))
+                                   (body or {}).get("commentaire"),
+                                   (body or {}).get("parcours"))
     if not res.get("ok"):
         raise HTTPException(status_code=400, detail=res.get("error"))
     # Confirmation ecrite, avec la date de fin d'acces : sans elle, la question
@@ -122,6 +123,28 @@ async def resilier(body: dict, payload: dict = Depends(verify_token)):
     return res
 
 
+@router.post("/motif-depart")
+async def motif_depart(body: dict, payload: dict = Depends(verify_token)):
+    """Enregistre la raison des qu'elle est donnee, avant toute decision.
+
+    Appelee a la sortie de l'ecran du motif. Sans elle, quelqu'un qui dit
+    pourquoi il voulait partir puis choisit de rester ne laisse aucune trace —
+    alors que c'est le cas le plus interessant, puisqu'il est encore client.
+    """
+    res = billing_service.ouvrir_parcours(
+        payload.get("telegram_id"), (body or {}).get("raison"),
+        (body or {}).get("commentaire"))
+    return res
+
+
+@router.post("/parcours-retenu")
+async def parcours_retenu(body: dict, payload: dict = Depends(verify_token)):
+    """Le parcours s'arrete : la personne reste."""
+    return billing_service.noter_retenue(
+        payload.get("telegram_id"), (body or {}).get("parcours"),
+        (body or {}).get("detail"))
+
+
 @router.get("/remise-disponible")
 async def remise_disponible(payload: dict = Depends(verify_token)):
     """Pour n'afficher l'offre que si elle peut reellement etre honoree."""
@@ -134,7 +157,7 @@ async def remise_retention(body: dict = None, payload: dict = Depends(verify_tok
     """Applique la remise de retention. Une seule fois par compte."""
     res = billing_service.accorder_remise(
         payload.get("telegram_id"), (body or {}).get("raison") or "prix",
-        (body or {}).get("commentaire"))
+        (body or {}).get("commentaire"), (body or {}).get("parcours"))
     if not res.get("ok"):
         raise HTTPException(status_code=400, detail=res.get("error"))
     return res
@@ -145,7 +168,8 @@ async def pause(body: dict, payload: dict = Depends(verify_token)):
     """Suspend la facturation ET l'acces, un a trois mois, config conservee."""
     res = billing_service.mettre_en_pause(
         payload.get("telegram_id"), (body or {}).get("mois"),
-        (body or {}).get("raison"), (body or {}).get("commentaire"))
+        (body or {}).get("raison"), (body or {}).get("commentaire"),
+        (body or {}).get("parcours"))
     if not res.get("ok"):
         raise HTTPException(status_code=400, detail=res.get("error"))
     return res

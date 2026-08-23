@@ -13,14 +13,22 @@ export const billingService = {
   // La résiliation se fait CHEZ NOUS, plus dans le portail Stripe : le portail
   // emmène le client hors de l'application, où l'on ne peut ni lui demander
   // pourquoi il part, ni lui proposer autre chose.
-  resilier: (raison, commentaire) =>
-    api.post('/billing/resilier', { raison, commentaire }).then((r) => r.data),
-  pause: (mois, raison, commentaire) =>
-    api.post('/billing/pause', { mois, raison, commentaire }).then((r) => r.data),
+  resilier: (raison, commentaire, parcours) =>
+    api.post('/billing/resilier', { raison, commentaire, parcours }).then((r) => r.data),
+  pause: (mois, raison, commentaire, parcours) =>
+    api.post('/billing/pause', { mois, raison, commentaire, parcours }).then((r) => r.data),
   reprendre: () => api.post('/billing/reprendre').then((r) => r.data),
+  // La raison est enregistree DES QU'ELLE EST DONNEE, pas au moment de la
+  // decision : quelqu'un qui dit pourquoi il voulait partir puis reste est le
+  // cas le plus interessant, et c'etait le seul a ne laisser aucune trace.
+  motifDepart: (raison, commentaire) =>
+    api.post('/billing/motif-depart', { raison, commentaire }).then((r) => r.data),
+  parcoursRetenu: (parcours, detail) =>
+    api.post('/billing/parcours-retenu', { parcours, detail }).then((r) => r.data),
+
   remiseDisponible: () => api.get('/billing/remise-disponible').then((r) => r.data),
-  remiseRetention: (raison, commentaire) =>
-    api.post('/billing/remise-retention', { raison, commentaire }).then((r) => r.data),
+  remiseRetention: (raison, commentaire, parcours) =>
+    api.post('/billing/remise-retention', { raison, commentaire, parcours }).then((r) => r.data),
 
   portal: async () => {
     const { data } = await api.post('/billing/portal');
