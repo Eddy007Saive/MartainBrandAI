@@ -64,6 +64,16 @@ const Oeil = ({ visible, bascule, testid, libelle }) => (
   </button>
 );
 
+/** Le fuseau que déclare le navigateur, s'il en déclare un de crédible. */
+const fuseauDuNavigateur = () => {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return tz && tz.includes('/') ? tz : undefined;
+  } catch {
+    return undefined;   // navigateur ancien : le serveur gardera son défaut
+  }
+};
+
 export default function Register() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -131,6 +141,15 @@ export default function Register() {
         langue: (i18n.resolvedLanguage || 'fr').slice(0, 2),
         // Parrainage : code capté à l'arrivée sur le site, valable 30 jours
         ref: lireAffiliateRef() || undefined,
+        // Le fuseau du navigateur — « Europe/Madrid », « America/Bogota ».
+        //
+        // Il donne le PAYS, ce que la langue ne sait pas faire : un Espagnol
+        // et un Colombien écrivent tous deux « es » et n'ont ni la même
+        // monnaie ni la même heure. Il décide donc de la devise de
+        // facturation, et surtout de l'heure de publication : sans lui, un
+        // client colombien qui programme un post « à 9 h » le voyait partir à
+        // 9 h heure de Paris, soit 2 h du matin chez lui.
+        fuseau: fuseauDuNavigateur(),
       };
 
       const data = await authService.register(payload);

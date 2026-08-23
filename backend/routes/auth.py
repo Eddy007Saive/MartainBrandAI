@@ -47,7 +47,8 @@ async def register(user_data: UserRegister, request: Request):
             email=user_data.email,
             username=user_data.username,
             password=user_data.password,
-            langue=user_data.langue
+            langue=user_data.langue,
+            fuseau=user_data.fuseau,
         )
 
         if "error" in result:

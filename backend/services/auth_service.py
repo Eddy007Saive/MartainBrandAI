@@ -29,7 +29,8 @@ def sanitize_user(user: dict) -> dict:
     return user
 
 
-def register_user(nom: str, email: str, username: str, password: str, master_id: str = None, langue: str = None) -> dict:
+def register_user(nom: str, email: str, username: str, password: str, master_id: str = None,
+                  langue: str = None, fuseau: str = None) -> dict:
     # Email unique
     existing = supabase.table("users").select("email").eq("email", email).execute()
     if existing.data:
@@ -54,6 +55,16 @@ def register_user(nom: str, email: str, username: str, password: str, master_id:
         "langue": langue if langue in ("fr", "en", "es") else "fr",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
+    # Le fuseau du navigateur, quand il ressemble a un identifiant IANA.
+    #
+    # La colonne avait une valeur par defaut — « Europe/Paris » — que personne
+    # n'ecrasait jamais : les quinze comptes la portaient. Ce n'etait pas une
+    # information, c'etait une constante deguisee. Elle decide pourtant de
+    # l'heure de publication : un client colombien qui programme un post « a
+    # 9 h » le voyait partir a 9 h heure de Paris, soit 2 h du matin chez lui.
+    if fuseau and "/" in fuseau and len(fuseau) < 64:
+        new_user["timezone"] = fuseau
+
     # Sous-compte rattaché à un master (regroupement + switch). Facturation PAR
     # COMPTE : le sous-compte a son propre abonnement dans `subscriptions`.
     if master_id:
