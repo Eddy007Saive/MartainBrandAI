@@ -85,7 +85,12 @@ def ensure_subscription(telegram_id: str) -> None:
 
 def _message(action_type: str, reason: str, limit=None) -> str:
     label = LABELS.get(action_type, "générations")
-    if reason in ("no_subscription", "expired"):
+    if reason == "no_subscription":
+        # Ce compte n'a JAMAIS eu d'abonnement : il vient de s'inscrire en
+        # libre-service. Lui dire « ton essai est termine » est faux et
+        # decourageant — il n'a rien commence.
+        return "Ajoute ta carte pour lancer tes 14 jours d'essai."
+    if reason == "expired":
         return "Ton essai est terminé. Passe à l'offre Pro pour continuer."
     if reason == "not_in_plan":
         return f"Les {label} sont inclus dans l'offre Pro."

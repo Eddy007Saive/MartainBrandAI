@@ -175,7 +175,12 @@ async def create(body: dict, payload: dict = Depends(verify_token)):
 
     q = quota_service.consume(telegram_id, "video")
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        # Meme refus que les generations de l'agent : l'interface a besoin de
+        # la raison pour choisir entre le mur de paiement et un simple message.
+        raise HTTPException(status_code=402, detail={
+            "raison": q.get("reason") or "quota",
+            "message": q.get("message") or "Génération indisponible.",
+        })
 
     title = (body.get("titre") or "Vidéo")[:120]
     targets = _targets(body) or ["Instagram"]

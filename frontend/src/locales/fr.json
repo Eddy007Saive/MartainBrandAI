@@ -885,7 +885,9 @@
       "feats4": "Notifications push",
       "forfaitActuel": "Ton forfait actuel",
       "passerPro": "Passer Pro",
-      "stripe": "Paiement sécurisé par Stripe · annulable à tout moment."
+      "stripe": "Paiement sécurisé par Stripe · annulable à tout moment.",
+      "offreLibre": "Offre libre",
+      "premierPrelevement": "Premier prélèvement le {{date}}"
     },
     "style": {
       "palette": "Palette de marque",
@@ -2448,5 +2450,16 @@
     "accueil": "Retour à l'accueil",
     "tarifs": "Voir les tarifs",
     "aide": "Une question ? La FAQ répond en 13 points"
+  },
+  "mur": {
+    "surTitre": "Dernière étape",
+    "fermer": "Fermer",
+    "titre": "Démarre ton essai gratuit de 14 jours",
+    "texte": "Tu as vu ce que le studio propose. Pour lancer ta première génération, il ne manque que ta carte.",
+    "g1": "14 jours gratuits — aucun paiement pendant l'essai.",
+    "g2": "Le premier prélèvement a lieu le 15e jour, pas avant.",
+    "g3": "Résiliable à tout moment, en un clic depuis Paramètres.",
+    "cta": "Démarrer mes 14 jours",
+    "stripe": "Paiement sécurisé par Stripe. Nous ne voyons jamais votre numéro de carte."
   }
 }

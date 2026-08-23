@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
 import { openTawk, identifyTawk, hideTawk, resetTawk } from '../lib/tawk';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, Handshake, Lock, ShieldCheck } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, Handshake, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { UserProvider, useUser } from '../context/UserContext';
-import { AbonnementProvider, useAbonnement } from '../context/AbonnementContext';
-import CarteActivation from '../components/CarteActivation';
+import { AbonnementProvider } from '../context/AbonnementContext';
+import MurPaiement from '../components/MurPaiement';
 import { userService } from '../services/userService';
 import { removeToken, isAdminAuthenticated, memoriserEspace } from '../lib/auth';
 import { cn } from '../lib/utils';
@@ -18,18 +18,13 @@ import AccountSwitcher from '../components/AccountSwitcher';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 import { getVision, exitVision } from '../lib/vision';
 
-// Sans abonnement, deux listes distinctes.
+// Le tableau de bord reste OUVERT a un compte sans abonnement : il s'inscrit
+// sans carte, explore, regarde la video. Le mur ne tombe qu'au premier clic
+// sur « generer » — c'est `MurPaiement`, monte plus bas, qui s'en charge.
 //
-// Les LIENS qui restent cliquables : l'accueil, qui porte l'ecran
-// d'activation, et les parametres, ou vivent la facturation et le profil de
-// marque. Tout le reste est grise — le laisser cliquable menerait a une page
-// qui appelle un serveur qui refusera.
-const NAV_OUVERTE = ['/dashboard', '/dashboard/parametres'];
-// Les PAGES qui s'affichent encore. L'accueil n'en fait pas partie : des
-// compteurs a zero et des graphiques vides n'apprennent rien a personne, on y
-// montre l'ecran d'activation a la place.
-const CONTENU_OUVERT = ['/dashboard/parametres'];
-
+// Une version precedente grisait toute la navigation et remplacait chaque page
+// par un ecran d'activation. C'etait le parcours inverse : on demandait la
+// carte avant d'avoir rien montre.
 const navItems = [
   { path: '/dashboard', label: 'nav.home', icon: Home },
   { path: '/dashboard/studio', label: 'nav.studio', icon: Sparkles },
@@ -116,25 +111,6 @@ function SettingsNav({ onNavigate }) {
 function NavItem({ item, onClick }) {
   const { t } = useTranslation();
   const Icon = item.icon;
-  const { sansAbonnement } = useAbonnement();
-  const verrouille = sansAbonnement && !NAV_OUVERTE.includes(item.path);
-
-  // Un lien verrouille n'est pas un lien : il ne navigue pas, ne se met pas au
-  // survol et s'annonce comme desactive. Le laisser cliquable menerait a une
-  // page qui affiche une erreur — on prefere l'expliquer avant le clic.
-  if (verrouille) {
-    return (
-      <span aria-disabled="true" title={t('quota.verrou')}
-        data-testid={`nav-${item.label.split('.').pop()}-verrouille`}
-        className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                   font-inter text-slate-600 cursor-not-allowed select-none">
-        <Icon className="w-[18px] h-[18px] text-slate-700" />
-        <span className="flex-1">{t(item.label)}</span>
-        <Lock className="w-3.5 h-3.5 text-slate-700" />
-      </span>
-    );
-  }
-
   return (
     <NavLink
       to={item.path}
@@ -208,11 +184,6 @@ function DashboardContent() {
   const [showDl, setShowDl] = useState(!downloadHidden());
 
   const isHome = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
-  // Le meme verrou que dans la navigation, applique au contenu : sans lui, il
-  // suffirait de taper l'adresse pour retrouver une page qui ne repond a rien.
-  const { sansAbonnement } = useAbonnement();
-  const gele = sansAbonnement
-    && !CONTENU_OUVERT.some((p) => location.pathname.startsWith(p));
   const inSettings = location.pathname.startsWith('/dashboard/parametres');
   const goBack = () => { if (window.history.length > 1) navigate(-1); else navigate('/dashboard'); };
 
@@ -398,6 +369,11 @@ function DashboardContent() {
         </div>
       )}
 
+      {/* Le mur de paiement : une seule instance pour tout le tableau de bord.
+          Il ecoute l'evenement emis par l'intercepteur reseau, donc il couvre
+          les neuf points de generation sans qu'aucune page ait a le savoir. */}
+      <MurPaiement />
+
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative z-10 pt-16 md:pt-0">
         <div className="p-5 md:p-8 w-full min-h-full">
@@ -417,7 +393,7 @@ function DashboardContent() {
               </button>
             </div>
           )}
-          {gele ? <CarteActivation /> : <Outlet />}
+          <Outlet />
         </div>
       </main>
     </div>

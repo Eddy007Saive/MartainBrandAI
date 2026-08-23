@@ -47,11 +47,35 @@ api.interceptors.response.use(
       logout();  // session expirée -> efface localStorage + stockage natif (Preferences)
       window.location.href = '/login';
     } else if (error.response?.status === 402) {
-      // Crédits épuisés -> paywall : toast actionnable vers l'abonnement
-      toast.error(error.response?.data?.detail || 'Crédits épuisés.', {
-        action: { label: 'Passer Pro', onClick: () => { window.location.href = '/dashboard/parametres'; } },
-        duration: 8000,
-      });
+      // Le serveur refuse une génération. Deux refus très différents vivent
+      // derrière ce même code, et les confondre serait grossier :
+      //
+      //   no_subscription -> ce compte n'a jamais donné sa carte. C'est le
+      //     moment du parcours en libre-service : il vient de cliquer sur
+      //     « générer », il a compris ce que le produit fait, et c'est là
+      //     qu'on lui demande sa carte. Un toast serait une porte fermée ;
+      //     on ouvre le mur, qui explique et propose.
+      //
+      //   quota / not_in_plan -> il est bien client, il a simplement épuisé
+      //     ses résultats du mois. Un toast suffit, l'interrompre plein écran
+      //     serait vexant.
+      //
+      // Le détail arrive en objet { raison, message } depuis les points de
+      // génération. On le ramène ensuite à sa chaîne : tout le code appelant
+      // qui lit `detail` continue de fonctionner sans être touché.
+      const brut = error.response?.data?.detail;
+      const raison = typeof brut === 'object' ? brut?.raison : null;
+      const message = (typeof brut === 'object' ? brut?.message : brut) || 'Génération indisponible.';
+      if (error.response?.data) error.response.data.detail = message;
+
+      if (raison === 'no_subscription' || raison === 'expired') {
+        window.dispatchEvent(new CustomEvent('postorico:mur-paiement', { detail: { message } }));
+      } else {
+        toast.error(message, {
+          action: { label: 'Voir mon offre', onClick: () => { window.location.href = '/dashboard/parametres?s=abonnement'; } },
+          duration: 8000,
+        });
+      }
       error.__handled = true;  // évite le double-toast côté composant
     }
     return Promise.reject(error);

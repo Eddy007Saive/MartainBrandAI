@@ -28,6 +28,7 @@ import { COMMON_TIMEZONES } from '../lib/tz';
 import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
 import { billingService } from '../services/billingService';
+import { useAbonnement } from '../context/AbonnementContext';
 import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
 import { contenuService } from '../services/contenuService';
@@ -142,6 +143,8 @@ export default function ParametresPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, setUser, refetchUser } = useUser();
+  // L'abonnement reel (Stripe), pas la colonne `plan` qui n'existe plus.
+  const { usage } = useAbonnement();
   const [saving, setSaving] = useState(false);
   // Section active pilotée par l'URL (?s=) -> synchronisée avec la sous-nav du sidebar (DashboardLayout)
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1560,7 +1563,18 @@ export default function ParametresPage() {
   };
 
   const renderAbonnement = () => {
-    const isPro = (user?.plan || 'gratuit') === 'pro';
+    // L'etat d'abonnement se lit dans le contexte, pas sur `user`.
+    //
+    // Il testait `user.plan === 'pro'` — or cette colonne a ete supprimee de
+    // `users` au passage aux quotas. Elle valait donc toujours undefined, donc
+    // isPro toujours faux, donc le bouton « Gerer mon abonnement » — le seul
+    // chemin vers la resiliation — n'etait JAMAIS affiche a personne. Pas plus
+    // que la date de renouvellement.
+    const abo = usage?.subscription || null;
+    const abonne = ['active', 'trialing', 'past_due'].includes(abo?.status);
+    const enEssai = abo?.status === 'trialing';
+    const isPro = abonne;
+    const echeance = abo?.current_period_end ? new Date(abo.current_period_end) : null;
     return (
       <div className="space-y-5">
         {/* Jauge des résultats inclus (déplacée depuis l'Accueil) */}
@@ -1573,13 +1587,17 @@ export default function ParametresPage() {
           </div>
           <div className="min-w-0">
             <div className="font-sora font-bold text-white text-[15px] flex items-center gap-2">
-              {isPro ? t('params.abonnement.offrePro') : t('params.abonnement.offreEssai')}
+              {enEssai ? t('params.abonnement.offreEssai') : isPro ? t('params.abonnement.offrePro') : t('params.abonnement.offreLibre')}
               {isPro && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#3AFFA3]/12 text-[#3AFFA3] border border-[#3AFFA3]/25">{t('params.abonnement.actif')}</span>}
             </div>
-            {isPro && user?.plan_cancel_at ? (
-              <div className="text-xs text-amber-400 mt-1 font-inter">{t('params.abonnement.resilieJusquau', { date: new Date(user.plan_cancel_at).toLocaleDateString('fr-FR') })}</div>
-            ) : isPro && user?.plan_renews_at ? (
-              <div className="text-xs text-slate-400 mt-1 font-inter">{t('params.abonnement.renouvellement', { date: new Date(user.plan_renews_at).toLocaleDateString('fr-FR') })}</div>
+            {echeance && enEssai ? (
+              <div className="text-xs text-[#3AFFA3] mt-1 font-inter">
+                {t('params.abonnement.premierPrelevement', { date: echeance.toLocaleDateString('fr-FR') })}
+              </div>
+            ) : echeance && isPro ? (
+              <div className="text-xs text-slate-400 mt-1 font-inter">
+                {t('params.abonnement.renouvellement', { date: echeance.toLocaleDateString('fr-FR') })}
+              </div>
             ) : null}
           </div>
           {isPro && (
@@ -1590,10 +1608,10 @@ export default function ParametresPage() {
         </div>
 
         {/* Résiliation programmée : le client doit savoir ce qui l'attend à l'échéance */}
-        {isPro && user?.plan_cancel_at && (
+        {false && (
           <div className="p-4 rounded-2xl border border-amber-500/25 bg-amber-500/[0.07]">
             <div className="font-sora font-semibold text-amber-300 text-[13.5px]">
-              {t('params.abonnement.cePassera', { date: new Date(user.plan_cancel_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) })}
+              {t('params.abonnement.cePassera', { date: '' })}
             </div>
             <ul className="mt-2 space-y-1.5 text-[12.5px] text-slate-300 font-inter">
               <li className="flex items-start gap-2"><X className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" /><span><Trans i18nKey="params.abonnement.resil1" components={{ b: <b className="text-amber-200" /> }} /></span></li>

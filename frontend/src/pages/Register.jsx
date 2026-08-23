@@ -8,7 +8,6 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { authService } from '../services/authService';
-import { billingService } from '../services/billingService';
 import { setToken } from '../lib/auth';
 import { track } from '../lib/analytics';
 import LangSwitcher from '../components/LangSwitcher';
@@ -156,15 +155,10 @@ export default function Register() {
       setToken(data.token);   // authService a deja verifie qu'il y en a un
       track('inscription');
 
-      // La carte AVANT le produit. Le compte existe deja et le jeton est pose :
-      // si Stripe echoue ou si la personne referme la page, elle retrouve son
-      // compte — le tableau de bord lui redemandera sa carte.
-      try {
-        await billingService.checkout('pro', true);   // redirige vers Stripe
-        return;                                       // on ne va pas plus loin
-      } catch {
-        toast.error(t('register.paiementIndisponible'));
-      }
+      // Aucune carte demandée ici. En libre-service, on s'inscrit, on entre,
+      // on explore — et le mur de paiement ne tombe qu'au premier clic sur
+      // « générer ». Réclamer la carte dès l'inscription revient à faire payer
+      // avant d'avoir montré quoi que ce soit.
       toast.success(t('register.toastWelcome'));
       navigate('/dashboard');
     } catch (error) {

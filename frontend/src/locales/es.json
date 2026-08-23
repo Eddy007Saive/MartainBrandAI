@@ -885,7 +885,9 @@
       "feats4": "Notificaciones push",
       "forfaitActuel": "Tu plan actual",
       "passerPro": "Pasar a Pro",
-      "stripe": "Pago seguro con Stripe · cancelable en cualquier momento."
+      "stripe": "Pago seguro con Stripe · cancelable en cualquier momento.",
+      "offreLibre": "Acceso libre",
+      "premierPrelevement": "Primer cobro el {{date}}"
     },
     "style": {
       "palette": "Paleta de marca",
@@ -2448,5 +2450,16 @@
     "accueil": "Volver al inicio",
     "tarifs": "Ver precios",
     "aide": "¿Alguna duda? Las FAQ responden a 13"
+  },
+  "mur": {
+    "surTitre": "Último paso",
+    "fermer": "Cerrar",
+    "titre": "Empieza tu prueba gratuita de 14 días",
+    "texte": "Ya has visto lo que hace el estudio. Para lanzar tu primera generación solo falta tu tarjeta.",
+    "g1": "14 días gratis: no se cobra nada durante la prueba.",
+    "g2": "El primer cobro se hace el día 15, no antes.",
+    "g3": "Cancelable cuando quieras, con un clic desde Ajustes.",
+    "cta": "Empezar mis 14 días",
+    "stripe": "Pago seguro con Stripe. Nunca vemos tu número de tarjeta."
   }
 }

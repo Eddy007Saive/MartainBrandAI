@@ -885,7 +885,9 @@
       "feats4": "Push notifications",
       "forfaitActuel": "Your current plan",
       "passerPro": "Go Pro",
-      "stripe": "Secure payment via Stripe · cancel anytime."
+      "stripe": "Secure payment via Stripe · cancel anytime.",
+      "offreLibre": "Free access",
+      "premierPrelevement": "First payment on {{date}}"
     },
     "style": {
       "palette": "Brand palette",
@@ -2448,5 +2450,16 @@
     "accueil": "Back to home",
     "tarifs": "See pricing",
     "aide": "A question? The FAQ answers 13 of them"
+  },
+  "mur": {
+    "surTitre": "Last step",
+    "fermer": "Close",
+    "titre": "Start your free 14-day trial",
+    "texte": "You've seen what the studio can do. All that's left to run your first generation is your card.",
+    "g1": "14 days free — nothing is charged during the trial.",
+    "g2": "The first payment happens on day 15, not before.",
+    "g3": "Cancel any time, in one click from Settings.",
+    "cta": "Start my 14 days",
+    "stripe": "Secure payment by Stripe. We never see your card number."
   }
 }

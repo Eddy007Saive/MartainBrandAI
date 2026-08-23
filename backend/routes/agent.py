@@ -9,6 +9,24 @@ from config import supabase, logger, CLAUDE_MODEL, OPENROUTER_IMAGE_MODEL
 
 router = APIRouter(prefix="/agent", tags=["agent"])
 
+
+def _refus(q: dict) -> HTTPException:
+    """Le refus d'une generation, avec sa RAISON lisible par l'interface.
+
+    Les neuf points de generation renvoyaient deja 402, mais un simple texte :
+    l'interface ne pouvait pas distinguer « ce compte n'a jamais donne sa
+    carte » de « ce compte a epuise ses posts du mois ». Le premier appelle un
+    mur de paiement, le second un message et rien d'autre.
+
+    Le message reste dans `message` : tout le code existant qui lit
+    `detail.message` — ou que l'intercepteur ramene a une chaine — continue de
+    fonctionner sans changement.
+    """
+    return HTTPException(status_code=402, detail={
+        "raison": q.get("reason") or "quota",
+        "message": q.get("message") or "Génération indisponible.",
+    })
+
 # Le réseau côté front est en minuscule ; l'enum brouillons.reseau_cible est capitalisé
 RESEAU_MAP = {
     "linkedin": "LinkedIn", "instagram": "Instagram",
@@ -61,7 +79,7 @@ async def sujets(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="Invalid token")
     q = quota_service.consume(telegram_id, "subject")
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        raise _refus(q)
     try:
         result = agent_service.generer_sujets(telegram_id, int(body.get("nombre", 6)))
     except Exception as e:
@@ -370,7 +388,7 @@ async def gabarit_auto(body: dict, payload: dict = Depends(verify_token)):
     # Le gabarit produit un visuel via l'IA (composition du texte) -> décompté comme 1 image standard.
     q = quota_service.consume(telegram_id, "image_standard")
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        raise _refus(q)
     try:
         comp = agent_service.composer_gabarit(telegram_id, gabarit, texte)
         if comp.get("error"):
@@ -462,7 +480,7 @@ async def rediger(body: dict, payload: dict = Depends(verify_token)):
     qualite = body.get("qualite", "equilibre")
     q = quota_service.consume(telegram_id, "post")
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        raise _refus(q)
     try:
         result = agent_service.rediger_post(telegram_id, sujet, body.get("reseau", "linkedin"),
                                             agent_service.QUALITE_MODELS.get(qualite))
@@ -499,7 +517,7 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
     reseau = (reseau or "linkedin").lower()
     q = quota_service.consume(telegram_id, "post")
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        raise _refus(q)
     try:
         r = agent_service.rediger_depuis_photo(
             telegram_id, base64.b64encode(data).decode(), file.content_type,
@@ -555,7 +573,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
                      for sch in plan_service._schedules(telegram_id) if sch.get("platform") == reseau), "bold")
     q = quota_service.consume(telegram_id, "carousel")
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        raise _refus(q)
     try:
         result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.QUALITE_MODELS.get(qualite))
     except Exception as e:
@@ -621,7 +639,7 @@ async def script(body: dict, payload: dict = Depends(verify_token)):
     qualite = body.get("qualite", "equilibre")
     q = quota_service.consume(telegram_id, "post")  # script vidéo compte comme un post
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        raise _refus(q)
     try:
         result = agent_service.rediger_script(telegram_id, sujet, body.get("type_video", "Reel"),
                                               agent_service.QUALITE_MODELS.get(qualite))
@@ -764,7 +782,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     action_type = quota_service.image_action(modele)  # nano2 -> image_standard, nano3 -> image_pro
     q = quota_service.consume(telegram_id, action_type)
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        raise _refus(q)
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
     # Story -> visuel vertical 9:16 (sinon 4:5 feed)
@@ -850,7 +868,7 @@ async def generate_photo(body: dict, payload: dict = Depends(verify_token)):
     action_type = quota_service.image_action(modele)
     q = quota_service.consume(telegram_id, action_type)
     if not q.get("ok"):
-        raise HTTPException(status_code=402, detail=q.get("message"))
+        raise _refus(q)
     try:
         res = await image_service.generer_image(telegram_id, description, False, model_id, None)
     except Exception as e:
