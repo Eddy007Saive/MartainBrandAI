@@ -69,6 +69,10 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
   const [commentaire, setCommentaire] = useState('');
   const [envoi, setEnvoi] = useState(false);
   const [fin, setFin] = useState(null);
+  // Une remise deja consommee ne doit pas etre proposee. L'annoncer puis la
+  // refuser au clic est pire que ne pas l'annoncer : on fait esperer quelqu'un
+  // qui hesitait deja a partir.
+  const [remiseDispo, setRemiseDispo] = useState(true);
 
   useEffect(() => {
     if (!ouvert) return undefined;
@@ -77,6 +81,15 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
     document.addEventListener('keydown', auClavier);
     return () => document.removeEventListener('keydown', auClavier);
   }, [ouvert, surFermeture]);
+
+  // On interroge au moment ou l'on entre dans le parcours, pas au montage :
+  // le dialogue vit dans la page des reglages et n'est ouvert qu'a la demande.
+  useEffect(() => {
+    if (!ouvert || enEssai) return;
+    billingService.remiseDisponible()
+      .then((r) => setRemiseDispo(!!r.disponible))
+      .catch(() => setRemiseDispo(false));   // dans le doute, on ne promet rien
+  }, [ouvert, enEssai]);
 
   if (!ouvert) return null;
 
@@ -108,12 +121,34 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
     }
   };
 
+  // La remise est RÉELLEMENT appliquée chez Stripe, et une seule fois par
+  // compte. Sans cela, le client croirait avoir obtenu quelque chose qu'il ne
+  // recevrait pas — et s'en apercevrait sur sa prochaine facture, au pire
+  // moment : celui où il hésitait déjà à partir.
+  const accepterOffre = async () => {
+    if (offre !== 'remise') { surFermeture(); return; }
+    setEnvoi(true);
+    try {
+      const res = await billingService.remiseRetention(raison, commentaire);
+      toast.success(t('resil.e3.remise.ok', { pct: res.pourcent, mois: res.mois }));
+      surChangement?.();
+      surFermeture();
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || t('resil.erreur'));
+      setEnvoi(false);
+    }
+  };
+
   // Après la raison : l'offre ciblée s'il y en a une, sinon la pause. Pendant
   // l'essai, ni l'une ni l'autre — on n'a rien encaissé, il n'y a rien à
   // sauver, et retenir quelqu'un qui n'a pas payé serait déplacé.
   const apresRaison = () => {
     if (enEssai) return partir();
-    return setEcran(OFFRES[raison] ? 3 : 4);
+    const offreDuMotif = OFFRES[raison];
+    // « prix » sans remise disponible : on saute l'ecran d'offre plutot que de
+    // montrer une porte fermee. Il reste la pause, qui a de la valeur.
+    if (offreDuMotif === 'remise' && !remiseDispo) return setEcran(4);
+    return setEcran(offreDuMotif ? 3 : 4);
   };
 
   const offre = OFFRES[raison];
@@ -225,8 +260,10 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
                   <PhoneCall className="w-4 h-4" />{t('resil.e3.appel.cta')}
                 </a>
               ) : (
-                <Bouton variante="rester" onClick={surFermeture} data-testid="resil-offre-ok">
-                  <Check className="w-4 h-4" />{t(`resil.e3.${offre}.cta`)}
+                <Bouton variante="rester" onClick={accepterOffre} disabled={envoi}
+                  data-testid="resil-offre-ok">
+                  {envoi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  {t(`resil.e3.${offre}.cta`)}
                 </Bouton>
               )}
               <Bouton onClick={() => setEcran(4)} data-testid="resil-continuer-3">

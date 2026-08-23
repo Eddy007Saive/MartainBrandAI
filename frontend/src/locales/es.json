@@ -2496,7 +2496,8 @@
       "remise": {
         "titre": "¿Y si llegamos a un acuerdo?",
         "texte": "Podemos darte un 30 % de descuento durante tres meses, el tiempo de ver qué da a largo plazo.",
-        "cta": "Aprovechar −30 % y quedarme"
+        "cta": "Aprovechar −30 % y quedarme",
+        "ok": "Descuento del {{pct}} % aplicado durante {{mois}} meses."
       },
       "appel": {
         "titre": "Déjanos ayudarte antes de que te vayas.",

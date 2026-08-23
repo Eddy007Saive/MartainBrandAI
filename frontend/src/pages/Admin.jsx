@@ -5,7 +5,7 @@ import {
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
   Loader2, ChevronRight, ChevronLeft, ChevronDown, Clock, CheckCircle, XCircle, RefreshCw,
   Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
-  Plus, Minus, DollarSign, Wifi, Inbox, Copy, BarChart3, Handshake, Briefcase } from 'lucide-react';
+  Plus, Minus, DollarSign, Wifi, Inbox, Copy, BarChart3, Handshake, Briefcase, TrendingDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as ChartTooltip, CartesianGrid } from 'recharts';
 import { removeAdminToken, memoriserEspace } from '../lib/auth';
 import BlocFacturation from '../components/admin/BlocFacturation';
+import Resiliations from '../components/admin/Resiliations';
 import { cn } from '../lib/utils';
 import { adminService } from '../services/adminService';
 import CarrouselTemplateImport from '../components/CarrouselTemplateImport';
@@ -66,6 +67,7 @@ const navGroupes = [
       { id: 'facturation', label: 'Facturation', icon: FileText },
       { id: 'promos', label: 'Codes promo', icon: DollarSign },
       { id: 'affiliation', label: 'Affiliation', icon: Handshake },
+      { id: 'departs', label: 'Départs', icon: TrendingDown },
     ],
   },
 ];
@@ -1222,6 +1224,7 @@ export default function Admin() {
           {activeTab === 'promos' && <AdminPromos />}
           {activeTab === 'facturation' && <BillingTab />}
           {activeTab === 'affiliation' && <AffiliationTab />}
+          {activeTab === 'departs' && <Resiliations />}
 
           {/* Activity Tab */}
           {activeTab === 'activity' && (

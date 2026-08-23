@@ -42,6 +42,10 @@ export const adminService = {
   // Mode Vision : token utilisateur temporaire (1 h) pour voir l'app comme le client
   // Facturation : ce que Stripe sait de ce client (carte laissee au paiement
   // du Pack, abonnement en cours). Rien n'est recopie chez nous.
+  // Les departs et leurs raisons. Collectee puis illisible, la donnee
+  // n'aurait pas ete collectee.
+  resiliations: () => adminFetch('/admin/resiliations'),
+
   facturation: (telegramId) => adminFetch(`/admin/users/${telegramId}/facturation`),
   demarrerAbonnement: (telegramId) =>
     adminFetch(`/admin/users/${telegramId}/demarrer-abonnement`, { method: 'POST' }),

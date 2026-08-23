@@ -18,6 +18,9 @@ export const billingService = {
   pause: (mois, raison, commentaire) =>
     api.post('/billing/pause', { mois, raison, commentaire }).then((r) => r.data),
   reprendre: () => api.post('/billing/reprendre').then((r) => r.data),
+  remiseDisponible: () => api.get('/billing/remise-disponible').then((r) => r.data),
+  remiseRetention: (raison, commentaire) =>
+    api.post('/billing/remise-retention', { raison, commentaire }).then((r) => r.data),
 
   portal: async () => {
     const { data } = await api.post('/billing/portal');

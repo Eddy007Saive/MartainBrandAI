@@ -179,6 +179,44 @@ async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(v
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/resiliations")
+async def resiliations(payload: dict = Depends(verify_admin_token)):
+    """Les departs et leurs raisons, avec le compte par motif.
+
+    C'est la seule donnee que produit le moment ou quelqu'un s'en va. La
+    laisser en base sans moyen de la lire revient a ne pas l'avoir collectee.
+    """
+    try:
+        r = (supabase.table("resiliations")
+             .select("id, telegram_id, raison, commentaire, issue, detail, fin_acces_le, created_at")
+             .order("created_at", desc=True).limit(300).execute())
+        lignes = r.data or []
+    except Exception as e:
+        logger.error(f"lecture resiliations: {e}")
+        return {"lignes": [], "par_raison": {}, "total": 0, "retenus": 0}
+
+    # Le nom du compte, en une requete pour tout le lot.
+    ids = list({x["telegram_id"] for x in lignes if x.get("telegram_id")})
+    noms = {}
+    if ids:
+        try:
+            u = supabase.table("users").select("telegram_id, nom, email").in_("telegram_id", ids).execute()
+            noms = {x["telegram_id"]: x for x in (u.data or [])}
+        except Exception as e:
+            logger.warning(f"noms des resiliations: {e}")
+    for x in lignes:
+        c = noms.get(x.get("telegram_id")) or {}
+        x["nom"] = c.get("nom")
+        x["email"] = c.get("email")
+
+    par_raison = {}
+    for x in lignes:
+        par_raison[x["raison"]] = par_raison.get(x["raison"], 0) + 1
+    retenus = sum(1 for x in lignes if x.get("issue") in ("retenue", "pause"))
+    return {"lignes": lignes, "par_raison": par_raison,
+            "total": len(lignes), "retenus": retenus}
+
+
 @router.get("/users/{telegram_id}/facturation")
 async def facturation(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     """Carte enregistree et abonnement en cours, lus dans Stripe.

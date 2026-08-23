@@ -2496,7 +2496,8 @@
       "remise": {
         "titre": "Et si on trouvait un terrain d'entente ?",
         "texte": "On peut te faire 30 % de remise pendant trois mois, le temps que tu voies ce que ça donne sur la durée.",
-        "cta": "Profiter de −30 % et rester"
+        "cta": "Profiter de −30 % et rester",
+        "ok": "Remise de {{pct}} % appliquée pendant {{mois}} mois."
       },
       "appel": {
         "titre": "Laisse-nous t'aider avant que tu partes.",

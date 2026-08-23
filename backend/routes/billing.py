@@ -122,6 +122,24 @@ async def resilier(body: dict, payload: dict = Depends(verify_token)):
     return res
 
 
+@router.get("/remise-disponible")
+async def remise_disponible(payload: dict = Depends(verify_token)):
+    """Pour n'afficher l'offre que si elle peut reellement etre honoree."""
+    return {"disponible": not billing_service.remise_deja_accordee(payload.get("telegram_id")),
+            "pourcent": billing_service.REMISE_PCT, "mois": billing_service.REMISE_MOIS}
+
+
+@router.post("/remise-retention")
+async def remise_retention(body: dict = None, payload: dict = Depends(verify_token)):
+    """Applique la remise de retention. Une seule fois par compte."""
+    res = billing_service.accorder_remise(
+        payload.get("telegram_id"), (body or {}).get("raison") or "prix",
+        (body or {}).get("commentaire"))
+    if not res.get("ok"):
+        raise HTTPException(status_code=400, detail=res.get("error"))
+    return res
+
+
 @router.post("/pause")
 async def pause(body: dict, payload: dict = Depends(verify_token)):
     """Suspend la facturation ET l'acces, un a trois mois, config conservee."""

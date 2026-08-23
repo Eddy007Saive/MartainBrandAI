@@ -2496,7 +2496,8 @@
       "remise": {
         "titre": "What if we met halfway?",
         "texte": "We can give you 30% off for three months, long enough to see what it does over time.",
-        "cta": "Take −30% and stay"
+        "cta": "Take −30% and stay",
+        "ok": "{{pct}}% discount applied for {{mois}} months."
       },
       "appel": {
         "titre": "Let us help before you go.",
