@@ -835,7 +835,9 @@
       "erreurConnexion": "Erreur lors de la connexion",
       "serveurInjoignable": "Impossible de contacter le serveur",
       "erreurDeconnexion": "Erreur lors de la déconnexion",
-      "hintTwitter": "Publie des messages courts et réactifs. Idéal pour réagir à l'actualité de ton secteur."
+      "hintTwitter": "Publie des messages courts et réactifs. Idéal pour réagir à l'actualité de ton secteur.",
+      "essaiVerrouille": "Inclus au premier prélèvement",
+      "essaiUnSeul": "Pendant l'essai, un seul réseau à la fois. Les autres se débloquent dès le premier prélèvement."
     },
     "planif": {
       "intro": "Fréquence et jours de publication par réseau.",
@@ -887,7 +889,8 @@
       "passerPro": "Passer Pro",
       "stripe": "Paiement sécurisé par Stripe · annulable à tout moment.",
       "offreLibre": "Offre libre",
-      "premierPrelevement": "Premier prélèvement le {{date}}"
+      "premierPrelevement": "Premier prélèvement le {{date}}",
+      "resilier": "Résilier"
     },
     "style": {
       "palette": "Palette de marque",
@@ -2461,5 +2464,74 @@
     "g3": "Résiliable à tout moment, en un clic depuis Paramètres.",
     "cta": "Démarrer mes 14 jours",
     "stripe": "Paiement sécurisé par Stripe. Nous ne voyons jamais votre numéro de carte."
+  },
+  "resil": {
+    "fermer": "Fermer",
+    "retour": "Retour",
+    "erreur": "Opération impossible pour le moment.",
+    "pauseOk": "Compte en pause. Reprise le {{date}}.",
+    "e1": {
+      "titre": "Tu es sûr de vouloir mettre ta présence en ligne en pause ?",
+      "texte": "Si tu résilies : tes publications programmées s'arrêtent, ton contenu ne se crée plus, et ta fiche Google se fige. Tes concurrents, eux, continuent de publier.",
+      "rester": "Rester actif",
+      "continuer": "Continuer la résiliation"
+    },
+    "e2": {
+      "titre": "Avant de partir, dis-nous pourquoi. Ça nous aide vraiment à nous améliorer.",
+      "libre": "Envie de préciser ? (facultatif)",
+      "continuer": "Continuer",
+      "requis": "Choisis une raison pour continuer."
+    },
+    "raisons": {
+      "prix": "C'est trop cher",
+      "temps": "Je n'ai pas le temps de m'en servir",
+      "resultats": "Je n'ai pas obtenu les résultats espérés",
+      "complexite": "Le produit est trop compliqué",
+      "fonctionnalite": "Il me manque une fonctionnalité",
+      "concurrent": "Je passe à un concurrent",
+      "test": "C'était juste pour tester",
+      "autre": "Autre"
+    },
+    "e3": {
+      "remise": {
+        "titre": "Et si on trouvait un terrain d'entente ?",
+        "texte": "On peut te faire 30 % de remise pendant trois mois, le temps que tu voies ce que ça donne sur la durée.",
+        "cta": "Profiter de −30 % et rester"
+      },
+      "appel": {
+        "titre": "Laisse-nous t'aider avant que tu partes.",
+        "texte": "Souvent, un simple réglage change tout. Réserve vingt minutes avec un expert : on regarde ton compte ensemble, et on te dit franchement si le produit peut t'aider.",
+        "cta": "Réserver un appel"
+      },
+      "fonctionnalite": {
+        "titre": "Laquelle te manque ?",
+        "texte": "Dis-nous laquelle dans le champ précédent — elle est peut-être déjà en route. On te préviendra quand elle sortira.",
+        "cta": "Rester et attendre"
+      }
+    },
+    "e4": {
+      "titre": "Pas besoin de tout arrêter — mets ton compte en pause.",
+      "texte": "Suspends ton abonnement un, deux ou trois mois. On garde ta configuration, ton ton de marque et tes gabarits. Tu reviens quand tu veux, tout est prêt.",
+      "mois": "{{count}} mois",
+      "note": "Pendant la pause, rien n'est prélevé et l'accès est suspendu. Tes données restent intactes.",
+      "definitif": "Résilier définitivement"
+    },
+    "fin": {
+      "surTitre": "Résiliation enregistrée",
+      "titre": "C'est fait.",
+      "texte": "Ton accès reste actif jusqu'au {{date}}. Tu peux réactiver ton compte à tout moment — on garde tout au chaud. Merci d'avoir essayé Postorico.",
+      "texteSansDate": "Ton accès reste actif jusqu'à la fin de ta période en cours. Tu peux réactiver ton compte à tout moment. Merci d'avoir essayé Postorico.",
+      "cta": "Fermer"
+    }
+  },
+  "pause": {
+    "surTitre": "Compte en pause",
+    "titre": "Ton compte est en pause.",
+    "texte": "Rien n'est prélevé, et l'accès reprend le {{date}}. Tu n'as rien à faire d'ici là.",
+    "conserve": "Ta configuration, ton ton de marque, tes gabarits et tous tes contenus sont conservés — rien n'a été supprimé.",
+    "cta": "Reprendre maintenant",
+    "note": "La reprise est immédiate et la facturation redémarre à cette date.",
+    "repriseOk": "Compte réactivé, tout est revenu.",
+    "erreur": "Reprise impossible pour le moment."
   }
 }

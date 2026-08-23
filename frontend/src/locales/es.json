@@ -835,7 +835,9 @@
       "erreurConnexion": "Error al conectar",
       "serveurInjoignable": "No se puede contactar con el servidor",
       "erreurDeconnexion": "Error al desconectar",
-      "hintTwitter": "Publica mensajes cortos y reactivos. Ideal para reaccionar a la actualidad de tu sector."
+      "hintTwitter": "Publica mensajes cortos y reactivos. Ideal para reaccionar a la actualidad de tu sector.",
+      "essaiVerrouille": "Incluido en el primer cobro",
+      "essaiUnSeul": "Durante la prueba, una red a la vez. Las demás se desbloquean con el primer cobro."
     },
     "planif": {
       "intro": "Frecuencia y días de publicación por red.",
@@ -887,7 +889,8 @@
       "passerPro": "Pasar a Pro",
       "stripe": "Pago seguro con Stripe · cancelable en cualquier momento.",
       "offreLibre": "Acceso libre",
-      "premierPrelevement": "Primer cobro el {{date}}"
+      "premierPrelevement": "Primer cobro el {{date}}",
+      "resilier": "Cancelar"
     },
     "style": {
       "palette": "Paleta de marca",
@@ -2461,5 +2464,74 @@
     "g3": "Cancelable cuando quieras, con un clic desde Ajustes.",
     "cta": "Empezar mis 14 días",
     "stripe": "Pago seguro con Stripe. Nunca vemos tu número de tarjeta."
+  },
+  "resil": {
+    "fermer": "Cerrar",
+    "retour": "Volver",
+    "erreur": "Operación no disponible ahora mismo.",
+    "pauseOk": "Cuenta en pausa. Se reanuda el {{date}}.",
+    "e1": {
+      "titre": "¿Seguro que quieres poner tu presencia en línea en pausa?",
+      "texte": "Si cancelas: tus publicaciones programadas se detienen, tu contenido deja de crearse y tu ficha de Google se congela. Tus competidores siguen publicando.",
+      "rester": "Seguir activo",
+      "continuer": "Continuar la cancelación"
+    },
+    "e2": {
+      "titre": "Antes de irte, dinos por qué. Nos ayuda de verdad a mejorar.",
+      "libre": "¿Quieres precisar? (opcional)",
+      "continuer": "Continuar",
+      "requis": "Elige un motivo para continuar."
+    },
+    "raisons": {
+      "prix": "Es demasiado caro",
+      "temps": "No tengo tiempo de usarlo",
+      "resultats": "No obtuve los resultados esperados",
+      "complexite": "El producto es demasiado complicado",
+      "fonctionnalite": "Me falta una funcionalidad",
+      "concurrent": "Me paso a la competencia",
+      "test": "Solo era para probar",
+      "autre": "Otro"
+    },
+    "e3": {
+      "remise": {
+        "titre": "¿Y si llegamos a un acuerdo?",
+        "texte": "Podemos darte un 30 % de descuento durante tres meses, el tiempo de ver qué da a largo plazo.",
+        "cta": "Aprovechar −30 % y quedarme"
+      },
+      "appel": {
+        "titre": "Déjanos ayudarte antes de que te vayas.",
+        "texte": "A menudo un solo ajuste lo cambia todo. Reserva veinte minutos con un experto: miramos tu cuenta juntos y te decimos con franqueza si el producto puede ayudarte.",
+        "cta": "Reservar una llamada"
+      },
+      "fonctionnalite": {
+        "titre": "¿Cuál te falta?",
+        "texte": "Dínoslo en el campo anterior: quizá ya esté en camino. Te avisamos cuando salga.",
+        "cta": "Quedarme y esperar"
+      }
+    },
+    "e4": {
+      "titre": "No hace falta parar todo: pon tu cuenta en pausa.",
+      "texte": "Suspende tu suscripción uno, dos o tres meses. Guardamos tu configuración, tu tono de marca y tus plantillas. Vuelves cuando quieras, todo está listo.",
+      "mois": "{{count}} meses",
+      "note": "Durante la pausa no se cobra nada y el acceso queda suspendido. Tus datos siguen intactos.",
+      "definitif": "Cancelar definitivamente"
+    },
+    "fin": {
+      "surTitre": "Cancelación registrada",
+      "titre": "Hecho.",
+      "texte": "Tu acceso sigue activo hasta el {{date}}. Puedes reactivar cuando quieras: lo guardamos todo. Gracias por probar Postorico.",
+      "texteSansDate": "Tu acceso sigue activo hasta el final de tu periodo actual. Puedes reactivar cuando quieras. Gracias por probar Postorico.",
+      "cta": "Cerrar"
+    }
+  },
+  "pause": {
+    "surTitre": "Cuenta en pausa",
+    "titre": "Tu cuenta está en pausa.",
+    "texte": "No se cobra nada y el acceso vuelve el {{date}}. No tienes que hacer nada hasta entonces.",
+    "conserve": "Tu configuración, tu tono de marca, tus plantillas y todos tus contenidos se conservan: no se ha borrado nada.",
+    "cta": "Reanudar ahora",
+    "note": "La reanudación es inmediata y la facturación se reinicia en esa fecha.",
+    "repriseOk": "Cuenta reactivada, todo ha vuelto.",
+    "erreur": "No se puede reanudar ahora mismo."
   }
 }

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from dependencies import verify_token, verify_admin_token
 from services import billing_service, mail_service
-from config import logger, ADMIN_NOTIF_EMAIL
+from config import logger, ADMIN_NOTIF_EMAIL, supabase
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 
@@ -91,6 +91,55 @@ async def portal(payload: dict = Depends(verify_token)):
     if not r.get("ok"):
         raise HTTPException(status_code=400, detail=r.get("error"))
     return {"url": r["url"]}
+
+
+@router.post("/resilier")
+async def resilier(body: dict, payload: dict = Depends(verify_token)):
+    """Arrete le renouvellement. L'acces reste ouvert jusqu'au terme deja paye.
+
+    La resiliation se fait ICI et non plus dans le portail Stripe : le portail
+    emmene le client hors de chez nous, ou l'on ne peut ni lui demander
+    pourquoi il part, ni lui proposer autre chose. La raison de son depart est
+    la seule donnee que ce moment produit, et elle etait perdue.
+    """
+    telegram_id = payload.get("telegram_id")
+    res = billing_service.resilier(telegram_id, (body or {}).get("raison"),
+                                   (body or {}).get("commentaire"))
+    if not res.get("ok"):
+        raise HTTPException(status_code=400, detail=res.get("error"))
+    # Confirmation ecrite, avec la date de fin d'acces : sans elle, la question
+    # « jusqu'a quand ? » revient au support dans les heures qui suivent.
+    try:
+        from config import FRONTEND_URL
+        u = supabase.table("users").select("email, nom").eq("telegram_id", telegram_id).execute()
+        if u.data and u.data[0].get("email"):
+            sujet, html = mail_service.resiliation_html(
+                u.data[0].get("nom"), res.get("fin_acces_le"),
+                f"{FRONTEND_URL}/dashboard/parametres?s=abonnement")
+            await mail_service.send_email(u.data[0]["email"], sujet, html)
+    except Exception as e:
+        logger.error(f"email de resiliation: {e}")
+    return res
+
+
+@router.post("/pause")
+async def pause(body: dict, payload: dict = Depends(verify_token)):
+    """Suspend la facturation ET l'acces, un a trois mois, config conservee."""
+    res = billing_service.mettre_en_pause(
+        payload.get("telegram_id"), (body or {}).get("mois"),
+        (body or {}).get("raison"), (body or {}).get("commentaire"))
+    if not res.get("ok"):
+        raise HTTPException(status_code=400, detail=res.get("error"))
+    return res
+
+
+@router.post("/reprendre")
+async def reprendre(payload: dict = Depends(verify_token)):
+    """Sort de pause, ou annule une resiliation programmee. Un seul geste."""
+    res = billing_service.reprendre(payload.get("telegram_id"))
+    if not res.get("ok"):
+        raise HTTPException(status_code=400, detail=res.get("error"))
+    return res
 
 
 @router.post("/webhook")

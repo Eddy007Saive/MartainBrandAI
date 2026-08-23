@@ -809,6 +809,154 @@ def _rappel_payload(sub: dict) -> dict | None:
         return None
 
 
+RAISONS = {"prix", "temps", "resultats", "complexite", "fonctionnalite",
+           "concurrent", "test", "autre"}
+PAUSE_MOIS_MAX = 3
+
+
+def _journal_depart(telegram_id: str, raison: str, commentaire: str = None,
+                    issue: str = "partie", detail: str = None, fin=None) -> None:
+    """Enregistre ce qu'on a appris de ce depart. Silencieux par construction.
+
+    On journalise AUSSI les parcours qui n'aboutissent pas — « retenue »,
+    « pause ». Quelqu'un qui entame la resiliation puis reste nous apprend
+    autant que celui qui part : c'est meme la seule facon de savoir si une
+    offre de retention sert a quelque chose.
+
+    Une erreur ici ne doit jamais empecher la resiliation. Retenir quelqu'un
+    parce qu'on n'a pas su ecrire la raison de son depart serait le comble.
+    """
+    try:
+        supabase.table("resiliations").insert({
+            "telegram_id": telegram_id, "raison": raison or "autre",
+            "commentaire": (commentaire or "").strip()[:2000] or None,
+            "issue": issue, "detail": detail,
+            "fin_acces_le": fin,
+        }).execute()
+    except Exception as e:
+        logger.warning(f"journal de depart ({telegram_id}) : {e}")
+
+
+def _abonnement_courant(telegram_id: str):
+    """(ligne locale, abonnement Stripe) de l'abonnement vivant du compte."""
+    r = (supabase.table("subscriptions").select("*").eq("user_id", telegram_id)
+         .in_("status", ["active", "trialing", "past_due"])
+         .order("created_at", desc=True).limit(1).execute())
+    if not r.data:
+        return None, None
+    ligne = r.data[0]
+    sid = ligne.get("stripe_subscription_id")
+    if not sid or not _ready():
+        return ligne, None
+    try:
+        return ligne, stripe.Subscription.retrieve(sid)
+    except Exception as e:
+        logger.error(f"lecture abonnement {sid}: {e}")
+        return ligne, None
+
+
+def resilier(telegram_id: str, raison: str, commentaire: str = None) -> dict:
+    """Arrete le renouvellement. L'acces reste ouvert jusqu'au terme deja paye.
+
+    On ne supprime rien et on ne coupe rien tout de suite : la periode a ete
+    reglee, elle est due. C'est aussi ce qui laisse une porte ouverte — une
+    reactivation avant le terme ne coute qu'un clic.
+    """
+    ligne, sub = _abonnement_courant(telegram_id)
+    if not ligne:
+        return {"ok": False, "error": "Aucun abonnement à résilier."}
+    if raison not in RAISONS:
+        raison = "autre"
+
+    fin = ligne.get("current_period_end")
+    if sub:
+        try:
+            maj = stripe.Subscription.modify(sub.id, cancel_at_period_end=True)
+            fin = _ts(maj.get("cancel_at")) or fin
+            _apply_subscription(maj)
+        except Exception as e:
+            logger.error(f"resiliation {telegram_id}: {e}")
+            return {"ok": False, "error": "Résiliation impossible pour le moment."}
+    else:
+        # Abonnement local (aucun identifiant Stripe) : on le termine chez nous.
+        try:
+            supabase.table("subscriptions").update({"status": "canceled"}) \
+                .eq("id", ligne["id"]).execute()
+        except Exception as e:
+            logger.error(f"resiliation locale {telegram_id}: {e}")
+            return {"ok": False, "error": "Résiliation impossible pour le moment."}
+
+    _journal_depart(telegram_id, raison, commentaire, issue="partie", fin=fin)
+    return {"ok": True, "fin_acces_le": fin}
+
+
+def mettre_en_pause(telegram_id: str, mois: int, raison: str = None,
+                    commentaire: str = None) -> dict:
+    """Suspend la facturation ET l'acces, pour un a trois mois.
+
+    L'acces est suspendu : sans cela, la pause serait un abonnement gratuit et
+    tout le monde la choisirait. La configuration, le ton de marque et les
+    gabarits sont conserves — c'est tout l'interet par rapport a une
+    resiliation.
+    """
+    mois = max(1, min(PAUSE_MOIS_MAX, int(mois or 1)))
+    ligne, sub = _abonnement_courant(telegram_id)
+    if not ligne:
+        return {"ok": False, "error": "Aucun abonnement à mettre en pause."}
+    if not sub:
+        return {"ok": False, "error": "Pause indisponible sur cet abonnement."}
+
+    reprise = datetime.now(timezone.utc) + timedelta(days=30 * mois)
+    try:
+        stripe.Subscription.modify(sub.id, pause_collection={
+            "behavior": "void", "resumes_at": int(reprise.timestamp())})
+    except Exception as e:
+        logger.error(f"pause {telegram_id}: {e}")
+        return {"ok": False, "error": "Mise en pause impossible pour le moment."}
+
+    try:
+        supabase.table("subscriptions").update({"pause_jusqu_au": reprise.isoformat()}) \
+            .eq("id", ligne["id"]).execute()
+    except Exception as e:
+        # La colonne manque (migration non passee) : Stripe a deja suspendu la
+        # facturation, mais nous ne saurions pas bloquer l'acces. On revient en
+        # arriere plutot que d'offrir le produit.
+        logger.error(f"pause : colonne pause_jusqu_au absente ({e}) — annulation")
+        try:
+            stripe.Subscription.modify(sub.id, pause_collection="")
+        except Exception:
+            pass
+        return {"ok": False, "error": "Pause indisponible (configuration incomplète)."}
+
+    _journal_depart(telegram_id, raison or "autre", commentaire,
+                    issue="pause", detail=f"{mois} mois", fin=reprise.isoformat())
+    return {"ok": True, "reprise_le": reprise.isoformat(), "mois": mois}
+
+
+def reprendre(telegram_id: str) -> dict:
+    """Reprend un compte en pause, ou annule une resiliation programmee.
+
+    Un seul geste pour les deux : de l'endroit ou se tient le client, « je
+    reviens » ne se decline pas en deux boutons selon l'etat technique.
+    """
+    ligne, sub = _abonnement_courant(telegram_id)
+    if not ligne:
+        return {"ok": False, "error": "Aucun abonnement à reprendre."}
+    if sub:
+        try:
+            stripe.Subscription.modify(sub.id, pause_collection="",
+                                       cancel_at_period_end=False)
+        except Exception as e:
+            logger.error(f"reprise {telegram_id}: {e}")
+            return {"ok": False, "error": "Reprise impossible pour le moment."}
+    try:
+        supabase.table("subscriptions").update({"pause_jusqu_au": None}) \
+            .eq("id", ligne["id"]).execute()
+    except Exception as e:
+        logger.warning(f"reprise (colonne pause) {telegram_id}: {e}")
+    return {"ok": True}
+
+
 def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
     if not _ready():
         return {"ok": False}

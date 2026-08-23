@@ -9,6 +9,7 @@ import { App as CapApp } from '@capacitor/app';
 import { UserProvider, useUser } from '../context/UserContext';
 import { AbonnementProvider } from '../context/AbonnementContext';
 import MurPaiement from '../components/MurPaiement';
+import MurPause from '../components/MurPause';
 import { userService } from '../services/userService';
 import { removeToken, isAdminAuthenticated, memoriserEspace } from '../lib/auth';
 import { cn } from '../lib/utils';
@@ -373,6 +374,10 @@ function DashboardContent() {
           Il ecoute l'evenement emis par l'intercepteur reseau, donc il couvre
           les neuf points de generation sans qu'aucune page ait a le savoir. */}
       <MurPaiement />
+      {/* La pause suspend l'acces ENTIER, pas seulement la generation : sans
+          cela elle serait un abonnement gratuit. D'ou un mur qui couvre tout,
+          la ou celui du paiement ne ferme que la generation. */}
+      <MurPause />
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative z-10 pt-16 md:pt-0">

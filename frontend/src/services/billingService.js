@@ -10,6 +10,15 @@ export const billingService = {
     return data;
   },
   // Ouvre le portail client Stripe (gérer/annuler l'abonnement)
+  // La résiliation se fait CHEZ NOUS, plus dans le portail Stripe : le portail
+  // emmène le client hors de l'application, où l'on ne peut ni lui demander
+  // pourquoi il part, ni lui proposer autre chose.
+  resilier: (raison, commentaire) =>
+    api.post('/billing/resilier', { raison, commentaire }).then((r) => r.data),
+  pause: (mois, raison, commentaire) =>
+    api.post('/billing/pause', { mois, raison, commentaire }).then((r) => r.data),
+  reprendre: () => api.post('/billing/reprendre').then((r) => r.data),
+
   portal: async () => {
     const { data } = await api.post('/billing/portal');
     if (data?.url) window.location.href = data.url;

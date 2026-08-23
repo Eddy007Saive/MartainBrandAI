@@ -5,8 +5,7 @@ import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
   CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings, CreditCard, Sparkles,
-  Plus, Image as ImageIcon, X, Repeat,
-} from 'lucide-react';
+  Plus, Image as ImageIcon, X, Repeat, Lock } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ChampMarque, ChampListe } from '../components/ChampsMarque';
 import { Input } from '../components/ui/input';
@@ -29,6 +28,7 @@ import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
 import { billingService } from '../services/billingService';
 import { useAbonnement } from '../context/AbonnementContext';
+import Resiliation from '../components/Resiliation';
 import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
 import { contenuService } from '../services/contenuService';
@@ -144,7 +144,8 @@ export default function ParametresPage() {
   const navigate = useNavigate();
   const { user, setUser, refetchUser } = useUser();
   // L'abonnement reel (Stripe), pas la colonne `plan` qui n'existe plus.
-  const { usage } = useAbonnement();
+  const { usage, recharger: rechargerAbo } = useAbonnement();
+  const [resilOuvert, setResilOuvert] = useState(false);
   const [saving, setSaving] = useState(false);
   // Section active pilotée par l'URL (?s=) -> synchronisée avec la sous-nav du sidebar (DashboardLayout)
   const [searchParams, setSearchParams] = useSearchParams();
@@ -163,6 +164,11 @@ export default function ParametresPage() {
 
   // Schedules
   const connectedPlatforms = SOCIAL_PLATFORMS.filter(p => user?.[p.field]);
+  // Un compte en essai a droit a UN reseau : le temps de voir le produit
+  // de bout en bout — generer, planifier, publier, lire les commentaires —
+  // sans qu'un compte qui ne restera peut-etre pas coute six connexions.
+  const essaiUnSeulReseau = usage?.subscription?.status === 'trialing'
+    && connectedPlatforms.length >= 1;
   useEffect(() => {
     if (activeSection === 'connections' && connectedPlatforms.length) {
       userService.socialAccounts().then((d) => setSocialMeta(d.accounts || {})).catch(() => {});
@@ -928,6 +934,11 @@ export default function ParametresPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {SOCIAL_PLATFORMS.map((platform) => {
           const isConnected = !!user?.[platform.field];
+          // Pendant l'essai : un seul réseau. Les autres se grisent dès qu'un
+          // est connecté, et se débloquent au premier prélèvement. Le serveur
+          // applique la même règle — griser un bouton n'empêche personne
+          // d'appeler l'API, ceci n'est que la politesse de le dire avant.
+          const bloqueParEssai = essaiUnSeulReseau && !isConnected;
           const isLoading = connecting === platform.id;
           const meta = socialMeta[platform.id] || {};
           // Zernio signale un token expiré/révoqué via is_active=false -> le compte doit être RECONNECTÉ
@@ -1038,10 +1049,17 @@ export default function ParametresPage() {
                     </AlertDialogContent>
                   </AlertDialog>
                 ) : (
-                  <button disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`connect-${platform.id}`}
-                    className="w-full inline-flex items-center justify-center gap-2 bg-[#e7ecf5] text-[#0b1322] font-inter font-medium text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-out-strong active:scale-[0.97] hover:bg-white disabled:opacity-60 disabled:active:scale-100">
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-                    {t('params.reseaux.connecter')}
+                  <button disabled={isLoading || bloqueParEssai} onClick={() => handleConnect(platform.id)}
+                    data-testid={bloqueParEssai ? `connect-${platform.id}-essai` : `connect-${platform.id}`}
+                    title={bloqueParEssai ? t('params.reseaux.essaiUnSeul') : undefined}
+                    className={`w-full inline-flex items-center justify-center gap-2 font-inter font-medium text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-out-strong disabled:active:scale-100 ${
+                      bloqueParEssai
+                        ? 'bg-white/[0.04] text-slate-600 border border-white/[0.06] cursor-not-allowed'
+                        : 'bg-[#e7ecf5] text-[#0b1322] active:scale-[0.97] hover:bg-white disabled:opacity-60'}`}>
+                    {bloqueParEssai ? <Lock className="w-3.5 h-3.5" />
+                      : isLoading ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : <ExternalLink className="w-4 h-4" />}
+                    {bloqueParEssai ? t('params.reseaux.essaiVerrouille') : t('params.reseaux.connecter')}
                   </button>
                 )}
               </div>
@@ -1580,6 +1598,9 @@ export default function ParametresPage() {
         {/* Jauge des résultats inclus (déplacée depuis l'Accueil) */}
         <QuotaGauge />
 
+        <Resiliation ouvert={resilOuvert} surFermeture={() => setResilOuvert(false)}
+          enEssai={enEssai} surChangement={rechargerAbo} />
+
         <div className="flex items-center gap-4 flex-wrap p-4 rounded-2xl border border-[#5B6CFF]/25"
           style={{ background: 'linear-gradient(120deg, rgba(91,108,255,.13), rgba(138,108,255,.05))' }}>
           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center shrink-0 shadow-[0_8px_20px_rgba(91,108,255,.35)]">
@@ -1601,9 +1622,21 @@ export default function ParametresPage() {
             ) : null}
           </div>
           {isPro && (
-            <Button size="sm" onClick={manageBilling} className="ml-auto bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">
-              <CreditCard className="w-4 h-4 mr-1.5" />{t('params.abonnement.gerer')}
-            </Button>
+            <div className="ml-auto flex items-center gap-2">
+              <Button size="sm" onClick={manageBilling} className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10">
+                <CreditCard className="w-4 h-4 mr-1.5" />{t('params.abonnement.gerer')}
+              </Button>
+              {/* La sortie n'est pas cachee derriere le portail Stripe : elle est
+                  ici, visible, a cote de tout le reste. C'est aussi ce qui nous
+                  permet de demander pourquoi — le portail emmene le client
+                  ailleurs et la raison de son depart est perdue. */}
+              <button onClick={() => setResilOuvert(true)} data-testid="ouvrir-resiliation"
+                className="text-[13px] text-slate-500 hover:text-slate-200 font-inter
+                           underline underline-offset-4 decoration-white/20
+                           transition-colors duration-150">
+                {t('params.abonnement.resilier')}
+              </button>
+            </div>
           )}
         </div>
 

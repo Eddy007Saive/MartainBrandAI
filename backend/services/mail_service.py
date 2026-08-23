@@ -480,6 +480,52 @@ def rappel_prelevement_html(nom: str, montant: float, devise: str, date: str,
                          apercu=f"{montant_txt} {devise_sym} le {date} · résiliable avant")
 
 
+def resiliation_html(nom: str, fin: str, lien: str) -> tuple:
+    """La confirmation de resiliation.
+
+    Deux informations, et rien d'autre a chercher : jusqu'a quand l'acces
+    reste ouvert, et comment revenir. Sans la date ecrite noir sur blanc, la
+    question « jusqu'a quand ? » revient au support dans les heures qui
+    suivent — et le doute fait douter de tout le reste.
+
+    Aucune tentative de rattrapage ici. La personne vient de dire non ; lui
+    remettre une offre dans l'email de confirmation, c'est ne pas l'ecouter.
+    """
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    jour = ""
+    if fin:
+        try:
+            from datetime import datetime as _dt
+            jour = _dt.fromisoformat(str(fin).replace("Z", "+00:00")).strftime("%d/%m/%Y")
+        except Exception:
+            jour = str(fin)[:10]
+    quand = f"jusqu'au <strong>{jour}</strong>" if jour else "jusqu'à la fin de ta période en cours"
+    suffixe = f" — accès jusqu'au {jour}" if jour else ""
+    sujet = f"Ta résiliation est enregistrée{suffixe}"
+    inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">C'est fait</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 22px;">
+        Ton abonnement ne se renouvellera pas. Tu gardes l'accès complet {quand} —
+        la période est déjà réglée, elle est à toi.
+      </p>
+      {_encadre("Fin de l'accès", jour or "fin de la période en cours")}
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 20px;">
+        Tes contenus, ton ton de marque et tes gabarits restent conservés.
+        Si tu changes d'avis avant cette date, une seule action suffit : tout
+        repart où tu l'avais laissé.
+      </p>
+      {_bouton(lien, "Réactiver mon abonnement")}
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
+        Merci d'avoir essayé Postorico. Si quelque chose n'a pas marché, réponds à
+        cet email — on lit tout.
+      </p>
+      {_signature()}
+    </td></tr>"""
+    return sujet, _shell(inner, width=480,
+                         apercu=f"Accès conservé{(' jusqu au ' + jour) if jour else ''} - réactivation en un clic")
+
+
 def releve_affilie_html(nom: str, periode: str, montant: float, devise: str, nb: int) -> tuple:
     """Relevé mensuel envoyé à l'apporteur d'affaires : c'est son signal pour
     nous envoyer sa facture. Le virement se fait ensuite hors plateforme.

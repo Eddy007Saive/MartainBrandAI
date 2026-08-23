@@ -835,7 +835,9 @@
       "erreurConnexion": "Error while connecting",
       "serveurInjoignable": "Unable to reach the server",
       "erreurDeconnexion": "Error while disconnecting",
-      "hintTwitter": "Posts short, reactive updates. Ideal for reacting to news in your industry."
+      "hintTwitter": "Posts short, reactive updates. Ideal for reacting to news in your industry.",
+      "essaiVerrouille": "Unlocked at first payment",
+      "essaiUnSeul": "During the trial you can connect one network at a time. The others unlock at the first payment."
     },
     "planif": {
       "intro": "Publishing frequency and days per network.",
@@ -887,7 +889,8 @@
       "passerPro": "Go Pro",
       "stripe": "Secure payment via Stripe · cancel anytime.",
       "offreLibre": "Free access",
-      "premierPrelevement": "First payment on {{date}}"
+      "premierPrelevement": "First payment on {{date}}",
+      "resilier": "Cancel"
     },
     "style": {
       "palette": "Brand palette",
@@ -2461,5 +2464,74 @@
     "g3": "Cancel any time, in one click from Settings.",
     "cta": "Start my 14 days",
     "stripe": "Secure payment by Stripe. We never see your card number."
+  },
+  "resil": {
+    "fermer": "Close",
+    "retour": "Back",
+    "erreur": "Action unavailable right now.",
+    "pauseOk": "Account paused. Resumes on {{date}}.",
+    "e1": {
+      "titre": "Are you sure you want to put your online presence on hold?",
+      "texte": "If you cancel: your scheduled posts stop, your content is no longer created, and your Google listing freezes. Your competitors keep publishing.",
+      "rester": "Stay active",
+      "continuer": "Continue cancelling"
+    },
+    "e2": {
+      "titre": "Before you go, tell us why. It genuinely helps us improve.",
+      "libre": "Want to add anything? (optional)",
+      "continuer": "Continue",
+      "requis": "Pick a reason to continue."
+    },
+    "raisons": {
+      "prix": "It's too expensive",
+      "temps": "I don't have time to use it",
+      "resultats": "I didn't get the results I hoped for",
+      "complexite": "The product is too complicated",
+      "fonctionnalite": "A feature is missing",
+      "concurrent": "I'm switching to a competitor",
+      "test": "I was just testing",
+      "autre": "Other"
+    },
+    "e3": {
+      "remise": {
+        "titre": "What if we met halfway?",
+        "texte": "We can give you 30% off for three months, long enough to see what it does over time.",
+        "cta": "Take −30% and stay"
+      },
+      "appel": {
+        "titre": "Let us help before you go.",
+        "texte": "Often a single setting changes everything. Book twenty minutes with an expert: we look at your account together and tell you honestly whether the product can help.",
+        "cta": "Book a call"
+      },
+      "fonctionnalite": {
+        "titre": "Which one is missing?",
+        "texte": "Tell us in the field above — it may already be on the way. We'll let you know when it ships.",
+        "cta": "Stay and wait"
+      }
+    },
+    "e4": {
+      "titre": "No need to stop everything — pause your account.",
+      "texte": "Suspend your subscription for one, two or three months. We keep your setup, your brand voice and your templates. Come back whenever, it's all ready.",
+      "mois": "{{count}} months",
+      "note": "While paused, nothing is charged and access is suspended. Your data stays intact.",
+      "definitif": "Cancel for good"
+    },
+    "fin": {
+      "surTitre": "Cancellation recorded",
+      "titre": "Done.",
+      "texte": "Your access stays active until {{date}}. You can reactivate any time — we keep everything safe. Thanks for trying Postorico.",
+      "texteSansDate": "Your access stays active until the end of your current period. You can reactivate any time. Thanks for trying Postorico.",
+      "cta": "Close"
+    }
+  },
+  "pause": {
+    "surTitre": "Account paused",
+    "titre": "Your account is paused.",
+    "texte": "Nothing is being charged, and access resumes on {{date}}. There's nothing to do until then.",
+    "conserve": "Your setup, brand voice, templates and all your content are kept — nothing was deleted.",
+    "cta": "Resume now",
+    "note": "Resuming is immediate and billing restarts from that date.",
+    "repriseOk": "Account reactivated, everything is back.",
+    "erreur": "Cannot resume right now."
   }
 }
