@@ -51,6 +51,55 @@ def is_paid(telegram_id: str) -> bool:
         return False
 
 
+def peut_publier(telegram_id: str) -> bool:
+    """Droit de connecter un reseau et de publier : abonnement actif OU en essai.
+
+    A ne pas confondre avec `is_paid`, qui exige un paiement encaisse. La
+    connexion d'un reseau etait reservee a ce dernier — un compte connecte
+    coute chez Late, et on ne voulait pas l'offrir.
+
+    Sauf que quelqu'un en essai a DEJA donne sa carte : il sera preleve au 15e
+    jour s'il ne resilie pas. Lui interdire de connecter revient a lui faire
+    essayer une moitie de produit — il genere du contenu pendant quatorze
+    jours sans jamais pouvoir le publier, donc sans jamais voir ce pour quoi
+    il paierait. C'est le meilleur moyen de le perdre au 14e jour.
+
+    Le cout est borne : quatorze jours de reseau connecte pour quelqu'un qui a
+    laisse sa carte. C'est le prix d'un essai qui montre le produit entier.
+    """
+    try:
+        r = (supabase.table("subscriptions").select("id").eq("user_id", telegram_id)
+             .in_("status", ["active", "trialing"]).limit(1).execute())
+        return bool(r.data)
+    except Exception:
+        return False
+
+
+# Pendant l'essai, un seul reseau. Un compte connecte coute chez Late a chaque
+# jour ou il l'est ; un seul suffit a voir le produit de bout en bout —
+# generer, planifier, publier, lire les commentaires. Les cinq autres se
+# debloquent au premier prelevement.
+RESEAUX_EN_ESSAI = 1
+
+
+def statut_abonnement(telegram_id: str) -> str | None:
+    """« active », « trialing », « past_due »… ou None si le compte n'a rien."""
+    try:
+        r = (supabase.table("subscriptions").select("status").eq("user_id", telegram_id)
+             .in_("status", ["active", "trialing", "past_due"]).limit(1).execute())
+        return r.data[0]["status"] if r.data else None
+    except Exception:
+        return None
+
+
+def reseaux_autorises(telegram_id: str) -> int | None:
+    """Nombre de reseaux connectables. None = sans limite, 0 = aucun droit."""
+    statut = statut_abonnement(telegram_id)
+    if statut is None:
+        return 0
+    return RESEAUX_EN_ESSAI if statut == "trialing" else None
+
+
 def ensure_subscription(telegram_id: str) -> None:
     """Pose un essai local si le compte n'a aucun abonnement.
 
@@ -102,9 +151,31 @@ def _message(action_type: str, reason: str, limit=None) -> str:
     return "Quota indisponible."
 
 
+def en_pause(telegram_id: str):
+    """La date de fin de pause, ou None si le compte n'est pas en pause.
+
+    Stripe suspend la facturation SANS toucher au statut : l'abonnement reste
+    « active » pendant une pause_collection. On ne peut donc pas lire cet etat
+    dans `status` — sans cette colonne, un compte en pause garderait l'acces
+    tout en ne payant plus.
+    """
+    try:
+        r = (supabase.table("subscriptions").select("pause_jusqu_au").eq("user_id", telegram_id)
+             .in_("status", ["active", "trialing", "past_due"]).limit(1).execute())
+        return (r.data[0].get("pause_jusqu_au") if r.data else None) or None
+    except Exception:
+        return None   # colonne absente (migration non passee) : on ne bloque personne
+
+
 def consume(telegram_id: str, action_type: str, qty: int = 1) -> dict:
     """Réserve atomiquement qty pour (compte, type). Retourne {ok, reason, message?, subscription_id, ...}."""
     ensure_subscription(telegram_id)
+    # Un compte en pause ne consomme rien : il ne paie plus, il n'a plus acces.
+    # Le refus est pose ICI et pas seulement dans l'interface — le mur affiche
+    # a l'ecran n'empeche personne d'appeler l'API directement.
+    if en_pause(telegram_id):
+        return {"ok": False, "reason": "pause", "action_type": action_type, "qty": qty,
+                "message": "Ton compte est en pause. Reprends-le quand tu veux, tout est conservé."}
     try:
         res = supabase.rpc("consume_quota", {"p_user": telegram_id, "p_action": action_type, "p_qty": qty}).execute()
         data = res.data if isinstance(res.data, dict) else {}
@@ -187,7 +258,11 @@ def usage(telegram_id: str) -> dict:
             gauges.append({"action_type": at, "label": LABELS.get(at, at), "used": used,
                            "limit": limit, "remaining": max(0, limit - used),
                            "included": q["included_quantity"], "extra": c.get("extra_quantity", 0)})
-        return {"subscription": {"status": s["status"], "current_period_end": s["current_period_end"]}, "gauges": gauges}
+        return {"subscription": {"status": s["status"],
+                                 "current_period_end": s["current_period_end"],
+                                 "cancel_at": s.get("cancel_at"),
+                                 "pause_jusqu_au": s.get("pause_jusqu_au")},
+                "gauges": gauges}
     except Exception as e:
         logger.error(f"usage {telegram_id}: {e}")
         return {"subscription": None, "gauges": []}

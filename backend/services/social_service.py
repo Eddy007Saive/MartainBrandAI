@@ -146,10 +146,31 @@ async def _ensure_late_profile(telegram_id: str) -> tuple:
 async def connect_platform(telegram_id: str, platform: str) -> dict:
     """Génère l'URL OAuth via le SDK Late (plus de n8n). Late héberge l'OAuth puis redirige
     vers notre callback backend qui enregistre le compte."""
-    # Connexion de réseau = réservée à l'offre Pro (un compte connecté = coût récurrent Late).
+    # Connexion de réseau : abonnement actif OU essai en cours.
+    #
+    # C'était réservé aux comptes payants — un compte connecté coûte chez Late.
+    # Mais quelqu'un en essai a déjà donné sa carte : lui interdire de
+    # connecter, c'est lui faire essayer une moitié de produit, générer
+    # quatorze jours de contenu qu'il ne peut pas publier, et le perdre au
+    # moment du prélèvement.
     from services import quota_service
-    if not quota_service.is_paid(telegram_id):
-        return {"success": False, "error": "La connexion des réseaux est réservée à l'offre Pro. Passe Pro pour connecter et publier."}
+    if not quota_service.peut_publier(telegram_id):
+        return {"success": False,
+                "error": "Ajoute ta carte pour connecter tes réseaux — "
+                         "14 jours d'essai, rien n'est prélevé aujourd'hui."}
+
+    # Pendant l'essai : un seul réseau. Il suffit à voir le produit de bout en
+    # bout, et il borne ce que coûte un compte qui ne restera peut-être pas.
+    # La règle est posée ICI et non seulement dans l'interface : griser un
+    # bouton n'empêche personne d'appeler l'API directement.
+    limite = quota_service.reseaux_autorises(telegram_id)
+    if limite is not None:
+        deja = list(comptes(telegram_id))
+        if platform not in deja and len(deja) >= limite:
+            return {"success": False, "error": (
+                "Pendant l'essai, tu peux connecter un réseau à la fois. "
+                "Les autres se débloquent dès le premier prélèvement — "
+                "ou déconnecte celui-ci pour en essayer un autre.")}
     # Filet de sécurité : garantir l'existence du profil Late avant toute connexion
     ok, err = await _ensure_late_profile(telegram_id)
     if not ok:
