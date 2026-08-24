@@ -104,6 +104,11 @@ STRIPE_PRICE_PACK_USD = os.environ.get('STRIPE_PRICE_PACK_USD', '')
 # euros, ce que le code sait faire — mieux vaut la mauvaise monnaie qu'un
 # abonnement qui ne demarre pas.
 STRIPE_PRICE_PRO_USD = os.environ.get('STRIPE_PRICE_PRO_USD', '')
+# Calcul automatique de la TVA au checkout. ACTIF par defaut : la prod le
+# veut (societe UE facturant des pros). Stripe l'EXIGE avec une adresse de
+# siege renseignee ; le compte de TEST ne l'a pas, d'ou l'echec en local.
+# Poser STRIPE_AUTO_TAX=false dans le .env local pour tester le paiement.
+STRIPE_AUTO_TAX = os.environ.get('STRIPE_AUTO_TAX', 'true').strip().lower() not in ('false','0','no')
 
 # Logging
 logging.basicConfig(

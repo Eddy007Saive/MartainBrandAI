@@ -1592,6 +1592,10 @@ export default function ParametresPage() {
     const abonne = ['active', 'trialing', 'past_due'].includes(abo?.status);
     const enEssai = abo?.status === 'trialing';
     const isPro = abonne;
+    // « Pro reel » = paiement en cours (statut active). L'essai a un abonnement
+    // mais des quotas limites : il n'est PAS sur Pro, la carte doit l'inviter
+    // a commencer, pas afficher « ton forfait actuel ».
+    const isProReel = abo?.status === 'active';
     const echeance = abo?.current_period_end ? new Date(abo.current_period_end) : null;
     return (
       <div className="space-y-5">
@@ -1678,12 +1682,12 @@ export default function ParametresPage() {
               ))}
             </ul>
             <div className="mt-5">
-              {isPro ? (
+              {isProReel ? (
                 <div className="text-center text-[12.5px] text-slate-500 py-2 border border-white/[0.06] rounded-lg">{t('params.abonnement.forfaitActuel')}</div>
               ) : (
-                <Button onClick={() => upgrade('pro')}
+                <Button onClick={() => upgrade('pro')} data-testid="passer-pro"
                   className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90">
-                  {t('params.abonnement.passerPro')}
+                  {enEssai ? t('params.abonnement.commencerMaintenant') : t('params.abonnement.passerPro')}
                 </Button>
               )}
             </div>

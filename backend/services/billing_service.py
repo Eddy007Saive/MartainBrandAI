@@ -106,6 +106,25 @@ def a_deja_eu_un_abonnement(telegram_id: str) -> bool:
 
 
 
+def _options_tva() -> dict:
+    """Les parametres Stripe de TVA, ou un dict vide si la TVA est desactivee.
+
+    En prod (STRIPE_AUTO_TAX actif), on calcule la TVA et on collecte l'adresse.
+    En local sans adresse de siege sur le compte test, on les omet pour que la
+    session se cree quand meme — au prix d'un checkout SANS TVA, a ne jamais
+    utiliser en production.
+    """
+    from config import STRIPE_AUTO_TAX
+    if not STRIPE_AUTO_TAX:
+        return {}
+    return {
+        "automatic_tax": {"enabled": True},
+        "tax_id_collection": {"enabled": True, "required": "if_supported"},
+        "billing_address_collection": "required",
+        "customer_update": {"address": "auto", "name": "auto"},
+    }
+
+
 def create_checkout(telegram_id: str, plan: str, essai_jours: int = 0) -> dict:
     """Session d'abonnement Stripe.
 
@@ -149,10 +168,9 @@ def create_checkout(telegram_id: str, plan: str, essai_jours: int = 0) -> dict:
             # (autoliquidation si le client B2B fournit un numero de TVA intracommunautaire
             # valide, sinon TVA locale du client) et TOUJOURS ajoutee EN PLUS des 279 EUR
             # (Price.tax_behavior='exclusive') -> la marge n'est jamais rognee par la TVA.
-            automatic_tax={"enabled": True},
-            tax_id_collection={"enabled": True, "required": "if_supported"},
-            billing_address_collection="required",
-            customer_update={"address": "auto", "name": "auto"},
+            # Le calcul TVA exige une adresse de siege chez Stripe : desactivable
+            # par STRIPE_AUTO_TAX pour tester en local (compte test sans adresse).
+            **(_options_tva()),
         )
         return {"ok": True, "url": sess.url}
     except Exception as e:
@@ -242,6 +260,26 @@ def _pro_plan_id():
     return r.data[0]["id"] if r.data else None
 
 
+def _essai_plan_id():
+    r = supabase.table("plans").select("id").eq("name", "Essai").limit(1).execute()
+    return r.data[0]["id"] if r.data else None
+
+
+def _plan_selon_statut(status: str):
+    """Le plan qui gouverne les quotas selon l'etat de l'abonnement.
+
+    En essai, les quotas sont VOLONTAIREMENT limites (plan Essai) : l'essai
+    gratuit fait decouvrir le produit, il ne le donne pas en entier. Des le
+    premier prelevement (statut « active »), le compte bascule sur les quotas
+    Pro complets. Cette bascule est automatique : le webhook rejoue
+    _apply_subscription au changement de statut.
+    """
+    essai = _essai_plan_id()
+    if status == "trialing" and essai:
+        return essai
+    return _pro_plan_id()
+
+
 def _ts(v):
     return datetime.fromtimestamp(v, tz=timezone.utc).isoformat() if v else None
 
@@ -249,10 +287,14 @@ def _ts(v):
 def _upsert_subscription(uid: str, status: str, period_start, period_end, stripe_sub_id):
     """Écrit l'abonnement dans la table `subscriptions` (source de vérité des quotas).
     Mettre à jour current_period_start/end = nouvelle période -> compteurs repartis à zéro
-    (les usage_counters sont créés par période ; les packs `extra` ne se reportent pas)."""
-    plan_id = _pro_plan_id()
+    (les usage_counters sont créés par période ; les packs `extra` ne se reportent pas).
+
+    Le PLAN suit le statut : quotas Essai (limites) pendant l'essai, quotas Pro
+    au premier prelevement. Ecrire Pro des l'essai donnait l'acces complet a un
+    compte qui n'a encore rien paye."""
+    plan_id = _plan_selon_statut(status)
     if not plan_id:
-        logger.warning("stripe: offre Pro absente de la table plans")
+        logger.warning("stripe: offre Pro/Essai absente de la table plans")
         return
     row = {"plan_id": plan_id, "status": status, "stripe_subscription_id": stripe_sub_id}
     if period_start:

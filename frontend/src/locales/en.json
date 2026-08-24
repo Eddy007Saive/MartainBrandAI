@@ -890,7 +890,8 @@
       "stripe": "Secure payment via Stripe · cancel anytime.",
       "offreLibre": "Free access",
       "premierPrelevement": "First payment on {{date}}",
-      "resilier": "Cancel"
+      "resilier": "Cancel",
+      "commencerMaintenant": "Start now"
     },
     "style": {
       "palette": "Brand palette",

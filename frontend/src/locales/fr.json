@@ -890,7 +890,8 @@
       "stripe": "Paiement sécurisé par Stripe · annulable à tout moment.",
       "offreLibre": "Offre libre",
       "premierPrelevement": "Premier prélèvement le {{date}}",
-      "resilier": "Résilier"
+      "resilier": "Résilier",
+      "commencerMaintenant": "Commencer maintenant"
     },
     "style": {
       "palette": "Palette de marque",

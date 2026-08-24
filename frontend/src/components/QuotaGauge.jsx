@@ -129,18 +129,22 @@ export default function QuotaGauge() {
 
   return (
     <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6 space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
+      {/* Sur mobile, le badge d'essai passe SOUS le titre : côte à côte, il
+          écrasait le titre à un mot par ligne (whitespace-nowrap le rendait
+          insécable). `flex-wrap` + `min-w-0` laissent le titre reprendre toute
+          la largeur quand le badge descend. */}
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+        <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-4.5 h-4.5 text-white" />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-white font-semibold font-sora leading-tight">Ce que tu peux créer ce mois-ci</p>
             <p className="text-slate-500 text-[12px] font-inter">Tes résultats inclus, remis à zéro chaque période</p>
           </div>
         </div>
         {jours != null && (
-          <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/20 whitespace-nowrap">
+          <span className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/20 whitespace-nowrap">
             Essai · {jours} j restants
           </span>
         )}
