@@ -14,7 +14,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 
 @router.get("/users")
-async def get_users(filter: str = "all", q: str = None, payload: dict = Depends(verify_admin_token)):
+def get_users(filter: str = "all", q: str = None, payload: dict = Depends(verify_admin_token)):
     try:
         return admin_service.get_users(filter, q)
     except Exception as e:
@@ -23,7 +23,7 @@ async def get_users(filter: str = "all", q: str = None, payload: dict = Depends(
 
 
 @router.get("/users/{telegram_id}")
-async def get_user_detail(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+def get_user_detail(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         user = admin_service.get_user_detail(telegram_id)
         if not user:
@@ -37,7 +37,7 @@ async def get_user_detail(telegram_id: str, payload: dict = Depends(verify_admin
 
 
 @router.get("/users/{telegram_id}/contenus")
-async def get_user_contenus(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+def get_user_contenus(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         return admin_service.get_user_contenus(telegram_id)
     except Exception as e:
@@ -46,7 +46,7 @@ async def get_user_contenus(telegram_id: str, payload: dict = Depends(verify_adm
 
 
 @router.get("/stats")
-async def get_admin_stats(payload: dict = Depends(verify_admin_token)):
+def get_admin_stats(payload: dict = Depends(verify_admin_token)):
     try:
         return admin_service.get_global_stats()
     except Exception as e:
@@ -55,7 +55,7 @@ async def get_admin_stats(payload: dict = Depends(verify_admin_token)):
 
 
 @router.get("/invoices")
-async def get_all_invoices(limit: int = 100, payload: dict = Depends(verify_admin_token)):
+def get_all_invoices(limit: int = 100, payload: dict = Depends(verify_admin_token)):
     """Toutes les factures Stripe de tous les clients (nom, montant, statut, PDF)."""
     try:
         from services import billing_service
@@ -66,7 +66,7 @@ async def get_all_invoices(limit: int = 100, payload: dict = Depends(verify_admi
 
 
 @router.get("/export/users")
-async def export_users_csv(payload: dict = Depends(verify_admin_token)):
+def export_users_csv(payload: dict = Depends(verify_admin_token)):
     try:
         csv_content = admin_service.export_users_csv()
         return StreamingResponse(
@@ -80,7 +80,7 @@ async def export_users_csv(payload: dict = Depends(verify_admin_token)):
 
 
 @router.get("/activity")
-async def get_activity_logs(limit: int = 50, payload: dict = Depends(verify_admin_token)):
+def get_activity_logs(limit: int = 50, payload: dict = Depends(verify_admin_token)):
     try:
         return admin_service.get_activity(limit)
     except Exception as e:
@@ -144,7 +144,7 @@ async def retry_late_profile(telegram_id: str, payload: dict = Depends(verify_ad
 
 
 @router.patch("/users/{telegram_id}/deactivate")
-async def deactivate_user(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+def deactivate_user(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         result = supabase.table("users").update({"actif": False}).eq("telegram_id", telegram_id).execute()
         if not result.data:
@@ -166,7 +166,7 @@ class PlanUpdate(BaseModel):
 
 
 @router.patch("/users/{telegram_id}/plan")
-async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(verify_admin_token)):
+def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(verify_admin_token)):
     try:
         user = admin_service.update_plan(telegram_id, body.plan, body.reset_credits)
         if not user:
@@ -180,7 +180,7 @@ async def set_plan(telegram_id: str, body: PlanUpdate, payload: dict = Depends(v
 
 
 @router.get("/resiliations")
-async def resiliations(payload: dict = Depends(verify_admin_token)):
+def resiliations(payload: dict = Depends(verify_admin_token)):
     """Les departs et leurs raisons, avec le compte par motif.
 
     C'est la seule donnee que produit le moment ou quelqu'un s'en va. La
@@ -218,7 +218,7 @@ async def resiliations(payload: dict = Depends(verify_admin_token)):
 
 
 @router.get("/users/{telegram_id}/facturation")
-async def facturation(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+def facturation(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     """Carte enregistree et abonnement en cours, lus dans Stripe.
 
     Rien n'est stocke chez nous : une carte peut expirer ou etre retiree entre
@@ -229,7 +229,7 @@ async def facturation(telegram_id: str, payload: dict = Depends(verify_admin_tok
 
 
 @router.post("/users/{telegram_id}/demarrer-abonnement")
-async def demarrer_abonnement(telegram_id: str, body: dict = None,
+def demarrer_abonnement(telegram_id: str, body: dict = None,
                               payload: dict = Depends(verify_admin_token)):
     """Declenche l'abonnement Pro sur la carte laissee au paiement du Pack.
 
@@ -244,7 +244,7 @@ async def demarrer_abonnement(telegram_id: str, body: dict = None,
 
 
 @router.post("/users/{telegram_id}/vision")
-async def start_vision(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+def start_vision(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     """Mode Vision : délivre un token UTILISATEUR temporaire (1 h) pour voir/agir comme le client.
     Les actions consomment les quotas du client. Chaque session est journalisée (audit)."""
     from datetime import datetime, timezone, timedelta
@@ -274,7 +274,7 @@ async def start_vision(telegram_id: str, payload: dict = Depends(verify_admin_to
 
 
 @router.get("/users/{telegram_id}/usage")
-async def get_user_usage(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+def get_user_usage(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     """Jauges de quotas du client (utilisé / plafond / restant par type) + plan courant."""
     try:
         from services import quota_service
@@ -299,7 +299,7 @@ class QuotaBonus(BaseModel):
 
 
 @router.patch("/users/{telegram_id}/quota-bonus")
-async def set_quota_bonus(telegram_id: str, body: QuotaBonus, payload: dict = Depends(verify_admin_token)):
+def set_quota_bonus(telegram_id: str, body: QuotaBonus, payload: dict = Depends(verify_admin_token)):
     """Fixe le bonus de quota (extra_quantity) d'un client pour UN type d'action, sur la période en cours.
     N'affecte que ce client ; au renouvellement, le compteur repart sur les quotas du plan."""
     if body.extra_quantity < 0:
@@ -340,7 +340,7 @@ class SubmagicThemeUpdate(BaseModel):
 
 
 @router.patch("/users/{telegram_id}/submagic-theme")
-async def set_submagic_theme(telegram_id: str, body: SubmagicThemeUpdate, payload: dict = Depends(verify_admin_token)):
+def set_submagic_theme(telegram_id: str, body: SubmagicThemeUpdate, payload: dict = Depends(verify_admin_token)):
     """Assigne (ou retire) le thème Submagic de marque d'un compte — userThemeId créé dans l'éditeur."""
     upd = {
         "submagic_theme_id": (body.submagic_theme_id or "").strip() or None,
@@ -359,7 +359,7 @@ class CarrouselTemplatesUpdate(BaseModel):
 
 
 @router.get("/carrousel-templates")
-async def list_carrousel_exclusifs(payload: dict = Depends(verify_admin_token)):
+def list_carrousel_exclusifs(payload: dict = Depends(verify_admin_token)):
     """Catalogue des templates de carrousel sur mesure attribuables à un compte."""
     from services import carrousel_service
     from services import carrousel_custom
@@ -370,7 +370,7 @@ async def list_carrousel_exclusifs(payload: dict = Depends(verify_admin_token)):
 
 
 @router.patch("/users/{telegram_id}/carrousel-templates")
-async def set_carrousel_templates(telegram_id: str, body: CarrouselTemplatesUpdate,
+def set_carrousel_templates(telegram_id: str, body: CarrouselTemplatesUpdate,
                                   payload: dict = Depends(verify_admin_token)):
     """Attribue (ou retire) les templates de carrousel sur mesure d'un compte."""
     from services import carrousel_service
@@ -398,7 +398,7 @@ class CarrouselTemplateImport(BaseModel):
 
 
 @router.get("/carrousel-templates/custom")
-async def list_carrousel_custom(payload: dict = Depends(verify_admin_token)):
+def list_carrousel_custom(payload: dict = Depends(verify_admin_token)):
     """Templates de carrousel importés (HTML stocké en base)."""
     from services import carrousel_custom
     return {"templates": carrousel_custom.lister(), "placeholders": carrousel_custom.PLACEHOLDERS}
@@ -428,14 +428,14 @@ async def import_carrousel_custom(body: CarrouselTemplateImport, payload: dict =
 
 
 @router.delete("/carrousel-templates/custom/{tpl_id}")
-async def delete_carrousel_custom(tpl_id: str, payload: dict = Depends(verify_admin_token)):
+def delete_carrousel_custom(tpl_id: str, payload: dict = Depends(verify_admin_token)):
     from services import carrousel_custom
     carrousel_custom.supprimer(tpl_id)
     return {"success": True}
 
 
 @router.get("/system")
-async def get_system(payload: dict = Depends(verify_admin_token)):
+def get_system(payload: dict = Depends(verify_admin_token)):
     try:
         return admin_service.system_info()
     except Exception as e:
@@ -444,7 +444,7 @@ async def get_system(payload: dict = Depends(verify_admin_token)):
 
 
 @router.get("/analytics-produit")
-async def get_analytics_produit(payload: dict = Depends(verify_admin_token)):
+def get_analytics_produit(payload: dict = Depends(verify_admin_token)):
     """Synthèse business (Supabase) + comportement (PostHog) pour l'onglet Analytics."""
     try:
         return admin_service.analytics_produit()
@@ -454,7 +454,7 @@ async def get_analytics_produit(payload: dict = Depends(verify_admin_token)):
 
 
 @router.get("/api-balances")
-async def get_api_balances(payload: dict = Depends(verify_admin_token)):
+def get_api_balances(payload: dict = Depends(verify_admin_token)):
     """Soldes fournisseurs IA : OpenRouter (restant exact) + Anthropic (dépense du mois)."""
     try:
         return admin_service.api_balances()
@@ -525,7 +525,7 @@ class PushBroadcast(BaseModel):
 
 
 @router.post("/push")
-async def send_push(body: PushBroadcast, payload: dict = Depends(verify_admin_token)):
+def send_push(body: PushBroadcast, payload: dict = Depends(verify_admin_token)):
     try:
         if not body.title.strip() or not body.body.strip():
             raise HTTPException(status_code=400, detail="Titre et message requis")
@@ -538,7 +538,7 @@ async def send_push(body: PushBroadcast, payload: dict = Depends(verify_admin_to
 
 
 @router.delete("/users/{telegram_id}")
-async def delete_user(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+def delete_user(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         result = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
         if not result.data:
@@ -561,7 +561,7 @@ class AvatarUpdate(BaseModel):
 
 
 @router.get("/avatars")
-async def get_all_avatars(payload: dict = Depends(verify_admin_token)):
+def get_all_avatars(payload: dict = Depends(verify_admin_token)):
     """List all avatar requests."""
     try:
         avatars = heygen_service.get_all_avatars()
@@ -572,7 +572,7 @@ async def get_all_avatars(payload: dict = Depends(verify_admin_token)):
 
 
 @router.patch("/avatars/{telegram_id}")
-async def update_avatar(
+def update_avatar(
     telegram_id: str,
     body: AvatarUpdate,
     payload: dict = Depends(verify_admin_token),
@@ -596,7 +596,7 @@ async def update_avatar(
 
 
 @router.delete("/avatars/{telegram_id}")
-async def admin_delete_avatar(telegram_id: str, payload: dict = Depends(verify_admin_token)):
+def admin_delete_avatar(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     """Admin deletes an avatar request."""
     try:
         supabase.table("heygen_avatars").delete().eq("telegram_id", telegram_id).execute()
@@ -610,7 +610,7 @@ async def admin_delete_avatar(telegram_id: str, payload: dict = Depends(verify_a
 # Quotas & offres — configuration (tout paramétrable, aucune valeur en dur)
 # =====================================================================
 @router.get("/quota-config")
-async def quota_config(payload: dict = Depends(verify_admin_token)):
+def quota_config(payload: dict = Depends(verify_admin_token)):
     """Offres + quotas par type + packs de rachat (pour l'écran admin)."""
     try:
         plans = supabase.table("plans").select("*").order("price_cents").execute().data or []
@@ -628,7 +628,7 @@ async def quota_config(payload: dict = Depends(verify_admin_token)):
 
 
 @router.patch("/plans/{plan_id}")
-async def update_plan(plan_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+def update_plan(plan_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
     upd = {k: body[k] for k in ("name", "price_cents", "billing_period", "is_active") if k in body}
     if not upd:
         raise HTTPException(status_code=400, detail="Rien à mettre à jour")
@@ -641,7 +641,7 @@ async def update_plan(plan_id: str, body: dict, payload: dict = Depends(verify_a
 
 
 @router.patch("/plan-quotas/{quota_id}")
-async def update_plan_quota(quota_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+def update_plan_quota(quota_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
     upd = {k: body[k] for k in ("included_quantity", "internal_unit_cost_cents", "rollover") if k in body}
     if not upd:
         raise HTTPException(status_code=400, detail="Rien à mettre à jour")
@@ -654,7 +654,7 @@ async def update_plan_quota(quota_id: str, body: dict, payload: dict = Depends(v
 
 
 @router.post("/plan-quotas")
-async def create_plan_quota(body: dict, payload: dict = Depends(verify_admin_token)):
+def create_plan_quota(body: dict, payload: dict = Depends(verify_admin_token)):
     if not body.get("plan_id") or not body.get("action_type"):
         raise HTTPException(status_code=400, detail="plan_id et action_type requis")
     row = {
@@ -672,7 +672,7 @@ async def create_plan_quota(body: dict, payload: dict = Depends(verify_admin_tok
 
 
 @router.patch("/credit-packs/{pack_id}")
-async def update_pack(pack_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+def update_pack(pack_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
     upd = {k: body[k] for k in ("action_type", "name", "quantity", "price_cents", "is_active", "stripe_price_id") if k in body}
     if not upd:
         raise HTTPException(status_code=400, detail="Rien à mettre à jour")
@@ -685,7 +685,7 @@ async def update_pack(pack_id: str, body: dict, payload: dict = Depends(verify_a
 
 
 @router.post("/credit-packs")
-async def create_pack(body: dict, payload: dict = Depends(verify_admin_token)):
+def create_pack(body: dict, payload: dict = Depends(verify_admin_token)):
     for f in ("action_type", "name", "quantity", "price_cents"):
         if body.get(f) in (None, ""):
             raise HTTPException(status_code=400, detail=f"{f} requis")
@@ -701,7 +701,7 @@ async def create_pack(body: dict, payload: dict = Depends(verify_admin_token)):
 
 
 @router.delete("/credit-packs/{pack_id}")
-async def delete_pack(pack_id: str, payload: dict = Depends(verify_admin_token)):
+def delete_pack(pack_id: str, payload: dict = Depends(verify_admin_token)):
     try:
         supabase.table("credit_packs").delete().eq("id", pack_id).execute()
         return {"success": True}
@@ -712,13 +712,13 @@ async def delete_pack(pack_id: str, payload: dict = Depends(verify_admin_token))
 
 # ----------------------------------------------------------------- Codes promo (Stripe)
 @router.get("/promos")
-async def list_promos(payload: dict = Depends(verify_admin_token)):
+def list_promos(payload: dict = Depends(verify_admin_token)):
     from services import promo_service
     return {"promos": promo_service.list_promos()}
 
 
 @router.post("/promos")
-async def create_promo(body: dict, payload: dict = Depends(verify_admin_token)):
+def create_promo(body: dict, payload: dict = Depends(verify_admin_token)):
     from services import promo_service
     res = promo_service.create_promo(body or {})
     if res.get("error"):
@@ -727,7 +727,7 @@ async def create_promo(body: dict, payload: dict = Depends(verify_admin_token)):
 
 
 @router.patch("/promos/{promo_id}")
-async def toggle_promo(promo_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+def toggle_promo(promo_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
     from services import promo_service
     res = promo_service.toggle_promo(promo_id, bool((body or {}).get("active")))
     if res.get("error"):

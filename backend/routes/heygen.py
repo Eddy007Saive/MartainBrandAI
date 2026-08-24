@@ -101,7 +101,7 @@ async def get_avatar(payload: dict = Depends(verify_token)):
 
 
 @router.delete("/avatar")
-async def delete_avatar(payload: dict = Depends(verify_token)):
+def delete_avatar(payload: dict = Depends(verify_token)):
     """Delete user's avatar record."""
     try:
         telegram_id = payload.get("telegram_id")

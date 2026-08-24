@@ -19,7 +19,7 @@ router = APIRouter(prefix="/newsletter", tags=["newsletter"])
 
 # ----------------------------------------------------------------- publiques
 @router.get("/apercu/{nid}", response_class=HTMLResponse)
-async def apercu(nid: str, token: str):
+def apercu(nid: str, token: str):
     """La lettre telle qu'elle sera reçue (lien « Lire dans le navigateur »)."""
     nl = newsletter_service._charger(nid, token)
     if not nl:
@@ -37,12 +37,12 @@ async def valider(nid: str, token: str):
 
 
 @router.get("/refuser/{nid}", response_class=HTMLResponse)
-async def refuser(nid: str, token: str):
+def refuser(nid: str, token: str):
     return HTMLResponse(newsletter_service.refuser(nid, token))
 
 
 @router.get("/desinscription", response_class=HTMLResponse)
-async def desinscription(token: str):
+def desinscription(token: str):
     if token == "apercu":   # lien neutre des aperçus internes
         return HTMLResponse(newsletter_service._page(
             "Aperçu", "Ceci est un aperçu : aucun abonné n'est concerné par ce lien."))
@@ -54,7 +54,7 @@ async def desinscription(token: str):
 
 
 @router.post("/desinscription", response_class=PlainTextResponse)
-async def desinscription_one_click(token: str):
+def desinscription_one_click(token: str):
     """Désinscription One-Click (en-tête List-Unsubscribe-Post) : Gmail/Outlook
     appellent cette URL en POST sans ouvrir de page."""
     newsletter_service.desabonner(token)
@@ -67,7 +67,7 @@ class AbonnementRequest(BaseModel):
 
 
 @router.post("/abonner")
-async def abonner(body: AbonnementRequest, request: Request):
+def abonner(body: AbonnementRequest, request: Request):
     """Inscription depuis le site public (formulaire newsletter)."""
     res = newsletter_service.abonner(body.email, body.nom, source="site")
     if res.get("error"):
@@ -77,7 +77,7 @@ async def abonner(body: AbonnementRequest, request: Request):
 
 # --------------------------------------------------------------------- admin
 @router.get("/editions")
-async def editions(payload: dict = Depends(verify_admin_token)):
+def editions(payload: dict = Depends(verify_admin_token)):
     """Historique des éditions (sans le HTML, trop lourd)."""
     r = (supabase.table("newsletters")
          .select("id, numero, sujet, statut, nb_envoyes, nb_erreurs, created_at, sent_at, token")
@@ -86,7 +86,7 @@ async def editions(payload: dict = Depends(verify_admin_token)):
 
 
 @router.get("/abonnes")
-async def abonnes(payload: dict = Depends(verify_admin_token)):
+def abonnes(payload: dict = Depends(verify_admin_token)):
     r = supabase.table("newsletter_abonnes").select("email, nom, source, statut, created_at").execute()
     rows = r.data or []
     return {
@@ -111,5 +111,5 @@ async def preparer(payload: dict = Depends(verify_admin_token)):
 
 
 @router.post("/sync-abonnes")
-async def sync(payload: dict = Depends(verify_admin_token)):
+def sync(payload: dict = Depends(verify_admin_token)):
     return {"ajoutes": newsletter_service.sync_abonnes()}

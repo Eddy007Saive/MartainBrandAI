@@ -7,7 +7,7 @@ router = APIRouter(prefix="/billing", tags=["billing"])
 
 
 @router.post("/admin/lien-pack")
-async def lien_pack(body: dict, payload: dict = Depends(verify_admin_token)):
+def lien_pack(body: dict, payload: dict = Depends(verify_admin_token)):
     """Génère le lien de paiement du Pack Fondations pour un client précis.
 
     C'est le lien qu'on envoie après le rendez-vous. Le code de l'apporteur
@@ -25,7 +25,7 @@ async def lien_pack(body: dict, payload: dict = Depends(verify_admin_token)):
 
 
 @router.post("/checkout")
-async def checkout(body: dict, payload: dict = Depends(verify_token)):
+def checkout(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -46,13 +46,13 @@ async def checkout(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.get("/packs")
-async def packs(action_type: str = None, payload: dict = Depends(verify_token)):
+def packs(action_type: str = None, payload: dict = Depends(verify_token)):
     """Packs de rachat disponibles (en résultats), optionnellement filtrés par type."""
     return {"packs": billing_service.list_packs(action_type)}
 
 
 @router.post("/pack-checkout")
-async def pack_checkout(body: dict, payload: dict = Depends(verify_token)):
+def pack_checkout(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -66,7 +66,7 @@ async def pack_checkout(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/sync")
-async def sync(payload: dict = Depends(verify_token)):
+def sync(payload: dict = Depends(verify_token)):
     """Resynchronise l'abonnement Stripe -> table subscriptions (au retour du paiement / webhook manqué)."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
@@ -75,7 +75,7 @@ async def sync(payload: dict = Depends(verify_token)):
 
 
 @router.get("/invoices")
-async def invoices(payload: dict = Depends(verify_token)):
+def invoices(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -83,7 +83,7 @@ async def invoices(payload: dict = Depends(verify_token)):
 
 
 @router.post("/portal")
-async def portal(payload: dict = Depends(verify_token)):
+def portal(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -124,7 +124,7 @@ async def resilier(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/motif-depart")
-async def motif_depart(body: dict, payload: dict = Depends(verify_token)):
+def motif_depart(body: dict, payload: dict = Depends(verify_token)):
     """Enregistre la raison des qu'elle est donnee, avant toute decision.
 
     Appelee a la sortie de l'ecran du motif. Sans elle, quelqu'un qui dit
@@ -138,7 +138,7 @@ async def motif_depart(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/parcours-retenu")
-async def parcours_retenu(body: dict, payload: dict = Depends(verify_token)):
+def parcours_retenu(body: dict, payload: dict = Depends(verify_token)):
     """Le parcours s'arrete : la personne reste."""
     return billing_service.noter_retenue(
         payload.get("telegram_id"), (body or {}).get("parcours"),
@@ -146,14 +146,14 @@ async def parcours_retenu(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.get("/remise-disponible")
-async def remise_disponible(payload: dict = Depends(verify_token)):
+def remise_disponible(payload: dict = Depends(verify_token)):
     """Pour n'afficher l'offre que si elle peut reellement etre honoree."""
     return {"disponible": not billing_service.remise_deja_accordee(payload.get("telegram_id")),
             "pourcent": billing_service.REMISE_PCT, "mois": billing_service.REMISE_MOIS}
 
 
 @router.post("/remise-retention")
-async def remise_retention(body: dict = None, payload: dict = Depends(verify_token)):
+def remise_retention(body: dict = None, payload: dict = Depends(verify_token)):
     """Applique la remise de retention. Une seule fois par compte."""
     res = billing_service.accorder_remise(
         payload.get("telegram_id"), (body or {}).get("raison") or "prix",
@@ -164,7 +164,7 @@ async def remise_retention(body: dict = None, payload: dict = Depends(verify_tok
 
 
 @router.post("/pause")
-async def pause(body: dict, payload: dict = Depends(verify_token)):
+def pause(body: dict, payload: dict = Depends(verify_token)):
     """Suspend la facturation ET l'acces, un a trois mois, config conservee."""
     res = billing_service.mettre_en_pause(
         payload.get("telegram_id"), (body or {}).get("mois"),
@@ -176,7 +176,7 @@ async def pause(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/reprendre")
-async def reprendre(payload: dict = Depends(verify_token)):
+def reprendre(payload: dict = Depends(verify_token)):
     """Sort de pause, ou annule une resiliation programmee. Un seul geste."""
     res = billing_service.reprendre(payload.get("telegram_id"))
     if not res.get("ok"):

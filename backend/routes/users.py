@@ -30,7 +30,7 @@ async def analyser_site(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.get("/me")
-async def get_current_user(payload: dict = Depends(verify_token)):
+def get_current_user(payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         if not telegram_id:
@@ -49,7 +49,7 @@ async def get_current_user(payload: dict = Depends(verify_token)):
 
 
 @router.delete("/me")
-async def delete_current_user(payload: dict = Depends(verify_token)):
+def delete_current_user(payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         if not telegram_id:
@@ -67,7 +67,7 @@ async def delete_current_user(payload: dict = Depends(verify_token)):
 
 
 @router.patch("/me")
-async def update_current_user(updates: UserUpdate, payload: dict = Depends(verify_token)):
+def update_current_user(updates: UserUpdate, payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         if not telegram_id:
@@ -109,7 +109,7 @@ async def upload_my_photo(file: UploadFile = File(...), payload: dict = Depends(
 
 
 @router.post("/me/password")
-async def change_my_password(body: dict, payload: dict = Depends(verify_token)):
+def change_my_password(body: dict, payload: dict = Depends(verify_token)):
     """Change le mot de passe (ancien + nouveau)."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
@@ -185,7 +185,7 @@ async def upload_my_logo(file: UploadFile = File(...), payload: dict = Depends(v
 
 
 @router.delete("/me/logo")
-async def delete_my_logo(payload: dict = Depends(verify_token)):
+def delete_my_logo(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -198,7 +198,7 @@ async def delete_my_logo(payload: dict = Depends(verify_token)):
 
 
 @router.get("/me/inspirations")
-async def list_inspirations(payload: dict = Depends(verify_token)):
+def list_inspirations(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -224,7 +224,7 @@ async def add_inspiration(file: UploadFile = File(...), payload: dict = Depends(
 
 
 @router.delete("/me/inspirations")
-async def remove_inspiration(body: dict, payload: dict = Depends(verify_token)):
+def remove_inspiration(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -284,7 +284,7 @@ async def get_social_accounts(payload: dict = Depends(verify_token)):
 # ============ SCHEDULES ============
 
 @router.get("/me/schedules")
-async def get_schedules(payload: dict = Depends(verify_token)):
+def get_schedules(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -296,7 +296,7 @@ async def get_schedules(payload: dict = Depends(verify_token)):
 
 
 @router.put("/me/schedules")
-async def update_schedules(data: ScheduleUpdate, payload: dict = Depends(verify_token)):
+def update_schedules(data: ScheduleUpdate, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")

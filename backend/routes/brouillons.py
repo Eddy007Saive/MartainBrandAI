@@ -6,7 +6,7 @@ router = APIRouter(prefix="/brouillons", tags=["brouillons"])
 
 
 @router.get("")
-async def get_brouillons(payload: dict = Depends(verify_token)):
+def get_brouillons(payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         result = supabase.table("brouillons").select("*").eq("telegram_id", telegram_id).order("created_at", desc=True).execute()

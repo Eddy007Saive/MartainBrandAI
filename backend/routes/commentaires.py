@@ -8,7 +8,7 @@ router = APIRouter(prefix="/commentaires", tags=["commentaires"])
 
 
 @router.get("")
-async def get_commentaires(statut: str = None, payload: dict = Depends(verify_token)):
+def get_commentaires(statut: str = None, payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         return commentaire_service.get_commentaires(telegram_id, statut)
@@ -18,7 +18,7 @@ async def get_commentaires(statut: str = None, payload: dict = Depends(verify_to
 
 
 @router.patch("/{commentaire_id}")
-async def update_commentaire(commentaire_id: str, updates: CommentaireUpdate, payload: dict = Depends(verify_token)):
+def update_commentaire(commentaire_id: str, updates: CommentaireUpdate, payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         update_data = {k: v for k, v in updates.model_dump().items() if v is not None}

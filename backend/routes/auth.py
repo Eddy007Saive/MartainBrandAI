@@ -83,7 +83,7 @@ async def register(user_data: UserRegister, request: Request):
 
 
 @router.post("/login")
-async def login(credentials: UserLogin, request: Request):
+def login(credentials: UserLogin, request: Request):
     keys = _guard_login(request, credentials.email)
     try:
         result = login_user(credentials.email, credentials.password)
@@ -125,7 +125,7 @@ async def forgot_password(body: dict):
 
 
 @router.post("/reset-password")
-async def reset_pw(body: dict):
+def reset_pw(body: dict):
     token = (body.get("token") or "").strip()
     password = body.get("password") or ""
     if not token:
@@ -143,7 +143,7 @@ async def reset_pw(body: dict):
 
 
 @router.post("/admin-login")
-async def admin_login(credentials: AdminLogin, request: Request):
+def admin_login(credentials: AdminLogin, request: Request):
     keys = _guard_login(request, credentials.email)
     result = login_admin(credentials.email, credentials.password)
     if "error" in result:

@@ -45,7 +45,7 @@ def _effective_master(payload: dict) -> str:
 
 
 @router.get("")
-async def list_accounts(payload: dict = Depends(verify_token)):
+def list_accounts(payload: dict = Depends(verify_token)):
     """Liste les comptes de la famille (le master + ses sous-comptes) pour le sélecteur."""
     me = payload.get("telegram_id")
     if not me:
@@ -85,7 +85,7 @@ async def list_accounts(payload: dict = Depends(verify_token)):
 
 
 @router.post("")
-async def create_account(body: dict, payload: dict = Depends(verify_token)):
+def create_account(body: dict, payload: dict = Depends(verify_token)):
     """Crée une nouvelle marque (sous-compte) rattachée au master courant."""
     master = _effective_master(payload)
     nom = (body.get("nom") or "").strip()
@@ -102,7 +102,7 @@ async def create_account(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/switch")
-async def switch_account(body: dict, payload: dict = Depends(verify_token)):
+def switch_account(body: dict, payload: dict = Depends(verify_token)):
     """Bascule vers un compte de la famille : renvoie un token scopé sur ce compte."""
     target = body.get("telegram_id")
     if not target:
@@ -148,7 +148,7 @@ async def switch_account(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.delete("/{telegram_id}")
-async def delete_account(telegram_id: str, payload: dict = Depends(verify_token)):
+def delete_account(telegram_id: str, payload: dict = Depends(verify_token)):
     """Supprime un sous-compte possédé par le master (jamais le master lui-même)."""
     master = _effective_master(payload)
     if telegram_id == master:

@@ -6,7 +6,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
 @router.get("")
-async def list_notifications(payload: dict = Depends(verify_token)):
+def list_notifications(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -21,7 +21,7 @@ async def list_notifications(payload: dict = Depends(verify_token)):
 
 
 @router.post("/lus")
-async def mark_all_read(payload: dict = Depends(verify_token)):
+def mark_all_read(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -30,7 +30,7 @@ async def mark_all_read(payload: dict = Depends(verify_token)):
 
 
 @router.post("/{notif_id}/lu")
-async def mark_read(notif_id: str, payload: dict = Depends(verify_token)):
+def mark_read(notif_id: str, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -39,7 +39,7 @@ async def mark_read(notif_id: str, payload: dict = Depends(verify_token)):
 
 
 @router.post("/device-token")
-async def register_device_token(body: dict, payload: dict = Depends(verify_token)):
+def register_device_token(body: dict, payload: dict = Depends(verify_token)):
     """Enregistre le token push (FCM) de l'appareil pour l'utilisateur courant."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:

@@ -26,7 +26,7 @@ def _ip(request: Request) -> str:
 
 # ------------------------------------------------------------------ publique
 @router.get("/r/{code}")
-async def rediriger(code: str, request: Request, vers: str = "/"):
+def rediriger(code: str, request: Request, vers: str = "/"):
     """Lien d'affiliation. Loge le clic puis renvoie sur le site avec ?ref=CODE,
     que le front stocke pour la durée de la fenêtre d'attribution."""
     a = aff.enregistrer_clic(code, ip=_ip(request),
@@ -40,7 +40,7 @@ async def rediriger(code: str, request: Request, vers: str = "/"):
 
 
 @router.get("/verifier/{code}")
-async def verifier(code: str):
+def verifier(code: str):
     """Le front s'en sert pour n'afficher « parrainé par X » que si le code est bon."""
     a = aff.par_code(code)
     return {"valide": bool(a), "nom": a.get("nom") if a else None}
@@ -48,7 +48,7 @@ async def verifier(code: str):
 
 # ------------------------------------------------------------------- affilié
 @router.post("/demande")
-async def demande(body: dict, payload: dict = Depends(verify_token)):
+def demande(body: dict, payload: dict = Depends(verify_token)):
     """Un client demande à devenir apporteur d'affaires. Statut « en_attente »
     jusqu'à validation d'un admin : le lien ne convertit pas avant."""
     tid = payload.get("telegram_id")
@@ -62,7 +62,7 @@ async def demande(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/demande-externe")
-async def demande_externe(body: dict):
+def demande_externe(body: dict):
     """Influenceur ou blogueur sans compte client : même formulaire, sans jeton."""
     try:
         a = aff.demander(nom=body.get("nom"), email=body.get("email"),
@@ -73,7 +73,7 @@ async def demande_externe(body: dict):
 
 
 @router.get("/moi")
-async def moi(payload: dict = Depends(verify_token)):
+def moi(payload: dict = Depends(verify_token)):
     a = aff.par_telegram(payload.get("telegram_id"))
     if not a:
         return {"affilie": None}
@@ -90,13 +90,13 @@ async def moi(payload: dict = Depends(verify_token)):
 
 
 @router.get("/mes-releves")
-async def mes_releves(payload: dict = Depends(verify_token)):
+def mes_releves(payload: dict = Depends(verify_token)):
     a = aff.par_telegram(payload.get("telegram_id"))
     return aff.releves(a["id"]) if a else []
 
 
 @router.put("/mon-iban")
-async def mon_iban(body: dict, payload: dict = Depends(verify_token)):
+def mon_iban(body: dict, payload: dict = Depends(verify_token)):
     from config import supabase
     a = aff.par_telegram(payload.get("telegram_id"))
     if not a:
@@ -108,12 +108,12 @@ async def mon_iban(body: dict, payload: dict = Depends(verify_token)):
 
 # --------------------------------------------------------------------- admin
 @router.get("/admin/affilies")
-async def admin_affilies(statut: str = None, payload: dict = Depends(verify_admin_token)):
+def admin_affilies(statut: str = None, payload: dict = Depends(verify_admin_token)):
     return aff.liste_affilies(statut)
 
 
 @router.put("/admin/affilies/{affiliate_id}")
-async def admin_decider(affiliate_id: str, body: dict,
+def admin_decider(affiliate_id: str, body: dict,
                         payload: dict = Depends(verify_admin_token)):
     """Valide, refuse ou suspend une demande ; ajuste aussi les taux négociés."""
     if body.get("statut"):
@@ -125,14 +125,14 @@ async def admin_decider(affiliate_id: str, body: dict,
 
 
 @router.get("/admin/affilies/{affiliate_id}/iban")
-async def admin_iban(affiliate_id: str, payload: dict = Depends(verify_admin_token)):
+def admin_iban(affiliate_id: str, payload: dict = Depends(verify_admin_token)):
     """RIB en clair, pour le virement. Chaque lecture est tracée dans les logs."""
     logger.warning(f"AUDIT iban affilié {affiliate_id} lu par admin {payload.get('telegram_id')}")
     return {"iban": aff.iban_clair(affiliate_id)}
 
 
 @router.get("/admin/commissions")
-async def admin_commissions(periode: str = None, statut: str = None,
+def admin_commissions(periode: str = None, statut: str = None,
                             affiliate_id: str = None,
                             payload: dict = Depends(verify_admin_token)):
     """periode au format AAAA-MM : c'est le filtre mois par mois."""
@@ -140,18 +140,18 @@ async def admin_commissions(periode: str = None, statut: str = None,
 
 
 @router.get("/admin/resume/{periode}")
-async def admin_resume(periode: str, payload: dict = Depends(verify_admin_token)):
+def admin_resume(periode: str, payload: dict = Depends(verify_admin_token)):
     """Qui a vendu ce mois-là, combien de ventes, quel chiffre, quelle commission."""
     return aff.resume_mois(periode)
 
 
 @router.post("/admin/commissions/{commission_id}/valider")
-async def admin_valider(commission_id: str, payload: dict = Depends(verify_admin_token)):
+def admin_valider(commission_id: str, payload: dict = Depends(verify_admin_token)):
     return aff.valider(commission_id)
 
 
 @router.post("/admin/commissions/{commission_id}/annuler")
-async def admin_annuler(commission_id: str, payload: dict = Depends(verify_admin_token)):
+def admin_annuler(commission_id: str, payload: dict = Depends(verify_admin_token)):
     return aff.annuler(commission_id)
 
 
@@ -173,11 +173,11 @@ async def admin_traitement(periode: str, payload: dict = Depends(verify_admin_to
 
 
 @router.get("/admin/releves")
-async def admin_releves(periode: str = None, payload: dict = Depends(verify_admin_token)):
+def admin_releves(periode: str = None, payload: dict = Depends(verify_admin_token)):
     return aff.tous_releves(periode)
 
 
 @router.post("/admin/releves/{releve_id}/payer")
-async def admin_payer(releve_id: str, payload: dict = Depends(verify_admin_token)):
+def admin_payer(releve_id: str, payload: dict = Depends(verify_admin_token)):
     """Le virement est parti : le relevé et ses commissions passent à « payée »."""
     return aff.marquer_paye(releve_id)

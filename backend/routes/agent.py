@@ -73,7 +73,7 @@ def _carrousel_legende(content: dict) -> str:
 
 
 @router.post("/sujets")
-async def sujets(body: dict, payload: dict = Depends(verify_token)):
+def sujets(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -108,7 +108,7 @@ async def sujets(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.get("/plan")
-async def plan(year: int = None, month: int = None, payload: dict = Depends(verify_token)):
+def plan(year: int = None, month: int = None, payload: dict = Depends(verify_token)):
     """Plan éditorial du mois : besoin/rempli/reste/format par réseau actif."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
@@ -251,7 +251,7 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.get("/sujets")
-async def list_sujets(payload: dict = Depends(verify_token)):
+def list_sujets(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -267,7 +267,7 @@ async def list_sujets(payload: dict = Depends(verify_token)):
 
 
 @router.delete("/sujets/{sujet_id}")
-async def delete_sujet(sujet_id: str, payload: dict = Depends(verify_token)):
+def delete_sujet(sujet_id: str, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -281,7 +281,7 @@ async def delete_sujet(sujet_id: str, payload: dict = Depends(verify_token)):
 
 # --- Brouillons du Studio (persistés côté compte, suivent l'user partout) ---
 @router.get("/drafts")
-async def get_drafts(payload: dict = Depends(verify_token)):
+def get_drafts(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -294,7 +294,7 @@ async def get_drafts(payload: dict = Depends(verify_token)):
 
 
 @router.put("/drafts")
-async def put_drafts(body: dict, payload: dict = Depends(verify_token)):
+def put_drafts(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -315,13 +315,13 @@ async def put_drafts(body: dict, payload: dict = Depends(verify_token)):
 
 # --- Gabarits de post (rendu HTML brandé -> PNG) ---
 @router.get("/gabarits")
-async def list_gabarits(payload: dict = Depends(verify_token)):
+def list_gabarits(payload: dict = Depends(verify_token)):
     from services import gabarit_service
     return {"gabarits": gabarit_service.GABARITS, "labels": gabarit_service.GAB_LABELS}
 
 
 @router.get("/carrousel-templates")
-async def list_carrousel_templates(payload: dict = Depends(verify_token)):
+def list_carrousel_templates(payload: dict = Depends(verify_token)):
     """Templates de carrousel proposables à ce compte (les sur-mesure non attribués sont exclus)."""
     from services import carrousel_service, carrousel_custom
     tid = payload.get("telegram_id")
@@ -333,7 +333,7 @@ async def list_carrousel_templates(payload: dict = Depends(verify_token)):
 
 
 @router.get("/usage")
-async def usage_gauge(payload: dict = Depends(verify_token)):
+def usage_gauge(payload: dict = Depends(verify_token)):
     """Jauge de résultats (par type) + état de l'abonnement, pour le dashboard."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
@@ -422,7 +422,7 @@ async def gabarit_auto(body: dict, payload: dict = Depends(verify_token)):
 
 # --- Templates de marque (style réutilisable : images de référence + note) ---
 @router.get("/templates")
-async def list_templates(payload: dict = Depends(verify_token)):
+def list_templates(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -437,7 +437,7 @@ async def list_templates(payload: dict = Depends(verify_token)):
 
 
 @router.post("/templates")
-async def create_template(body: dict, payload: dict = Depends(verify_token)):
+def create_template(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -457,7 +457,7 @@ async def create_template(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.delete("/templates/{template_id}")
-async def delete_template(template_id: str, payload: dict = Depends(verify_token)):
+def delete_template(template_id: str, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -470,7 +470,7 @@ async def delete_template(template_id: str, payload: dict = Depends(verify_token
 
 
 @router.post("/rediger")
-async def rediger(body: dict, payload: dict = Depends(verify_token)):
+def rediger(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -629,7 +629,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/script")
-async def script(body: dict, payload: dict = Depends(verify_token)):
+def script(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -657,7 +657,7 @@ async def script(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/enregistrer-script")
-async def enregistrer_script(body: dict, payload: dict = Depends(verify_token)):
+def enregistrer_script(body: dict, payload: dict = Depends(verify_token)):
     """Enregistre le script (éventuellement édité) dans la table studio. Gratuit."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
@@ -681,7 +681,7 @@ async def enregistrer_script(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/enregistrer")
-async def enregistrer(body: dict, payload: dict = Depends(verify_token)):
+def enregistrer(body: dict, payload: dict = Depends(verify_token)):
     """Enregistre le texte (éventuellement édité) dans la table contenu. Gratuit."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
@@ -717,7 +717,7 @@ async def enregistrer(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/image-prompt")
-async def image_prompt(body: dict, payload: dict = Depends(verify_token)):
+def image_prompt(body: dict, payload: dict = Depends(verify_token)):
     """Claude écrit un prompt d'image à partir du post (gratuit, éditable)."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:

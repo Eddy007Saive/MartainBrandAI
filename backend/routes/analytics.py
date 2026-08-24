@@ -7,7 +7,7 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
 @router.get("/stats")
-async def get_stats(payload: dict = Depends(verify_token)):
+def get_stats(payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         return analytics_service.get_stats(telegram_id)
@@ -17,7 +17,7 @@ async def get_stats(payload: dict = Depends(verify_token)):
 
 
 @router.get("/performance")
-async def get_performance(payload: dict = Depends(verify_token)):
+def get_performance(payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         return analytics_service.get_performance(telegram_id)

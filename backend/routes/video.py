@@ -142,7 +142,7 @@ async def upload_raw(file: UploadFile = File(...), payload: dict = Depends(verif
 
 
 @router.post("/draft")
-async def draft(body: dict, payload: dict = Depends(verify_token)):
+def draft(body: dict, payload: dict = Depends(verify_token)):
     """Crée un contenu-script (statut « À tourner ») depuis un script — apparaît dans Contenus.
 
     Gratuit : c'est le montage (/create) qui consomme le quota. Renvoie { contenu_id }.
@@ -251,7 +251,7 @@ async def create(body: dict, payload: dict = Depends(verify_token)):
 
 
 @router.post("/import")
-async def import_video(body: dict, payload: dict = Depends(verify_token)):
+def import_video(body: dict, payload: dict = Depends(verify_token)):
     """Import DIRECT d'une vidéo déjà prête — SANS montage Submagic, SANS quota vidéo.
 
     Pour l'utilisateur qui a déjà sa vidéo montée et veut juste la publier telle quelle.

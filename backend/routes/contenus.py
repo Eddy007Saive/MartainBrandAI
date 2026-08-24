@@ -70,7 +70,7 @@ async def replanifier_contenu(contenu_id: str, payload: dict = Depends(verify_to
 
 
 @router.post("/{contenu_id}/story")
-async def decliner_story(contenu_id: str, payload: dict = Depends(verify_token)):
+def decliner_story(contenu_id: str, payload: dict = Depends(verify_token)):
     """Décline un post existant en STORY (Instagram/Facebook) : copie le texte comme
     accroche et réutilise le visuel (recadré 9:16 à la publication), créneau famille story."""
     telegram_id = payload.get("telegram_id")
@@ -122,7 +122,7 @@ async def recycler_contenu(contenu_id: str, body: dict, payload: dict = Depends(
 
 
 @router.get("")
-async def get_contenus(statut: str = None, payload: dict = Depends(verify_token)):
+def get_contenus(statut: str = None, payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         return contenu_service.get_contenus(telegram_id, statut)
@@ -132,7 +132,7 @@ async def get_contenus(statut: str = None, payload: dict = Depends(verify_token)
 
 
 @router.get("/{contenu_id}")
-async def get_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
+def get_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
     try:
         telegram_id = payload.get("telegram_id")
         contenu = contenu_service.get_contenu(contenu_id, telegram_id)

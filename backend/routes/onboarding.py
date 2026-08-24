@@ -91,12 +91,12 @@ async def submit_audit(body: dict, request: Request):
 # ---- Admin : consultation des leads ----
 
 @router.get("/audits")
-async def list_audits(payload: dict = Depends(verify_admin_token)):
+def list_audits(payload: dict = Depends(verify_admin_token)):
     return {"audits": onboarding_service.list_audits()}
 
 
 @router.get("/audits/{audit_id}")
-async def get_audit(audit_id: str, payload: dict = Depends(verify_admin_token)):
+def get_audit(audit_id: str, payload: dict = Depends(verify_admin_token)):
     audit = onboarding_service.get_audit(audit_id)
     if not audit:
         raise HTTPException(status_code=404, detail="Introuvable")
@@ -125,7 +125,7 @@ async def reply_audit(audit_id: str, body: dict, payload: dict = Depends(verify_
 
 
 @router.patch("/audits/{audit_id}/status")
-async def set_audit_status(audit_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
+def set_audit_status(audit_id: str, body: dict, payload: dict = Depends(verify_admin_token)):
     status = (body.get("status") or "").strip()
     if status not in ("nouveau", "en_cours", "traite"):
         raise HTTPException(status_code=400, detail="Statut invalide")
