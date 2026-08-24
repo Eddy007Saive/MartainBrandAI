@@ -2493,12 +2493,6 @@
       "autre": "Autre"
     },
     "e3": {
-      "remise": {
-        "titre": "Et si on trouvait un terrain d'entente ?",
-        "texte": "On peut te faire 30 % de remise pendant trois mois, le temps que tu voies ce que ça donne sur la durée.",
-        "cta": "Profiter de −30 % et rester",
-        "ok": "Remise de {{pct}} % appliquée pendant {{mois}} mois."
-      },
       "appel": {
         "titre": "Laisse-nous t'aider avant que tu partes.",
         "texte": "Souvent, un simple réglage change tout. Réserve vingt minutes avec un expert : on regarde ton compte ensemble, et on te dit franchement si le produit peut t'aider.",
@@ -2508,6 +2502,11 @@
         "titre": "Laquelle te manque ?",
         "texte": "Dis-nous laquelle dans le champ précédent — elle est peut-être déjà en route. On te préviendra quand elle sortira.",
         "cta": "Rester et attendre"
+      },
+      "appel_prix": {
+        "titre": "Et si on regardait ton budget ensemble ?",
+        "texte": "Avant de partir pour une question de prix, parlons-en vingt minutes. Selon ton usage, il y a peut-être une formule ou un ajustement qui te convient mieux — et sinon, tu résilies, sans rancune.",
+        "cta": "Réserver un appel"
       }
     },
     "e4": {

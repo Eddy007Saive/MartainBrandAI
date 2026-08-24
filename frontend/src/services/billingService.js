@@ -26,9 +26,6 @@ export const billingService = {
   parcoursRetenu: (parcours, detail) =>
     api.post('/billing/parcours-retenu', { parcours, detail }).then((r) => r.data),
 
-  remiseDisponible: () => api.get('/billing/remise-disponible').then((r) => r.data),
-  remiseRetention: (raison, commentaire, parcours) =>
-    api.post('/billing/remise-retention', { raison, commentaire, parcours }).then((r) => r.data),
 
   portal: async () => {
     const { data } = await api.post('/billing/portal');

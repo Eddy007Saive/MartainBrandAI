@@ -32,7 +32,7 @@ const RAISONS = ['prix', 'temps', 'resultats', 'complexite', 'fonctionnalite',
 // autre — n'en reçoivent pas : insister devant quelqu'un qui a déjà choisi
 // ailleurs, ou qui n'a jamais eu l'intention de rester, n'apporte rien.
 const OFFRES = {
-  prix: 'remise',
+  prix: 'appel_prix',
   temps: 'appel',
   resultats: 'appel',
   complexite: 'appel',
@@ -69,10 +69,6 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
   const [commentaire, setCommentaire] = useState('');
   const [envoi, setEnvoi] = useState(false);
   const [fin, setFin] = useState(null);
-  // Une remise deja consommee ne doit pas etre proposee. L'annoncer puis la
-  // refuser au clic est pire que ne pas l'annoncer : on fait esperer quelqu'un
-  // qui hesitait deja a partir.
-  const [remiseDispo, setRemiseDispo] = useState(true);
   // L'identifiant de la ligne ouverte a l'ecran du motif : les issues la
   // mettent a jour au lieu d'en creer une seconde.
   const [parcours, setParcours] = useState(null);
@@ -84,15 +80,6 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
     document.addEventListener('keydown', auClavier);
     return () => document.removeEventListener('keydown', auClavier);
   }, [ouvert, surFermeture]);
-
-  // On interroge au moment ou l'on entre dans le parcours, pas au montage :
-  // le dialogue vit dans la page des reglages et n'est ouvert qu'a la demande.
-  useEffect(() => {
-    if (!ouvert || enEssai) return;
-    billingService.remiseDisponible()
-      .then((r) => setRemiseDispo(!!r.disponible))
-      .catch(() => setRemiseDispo(false));   // dans le doute, on ne promet rien
-  }, [ouvert, enEssai]);
 
   if (!ouvert) return null;
 
@@ -124,23 +111,10 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
     }
   };
 
-  // La remise est RÉELLEMENT appliquée chez Stripe, et une seule fois par
-  // compte. Sans cela, le client croirait avoir obtenu quelque chose qu'il ne
-  // recevrait pas — et s'en apercevrait sur sa prochaine facture, au pire
-  // moment : celui où il hésitait déjà à partir.
-  const accepterOffre = async () => {
-    if (offre !== 'remise') { resterEtNoter(`attend : ${offre}`); return; }
-    setEnvoi(true);
-    try {
-      const res = await billingService.remiseRetention(raison, commentaire, parcours);
-      toast.success(t('resil.e3.remise.ok', { pct: res.pourcent, mois: res.mois }));
-      surChangement?.();
-      surFermeture();
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || t('resil.erreur'));
-      setEnvoi(false);
-    }
-  };
+  // Les offres qui retiennent sans transaction — « rester et attendre » sur
+  // une fonctionnalité manquante — se contentent de noter que la personne
+  // reste. Les appels sont des liens de rendez-vous, traités a l'affichage.
+  const accepterOffre = () => resterEtNoter(`attend : ${offre}`);
 
   // Après la raison : l'offre ciblée s'il y en a une, sinon la pause. Pendant
   // l'essai, ni l'une ni l'autre — on n'a rien encaissé, il n'y a rien à
@@ -156,11 +130,7 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
       } catch { /* jamais bloquant : on ne retient personne pour un journal */ }
     }
     if (enEssai) return partir();
-    const offreDuMotif = OFFRES[raison];
-    // « prix » sans remise disponible : on saute l'ecran d'offre plutot que de
-    // montrer une porte fermee. Il reste la pause, qui a de la valeur.
-    if (offreDuMotif === 'remise' && !remiseDispo) return setEcran(4);
-    return setEcran(offreDuMotif ? 3 : 4);
+    return setEcran(OFFRES[raison] ? 3 : 4);
   };
 
   /** Elle reste, sans prendre d'offre. On note l'issue et on ferme. */
@@ -280,14 +250,14 @@ export default function Resiliation({ ouvert, surFermeture, enEssai, surChangeme
               {t(`resil.e3.${offre}.texte`)}
             </p>
             <div className="mt-7 flex flex-col sm:flex-row gap-3">
-              {offre === 'appel' ? (
+              {offre && offre.startsWith('appel') ? (
                 <a {...propsRdv()} data-testid="resil-appel"
                   className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-[12px]
                              font-inter font-semibold text-[14px] text-white active:scale-[0.97]
                              bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:brightness-110
                              shadow-[inset_0_1px_0_rgba(255,255,255,.18),0_10px_24px_-8px_rgba(91,108,255,.6)]
                              transition-[transform,filter] duration-150 ease-out-strong">
-                  <PhoneCall className="w-4 h-4" />{t('resil.e3.appel.cta')}
+                  <PhoneCall className="w-4 h-4" />{t(`resil.e3.${offre}.cta`)}
                 </a>
               ) : (
                 <Bouton variante="rester" onClick={accepterOffre} disabled={envoi}

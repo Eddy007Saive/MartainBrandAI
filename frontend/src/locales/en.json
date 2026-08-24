@@ -2493,12 +2493,6 @@
       "autre": "Other"
     },
     "e3": {
-      "remise": {
-        "titre": "What if we met halfway?",
-        "texte": "We can give you 30% off for three months, long enough to see what it does over time.",
-        "cta": "Take −30% and stay",
-        "ok": "{{pct}}% discount applied for {{mois}} months."
-      },
       "appel": {
         "titre": "Let us help before you go.",
         "texte": "Often a single setting changes everything. Book twenty minutes with an expert: we look at your account together and tell you honestly whether the product can help.",
@@ -2508,6 +2502,11 @@
         "titre": "Which one is missing?",
         "texte": "Tell us in the field above — it may already be on the way. We'll let you know when it ships.",
         "cta": "Stay and wait"
+      },
+      "appel_prix": {
+        "titre": "What if we looked at your budget together?",
+        "texte": "Before leaving over price, let's talk for twenty minutes. Depending on how you use it, there may be a plan or an adjustment that fits you better — and if not, you cancel, no hard feelings.",
+        "cta": "Book a call"
       }
     },
     "e4": {

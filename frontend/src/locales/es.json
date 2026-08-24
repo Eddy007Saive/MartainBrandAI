@@ -2493,12 +2493,6 @@
       "autre": "Otro"
     },
     "e3": {
-      "remise": {
-        "titre": "¿Y si llegamos a un acuerdo?",
-        "texte": "Podemos darte un 30 % de descuento durante tres meses, el tiempo de ver qué da a largo plazo.",
-        "cta": "Aprovechar −30 % y quedarme",
-        "ok": "Descuento del {{pct}} % aplicado durante {{mois}} meses."
-      },
       "appel": {
         "titre": "Déjanos ayudarte antes de que te vayas.",
         "texte": "A menudo un solo ajuste lo cambia todo. Reserva veinte minutos con un experto: miramos tu cuenta juntos y te decimos con franqueza si el producto puede ayudarte.",
@@ -2508,6 +2502,11 @@
         "titre": "¿Cuál te falta?",
         "texte": "Dínoslo en el campo anterior: quizá ya esté en camino. Te avisamos cuando salga.",
         "cta": "Quedarme y esperar"
+      },
+      "appel_prix": {
+        "titre": "¿Y si revisamos tu presupuesto juntos?",
+        "texte": "Antes de irte por una cuestión de precio, hablémoslo veinte minutos. Según tu uso, quizá haya un plan o un ajuste que te convenga más — y si no, cancelas, sin problema.",
+        "cta": "Reservar una llamada"
       }
     },
     "e4": {
