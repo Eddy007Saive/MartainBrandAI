@@ -7,6 +7,7 @@ import { isNativeApp } from '../../lib/appDownload';
 import LangSwitcher from '../../components/LangSwitcher';
 import { CSS, GOODTIME } from './shared';
 import Newsletter from './Newsletter';
+import FondHexagones from '../../components/FondHexagones';
 
 const LINKS = [
   { to: '/fonctionnalites', labelKey: 'lp.nav.features' },
@@ -57,6 +58,7 @@ export default function MarketingLayout() {
   return (
     <div className="lp">
       <style>{CSS}</style>
+      <FondHexagones />
 
       <nav><div className="wrap">
         <Link to="/" className="brand"><img src="/logo.png" alt="Postorico" /><div><b>Postorico</b><small>{t('lp.nav.tagline')}</small></div></Link>

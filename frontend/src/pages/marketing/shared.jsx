@@ -115,6 +115,20 @@ export const CSS = `
 .lp a{text-decoration:none;color:inherit}
 .lp .wrap{max-width:1140px;margin:0 auto;padding:0 24px;width:100%}
 .lp .pagebody{flex:1}
+/* Fond d'hexagones flottants, commun a toutes les pages marketing. Fixe : ils
+   derivent sur place pendant que le contenu defile. z-index 0, tout le reste
+   passe au-dessus (les freres de .hexbg sont remontes a 1). Meme forme, meme
+   violet/mint que la connexion et les clips : la forme de la marque. */
+.lp .hexbg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.lp .hexbg~*{position:relative;z-index:1}
+.lp .hexbg svg{position:absolute;will-change:transform;animation:lpHexf ease-in-out infinite}
+.lp .hexbg .v{color:#8A6CFF;filter:drop-shadow(0 0 6px rgba(138,108,255,.4))}
+.lp .hexbg .m{color:#3AFFA3;filter:drop-shadow(0 0 6px rgba(58,255,163,.36))}
+@keyframes lpHexf{0%,100%{transform:translateY(0) rotate(var(--r))}50%{transform:translateY(-24px) rotate(calc(var(--r) + 7deg))}}
+@media(prefers-reduced-motion:reduce){.lp .hexbg svg{animation:none}}
+/* Telephone : moins d'hexagones, plus petits — huit elements animes sur un
+   ecran etroit, c'est de la batterie pour un decor a moitie vu. */
+@media(max-width:760px){.lp .hexbg svg{transform:scale(.68)}.lp .hexbg svg:nth-of-type(n+5){display:none}}
 .lp .btn{display:inline-flex;align-items:center;gap:9px;font:600 15px Inter;padding:14px 26px;border-radius:12px;cursor:pointer;transition:transform 150ms var(--ease),box-shadow 200ms var(--ease),background 150ms ease,filter 150ms ease;border:none}
 .lp .btn:active{transform:scale(.97)}
 .lp .btn.sm{padding:9px 18px;font-size:14px}
