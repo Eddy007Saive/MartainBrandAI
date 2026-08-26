@@ -2,7 +2,7 @@ import json
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import HTMLResponse
 from dependencies import verify_token
-from services import late_service, contenu_service, social_service
+from services import late_service, contenu_service, social_service, quota_service
 from config import supabase, logger, FRONTEND_URL
 
 router = APIRouter(prefix="/late", tags=["late"])
@@ -36,6 +36,7 @@ async def publier(contenu_id: str, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
     contenu = contenu_service.get_contenu(contenu_id, telegram_id)
     if not contenu:
         raise HTTPException(status_code=404, detail="Contenu introuvable")

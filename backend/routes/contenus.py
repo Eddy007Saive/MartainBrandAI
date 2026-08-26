@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from dependencies import verify_token
 from models.contenu import ContenuUpdate
-from services import contenu_service
+from services import contenu_service, quota_service
 from config import logger
 
 router = APIRouter(prefix="/contenus", tags=["contenus"])
@@ -93,6 +93,7 @@ def story_options(contenu_id: str, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
     cur = contenu_service.get_contenu(contenu_id, telegram_id)
     if not cur:
         raise HTTPException(status_code=404, detail="Contenu introuvable")
@@ -123,6 +124,7 @@ async def story_apercu(contenu_id: str, body: dict, payload: dict = Depends(veri
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
     cur = contenu_service.get_contenu(contenu_id, telegram_id)
     if not cur:
         raise HTTPException(status_code=404, detail="Contenu introuvable")
@@ -147,6 +149,7 @@ async def decliner_story(contenu_id: str, body: dict = None, payload: dict = Dep
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
     cur = contenu_service.get_contenu(contenu_id, telegram_id)
     if not cur:
         raise HTTPException(status_code=404, detail="Contenu introuvable")

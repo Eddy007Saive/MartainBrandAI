@@ -92,6 +92,22 @@ def statut_abonnement(telegram_id: str) -> str | None:
         return None
 
 
+def exiger_abonnement(telegram_id: str) -> None:
+    """Mur de paiement PARTAGE : un compte SANS aucun abonnement ne peut lancer
+    aucune action qui produit ou consomme. Lève un 402 { raison: no_subscription }
+    que l'intercepteur du front transforme en popup (mur de paiement).
+
+    Un compte en essai (trialing), actif ou past_due passe : il a déjà donné sa
+    carte. À poser en tête de tout nouvel endpoint qui produit/consomme, pour que
+    TOUTES les actions ressortent le même popup — pas seulement « Générer »."""
+    if statut_abonnement(telegram_id) is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=402, detail={
+            "raison": "no_subscription",
+            "message": "Ajoute ta carte pour lancer tes 14 jours d'essai.",
+        })
+
+
 def reseaux_autorises(telegram_id: str) -> int | None:
     """Nombre de reseaux connectables. None = sans limite, 0 = aucun droit."""
     statut = statut_abonnement(telegram_id)

@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from dependencies import verify_token
 from models.user import UserUpdate, SocialConnectRequest
 from models.schedule import ScheduleUpdate
-from services import user_service, schedule_service, auth_service, site_service
+from services import user_service, schedule_service, auth_service, site_service, quota_service
 from services.social_service import VALID_PLATFORMS, connect_platform, disconnect_platform, list_connected_accounts
 from config import logger
 import httpx
@@ -241,6 +241,7 @@ async def connect_social(data: SocialConnectRequest, payload: dict = Depends(ver
         raise HTTPException(status_code=400, detail="Invalid token")
     if data.platform not in VALID_PLATFORMS:
         raise HTTPException(status_code=400, detail="Invalid platform")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement (au lieu d'un toast)
     try:
         return await connect_platform(telegram_id, data.platform)
     except httpx.TimeoutException:
