@@ -8,7 +8,7 @@ tags: [linkedin, instagram, facebook, cadence]
 pose: annonce
 ---
 
-The question comes up every time, and it is the wrong one. "How many times a week should I post?" assumes there is a magic number. There isn't. There is a floor below which an account goes quiet, a ceiling above which your audience tunes out, and — above all — a pace **you** can hold for twelve months straight. That last one decides everything.
+The question comes up every time, and it is the wrong one. "How many times a week should I post?" assumes there is a magic number. There isn't. There is a floor below which an account goes quiet, a ceiling above which your audience tunes out, and, above all, a pace **you** can hold for twelve months straight. That last one decides everything.
 
 ## The short answer, network by network
 
@@ -36,7 +36,7 @@ Three reasons, in order of importance.
 
 ### 1. Measure your real capacity, not your imagined one
 
-Time yourself once: how long does one post take, from idea to publication? Visual included, proofreading included. Most independents land somewhere between 40 and 90 minutes. Multiply by the frequency you have in mind. If the total exceeds what you can genuinely free up each week, the frequency is wrong — however "recommended" it may be.
+Time yourself once: how long does one post take, from idea to publication? Visual included, proofreading included. Most independents land somewhere between 40 and 90 minutes. Multiply by the frequency you have in mind. If the total exceeds what you can genuinely free up each week, the frequency is wrong, however "recommended" it may be.
 
 ### 2. Halve that number
 
@@ -44,13 +44,13 @@ It is counter-intuitive and it is the most useful advice on this page. The pace 
 
 ### 3. Hold it for eight weeks before judging
 
-Two months is the minimum needed to tell a signal from an accident. Below that, you are only measuring variance. After eight weeks there are two outcomes: either the pace is comfortable and you can step it up, or it costs too much and you should reduce it — not abandon it.
+Two months is the minimum needed to tell a signal from an accident. Below that, you are only measuring variance. After eight weeks there are two outcomes: either the pace is comfortable and you can step it up, or it costs too much and you should reduce it, not abandon it.
 
 ## The three most expensive mistakes
 
 **The burst followed by silence.** Five posts in one week, then a month of nothing. It is the most common pattern and the costliest: you pay the price of production without collecting the reward of consistency.
 
-**The same content copied identically everywhere.** What works on LinkedIn — long text, an argument — dies on Instagram. That isn't a pacing problem, but it becomes one: duplicating feels like publishing a lot while genuinely reaching no one.
+**The same content copied identically everywhere.** What works on LinkedIn, long text, an argument, dies on Instagram. That isn't a pacing problem, but it becomes one: duplicating feels like publishing a lot while genuinely reaching no one.
 
 **Posting for the algorithm.** Publishing because "it's been three days" produces content with nothing to say, and your audience feels it before you do. Better to skip a day than to publish emptiness.
 
@@ -62,7 +62,7 @@ Three levers, from cheapest to most expensive.
 
 **Recycle without shame.** Content that worked well six months ago was seen by a fraction of your audience. Reworded, it will work again. Accounts that publish a lot do not create everything from scratch.
 
-**Get help from a tool.** That is Postorico's role: producing drafts in your voice, scheduling them, publishing at the right time. You keep the decision and the final read — which is what stops the result from sounding generic — but you no longer start from a blank page every time.
+**Get help from a tool.** That is Postorico's role: producing drafts in your voice, scheduling them, publishing at the right time. You keep the decision and the final read, which is what stops the result from sounding generic, but you no longer start from a blank page every time.
 
 ## What to take away
 

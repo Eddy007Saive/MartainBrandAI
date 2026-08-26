@@ -8,7 +8,7 @@ tags: [ai, automation, writing]
 pose: presente-produit
 ---
 
-The objection is fair and we hear it every week: "if an AI writes for me, it won't be me anymore." It holds — for an AI left on its own. It stops holding as soon as you draw the right line between what can be delegated and what cannot.
+The objection is fair and we hear it every week: "if an AI writes for me, it won't be me anymore." It holds, for an AI left on its own. It stops holding as soon as you draw the right line between what can be delegated and what cannot.
 
 Here is that line, as we draw it.
 
@@ -18,13 +18,13 @@ Here is that line, as we draw it.
 
 **Scheduling.** Deciding a post goes out Tuesday at 8:30 rather than Sunday at 11 p.m. involves no editorial judgement. It is logistics.
 
-**The first draft.** This is the point that surprises people. A first draft is not a text, it is a starting point — and the blank page is the most expensive thing in a busy week. Receiving three imperfect drafts to fix takes ten minutes; writing from scratch takes sixty.
+**The first draft.** This is the point that surprises people. A first draft is not a text, it is a starting point, and the blank page is the most expensive thing in a busy week. Receiving three imperfect drafts to fix takes ten minutes; writing from scratch takes sixty.
 
 **Recycling.** Digging out what worked well six months ago and rewording it is archivist's work. A machine does it better than you, because it forgets nothing.
 
 ## What must never be delegated
 
-**The subject.** What you talk about this week comes from your week: a difficult client, a mistake spotted on site, a question asked three times. No model has access to that. An AI choosing your subjects alone produces generalities — which is exactly what people hold against automated content.
+**The subject.** What you talk about this week comes from your week: a difficult client, a mistake spotted on site, a question asked three times. No model has access to that. An AI choosing your subjects alone produces generalities, which is exactly what people hold against automated content.
 
 **The opinion.** A stance commits someone. It must commit you.
 
@@ -41,16 +41,16 @@ Four signs, easy to catch once you know them:
 - **No numbers and no proper nouns.** Content mentioning no specific situation probably describes nothing that happened.
 - **The automatic closing question.** "What do you think?" asked with no real intention of reading the answers.
 
-If you re-read a draft and tick three of those four boxes, the text is not ready — whatever wrote it.
+If you re-read a draft and tick three of those four boxes, the text is not ready, whatever wrote it.
 
 ## The setup that changes everything
 
 A model produces the average of what it has read, unless you give it something to deviate from. That "something" is short:
 
-1. **Your pillars** — the three or four subjects you are legitimate on.
-2. **Your bans** — the words and turns of phrase you never use. It is the most effective setting, and the one most often skipped.
-3. **Five texts of your own** — real posts, written by hand. A sample of your sentence rhythm beats ten adjectives describing your tone.
-4. **Your audience** — who you talk to, and what they have already tried.
+1. **Your pillars** : the three or four subjects you are legitimate on.
+2. **Your bans** : the words and turns of phrase you never use. It is the most effective setting, and the one most often skipped.
+3. **Five texts of your own** : real posts, written by hand. A sample of your sentence rhythm beats ten adjectives describing your tone.
+4. **Your audience** : who you talk to, and what they have already tried.
 
 With those four in place, the question is no longer "does this sound like me?" but "do I approve this draft?". That is not the same conversation.
 
@@ -62,6 +62,6 @@ An account run by hand for two months and then abandoned is worth less than an a
 
 ## How we do it
 
-Postorico produces the drafts, you review them, you decide. Generation starts from your brand profile — pillars, voice, bans, audience — not from a generic prompt. Nothing goes out without your approval, and comments come back to you so you answer them yourself.
+Postorico produces the drafts, you review them, you decide. Generation starts from your brand profile, pillars, voice, bans, audience, not from a generic prompt. Nothing goes out without your approval, and comments come back to you so you answer them yourself.
 
 It is a deliberate choice: a fully automatic pipeline would publish faster, and would publish content nobody reads.

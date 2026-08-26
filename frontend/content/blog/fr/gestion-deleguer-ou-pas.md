@@ -1,7 +1,7 @@
 ---
 slug: gestion-reseaux-sociaux-deleguer-ou-faire-soi-meme
 titre: "Gestion des réseaux sociaux : faut-il le faire soi-même ou déléguer ?"
-description: Gérer ses réseaux sociaux seul ou déléguer ? On compare les options concrètement — temps, coût, résultats — pour que vous fassiez le bon choix.
+description: Gérer ses réseaux sociaux seul ou déléguer ? On compare les options concrètement, temps, coût, résultats, pour que vous fassiez le bon choix.
 date: 2026-08-22
 auteur: L'équipe Postorico
 tags: [strategie, delegation, budget]
@@ -20,11 +20,11 @@ pose: presente-calme
 
 On entend souvent que les réseaux sociaux, c'est gratuit. C'est vrai sur le papier. En pratique, c'est une autre histoire.
 
-Selon l'étude Bpifrance Le Lab menée auprès de 1 650 dirigeants de PME et d'ETI, **le premier frein à une présence active sur les réseaux est le manque de temps** — cité par 84 % des entreprises interrogées. Ce n'est pas un hasard.
+Selon l'étude Bpifrance Le Lab menée auprès de 1 650 dirigeants de PME et d'ETI, **le premier frein à une présence active sur les réseaux est le manque de temps**, cité par 84 % des entreprises interrogées. Ce n'est pas un hasard.
 
 ### Le temps, le coût invisible
 
-Pour gérer ses réseaux sociaux correctement — publier régulièrement, répondre aux commentaires, analyser les résultats, créer des visuels — une PME y consacre couramment **entre 6 et 10 heures par semaine**.
+Pour gérer ses réseaux sociaux correctement, publier régulièrement, répondre aux commentaires, analyser les résultats, créer des visuels, une PME y consacre couramment **entre 6 et 10 heures par semaine**.
 
 Faites le calcul. À 10 heures par semaine, c'est **40 heures par mois**. Si votre temps vaut 50 € de l'heure, ce qui est une estimation basse pour un dirigeant, cela représente **2 000 € de coût d'opportunité mensuel**. Autant d'heures non consacrées à votre cœur de métier, à vos clients, à votre développement commercial.
 
@@ -36,7 +36,7 @@ Gérer seul, c'est aussi se battre contre l'irrégularité. Quand le travail s'a
 
 Résultat : une page Instagram active en janvier, silencieuse en mars, relancée en juin. Ce type de présence erratique nuit plus qu'il n'aide. L'algorithme pénalise l'irrégularité, et les visiteurs qui tombent sur un compte inactif depuis trois mois passent leur chemin.
 
-**La régularité est la compétence la plus difficile à tenir seul** — pas la créativité, pas la technique. C'est le simple fait de publier, semaine après semaine, même quand on est débordé.
+**La régularité est la compétence la plus difficile à tenir seul**, pas la créativité, pas la technique. C'est le simple fait de publier, semaine après semaine, même quand on est débordé.
 
 ## Les trois façons de déléguer
 
@@ -44,7 +44,7 @@ Déléguer la gestion de vos réseaux sociaux peut prendre trois formes très di
 
 ### Le community manager salarié
 
-C'est la solution la plus complète — et la plus chère. Un community manager salarié junior coûte entre **2 800 et 3 500 € bruts par mois**, soit environ **4 500 à 5 200 € chargés** une fois les cotisations patronales ajoutées.
+C'est la solution la plus complète, et la plus chère. Un community manager salarié junior coûte entre **2 800 et 3 500 € bruts par mois**, soit environ **4 500 à 5 200 € chargés** une fois les cotisations patronales ajoutées.
 
 Pour une TPE ou un indépendant, c'est rarement justifiable. Cette option s'adresse aux entreprises qui ont déjà une stratégie digitale structurée, plusieurs plateformes à gérer, et un volume de contenu suffisant pour occuper quelqu'un à plein temps.
 
@@ -53,7 +53,7 @@ Pour une TPE ou un indépendant, c'est rarement justifiable. Cette option s'adre
 
 ### Le freelance
 
-Le freelance est souvent la solution la plus adaptée aux TPE et PME. Les forfaits mensuels vont généralement de **500 à 1 500 € pour une gestion de base** — deux ou trois plateformes, trois à quatre publications par semaine — et jusqu'à **2 500 à 3 000 €** pour une prise en charge complète incluant la création de contenu, la publicité et le reporting.
+Le freelance est souvent la solution la plus adaptée aux TPE et PME. Les forfaits mensuels vont généralement de **500 à 1 500 € pour une gestion de base**, deux ou trois plateformes, trois à quatre publications par semaine, et jusqu'à **2 500 à 3 000 €** pour une prise en charge complète incluant la création de contenu, la publicité et le reporting.
 
 Le tarif journalier moyen relevé par le baromètre Malt tourne autour de **400 €**, avec des écarts larges selon l'expérience et la spécialisation.
 
@@ -62,7 +62,7 @@ Le tarif journalier moyen relevé par le baromètre Malt tourne autour de **400 
 
 ### Un outil, avec ou sans accompagnement
 
-C'est le troisième chemin, souvent sous-estimé. Un outil de planification permet d'automatiser une partie du travail — programmation des publications, analyse des performances — tout en laissant la main au dirigeant.
+C'est le troisième chemin, souvent sous-estimé. Un outil de planification permet d'automatiser une partie du travail, programmation des publications, analyse des performances, tout en laissant la main au dirigeant.
 
 Cette option convient à ceux qui veulent **garder le contrôle de leur voix** sans y passer des heures. Le coût est nettement inférieur à un freelance ou à un salarié.
 
@@ -93,7 +93,7 @@ La combinaison qui fonctionne : **un outil pour la régularité, un freelance qu
 
 ## Ce qu'il faut retenir avant de décider
 
-La gestion des réseaux sociaux n'est pas une question de talent ni de maîtrise des outils. C'est une question de **régularité et de ressources** — du temps ou de l'argent, les deux se compensent.
+La gestion des réseaux sociaux n'est pas une question de talent ni de maîtrise des outils. C'est une question de **régularité et de ressources**, du temps ou de l'argent, les deux se compensent.
 
 Quatre points fermes avant de trancher :
 
@@ -102,7 +102,7 @@ Quatre points fermes avant de trancher :
 - **La continuité vaut mieux que la perfection.** Un post moyen publié chaque semaine bat un post parfait publié une fois par trimestre.
 - **Testez avant de vous engager.** Un freelance sur une mission de trois mois vous coûtera moins cher qu'un mauvais recrutement.
 
-Il existe une quatrième voie, entre l'outil nu et la délégation complète : faire cadrer sa marque par des humains — ton, ligne éditoriale, direction artistique — puis laisser une plateforme produire les propositions à cette voix, qu'on relit et qu'on valide une par une. C'est ce que fait Postorico, pour 279 € par mois. Vous gardez la décision et le dernier mot ; ce que vous déléguez, c'est la page blanche.
+Il existe une quatrième voie, entre l'outil nu et la délégation complète : faire cadrer sa marque par des humains, ton, ligne éditoriale, direction artistique, puis laisser une plateforme produire les propositions à cette voix, qu'on relit et qu'on valide une par une. C'est ce que fait Postorico, pour 279 € par mois. Vous gardez la décision et le dernier mot ; ce que vous déléguez, c'est la page blanche.
 
 ## Questions fréquentes
 
@@ -117,6 +117,6 @@ Oui, à condition de bien briefer. Partagez vos valeurs, votre ton, des exemples
 
 ## Sources
 
-- [France Num — La présence sur Internet des TPE et PME](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme)
-- [Bpifrance Le Lab — PME-ETI et réseaux sociaux](https://presse.bpifrance.fr/pme-eti-et-reseaux-sociaux-des-espaces-virtuels-aux-opportunites-reelles)
-- [Malt — Baromètre des tarifs : community manager](https://www.malt.fr/t/barometre-tarifs/communication/community-manager)
+- [France Num : La présence sur Internet des TPE et PME](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme)
+- [Bpifrance Le Lab : PME-ETI et réseaux sociaux](https://presse.bpifrance.fr/pme-eti-et-reseaux-sociaux-des-espaces-virtuels-aux-opportunites-reelles)
+- [Malt : Baromètre des tarifs : community manager](https://www.malt.fr/t/barometre-tarifs/communication/community-manager)
