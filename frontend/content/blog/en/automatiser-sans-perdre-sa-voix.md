@@ -47,10 +47,10 @@ If you re-read a draft and tick three of those four boxes, the text is not ready
 
 A model produces the average of what it has read, unless you give it something to deviate from. That "something" is short:
 
-1. **Your pillars** : the three or four subjects you are legitimate on.
-2. **Your bans** : the words and turns of phrase you never use. It is the most effective setting, and the one most often skipped.
-3. **Five texts of your own** : real posts, written by hand. A sample of your sentence rhythm beats ten adjectives describing your tone.
-4. **Your audience** : who you talk to, and what they have already tried.
+1. **Your pillars**: the three or four subjects you are legitimate on.
+2. **Your bans**: the words and turns of phrase you never use. It is the most effective setting, and the one most often skipped.
+3. **Five texts of your own**: real posts, written by hand. A sample of your sentence rhythm beats ten adjectives describing your tone.
+4. **Your audience**: who you talk to, and what they have already tried.
 
 With those four in place, the question is no longer "does this sound like me?" but "do I approve this draft?". That is not the same conversation.
 

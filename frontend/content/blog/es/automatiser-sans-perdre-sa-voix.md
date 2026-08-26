@@ -47,10 +47,10 @@ Si relees un borrador y marcas tres de esas cuatro casillas, el texto no está l
 
 Un modelo produce la media de lo que ha leído, salvo que le des con qué apartarse de ella. Ese «con qué» es corto:
 
-1. **Tus pilares** : los tres o cuatro temas en los que eres legítimo.
-2. **Tus prohibiciones** : las palabras y giros que nunca usas. Es el ajuste más eficaz y el que más se olvida.
-3. **Cinco textos tuyos** : publicaciones reales, escritas a mano. Una muestra de tu ritmo de frase vale más que diez adjetivos describiendo tu tono.
-4. **Tu audiencia** : a quién le hablas y qué ha probado ya.
+1. **Tus pilares**: los tres o cuatro temas en los que eres legítimo.
+2. **Tus prohibiciones**: las palabras y giros que nunca usas. Es el ajuste más eficaz y el que más se olvida.
+3. **Cinco textos tuyos**: publicaciones reales, escritas a mano. Una muestra de tu ritmo de frase vale más que diez adjetivos describiendo tu tono.
+4. **Tu audiencia**: a quién le hablas y qué ha probado ya.
 
 Con esos cuatro elementos, la pregunta deja de ser «¿esto suena a mí?» y pasa a ser «¿valido este borrador?». No es la misma conversación.
 

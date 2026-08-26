@@ -12,19 +12,19 @@ A content strategy is not a thirty-page document produced by an agency. It is on
 
 Here is the method we use to set up an account, in five blocks.
 
-## Block 1 : Who you are talking to, precisely
+## Block 1: Who you are talking to, precisely
 
 Write down a person, not a segment. "SMEs" is not an audience; "the owner of a ten-to-fifty-person company with no marketing team, who signs the big contracts personally" is one.
 
 Three elements are enough:
 
-- **Their situation** : their trade, their size, their daily reality.
-- **Their problem** : the one you solve, phrased in their words, not yours.
-- **What they have already tried** : this is what stops you writing advice they know by heart.
+- **Their situation**: their trade, their size, their daily reality.
+- **Their problem**: the one you solve, phrased in their words, not yours.
+- **What they have already tried**: this is what stops you writing advice they know by heart.
 
 That last point is the most neglected and the most profitable. Content that starts where your reader stopped is worth ten pieces that start from the beginning.
 
-## Block 2 : Your three or four pillars
+## Block 2: Your three or four pillars
 
 A pillar is a subject you can write about thirty times without repeating yourself. Three or four is enough; beyond that, your account loses its coherence.
 
@@ -32,7 +32,7 @@ For a roofer, for instance: job sites explained, the costly mistakes homeowners 
 
 Test each pillar this way: list five article ideas underneath it, right now, without thinking for more than two minutes. If you can't, it isn't a pillar, it's a post idea.
 
-## Block 3 : Your voice, in three adjectives and three bans
+## Block 3: Your voice, in three adjectives and three bans
 
 Adjectives alone are useless: everyone describes themselves as "authentic, expert and approachable". It is the bans that make a voice recognisable.
 
@@ -44,20 +44,20 @@ A concrete example:
 
 That list of bans is what you will re-read most often. It is also what you must hand to any writing assistant: without it, it will produce the average of the internet.
 
-## Block 4 : Your recurring formats
+## Block 4: Your recurring formats
 
 A format is a mould you reuse. It halves production time, because you stop reinventing the structure every time.
 
 Four formats are enough to start:
 
-1. **The field report** : a situation, what you did, how it turned out.
-2. **The common mistake** : what your clients get wrong, why, what to do instead.
-3. **Behind the scenes** : a moment from your week showing how you work.
-4. **The stance** : an opinion you own about your industry.
+1. **The field report**: a situation, what you did, how it turned out.
+2. **The common mistake**: what your clients get wrong, why, what to do instead.
+3. **Behind the scenes**: a moment from your week showing how you work.
+4. **The stance**: an opinion you own about your industry.
 
 Assign a pillar to each format and you get a topic grid that lasts several months.
 
-## Block 5 : What you want to happen
+## Block 5: What you want to happen
 
 A content strategy with no objective produces pleasant, ineffective content. Pick exactly one, phrased as an observable action: "a company owner messages me about their project", "people cite me when someone looks for a roofer in the county".
 
