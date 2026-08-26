@@ -16,5 +16,23 @@
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
+        <script>
+          // La home est prérendue dans index.html (pour le SEO de « / »). Ce même
+          // fichier sert de repli SPA pour /dashboard et /admin : sans ce garde,
+          // ces routes affichent la home une fraction de seconde avant que React
+          // prenne la main (le « flash accueil » au rechargement). On vide donc le
+          // contenu prérendu et on pose le fond sombre de l'app dès le chargement,
+          // avant même le bundle. Aucun effet sur « / » ni les pages marketing.
+          (function () {
+            try {
+              if (/^\/(dashboard|admin)(\/|$)/.test(location.pathname)) {
+                document.documentElement.style.background = '#020617';
+                document.body.style.background = '#020617';
+                var r = document.getElementById('root');
+                if (r) r.textContent = '';
+              }
+            } catch (e) { /* pas de garde -> au pire, le comportement d'avant */ }
+          })();
+        </script>
     </body>
 </html>
