@@ -35,14 +35,21 @@ _DEFAUTS = {
 
 
 def fiche(telegram_id: str) -> dict:
-    """La fiche de marque, ou les valeurs par défaut si elle n'existe pas encore."""
-    try:
-        r = (supabase.table("marques").select(",".join(CHAMPS))
-             .eq("telegram_id", telegram_id).limit(1).execute())
-        if r.data:
-            return {k: r.data[0].get(k) for k in CHAMPS}
-    except Exception as e:
-        logger.error(f"lecture marque {telegram_id}: {e}")
+    """La fiche de marque, ou les valeurs par défaut si elle n'existe pas encore.
+
+    ATTENTION : une ERREUR de lecture (connexion, timeout) ne doit JAMAIS renvoyer
+    une fiche vide. Sinon l'écran affiche une marque « effacée » alors que la base
+    est intacte — et si l'utilisateur sauvegarde par-dessus, il écrase ses vraies
+    données par du vide (incident du 26/08). On distingue donc :
+      - lecture réussie SANS ligne  -> valeurs par défaut (fiche jamais créée),
+      - lecture réussie AVEC ligne  -> la fiche,
+      - erreur de lecture           -> on la laisse remonter (l'appelant garde
+                                       l'état précédent plutôt que d'effacer).
+    """
+    r = (supabase.table("marques").select(",".join(CHAMPS))
+         .eq("telegram_id", telegram_id).limit(1).execute())
+    if r.data:
+        return {k: r.data[0].get(k) for k in CHAMPS}
     return {k: _DEFAUTS.get(k) for k in CHAMPS}
 
 
