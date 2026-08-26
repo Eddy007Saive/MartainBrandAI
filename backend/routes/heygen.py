@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from dependencies import verify_token
-from services import heygen_service
+from services import heygen_service, quota_service
 from config import logger, supabase
 
 router = APIRouter(prefix="/heygen", tags=["heygen"])
@@ -19,6 +19,7 @@ async def create_avatar(
         telegram_id = payload.get("telegram_id")
         if not telegram_id:
             raise HTTPException(status_code=400, detail="Invalid token")
+        quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
 
         # Check if user already has a pending/active avatar
         existing = await heygen_service.get_avatar_from_db(telegram_id)

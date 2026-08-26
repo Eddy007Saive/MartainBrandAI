@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel
 from dependencies import verify_token
-from services import reel_service, banque_service, music_library
+from services import reel_service, banque_service, music_library, quota_service
 from config import logger
 
 router = APIRouter(prefix="/reels", tags=["reels"])
@@ -96,6 +96,7 @@ def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
     template = body.template or "affiche"
     if body.duree == "long":  # retro-compat
         template = "long"
