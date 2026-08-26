@@ -62,8 +62,12 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contenu.id]);
 
-  // (Re)rendu quand on change de modèle
-  useEffect(() => { if (tpl) rendre(tpl); /* eslint-disable-next-line */ }, [tpl]);
+  // (Re)rendu quand on change de modèle (le texte courant est capturé volontairement,
+  // on ne veut pas re-rendre à chaque frappe — d'où l'omission de `rendre` des deps).
+  useEffect(() => {
+    if (tpl) rendre(tpl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tpl]);
 
   const valider = async () => {
     setSaving(true);
