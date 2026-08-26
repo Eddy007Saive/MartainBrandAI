@@ -62,6 +62,28 @@ function servir() {
   }).listen(PORT);
 }
 
+// Lance un navigateur pour le prérendu. Sur Vercel/CI, le Chrome que puppeteer
+// télécharge manque des libs système (libnspr4.so…) : on tente d'abord
+// @sparticuz/chromium (Chromium « serverless » livré avec ses libs), sinon on
+// retombe sur le puppeteer local (poste de dev).
+async function lancerNavigateur() {
+  const surVercel = !!(process.env.VERCEL || process.env.CI);
+  if (surVercel) {
+    try {
+      const chromium = require('@sparticuz/chromium');
+      const pc = require('puppeteer-core');
+      return await pc.launch({
+        args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
+    } catch (e) {
+      console.warn(`  ⚠ @sparticuz/chromium indisponible (${e.message}) — repli sur puppeteer.`);
+    }
+  }
+  return puppeteer.launch({ args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'] });
+}
+
 async function principal() {
   if (!fs.existsSync(path.join(BUILD, 'index.html'))) {
     console.error('build/index.html introuvable — lance le build avant le prérendu.');
@@ -69,9 +91,16 @@ async function principal() {
   }
 
   const serveur = servir();
-  const navigateur = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
-  });
+  // Le navigateur est FACULTATIF : s'il ne se lance pas (libs manquantes sur
+  // Vercel), on saute le prérendu des pages mais on écrit quand même le sitemap
+  // plus bas — un navigateur cassé ne doit jamais faire échouer le déploiement.
+  let navigateur = null;
+  try {
+    navigateur = await lancerNavigateur();
+  } catch (e) {
+    console.warn(`\n  ⚠ Navigateur impossible à lancer : ${e.message}`);
+    console.warn('    → pages NON prérendues ce déploiement (le sitemap.xml est écrit quand même).\n');
+  }
 
   let ecrits = 0;
   let vides = 0;
@@ -80,7 +109,7 @@ async function principal() {
     (page) => (prefixe + (page === '/' ? '' : page)) || '/',
   )).concat(ARTICLES.map((a) => a.chemin));
 
-  for (const chemin of aVisiter) {
+  if (navigateur) for (const chemin of aVisiter) {
     const onglet = await navigateur.newPage();
     // Un poste de bureau : c'est le rendu que verront les moteurs.
     await onglet.setViewport({ width: 1440, height: 900 });
@@ -126,7 +155,7 @@ async function principal() {
     await onglet.close();
   }
 
-  await navigateur.close();
+  if (navigateur) await navigateur.close();
   serveur.close();
 
   // Le plan du site est écrit ICI, depuis les mêmes listes que le prérendu :

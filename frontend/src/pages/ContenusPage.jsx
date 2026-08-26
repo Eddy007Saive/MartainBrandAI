@@ -7,6 +7,7 @@ import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
 import { SocialIcon } from '../components/SocialIcon';
 import PostManuelDialog from '../components/PostManuelDialog';
+import StoryDialog from '../components/StoryDialog';
 import {
   Dialog,
   DialogContent,
@@ -233,7 +234,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                     <Clapperboard className="w-4 h-4 opacity-70" />{t('contenus.reel.generer')}
                   </DropdownMenuItem>
                 )}
-                {!isCarrousel && !isVideo && contenu.type !== 'Story' && contenu.lien_visuel
+                {!isCarrousel && !isVideo && contenu.type !== 'Story'
                   && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
                   <DropdownMenuItem onClick={() => onStory(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
                     <Sparkles className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStory')}
@@ -298,6 +299,7 @@ export default function ContenusPage() {
   const { user, updateUser } = useUser();
   const [imageContenu, setImageContenu] = useState(null);
   const [postManuelOpen, setPostManuelOpen] = useState(false);  // post écrit à la main (sans IA)
+  const [storyFor, setStoryFor] = useState(null);  // post en cours de déclinaison en story
 
   // Recyclage : republier un post sur d'autres réseaux (une copie par réseau)
   const [recycleFor, setRecycleFor] = useState(null);   // contenu source
@@ -968,16 +970,8 @@ export default function ContenusPage() {
     }
   };
 
-  const declinerEnStory = async (contenu) => {
-    try {
-      const d = await contenuService.declinerStory(contenu.id);
-      const dt = d.date_publication ? new Date(d.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : null;
-      toast.success(dt ? t('contenus.toast.storyCreeeDate', { date: dt }) : t('contenus.toast.storyCreee'));
-      fetchContenus();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || t('contenus.toast.storyEchec'));
-    }
-  };
+  // Ouvre le sélecteur de story (modèle 9:16 + retouche) ; la création se fait à la validation.
+  const declinerEnStory = (contenu) => setStoryFor(contenu);
 
   const handleUpdateStatut = async (id, newStatut) => {
     if (newStatut === 'Valider') {
@@ -2364,6 +2358,10 @@ export default function ContenusPage() {
       </div>
 
       <PostManuelDialog open={postManuelOpen} onOpenChange={setPostManuelOpen} onCreated={fetchContenus} />
+
+      {storyFor && (
+        <StoryDialog contenu={storyFor} onClose={() => setStoryFor(null)} onCreated={fetchContenus} />
+      )}
     </div>
   );
 }
