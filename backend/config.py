@@ -1,5 +1,6 @@
 import os
 import logging
+import httpx
 from pathlib import Path
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -116,3 +117,35 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger('server')
+
+
+# --- Robustesse du client Supabase en concurrence -----------------------------
+# Le client partage UNE connexion HTTP/2. Sous charge parallele (les routes
+# tournent en threadpool), cette connexion casse par intermittence :
+# « ConnectionTerminated / PROTOCOL_ERROR ». Quand une lecture echoue ainsi, le
+# service retombe sur des valeurs par defaut VIDES -> la fiche de marque parait
+# effacee alors que la base est intacte (bug reproduit le 26/08).
+#
+# Correctif : on remplace la session par du HTTP/1.1 avec un POOL de connexions
+# (plusieurs connexions au lieu d'une seule multiplexee) + des retries au niveau
+# transport. C'est la configuration robuste pour des appels concurrents.
+def _durcir_supabase(client) -> None:
+    for attr in ("postgrest", "storage"):
+        svc = getattr(client, attr, None)
+        sess = getattr(svc, "session", None) if svc else None
+        if not isinstance(sess, httpx.Client):
+            continue
+        try:
+            svc.session = httpx.Client(
+                base_url=sess.base_url,
+                headers=sess.headers,
+                timeout=sess.timeout,
+                http2=False,  # HTTP/1.1 : un pool de connexions, pas une seule connexion partagee
+                transport=httpx.HTTPTransport(retries=2),
+                limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
+            )
+        except Exception as e:
+            logger.warning(f"durcissement client supabase ({attr}): {e}")
+
+
+_durcir_supabase(supabase)
