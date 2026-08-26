@@ -38,7 +38,7 @@ Trois raisons, dans cet ordre d'importance.
 
 ### 1. Mesurez votre capacité réelle, pas votre capacité rêvée
 
-Chronométrez une seule fois : combien de temps vous prend un post, de l'idée à la publication ? Visuel compris, relecture comprise. La plupart des indépendants découvrent un chiffre entre 40 et 90 minutes. Multipliez par la fréquence envisagée. Si le total dépasse ce que vous pouvez réellement libérer chaque semaine, la fréquence est fausse — même si elle est « recommandée ».
+Chronométrez une seule fois : combien de temps vous prend un post, de l'idée à la publication ? Visuel compris, relecture comprise. La plupart des indépendants découvrent un chiffre entre 40 et 90 minutes. Multipliez par la fréquence envisagée. Si le total dépasse ce que vous pouvez réellement libérer chaque semaine, la fréquence est fausse, même si elle est « recommandée ».
 
 ### 2. Divisez ce chiffre par deux
 
@@ -46,13 +46,13 @@ C'est contre-intuitif et c'est le conseil le plus utile de cette page. Le rythme
 
 ### 3. Tenez huit semaines avant de juger
 
-Deux mois, c'est le délai minimum pour distinguer un signal d'un accident. En dessous, vous ne mesurez que la variance. Au bout de huit semaines, deux issues : soit le rythme est confortable et vous pouvez l'augmenter d'un cran, soit il vous coûte trop et il faut le réduire — pas l'abandonner.
+Deux mois, c'est le délai minimum pour distinguer un signal d'un accident. En dessous, vous ne mesurez que la variance. Au bout de huit semaines, deux issues : soit le rythme est confortable et vous pouvez l'augmenter d'un cran, soit il vous coûte trop et il faut le réduire, pas l'abandonner.
 
 ## Les trois erreurs qui coûtent le plus cher
 
 **La rafale suivie du silence.** Cinq posts en une semaine, puis un mois de rien. C'est le schéma le plus répandu et le plus coûteux : vous payez le prix de la production sans récolter celui de la constance.
 
-**Le même contenu copié à l'identique partout.** Ce qui fonctionne sur LinkedIn — un texte long, un raisonnement — meurt sur Instagram. Ce n'est pas un problème de rythme mais il le devient : dupliquer donne l'impression de publier beaucoup tout en n'atteignant réellement personne.
+**Le même contenu copié à l'identique partout.** Ce qui fonctionne sur LinkedIn, un texte long, un raisonnement, meurt sur Instagram. Ce n'est pas un problème de rythme mais il le devient : dupliquer donne l'impression de publier beaucoup tout en n'atteignant réellement personne.
 
 **Publier pour l'algorithme.** Poster parce que « ça fait trois jours » produit du contenu qui n'a rien à dire, et votre audience le sent avant vous. Mieux vaut sauter un jour que publier du vide.
 
@@ -64,7 +64,7 @@ Trois leviers, du moins coûteux au plus coûteux.
 
 **Recyclez sans honte.** Un contenu qui a bien marché il y a six mois n'a été vu que par une fraction de votre audience. Reformulé, il fonctionnera à nouveau. Les comptes qui publient beaucoup ne créent pas tout de zéro.
 
-**Faites-vous aider par un outil.** C'est le rôle de Postorico : produire les propositions à votre voix, les planifier, publier au bon moment. Vous gardez la décision et la relecture — c'est ce qui empêche le résultat de sonner générique — mais vous ne repartez plus de la page blanche à chaque fois.
+**Faites-vous aider par un outil.** C'est le rôle de Postorico : produire les propositions à votre voix, les planifier, publier au bon moment. Vous gardez la décision et la relecture, c'est ce qui empêche le résultat de sonner générique, mais vous ne repartez plus de la page blanche à chaque fois.
 
 ## Ce qu'il faut retenir
 

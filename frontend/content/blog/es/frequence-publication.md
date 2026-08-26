@@ -50,7 +50,7 @@ Dos meses es el plazo mínimo para distinguir una señal de un accidente. Por de
 
 **La ráfaga seguida de silencio.** Cinco publicaciones en una semana y después un mes en blanco. Es el patrón más extendido y el más costoso: pagas el precio de la producción sin cobrar el de la constancia.
 
-**El mismo contenido copiado igual en todas partes.** Lo que funciona en LinkedIn —un texto largo, un razonamiento— muere en Instagram. No es un problema de ritmo, pero acaba siéndolo: duplicar da la sensación de publicar mucho sin llegar realmente a nadie.
+**El mismo contenido copiado igual en todas partes.** Lo que funciona en LinkedIn, un texto largo, un razonamiento, muere en Instagram. No es un problema de ritmo, pero acaba siéndolo: duplicar da la sensación de publicar mucho sin llegar realmente a nadie.
 
 **Publicar para el algoritmo.** Publicar porque «hace tres días» produce contenido que no tiene nada que decir, y tu audiencia lo nota antes que tú. Mejor saltarse un día que publicar vacío.
 
@@ -62,7 +62,7 @@ Tres palancas, de la más barata a la más cara.
 
 **Recicla sin complejos.** Un contenido que funcionó hace seis meses solo lo vio una parte de tu audiencia. Reformulado, volverá a funcionar. Las cuentas que publican mucho no lo crean todo desde cero.
 
-**Apóyate en una herramienta.** Ese es el papel de Postorico: producir las propuestas con tu voz, planificarlas y publicar en el momento adecuado. Tú conservas la decisión y la relectura —que es lo que impide que el resultado suene genérico— pero ya no partes de la página en blanco cada vez.
+**Apóyate en una herramienta.** Ese es el papel de Postorico: producir las propuestas con tu voz, planificarlas y publicar en el momento adecuado. Tú conservas la decisión y la relectura, que es lo que impide que el resultado suene genérico, pero ya no partes de la página en blanco cada vez.
 
 ## Lo que hay que retener
 
