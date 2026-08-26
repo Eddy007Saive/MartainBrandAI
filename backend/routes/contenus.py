@@ -69,10 +69,27 @@ async def replanifier_contenu(contenu_id: str, payload: dict = Depends(verify_to
             "error": None if pub.get("ok") else pub.get("error")}
 
 
-@router.post("/{contenu_id}/story")
-def decliner_story(contenu_id: str, payload: dict = Depends(verify_token)):
-    """Décline un post existant en STORY (Instagram/Facebook) : copie le texte comme
-    accroche et réutilise le visuel (recadré 9:16 à la publication), créneau famille story."""
+def _story_contenu(cur: dict, body: dict) -> dict:
+    """Assemble le contenu de la story {accroche, sous, cta, image, rico_pose}
+    à partir du post et des valeurs éditées côté client (retouche)."""
+    from services import story_service
+    base = story_service.parts_depuis_contenu(cur)
+    return {
+        "accroche": (body.get("accroche") if body.get("accroche") is not None else base["accroche"]) or "",
+        "sous": (body.get("sous") if body.get("sous") is not None else base["sous"]) or "",
+        "cta": (body.get("cta") or base["cta"] or "Réponds en DM 👉").strip(),
+        "image": cur.get("lien_visuel") or None,
+        "rico_pose": body.get("rico_pose") or None,
+        # Blocs du modèle « signature » (édités côté client)
+        "points": body.get("points") if isinstance(body.get("points"), list) else None,
+        "baseline": body.get("baseline"),
+    }
+
+
+@router.get("/{contenu_id}/story/options")
+def story_options(contenu_id: str, payload: dict = Depends(verify_token)):
+    """Ce dont le sélecteur a besoin : le texte pré-rempli (tiré du post), les modèles
+    proposés à ce compte, et les couleurs de marque par défaut."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -81,8 +98,78 @@ def decliner_story(contenu_id: str, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Contenu introuvable")
     if cur.get("reseau_cible") not in ("Instagram", "Facebook"):
         raise HTTPException(status_code=409, detail="Les stories ne sont possibles que sur Instagram ou Facebook.")
-    if not cur.get("lien_visuel"):
-        raise HTTPException(status_code=409, detail="Ajoute d'abord un visuel à ce post — une story a besoin d'une image.")
+    from services import story_service
+    from services.agent_service import _charger_marque
+    u = _charger_marque(telegram_id)
+    # Texte écrit par l'IA (accroche courte + sous-titre dans la voix), pas le titre recopié.
+    parts = story_service.texte_story_ia(telegram_id, cur)
+    return {
+        "parts": {"accroche": parts["accroche"], "sous": parts["sous"], "cta": parts["cta"]},
+        "a_un_visuel": bool(cur.get("lien_visuel")),
+        "modeles": story_service.modeles_pour(telegram_id, bool(cur.get("lien_visuel"))),
+        "signature": story_service.DEFAULT_SIGNATURE,
+        "couleurs": {
+            "p": u.get("carrousel_couleur_principale") or u.get("couleur_principale") or "#003D2E",
+            "s": u.get("carrousel_couleur_secondaire") or u.get("couleur_secondaire") or "#0077FF",
+            "a": u.get("carrousel_couleur_accent") or u.get("couleur_accent") or "#3AFFA3",
+        },
+    }
+
+
+@router.post("/{contenu_id}/story/apercu")
+async def story_apercu(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
+    """Rend UNE story 9:16 (modèle + texte + couleurs) et renvoie son URL — pour la
+    prévisualisation live du sélecteur/retouche, sans encore créer de contenu."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    cur = contenu_service.get_contenu(contenu_id, telegram_id)
+    if not cur:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    from services import story_service
+    content = _story_contenu(cur, body or {})
+    template = story_service.template_valide((body or {}).get("template"))
+    try:
+        res = await story_service.generer_story(telegram_id, content, template,
+                                                (body or {}).get("colors"), contenu_id=contenu_id)
+    except story_service.AtelierSature:
+        raise HTTPException(status_code=503, detail="Trop de rendus en cours, réessaie dans un instant.")
+    if not res.get("image"):
+        raise HTTPException(status_code=500, detail="Le rendu de la story a échoué, réessaie.")
+    return res
+
+
+@router.post("/{contenu_id}/story")
+async def decliner_story(contenu_id: str, body: dict = None, payload: dict = Depends(verify_token)):
+    """Crée la STORY (Instagram/Facebook) à partir du post : visuel 9:16 rendu (modèle
+    choisi + texte + couleurs), statut « À valider », créneau famille story. Le post
+    d'origine n'est PAS modifié."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    cur = contenu_service.get_contenu(contenu_id, telegram_id)
+    if not cur:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    if cur.get("reseau_cible") not in ("Instagram", "Facebook"):
+        raise HTTPException(status_code=409, detail="Les stories ne sont possibles que sur Instagram ou Facebook.")
+    body = body or {}
+    from services import story_service
+    template = story_service.template_valide(body.get("template"))
+    tinfo = next((t for t in story_service.TEMPLATES if t["id"] == template), None)
+    if tinfo and tinfo["image"] and not cur.get("lien_visuel"):
+        raise HTTPException(status_code=409,
+                            detail="Ce modèle utilise le visuel du post — ajoute une image ou choisis un modèle texte.")
+    # On réutilise l'image du dernier aperçu si le client la renvoie ; sinon on rend.
+    image_url = body.get("image")
+    content = _story_contenu(cur, body)
+    if not image_url:
+        try:
+            res = await story_service.generer_story(telegram_id, content, template, body.get("colors"), contenu_id=contenu_id)
+        except story_service.AtelierSature:
+            raise HTTPException(status_code=503, detail="Trop de rendus en cours, réessaie dans un instant.")
+        image_url = res.get("image")
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Le rendu de la story a échoué, réessaie.")
     from services import planning_service
     from datetime import datetime, timezone
     from config import supabase as sb
@@ -90,7 +177,7 @@ def decliner_story(contenu_id: str, payload: dict = Depends(verify_token)):
         "telegram_id": telegram_id,
         "titre": (cur.get("titre") or "")[:120],
         "contenu": cur.get("contenu"),
-        "lien_visuel": cur.get("lien_visuel"),
+        "lien_visuel": image_url,
         "reseau_cible": cur["reseau_cible"],
         "type": "Story",
         "statut": "A valider",
@@ -101,7 +188,7 @@ def decliner_story(contenu_id: str, payload: dict = Depends(verify_token)):
         row["date_publication"] = creneau
     ins = sb.table("contenu").insert(row).execute()
     new_id = ins.data[0]["id"] if ins.data else None
-    return {"contenu_id": new_id, "date_publication": row.get("date_publication")}
+    return {"contenu_id": new_id, "date_publication": row.get("date_publication"), "lien_visuel": image_url}
 
 
 @router.post("/{contenu_id}/recycler")
