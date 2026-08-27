@@ -87,6 +87,29 @@ def _charger_marque(telegram_id: str) -> dict:
 
 LANGUES_CONTENU = {"fr": "français", "en": "anglais (English)", "es": "espagnol (Español)"}
 
+# Règles d'écriture humaine (distillées du guide « Signs of AI writing »), appliquées à
+# TOUTES les générations via le contexte de marque. Objectif : que le contenu ne « sente » pas l'IA.
+REGLES_ANTI_IA = (
+    "\n## STYLE — ÉCRITURE HUMAINE (impératif ; en cas de doute, prime sur tout le reste)\n"
+    "Écris comme un vrai humain qui a un avis, jamais comme une IA. Respecte ces règles :\n"
+    "- Typographie : JAMAIS de tiret cadratin (—) ni demi-cadratin (–), ni en séparateur ni en incise. "
+    "Réécris avec une virgule, un point, un deux-points ou des parenthèses. Tiret simple (-) seulement dans un mot composé. "
+    "Guillemets français « » (droits pour une citation imbriquée), jamais de guillemets courbes “ ”.\n"
+    "- Bannis le vocabulaire d'IA : « au cœur de », « à l'ère de », « dans un monde où », « véritable », "
+    "« incontournable », « riche »/« vibrant », « profond », « révolutionnaire », « témoigne de », "
+    "« s'inscrit dans une dynamique », « en constante évolution », « il est important de noter », "
+    "« force est de constater », « plongeons/découvrons ensemble », « à ne pas manquer ».\n"
+    "- Pas de triplets automatiques (règle de trois) ni de parallélismes négatifs "
+    "(« ce n'est pas X, c'est Y », « non seulement… mais aussi »).\n"
+    "- Verbes directs : « est / a / fait », pas « constitue », « représente », « se veut », « s'impose comme ».\n"
+    "- Pas de gérondifs décoratifs qui gonflent la phrase (« soulignant », « reflétant », « permettant ainsi de »).\n"
+    "- Pas de superlatifs promotionnels, pas de conclusion générique optimiste (« l'avenir s'annonce radieux », « en somme »).\n"
+    "- Pas d'annonce de plan (« dans ce post, nous allons voir »), pas de méta-commentaire.\n"
+    "- Emoji : seulement si la marque en utilise vraiment et que ça sert le propos ; jamais en décoration mécanique de puce/titre.\n"
+    "- Varie le rythme des phrases (courtes ET longues), assume un point de vue, reste concret "
+    "(exemples précis, chiffres réels), et coupe le remplissage et les tournures pompeuses."
+)
+
 
 def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
     """Construit le bloc 'voix de marque' à partir des champs disponibles.
@@ -136,13 +159,7 @@ def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
             "(Profil de marque peu renseigné — reste générique, professionnel et "
             "crédible ; évite les promesses chiffrées et le jargon creux.)"
         )
-    # Règle typographique universelle (toutes générations) : jamais de tiret cadratin.
-    lignes.append(
-        "\n## TYPOGRAPHIE (impératif, prime sur le style) : n'utilise JAMAIS de tiret "
-        "cadratin (—) ni demi-cadratin (–), ni comme séparateur ni comme incise. "
-        "Réécris avec une virgule, un point, un deux-points ou des parenthèses. "
-        "Le tiret simple (-) reste autorisé uniquement dans un mot composé."
-    )
+    lignes.append(REGLES_ANTI_IA)
     return "\n".join(lignes)
 
 
