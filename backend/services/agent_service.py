@@ -436,16 +436,16 @@ LONGUEURS = {
 def _consigne_longueur(reseau: str) -> str:
     cible, limite = LONGUEURS.get(reseau, (2500, 3000))
     return (
-        f" LONGUEUR STRICTE : {cible} caractères MAXIMUM, espaces et hashtags compris "
-        f"(limite {RESEAUX.get(reseau, reseau)} : {limite} — un post trop long est refusé à la publication)."
+        f" STRICT LENGTH: {cible} characters MAXIMUM, spaces and hashtags included "
+        f"({RESEAUX.get(reseau, reseau)} limit: {limite}; an over-long post is rejected at publish time)."
     )
 
 
 ROLE_REDACTION = (
-    "Tu es le rédacteur attitré de la marque personnelle décrite ci-dessous. "
-    "Tu écris EXCLUSIVEMENT dans sa voix. Tu produis un post prêt à publier : "
-    "pas d'explications, pas de méta-commentaire, pas de 'Voici votre post'. "
-    "Réponds uniquement avec le texte du post, en français.\n\n"
+    "You are the dedicated copywriter for the personal brand described below. "
+    "You write EXCLUSIVELY in its voice. You produce a ready-to-publish post: "
+    "no explanations, no meta-commentary, no 'Here is your post'. "
+    "Answer only with the post text.\n\n"
 )
 
 
@@ -461,8 +461,8 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
     extra = ""
     if exemples:
         extra = (
-            f"\n\n## EXEMPLES DE POSTS {reseau_label} DU CLIENT "
-            f"(imite ce style, cette structure et ce ton — n'invente pas un autre style)\n\n{exemples}"
+            f"\n\n## CLIENT'S {reseau_label} POST EXAMPLES "
+            f"(mimic this style, structure and tone; do not invent a different style)\n\n{exemples}"
         )
 
     resp = _messages_create(
@@ -472,12 +472,12 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
         messages=[{
             "role": "user",
             "content": (
-                f"Écris UN post {reseau_label} prêt à publier sur le sujet :\n\n\"{sujet}\""
+                f"Write ONE ready-to-publish {reseau_label} post on the topic:\n\n\"{sujet}\""
                 + brief_dimensions(dimensions)
-                + f"\n\nFormat {reseau_label} : accroche forte en 1ʳᵉ ligne, lignes courtes et aérées, "
-                f"une seule idée centrale, et une question/appel à l'engagement en fin."
+                + f"\n\n{reseau_label} format: strong hook on the first line, short airy lines, "
+                f"one central idea, and a question / engagement prompt at the end."
                 + _consigne_longueur(reseau)
-                + " Donne uniquement le texte du post."
+                + " Give only the post text."
             ),
         }],
     )
@@ -495,13 +495,13 @@ def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,
     reseau_label = RESEAUX.get(reseau, "LinkedIn")
     contexte = _contexte_marque(u)
     exemples = (u.get(f"exemples_{reseau}") or "").strip()
-    extra = (f"\n\n## EXEMPLES DE POSTS {reseau_label} DU CLIENT (imite ce style)\n\n{exemples}" if exemples else "")
+    extra = (f"\n\n## CLIENT'S {reseau_label} POST EXAMPLES (mimic this style)\n\n{exemples}" if exemples else "")
     role = (
-        "Tu es le rédacteur attitré de la marque ci-dessous. On te donne une PHOTO. "
-        "Observe ce qu'elle montre (sujet, contexte, ambiance, détails) et écris un post prêt à publier "
-        "qui s'APPUIE sur cette photo, dans la voix de la marque — sans décrire la photo platement, "
-        "mais en t'en servant comme point de départ d'un message pertinent pour l'audience. "
-        "Accroche forte, lignes courtes, une idée, un appel à l'engagement. Donne uniquement le texte du post.\n\n"
+        "You are the dedicated copywriter for the brand below. You are given a PHOTO. "
+        "Observe what it shows (subject, context, mood, details) and write a ready-to-publish post "
+        "that BUILDS on this photo, in the brand's voice: do not describe the photo flatly, "
+        "use it as the starting point for a message relevant to the audience. "
+        "Strong hook, short lines, one idea, an engagement prompt. Give only the post text.\n\n"
     )
     resp = _messages_create(
         model=model or CLAUDE_MODEL,
@@ -511,9 +511,9 @@ def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,
             "role": "user",
             "content": [
                 {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
-                {"type": "text", "text": f"Écris UN post {reseau_label} prêt à publier à partir de cette photo, "
-                                         f"dans la voix de la marque.{_consigne_longueur(reseau)} "
-                                         f"Donne uniquement le texte."},
+                {"type": "text", "text": f"Write ONE ready-to-publish {reseau_label} post from this photo, "
+                                         f"in the brand's voice.{_consigne_longueur(reseau)} "
+                                         f"Give only the text."},
             ],
         }],
     )
@@ -536,18 +536,17 @@ ICON_HINTS = {
 }
 
 ROLE_CARROUSEL = (
-    "Tu crées des CARROUSELS pour la marque personnelle décrite ci-dessous, dans sa voix. "
-    "Structure : un HOOK (accroche très courte qui stoppe le scroll), des ÉTAPES/IDÉES "
-    "(une idée forte chacune), et un CTA final. Chaque idée a un titre TRÈS court (2-5 mots, "
-    "façon gros titre), 1 à 2 phrases d'explication, 2 à 4 mots-clés (pills), un 'pro_tip' "
-    "(une phrase de conseil concret) et un 'icon' (le mot-clé d'illustration le plus pertinent "
-    "dans cette liste : " + ", ".join(ICON_HINTS.keys()) + "). "
-    "Texte court, percutant, lisible sur une slide. "
-    "La 'legende' est le TEXTE DU POST (la description au-dessus du carrousel) : COURTE (2 à 4 lignes). "
-    "Un hook qui stoppe le scroll + une invitation à swiper/enregistrer + UN SEUL CTA. Elle NE répète PAS "
-    "le contenu des slides — le carrousel porte le fond, la légende ne fait qu'accrocher. "
-    "Tu peux terminer par 2 à 4 hashtags ciblés. "
-    "Réponds UNIQUEMENT avec du JSON valide de cette forme :\n"
+    "You create CAROUSELS for the personal brand described below, in its voice. "
+    "Structure: a HOOK (very short scroll-stopping line), STEPS/IDEAS (one strong idea each), "
+    "and a final CTA. Each idea has a VERY short title (2-5 words, headline style), 1-2 explanatory "
+    "sentences, 2-4 keywords (pills), a 'pro_tip' (one concrete piece of advice) and an 'icon' "
+    "(the most relevant illustration keyword from this list: " + ", ".join(ICON_HINTS.keys()) + "). "
+    "Short, punchy text, readable on a slide. "
+    "The 'legende' is the POST TEXT (the caption above the carousel): SHORT (2 to 4 lines). "
+    "A scroll-stopping hook + an invitation to swipe/save + ONE single CTA. It does NOT repeat "
+    "the slides' content; the carousel carries the substance, the caption only hooks. "
+    "You may end with 2 to 4 targeted hashtags. "
+    "Answer ONLY with valid JSON of this shape:\n"
     '{"hook":"...","legende":"...","slides":[{"titre":"...","texte":"...","pills":["..",".."],"pro_tip":"...","icon":"chart"}],'
     '"cta":{"titre":"...","texte":"..."}}\n\n'
 )
@@ -567,9 +566,9 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
         system=_system(ROLE_CARROUSEL, contexte, "", cache),
         messages=[{
             "role": "user",
-            "content": (f"Sujet du carrousel : \"{sujet}\"." + brief_dimensions(dimensions) + "\n"
-                        f"Donne le hook, la legende (courte : accroche + invitation à swiper + 1 CTA, sans répéter les slides), "
-                        f"EXACTEMENT {nb_idees} idées (avec titre court, texte, pills, pro_tip) et le cta, en JSON."),
+            "content": (f"Carousel topic: \"{sujet}\"." + brief_dimensions(dimensions) + "\n"
+                        f"Give the hook, the legende (short: hook + swipe invitation + 1 CTA, without repeating the slides), "
+                        f"EXACTLY {nb_idees} ideas (with short titre, texte, pills, pro_tip) and the cta, as JSON."),
         }],
     )
     txt = _texte(resp)
@@ -621,11 +620,11 @@ TYPES_VIDEO = {
 }
 
 ROLE_SCRIPT = (
-    "Tu es scénariste vidéo pour la marque personnelle décrite ci-dessous. "
-    "Tu écris des scripts vidéo prêts à tourner, percutants, dans la voix de la marque. "
-    "Structure imposée : un HOOK très fort (les 3 premières secondes), puis le CORPS "
-    "(scènes / idées avec le texte exact à dire), puis un CTA final. "
-    "Réponds uniquement avec le script, en français.\n\n"
+    "You are a video scriptwriter for the personal brand described below. "
+    "You write ready-to-shoot, punchy video scripts in the brand's voice. "
+    "Required structure: a very strong HOOK (first 3 seconds), then the BODY "
+    "(scenes / ideas with the exact words to say), then a final CTA. "
+    "Answer only with the script.\n\n"
 )
 
 
@@ -645,14 +644,14 @@ def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model
         messages=[{
             "role": "user",
             "content": (
-                f"Écris un script vidéo de type « {tv} » sur le sujet :\n\n\"{sujet}\""
+                f"Write a \"{tv}\" video script on the topic:\n\n\"{sujet}\""
                 + brief_dimensions(dimensions)
-                + f"\n\n"
-                f"Format de sortie clair :\n"
-                f"[HOOK] — l'accroche des 3 premières secondes\n"
-                f"[CORPS] — les scènes / idées avec le texte exact à dire\n"
-                f"[CTA] — l'appel à l'action final\n"
-                f"Adapte la longueur au format. Donne uniquement le script."
+                + "\n\n"
+                "Clear output format:\n"
+                "[HOOK] the first-3-seconds hook\n"
+                "[CORPS] the scenes / ideas with the exact words to say\n"
+                "[CTA] the final call to action\n"
+                "Adapt the length to the format. Give only the script."
             ),
         }],
     )
