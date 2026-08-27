@@ -19,7 +19,10 @@ from services.agent_service import _messages_create
 # rico-v4 : chemin neuf a chaque planche. Cloudinary sert ces images avec un
 # cache d'un an — reecrire au meme identifiant laisserait tous les navigateurs,
 # clients compris, sur l'ancienne planche pendant des mois.
-_BASE = "https://res.cloudinary.com/dy9gp5pim/image/upload/q_auto/brand/rico-v4"
+# Source détourée en 500px : on demande à Cloudinary un upscale 2x (c_fit 1000)
+# + netteté (e_sharpen) + qualité max. Le navigateur RÉDUIT alors une image plus
+# grande (net) au lieu d'agrandir du 500px (flou), surtout sur les grands Rico (hero/CTA/scène).
+_BASE = "https://res.cloudinary.com/dy9gp5pim/image/upload/w_1000,h_1000,c_fit,q_auto:best,e_sharpen:60,f_auto/brand/rico-v4"
 
 # id -> ce que la pose RACONTE. Ces phrases sont lues par l'IA : elles décrivent
 # l'intention, pas l'anatomie, car c'est l'intention qui doit coller au propos.
