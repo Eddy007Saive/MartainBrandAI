@@ -189,6 +189,7 @@ def _rediger(veille: dict, numero: int) -> dict:
 _ACCENT = "#3AFFA3"
 _G1, _G2 = "#5B6CFF", "#8A6CFF"
 _LOGO = "https://res.cloudinary.com/dy9gp5pim/image/upload/brand/postorico-logo.png"
+_HERO = "https://res.cloudinary.com/dy9gp5pim/image/upload/brand/newsletter-hero.jpg"
 _COULEUR_RESEAU = {
     "linkedin": "#0A66C2", "instagram": "#E1306C", "tiktok": "#00F2EA",
     "youtube": "#FF0000", "facebook": "#1877F2", "x": "#e2e8f0", "twitter": "#e2e8f0",
@@ -268,6 +269,11 @@ def rendu_html(data: dict, unsub_url: str = "#", apercu_url: str = "") -> str:
               N°{_e(data.get('numero'))} · {_e(data.get('date'))}
             </td>
           </tr></table>
+        </td></tr>
+
+        <!-- Bandeau Rico -->
+        <tr><td style="padding:16px 0 0;line-height:0;">
+          <img src="{_HERO}" width="600" alt="Postorico" style="display:block;width:100%;max-width:600px;height:auto;border:0;">
         </td></tr>
 
         <!-- Titre + edito -->
