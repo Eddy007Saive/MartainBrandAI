@@ -1236,6 +1236,7 @@
     "targetSubjects": "Target (optional)",
     "filterAny": "AI's choice",
     "filterReset": "Reset targeting",
+    "resetReco": "Reco",
     "writeOwnBrief": "Write my own brief",
     "briefPlaceholder": "E.g.: Promo for the Goodtime module launch — enthusiastic tone, key benefits, sign-up CTA.",
     "formatLabel": "Format",

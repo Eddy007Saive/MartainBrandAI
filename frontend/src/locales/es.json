@@ -1236,6 +1236,7 @@
     "targetSubjects": "Enfocar (opcional)",
     "filterAny": "Elección de la IA",
     "filterReset": "Restablecer enfoque",
+    "resetReco": "Reco",
     "writeOwnBrief": "Escribir mi propio brief",
     "briefPlaceholder": "Ej.: Promo por el lanzamiento del módulo Goodtime — tono entusiasta, beneficios clave, CTA de inscripción.",
     "formatLabel": "Formato",

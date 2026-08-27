@@ -1236,6 +1236,7 @@
     "targetSubjects": "Cibler (optionnel)",
     "filterAny": "Au choix de l'IA",
     "filterReset": "Réinitialiser le ciblage",
+    "resetReco": "Reco",
     "writeOwnBrief": "Écrire mon propre brief",
     "briefPlaceholder": "Ex : Promo pour la sortie du module Goodtime — ton enthousiaste, bénéfices clés, CTA inscription.",
     "formatLabel": "Format",
