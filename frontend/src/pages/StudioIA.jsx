@@ -24,6 +24,9 @@ const FORMATS = [
 ];
 // Les stories ne se publient que sur Instagram et Facebook (Zernio)
 const RESEAUX_STORY = ['instagram', 'facebook'];
+// Réseaux capables de publier un format vidéo (script). Reel = court/vertical ; Vidéo longue = YouTube.
+const RESEAUX_POUR_FORMAT = { Reel: ['tiktok', 'instagram', 'youtube'], 'Vidéo longue': ['youtube'] };
+const RESEAUX_VIDEO = ['tiktok', 'instagram', 'youtube', 'facebook', 'linkedin'];
 // Réseaux proposés pour un POST écrit (YouTube exclu : il faut une vidéo).
 // La liste affichée est ensuite filtrée sur les comptes réellement connectés.
 const RESEAUX = [
@@ -150,6 +153,11 @@ export default function StudioIA() {
   const reseaux = RESEAUX.filter((r) => !!user?.[`late_account_${r.id}`]);
   // Story : seulement Instagram/Facebook
   const reseauxPour = (fmt) => (fmt === 'story' ? reseaux.filter((r) => RESEAUX_STORY.includes(r.id)) : reseaux);
+  // Réseaux proposés pour un script vidéo, selon le format-dimension (Reel/Vidéo longue).
+  const reseauxVideo = (formatDim) => {
+    const allow = RESEAUX_POUR_FORMAT[formatDim] || RESEAUX_VIDEO;
+    return reseaux.filter((r) => allow.includes(r.id));
+  };
 
   const erreurGen = (e) => {
     if (e?.response?.status === 402) toast.error(e?.response?.data?.detail || t('studio.quotaReached'));
@@ -279,6 +287,9 @@ export default function StudioIA() {
     setCfgFormat(cfg);
     if (cfg === 'story') {
       setCfgReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
+    } else if (cfg === 'script') {
+      const vids = reseauxVideo(formatDim).map((r) => r.id);
+      setCfgReseaux((arr) => { const ok = arr.filter((x) => vids.includes(x)); return ok.length ? ok : [vids[0]].filter(Boolean); });
     }
   };
 
@@ -309,10 +320,11 @@ export default function StudioIA() {
   const genererContenu = async (s) => {
     const fmt = cfgFormat;
     const meta = fmt === 'script' ? cfgType : cfgReseaux[0];
+    const reseau = fmt === 'script' ? cfgReseaux[0] : undefined; // réseau cible du Reel/vidéo
     const extras = fmt === 'script' ? [] : cfgReseaux.slice(1); // réseaux additionnels cochés
     const qualite = cfgQualite;
     const cardId = nextId();
-    setContenus((prev) => [{ id: cardId, sujet: s.titre, sujetId: s.id, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
+    setContenus((prev) => [{ id: cardId, sujet: s.titre, sujetId: s.id, texte: '', statut: 'redaction', format: fmt, meta, reseau, extras, qualite }, ...prev]);
     setOpenId(null);
     // le sujet reste dispo tant que rien n'est validé : on peut le réutiliser pour un autre réseau
     // (il disparaît de la réserve seulement quand un contenu généré à partir de lui est validé — voir `valider`)
@@ -464,7 +476,7 @@ export default function StudioIA() {
     try {
       if (card.format === 'script') {
         // Script vidéo → contenu « À tourner » (apparaît dans Contenus, prêt à monter)
-        const d = await videoService.createDraft({ script: card.texte, titre: card.sujet });
+        const d = await videoService.createDraft({ script: card.texte, titre: card.sujet, ...(card.reseau ? { reseau: card.reseau } : {}) });
         setContenus((prev) => prev.filter((c) => c.id !== id));
         if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
         toast.success(t('studio.scriptReady'), {
@@ -775,22 +787,43 @@ export default function StudioIA() {
                           ))}
                         </div>
 
-                        {/* Réseaux / type vidéo (le format vient de la dimension ci-dessus) */}
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-slate-500 font-inter">{cfgFormat === 'script' ? t('studio.typeLabel') : t('studio.networksLabel')}</span>
-                          {cfgFormat !== 'script' && reseaux.length === 0
-                            ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
-                            : (cfgFormat === 'script' ? TYPES_VIDEO : reseauxPour(cfgFormat)).map((r) => (
-                            <Pill key={r.id}
-                              active={cfgFormat === 'script' ? cfgType === r.id : cfgReseaux.includes(r.id)}
-                              onClick={() => (cfgFormat === 'script' ? setCfgType(r.id) : toggleReseau(setCfgReseaux)(r.id))}>
-                              {cfgFormat !== 'script' && cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.labelKey ? t(`studio.${r.labelKey}`) : r.label}
-                            </Pill>
-                          ))}
-                          {cfgFormat !== 'script' && cfgReseaux.length > 1 && (
-                            <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: cfgReseaux.length })}</span>
-                          )}
-                        </div>
+                        {/* Le format vient de la dimension. Script vidéo = Type + Réseau ; sinon = Réseaux */}
+                        {cfgFormat === 'script' ? (
+                          <>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs text-slate-500 font-inter">{t('studio.typeLabel')}</span>
+                              {TYPES_VIDEO.map((r) => (
+                                <Pill key={r.id} active={cfgType === r.id} onClick={() => setCfgType(r.id)}>
+                                  {t(`studio.${r.labelKey}`)}
+                                </Pill>
+                              ))}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs text-slate-500 font-inter">{t('studio.networkLabel')}</span>
+                              {reseauxVideo(dimsEdit.format).length === 0
+                                ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
+                                : reseauxVideo(dimsEdit.format).map((r) => (
+                                  <Pill key={r.id} active={cfgReseaux[0] === r.id} onClick={() => setCfgReseaux([r.id])}>
+                                    {r.label}
+                                  </Pill>
+                                ))}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-slate-500 font-inter">{t('studio.networksLabel')}</span>
+                            {reseaux.length === 0
+                              ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
+                              : reseauxPour(cfgFormat).map((r) => (
+                                <Pill key={r.id} active={cfgReseaux.includes(r.id)} onClick={() => toggleReseau(setCfgReseaux)(r.id)}>
+                                  {cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.labelKey ? t(`studio.${r.labelKey}`) : r.label}
+                                </Pill>
+                              ))}
+                            {cfgReseaux.length > 1 && (
+                              <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: cfgReseaux.length })}</span>
+                            )}
+                          </div>
+                        )}
                         {cfgFormat === 'carrousel' && (
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-slate-500 font-inter">{t('studio.slidesLabel')}</span>
