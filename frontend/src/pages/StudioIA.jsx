@@ -757,7 +757,7 @@ export default function StudioIA() {
                 const anyEdited = open && DIM_META.some(({ cle }) => dimsEdit[cle] !== (reco[cle] || ''));
                 return (
                   <div key={s.id} data-testid={`studio-sujet-${s.id}`}
-                    className={`rounded-xl border transition-all overflow-hidden ${open ? 'border-[#5B6CFF]/40 bg-[#5B6CFF]/[0.06]' : 'border-white/5 bg-slate-800/40 hover:border-white/15'}`}>
+                    className={`rounded-xl border transition-all ${open ? 'relative z-10 border-[#5B6CFF]/40 bg-[#5B6CFF]/[0.06]' : 'overflow-hidden border-white/5 bg-slate-800/40 hover:border-white/15'}`}>
                     {/* Ligne repliée : numéro + titre + tag format + corbeille + chevron */}
                     <div onClick={() => (open ? setOpenId(null) : ouvrir(s))}
                       className="flex items-center gap-3 px-3.5 py-3 cursor-pointer select-none">
