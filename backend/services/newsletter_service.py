@@ -247,12 +247,12 @@ def rendu_html(data: dict, unsub_url: str = "#", apercu_url: str = "") -> str:
 <html lang="fr">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{_e(data.get('sujet'))}</title></head>
-<body style="margin:0;padding:0;background:#020617;font-family:Arial,Helvetica,sans-serif;">
+<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{_e(data.get('preheader'))}</div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#020617;padding:28px 14px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:28px 14px;">
     <tr><td align="center">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-             style="max-width:600px;background:#0f172a;border:1px solid rgba(255,255,255,0.07);border-radius:18px;overflow:hidden;">
+             style="max-width:600px;background:#0f172a;border:1px solid rgba(0,0,0,0.08);border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(15,23,42,0.12);">
 
         <!-- En-tete -->
         <tr><td style="padding:30px 34px 6px;">
