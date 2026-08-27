@@ -21,6 +21,9 @@ export const agentService = {
   // Liste les sujets sauvegardés (persistants)
   sujetsList: () => api.get('/agent/sujets').then((r) => r.data),
 
+  // Enregistre l'override de dimensions d'un sujet (la reco d'origine, l'⭐, n'est pas touchée)
+  majDimensions: (id, dimensions) => api.patch(`/agent/sujets/${id}`, { dimensions }).then((r) => r.data),
+
   // Supprime un sujet sauvegardé
   supprimerSujet: (id) => api.delete(`/agent/sujets/${id}`).then((r) => r.data),
 

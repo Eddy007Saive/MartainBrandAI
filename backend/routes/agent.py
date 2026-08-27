@@ -99,17 +99,18 @@ def sujets(body: dict, payload: dict = Depends(verify_token)):
     def _dims(s):
         return {k: s.get(k) for k in ("objectif", "angle", "cible", "format") if s.get(k)}
     sujets = [s for s in result.get("sujets", []) if s.get("sujet")]
+    # dimensions = valeur EFFECTIVE (modifiable) ; dimensions_reco = reco d'origine de l'IA (fige l'⭐).
     rows = [{"telegram_id": telegram_id, "titre": s["sujet"][:200], "statut": "Brouillon",
-             "dimensions": _dims(s) or None} for s in sujets]
+             "dimensions": _dims(s) or None, "dimensions_reco": _dims(s) or None} for s in sujets]
     saved = []
     if rows:
         try:
             ins = supabase.table("brouillons").insert(rows).execute()
-            saved = [{"id": r["id"], "titre": r["titre"], "dimensions": r.get("dimensions")}
-                     for r in (ins.data or [])]
+            saved = [{"id": r["id"], "titre": r["titre"], "dimensions": r.get("dimensions"),
+                      "dimensions_reco": r.get("dimensions_reco")} for r in (ins.data or [])]
         except Exception as e:
             logger.error(f"Save sujets error: {e}")
-            saved = [{"id": None, "titre": s["sujet"], "dimensions": _dims(s)} for s in sujets]
+            saved = [{"id": None, "titre": s["sujet"], "dimensions": _dims(s), "dimensions_reco": _dims(s)} for s in sujets]
     return {"sujets": saved, "quota": {"action": "subject", "used": q.get("used"), "limit": q.get("limit")}}
 
 
@@ -275,12 +276,32 @@ def list_sujets(payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="Invalid token")
     try:
         r = (supabase.table("brouillons")
-             .select("id, titre, reseau_cible, dimensions, created_at")
+             .select("id, titre, reseau_cible, dimensions, dimensions_reco, created_at")
              .eq("telegram_id", telegram_id).eq("statut", "Brouillon")
              .order("created_at", desc=True).execute())
         return r.data or []
     except Exception as e:
         logger.error(f"List sujets error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/sujets/{sujet_id}")
+def maj_sujet(sujet_id: str, body: dict, payload: dict = Depends(verify_token)):
+    """Enregistre les dimensions EFFECTIVES d'un sujet (override utilisateur).
+    dimensions_reco (l'⭐) n'est jamais touché : on garde la reco d'origine de l'IA."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    dims_in = body.get("dimensions") or {}
+    # Ne garde que des valeurs valides des listes figées.
+    dims = {k: v for k in ("objectif", "angle", "cible", "format")
+            if (v := agent_service._valider_dimension(k, dims_in.get(k)))}
+    try:
+        supabase.table("brouillons").update({"dimensions": dims or None}) \
+            .eq("id", sujet_id).eq("telegram_id", telegram_id).execute()
+        return {"success": True, "dimensions": dims}
+    except Exception as e:
+        logger.error(f"Maj sujet dimensions error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

@@ -293,6 +293,14 @@ export default function StudioIA() {
     }
   };
 
+  // Enregistre l'override côté serveur + met à jour la réserve locale (persiste au rechargement).
+  const persistDims = (id, dims) => {
+    if (!id) return;
+    const clean = { objectif: dims.objectif, angle: dims.angle, cible: dims.cible, format: dims.format };
+    setSujets((prev) => prev.map((x) => (x.id === id ? { ...x, dimensions: clean } : x)));
+    agentService.majDimensions(id, clean).catch(() => {});
+  };
+
   const ouvrir = (s) => {
     const d = s.dimensions || {};
     setDimsEdit({ objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '' });
@@ -301,15 +309,18 @@ export default function StudioIA() {
   };
 
   // Change une dimension du brief ; la dimension "format" repilote le format de génération.
+  // On persiste l'override (sans toucher à la reco d'origine de l'IA, l'⭐).
   const changeDim = (cle, val) => {
-    setDimsEdit((prev) => ({ ...prev, [cle]: val }));
+    setDimsEdit((prev) => { const next = { ...prev, [cle]: val }; persistDims(openId, next); return next; });
     if (cle === 'format') appliquerFormat(val);
   };
 
-  // Rétablit tout le brief recommandé par l'IA pour ce sujet.
+  // Rétablit tout le brief recommandé par l'IA pour ce sujet (et l'enregistre).
   const revertDims = (s) => {
-    const d = s.dimensions || {};
-    setDimsEdit({ objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '' });
+    const d = s.dimensions_reco || s.dimensions || {};
+    const next = { objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '' };
+    setDimsEdit(next);
+    persistDims(s.id, next);
     appliquerFormat(d.format);
   };
 
@@ -753,7 +764,7 @@ export default function StudioIA() {
             <div className="space-y-2 animate-fade-in">
               {sujets.map((s, i) => {
                 const open = openId === s.id;
-                const reco = s.dimensions || {};
+                const reco = s.dimensions_reco || s.dimensions || {}; // reco d'origine de l'IA (fige l'⭐)
                 const anyEdited = open && DIM_META.some(({ cle }) => dimsEdit[cle] !== (reco[cle] || ''));
                 return (
                   <div key={s.id} data-testid={`studio-sujet-${s.id}`}
@@ -765,8 +776,8 @@ export default function StudioIA() {
                         {String(i + 1).padStart(2, '0')}
                       </span>
                       <span className="flex-1 min-w-0 text-[13.5px] font-semibold leading-snug text-slate-100 font-inter">{s.titre}</span>
-                      {!open && reco.format && (
-                        <span className="flex-none text-[10px] font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">{reco.format}</span>
+                      {!open && s.dimensions?.format && (
+                        <span className="flex-none text-[10px] font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">{s.dimensions.format}</span>
                       )}
                       <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} title={t('studio.deleteTitle')}
                         className="flex-none text-slate-500 hover:text-red-400 transition-colors p-1">
