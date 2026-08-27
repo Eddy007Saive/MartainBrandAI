@@ -90,24 +90,24 @@ LANGUES_CONTENU = {"fr": "français", "en": "anglais (English)", "es": "espagnol
 # Règles d'écriture humaine (distillées du guide « Signs of AI writing »), appliquées à
 # TOUTES les générations via le contexte de marque. Objectif : que le contenu ne « sente » pas l'IA.
 REGLES_ANTI_IA = (
-    "\n## STYLE — ÉCRITURE HUMAINE (impératif ; en cas de doute, prime sur tout le reste)\n"
-    "Écris comme un vrai humain qui a un avis, jamais comme une IA. Respecte ces règles :\n"
-    "- Typographie : JAMAIS de tiret cadratin (—) ni demi-cadratin (–), ni en séparateur ni en incise. "
-    "Réécris avec une virgule, un point, un deux-points ou des parenthèses. Tiret simple (-) seulement dans un mot composé. "
-    "Guillemets français « » (droits pour une citation imbriquée), jamais de guillemets courbes “ ”.\n"
-    "- Bannis le vocabulaire d'IA : « au cœur de », « à l'ère de », « dans un monde où », « véritable », "
-    "« incontournable », « riche »/« vibrant », « profond », « révolutionnaire », « témoigne de », "
-    "« s'inscrit dans une dynamique », « en constante évolution », « il est important de noter », "
-    "« force est de constater », « plongeons/découvrons ensemble », « à ne pas manquer ».\n"
-    "- Pas de triplets automatiques (règle de trois) ni de parallélismes négatifs "
-    "(« ce n'est pas X, c'est Y », « non seulement… mais aussi »).\n"
-    "- Verbes directs : « est / a / fait », pas « constitue », « représente », « se veut », « s'impose comme ».\n"
-    "- Pas de gérondifs décoratifs qui gonflent la phrase (« soulignant », « reflétant », « permettant ainsi de »).\n"
-    "- Pas de superlatifs promotionnels, pas de conclusion générique optimiste (« l'avenir s'annonce radieux », « en somme »).\n"
-    "- Pas d'annonce de plan (« dans ce post, nous allons voir »), pas de méta-commentaire.\n"
-    "- Emoji : seulement si la marque en utilise vraiment et que ça sert le propos ; jamais en décoration mécanique de puce/titre.\n"
-    "- Varie le rythme des phrases (courtes ET longues), assume un point de vue, reste concret "
-    "(exemples précis, chiffres réels), et coupe le remplissage et les tournures pompeuses."
+    "\n## STYLE — HUMAN WRITING (mandatory; overrides everything else if in doubt)\n"
+    "Write like a real person with an opinion, never like an AI. In the OUTPUT LANGUAGE:\n"
+    "- Punctuation: NEVER use an em dash (—) or en dash (–), neither as separator nor as an aside. "
+    "Rewrite with a comma, period, colon or parentheses. Hyphen (-) only inside a compound word. "
+    "Use the target language's proper quotes (French uses « »), never curly quotes “ ”.\n"
+    "- Ban AI-cliché vocabulary and filler. When writing FRENCH, avoid: « au cœur de », « à l'ère de », "
+    "« dans un monde où », « véritable », « incontournable », « riche »/« vibrant », « profond », "
+    "« révolutionnaire », « témoigne de », « s'inscrit dans une dynamique », « en constante évolution », "
+    "« il est important de noter », « force est de constater », « plongeons/découvrons ensemble », « à ne pas manquer ». "
+    "In other languages, avoid the equivalent LLM clichés.\n"
+    "- No forced triplets (rule of three) and no negative parallelisms (\"it's not X, it's Y\", \"not only… but also\").\n"
+    "- Direct verbs (is/has/does), not \"constitutes\", \"represents\", \"positions itself as\".\n"
+    "- No decorative present-participle padding that inflates sentences.\n"
+    "- No promotional superlatives, no generic upbeat conclusion.\n"
+    "- No plan announcement (\"in this post we will see\"), no meta-commentary.\n"
+    "- Emoji only if the brand actually uses them and it serves the point; never as mechanical bullet/title decoration.\n"
+    "- Vary sentence rhythm (short AND long), take a stance, stay concrete (specific examples, real numbers), "
+    "and cut filler and pompous phrasing."
 )
 
 
@@ -124,13 +124,14 @@ def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
     # Langue de rédaction du client (clients étrangers) — s'applique à TOUTES les générations
     # (sujets, posts, carrousels, scripts, gabarits) car ce contexte est injecté partout.
     lang = (u.get("langue") or "fr").lower()
-    if lang != "fr":
-        lignes.append(
-            f"LANGUE DE RÉDACTION OBLIGATOIRE : {LANGUES_CONTENU.get(lang, lang)}. "
-            "TOUT le contenu produit (titres, posts, accroches, slides, scripts, CTA, hashtags) "
-            "doit être écrit dans CETTE langue, même si les instructions ci-dessous sont en français. "
-            "Ne mélange jamais les langues dans un même contenu."
-        )
+    langue_sortie = LANGUES_CONTENU.get(lang, lang)
+    # Toujours explicite (fr inclus) : les instructions sont en anglais pour économiser des tokens,
+    # mais TOUTE la sortie doit être dans la langue du client.
+    lignes.append(
+        f"OUTPUT LANGUAGE: write ALL produced content (titles, posts, hooks, slides, scripts, CTAs, hashtags) "
+        f"in {langue_sortie}. The instructions below may be in English, but the output MUST be in {langue_sortie}. "
+        f"Never mix languages within a single piece of content."
+    )
     # Champs optionnels — utilisés s'ils existent (ajoutés via le formulaire "Voix de marque")
     if u.get("secteur"):
         lignes.append(f"Secteur / activité : {u['secteur']}")
@@ -197,8 +198,8 @@ def _system(role: str, contexte: str, extra: str = "", cache: bool = False):
 # Agent SUJETS
 # ---------------------------------------------------------------------------
 ROLE_SUJETS = (
-    "Tu es un stratège de contenu pour la marque personnelle décrite ci-dessous. "
-    "Tu proposes des idées de sujets de posts pertinents pour son secteur et son audience.\n\n"
+    "You are a content strategist for the personal brand described below. "
+    "You propose post topic ideas relevant to its sector and audience.\n\n"
 )
 
 # Chaque sujet n'est pas une simple phrase : c'est un brief à 4 dimensions, pour que
@@ -213,7 +214,7 @@ DIMENSIONS = {
     "cible":    ["Nouvelle audience", "Prospect", "Client", "Client fidèle", "Segment spécifique"],
     "format":   ["Reel", "Post", "Carrousel", "Story", "Article", "Vidéo longue"],
 }
-_DIM_LABELS = {"objectif": "Objectif", "angle": "Angle", "cible": "Cible", "format": "Format"}
+_DIM_LABELS = {"objectif": "Objective", "angle": "Angle", "cible": "Target", "format": "Format"}
 
 # Un format n'a de sens que si un réseau capable de le publier est connecté.
 # (au moins un des réseaux listés suffit)
@@ -271,8 +272,14 @@ def brief_dimensions(dims: dict) -> str:
             lignes.append(f"- {label} : {v}")
     if not lignes:
         return ""
-    return ("\n\nBRIEF de ce contenu (à respecter dans le ton et l'intention) :\n"
-            + "\n".join(lignes))
+    txt = ("\n\nCONTENT BRIEF (respect its tone and intent):\n" + "\n".join(lignes))
+    # CTA driven by the whole brief: action = objective, tone = angle, audience = target.
+    # No fixed table: the model writes the CTA by combining the three (+ the brand's usual CTAs).
+    if _valider_dimension("objectif", dims.get("objectif")):
+        txt += ("\nEnd with a call to action (CTA) that follows this brief: the objective sets the action, "
+                "the angle sets the tone, the target sets who you address. Reuse one of the brand's usual CTAs "
+                "if it fits, otherwise write a natural, specific one, never generic.")
+    return txt
 
 
 def _sans_tiret(txt: str) -> str:
@@ -343,9 +350,9 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
     if historique:
         deja = "\n".join(f"- {t}" for t in historique[:20])  # petite liste = coût négligeable
         consigne = (
-            f"\n\nSujets DÉJÀ proposés ou publiés pour cette marque — tu ne dois NI les répéter, "
-            f"NI les reformuler, NI en proposer de simples variantes :\n{deja}\n"
-            f"Propose des angles VRAIMENT nouveaux et différents de cette liste."
+            f"\n\nTopics ALREADY proposed or published for this brand. You must NOT repeat them, "
+            f"rephrase them, or propose simple variants:\n{deja}\n"
+            f"Propose genuinely new angles, different from this list."
         )
 
     # Formats limités aux réseaux connectés (pas de Reel si aucun compte adapté).
@@ -357,10 +364,9 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
     for cle, label in _DIM_LABELS.items():
         valeurs = formats_ok if cle == "format" else DIMENSIONS[cle]
         if cle in filtres:
-            contraintes.append(f"{label} = « {filtres[cle]} » pour TOUS les sujets (imposé).")
+            contraintes.append(f"{label} = \"{filtres[cle]}\" for ALL topics (imposed).")
         else:
-            contraintes.append(f"{label} : à choisir DANS [{', '.join(valeurs)}], "
-                               f"en VARIANT d'un sujet à l'autre.")
+            contraintes.append(f"{label}: pick ONE from [{', '.join(valeurs)}], varying it from one topic to the next.")
     menu = "\n".join(f"- {c}" for c in contraintes)
 
     # On demande quelques sujets de rab : après filtrage des doublons, il en reste assez.
@@ -372,12 +378,12 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
         messages=[{
             "role": "user",
             "content": (
-                f"Propose {demande} idées de sujets de contenu pour cette marque. Chaque sujet est "
-                f"un BRIEF exploitable, décrit par 4 dimensions :\n{menu}\n\n"
-                f"Réponds UNIQUEMENT avec un tableau JSON (aucun texte autour), un objet par sujet :\n"
+                f"Propose {demande} content topic ideas for this brand. Each topic is an actionable "
+                f"BRIEF described by 4 dimensions:\n{menu}\n\n"
+                f"Answer ONLY with a JSON array (no surrounding text), one object per topic:\n"
                 f'[{{"sujet":"…","objectif":"…","angle":"…","cible":"…","format":"…"}}]\n'
-                f"« sujet » = une accroche concrète et accrocheuse (pas un thème vague). Les autres "
-                f"champs prennent EXACTEMENT une valeur des listes ci-dessus."
+                f'"sujet" = a concrete, catchy hook (not a vague theme), written in the output language. '
+                f"The other fields take EXACTLY one value from the lists above."
                 + consigne
             ),
         }],
