@@ -82,14 +82,14 @@ const DIM_FALLBACK = {
   objectif: ['Engagement', 'Notoriété', 'Éducation', 'Conversion', 'Génération de prospects', 'Fidélisation', 'Preuve sociale'],
   angle: ['Problème → solution', 'Astuce', 'Comparaison', 'Controverse', 'Storytelling', 'Témoignage', 'Démonstration', 'Inspiration', 'Humour', 'Curiosité'],
   cible: ['Nouvelle audience', 'Prospect', 'Client', 'Client fidèle', 'Segment spécifique'],
-  format: ['Reel/TikTok', 'Post', 'Carrousel', 'Story', 'Article', 'Vidéo longue'],
+  format: ['Reel', 'Post', 'Carrousel', 'Story', 'Article', 'Vidéo longue'],
 };
 // La dimension "format" pilote le format de génération réel (cfgFormat).
 const FORMAT_DIM_TO_CFG = {
   'Post': 'post', 'Article': 'post',
   'Carrousel': 'carrousel',
   'Story': 'story',
-  'Reel/TikTok': 'script', 'Vidéo longue': 'script',
+  'Reel': 'script', 'Vidéo longue': 'script',
 };
 
 // Sélecteur d'une dimension : valeur recommandée ⭐ (reco IA), changeable ; point vert = modifié.

@@ -187,7 +187,7 @@ DIMENSIONS = {
                  "Storytelling", "Témoignage", "Démonstration", "Inspiration",
                  "Humour", "Curiosité"],
     "cible":    ["Nouvelle audience", "Prospect", "Client", "Client fidèle", "Segment spécifique"],
-    "format":   ["Reel/TikTok", "Post", "Carrousel", "Story", "Article", "Vidéo longue"],
+    "format":   ["Reel", "Post", "Carrousel", "Story", "Article", "Vidéo longue"],
 }
 _DIM_LABELS = {"objectif": "Objectif", "angle": "Angle", "cible": "Cible", "format": "Format"}
 
@@ -197,7 +197,7 @@ FORMAT_PLATEFORMES = {
     "Post":         {"linkedin", "facebook", "instagram", "googlebusiness", "twitter"},
     "Carrousel":    {"linkedin", "instagram", "facebook"},
     "Story":        {"instagram", "facebook"},
-    "Reel/TikTok":  {"tiktok", "instagram", "youtube"},
+    "Reel":         {"tiktok", "instagram", "youtube"},
     "Article":      {"linkedin"},
     "Vidéo longue": {"youtube"},
 }
@@ -291,7 +291,7 @@ def _sujets_historique(telegram_id: str, limit: int = 60) -> list:
 def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> dict:
     """Propose des sujets TAGGÉS (objectif/angle/cible/format), pas une liste plate.
     `filtres` : dimensions imposées par l'utilisateur (ex. {objectif:'Conversion',
-    format:'Reel/TikTok'}) ; celles laissées libres sont variées automatiquement."""
+    format:'Reel'}) ; celles laissées libres sont variées automatiquement."""
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -310,7 +310,7 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
             f"Propose des angles VRAIMENT nouveaux et différents de cette liste."
         )
 
-    # Formats limités aux réseaux connectés (pas de Reel/TikTok si aucun compte adapté).
+    # Formats limités aux réseaux connectés (pas de Reel si aucun compte adapté).
     formats_ok = _formats_disponibles(telegram_id)
 
     # Dimensions : imposées par l'utilisateur (filtres) OU variées par l'IA pour la diversité.
