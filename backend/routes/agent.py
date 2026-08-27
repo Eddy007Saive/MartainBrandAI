@@ -81,7 +81,8 @@ def sujets(body: dict, payload: dict = Depends(verify_token)):
     if not q.get("ok"):
         raise _refus(q)
     try:
-        result = agent_service.generer_sujets(telegram_id, int(body.get("nombre", 6)))
+        result = agent_service.generer_sujets(
+            telegram_id, int(body.get("nombre", 6)), body.get("filtres"))
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent sujets error: {e}")
@@ -93,18 +94,30 @@ def sujets(body: dict, payload: dict = Depends(verify_token)):
 
     usage_service.log(telegram_id, "sujets", agent_service.SUJETS_MODEL, result.get("usage"), q.get("unit_cost", 0))
 
-    # Sauvegarde des sujets comme brouillons (sans réseau — choisi à la transformation)
-    rows = [{"telegram_id": telegram_id, "titre": s[:200], "statut": "Brouillon"}
-            for s in result.get("sujets", []) if s]
+    # Sauvegarde des sujets comme brouillons (sans réseau — choisi à la transformation).
+    # Chaque sujet porte ses dimensions {objectif, angle, cible, format} : un brief, pas un thème.
+    def _dims(s):
+        return {k: s.get(k) for k in ("objectif", "angle", "cible", "format") if s.get(k)}
+    sujets = [s for s in result.get("sujets", []) if s.get("sujet")]
+    rows = [{"telegram_id": telegram_id, "titre": s["sujet"][:200], "statut": "Brouillon",
+             "dimensions": _dims(s) or None} for s in sujets]
     saved = []
     if rows:
         try:
             ins = supabase.table("brouillons").insert(rows).execute()
-            saved = [{"id": r["id"], "titre": r["titre"]} for r in (ins.data or [])]
+            saved = [{"id": r["id"], "titre": r["titre"], "dimensions": r.get("dimensions")}
+                     for r in (ins.data or [])]
         except Exception as e:
             logger.error(f"Save sujets error: {e}")
-            saved = [{"id": None, "titre": s} for s in result.get("sujets", [])]
+            saved = [{"id": None, "titre": s["sujet"], "dimensions": _dims(s)} for s in sujets]
     return {"sujets": saved, "quota": {"action": "subject", "used": q.get("used"), "limit": q.get("limit")}}
+
+
+@router.get("/dimensions")
+def dimensions(payload: dict = Depends(verify_token)):
+    """Les listes de valeurs des 4 dimensions d'un sujet (objectif/angle/cible/format).
+    Sert au Studio : filtres optionnels de génération + rendu des tags sur chaque sujet."""
+    return agent_service.DIMENSIONS
 
 
 @router.get("/plan")
@@ -153,6 +166,7 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
     created, errors = 0, []
     for it in items:
         sujet = (it.get("sujet") or "").strip()
+        dims = it.get("dimensions") if isinstance(it.get("dimensions"), dict) else None  # brief du sujet
         reseau_low = (it.get("reseau") or "").lower()
         qualite = it.get("qualite", "equilibre")
         reseau_cap = RESEAU_MAP.get(reseau_low)
@@ -172,15 +186,15 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             model = agent_service.QUALITE_MODELS.get(qualite)
             ccontent = None
             if action == "post":
-                r = agent_service.rediger_post(telegram_id, sujet, reseau_low, model, cache=True)
+                r = agent_service.rediger_post(telegram_id, sujet, reseau_low, model, cache=True, dimensions=dims)
                 texte = r.get("contenu", "")
             elif action == "carrousel":
-                r = agent_service.rediger_carrousel(telegram_id, sujet, 5, model, cache=True)
+                r = agent_service.rediger_carrousel(telegram_id, sujet, 5, model, cache=True, dimensions=dims)
                 ccontent = r.get("content")
                 texte = _carrousel_legende(ccontent) if ccontent else ""
             else:
                 tv = "Reel" if fmt == "reel" else "Video"
-                r = agent_service.rediger_script(telegram_id, sujet, tv, model, cache=True)
+                r = agent_service.rediger_script(telegram_id, sujet, tv, model, cache=True, dimensions=dims)
                 texte = r.get("script", "")
             if r.get("error"):
                 quota_service.refund(q)
@@ -257,7 +271,7 @@ def list_sujets(payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="Invalid token")
     try:
         r = (supabase.table("brouillons")
-             .select("id, titre, reseau_cible, created_at")
+             .select("id, titre, reseau_cible, dimensions, created_at")
              .eq("telegram_id", telegram_id).eq("statut", "Brouillon")
              .order("created_at", desc=True).execute())
         return r.data or []
@@ -483,7 +497,8 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
         raise _refus(q)
     try:
         result = agent_service.rediger_post(telegram_id, sujet, body.get("reseau", "linkedin"),
-                                            agent_service.QUALITE_MODELS.get(qualite))
+                                            agent_service.QUALITE_MODELS.get(qualite),
+                                            dimensions=body.get("dimensions"))
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent rediger error: {e}")
@@ -575,7 +590,8 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     if not q.get("ok"):
         raise _refus(q)
     try:
-        result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.QUALITE_MODELS.get(qualite))
+        result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.QUALITE_MODELS.get(qualite),
+                                                 dimensions=body.get("dimensions"))
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Carrousel texte error: {e}")
@@ -642,7 +658,8 @@ def script(body: dict, payload: dict = Depends(verify_token)):
         raise _refus(q)
     try:
         result = agent_service.rediger_script(telegram_id, sujet, body.get("type_video", "Reel"),
-                                              agent_service.QUALITE_MODELS.get(qualite))
+                                              agent_service.QUALITE_MODELS.get(qualite),
+                                              dimensions=body.get("dimensions"))
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent script error: {e}")

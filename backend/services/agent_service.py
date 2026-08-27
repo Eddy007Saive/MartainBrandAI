@@ -177,6 +177,43 @@ ROLE_SUJETS = (
     "Tu proposes des idées de sujets de posts pertinents pour son secteur et son audience.\n\n"
 )
 
+# Chaque sujet n'est pas une simple phrase : c'est un brief à 4 dimensions, pour que
+# le générateur de contenu ait une instruction exploitable (pas juste un thème).
+# Valeurs FIGÉES : l'IA choisit dedans, jamais en dehors (sinon l'UI ne sait pas afficher).
+DIMENSIONS = {
+    "objectif": ["Engagement", "Notoriété", "Éducation", "Conversion",
+                 "Génération de prospects", "Fidélisation", "Preuve sociale"],
+    "angle":    ["Problème → solution", "Astuce", "Comparaison", "Controverse",
+                 "Storytelling", "Témoignage", "Démonstration", "Inspiration",
+                 "Humour", "Curiosité"],
+    "cible":    ["Nouvelle audience", "Prospect", "Client", "Client fidèle", "Segment spécifique"],
+    "format":   ["Reel/TikTok", "Post", "Carrousel", "Story", "Article", "Vidéo longue"],
+}
+_DIM_LABELS = {"objectif": "Objectif", "angle": "Angle", "cible": "Cible", "format": "Format"}
+
+
+def _valider_dimension(cle: str, valeur) -> str | None:
+    """Garde une valeur de dimension seulement si elle appartient à la liste figée."""
+    v = (valeur or "").strip() if isinstance(valeur, str) else ""
+    return v if v in DIMENSIONS.get(cle, ()) else None
+
+
+def brief_dimensions(dims: dict) -> str:
+    """Transforme les dimensions d'un sujet en BRIEF injecté dans la rédaction.
+    Vide si aucune dimension exploitable — la rédaction retombe alors sur son
+    comportement d'avant (le sujet seul)."""
+    if not isinstance(dims, dict):
+        return ""
+    lignes = []
+    for cle, label in _DIM_LABELS.items():
+        v = _valider_dimension(cle, dims.get(cle))
+        if v:
+            lignes.append(f"- {label} : {v}")
+    if not lignes:
+        return ""
+    return ("\n\nBRIEF de ce contenu (à respecter dans le ton et l'intention) :\n"
+            + "\n".join(lignes))
+
 
 def _norm(s: str) -> str:
     """Normalise un titre pour comparer (minuscules, sans accents, alphanumérique)."""
@@ -215,7 +252,10 @@ def _sujets_historique(telegram_id: str, limit: int = 60) -> list:
     return out
 
 
-def generer_sujets(telegram_id: str, nombre: int = 6) -> dict:
+def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> dict:
+    """Propose des sujets TAGGÉS (objectif/angle/cible/format), pas une liste plate.
+    `filtres` : dimensions imposées par l'utilisateur (ex. {objectif:'Conversion',
+    format:'Reel/TikTok'}) ; celles laissées libres sont variées automatiquement."""
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -234,33 +274,61 @@ def generer_sujets(telegram_id: str, nombre: int = 6) -> dict:
             f"Propose des angles VRAIMENT nouveaux et différents de cette liste."
         )
 
+    # Dimensions : imposées par l'utilisateur (filtres) OU variées par l'IA pour la diversité.
+    filtres = {k: v for k in DIMENSIONS if (v := _valider_dimension(k, (filtres or {}).get(k)))}
+    contraintes = []
+    for cle, label in _DIM_LABELS.items():
+        if cle in filtres:
+            contraintes.append(f"{label} = « {filtres[cle]} » pour TOUS les sujets (imposé).")
+        else:
+            contraintes.append(f"{label} : à choisir DANS [{', '.join(DIMENSIONS[cle])}], "
+                               f"en VARIANT d'un sujet à l'autre.")
+    menu = "\n".join(f"- {c}" for c in contraintes)
+
     # On demande quelques sujets de rab : après filtrage des doublons, il en reste assez.
     demande = nombre + 4
     resp = _messages_create(
         model=SUJETS_MODEL,
-        max_tokens=900,
+        max_tokens=1600,
         system=ROLE_SUJETS + contexte,
         messages=[{
             "role": "user",
             "content": (
-                f"Propose {demande} idées de sujets de contenu pertinents pour cette marque "
-                f"(angles concrets, accrocheurs, exploitables aussi bien en post qu'en vidéo). "
-                f"Réponds UNIQUEMENT avec un sujet par ligne — pas de numéro, pas de puce, pas d'intro."
+                f"Propose {demande} idées de sujets de contenu pour cette marque. Chaque sujet est "
+                f"un BRIEF exploitable, décrit par 4 dimensions :\n{menu}\n\n"
+                f"Réponds UNIQUEMENT avec un tableau JSON (aucun texte autour), un objet par sujet :\n"
+                f'[{{"sujet":"…","objectif":"…","angle":"…","cible":"…","format":"…"}}]\n'
+                f"« sujet » = une accroche concrète et accrocheuse (pas un thème vague). Les autres "
+                f"champs prennent EXACTEMENT une valeur des listes ci-dessus."
                 + consigne
             ),
         }],
     )
     texte = _texte(resp)
-    sujets = [l.strip(" -•\t0123456789.").strip() for l in texte.splitlines() if l.strip()]
+    try:
+        brut = json.loads(texte[texte.index("["):texte.rindex("]") + 1])
+    except Exception as e:
+        logger.warning(f"sujets JSON illisible ({e}) — repli liste plate")
+        brut = [{"sujet": l.strip(" -•\t0123456789.").strip()} for l in texte.splitlines() if l.strip()]
 
     # Filtre anti-doublon : vs l'historique ET entre eux (sécurité si le modèle répète)
     existants = {_norm(t) for t in historique}
     seen, uniques = set(), []
-    for s in sujets:
+    for o in brut:
+        s = (o.get("sujet") if isinstance(o, dict) else str(o)) or ""
+        s = s.strip()
         k = _norm(s)
-        if k and k not in existants and k not in seen:
-            seen.add(k)
-            uniques.append(s)
+        if not k or k in existants or k in seen:
+            continue
+        seen.add(k)
+        d = o if isinstance(o, dict) else {}
+        uniques.append({
+            "sujet": s,
+            "objectif": filtres.get("objectif") or _valider_dimension("objectif", d.get("objectif")),
+            "angle":    filtres.get("angle")    or _valider_dimension("angle", d.get("angle")),
+            "cible":    filtres.get("cible")    or _valider_dimension("cible", d.get("cible")),
+            "format":   filtres.get("format")   or _valider_dimension("format", d.get("format")),
+        })
     return {"sujets": uniques[:nombre], "usage": _usage(resp)}
 
 
@@ -297,7 +365,7 @@ ROLE_REDACTION = (
 )
 
 
-def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: str = None, cache: bool = False) -> dict:
+def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: str = None, cache: bool = False, dimensions: dict = None) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     reseau_label = RESEAUX.get(reseau, "LinkedIn")
@@ -320,8 +388,9 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
         messages=[{
             "role": "user",
             "content": (
-                f"Écris UN post {reseau_label} prêt à publier sur le sujet :\n\n\"{sujet}\"\n\n"
-                f"Format {reseau_label} : accroche forte en 1ʳᵉ ligne, lignes courtes et aérées, "
+                f"Écris UN post {reseau_label} prêt à publier sur le sujet :\n\n\"{sujet}\""
+                + brief_dimensions(dimensions)
+                + f"\n\nFormat {reseau_label} : accroche forte en 1ʳᵉ ligne, lignes courtes et aérées, "
                 f"une seule idée centrale, et une question/appel à l'engagement en fin."
                 + _consigne_longueur(reseau)
                 + " Donne uniquement le texte du post."
@@ -400,7 +469,7 @@ ROLE_CARROUSEL = (
 )
 
 
-def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: str = None, cache: bool = False) -> dict:
+def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: str = None, cache: bool = False, dimensions: dict = None) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -414,7 +483,7 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
         system=_system(ROLE_CARROUSEL, contexte, "", cache),
         messages=[{
             "role": "user",
-            "content": (f"Sujet du carrousel : \"{sujet}\".\n"
+            "content": (f"Sujet du carrousel : \"{sujet}\"." + brief_dimensions(dimensions) + "\n"
                         f"Donne le hook, la legende (courte : accroche + invitation à swiper + 1 CTA, sans répéter les slides), "
                         f"EXACTEMENT {nb_idees} idées (avec titre court, texte, pills, pro_tip) et le cta, en JSON."),
         }],
@@ -476,7 +545,7 @@ ROLE_SCRIPT = (
 )
 
 
-def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model: str = None, cache: bool = False) -> dict:
+def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model: str = None, cache: bool = False, dimensions: dict = None) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -492,7 +561,9 @@ def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model
         messages=[{
             "role": "user",
             "content": (
-                f"Écris un script vidéo de type « {tv} » sur le sujet :\n\n\"{sujet}\"\n\n"
+                f"Écris un script vidéo de type « {tv} » sur le sujet :\n\n\"{sujet}\""
+                + brief_dimensions(dimensions)
+                + f"\n\n"
                 f"Format de sortie clair :\n"
                 f"[HOOK] — l'accroche des 3 premières secondes\n"
                 f"[CORPS] — les scènes / idées avec le texte exact à dire\n"
