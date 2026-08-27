@@ -136,6 +136,13 @@ def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
             "(Profil de marque peu renseigné — reste générique, professionnel et "
             "crédible ; évite les promesses chiffrées et le jargon creux.)"
         )
+    # Règle typographique universelle (toutes générations) : jamais de tiret cadratin.
+    lignes.append(
+        "\n## TYPOGRAPHIE (impératif, prime sur le style) : n'utilise JAMAIS de tiret "
+        "cadratin (—) ni demi-cadratin (–), ni comme séparateur ni comme incise. "
+        "Réécris avec une virgule, un point, un deux-points ou des parenthèses. "
+        "Le tiret simple (-) reste autorisé uniquement dans un mot composé."
+    )
     return "\n".join(lignes)
 
 
@@ -251,6 +258,20 @@ def brief_dimensions(dims: dict) -> str:
             + "\n".join(lignes))
 
 
+def _sans_tiret(txt: str) -> str:
+    """Voix Postorico : aucun tiret cadratin/demi-cadratin. On les remplace par
+    une virgule (séparateur/incise) et on nettoie les espaces."""
+    if not isinstance(txt, str):
+        return txt
+    t = (txt.replace(" — ", ", ").replace(" – ", ", ")
+            .replace(" —", ", ").replace(" –", ", ")
+            .replace("— ", ", ").replace("– ", ", ")
+            .replace("—", ", ").replace("–", ", "))
+    while "  " in t:
+        t = t.replace("  ", " ")
+    return t.replace(" ,", ",").replace(",,", ",").strip(" ,")
+
+
 def _norm(s: str) -> str:
     """Normalise un titre pour comparer (minuscules, sans accents, alphanumérique)."""
     s = unicodedata.normalize("NFD", (s or "").lower())
@@ -356,7 +377,7 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
     seen, uniques = set(), []
     for o in brut:
         s = (o.get("sujet") if isinstance(o, dict) else str(o)) or ""
-        s = s.strip()
+        s = _sans_tiret(s.strip())
         k = _norm(s)
         if not k or k in existants or k in seen:
             continue
