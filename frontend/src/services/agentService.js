@@ -1,9 +1,14 @@
 import api from '../lib/api';
 
 export const agentService = {
-  // Génère N sujets (neutres, sauvegardés comme brouillons) → { sujets:[{id,titre}], credits }
-  sujets: (nombre = 6) =>
-    api.post('/agent/sujets', { nombre }).then((r) => r.data),
+  // Génère N sujets TAGGÉS (objectif/angle/cible/format), sauvegardés comme brouillons.
+  // filtres : dimensions imposées (optionnel) — les autres sont variées par l'IA.
+  // → { sujets:[{id,titre,dimensions}], quota }
+  sujets: (nombre = 6, filtres = null) =>
+    api.post('/agent/sujets', { nombre, ...(filtres && Object.keys(filtres).length ? { filtres } : {}) }).then((r) => r.data),
+
+  // Les listes de valeurs des 4 dimensions (pour les filtres + tags du Studio)
+  dimensions: () => api.get('/agent/dimensions').then((r) => r.data),
 
   // Plan éditorial du mois (besoin/rempli/reste/format par réseau)
   plan: (year, month) =>
@@ -23,22 +28,23 @@ export const agentService = {
   getDrafts: () => api.get('/agent/drafts').then((r) => r.data),
   saveDrafts: (items) => api.put('/agent/drafts', { items }).then((r) => r.data),
 
-  // Rédige un post sur un sujet ; save=true l'enregistre dans les contenus
-  rediger: (sujet, reseau = 'linkedin', save = false, qualite = 'equilibre') =>
-    api.post('/agent/rediger', { sujet, reseau, save, qualite }).then((r) => r.data),
+  // Rédige un post sur un sujet ; save=true l'enregistre dans les contenus.
+  // dimensions : le brief du sujet (objectif/angle/cible/format), pour orienter la rédaction.
+  rediger: (sujet, reseau = 'linkedin', save = false, qualite = 'equilibre', dimensions = null) =>
+    api.post('/agent/rediger', { sujet, reseau, save, qualite, ...(dimensions ? { dimensions } : {}) }).then((r) => r.data),
 
   // Enregistre le texte (éventuellement édité) dans les contenus
   enregistrer: (contenu, titre, reseau, type = null) =>
     api.post('/agent/enregistrer', { contenu, titre, reseau, type }).then((r) => r.data),
 
   // Génère un script vidéo
-  script: (sujet, type_video = 'Reel', qualite = 'equilibre') =>
-    api.post('/agent/script', { sujet, type_video, qualite }).then((r) => r.data),
+  script: (sujet, type_video = 'Reel', qualite = 'equilibre', dimensions = null) =>
+    api.post('/agent/script', { sujet, type_video, qualite, ...(dimensions ? { dimensions } : {}) }).then((r) => r.data),
 
   // Génère un carrousel (slides texte + images rendues) -> { contenu_id, slides, slides_images, credits }
   // contenu_id fourni = régénère le carrousel d'un contenu existant
-  carrousel: (sujet, reseau = 'linkedin', nb_slides = 5, qualite = 'equilibre', contenu_id = null) =>
-    api.post('/agent/carrousel', { sujet, reseau, nb_slides, qualite, contenu_id }).then((r) => r.data),
+  carrousel: (sujet, reseau = 'linkedin', nb_slides = 5, qualite = 'equilibre', contenu_id = null, dimensions = null) =>
+    api.post('/agent/carrousel', { sujet, reseau, nb_slides, qualite, contenu_id, ...(dimensions ? { dimensions } : {}) }).then((r) => r.data),
 
   // Génère un post à partir d'une photo (vision) -> { contenu_id, contenu, lien_visuel, credits }
   redigerPhoto: (file, reseau = 'linkedin', qualite = 'equilibre') => {

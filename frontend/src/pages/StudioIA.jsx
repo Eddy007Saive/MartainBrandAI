@@ -44,6 +44,14 @@ const TYPES_VIDEO = [
 // Qualité de génération : plus de choix côté client (héritage du système de crédits).
 // Tout passe en 'equilibre' ; le backend garde le paramètre (réactivable par offre si besoin).
 
+// Les 4 dimensions d'un sujet (brief actionnable) — emoji + libellé pour filtres et tags
+const DIM_META = [
+  { cle: 'objectif', emoji: '🎯', label: 'Objectif' },
+  { cle: 'angle', emoji: '🧠', label: 'Angle' },
+  { cle: 'cible', emoji: '👥', label: 'Cible' },
+  { cle: 'format', emoji: '📱', label: 'Format' },
+];
+
 // Clés i18n (préfixe studio.) des logs affichés pendant la génération de sujets
 const LOGS_SUJETS = ['logBrandVoice', 'logSectorAudience', 'logAngles', 'logTopics'];
 
@@ -94,6 +102,9 @@ export default function StudioIA() {
 
   const [nbSujets, setNbSujets] = useState(6);
   const [sujets, setSujets] = useState([]);
+  const [dims, setDims] = useState(null);      // listes de valeurs des dimensions (backend)
+  const [filtres, setFiltres] = useState({});  // dimensions imposées à la génération (optionnel)
+  const [filtresOpen, setFiltresOpen] = useState(false); // panneau de ciblage optionnel
   const [openId, setOpenId] = useState(null); // sujet en cours de configuration
   const [cfgFormat, setCfgFormat] = useState('post');
   // Multi-réseaux : on peut cocher plusieurs réseaux — le 1er devient le post principal,
@@ -145,6 +156,7 @@ export default function StudioIA() {
 
   useEffect(() => {
     agentService.sujetsList().then((data) => setSujets(data || [])).catch(() => {});
+    agentService.dimensions().then(setDims).catch(() => {});
   }, []);
 
   // Charge les brouillons du compte (et recharge si on change de compte sur le même navigateur)
@@ -185,7 +197,7 @@ export default function StudioIA() {
     if (!marqueOk) { toast.error(t('studio.fillSectorFirst')); return; }
     setLoadingSujets(true);
     try {
-      const data = await agentService.sujets(nbSujets);
+      const data = await agentService.sujets(nbSujets, filtres);
       const nouveaux = data.sujets || [];
       setSujets((prev) => [...nouveaux, ...prev]);
       refreshUsage();
@@ -224,7 +236,7 @@ export default function StudioIA() {
     // (il disparaît de la réserve seulement quand un contenu généré à partir de lui est validé — voir `valider`)
     try {
       if (fmt === 'carrousel') {
-        const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite);
+        const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite, null, s.dimensions);
         if (d.credits != null) updateUser({ credits: d.credits });
         track('contenu_genere', { format: 'carrousel', reseau: meta, qualite });
         setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
@@ -241,8 +253,8 @@ export default function StudioIA() {
         return;
       }
       const d = fmt === 'script'
-        ? await agentService.script(s.titre, meta, qualite)
-        : await agentService.rediger(s.titre, meta, false, qualite);
+        ? await agentService.script(s.titre, meta, qualite, s.dimensions)
+        : await agentService.rediger(s.titre, meta, false, qualite, s.dimensions);
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
@@ -474,6 +486,46 @@ export default function StudioIA() {
             </Button>
           </div>
 
+          {/* Ciblage optionnel : impose une ou plusieurs dimensions à la génération (sinon l'IA varie) */}
+          {dims && (
+            <div className="rounded-xl border border-white/5 bg-slate-950/40">
+              <button onClick={() => setFiltresOpen((o) => !o)} data-testid="studio-filtres-toggle"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-inter text-slate-300 hover:text-white transition-colors">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span>{t('studio.targetSubjects')}</span>
+                {Object.values(filtres).filter(Boolean).length > 0 && (
+                  <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-[#5B6CFF]/20 text-[#c9d2ff]">
+                    {Object.values(filtres).filter(Boolean).length}
+                  </span>
+                )}
+                <span className="ml-auto text-xs text-slate-500">{filtresOpen ? '▲' : '▼'}</span>
+              </button>
+              {filtresOpen && (
+                <div className="px-4 pb-4 grid grid-cols-2 gap-3 animate-fade-in">
+                  {DIM_META.map(({ cle, emoji, label }) => (
+                    <label key={cle} className="flex flex-col gap-1">
+                      <span className="text-xs text-slate-500 font-inter">{emoji} {label}</span>
+                      <select
+                        value={filtres[cle] || ''}
+                        onChange={(e) => setFiltres((f) => ({ ...f, [cle]: e.target.value }))}
+                        data-testid={`studio-filtre-${cle}`}
+                        className="rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-2.5 py-1.5 outline-none focus:border-[#5B6CFF]/50">
+                        <option value="">{t('studio.filterAny')}</option>
+                        {(dims[cle] || []).map((v) => <option key={v} value={v}>{v}</option>)}
+                      </select>
+                    </label>
+                  ))}
+                  {Object.values(filtres).filter(Boolean).length > 0 && (
+                    <button onClick={() => setFiltres({})}
+                      className="col-span-2 text-xs text-slate-500 hover:text-slate-300 transition-colors text-left">
+                      {t('studio.filterReset')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Brief perso (sujet libre) */}
           <div className="rounded-xl border border-white/5 bg-slate-950/40">
             <button onClick={() => setBriefOpen((o) => !o)} data-testid="studio-brief-toggle"
@@ -611,7 +663,18 @@ export default function StudioIA() {
                   <div key={s.id} data-testid={`studio-sujet-${s.id}`}
                     className={`rounded-xl border transition-all ${open ? 'border-[#5B6CFF]/40 bg-[#5B6CFF]/[0.06]' : 'border-white/5 bg-slate-800/40 hover:border-white/15'}`}>
                     <div className="flex items-center gap-3 px-4 py-3">
-                      <span className="flex-1 text-sm text-slate-200 font-inter">{s.titre}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="block text-sm text-slate-200 font-inter">{s.titre}</span>
+                        {s.dimensions && Object.values(s.dimensions).some(Boolean) && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {DIM_META.map(({ cle, emoji }) => s.dimensions?.[cle] ? (
+                              <span key={cle} className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/5 text-slate-400 font-inter">
+                                {emoji} {s.dimensions[cle]}
+                              </span>
+                            ) : null)}
+                          </div>
+                        )}
+                      </div>
                       {!open && (
                         <>
                           <button onClick={() => ouvrir(s)} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-[#5B6CFF]/20 text-white hover:bg-[#5B6CFF]/30 transition-all flex-shrink-0">
