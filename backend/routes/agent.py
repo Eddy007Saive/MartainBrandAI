@@ -116,8 +116,12 @@ def sujets(body: dict, payload: dict = Depends(verify_token)):
 @router.get("/dimensions")
 def dimensions(payload: dict = Depends(verify_token)):
     """Les listes de valeurs des 4 dimensions d'un sujet (objectif/angle/cible/format).
-    Sert au Studio : filtres optionnels de génération + rendu des tags sur chaque sujet."""
-    return agent_service.DIMENSIONS
+    Sert au Studio : filtres optionnels de génération + rendu des tags sur chaque sujet.
+    Le 'format' est filtré sur les réseaux connectés (pas de Reel/TikTok sans compte adapté)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return agent_service.dimensions_pour(telegram_id)
 
 
 @router.get("/plan")

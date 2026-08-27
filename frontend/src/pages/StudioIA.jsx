@@ -103,6 +103,8 @@ const DimSelect = ({ emoji, label, value, reco, options, onChange }) => {
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
   const edited = value !== reco;
+  // Garde la valeur courante sélectionnable même si elle sort de la liste filtrée (réseaux).
+  const opts = value && !options.includes(value) ? [value, ...options] : options;
   return (
     <div className="relative" ref={ref}>
       <div className="text-[10px] text-slate-500 font-medium mb-1 flex items-center gap-1">{emoji} {label}</div>
@@ -116,7 +118,7 @@ const DimSelect = ({ emoji, label, value, reco, options, onChange }) => {
       </button>
       {open && (
         <div className="absolute z-30 left-0 right-0 top-[calc(100%+5px)] bg-[#0c1424] border border-white/10 rounded-xl p-1.5 shadow-2xl max-h-48 overflow-auto animate-fade-in">
-          {options.map((v) => {
+          {opts.map((v) => {
             const sel = v === value;
             return (
               <button key={v} type="button" onClick={() => { onChange(v); setOpen(false); }}

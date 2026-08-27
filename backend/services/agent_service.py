@@ -191,11 +191,47 @@ DIMENSIONS = {
 }
 _DIM_LABELS = {"objectif": "Objectif", "angle": "Angle", "cible": "Cible", "format": "Format"}
 
+# Un format n'a de sens que si un réseau capable de le publier est connecté.
+# (au moins un des réseaux listés suffit)
+FORMAT_PLATEFORMES = {
+    "Post":         {"linkedin", "facebook", "instagram", "googlebusiness", "twitter"},
+    "Carrousel":    {"linkedin", "instagram", "facebook"},
+    "Story":        {"instagram", "facebook"},
+    "Reel/TikTok":  {"tiktok", "instagram", "youtube"},
+    "Article":      {"linkedin"},
+    "Vidéo longue": {"youtube"},
+}
+
+
+def _formats_disponibles(telegram_id: str) -> list:
+    """Sous-ensemble de DIMENSIONS['format'] réellement publiable vu les réseaux
+    connectés de ce compte. Repli sur ['Post','Carrousel'] si rien de connecté."""
+    try:
+        from services import social_service
+        connectes = set(social_service.comptes(telegram_id).keys())
+    except Exception:
+        connectes = set()
+    dispo = [f for f in DIMENSIONS["format"] if FORMAT_PLATEFORMES.get(f, set()) & connectes]
+    return dispo or ["Post", "Carrousel"]
+
+
+def dimensions_pour(telegram_id: str) -> dict:
+    """Les 4 listes de dimensions pour ce compte — 'format' filtré sur ses réseaux."""
+    return {**DIMENSIONS, "format": _formats_disponibles(telegram_id)}
+
 
 def _valider_dimension(cle: str, valeur) -> str | None:
     """Garde une valeur de dimension seulement si elle appartient à la liste figée."""
     v = (valeur or "").strip() if isinstance(valeur, str) else ""
     return v if v in DIMENSIONS.get(cle, ()) else None
+
+
+def _valider_format(valeur, autorises: list) -> str:
+    """Valide un format ET le contraint aux formats publiables ; repli sur Post."""
+    v = _valider_dimension("format", valeur)
+    if v and v in autorises:
+        return v
+    return "Post" if "Post" in autorises else (autorises[0] if autorises else "Post")
 
 
 def brief_dimensions(dims: dict) -> str:
@@ -274,14 +310,18 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
             f"Propose des angles VRAIMENT nouveaux et différents de cette liste."
         )
 
+    # Formats limités aux réseaux connectés (pas de Reel/TikTok si aucun compte adapté).
+    formats_ok = _formats_disponibles(telegram_id)
+
     # Dimensions : imposées par l'utilisateur (filtres) OU variées par l'IA pour la diversité.
     filtres = {k: v for k in DIMENSIONS if (v := _valider_dimension(k, (filtres or {}).get(k)))}
     contraintes = []
     for cle, label in _DIM_LABELS.items():
+        valeurs = formats_ok if cle == "format" else DIMENSIONS[cle]
         if cle in filtres:
             contraintes.append(f"{label} = « {filtres[cle]} » pour TOUS les sujets (imposé).")
         else:
-            contraintes.append(f"{label} : à choisir DANS [{', '.join(DIMENSIONS[cle])}], "
+            contraintes.append(f"{label} : à choisir DANS [{', '.join(valeurs)}], "
                                f"en VARIANT d'un sujet à l'autre.")
     menu = "\n".join(f"- {c}" for c in contraintes)
 
@@ -327,7 +367,7 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
             "objectif": filtres.get("objectif") or _valider_dimension("objectif", d.get("objectif")),
             "angle":    filtres.get("angle")    or _valider_dimension("angle", d.get("angle")),
             "cible":    filtres.get("cible")    or _valider_dimension("cible", d.get("cible")),
-            "format":   filtres.get("format")   or _valider_dimension("format", d.get("format")),
+            "format":   filtres.get("format")   or _valider_format(d.get("format"), formats_ok),
         })
     return {"sujets": uniques[:nombre], "usage": _usage(resp)}
 
