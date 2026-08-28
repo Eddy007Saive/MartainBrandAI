@@ -176,8 +176,6 @@ export default function ParametresPage() {
   const [offreForm, setOffreForm] = useState(OFFRE_VIDE);
   const [offreEditId, setOffreEditId] = useState(null); // id en édition, ou null (création)
   const [offreSaving, setOffreSaving] = useState(false);
-  const [offreAssets, setOffreAssets] = useState([]);   // photos de l'offre en édition
-  const [assetBusy, setAssetBusy] = useState(false);    // upload/analyse en cours
   useEffect(() => {
     if (activeSection === 'offres' && !offresLoaded) {
       offersService.list().then((d) => { setOffres(d || []); setOffresLoaded(true); }).catch(() => setOffresLoaded(true));
@@ -1731,7 +1729,7 @@ export default function ParametresPage() {
   };
 
   // --- Offres / produits ---
-  const resetOffreForm = () => { setOffreForm(OFFRE_VIDE); setOffreEditId(null); setOffreAssets([]); };
+  const resetOffreForm = () => { setOffreForm(OFFRE_VIDE); setOffreEditId(null); };
   const saveOffre = async () => {
     if (!offreForm.name.trim()) { toast.error('Le nom de l’offre est requis.'); return; }
     setOffreSaving(true);
@@ -1749,28 +1747,9 @@ export default function ParametresPage() {
     } catch (e) { toast.error(e.response?.data?.detail || 'Erreur.'); }
     finally { setOffreSaving(false); }
   };
-  const editOffre = (o) => {
-    setOffreEditId(o.id);
-    setOffreForm({ name: o.name || '', type: o.type || 'service', price: o.price || '', description: o.description || '', benefits: o.benefits || '', url: o.url || '' });
-    setOffreAssets([]);
-    offersService.listAssets(o.id).then((d) => setOffreAssets(d || [])).catch(() => {});
-  };
+  const editOffre = (o) => { setOffreEditId(o.id); setOffreForm({ name: o.name || '', type: o.type || 'service', price: o.price || '', description: o.description || '', benefits: o.benefits || '', url: o.url || '' }); };
   const deleteOffre = async (id) => {
     try { await offersService.remove(id); setOffres((o) => o.filter((x) => x.id !== id)); if (offreEditId === id) resetOffreForm(); }
-    catch (e) { toast.error('Erreur.'); }
-  };
-  const uploadAsset = async (file, role = 'other') => {
-    if (!file || !offreEditId) return;
-    setAssetBusy(true);
-    try {
-      const res = await offersService.addAsset(offreEditId, file, role);
-      if (res?.asset) setOffreAssets((a) => [...a, { ...res.asset, analysis: res.analysis }]);
-      toast.success(res?.analysis ? 'Photo ajoutée et analysée.' : 'Photo ajoutée.');
-    } catch (e) { toast.error(e.response?.data?.detail || 'Upload impossible.'); }
-    finally { setAssetBusy(false); }
-  };
-  const removeAsset = async (assetId) => {
-    try { await offersService.removeAsset(assetId); setOffreAssets((a) => a.filter((x) => x.id !== assetId)); }
     catch (e) { toast.error('Erreur.'); }
   };
 
@@ -1842,41 +1821,6 @@ export default function ParametresPage() {
           </div>
         </div>
       </Bloc>
-
-      {offreEditId && (
-        <Bloc titre="Photos du produit" sous="Analysées une fois (couleur, matière, zones libres) pour ancrer le contenu et placer les textes sans couvrir le produit.">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <label className={`inline-flex items-center gap-2 h-9 px-3 rounded-lg border border-white/10 bg-slate-950/50 text-sm text-slate-200 font-inter cursor-pointer hover:border-[#5B6CFF] transition-colors ${assetBusy ? 'opacity-60 pointer-events-none' : ''}`}>
-                {assetBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                <span>{assetBusy ? 'Analyse en cours…' : 'Ajouter une photo'}</span>
-                <input type="file" accept="image/*" className="hidden" disabled={assetBusy}
-                  onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadAsset(f); }} />
-              </label>
-              <span className="text-[11px] text-slate-500 font-inter">JPG/PNG, max 10 Mo</span>
-            </div>
-
-            {offreAssets.length === 0 ? (
-              <p className="text-sm text-slate-500 font-inter">Aucune photo. Ajoute-en pour que l’IA s’appuie sur du réel.</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {offreAssets.map((a) => (
-                  <div key={a.id} className="group relative rounded-lg overflow-hidden border border-white/10 bg-slate-950/60 aspect-square">
-                    <img src={a.url} alt="" className="w-full h-full object-cover" />
-                    <span className={`absolute top-1 left-1 text-[9px] font-medium px-1.5 py-0.5 rounded ${a.analysis ? 'bg-emerald-500/25 text-emerald-300' : 'bg-slate-700/70 text-slate-300'}`}>
-                      {a.analysis ? `✓ ${a.analysis?.product?.type || 'analysée'}` : 'non analysée'}
-                    </span>
-                    <button onClick={() => removeAsset(a.id)} title="Supprimer"
-                      className="absolute top-1 right-1 w-6 h-6 grid place-items-center rounded bg-black/60 text-white/90 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </Bloc>
-      )}
     </div>
   );
 

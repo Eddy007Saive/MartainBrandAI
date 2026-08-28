@@ -53,7 +53,6 @@ OPENROUTER_API_KEY = (os.environ.get('OPENROUTER_API_KEY')
                       or os.environ.get('API_OPENROUTER')
                       or '')
 OPENROUTER_IMAGE_MODEL = os.environ.get('OPENROUTER_IMAGE_MODEL', 'google/gemini-2.5-flash-image')  # nano-banana · alt: google/gemini-3.1-flash-image-preview
-OPENROUTER_VISION_MODEL = os.environ.get('OPENROUTER_VISION_MODEL', 'google/gemini-2.5-flash')  # analyse de photos produit (Product Vision Agent) · ~0,1 cent/image, cachée
 
 # HeyGen
 HEYGEN_API_KEY = os.environ.get('HEYGEN_API_KEY', '')
