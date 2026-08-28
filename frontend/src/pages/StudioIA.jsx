@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
+  ChevronLeft, ChevronRight, X, ZoomIn,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -179,6 +180,19 @@ export default function StudioIA() {
   const [cfgType, setCfgType] = useState('Reel');
   const cfgQualite = 'equilibre'; // qualité unique (sélecteur retiré avec le système de crédits)
   const [nbSlides, setNbSlides] = useState(5); // carrousel
+  const [lightbox, setLightbox] = useState(null); // { images:[], index:number } — aperçu plein écran des slides
+
+  // Navigation clavier dans la lightbox (← → Échap)
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightbox(null);
+      else if (e.key === 'ArrowRight') setLightbox((l) => l && ({ ...l, index: (l.index + 1) % l.images.length }));
+      else if (e.key === 'ArrowLeft') setLightbox((l) => l && ({ ...l, index: (l.index - 1 + l.images.length) % l.images.length }));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightbox]);
 
   // Coche/décoche un réseau (toujours au moins un de coché)
   const toggleReseau = (setter) => (id) =>
@@ -949,9 +963,18 @@ export default function StudioIA() {
                       {c.images && c.images.length ? (
                         <div className="grid grid-cols-3 gap-2">
                           {c.images.map((u, i) => (
-                            <div key={i} className="w-full aspect-[4/5] rounded-lg border border-white/10 overflow-hidden bg-slate-950/60">
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setLightbox({ images: c.images, index: i })}
+                              className="group relative w-full aspect-[4/5] rounded-lg border border-white/10 overflow-hidden bg-slate-950/60 cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                              title={t('studio.enlargeSlide', 'Agrandir')}
+                            >
                               <img src={u} alt={t('studio.slideAlt', { n: i + 1 })} className="w-full h-full object-cover" />
-                            </div>
+                              <span className="absolute inset-0 flex items-center justify-center bg-slate-950/0 group-hover:bg-slate-950/40 transition-colors">
+                                <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </span>
+                            </button>
                           ))}
                         </div>
                       ) : (
@@ -983,6 +1006,55 @@ export default function StudioIA() {
           )}
         </section>
       </div>
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4 sm:p-8"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+            title={t('studio.close', 'Fermer')}
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {lightbox.images.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setLightbox((l) => ({ ...l, index: (l.index - 1 + l.images.length) % l.images.length })); }}
+              className="absolute left-2 sm:left-6 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white"
+              title={t('studio.prevSlide', 'Précédent')}
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          <div className="flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={lightbox.images[lightbox.index]}
+              alt={t('studio.slideAlt', { n: lightbox.index + 1 })}
+              className="max-h-[82vh] max-w-full w-auto rounded-xl border border-white/10 shadow-2xl object-contain"
+            />
+            <span className="text-sm text-slate-300 font-inter">
+              {lightbox.index + 1} / {lightbox.images.length}
+            </span>
+          </div>
+
+          {lightbox.images.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setLightbox((l) => ({ ...l, index: (l.index + 1) % l.images.length })); }}
+              className="absolute right-2 sm:right-6 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white"
+              title={t('studio.nextSlide', 'Suivant')}
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

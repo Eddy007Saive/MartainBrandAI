@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download, ZoomIn } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -271,6 +271,7 @@ export default function ContenusPage() {
   const [czR, setCzR] = useState(null);     // retouche couleurs/police d'un carrousel (aperçu live)
   const [czRBusy, setCzRBusy] = useState(false);
   const [czSlide, setCzSlide] = useState(0); // slide affichée dans l'aperçu
+  const [czBig, setCzBig] = useState(false); // aperçu live agrandi (plein écran)
   const [czTemplates, setCzTemplates] = useState({}); // template de carrousel par réseau
   // Styles proposables à ce compte (communs + sur mesure attribués), pour le choix ponctuel.
   const [czStyles, setCzStyles] = useState([]);
@@ -911,6 +912,22 @@ export default function ContenusPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [lightbox]);
 
+  // Ferme l'agrandissement si la retouche live se ferme
+  useEffect(() => { if (!czR) setCzBig(false); }, [czR]);
+
+  // Navigation clavier de l'aperçu live agrandi
+  useEffect(() => {
+    if (!czBig) return undefined;
+    const n = (czPreviewSlides() || []).length;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setCzBig(false);
+      else if (n > 1 && e.key === 'ArrowRight') setCzSlide((s) => (s + 1) % n);
+      else if (n > 1 && e.key === 'ArrowLeft') setCzSlide((s) => (s - 1 + n) % n);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [czBig]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     fetchContenus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1323,9 +1340,14 @@ export default function ContenusPage() {
                         const idx = Math.min(czSlide, Math.max(0, slides.length - 1));
                         return (
                           <div className="space-y-2.5">
-                            <div className="relative mx-auto rounded-xl overflow-hidden ring-1 ring-white/10 shadow-xl" style={{ width: 220, height: 275 }}>
+                            <button type="button" onClick={() => setCzBig(true)}
+                              title={t('contenus.detail.agrandir', 'Agrandir')}
+                              className="group relative mx-auto block rounded-xl overflow-hidden ring-1 ring-white/10 shadow-xl cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-[#5B6CFF]" style={{ width: 220, height: 275 }}>
                               <div className="origin-top-left" style={{ transform: 'scale(1.1)', width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: slides[idx] || '' }} />
-                            </div>
+                              <span className="absolute inset-0 flex items-center justify-center bg-slate-950/0 group-hover:bg-slate-950/40 transition-colors">
+                                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </span>
+                            </button>
                             <div className="flex gap-1.5 justify-center flex-wrap">
                               {slides.map((_, i) => (
                                 <button key={i} onClick={() => setCzSlide(i)} title={t('contenus.detail.slide', { n: i + 1 })}
@@ -2355,6 +2377,44 @@ export default function ContenusPage() {
             )}
           </div>
         ), document.body)}
+
+        {/* Aperçu live agrandi : re-rend la slide HTML en grand (portal AU-DESSUS du Dialog) */}
+        {czBig && czR && selectedContenu?.carrousel_data && createPortal((() => {
+          const slides = czPreviewSlides() || [];
+          if (!slides.length) return null;
+          const idx = Math.min(czSlide, slides.length - 1);
+          return (
+            <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+              onClick={() => setCzBig(false)}>
+              <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
+              <button onClick={() => setCzBig(false)} title={t('contenus.actions.fermer')}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+              {slides.length > 1 && (
+                <button onClick={(e) => { e.stopPropagation(); setCzSlide((s) => (s - 1 + slides.length) % slides.length); }}
+                  title={t('contenus.lightbox.precedent')}
+                  className="absolute left-3 md:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+              )}
+              <div className="flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                <div className="rounded-2xl overflow-hidden ring-1 ring-white/15 shadow-2xl" style={{ width: 600, height: 750 }}>
+                  <div className="origin-top-left" style={{ transform: 'scale(3)', width: 200, height: 250 }}
+                    dangerouslySetInnerHTML={{ __html: slides[idx] || '' }} />
+                </div>
+                <span className="text-sm text-white/70 font-inter">{idx + 1} / {slides.length}</span>
+              </div>
+              {slides.length > 1 && (
+                <button onClick={(e) => { e.stopPropagation(); setCzSlide((s) => (s + 1) % slides.length); }}
+                  title={t('contenus.lightbox.suivant')}
+                  className="absolute right-3 md:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              )}
+            </div>
+          );
+        })(), document.body)}
       </div>
 
       <PostManuelDialog open={postManuelOpen} onOpenChange={setPostManuelOpen} onCreated={fetchContenus} />
