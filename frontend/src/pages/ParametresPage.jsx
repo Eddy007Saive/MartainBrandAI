@@ -5,7 +5,7 @@ import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
   CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings, CreditCard, Sparkles,
-  Plus, Image as ImageIcon, X, Repeat, Lock } from 'lucide-react';
+  Plus, Image as ImageIcon, X, Repeat, Lock, Package, Pencil } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ChampMarque, ChampListe } from '../components/ChampsMarque';
 import { Input } from '../components/ui/input';
@@ -33,6 +33,7 @@ import { scheduleService } from '../services/scheduleService';
 import { heygenService } from '../services/heygenService';
 import { contenuService } from '../services/contenuService';
 import { templateService } from '../services/templateService';
+import { offersService } from '../services/offersService';
 import { logout, removeToken, setToken } from '../lib/auth';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
@@ -52,6 +53,7 @@ const HEYGEN_AVATAR_ENABLED = false;
 const SETTINGS_SECTIONS = [
   { id: 'identity', titleKey: 'nav.identity', icon: User },
   { id: 'marque', titleKey: 'nav.brandVoice', icon: Megaphone },
+  { id: 'offres', titleKey: 'nav.offers', icon: Package },
   { id: 'connections', titleKey: 'nav.socials', icon: Plug },
   { id: 'schedules', titleKey: 'nav.planning', icon: Calendar },
   { id: 'abonnement', titleKey: 'nav.subscription', icon: CreditCard },
@@ -154,6 +156,18 @@ export default function ParametresPage() {
   const [connecting, setConnecting] = useState(null);
   const [socialMeta, setSocialMeta] = useState({}); // {platform: {username, name, avatar, url, followers}}
   const [exReseau, setExReseau] = useState('linkedin');
+  // Offres / produits du client
+  const [offres, setOffres] = useState([]);
+  const [offresLoaded, setOffresLoaded] = useState(false);
+  const OFFRE_VIDE = { name: '', type: 'service', price: '', description: '', benefits: '', url: '' };
+  const [offreForm, setOffreForm] = useState(OFFRE_VIDE);
+  const [offreEditId, setOffreEditId] = useState(null); // id en édition, ou null (création)
+  const [offreSaving, setOffreSaving] = useState(false);
+  useEffect(() => {
+    if (activeSection === 'offres' && !offresLoaded) {
+      offersService.list().then((d) => { setOffres(d || []); setOffresLoaded(true); }).catch(() => setOffresLoaded(true));
+    }
+  }, [activeSection, offresLoaded]);
   // Reference du dernier etat enregistre : sert a savoir s'il reste quelque
   // chose a sauvegarder, et donc a afficher la barre du bas.
   const [refSauve, setRefSauve] = useState(null);
@@ -1701,9 +1715,106 @@ export default function ParametresPage() {
     );
   };
 
+  // --- Offres / produits ---
+  const resetOffreForm = () => { setOffreForm(OFFRE_VIDE); setOffreEditId(null); };
+  const saveOffre = async () => {
+    if (!offreForm.name.trim()) { toast.error('Le nom de l’offre est requis.'); return; }
+    setOffreSaving(true);
+    try {
+      if (offreEditId) {
+        const up = await offersService.update(offreEditId, offreForm);
+        setOffres((o) => o.map((x) => (x.id === offreEditId ? up : x)));
+        toast.success('Offre mise à jour.');
+      } else {
+        const created = await offersService.create(offreForm);
+        setOffres((o) => [...o, created]);
+        toast.success('Offre ajoutée.');
+      }
+      resetOffreForm();
+    } catch (e) { toast.error(e.response?.data?.detail || 'Erreur.'); }
+    finally { setOffreSaving(false); }
+  };
+  const editOffre = (o) => { setOffreEditId(o.id); setOffreForm({ name: o.name || '', type: o.type || 'service', price: o.price || '', description: o.description || '', benefits: o.benefits || '', url: o.url || '' }); };
+  const deleteOffre = async (id) => {
+    try { await offersService.remove(id); setOffres((o) => o.filter((x) => x.id !== id)); if (offreEditId === id) resetOffreForm(); }
+    catch (e) { toast.error('Erreur.'); }
+  };
+
+  const renderOffres = () => (
+    <div className="space-y-3.5">
+      <p className="text-[13px] text-slate-400 font-inter max-w-[62ch]">
+        Décris ce que tu vends (produits, services, offres). L’IA s’en sert pour ancrer ton contenu et
+        ne jamais inventer un prix ou une caractéristique : elle ne cite que ce que tu renseignes ici.
+      </p>
+
+      <Bloc titre="Tes offres" sous="La liste sert de source de vérité à la génération.">
+        {offres.length === 0 ? (
+          <p className="text-sm text-slate-500 font-inter">Aucune offre pour l’instant. Ajoute-en une ci-dessous.</p>
+        ) : (
+          <div className="space-y-2">
+            {offres.map((o) => (
+              <div key={o.id} className="flex items-start gap-3 rounded-xl border border-white/5 bg-slate-950/40 p-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium text-slate-100">{o.name}</span>
+                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">{o.type}</span>
+                    {o.price && <span className="text-[11px] text-[#3AFFA3]">{o.price}</span>}
+                  </div>
+                  {o.description && <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{o.description}</p>}
+                </div>
+                <button onClick={() => editOffre(o)} title="Modifier" className="text-slate-500 hover:text-white p-1 flex-shrink-0"><Pencil className="w-4 h-4" /></button>
+                <button onClick={() => deleteOffre(o.id)} title="Supprimer" className="text-slate-500 hover:text-red-400 p-1 flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Bloc>
+
+      <Bloc titre={offreEditId ? 'Modifier l’offre' : 'Ajouter une offre'} sous="Nom + prix suffisent pour commencer.">
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Field label="Nom">
+              <Input value={offreForm.name} onChange={(e) => setOffreForm((f) => ({ ...f, name: e.target.value }))} placeholder="Ex : Gestion Airbnb, Sac Élégance…" />
+            </Field>
+            <Field label="Type">
+              <Select value={offreForm.type} onValueChange={(v) => setOffreForm((f) => ({ ...f, type: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="product">Produit</SelectItem>
+                  <SelectItem value="service">Service</SelectItem>
+                  <SelectItem value="offer">Offre</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Prix">
+              <Input value={offreForm.price} onChange={(e) => setOffreForm((f) => ({ ...f, price: e.target.value }))} placeholder="Ex : 150 €/mois, 89 €…" />
+            </Field>
+            <Field label="Lien (optionnel)">
+              <Input value={offreForm.url} onChange={(e) => setOffreForm((f) => ({ ...f, url: e.target.value }))} placeholder="https://…" />
+            </Field>
+          </div>
+          <Field label="Description">
+            <Textarea rows={2} value={offreForm.description} onChange={(e) => setOffreForm((f) => ({ ...f, description: e.target.value }))} placeholder="En une ou deux phrases : ce que c’est." />
+          </Field>
+          <Field label="Bénéfices" hint="Un par ligne. Ce que ça apporte au client.">
+            <Textarea rows={3} value={offreForm.benefits} onChange={(e) => setOffreForm((f) => ({ ...f, benefits: e.target.value }))} placeholder={"Gain de temps\nRevenus optimisés\nZéro souci de gestion"} />
+          </Field>
+          <div className="flex items-center justify-end gap-2">
+            {offreEditId && <button onClick={resetOffreForm} className="text-xs text-slate-400 hover:text-white px-2">Annuler</button>}
+            <Button onClick={saveOffre} disabled={offreSaving || !offreForm.name.trim()}>
+              {offreSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : (offreEditId ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />)}
+              <span className="ml-2">{offreEditId ? 'Enregistrer' : 'Ajouter l’offre'}</span>
+            </Button>
+          </div>
+        </div>
+      </Bloc>
+    </div>
+  );
+
   const sectionRenderers = {
     identity: renderIdentity,
     marque: renderMarque,
+    offres: renderOffres,
     connections: renderConnections,
     schedules: renderSchedules,
     abonnement: renderAbonnement,

@@ -165,6 +165,16 @@ def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
             "(Profil de marque peu renseigné — reste générique, professionnel et "
             "crédible ; évite les promesses chiffrées et le jargon creux.)"
         )
+    # Offres / produits du client (source de vérité pour prix et caractéristiques)
+    tid = u.get("telegram_id")
+    if tid:
+        try:
+            from services import offers_service
+            bloc = offers_service.contexte_offres(tid)
+            if bloc:
+                lignes.append(bloc)
+        except Exception as e:
+            logger.warning(f"contexte offres: {e}")
     lignes.append(REGLES_ANTI_IA)
     return "\n".join(lignes)
 

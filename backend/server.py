@@ -24,6 +24,7 @@ from routes.video import router as video_router
 from routes.reels import router as reels_router
 from routes.newsletter import router as newsletter_router
 from routes.affiliation import router as affiliation_router
+from routes.offers import router as offers_router
 
 app = FastAPI()
 
@@ -56,6 +57,7 @@ api_router.include_router(video_router)
 api_router.include_router(reels_router)
 api_router.include_router(newsletter_router)
 api_router.include_router(affiliation_router)
+api_router.include_router(offers_router)
 
 app.include_router(api_router)
 
