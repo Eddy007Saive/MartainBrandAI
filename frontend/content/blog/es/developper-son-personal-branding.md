@@ -78,7 +78,7 @@ Eso es construir tu personal branding: elegir un territorio claro en lugar de qu
 
 La regla de oro: **1 canal dominado vale más que 4 canales abandonados.**
 
-Para la mayoría de directivos B2B, LinkedIn es el punto de partida imprescindible. La plataforma cuenta con más de mil millones de usuarios activos en 2025, y es ahí donde están tus prospectos, socios y prescriptores.
+Para la mayoría de directivos B2B, LinkedIn es el punto de partida imprescindible. La plataforma cuenta con más de mil millones de usuarios activos en 2026, y es ahí donde están tus prospectos, socios y prescriptores.
 
 | Canal | Objetivo principal | Ideal para |
 |---|---|---|

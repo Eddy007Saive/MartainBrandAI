@@ -78,7 +78,7 @@ That is what building your personal branding is: choosing a clear territory rath
 
 The golden rule: **1 channel mastered is worth more than 4 channels abandoned.**
 
-For most B2B leaders, LinkedIn is the essential starting point. The platform has more than a billion active users in 2025, and that is where your prospects, partners and referrers are.
+For most B2B leaders, LinkedIn is the essential starting point. The platform has more than a billion active users in 2026, and that is where your prospects, partners and referrers are.
 
 | Channel | Main objective | Ideal for |
 |---|---|---|

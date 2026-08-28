@@ -1,6 +1,6 @@
 ---
 slug: ai-social-media-small-business
-titre: "AI and social media: what really changes for small businesses in 2025"
+titre: "AI and social media: what really changes for small businesses in 2026"
 description: Artificial intelligence is transforming social media management. Discover what AI can concretely do for a small business: content, scheduling, analysis, and what should stay human.
 date: 2026-08-26
 auteur: The Postorico team
@@ -196,5 +196,5 @@ Count on 30 days of testing on a single use case to get usable data. Most small 
 ## Useful sources
 
 - [FranceNum - How to improve your social media management with generative AI](https://www.francenum.gouv.fr/guides-et-conseils/intelligence-artificielle/generation-de-contenus-texte-image-son-video/comment)
-- [Sprinklr - How to use AI on social media in 2025](https://www.sprinklr.com/fr/blog/ai-in-social-media/)
+- [Sprinklr - How to use AI on social media in 2026](https://www.sprinklr.com/fr/blog/ai-in-social-media/)
 - [HubSpot - 9 AI tools for managing your brand's social media](https://blog.hubspot.fr/marketing/ia-reseaux-sociaux)

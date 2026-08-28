@@ -1,6 +1,6 @@
 ---
 slug: instagram-pour-entreprise
-titre: "Instagram pour entreprise : comment en faire un canal d'acquisition en 2025"
+titre: "Instagram pour entreprise : comment en faire un canal d'acquisition en 2026"
 description: "Instagram pour entreprise : comment transformer votre compte en vrai canal d'acquisition ? Profil, formats, fréquence et stratégie - le guide concret pour PME et indépendants."
 date: 2026-08-28
 auteur: L'équipe Postorico
@@ -173,7 +173,7 @@ La fréquence minimale recommandée est de **3 publications par semaine** (Franc
 
 ---
 
-## Ce que l'IA change pour instagram pro en 2025
+## Ce que l'IA change pour instagram pro en 2026
 
 L'IA ne remplace pas votre présence sur Instagram. Elle supprime les tâches qui vous font perdre du temps.
 

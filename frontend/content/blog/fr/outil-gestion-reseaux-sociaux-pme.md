@@ -1,6 +1,6 @@
 ---
 slug: outil-gestion-reseaux-sociaux-pme
-titre: "Outil gestion réseaux sociaux : lequel choisir pour une PME en 2025 ?"
+titre: "Outil gestion réseaux sociaux : lequel choisir pour une PME en 2026 ?"
 description: "Quel outil de gestion des réseaux sociaux choisir quand on dirige une PME sans community manager ? Comparatif honnête de 5 solutions, critères de choix et pièges à éviter."
 date: 2026-08-28
 auteur: L'équipe Postorico

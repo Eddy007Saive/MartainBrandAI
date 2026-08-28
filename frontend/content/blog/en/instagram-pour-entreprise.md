@@ -1,6 +1,6 @@
 ---
 slug: instagram-for-business
-titre: "Instagram for business: how to turn it into an acquisition channel in 2025"
+titre: "Instagram for business: how to turn it into an acquisition channel in 2026"
 description: "Instagram for business: how do you turn your account into a real acquisition channel? Profile, formats, frequency and strategy, the practical guide for SMEs and freelancers."
 date: 2026-08-28
 auteur: The Postorico team
@@ -173,7 +173,7 @@ The recommended minimum frequency is **3 posts per week** (FranceNum, Kontentino
 
 ---
 
-## What AI changes for pro Instagram in 2025
+## What AI changes for pro Instagram in 2026
 
 AI does not replace your presence on Instagram. It removes the tasks that make you waste time.
 

@@ -1,6 +1,6 @@
 ---
 slug: inteligencia-artificial-redes-sociales-pymes
-titre: "IA y redes sociales: lo que de verdad cambia para las pymes en 2025"
+titre: "IA y redes sociales: lo que de verdad cambia para las pymes en 2026"
 description: La inteligencia artificial está transformando la gestión de las redes sociales. Descubre qué puede hacer la IA de forma concreta por una pyme: contenido, programación, análisis, y qué debe seguir siendo humano.
 date: 2026-08-26
 auteur: El equipo Postorico
@@ -196,5 +196,5 @@ Cuenta con 30 días de prueba sobre un solo caso de uso para tener datos aprovec
 ## Fuentes útiles
 
 - [FranceNum - Cómo mejorar la gestión de tus redes sociales con la IA generativa](https://www.francenum.gouv.fr/guides-et-conseils/intelligence-artificielle/generation-de-contenus-texte-image-son-video/comment)
-- [Sprinklr - Cómo usar la IA en las redes sociales en 2025](https://www.sprinklr.com/fr/blog/ai-in-social-media/)
+- [Sprinklr - Cómo usar la IA en las redes sociales en 2026](https://www.sprinklr.com/fr/blog/ai-in-social-media/)
 - [HubSpot - 9 herramientas de IA para gestionar las redes sociales de tu marca](https://blog.hubspot.fr/marketing/ia-reseaux-sociaux)

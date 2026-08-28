@@ -12,7 +12,7 @@ pose: idee
 **TL;DR**
 
 - A LinkedIn ghostwriter writes your posts in your voice, under your name, and stays invisible. Their work: 20% writing, 80% extraction and strategy.
-- Average budget in 2025: **800 to 1,500 euros/month** (freelancecollective.fr study, January 2025). A significant investment, with a real risk of dependence.
+- Average budget in 2026: **800 to 1,500 euros/month** (freelancecollective.fr study, January 2025). A significant investment, with a real risk of dependence.
 - The results exist: 5x to 10x impressions after 3 to 6 months, inbound qualified leads, reinforced credibility, provided the onboarding is done well.
 - There is an alternative: AI calibrated on your voice. Same consistency, a fraction of the cost, zero dependence on a third party.
 
@@ -71,7 +71,7 @@ After the first month, the no-changes validation rate reaches **70 to 80%** (Pro
 
 ---
 
-## How much does a LinkedIn ghostwriter cost in 2025?
+## How much does a LinkedIn ghostwriter cost in 2026?
 
 The average budget observed is **800 to 1,500 euros/month** for an experienced ghostwriter (freelancecollective.fr study, January 2025, via Plateya). Here are the detailed ranges:
 
@@ -202,4 +202,4 @@ The human ghostwriter brings a strategic and relational dimension that AI does n
 
 - [LinkedIn Ghostwriter: Complete Guide, Rates & Choices (Produscale)](https://www.produscale.com/blog/ghostwriter-linkedin)
 - [Ghostwriting: Everything About This In-Demand LinkedIn Skill (SauceWriting)](https://www.saucewriting.com/ghostwriting)
-- [LinkedIn Ghostwriter Rate: How Much to Invest in 2025? (Plateya)](https://www.plateya.fr/blog/detail/tarif-ghostwriter-linkedin-combien-investir-en-2025)
+- [LinkedIn Ghostwriter Rate: How Much to Invest in 2026? (Plateya)](https://www.plateya.fr/blog/detail/tarif-ghostwriter-linkedin-combien-investir-en-2025)

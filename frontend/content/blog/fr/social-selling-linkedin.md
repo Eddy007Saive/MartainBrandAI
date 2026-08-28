@@ -1,7 +1,7 @@
 ---
 slug: social-selling-linkedin
 titre: "Social selling LinkedIn : la méthode pour vendre sans prospecter à froid"
-description: "Le social selling LinkedIn permet de générer des leads qualifiés sans démarchage froid. Méthode en 4 étapes, techniques concrètes, erreurs à éviter - le guide pratique 2025."
+description: "Le social selling LinkedIn permet de générer des leads qualifiés sans démarchage froid. Méthode en 4 étapes, techniques concrètes, erreurs à éviter - le guide pratique 2026."
 date: 2026-08-28
 auteur: L'équipe Postorico
 tags: [linkedin, social-selling, prospection]

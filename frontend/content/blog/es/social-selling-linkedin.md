@@ -1,7 +1,7 @@
 ---
 slug: social-selling-en-linkedin
 titre: "Social selling en LinkedIn: el método para vender sin prospección en frío"
-description: "El social selling en LinkedIn genera leads cualificados sin captación en frío. Método en 4 pasos, técnicas concretas, errores a evitar: la guía práctica 2025."
+description: "El social selling en LinkedIn genera leads cualificados sin captación en frío. Método en 4 pasos, técnicas concretas, errores a evitar: la guía práctica 2026."
 date: 2026-08-28
 auteur: El equipo de Postorico
 tags: [linkedin, social-selling, prospeccion]

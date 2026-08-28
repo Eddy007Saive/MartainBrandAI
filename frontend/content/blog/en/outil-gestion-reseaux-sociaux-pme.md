@@ -1,6 +1,6 @@
 ---
 slug: social-media-management-tool-small-business
-titre: "Social media management tool: which one to choose for a small business in 2025?"
+titre: "Social media management tool: which one to choose for a small business in 2026?"
 description: "Which social media management tool should you pick when you run a small business without a community manager? An honest comparison of 5 solutions, selection criteria, and pitfalls to avoid."
 date: 2026-08-28
 auteur: The Postorico team

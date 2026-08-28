@@ -1,7 +1,7 @@
 ---
 slug: linkedin-strategy-for-smbs
 titre: "LinkedIn strategy for SMBs: where to start without a community manager"
-description: "Build a LinkedIn strategy for your SMB without a community manager or a big budget: content pillars, frequency, formats and mistakes to avoid. The actionable 2025 guide."
+description: "Build a LinkedIn strategy for your SMB without a community manager or a big budget: content pillars, frequency, formats and mistakes to avoid. The actionable 2026 guide."
 date: 2026-08-26
 auteur: The Postorico team
 tags: [linkedin, smb, strategy]

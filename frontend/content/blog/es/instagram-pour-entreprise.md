@@ -1,6 +1,6 @@
 ---
 slug: instagram-para-empresas
-titre: "Instagram para empresas: cómo convertirlo en un canal de captación en 2025"
+titre: "Instagram para empresas: cómo convertirlo en un canal de captación en 2026"
 description: "Instagram para empresas: ¿cómo transformar tu cuenta en un verdadero canal de captación? Perfil, formatos, frecuencia y estrategia, la guía práctica para pymes y autónomos."
 date: 2026-08-28
 auteur: El equipo de Postorico
@@ -173,7 +173,7 @@ La frecuencia mínima recomendada es de **3 publicaciones por semana** (FranceNu
 
 ---
 
-## Lo que la IA cambia para el Instagram pro en 2025
+## Lo que la IA cambia para el Instagram pro en 2026
 
 La IA no reemplaza tu presencia en Instagram. Elimina las tareas que te hacen perder tiempo.
 

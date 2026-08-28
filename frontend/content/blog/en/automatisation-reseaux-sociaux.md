@@ -157,7 +157,7 @@ Automation is not the problem. Automation without calibration is.
 
 ---
 
-## Which tools to automate your social media in 2025?
+## Which tools to automate your social media in 2026?
 
 The market for social media automation tools is dense. Here is a selection of five concrete solutions, with their strengths and their limits.
 

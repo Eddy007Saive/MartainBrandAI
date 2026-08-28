@@ -12,7 +12,7 @@ pose: idee
 **TL;DR**
 
 - Un ghostwriter LinkedIn rédige vos posts dans votre voix, sous votre nom - il reste invisible. Son travail : 20 % d'écriture, 80 % d'extraction et de stratégie.
-- Budget moyen en 2025 : **800 à 1 500 €/mois** (étude freelancecollective.fr, janvier 2025). Un investissement significatif, avec un risque de dépendance réel.
+- Budget moyen en 2026 : **800 à 1 500 €/mois** (étude freelancecollective.fr, janvier 2025). Un investissement significatif, avec un risque de dépendance réel.
 - Les résultats existent : x5 à x10 d'impressions après 3 à 6 mois, leads qualifiés entrants, crédibilité renforcée - à condition que l'onboarding soit bien fait.
 - Il existe une alternative : l'IA calibrée sur votre voix. Même régularité, fraction du coût, zéro dépendance à un tiers.
 
@@ -71,7 +71,7 @@ Après le premier mois, le taux de validation sans retour atteint **70 à 80 %**
 
 ---
 
-## Combien coûte un ghostwriter LinkedIn en 2025 ?
+## Combien coûte un ghostwriter LinkedIn en 2026 ?
 
 Le budget moyen constaté est de **800 à 1 500 €/mois** pour un ghostwriter expérimenté (étude freelancecollective.fr, janvier 2025, via Plateya). Voici les fourchettes détaillées :
 
@@ -202,5 +202,5 @@ Le ghostwriter humain apporte une dimension stratégique et relationnelle que l'
 
 - [Ghostwriter LinkedIn : Guide Complet - Tarifs & Choix (Produscale)](https://www.produscale.com/blog/ghostwriter-linkedin)
 - [Ghostwriting : tout comprendre à cette compétence très demandée sur LinkedIn (SauceWriting)](https://www.saucewriting.com/ghostwriting)
-- [Tarif ghostwriter LinkedIn : combien investir en 2025 ? (Plateya)](https://www.plateya.fr/blog/detail/tarif-ghostwriter-linkedin-combien-investir-en-2025)
+- [Tarif ghostwriter LinkedIn : combien investir en 2026 ? (Plateya)](https://www.plateya.fr/blog/detail/tarif-ghostwriter-linkedin-combien-investir-en-2025)
 

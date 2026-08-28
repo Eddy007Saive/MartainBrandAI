@@ -1,6 +1,6 @@
 ---
 slug: herramienta-gestion-redes-sociales-pyme
-titre: "Herramienta de gestión de redes sociales: ¿cuál elegir para una pyme en 2025?"
+titre: "Herramienta de gestión de redes sociales: ¿cuál elegir para una pyme en 2026?"
 description: "¿Qué herramienta de gestión de redes sociales elegir cuando diriges una pyme sin community manager? Comparativa honesta de 5 soluciones, criterios de elección y errores que evitar."
 date: 2026-08-28
 auteur: El equipo de Postorico

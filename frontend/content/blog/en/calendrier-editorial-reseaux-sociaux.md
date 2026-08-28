@@ -1,6 +1,6 @@
 ---
 slug: social-media-content-calendar
-titre: "Social media content calendar: a practical 2025 guide"
+titre: "Social media content calendar: a practical 2026 guide"
 description: Build an effective social media content calendar in under an hour. A step-by-step method, a concrete example and tips for time-strapped executives.
 date: 2026-08-26
 auteur: The Postorico team

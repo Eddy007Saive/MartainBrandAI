@@ -1,7 +1,7 @@
 ---
 slug: linkedin-social-selling
 titre: "LinkedIn social selling: the method to sell without cold outreach"
-description: "LinkedIn social selling generates qualified leads without cold prospecting. A 4-step method, concrete techniques, mistakes to avoid: the practical 2025 guide."
+description: "LinkedIn social selling generates qualified leads without cold prospecting. A 4-step method, concrete techniques, mistakes to avoid: the practical 2026 guide."
 date: 2026-08-28
 auteur: The Postorico team
 tags: [linkedin, social-selling, prospecting]
