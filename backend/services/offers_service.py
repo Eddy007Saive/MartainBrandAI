@@ -169,15 +169,26 @@ def contexte_offres(telegram_id: str, limite: int = 12) -> str:
 # Product Vision Agent : photos d'une offre + leur analyse (offer_assets / offer_analysis)
 # ---------------------------------------------------------------------------
 
-def _offre_possede(telegram_id: str, offer_id: str) -> bool:
-    r = (supabase.table("offers").select("id")
+def _offre(telegram_id: str, offer_id: str) -> dict | None:
+    r = (supabase.table("offers").select("id, name, type, description")
          .eq("id", offer_id).eq("telegram_id", telegram_id).limit(1).execute())
-    return bool(r.data)
+    return r.data[0] if r.data else None
+
+
+def _contexte_offre(o: dict) -> str:
+    """Petit brief textuel de l'offre pour cadrer l'analyse vision."""
+    parts = [f"Offer: {o.get('name')}"]
+    if o.get("type"):
+        parts.append(f"(type: {o['type']})")
+    if o.get("description"):
+        parts.append(f"— {o['description']}")
+    return " ".join(parts)
 
 
 def ajouter_asset(telegram_id: str, offer_id: str, file_bytes: bytes, role: str = "other") -> dict:
     """Upload une photo d'offre (Cloudinary), l'analyse UNE fois (vision), stocke les deux."""
-    if not _offre_possede(telegram_id, offer_id):
+    offre = _offre(telegram_id, offer_id)
+    if not offre:
         raise ValueError("offre introuvable")
     if role not in ROLES:
         role = "other"
@@ -197,7 +208,7 @@ def ajouter_asset(telegram_id: str, offer_id: str, file_bytes: bytes, role: str 
     analysis = None
     try:
         from services import vision_service
-        res = vision_service.analyser(asset["url"], telegram_id)
+        res = vision_service.analyser(asset["url"], telegram_id, contexte=_contexte_offre(offre))
         if res.get("analysis") and asset.get("id"):
             a = (supabase.table("offer_analysis").insert({
                 "offer_id": offer_id, "asset_id": asset["id"], "telegram_id": telegram_id,

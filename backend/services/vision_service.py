@@ -40,8 +40,12 @@ def _parse_json(txt: str) -> dict:
     return json.loads(t)
 
 
-def analyser(image_url: str, telegram_id: str | None = None) -> dict:
+def analyser(image_url: str, telegram_id: str | None = None, contexte: str | None = None) -> dict:
     """Analyse une image (URL publique, ex. Cloudinary) → dict.
+
+    `contexte` : infos de l'offre (nom, type, description) pour cadrer l'analyse.
+    Sans lui, le modèle interprète à l'aveugle (ex. « logiciel » pour une capture) ;
+    avec lui, il analyse la photo COMME une photo de cette offre précise.
 
     Retour : {"analysis": {...}, "model": str, "usage": {...}, "cost": float}
     ou {"error": "..."} en cas d'échec (jamais d'exception vers l'appelant)."""
@@ -50,11 +54,19 @@ def analyser(image_url: str, telegram_id: str | None = None) -> dict:
     if not image_url:
         return {"error": "no_image"}
 
+    prompt = _PROMPT
+    if contexte:
+        prompt = (
+            "CONTEXT — this photo illustrates the following offer sold by the client. "
+            "Interpret the image in THIS context (do not mislabel it generically):\n"
+            f"{contexte}\n\n" + _PROMPT
+        )
+
     payload = {
         "model": OPENROUTER_VISION_MODEL,
         "temperature": 0.2,
         "messages": [{"role": "user", "content": [
-            {"type": "text", "text": _PROMPT},
+            {"type": "text", "text": prompt},
             {"type": "image_url", "image_url": {"url": image_url}},
         ]}],
     }
