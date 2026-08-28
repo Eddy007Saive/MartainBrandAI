@@ -189,6 +189,54 @@ def update_user(telegram_id: str, update_data: dict) -> dict | None:
     return user
 
 
+# --- Suppression / RGPD ---------------------------------------------------
+# Tables « enfants » à EFFACER quand un compte est supprimé (données personnelles,
+# de marque et de contenu — aucune obligation de conservation). Clé : telegram_id.
+_PURGE_DELETE_TABLES = [
+    "analytics_cache", "analytics_performance", "affiliate_referrals",
+    "brand_assets", "brand_musiques", "brand_templates", "brouillons",
+    "commentaires", "comptes_sociaux", "contenu", "device_tokens", "heygen_avatars",
+    "marques", "notifications", "offers", "publication_schedules",
+    "studio", "studio_drafts", "usage_log",
+]
+
+
+def purge_user_data(telegram_id: str) -> None:
+    """Efface toutes les données rattachées à un utilisateur, SAUF la ligne `users`
+    (l'appelant la supprime après, avec ses propres contrôles d'accès).
+
+    Deux régimes :
+    - EFFACEMENT pur des données perso/marque/contenu (droit à l'oubli RGPD).
+    - ANONYMISATION des pièces à valeur comptable/financière (abonnements,
+      commissions d'affiliation, résiliations) : on garde montants/dates/factures
+      pour l'obligation légale de conservation, mais on retire toute donnée
+      personnelle (email, nom, IBAN, verbatims).
+    """
+    for t in _PURGE_DELETE_TABLES:
+        try:
+            supabase.table(t).delete().eq("telegram_id", telegram_id).execute()
+        except Exception as e:
+            logger.warning(f"purge_user_data: delete {t} échoué ({telegram_id}): {e}")
+
+    # Anonymisation — pièces conservées pour la compta, PII retirée.
+    _anonymisations = [
+        # (table, colonne_filtre, patch)
+        ("affiliate_commissions", "telegram_id", {"telegram_id": None, "filleul_email": None}),
+        ("resiliations",          "telegram_id", {"commentaire": None, "detail": None}),
+        ("affiliates",            "telegram_id", {"telegram_id": None, "nom": "anonymisé",
+                                                   "email": "", "iban_chiffre": None}),
+    ]
+    for table, col, patch in _anonymisations:
+        try:
+            supabase.table(table).update(patch).eq(col, telegram_id).execute()
+        except Exception as e:
+            logger.warning(f"purge_user_data: anonymisation {table} échouée ({telegram_id}): {e}")
+    # `subscriptions` (clé user_id) : conservée telle quelle — aucune PII directe
+    # (uniquement statut/dates/plan/stripe_id), et requise pour la compta.
+
+
 def delete_user(telegram_id: str) -> bool:
+    """Purge les données rattachées puis supprime la ligne `users`."""
+    purge_user_data(telegram_id)
     result = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
     return bool(result.data)

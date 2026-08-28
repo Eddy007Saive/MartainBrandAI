@@ -7,19 +7,10 @@ Comptes liés : un master gère plusieurs sous-comptes (marques), pool de crédi
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import timedelta
 from dependencies import verify_token
-from services import auth_service, credit_service
+from services import auth_service, credit_service, user_service
 from config import supabase, logger, ADMIN_SESSION_HEURES
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
-
-# Tables portant un telegram_id, purgées à la suppression d'un sous-compte.
-# (Nettoyage 2026-08-13 : tables archivées retirées, brand_assets ajoutée — elle manquait.)
-_CHILD_TABLES = [
-    "analytics_cache", "analytics_performance", "brand_assets", "brand_templates", "brouillons",
-    "commentaires", "comptes_sociaux", "contenu", "device_tokens", "heygen_avatars",
-    "notifications", "publication_schedules",
-    "studio", "studio_drafts", "usage_log",
-]
 
 
 def _effective_master(payload: dict) -> str:
@@ -156,10 +147,5 @@ def delete_account(telegram_id: str, payload: dict = Depends(verify_token)):
     res = supabase.table("users").select("master_id").eq("telegram_id", telegram_id).execute()
     if not res.data or res.data[0].get("master_id") != master:
         raise HTTPException(status_code=403, detail="Accès non autorisé à ce compte")
-    for t in _CHILD_TABLES:
-        try:
-            supabase.table(t).delete().eq("telegram_id", telegram_id).execute()
-        except Exception:
-            pass
-    supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
+    user_service.delete_user(telegram_id)  # purge (effacement + anonymisation) puis suppression
     return {"success": True}
