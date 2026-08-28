@@ -1,6 +1,6 @@
 ---
 slug: calendario-editorial-redes-sociales
-titre: "Calendario editorial para redes sociales: guía práctica 2025"
+titre: "Calendario editorial para redes sociales: guía práctica 2026"
 description: Crea un calendario editorial para redes sociales eficaz en menos de una hora. Método paso a paso, ejemplo concreto y consejos para directivos con poco tiempo.
 date: 2026-08-26
 auteur: El equipo Postorico

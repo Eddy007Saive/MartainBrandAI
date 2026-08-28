@@ -157,7 +157,7 @@ La automatización no es el problema. La automatización sin calibrado, sí.
 
 ---
 
-## ¿Qué herramientas para automatizar tus redes sociales en 2025?
+## ¿Qué herramientas para automatizar tus redes sociales en 2026?
 
 El mercado de las herramientas de automatización de redes sociales es denso. Aquí tienes una selección de cinco soluciones concretas, con sus puntos fuertes y sus límites.
 

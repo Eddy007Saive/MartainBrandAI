@@ -1,6 +1,6 @@
 ---
 slug: tasa-engagement-linkedin
-titre: "Tasa de engagement en LinkedIn: cálculo, benchmarks y consejos 2025"
+titre: "Tasa de engagement en LinkedIn: cálculo, benchmarks y consejos 2026"
 description: "¿Qué es una buena tasa de engagement en LinkedIn? Fórmula de cálculo, benchmarks por tamaño de audiencia y 6 acciones concretas para mejorarla, sin publicar todos los días."
 date: 2026-08-26
 auteur: El equipo Postorico
@@ -82,7 +82,7 @@ Tu publicación generó:
 
 ---
 
-## ¿Cuál es una buena tasa de engagement en LinkedIn en 2025?
+## ¿Cuál es una buena tasa de engagement en LinkedIn en 2026?
 
 ### Benchmarks por tamaño de audiencia
 
@@ -120,7 +120,7 @@ La diferencia entre carruseles y texto es tal que un carrusel con bajo rendimien
 
 ## Por qué tu tasa de engagement se estanca (y lo que eso revela de verdad)
 
-### El algoritmo de LinkedIn en 2025: lo que recompensa realmente
+### El algoritmo de LinkedIn en 2026: lo que recompensa realmente
 
 El algoritmo de LinkedIn (llamado 360Brew, entrenado con 150.000 millones de parámetros) no se limita a contar los me gusta. Jerarquiza las interacciones por orden de importancia:
 
@@ -241,7 +241,7 @@ Es el porcentaje de personas que interactúan con tu publicación (reacciones, c
 **¿Cómo se usa una calculadora de tasa de engagement de LinkedIn?**
 El método manual basta: suma tus interacciones (reacciones + comentarios + compartidos), divide por tu alcance real (visualizaciones de la publicación), multiplica por 100. Herramientas como Shield Analytics, Perfect Post o Metricool automatizan este cálculo y te dan un panel completo sin manipulación manual.
 
-**¿Cuál es la tasa de engagement media en LinkedIn en 2025?**
+**¿Cuál es la tasa de engagement media en LinkedIn en 2026?**
 Según el estudio de Buffer 2026 (52 millones de publicaciones analizadas), la tasa de engagement mediana en LinkedIn es del 6,2 %. Es la más alta de todas las redes sociales. En la práctica: menos del 2 % = tasa baja; del 2 % al 6 % = tasa media; más del 6 % = excelente. Tu tamaño de audiencia influye mucho en esta cifra.
 
 **¿Cómo mejorar el engagement en LinkedIn rápidamente?**

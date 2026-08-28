@@ -1,7 +1,7 @@
 ---
 slug: estrategia-linkedin-pymes
 titre: "Estrategia de LinkedIn para pymes: por dónde empezar sin community manager"
-description: "Construye una estrategia de LinkedIn para tu pyme sin community manager ni gran presupuesto: pilares de contenido, frecuencia, formatos y errores a evitar. La guía accionable 2025."
+description: "Construye una estrategia de LinkedIn para tu pyme sin community manager ni gran presupuesto: pilares de contenido, frecuencia, formatos y errores a evitar. La guía accionable 2026."
 date: 2026-08-26
 auteur: El equipo Postorico
 tags: [linkedin, pymes, estrategia]

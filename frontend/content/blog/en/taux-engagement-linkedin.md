@@ -1,6 +1,6 @@
 ---
 slug: linkedin-engagement-rate
-titre: "LinkedIn engagement rate: formula, benchmarks and 2025 tips"
+titre: "LinkedIn engagement rate: formula, benchmarks and 2026 tips"
 description: "What is a good LinkedIn engagement rate? The formula, benchmarks by audience size and 6 concrete actions to improve it, without posting every day."
 date: 2026-08-26
 auteur: The Postorico team
@@ -82,7 +82,7 @@ Your post generated:
 
 ---
 
-## What is a good LinkedIn engagement rate in 2025?
+## What is a good LinkedIn engagement rate in 2026?
 
 ### Benchmarks by audience size
 
@@ -120,7 +120,7 @@ The gap between carousels and text is so wide that an underperforming carousel (
 
 ## Why your engagement rate is stalling (and what it really reveals)
 
-### The LinkedIn algorithm in 2025: what it truly rewards
+### The LinkedIn algorithm in 2026: what it truly rewards
 
 The LinkedIn algorithm (named 360Brew, trained on 150 billion parameters) does not simply count likes. It ranks interactions by order of importance:
 
@@ -241,7 +241,7 @@ It is the percentage of people who interact with your post (reactions, comments,
 **How do you use a LinkedIn engagement rate calculator?**
 The manual method is enough: add up your interactions (reactions + comments + shares), divide by your actual reach (post views), multiply by 100. Tools like Shield Analytics, Perfect Post or Metricool automate this calculation and give you a complete dashboard with no manual handling.
 
-**What is the average LinkedIn engagement rate in 2025?**
+**What is the average LinkedIn engagement rate in 2026?**
 According to the Buffer 2026 study (52 million posts analyzed), the median LinkedIn engagement rate is 6.2%. It is the highest of any social network. In practice: under 2% = low rate; 2% to 6% = average rate; over 6% = excellent. Your audience size strongly influences this figure.
 
 **How do you improve your LinkedIn engagement quickly?**

@@ -1,6 +1,6 @@
 ---
 slug: intelligence-artificielle-reseaux-sociaux-pme
-titre: "IA et réseaux sociaux : ce qui change vraiment pour les PME en 2025"
+titre: "IA et réseaux sociaux : ce qui change vraiment pour les PME en 2026"
 description: L'intelligence artificielle transforme la gestion des réseaux sociaux. Découvrez ce que l'IA peut faire concrètement pour une PME : contenu, programmation, analyse - et ce qui doit rester humain.
 date: 2026-08-26
 auteur: L'équipe Postorico
@@ -198,5 +198,5 @@ Comptez 30 jours de test sur un seul cas d'usage pour avoir des données exploit
 ## Sources utiles
 
 - [FranceNum - Comment améliorer la gestion de ses réseaux sociaux avec l'IA générative](https://www.francenum.gouv.fr/guides-et-conseils/intelligence-artificielle/generation-de-contenus-texte-image-son-video/comment)
-- [Sprinklr - Comment utiliser l'IA sur les réseaux sociaux en 2025](https://www.sprinklr.com/fr/blog/ai-in-social-media/)
+- [Sprinklr - Comment utiliser l'IA sur les réseaux sociaux en 2026](https://www.sprinklr.com/fr/blog/ai-in-social-media/)
 - [HubSpot - 9 outils IA pour la gestion de réseaux sociaux de sa marque](https://blog.hubspot.fr/marketing/ia-reseaux-sociaux)

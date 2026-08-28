@@ -1,6 +1,6 @@
 ---
 slug: calendrier-editorial-reseaux-sociaux
-titre: "Calendrier éditorial réseaux sociaux : guide pratique 2025"
+titre: "Calendrier éditorial réseaux sociaux : guide pratique 2026"
 description: Créez un calendrier éditorial réseaux sociaux efficace en moins d'une heure. Méthode pas à pas, exemple concret et astuces pour dirigeants qui manquent de temps.
 date: 2026-08-26
 auteur: L'équipe Postorico

@@ -1,7 +1,7 @@
 ---
 slug: strategie-linkedin-pme
 titre: "Stratégie LinkedIn PME : par où commencer sans community manager"
-description: Construire une stratégie LinkedIn pour votre PME sans community manager ni gros budget : piliers de contenu, fréquence, formats et erreurs à éviter - le guide actionnable 2025.
+description: Construire une stratégie LinkedIn pour votre PME sans community manager ni gros budget : piliers de contenu, fréquence, formats et erreurs à éviter - le guide actionnable 2026.
 date: 2026-08-26
 auteur: L'équipe Postorico
 tags: [linkedin, pme, strategie]

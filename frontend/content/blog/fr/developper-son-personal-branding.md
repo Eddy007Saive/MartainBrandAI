@@ -80,7 +80,7 @@ C'est ça, **construire son personal branding** : choisir un territoire clair pl
 
 La règle d'or : **1 canal maîtrisé vaut mieux que 4 canaux abandonnés.**
 
-Pour la plupart des dirigeants B2B, LinkedIn est le point de départ incontournable. La plateforme compte plus d'un milliard d'utilisateurs actifs en 2025 - et c'est là que se trouvent vos prospects, partenaires et prescripteurs.
+Pour la plupart des dirigeants B2B, LinkedIn est le point de départ incontournable. La plateforme compte plus d'un milliard d'utilisateurs actifs en 2026 - et c'est là que se trouvent vos prospects, partenaires et prescripteurs.
 
 | Canal | Objectif principal | Idéal pour |
 |---|---|---|
