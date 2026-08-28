@@ -55,6 +55,18 @@ def supprimer(telegram_id: str, offer_id: str) -> None:
     supabase.table("offers").delete().eq("id", offer_id).eq("telegram_id", telegram_id).execute()
 
 
+def noms_offres(telegram_id: str, limite: int = 20) -> str:
+    """Liste COURTE des offres actives (nom + type), pour la génération de sujets.
+    Léger en tokens : juste de quoi proposer des sujets commerciaux pertinents."""
+    try:
+        offres = lister(telegram_id, actives_seulement=True)[:limite]
+    except Exception:
+        return ""
+    if not offres:
+        return ""
+    return "\n".join(f"- {o.get('name')} ({o.get('type') or 'offre'})" for o in offres)
+
+
 def contexte_offres(telegram_id: str, limite: int = 12) -> str:
     """Bloc « OFFRES » injecté dans le contexte de marque : la liste des offres
     actives + leurs faits fiables. Claude s'en sert pour ancrer le contenu et ne

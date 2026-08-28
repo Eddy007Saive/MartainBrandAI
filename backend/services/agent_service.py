@@ -165,16 +165,10 @@ def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
             "(Profil de marque peu renseigné — reste générique, professionnel et "
             "crédible ; évite les promesses chiffrées et le jargon creux.)"
         )
-    # Offres / produits du client (source de vérité pour prix et caractéristiques)
-    tid = u.get("telegram_id")
-    if tid:
-        try:
-            from services import offers_service
-            bloc = offers_service.contexte_offres(tid)
-            if bloc:
-                lignes.append(bloc)
-        except Exception as e:
-            logger.warning(f"contexte offres: {e}")
+    # NB : les offres NE SONT PAS injectées ici (contexte mis en cache + coût tokens).
+    # Elles sont ajoutées de façon CONDITIONNELLE, dans le message utilisateur :
+    # - liste courte à la génération de sujets (offres_liste_courte)
+    # - faits complets à la rédaction, seulement si l'objectif est commercial (bloc_offres_si_commercial)
     lignes.append(REGLES_ANTI_IA)
     return "\n".join(lignes)
 
@@ -264,6 +258,34 @@ def _valider_dimension(cle: str, valeur) -> str | None:
     """Garde une valeur de dimension seulement si elle appartient à la liste figée."""
     v = (valeur or "").strip() if isinstance(valeur, str) else ""
     return v if v in DIMENSIONS.get(cle, ()) else None
+
+
+# Objectifs pour lesquels le contenu s'appuie vraiment sur une offre (logique 80/20 :
+# on ne « vend » pas dans un contenu éducatif/notoriété/engagement).
+OBJECTIFS_COMMERCIAUX = {"Conversion", "Génération de prospects", "Preuve sociale", "Fidélisation"}
+
+
+def _offres_liste_courte(telegram_id: str) -> str:
+    try:
+        from services import offers_service
+        return offers_service.noms_offres(telegram_id)
+    except Exception as e:
+        logger.warning(f"offres liste courte: {e}")
+        return ""
+
+
+def _bloc_offres_si_commercial(telegram_id: str, dimensions: dict) -> str:
+    """Faits complets des offres à la rédaction — SEULEMENT si l'objectif du brief
+    est commercial. Sinon vide (contenu orienté valeur, zéro tokens d'offres)."""
+    obj = _valider_dimension("objectif", (dimensions or {}).get("objectif"))
+    if obj not in OBJECTIFS_COMMERCIAUX:
+        return ""
+    try:
+        from services import offers_service
+        return offers_service.contexte_offres(telegram_id)
+    except Exception as e:
+        logger.warning(f"bloc offres commercial: {e}")
+        return ""
 
 
 def _valider_format(valeur, autorises: list) -> str:
@@ -384,6 +406,18 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
             contraintes.append(f"{label}: pick ONE from [{', '.join(valeurs)}], varying it from one topic to the next.")
     menu = "\n".join(f"- {c}" for c in contraintes)
 
+    # Offres du client (liste courte) : sert à proposer des sujets COMMERCIAUX pertinents,
+    # sans imposer la vente aux sujets éducatifs/notoriété (logique 80/20).
+    offres_court = _offres_liste_courte(telegram_id)
+    hint_offres = ""
+    if offres_court:
+        hint_offres = (
+            "\n\nThe client's offers (products/services):\n" + offres_court +
+            "\nUse these offers to shape topics whose objective is COMMERCIAL (Conversion, "
+            "Génération de prospects). For educational / awareness / engagement topics, stay "
+            "value-first and do NOT push an offer."
+        )
+
     # On demande quelques sujets de rab : après filtrage des doublons, il en reste assez.
     demande = nombre + 4
     resp = _messages_create(
@@ -399,7 +433,7 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
                 f'[{{"sujet":"…","objectif":"…","angle":"…","cible":"…","format":"…"}}]\n'
                 f'"sujet" = a concrete, catchy hook (not a vague theme), written in the output language. '
                 f"The other fields take EXACTLY one value from the lists above."
-                + consigne
+                + consigne + hint_offres
             ),
         }],
     )
@@ -489,6 +523,7 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
             "content": (
                 f"Write ONE ready-to-publish {reseau_label} post on the topic:\n\n\"{sujet}\""
                 + brief_dimensions(dimensions)
+                + _bloc_offres_si_commercial(telegram_id, dimensions)
                 + f"\n\n{reseau_label} format: strong hook on the first line, short airy lines, "
                 f"one central idea, and a question / engagement prompt at the end."
                 + _consigne_longueur(reseau)
@@ -581,7 +616,8 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
         system=_system(ROLE_CARROUSEL, contexte, "", cache),
         messages=[{
             "role": "user",
-            "content": (f"Carousel topic: \"{sujet}\"." + brief_dimensions(dimensions) + "\n"
+            "content": (f"Carousel topic: \"{sujet}\"." + brief_dimensions(dimensions)
+                        + _bloc_offres_si_commercial(telegram_id, dimensions) + "\n"
                         f"Give the hook, the legende (short: hook + swipe invitation + 1 CTA, without repeating the slides), "
                         f"EXACTLY {nb_idees} ideas (with short titre, texte, pills, pro_tip) and the cta, as JSON."),
         }],
@@ -661,6 +697,7 @@ def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model
             "content": (
                 f"Write a \"{tv}\" video script on the topic:\n\n\"{sujet}\""
                 + brief_dimensions(dimensions)
+                + _bloc_offres_si_commercial(telegram_id, dimensions)
                 + "\n\n"
                 "Clear output format:\n"
                 "[HOOK] the first-3-seconds hook\n"
