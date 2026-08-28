@@ -141,6 +141,19 @@ function Bloc({ titre, sous, phare, children }) {
   );
 }
 
+// Wrapper « label + enfant libre » : contrairement à <Field/> (qui rend son
+// propre Input et attend onChange(name, value)), Champ n'impose rien sur le
+// contrôle enfant — pour les formulaires mêlant Input / Select / Textarea.
+function Champ({ label, hint, children }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-sm font-medium text-slate-300 font-inter">{label}</label>
+      {children}
+      {hint && <p className="text-[11px] text-slate-500 font-inter">{hint}</p>}
+    </div>
+  );
+}
+
 export default function ParametresPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -1773,10 +1786,10 @@ export default function ParametresPage() {
       <Bloc titre={offreEditId ? 'Modifier l’offre' : 'Ajouter une offre'} sous="Nom + prix suffisent pour commencer.">
         <div className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Field label="Nom">
+            <Champ label="Nom">
               <Input value={offreForm.name} onChange={(e) => setOffreForm((f) => ({ ...f, name: e.target.value }))} placeholder="Ex : Gestion Airbnb, Sac Élégance…" />
-            </Field>
-            <Field label="Type">
+            </Champ>
+            <Champ label="Type">
               <Select value={offreForm.type} onValueChange={(v) => setOffreForm((f) => ({ ...f, type: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1785,20 +1798,20 @@ export default function ParametresPage() {
                   <SelectItem value="offer">Offre</SelectItem>
                 </SelectContent>
               </Select>
-            </Field>
-            <Field label="Prix">
+            </Champ>
+            <Champ label="Prix">
               <Input value={offreForm.price} onChange={(e) => setOffreForm((f) => ({ ...f, price: e.target.value }))} placeholder="Ex : 150 €/mois, 89 €…" />
-            </Field>
-            <Field label="Lien (optionnel)">
+            </Champ>
+            <Champ label="Lien (optionnel)">
               <Input value={offreForm.url} onChange={(e) => setOffreForm((f) => ({ ...f, url: e.target.value }))} placeholder="https://…" />
-            </Field>
+            </Champ>
           </div>
-          <Field label="Description">
+          <Champ label="Description">
             <Textarea rows={2} value={offreForm.description} onChange={(e) => setOffreForm((f) => ({ ...f, description: e.target.value }))} placeholder="En une ou deux phrases : ce que c’est." />
-          </Field>
-          <Field label="Bénéfices" hint="Un par ligne. Ce que ça apporte au client.">
+          </Champ>
+          <Champ label="Bénéfices" hint="Un par ligne. Ce que ça apporte au client.">
             <Textarea rows={3} value={offreForm.benefits} onChange={(e) => setOffreForm((f) => ({ ...f, benefits: e.target.value }))} placeholder={"Gain de temps\nRevenus optimisés\nZéro souci de gestion"} />
-          </Field>
+          </Champ>
           <div className="flex items-center justify-end gap-2">
             {offreEditId && <button onClick={resetOffreForm} className="text-xs text-slate-400 hover:text-white px-2">Annuler</button>}
             <Button onClick={saveOffre} disabled={offreSaving || !offreForm.name.trim()}>
