@@ -26,6 +26,7 @@ Si le réseau n'a pas de cadence active, on retombe sur le prochain jour ouvré 
 Convention des jours (identique au front, constants/schedules.js) :
     Lun=1, Mar=2, Mer=3, Jeu=4, Ven=5, Sam=6, Dim=0   ==  date.isoweekday() % 7
 """
+import random
 from datetime import datetime, timezone, timedelta, time
 from config import supabase, logger
 
@@ -55,6 +56,24 @@ _FAMILLE_OFFSET_H = {"feed": 0, "story": 3, "video": 6}
 # Rythme « à la suite » : tout est dans la même file, la notion de famille disparaît.
 FILE_UNIQUE = "tout"
 MODE_DEFAUT = "cumule"
+
+# Humanisation de l'heure de publication. Les plateformes repèrent les motifs
+# « même minute exacte tous les jours » ; on décale de quelques minutes, de façon
+# DÉTERMINISTE (même seed -> même heure, pour que le sweep ne fasse pas dériver le
+# créneau déjà annoncé) mais variable d'un jour / réseau / famille à l'autre.
+JITTER_MIN_MINUTES = -12
+JITTER_MAX_MINUTES = 14
+
+
+def _heure_humanisee(base_hour: int, base_minute: int, *seed) -> tuple:
+    """Renvoie (heure, minute, seconde) décalées de quelques minutes autour de
+    l'heure préférée. Jamais l'heure ronde pile. Déterministe pour un seed donné."""
+    rng = random.Random("|".join(str(p) for p in seed))
+    total = (base_hour * 60 + base_minute + rng.randint(JITTER_MIN_MINUTES, JITTER_MAX_MINUTES)) % (24 * 60)
+    h, m = divmod(total, 60)
+    if m == 0:                       # évite 12:00:00, 09:00:00… trop « robot »
+        m = rng.randint(3, 9)
+    return h, m, rng.randint(0, 59)
 
 
 def famille_de(type_contenu: str | None, mode: str = MODE_DEFAUT) -> str:
@@ -151,7 +170,8 @@ def prochain_creneau(telegram_id: str, reseau_cible: str | None,
                 continue
         if d.isoformat() in occ:
             continue
-        dt = datetime(d.year, d.month, d.day, heure, ptime.minute, tzinfo=timezone.utc)
+        h, m, s = _heure_humanisee(heure, ptime.minute, telegram_id, platform, famille, d.isoformat())
+        dt = datetime(d.year, d.month, d.day, h, m, s, tzinfo=timezone.utc)
         return dt.isoformat()
 
     logger.warning(f"planning: aucun créneau libre trouvé pour {reseau_cible}/{famille} (tg {telegram_id})")
