@@ -585,7 +585,7 @@ def process(video, out, o, progress=lambda s: None):
             progress("brolls")
             import brolls_ai
             try:
-                broll_raw = brolls_ai.suggest_brolls(words, language)
+                broll_raw = brolls_ai.suggest_brolls(words, language, o.get("brolls_count"))
             except Exception as e:
                 _warn("B-roll : sélection IA indisponible, aucun plan d'illustration "
                      "ajouté.", detail=str(e))

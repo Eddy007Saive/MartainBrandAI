@@ -7,13 +7,18 @@ import json
 
 import hooks
 
-MAX_BROLLS = 4
+# repli si l'appelant ne précise pas de préférence (max_brolls=None) ;
+# bornes dures quel que soit ce que l'utilisateur envoie, pour ne pas
+# exploser le nombre d'inputs ffmpeg chaînés dans le filtergraph
+DEFAULT_MAX_BROLLS = 4
+HARD_CAP = 8
 
 
-def suggest_brolls(words, language="fr"):
-    """[(index_mot, requete_recherche), ...] — jusqu'à MAX_BROLLS occurrences."""
+def suggest_brolls(words, language="fr", max_brolls=None):
+    """[(index_mot, requete_recherche), ...] — jusqu'à max_brolls occurrences."""
     if not words:
         return []
+    max_brolls = max(1, min(HARD_CAP, max_brolls or DEFAULT_MAX_BROLLS))
     numbered = "\n".join(f"{i}: {w['text']}" for i, w in enumerate(words))
     response = hooks.client().messages.create(
         model="claude-haiku-4-5",
@@ -46,8 +51,9 @@ def suggest_brolls(words, language="fr"):
             "role": "user",
             "content": (
                 "Voici la transcription d'un reel/short, un mot numéroté par "
-                "ligne (langue : " + language + "). Choisis entre 2 et " +
-                str(MAX_BROLLS) + " moments où un plan d'illustration (b-roll) "
+                "ligne (langue : " + language + "). Choisis entre " +
+                str(min(2, max_brolls)) + " et " + str(max_brolls) +
+                " moments où un plan d'illustration (b-roll) "
                 "renforcerait le propos — un concept CONCRET et filmable "
                 "évoqué à ce moment (objet, lieu, action, résultat chiffré), "
                 "jamais une émotion abstraite. Pour chaque choix : le numéro "
@@ -66,4 +72,4 @@ def suggest_brolls(words, language="fr"):
                 and q.strip() and i not in seen):
             seen.add(i)
             out.append((i, q.strip()))
-    return out[:MAX_BROLLS]
+    return out[:max_brolls]

@@ -52,6 +52,7 @@ DEFAULTS = {
     "music_volume": 30,
     "emojis": False,
     "brolls": False,
+    "brolls_count": 4,
     "font": "Arial Black",
     "hl_color": "#3AFFA3",
     "fontscale": 1.0,
