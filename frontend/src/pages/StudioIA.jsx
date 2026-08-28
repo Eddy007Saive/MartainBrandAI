@@ -296,14 +296,14 @@ export default function StudioIA() {
   // Enregistre l'override côté serveur + met à jour la réserve locale (persiste au rechargement).
   const persistDims = (id, dims) => {
     if (!id) return;
-    const clean = { objectif: dims.objectif, angle: dims.angle, cible: dims.cible, format: dims.format };
+    const clean = { objectif: dims.objectif, angle: dims.angle, cible: dims.cible, format: dims.format, offre: dims.offre };
     setSujets((prev) => prev.map((x) => (x.id === id ? { ...x, dimensions: clean } : x)));
     agentService.majDimensions(id, clean).catch(() => {});
   };
 
   const ouvrir = (s) => {
     const d = s.dimensions || {};
-    setDimsEdit({ objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '' });
+    setDimsEdit({ objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '', offre: d.offre || '' });
     appliquerFormat(d.format);
     setOpenId(s.id);
   };
@@ -318,7 +318,7 @@ export default function StudioIA() {
   // Rétablit tout le brief recommandé par l'IA pour ce sujet (et l'enregistre).
   const revertDims = (s) => {
     const d = s.dimensions_reco || s.dimensions || {};
-    const next = { objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '' };
+    const next = { objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '', offre: d.offre || '' };
     setDimsEdit(next);
     persistDims(s.id, next);
     appliquerFormat(d.format);
@@ -620,6 +620,19 @@ export default function StudioIA() {
                       </select>
                     </label>
                   ))}
+                  {dims?.offre?.length ? (
+                    <label className="flex flex-col gap-1">
+                      <span className="text-xs text-slate-500 font-inter">📦 Offre</span>
+                      <select
+                        value={filtres.offre || ''}
+                        onChange={(e) => setFiltres((f) => ({ ...f, offre: e.target.value }))}
+                        data-testid="studio-filtre-offre"
+                        className="rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-2.5 py-1.5 outline-none focus:border-[#5B6CFF]/50">
+                        <option value="">{t('studio.filterAny')}</option>
+                        {dims.offre.map((v) => <option key={v} value={v}>{v}</option>)}
+                      </select>
+                    </label>
+                  ) : null}
                   {Object.values(filtres).filter(Boolean).length > 0 && (
                     <button onClick={() => setFiltres({})}
                       className="col-span-2 text-xs text-slate-500 hover:text-slate-300 transition-colors text-left">
@@ -765,7 +778,7 @@ export default function StudioIA() {
               {sujets.map((s, i) => {
                 const open = openId === s.id;
                 const reco = s.dimensions_reco || s.dimensions || {}; // reco d'origine de l'IA (fige l'⭐)
-                const anyEdited = open && DIM_META.some(({ cle }) => dimsEdit[cle] !== (reco[cle] || ''));
+                const anyEdited = open && (DIM_META.some(({ cle }) => dimsEdit[cle] !== (reco[cle] || '')) || (dimsEdit.offre || '') !== (reco.offre || ''));
                 return (
                   <div key={s.id} data-testid={`studio-sujet-${s.id}`}
                     className={`rounded-xl border transition-all ${open ? 'relative z-10 border-[#5B6CFF]/40 bg-[#5B6CFF]/[0.06]' : 'overflow-hidden border-white/5 bg-slate-800/40 hover:border-white/15'}`}>
@@ -778,6 +791,9 @@ export default function StudioIA() {
                       <span className="flex-1 min-w-0 text-[13.5px] font-semibold leading-snug text-slate-100 font-inter">{s.titre}</span>
                       {!open && s.dimensions?.format && (
                         <span className="flex-none text-[10px] font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">{s.dimensions.format}</span>
+                      )}
+                      {!open && s.dimensions?.offre && (
+                        <span className="flex-none text-[10px] font-semibold text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25 rounded-md px-1.5 py-0.5">📦 {s.dimensions.offre}</span>
                       )}
                       <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} title={t('studio.deleteTitle')}
                         className="flex-none text-slate-500 hover:text-red-400 transition-colors p-1">
@@ -797,6 +813,13 @@ export default function StudioIA() {
                               onChange={(v) => changeDim(cle, v)} />
                           ))}
                         </div>
+                        {/* 5e dimension « Offre » (dynamique, optionnelle) — seulement si le compte a des offres */}
+                        {dims?.offre?.length ? (
+                          <DimSelect emoji="📦" label="Offre mise en avant"
+                            value={dimsEdit.offre || 'Aucune'} reco={reco.offre || 'Aucune'}
+                            options={['Aucune', ...dims.offre]}
+                            onChange={(v) => changeDim('offre', v === 'Aucune' ? '' : v)} />
+                        ) : null}
 
                         {/* Le format vient de la dimension. Script vidéo = Type + Réseau ; sinon = Réseaux */}
                         {cfgFormat === 'script' ? (

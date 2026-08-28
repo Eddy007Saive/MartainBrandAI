@@ -67,6 +67,57 @@ def noms_offres(telegram_id: str, limite: int = 20) -> str:
     return "\n".join(f"- {o.get('name')} ({o.get('type') or 'offre'})" for o in offres)
 
 
+def _fmt_offre(o: dict) -> str:
+    """Formate UNE offre en bloc de faits (nom, prix, desc, bénéfices, url)."""
+    parts = [f"- {o.get('name')}"]
+    if o.get("type"):
+        parts.append(f"({o['type']})")
+    if o.get("price"):
+        parts.append(f"— prix : {o['price']}")
+    tete = " ".join(parts)
+    details = []
+    if o.get("description"):
+        details.append(f"  desc : {o['description']}")
+    if o.get("benefits"):
+        b = " / ".join(x.strip() for x in str(o["benefits"]).splitlines() if x.strip())
+        if b:
+            details.append(f"  bénéfices : {b}")
+    if isinstance(o.get("facts"), dict) and o["facts"]:
+        f = ", ".join(f"{k}: {v}" for k, v in o["facts"].items() if v)
+        if f:
+            details.append(f"  faits : {f}")
+    if o.get("url"):
+        details.append(f"  url : {o['url']}")
+    return tete + ("\n" + "\n".join(details) if details else "")
+
+
+def noms(telegram_id: str) -> list:
+    """Noms des offres actives (pour valider une dimension « offre »)."""
+    try:
+        return [o.get("name") for o in lister(telegram_id, actives_seulement=True) if o.get("name")]
+    except Exception:
+        return []
+
+
+def faits_offre(telegram_id: str, nom: str) -> str:
+    """Bloc de faits d'UNE offre nommée (envoi ciblé, pas toutes les offres)."""
+    nom = (nom or "").strip()
+    if not nom:
+        return ""
+    try:
+        offres = lister(telegram_id, actives_seulement=True)
+    except Exception:
+        return ""
+    o = next((x for x in offres if (x.get("name") or "").strip() == nom), None)
+    if not o:
+        return ""
+    return (
+        "\n\n## OFFRE CONCERNÉE PAR CE CONTENU (source de vérité)\n"
+        "Mets cette offre en avant. N'invente JAMAIS un prix ou une caractéristique "
+        "qui n'est pas listé ici.\n" + _fmt_offre(o)
+    )
+
+
 def contexte_offres(telegram_id: str, limite: int = 12) -> str:
     """Bloc « OFFRES » injecté dans le contexte de marque : la liste des offres
     actives + leurs faits fiables. Claude s'en sert pour ancrer le contenu et ne

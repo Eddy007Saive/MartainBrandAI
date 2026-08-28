@@ -97,7 +97,7 @@ def sujets(body: dict, payload: dict = Depends(verify_token)):
     # Sauvegarde des sujets comme brouillons (sans réseau — choisi à la transformation).
     # Chaque sujet porte ses dimensions {objectif, angle, cible, format} : un brief, pas un thème.
     def _dims(s):
-        return {k: s.get(k) for k in ("objectif", "angle", "cible", "format") if s.get(k)}
+        return {k: s.get(k) for k in ("objectif", "angle", "cible", "format", "offre") if s.get(k)}
     sujets = [s for s in result.get("sujets", []) if s.get("sujet")]
     # dimensions = valeur EFFECTIVE (modifiable) ; dimensions_reco = reco d'origine de l'IA (fige l'⭐).
     rows = [{"telegram_id": telegram_id, "titre": s["sujet"][:200], "statut": "Brouillon",
@@ -296,6 +296,9 @@ def maj_sujet(sujet_id: str, body: dict, payload: dict = Depends(verify_token)):
     # Ne garde que des valeurs valides des listes figées.
     dims = {k: v for k in ("objectif", "angle", "cible", "format")
             if (v := agent_service._valider_dimension(k, dims_in.get(k)))}
+    offre = agent_service._valider_offre(telegram_id, dims_in.get("offre"))  # offre dynamique
+    if offre:
+        dims["offre"] = offre
     try:
         supabase.table("brouillons").update({"dimensions": dims or None}) \
             .eq("id", sujet_id).eq("telegram_id", telegram_id).execute()
