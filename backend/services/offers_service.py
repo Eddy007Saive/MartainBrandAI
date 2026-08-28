@@ -5,13 +5,16 @@ caractéristiques) pour que Claude ne les invente jamais. Générique multi-sect
 une offre peut être un produit physique, un service (ex. Gestion Airbnb), une
 formation, etc.
 """
-from config import supabase
-import logging
+import cloudinary
+import cloudinary.uploader
+from config import (supabase, logger,
+                    CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET)
 
-logger = logging.getLogger("offers")
+cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
 
 TYPES = ("product", "service", "offer")
 CHAMPS = ("name", "type", "description", "price", "benefits", "url", "facts", "actif")
+ROLES = ("face", "back", "worn", "detail", "lifestyle", "other")
 
 
 def _clean(body: dict) -> dict:
@@ -160,3 +163,78 @@ def contexte_offres(telegram_id: str, limite: int = 12) -> str:
         "si une info manque, reste qualitatif ou laisse un placeholder.\n"
         + "\n".join(lignes)
     )
+
+
+# ---------------------------------------------------------------------------
+# Product Vision Agent : photos d'une offre + leur analyse (offer_assets / offer_analysis)
+# ---------------------------------------------------------------------------
+
+def _offre_possede(telegram_id: str, offer_id: str) -> bool:
+    r = (supabase.table("offers").select("id")
+         .eq("id", offer_id).eq("telegram_id", telegram_id).limit(1).execute())
+    return bool(r.data)
+
+
+def ajouter_asset(telegram_id: str, offer_id: str, file_bytes: bytes, role: str = "other") -> dict:
+    """Upload une photo d'offre (Cloudinary), l'analyse UNE fois (vision), stocke les deux."""
+    if not _offre_possede(telegram_id, offer_id):
+        raise ValueError("offre introuvable")
+    if role not in ROLES:
+        role = "other"
+    up = cloudinary.uploader.upload(
+        file_bytes, resource_type="image",
+        folder=f"offers/{telegram_id}/{offer_id}", invalidate=True,
+    )
+    row = {
+        "offer_id": offer_id, "telegram_id": telegram_id,
+        "url": up["secure_url"], "public_id": up.get("public_id"),
+        "role": role, "width": up.get("width"), "height": up.get("height"),
+    }
+    ins = supabase.table("offer_assets").insert(row).execute()
+    asset = ins.data[0] if ins.data else row
+
+    # Analyse vision immédiate (une seule fois) — soft-fail : l'asset reste utilisable sans.
+    analysis = None
+    try:
+        from services import vision_service
+        res = vision_service.analyser(asset["url"], telegram_id)
+        if res.get("analysis") and asset.get("id"):
+            a = (supabase.table("offer_analysis").insert({
+                "offer_id": offer_id, "asset_id": asset["id"], "telegram_id": telegram_id,
+                "analysis": res["analysis"], "model": res.get("model"),
+            }).execute())
+            analysis = a.data[0]["analysis"] if a.data else res["analysis"]
+    except Exception as e:
+        logger.warning(f"ajouter_asset analyse échouée: {e}")
+
+    return {"asset": asset, "analysis": analysis}
+
+
+def lister_assets(telegram_id: str, offer_id: str) -> list:
+    """Photos d'une offre avec, pour chacune, son analyse (si disponible)."""
+    assets = (supabase.table("offer_assets").select("*")
+              .eq("telegram_id", telegram_id).eq("offer_id", offer_id)
+              .order("created_at", desc=False).execute()).data or []
+    if not assets:
+        return []
+    ana = (supabase.table("offer_analysis").select("asset_id, analysis")
+           .eq("telegram_id", telegram_id).eq("offer_id", offer_id).execute()).data or []
+    par_asset = {a["asset_id"]: a["analysis"] for a in ana}
+    for a in assets:
+        a["analysis"] = par_asset.get(a["id"])
+    return assets
+
+
+def supprimer_asset(telegram_id: str, asset_id: str) -> None:
+    """Supprime une photo (Cloudinary + lignes ; l'analyse tombe en cascade)."""
+    r = (supabase.table("offer_assets").select("public_id")
+         .eq("id", asset_id).eq("telegram_id", telegram_id).limit(1).execute())
+    if not r.data:
+        return
+    pid = r.data[0].get("public_id")
+    if pid:
+        try:
+            cloudinary.uploader.destroy(pid, resource_type="image", invalidate=True)
+        except Exception as e:
+            logger.warning(f"supprimer_asset Cloudinary ({pid}): {e}")
+    supabase.table("offer_assets").delete().eq("id", asset_id).eq("telegram_id", telegram_id).execute()

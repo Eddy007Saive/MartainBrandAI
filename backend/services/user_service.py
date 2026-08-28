@@ -196,8 +196,8 @@ _PURGE_DELETE_TABLES = [
     "analytics_cache", "analytics_performance", "affiliate_referrals",
     "brand_assets", "brand_musiques", "brand_templates", "brouillons",
     "commentaires", "comptes_sociaux", "contenu", "device_tokens", "heygen_avatars",
-    "marques", "notifications", "offers", "publication_schedules",
-    "studio", "studio_drafts", "usage_log",
+    "marques", "notifications", "offer_analysis", "offer_assets", "offers",
+    "publication_schedules", "studio", "studio_drafts", "usage_log",
 ]
 
 
