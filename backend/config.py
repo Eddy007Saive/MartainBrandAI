@@ -42,6 +42,13 @@ N8N_WEBHOOK_BASE = os.environ.get('N8N_WEBHOOK_BASE', 'https://n8n.srv903010.hst
 ADMIN_SESSION_HEURES = int(os.environ.get('ADMIN_SESSION_HEURES', 24 * 7))
 
 CORS_ORIGINS = [o.strip() for o in os.environ.get('CORS_ORIGINS', '*').split(',') if o.strip()]
+# Origines de l'app native (WebView Capacitor) : TOUJOURS autorisées, sinon le
+# login mobile est bloqué par CORS (préflight sans Access-Control-Allow-Origin).
+# Android sert sur https://localhost, iOS sur capacitor://localhost. C'est l'app
+# elle-même : aucun risque à les autoriser. Sans effet si CORS_ORIGINS == ['*'].
+_NATIVE_ORIGINS = ['https://localhost', 'http://localhost', 'capacitor://localhost']
+if '*' not in CORS_ORIGINS:
+    CORS_ORIGINS += [o for o in _NATIVE_ORIGINS if o not in CORS_ORIGINS]
 
 # Claude (Anthropic) — clé dans le .env racine sous le nom `api_claude`
 CLAUDE_API_KEY = os.environ.get('api_claude') or os.environ.get('ANTHROPIC_API_KEY', '')
