@@ -39,13 +39,25 @@ workflows:
           REACT_APP_BACKEND_URL="$REACT_APP_BACKEND_URL" CI=true yarn build
           rm -rf build/Video build/videos   # sinon IPA inutilement lourde
 
-      - name: Génération du projet iOS (Capacitor)
+      - name: Génération du projet iOS (Capacitor) + CocoaPods
         script: |
-          cd frontend
+          set -e
+          cd "$CM_BUILD_DIR/frontend"
           # @capacitor/ios n'est pas dans package.json : on l'ajoute pour ce build.
           yarn add @capacitor/ios@~8.4.1
           npx cap add ios || true          # crée frontend/ios/ si absent
-          npx cap sync ios                 # copie le web + plugins dans le projet natif
+          npx cap sync ios                 # copie le web + plugins (+ pod install)
+          echo "--- structure de frontend/ios ---"
+          ls -la "$CM_BUILD_DIR/frontend/ios" || true
+          ls -la "$CM_BUILD_DIR/frontend/ios/App" || true
+          # Podfile localisé dynamiquement (le cd ne persiste pas entre étapes Codemagic)
+          PODFILE=$(find "$CM_BUILD_DIR/frontend/ios" -name Podfile | head -1)
+          if [ -n "$PODFILE" ]; then
+            echo "Podfile trouvé : $PODFILE"
+            cd "$(dirname "$PODFILE")" && pod install --repo-update
+          else
+            echo "Aucun Podfile (Capacitor en Swift Package Manager) — pods ignorés."
+          fi
 
       - name: Signature (App Store Connect automatique)
         script: |
@@ -55,17 +67,15 @@ workflows:
           keychain add-certificates
           xcode-project use-profiles
 
-      - name: CocoaPods
-        script: |
-          cd frontend/ios/App
-          pod install
-
       - name: Build IPA
         script: |
-          cd frontend/ios/App
-          xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
+          set -e
+          cd "$CM_BUILD_DIR/frontend/ios/App"
+          if [ -d "App.xcworkspace" ]; then
+            xcode-project build-ipa --workspace "App.xcworkspace" --scheme "$XCODE_SCHEME"
+          else
+            xcode-project build-ipa --project "App.xcodeproj" --scheme "$XCODE_SCHEME"
+          fi
 
     artifacts:
       - frontend/ios/App/build/ios/ipa/*.ipa
