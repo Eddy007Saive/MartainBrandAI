@@ -1,0 +1,79 @@
+# Codemagic — build iOS de l'app Postorico (Capacitor, monorepo : app dans frontend/).
+# Le projet natif iOS n'est PAS versionné : on le génère à la volée (npx cap add ios).
+#
+# ⚠️ AVANT le 1er build réussi, à configurer dans Codemagic (une seule fois) :
+#   1. Un compte Apple Developer (99 $/an) + un App ID enregistré pour le bundle
+#      com.presenceos.app (Certificates, Identifiers & Profiles).
+#   2. Dans Codemagic → Teams/App settings → Integrations → App Store Connect :
+#      créer une clé API App Store Connect. Elle fournit les variables
+#      APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
+#      APP_STORE_CONNECT_PRIVATE_KEY + CERTIFICATE_PRIVATE_KEY.
+#   3. Ranger ces variables dans un groupe d'environnement nommé "appstore".
+#
+# Sans ces credentials, le build s'arrête à l'étape de signature (normal).
+
+workflows:
+  ios-postorico:
+    name: Postorico iOS
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        - appstore            # doit contenir les variables App Store Connect (cf. en-tête)
+      vars:
+        BUNDLE_ID: "com.presenceos.app"
+        XCODE_SCHEME: "App"
+        XCODE_WORKSPACE: "App.xcworkspace"
+        # L'app native tape le backend de prod :
+        REACT_APP_BACKEND_URL: "https://martainbrandai-production.up.railway.app"
+      node: 20
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Build web (React) + purge des vidéos marketing
+        script: |
+          cd frontend
+          yarn install --frozen-lockfile || yarn install
+          NODE_OPTIONS=--max-old-space-size=8192 GENERATE_SOURCEMAP=false \
+          REACT_APP_BACKEND_URL="$REACT_APP_BACKEND_URL" CI=true yarn build
+          rm -rf build/Video build/videos   # sinon IPA inutilement lourde
+
+      - name: Génération du projet iOS (Capacitor)
+        script: |
+          cd frontend
+          # @capacitor/ios n'est pas dans package.json : on l'ajoute pour ce build.
+          yarn add @capacitor/ios@~8.4.1
+          npx cap add ios || true          # crée frontend/ios/ si absent
+          npx cap sync ios                 # copie le web + plugins dans le projet natif
+
+      - name: Signature (App Store Connect automatique)
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: CocoaPods
+        script: |
+          cd frontend/ios/App
+          pod install
+
+      - name: Build IPA
+        script: |
+          cd frontend/ios/App
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - frontend/ios/App/build/ios/ipa/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - /tmp/xcodebuild_logs/*.log
+
+    # Optionnel : envoi automatique sur TestFlight après un build réussi.
+    # publishing:
+    #   app_store_connect:
+    #     auth: integration
+    #     submit_to_testflight: true
