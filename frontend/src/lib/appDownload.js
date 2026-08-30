@@ -1,8 +1,8 @@
 import { Capacitor } from '@capacitor/core';
 
-// Lien vers la dernière APK (GitHub Release)
+// Lien vers la dernière APK (GitHub Release). Renommée Postorico.apk (rebrand).
 export const APK_URL =
-  'https://github.com/Eddy007Saive/MartainBrandAI/releases/latest/download/PresenceOS.apk';
+  'https://github.com/Eddy007Saive/MartainBrandAI/releases/latest/download/Postorico.apk';
 
 const KEY = 'apk_downloaded';
 
