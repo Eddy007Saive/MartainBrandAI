@@ -26,7 +26,7 @@ workflows:
         XCODE_WORKSPACE: "App.xcworkspace"
         # L'app native tape le backend de prod :
         REACT_APP_BACKEND_URL: "https://martainbrandai-production.up.railway.app"
-      node: 20
+      node: 22          # Capacitor 8 exige Node >= 22
       xcode: latest
       cocoapods: default
 
