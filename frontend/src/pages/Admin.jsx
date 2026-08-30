@@ -5,7 +5,7 @@ import {
   UserCheck, UserX, Trash2, Eye, FileText, MessageCircle, TrendingUp,
   Loader2, ChevronRight, ChevronLeft, ChevronDown, Clock, CheckCircle, XCircle, RefreshCw,
   Video, ExternalLink, Save, AlertCircle, Bell, Send, Coins, Crown,
-  Plus, Minus, DollarSign, Wifi, Inbox, Copy, BarChart3, Handshake, Briefcase, TrendingDown } from 'lucide-react';
+  Plus, Minus, DollarSign, Wifi, Inbox, Copy, BarChart3, Handshake, Briefcase, TrendingDown, Menu, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
@@ -119,8 +119,9 @@ export default function Admin() {
     if (g) setGroupeOuvert(g);
   }, [activeTab]);
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const basculerGroupe = (id) => setGroupeOuvert((ouvert) => (ouvert === id ? null : id));
-  const setActiveTab = (t) => setSearchParams(t === 'dashboard' ? {} : { tab: t });
+  const setActiveTab = (t) => { setSearchParams(t === 'dashboard' ? {} : { tab: t }); setMobileMenuOpen(false); };
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -451,8 +452,26 @@ export default function Admin() {
       {/* Noise overlay */}
       <div className="fixed inset-0 z-[1] pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
-      {/* Sidebar */}
-      <aside className="w-64 hidden md:flex flex-col border-r border-white/5 bg-slate-950/50 backdrop-blur-xl relative z-10">
+      {/* Barre du haut (mobile) : titre + hamburger — la sidebar est cachée hors drawer */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-slate-950/90 backdrop-blur-xl border-b border-white/5 px-4 py-3 flex items-center justify-between">
+        <h1 className="text-lg font-bold font-sora bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">Admin Panel</h1>
+        <button onClick={() => setMobileMenuOpen((o) => !o)} className="text-slate-300 hover:text-white p-1" aria-label="Menu">
+          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
+
+      {/* Fond sombre (mobile) quand le drawer est ouvert */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+      )}
+
+      {/* Sidebar : statique en desktop, drawer coulissant en mobile */}
+      <aside className={cn(
+        "w-64 flex flex-col border-r border-white/5 backdrop-blur-xl",
+        "fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-out-strong bg-slate-950/95",
+        "md:static md:z-10 md:translate-x-0 md:bg-slate-950/50",
+        mobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+      )}>
         <div className="p-6 border-b border-white/5">
           <h1 className="text-xl font-bold font-sora bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
             Admin Panel
@@ -573,7 +592,7 @@ export default function Admin() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto relative z-10">
+      <main className="flex-1 overflow-y-auto relative z-10 pt-14 md:pt-0">
         <div className="p-6 md:p-8 max-w-7xl mx-auto">
           {/* Dashboard Tab */}
           {activeTab === 'dashboard' && (
