@@ -204,7 +204,7 @@ async def stripe_webhook(request: Request):
                     "canceling": notify.get("extra") or "Se termine en fin de période.",
                     "pack": f"Pack : {notify.get('extra') or 'crédits'}",
                     "canceled": "Abonnement terminé — réseaux libérés.",
-                    "payment_failed": "Le prélèvement a échoué (carte ?).",
+                    "payment_failed": f"Le prélèvement a échoué : {notify.get('extra')}" if notify.get("extra") else "Le prélèvement a échoué (carte ?).",
                 }.get(notify.get("kind"), "")
                 subject, html = mail_service.admin_payment_html(
                     notify["kind"], notify.get("nom"), notify.get("email"), detail)
