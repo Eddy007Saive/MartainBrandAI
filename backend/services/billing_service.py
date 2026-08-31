@@ -713,6 +713,27 @@ def _uid_by_customer(customer: str):
         return None
 
 
+def _raison_echec_paiement(invoice_id: str) -> str | None:
+    """Le motif exact du refus (ex. carte insuffisante, expirée...), pour l'email admin.
+
+    Depuis la refonte Invoices de l'API Stripe, l'objet invoice ne porte plus
+    directement `charge`/`payment_intent` : il faut redemander l'invoice sur une
+    version d'API antérieure pour retrouver le charge, puis lire son échec dessus.
+    """
+    if not invoice_id:
+        return None
+    try:
+        inv = stripe.Invoice.retrieve(invoice_id, stripe_version="2024-06-20")
+        charge_id = inv.get("charge")
+        if not charge_id:
+            return None
+        ch = stripe.Charge.retrieve(charge_id)
+        return ch.get("failure_message") or ch.get("failure_code")
+    except Exception as e:
+        logger.warning(f"raison echec paiement {invoice_id}: {e}")
+        return None
+
+
 def _notify_payload(uid: str, kind: str, extra=None):
     """Infos pour l'email admin (envoyé par la route, en async)."""
     if not uid:
@@ -1131,7 +1152,8 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
             # raison qui nous a fait confier le compteur a Stripe.
             rappel = _rappel_payload(obj)
         elif etype == "invoice.payment_failed":
-            notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed")
+            raison = _raison_echec_paiement(obj.get("id"))
+            notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed", raison)
     except Exception as e:
         logger.error(f"stripe webhook handle error: {e}")
     return {"ok": True, "event": etype, "canceled_uid": canceled_uid, "notify": notify,
