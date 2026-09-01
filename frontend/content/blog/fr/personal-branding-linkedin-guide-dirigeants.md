@@ -14,9 +14,9 @@ pose: clin-oeil
 
 **TL;DR**
 
-- Le personal branding LinkedIn ne demande pas 10 h/semaine - 2 à 3 h bien organisées suffisent.
+- Le personal branding LinkedIn ne demande pas 10 h/semaine - 2 heures par mois, bien organisées, suffisent.
 - Tout commence par un positionnement clair : pour qui, pour quoi, avec quel angle différenciant.
-- Un profil optimisé une bonne fois pour toutes + 2-3 posts/semaine + 15 min/jour d'interactions = une visibilité réelle en 3 mois.
+- Un profil optimisé une bonne fois pour toutes + 2-3 posts/semaine rédigés en un seul bloc + quelques interactions ciblées = une visibilité réelle en 3 mois.
 - L'IA peut générer les premiers jets et planifier. Vous gardez l'essentiel : votre point de vue et votre voix.
 
 ---
@@ -130,7 +130,7 @@ Publier sans interagir, c'est parler dans le vide. L'algorithme LinkedIn valoris
 - **Appliquer le principe de réciprocité.** Vous commentez régulièrement les posts de quelqu'un ? Il devient plus enclin à commenter les vôtres. C'est mécanique.
 - **Contacter les nouvelles connexions.** Un message court et personnalisé dans les 48 h qui suivent une connexion acceptée. Pas un pitch commercial - juste un lien humain. C'est ce qui transforme un contact en relation.
 
-15 minutes par jour. Matin ou midi. C'est tout ce qu'il faut.
+15 minutes, trois fois par semaine. Pas besoin de plus - ni tous les jours.
 
 ---
 
@@ -163,14 +163,15 @@ Voici ce qui fait que des dirigeants publient pendant des mois sans résultat :
 
 ## Combien de temps faut-il vraiment y consacrer ?
 
-La réponse honnête : **2 à 3 heures par semaine, si vous êtes organisé.**
+La réponse honnête : **2 heures par mois, si vous êtes organisé** - pas 2 heures par semaine.
 
-Voici comment ça se décompose :
+Voici comment ça se décompose, en un seul bloc mensuel plutôt qu'éparpillé sur des semaines :
 
-- **1 h de rédaction et planification** (idéalement en bloc, une fois par semaine) : écrire 2-3 posts, les planifier
-- **15 min/jour d'interactions** : commenter, répondre, contacter
+- **20 min de planification** (début de mois) : choisir vos sujets, les répartir sur vos piliers éditoriaux
+- **1 h de rédaction batch** : écrire tous les posts du mois d'un coup, les programmer à l'avance
+- **environ 45 min d'interactions** réparties sur le mois (15 min, 3 fois par semaine - voir plus haut)
 
-Total : environ 2 h 45 par semaine. Moins qu'une réunion d'équipe.
+Total : un peu plus de 2 heures par mois. Moins qu'une réunion d'équipe.
 
 **L'IA comme accélérateur, pas comme remplaçant.**
 
