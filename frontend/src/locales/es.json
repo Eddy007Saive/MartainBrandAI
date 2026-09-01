@@ -404,6 +404,7 @@
       "imageTropLourde": "Imagen demasiado pesada (máx. 10 MB).",
       "imageImportee": "Imagen importada ✓",
       "importEchec": "Error al importar la imagen",
+      "carrouselEnCours": "Generando el carrusel… hasta 1 min",
       "carrouselRegenere": "Carrusel regenerado ✨",
       "slidesNonRendues": "Diapositivas no renderizadas — inténtalo de nuevo",
       "creditsInsuffisants": "Créditos insuficientes",
