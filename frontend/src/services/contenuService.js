@@ -70,4 +70,6 @@ export const contenuService = {
   storyCreer: (id, body) => api.post(`/contenus/${id}/story`, body).then(r => r.data),
   // Story animée (Remotion, ~1-2 min) — même timeout long que les Reels
   storyAnimee: (id, body) => api.post(`/contenus/${id}/story-anime`, body, { timeout: 300000 }).then(r => r.data),
+  // Story en série (2-4 écrans, un clic) — découpe IA + 2-4 rendus Playwright, sous la minute
+  storySerie: (id) => api.post(`/contenus/${id}/story-serie`).then(r => r.data),
 };

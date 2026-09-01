@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download, ZoomIn } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download, ZoomIn, Layers } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -122,7 +122,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onStorySerie, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
   const { t } = useTranslation();
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
@@ -236,9 +236,14 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                 )}
                 {!isVideo && contenu.type !== 'Story'
                   && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
-                  <DropdownMenuItem onClick={() => onStory(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
-                    <Sparkles className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStory')}
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem onClick={() => onStory(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
+                      <Sparkles className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStory')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onStorySerie(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
+                      <Layers className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStorySerie')}
+                    </DropdownMenuItem>
+                  </>
                 )}
                 <DropdownMenuItem onClick={() => onRecycle(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
                   <Repeat2 className="w-4 h-4 opacity-70" />{t('contenus.carte.recycler')}
@@ -301,6 +306,7 @@ export default function ContenusPage() {
   const [imageContenu, setImageContenu] = useState(null);
   const [postManuelOpen, setPostManuelOpen] = useState(false);  // post écrit à la main (sans IA)
   const [storyFor, setStoryFor] = useState(null);  // post en cours de déclinaison en story
+  const [storySerieLoading, setStorySerieLoading] = useState(null);  // id du post en cours de déclinaison en série
 
   // Recyclage : republier un post sur d'autres réseaux (une copie par réseau)
   const [recycleFor, setRecycleFor] = useState(null);   // contenu source
@@ -993,6 +999,23 @@ export default function ContenusPage() {
   // Ouvre le sélecteur de story (modèle 9:16 + retouche) ; la création se fait à la validation.
   const declinerEnStory = (contenu) => setStoryFor(contenu);
 
+  // Story en série (2-4 écrans, un clic) : pas de dialog, l'IA découpe + rend tout d'un coup.
+  const declinerEnStorySerie = async (contenu) => {
+    if (storySerieLoading) return;
+    setStorySerieLoading(contenu.id);
+    const toastId = toast.loading('Découpage en série de stories…');
+    try {
+      const d = await contenuService.storySerie(contenu.id);
+      toast.success(`${d.count} stories créées — à valider ensemble pour qu'elles s'enchaînent`, { id: toastId });
+      fetchContenus();
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.detail || 'La déclinaison en série a échoué.', { id: toastId });
+      else toast.dismiss(toastId);
+    } finally {
+      setStorySerieLoading(null);
+    }
+  };
+
   const handleUpdateStatut = async (id, newStatut) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
@@ -1245,6 +1268,7 @@ export default function ContenusPage() {
                   onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
                   onRecycle={openRecycle}
                   onStory={declinerEnStory}
+                  onStorySerie={declinerEnStorySerie}
                   onRenderSlides={rendreSlidesEnImages}
                   renderLoading={renderSlidesLoading}
                   onReel={(c) => { setReelFor(c); setReelReco(null); contenuService.reelRecommander(c.id).then(setReelReco).catch(() => {}); }}
