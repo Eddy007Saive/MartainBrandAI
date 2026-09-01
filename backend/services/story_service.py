@@ -11,6 +11,8 @@ avec des bandes vides.
 MVP : rendu image seule, 4 modèles SOBRES (pas de mascotte). La story animée
 (pipeline Remotion des reels) viendra ensuite.
 """
+import asyncio
+import os
 import re
 import json
 import cloudinary
@@ -794,3 +796,48 @@ async def generer_story(telegram_id: str, content: dict, template: str = "epure"
         except Exception as e:
             logger.error(f"Story render error (essai {attempt}): {e}")
     return {"image": None, "template": template}
+
+
+async def generer_story_animee(telegram_id: str, accroche: str, sous: str, cta: str,
+                                colors: dict = None, mot_accent: str = None,
+                                contenu_id: str = None) -> dict:
+    """Rend une story ANIMÉE (Remotion, ~5s, gabarit « StoryAnime ») et l'envoie sur
+    Cloudinary en vidéo. Renvoie {'video_url', 'video_preview_url'} (ou vide si échec).
+
+    Texte/couleurs viennent déjà écrits/édités par l'utilisateur (StoryDialog) —
+    aucun appel Claude ici, contrairement au choix de gabarit statique."""
+    from services import remotion_service
+    u = _charger_marque(telegram_id)
+    p, _s, a = _couleurs_marque(u, colors)
+    nom = u.get("nom") or u.get("username") or "Ma marque"
+    logo = u.get("logo_url") or None
+    props = {
+        "brand": {"nom": nom, "principale": p, "accent": a, "fond": "#0b1020", "logo": logo},
+        "accroche": accroche or "", "motAccent": mot_accent or "",
+        "sous": sous or "", "cta": cta or "",
+    }
+    try:
+        mp4 = await asyncio.to_thread(
+            remotion_service.render_mp4, props, "StoryAnime",
+            telegram_id=telegram_id, etiquette="story_anime", prefix="story_anime")
+    except Exception as e:
+        logger.error(f"Story animée rendu error: {e}")
+        return {"video_url": None}
+    base = (contenu_id or "tmp").replace("-", "")[:16]
+    try:
+        up = cloudinary.uploader.upload(
+            mp4, resource_type="video",
+            folder=f"stories/{telegram_id}", public_id=f"{base}_anime",
+            overwrite=True, invalidate=True,
+        )
+        url = up["secure_url"]
+        preview = url.rsplit(".", 1)[0] + ".jpg"
+        return {"video_url": url, "video_preview_url": preview}
+    except Exception as e:
+        logger.error(f"Story animée upload error: {e}")
+        return {"video_url": None}
+    finally:
+        try:
+            os.unlink(mp4)
+        except OSError:
+            pass

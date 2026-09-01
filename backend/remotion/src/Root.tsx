@@ -5,6 +5,7 @@ import { ReelLong } from './ReelLong';
 import { ReelStat } from './ReelStat';
 import { ReelAffiche } from './ReelAffiche';
 import { ReelSequence, dureeScenario, SequenceSegment } from './ReelSequence';
+import { StoryAnime } from './StoryAnime';
 
 // Les props sont injectées par le backend (reel_service.py) via --props.
 export const Root: React.FC = () => (
@@ -92,6 +93,25 @@ export const Root: React.FC = () => (
         hook: 'Tu diriges une boîte, pas une rédaction.',
         points: ['2 h par mois, pas plus', '< 30 s pour générer un post', '6 réseaux connectés'],
         cta: 'postorico.com',
+      }}
+    />
+    {/* Story animée 5 s : premier gabarit anime (aurore, accroche en dégradé mouvant, CTA en relief) */}
+    <Composition
+      id="StoryAnime"
+      component={StoryAnime}
+      durationInFrames={150}
+      fps={30}
+      width={1080}
+      height={1920}
+      defaultProps={{
+        brand: {
+          nom: 'Postorico', principale: '#8A6CFF', accent: '#3AFFA3',
+          fond: '#0b1020', logo: null as string | null,
+        },
+        accroche: 'Tes chiffres sont bons, tu crèves quand même',
+        motAccent: 'quand même',
+        sous: 'À 60 biens, la marge ne suit plus si tu ne vois pas ce qui te coûte.',
+        cta: 'Écris-moi DASHBOARD',
       }}
     />
     {/* Format long 22 s : hook → contexte → preuves plein écran → leçon → CTA */}
