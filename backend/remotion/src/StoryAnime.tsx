@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  AbsoluteFill, Img, interpolate,
+  AbsoluteFill, interpolate,
   useCurrentFrame,
 } from 'remotion';
 
@@ -43,19 +43,6 @@ const Aurora: React.FC<{ brand: Brand }> = ({ brand }) => {
         background: `radial-gradient(closest-side, ${brand.accent}, transparent 70%)`,
       }} />
     </>
-  );
-};
-
-const LogoOrInitiale: React.FC<{ brand: Brand }> = ({ brand }) => {
-  if (brand.logo) return <Img src={brand.logo} style={{ height: 40, width: 'auto', display: 'block' }} />;
-  return (
-    <div style={{
-      width: 40, height: 40, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: `linear-gradient(135deg, ${brand.principale}, ${brand.accent})`,
-      fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 18, color: '#fff',
-    }}>
-      {(brand.nom || '?')[0].toUpperCase()}
-    </div>
   );
 };
 
@@ -135,11 +122,6 @@ export const StoryAnime: React.FC<Props> = ({ brand, accroche, motAccent, sous, 
             </div>
           </div>
         ) : null}
-
-        <div style={{ position: 'absolute', bottom: '5%', left: '9%', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <LogoOrInitiale brand={brand} />
-          <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 26, color: '#fff' }}>{brand.nom}</span>
-        </div>
       </AbsoluteFill>
     </AbsoluteFill>
   );
