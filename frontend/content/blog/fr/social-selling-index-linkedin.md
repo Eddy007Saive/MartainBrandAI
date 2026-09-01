@@ -22,7 +22,7 @@ pose: pointe-haut
 
 Le **social selling index** (SSI) est un score attribué gratuitement par LinkedIn à chaque utilisateur. Il va de 0 à 100 et mesure votre niveau d'activité sur la plateforme selon quatre dimensions précises.
 
-Il a été conçu à l'origine pour les équipes commerciales utilisant LinkedIn Sales Navigator. Aujourd'hui, il est consulté par des dirigeants, des indépendants, des community managers et des commerciaux qui veulent se situer sur LinkedIn.
+Il a été conçu à l'origine pour les équipes commerciales utilisant LinkedIn Sales Navigator - c'est l'indicateur de référence du [social selling sur LinkedIn](/blog/social-selling-linkedin). Aujourd'hui, il est consulté par des dirigeants, des indépendants, des community managers et des commerciaux qui veulent se situer sur LinkedIn.
 
 **Ce que le SSI mesure concrètement :**
 
@@ -115,7 +115,7 @@ Ce pilier évalue vos échanges privés et votre capacité à entretenir des con
 
 ## Quel est un bon score SSI LinkedIn ?
 
-Le **score SSI LinkedIn** doit toujours être lu en contexte. Un dirigeant de PME n'a pas les mêmes habitudes LinkedIn qu'un commercial terrain. Voici des repères indicatifs par profil :
+Le **score SSI LinkedIn** doit toujours être lu en contexte. Un [dirigeant de PME](/blog/linkedin-pour-dirigeant) n'a pas les mêmes habitudes LinkedIn qu'un commercial terrain. Voici des repères indicatifs par profil :
 
 | Profil | Score SSI indicatif | Lecture |
 |---|---|---|
@@ -168,7 +168,7 @@ C'est la base. Un profil incomplet plafonne votre score dès le départ.
 
 ### 3. Publier du contenu pertinent régulièrement (pilier 3)
 
-La régularité prime sur l'intensité. Deux à trois posts par semaine sur des sujets liés à votre activité suffisent à maintenir un bon niveau sur ce pilier.
+La régularité prime sur l'intensité. Deux à trois posts par semaine sur des sujets liés à votre activité suffisent à maintenir un bon niveau sur ce pilier - voir notre méthode pour [rédiger un post LinkedIn](/blog/rediger-un-post-linkedin) qui capte l'attention.
 
 - Choisissez des formats variés : retour d'expérience, conseil pratique, point de vue sur une actualité de votre secteur.
 - Commentez les publications de vos prospects avec une vraie contribution - une question, un exemple, un complément.
@@ -192,7 +192,7 @@ Pour **améliorer ssi linkedin**, ciblez les personnes qui ont un pouvoir de dé
 
 ### 6. Être régulier plutôt qu'intensif
 
-L'algorithme LinkedIn récompense la constance, pas les pics d'activité.
+L'algorithme LinkedIn récompense la constance, pas les pics d'activité. C'est le même principe qui structure une [stratégie LinkedIn pour PME](/blog/strategie-linkedin-pme) durable.
 
 - **15 à 20 minutes par jour** valent mieux que 2 heures une fois par semaine.
 - Planifiez vos publications à l'avance pour ne pas dépendre de votre inspiration du moment.

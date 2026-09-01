@@ -22,7 +22,7 @@ pose: pouce-leve
 
 ## Social selling LinkedIn : de quoi parle-t-on vraiment ?
 
-Le **social selling** n'est pas une technique de vente de plus. C'est un changement de paradigme.
+Le **social selling** n'est pas une technique de vente de plus. C'est un changement de paradigme - mesurable via le [Social Selling Index LinkedIn](/blog/social-selling-index-linkedin).
 
 Définition simple : utiliser LinkedIn pour construire des relations authentiques avec des prospects - avant qu'ils aient besoin de vous. Vous n'allez pas chercher des clients. Vous créez les conditions pour qu'ils viennent à vous.
 
@@ -65,7 +65,7 @@ Vous pouvez pratiquer la vente sociale sur d'autres réseaux. Mais aucun n'offre
 
 ### Étape 1 - Construire un profil qui travaille pour vous 24h/24
 
-Votre profil LinkedIn est la première chose qu'un prospect regarde avant de vous répondre - ou de vous ignorer.
+Votre profil LinkedIn est la première chose qu'un prospect regarde avant de vous répondre - ou de vous ignorer. C'est la même vitrine qui sert votre visibilité de [dirigeant](/blog/linkedin-pour-dirigeant).
 
 Un profil mal optimisé, c'est une poignée de main ratée avant même d'avoir parlé.
 

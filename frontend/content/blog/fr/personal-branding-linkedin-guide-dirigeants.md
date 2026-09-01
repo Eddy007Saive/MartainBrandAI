@@ -54,7 +54,7 @@ Quelques chiffres à garder en tête :
 - **26 millions de membres en France**, dont **13 millions actifs mensuels** ([Waalaxy](https://www.waalaxy.com/fr/blog/tout-savoir-sur-linkedin/linkedin-personal-branding-methode), [Axonaut](https://axonaut.com/blog/developper-personal-branding-linkedin/))
 - LinkedIn est **277 % plus efficace** que les autres réseaux sociaux pour le B2B ([Waalaxy](https://www.waalaxy.com/fr/blog/tout-savoir-sur-linkedin/linkedin-personal-branding-methode))
 
-Pour un dirigeant de PME ou un indépendant, c'est la plateforme où chaque heure investie a le meilleur retour. Pas TikTok. Pas Instagram. LinkedIn.
+Pour un [dirigeant](/blog/linkedin-pour-dirigeant) de PME ou un indépendant, c'est la plateforme où chaque heure investie a le meilleur retour. Pas TikTok. Pas Instagram. LinkedIn.
 
 ---
 
@@ -84,7 +84,7 @@ Votre profil LinkedIn est visible 24 h/24. C'est votre page de destination perma
 | Élément | Ce qu'il doit faire | Erreur fréquente |
 |---|---|---|
 | **Photo** | Inspirer confiance, être mémorable | Selfie flou, photo de vacances |
-| **Bannière** | Exprimer votre positionnement visuellement | Fond LinkedIn par défaut |
+| **[Bannière](/blog/banniere-linkedin)** | Exprimer votre positionnement visuellement | Fond LinkedIn par défaut |
 | **Titre** | Mots-clés + bénéfice concret pour votre cible | "CEO chez [Entreprise]" sans plus |
 | **Résumé (Infos)** | Raconter votre valeur, pas votre CV | Liste de postes occupés |
 | **Ma sélection** | Vitrine en haut du profil : lien vers votre meilleur contenu, landing page, témoignages | Section vide |
@@ -116,7 +116,7 @@ Idéalement, 1 post par semaine pour chaque segment. Vous couvrez ainsi toute la
 - **Carrousels** : parfaits pour les listes et les tutoriels
 - **Posts narratifs** : une histoire personnelle avec une leçon concrète
 - **Questions ouvertes** : génèrent des commentaires, donc de la portée
-- **Posts texte courts** : une idée forte, bien formulée, sans image
+- **Posts texte courts** : une idée forte, bien formulée, sans image - voir notre méthode pour [rédiger un post LinkedIn](/blog/rediger-un-post-linkedin)
 
 ---
 
@@ -177,7 +177,7 @@ Total : un peu plus de 2 heures par mois. Moins qu'une réunion d'équipe.
 
 Un outil d'IA peut générer des premiers jets de posts à partir de vos idées, proposer des angles, reformuler, planifier. Ce qu'il ne peut pas faire : avoir votre point de vue, votre expérience terrain, votre voix.
 
-La stratégie personal branding efficace pour un dirigeant occupé, c'est précisément ça : déléguer à l'IA la partie mécanique (rédaction de base, mise en forme, planification), et garder pour vous la partie humaine (le positionnement, la validation, le ton).
+La stratégie personal branding efficace pour un dirigeant occupé, c'est précisément ça : déléguer à l'IA la partie mécanique (rédaction de base, mise en forme, planification), et garder pour vous la partie humaine (le positionnement, la validation, le ton). Pour comparer cette option à un prestataire humain, voir notre comparatif du [ghostwriting LinkedIn](/blog/ghostwriting-linkedin).
 
 Maud Alavès (80 000+ abonnés, spécialiste du personal branding pour CEOs) et Benoît Dubos (60 000+ abonnés, 3 M€ générés via LinkedIn, cofondateur de Scalezia) ont tous les deux construit leur visibilité avec de la régularité et un positionnement net - pas avec du volume brut.
 

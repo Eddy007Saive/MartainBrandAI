@@ -51,7 +51,7 @@ Posez-vous cette question : **peut-on programmer un post en moins de 3 minutes s
 
 ### 2. La couverture des réseaux prioritaires
 
-LinkedIn + Instagram + Facebook : c'est le trio minimal pour une PME B2B ou B2C. TikTok si vous ciblez un public jeune ou grand public.
+LinkedIn + [Instagram](/blog/instagram-pour-entreprise) + Facebook : c'est le trio minimal pour une PME B2B ou B2C. TikTok si vous ciblez un public jeune ou grand public.
 
 Vérifiez la compatibilité **avant** de vous abonner. Certains logiciels gestion réseaux sociaux ne couvrent pas LinkedIn correctement, ou imposent des restrictions sur TikTok. Une mauvaise surprise après paiement, c'est du temps perdu.
 
@@ -194,7 +194,7 @@ Ces 5 outils ont été sélectionnés sur un seul critère : leur pertinence pou
 
 Vous n'avez pas besoin d'un logiciel gestion réseaux sociaux à 100 €/mois.
 
-**Recommandation :** Buffer (gratuit pour tester) ou Swello (si vous voulez un calendrier visuel et une interface en français).
+**Recommandation :** Buffer (gratuit pour tester) ou Swello (si vous voulez un calendrier visuel et une interface en français) - à combiner avec une vraie [stratégie LinkedIn pour PME](/blog/strategie-linkedin-pme), l'outil ne remplace pas le plan éditorial.
 
 **Budget :** 0 à 12 $/mois.
 
@@ -237,7 +237,7 @@ Ce qu'aucun logiciel ne fera à votre place :
 - **Décider quelle stratégie adopter** selon vos objectifs business réels.
 - **Choisir sur quels réseaux être présent** en fonction de votre audience.
 
-> **Conseil :** un outil de gestion des réseaux sociaux gère la mécanique - la programmation, la publication, les stats. La stratégie, le contenu et la voix, c'est vous. C'est là que l'IA de génération de contenu entre en jeu : elle comble le fossé entre "j'ai un outil pour publier" et "j'ai quelque chose à publier".
+> **Conseil :** un outil de gestion des réseaux sociaux gère la mécanique - la programmation, la publication, les stats. La stratégie, le contenu et la voix, c'est vous. C'est là que l'IA de génération de contenu entre en jeu : elle comble le fossé entre "j'ai un outil pour publier" et "j'ai quelque chose à publier". Pour aller plus loin sur ce qui peut être confié à un tiers ou une IA, voir notre guide pour [déléguer ses réseaux sociaux](/blog/deleguer-reseaux-sociaux).
 
 ---
 

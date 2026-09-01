@@ -63,8 +63,8 @@ Vous, vous pouvez être **authentique, humain, réactif**. C'est exactement ce q
 
 ### Quel réseau pour quel objectif ?
 
-- **LinkedIn** : vitrine professionnelle incontournable. Recrutement, personal branding du dirigeant, crédibilité sectorielle.
-- **Instagram** : coulisses, ambiance, culture d'entreprise. Le réseau qui humanise votre marque employeur PME.
+- **[LinkedIn](/blog/linkedin-pour-dirigeant)** : vitrine professionnelle incontournable. Recrutement, [personal branding du dirigeant](/blog/personal-branding-linkedin-guide-dirigeants), crédibilité sectorielle.
+- **[Instagram](/blog/instagram-pour-entreprise)** : coulisses, ambiance, culture d'entreprise. Le réseau qui humanise votre marque employeur PME.
 - **TikTok** : si votre cible est jeune (Gen Z), le format court et authentique performe. Pas besoin de production professionnelle.
 
 > **À retenir** : **44 % de la Gen Z** affirment que l'engagement RSE de l'entreprise influence directement leur fidélité à un employeur (Deloitte/Linman Associés, 2025). Les réseaux sociaux sont le canal où vous le prouvez - pas votre plaquette commerciale.
@@ -84,7 +84,7 @@ Avant de publier quoi que ce soit, posez-vous deux questions :
 
 1. Cherchez votre entreprise sur Google, LinkedIn, Glassdoor
 2. Lisez les avis (même s'il n'y en a que 2 ou 3)
-3. Regardez votre page LinkedIn employeur : est-elle à jour ? Active ?
+3. Regardez votre page LinkedIn employeur : est-elle à jour ? Active ? Une [bannière LinkedIn](/blog/banniere-linkedin) à jour est souvent le point le plus vite corrigé.
 4. Demandez à un collaborateur récent ce qu'il a trouvé avant de postuler
 
 La question clé : **quelle est la différence entre ce que vous pensez être et ce que les gens perçoivent ?** C'est là que commence la stratégie marque employeur.

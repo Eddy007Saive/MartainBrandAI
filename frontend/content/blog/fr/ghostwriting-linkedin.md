@@ -40,7 +40,7 @@ LinkedIn est devenu le canal B2B n°1. Mais rédiger 2 à 3 posts par semaine de
 
 Pour un dirigeant qui valorise son temps à 200 €/h, le coût d'opportunité atteint **4 800 €/mois** (Produscale). Vu sous cet angle, déléguer la rédaction devient une décision économique, pas un caprice.
 
-**Les profils qui y ont recours :** fondateurs de startup, dirigeants PME B2B, consultants, freelances expérimentés. Point commun : une expertise réelle, zéro temps pour la rédaction régulière.
+**Les profils qui y ont recours :** fondateurs de startup, [dirigeants PME B2B](/blog/linkedin-pour-dirigeant), consultants, freelances expérimentés. Point commun : une expertise réelle, zéro temps pour la rédaction régulière.
 
 ---
 
@@ -145,7 +145,7 @@ Externaliser la rédaction LinkedIn ne se résume plus au choix entre un ghostwr
 
 **Ce que vous faites ensuite :** relire, ajuster 2 à 3 phrases, valider. Comptez **15 à 20 minutes par post** - contre 45 min à 2 h en rédigeant seul.
 
-**Ce qui reste irremplaçablement vous :** le point de vue, l'expérience vécue, la décision finale sur ce qui est publié. L'IA ne remplace pas votre regard - elle libère votre temps sur la mise en forme.
+**Ce qui reste irremplaçablement vous :** le point de vue, l'expérience vécue, la décision finale sur ce qui est publié. L'IA ne remplace pas votre regard - elle libère votre temps sur la mise en forme, au service de votre [personal branding LinkedIn](/blog/personal-branding-linkedin-guide-dirigeants).
 
 **Résultat :** la régularité d'un ghostwriter (2 à 3 posts/semaine) pour un coût sans commune mesure - et sans dépendance à un tiers.
 
