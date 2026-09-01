@@ -403,6 +403,7 @@
       "imageTropLourde": "Image too large (max 10 MB).",
       "imageImportee": "Image uploaded ✓",
       "importEchec": "Image upload failed",
+      "carrouselEnCours": "Generating carousel… up to 1 min",
       "carrouselRegenere": "Carousel regenerated ✨",
       "slidesNonRendues": "Slides not rendered — try again",
       "creditsInsuffisants": "Not enough credits",

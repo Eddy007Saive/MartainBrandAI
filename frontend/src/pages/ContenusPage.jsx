@@ -234,7 +234,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                     <Clapperboard className="w-4 h-4 opacity-70" />{t('contenus.reel.generer')}
                   </DropdownMenuItem>
                 )}
-                {!isCarrousel && !isVideo && contenu.type !== 'Story'
+                {!isVideo && contenu.type !== 'Story'
                   && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
                   <DropdownMenuItem onClick={() => onStory(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
                     <Sparkles className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStory')}
@@ -821,10 +821,13 @@ export default function ContenusPage() {
     }
   };
 
-  // Régénère le carrousel (nouvelles slides + images) d'un contenu existant
+  // Régénère le carrousel (nouvelles slides + images) d'un contenu existant.
+  // Rédaction + rendu des slides prend ~45s en moyenne (mesuré) : sans retour visuel,
+  // ça se lit comme un blocage. Un toast persistant fixe l'attente.
   const regenererCarrousel = async (contenu) => {
     if (carrouselLoading) return;
     setCarrouselLoading(contenu.id);
+    const toastId = toast.loading(t('contenus.toast.carrouselEnCours'));
     try {
       const nb = Array.isArray(contenu.slides_images) && contenu.slides_images.length ? contenu.slides_images.length : 5;
       const d = await agentService.carrousel(
@@ -835,11 +838,11 @@ export default function ContenusPage() {
       if (d.credits != null) updateUser({ credits: d.credits });
       const imgs = d.slides_images || [];
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, slides_images: imgs, lien_visuel: imgs[0] || c.lien_visuel } : c)));
-      if (imgs.length) toast.success(t('contenus.toast.carrouselRegenere'));
-      else toast.warning(t('contenus.toast.slidesNonRendues'));
+      if (imgs.length) toast.success(t('contenus.toast.carrouselRegenere'), { id: toastId });
+      else toast.warning(t('contenus.toast.slidesNonRendues'), { id: toastId });
     } catch (e) {
-      if (e.response?.status === 402) toast.error(t('contenus.toast.creditsInsuffisants'));
-      else toast.error(e.response?.data?.detail || t('contenus.toast.regenerationEchec'));
+      if (e.response?.status === 402) toast.error(t('contenus.toast.creditsInsuffisants'), { id: toastId });
+      else toast.error(e.response?.data?.detail || t('contenus.toast.regenerationEchec'), { id: toastId });
     } finally {
       setCarrouselLoading(null);
     }
