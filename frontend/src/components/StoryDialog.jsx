@@ -21,12 +21,18 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
   const [rendering, setRendering] = useState(false);
   const [saving, setSaving] = useState(false);
   const [animating, setAnimating] = useState(false);
+  // Photo à utiliser pour les modèles image (Photo/Photo entière/Photo+bloc) : les
+  // slides d'un carrousel si le post en a plusieurs, sinon son unique visuel.
+  const [imageSource, setImageSource] = useState(contenu.lien_visuel || null);
+  const photosDisponibles = (Array.isArray(contenu.slides_images) && contenu.slides_images.length
+    ? contenu.slides_images
+    : (contenu.lien_visuel ? [contenu.lien_visuel] : []));
 
   const corps = useCallback((t) => ({
-    template: t, accroche, sous, cta, colors,
+    template: t, accroche, sous, cta, colors, image_source: imageSource,
     ...(t === 'signature' ? { points, baseline } : {}),
     ...(t === 'liste' ? { points } : {}),
-  }), [accroche, sous, cta, colors, points, baseline]);
+  }), [accroche, sous, cta, colors, imageSource, points, baseline]);
 
   const rendre = useCallback(async (t) => {
     if (!t) return;
@@ -71,12 +77,13 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contenu.id]);
 
-  // (Re)rendu quand on change de modèle (le texte courant est capturé volontairement,
-  // on ne veut pas re-rendre à chaque frappe — d'où l'omission de `rendre` des deps).
+  // (Re)rendu quand on change de modèle OU de photo source (choix ponctuel, pas de
+  // souci de spam). Le texte courant est capturé volontairement à part : on ne veut
+  // pas re-rendre à chaque frappe — d'où l'omission de `rendre` des deps.
   useEffect(() => {
     if (tpl) rendre(tpl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tpl]);
+  }, [tpl, imageSource]);
 
   const valider = async () => {
     setSaving(true);
@@ -183,6 +190,26 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
                   ))}
                 </div>
               </div>
+
+              {/* Photo (modèles Photo/Photo entière/Photo+bloc) : choisir parmi les slides existantes */}
+              {photosDisponibles.length > 1 && (
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">Photo</p>
+                  <div className="flex flex-wrap gap-2">
+                    {photosDisponibles.map((url, i) => (
+                      <button
+                        key={url} onClick={() => setImageSource(url)}
+                        title={`Slide ${i + 1}`}
+                        className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors ${
+                          imageSource === url ? 'border-[#5B6CFF]' : 'border-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        <img src={url} alt={`Slide ${i + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Textes */}
               <div className="space-y-2.5">

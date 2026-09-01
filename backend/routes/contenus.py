@@ -74,11 +74,20 @@ def _story_contenu(cur: dict, body: dict) -> dict:
     à partir du post et des valeurs éditées côté client (retouche)."""
     from services import story_service
     base = story_service.parts_depuis_contenu(cur)
+    # Choix de la photo : le client peut pointer une slide précise du carrousel
+    # plutôt que toujours la couverture — mais seulement parmi les visuels QUI
+    # APPARTIENNENT DÉJÀ à ce contenu (lien_visuel ou slides_images), jamais une
+    # URL arbitraire envoyée par le client. Clé "image_source" (pas "image") pour
+    # ne pas percuter body["image"] = le PNG déjà rendu qu'on réutilise sans
+    # re-render (voir decliner_story juste en dessous).
+    visuels_connus = {cur.get("lien_visuel")} | set(cur.get("slides_images") or [])
+    image_choisie = body.get("image_source")
+    image = image_choisie if image_choisie and image_choisie in visuels_connus else cur.get("lien_visuel")
     return {
         "accroche": (body.get("accroche") if body.get("accroche") is not None else base["accroche"]) or "",
         "sous": (body.get("sous") if body.get("sous") is not None else base["sous"]) or "",
         "cta": (body.get("cta") or base["cta"] or "Réponds en DM 👉").strip(),
-        "image": cur.get("lien_visuel") or None,
+        "image": image or None,
         "rico_pose": body.get("rico_pose") or None,
         # Blocs du modèle « signature » (édités côté client)
         "points": body.get("points") if isinstance(body.get("points"), list) else None,
