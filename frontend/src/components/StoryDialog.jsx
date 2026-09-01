@@ -24,6 +24,7 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
   const corps = useCallback((t) => ({
     template: t, accroche, sous, cta, colors,
     ...(t === 'signature' ? { points, baseline } : {}),
+    ...(t === 'liste' ? { points } : {}),
   }), [accroche, sous, cta, colors, points, baseline]);
 
   const rendre = useCallback(async (t) => {
@@ -49,13 +50,20 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
       setSous(d.parts.sous || '');
       setCta(d.parts.cta || 'Réponds en DM 👉');
       setColors(d.couleurs);
-      setPoints((d.signature?.points || []).map((p) => ({ ...p })));
+      // Choisi par l'IA (liste) sinon les 3 arguments maison par défaut (signature).
+      setPoints((d.template_suggere === 'liste' && d.points_suggeres?.length
+        ? d.points_suggeres : (d.signature?.points || [])).map((p) => ({ ...p })));
       setBaseline(d.signature?.baseline || '');
       const ids = d.modeles.map((m) => m.id);
+      // L'IA suggère le gabarit le plus adapté au contenu ; l'utilisateur garde la main
+      // via le sélecteur juste après.
       const def = d.a_un_visuel ? 'photo-flou' : 'epure';
-      setTpl(ids.includes(def) ? def : ids[0]);
+      const suggere = d.template_suggere;
+      setTpl(suggere && ids.includes(suggere) ? suggere : (ids.includes(def) ? def : ids[0]));
     }).catch((e) => {
-      toast.error(e.response?.data?.detail || 'Story indisponible pour ce post.');
+      // 402 (quota story épuisé / mur de paiement) est déjà affiché par l'intercepteur
+      // global (popup ou toast avec lien vers l'offre) — un second toast ferait doublon.
+      if (!e.__handled) toast.error(e.response?.data?.detail || 'Story indisponible pour ce post.');
       onClose();
     });
     return () => { alive = false; };
@@ -178,11 +186,12 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
                 </div>
               </div>
 
-              {/* Blocs du modèle « signature » : 3 arguments + ligne d'offre */}
-              {tpl === 'signature' && (
+              {/* Points du modèle « liste » ou « signature » : titre + desc par ligne */}
+              {(tpl === 'signature' || tpl === 'liste') && (
                 <div className="space-y-2.5 rounded-xl border border-white/10 bg-white/[0.02] p-3">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Arguments <span className="normal-case text-slate-500">· mets un mot en accent entre [crochets]</span>
+                    {tpl === 'liste' ? 'Points' : 'Arguments'}{' '}
+                    <span className="normal-case text-slate-500">· mets un mot en accent entre [crochets]</span>
                   </p>
                   {points.map((pt, i) => (
                     <div key={i} className="flex gap-2">
@@ -198,14 +207,16 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
                       />
                     </div>
                   ))}
-                  <div>
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Ligne d'offre</label>
-                    <input
-                      value={baseline} onChange={(e) => setBaseline(e.target.value)}
-                      placeholder="10x moins cher qu'une agence. [2h par mois]. Maximum."
-                      className="mt-1 w-full rounded-lg bg-white/[0.04] border border-white/10 px-2.5 py-1.5 text-[13px] text-white focus:outline-none focus:border-[#5B6CFF]/50"
-                    />
-                  </div>
+                  {tpl === 'signature' && (
+                    <div>
+                      <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Ligne d'offre</label>
+                      <input
+                        value={baseline} onChange={(e) => setBaseline(e.target.value)}
+                        placeholder="10x moins cher qu'une agence. [2h par mois]. Maximum."
+                        className="mt-1 w-full rounded-lg bg-white/[0.04] border border-white/10 px-2.5 py-1.5 text-[13px] text-white focus:outline-none focus:border-[#5B6CFF]/50"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 

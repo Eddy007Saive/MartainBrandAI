@@ -98,13 +98,26 @@ def story_options(contenu_id: str, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=404, detail="Contenu introuvable")
     if cur.get("reseau_cible") not in ("Instagram", "Facebook"):
         raise HTTPException(status_code=409, detail="Les stories ne sont possibles que sur Instagram ou Facebook.")
+    # Cet appel écrit le texte via Claude (et bientôt choisit le gabarit) : ça consomme,
+    # comme post/carrousel/image — jusqu'ici seul le mur d'abonnement générique gardait
+    # cette route, sans jamais compter dans le quota du compte.
+    q = quota_service.consume(telegram_id, "story")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail={
+            "raison": q.get("reason") or "quota",
+            "message": q.get("message") or "Génération indisponible.",
+        })
     from services import story_service
     from services.agent_service import _charger_marque
     u = _charger_marque(telegram_id)
-    # Texte écrit par l'IA (accroche courte + sous-titre dans la voix), pas le titre recopié.
-    parts = story_service.texte_story_ia(telegram_id, cur)
+    # L'IA choisit le GABARIT le mieux adapté au contenu (pas seulement le texte) —
+    # l'utilisateur peut toujours changer de modèle dans le sélecteur ensuite.
+    choix = story_service.choisir_story_ia(telegram_id, cur)
+    quota_service.confirm(q)
     return {
-        "parts": {"accroche": parts["accroche"], "sous": parts["sous"], "cta": parts["cta"]},
+        "parts": {"accroche": choix["accroche"], "sous": choix["sous"], "cta": choix["cta"]},
+        "template_suggere": choix["template"],
+        "points_suggeres": choix.get("points"),
         "a_un_visuel": bool(cur.get("lien_visuel")),
         "modeles": story_service.modeles_pour(telegram_id, bool(cur.get("lien_visuel"))),
         "signature": story_service.DEFAULT_SIGNATURE,
