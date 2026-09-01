@@ -293,8 +293,6 @@ def _tpl_epure(c, p, s, a, nom, secteur, logo):
     padding:64px 40px 72px;background:{BG};color:{INK}}}
   .story::after{{content:"";position:absolute;right:-90px;top:-90px;width:280px;height:280px;border-radius:50%;
     background:radial-gradient(circle,{_mix(A,BG,.35)},transparent 70%);opacity:.5}}
-  .kick{{position:relative;z-index:2;align-self:flex-start;background:{A};color:{Aink};font-weight:800;font-size:12px;
-    letter-spacing:1.5px;text-transform:uppercase;padding:7px 13px;border-radius:8px}}
   .mid{{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center}}
   h1{{font-weight:800;line-height:1.08;letter-spacing:-.6px;color:{INK}}}
   .sous{{font-size:17px;line-height:1.5;color:{MUT};margin-top:18px;max-width:92%}}
@@ -305,7 +303,7 @@ def _tpl_epure(c, p, s, a, nom, secteur, logo):
   .lk-nm{{font-size:16px;font-weight:800}} .lk-hd{{font-size:12.5px}}
 </style>'''
     sous = f'<div class="sous">{_esc(c["sous"])}</div>' if c.get("sous") else ""
-    body = (f'<div class="story"><span class="kick">Story</span>'
+    body = (f'<div class="story">'
             f'<div class="mid"><h1 style="font-size:{_fit(c["accroche"],46)}px">{_esc(c["accroche"])}</h1>{sous}'
             f'<span class="cta">{_esc(c["cta"])}</span></div>'
             f'{_lockup(logo, nom, secteur, INK, MUT, A)}</div>')
@@ -325,9 +323,6 @@ def _tpl_sombre(c, p, s, a, nom, secteur, logo):
     padding:64px 40px 72px;background:{grad};color:{INK}}}
   .story::after{{content:"";position:absolute;left:-110px;bottom:60px;width:320px;height:320px;border-radius:50%;
     background:radial-gradient(circle,{accD}33,transparent 70%);pointer-events:none}}
-  .kick{{position:relative;z-index:2;align-self:flex-start;display:flex;align-items:center;gap:7px;font-family:Sora;font-weight:800;
-    font-size:12px;letter-spacing:2px;text-transform:uppercase;color:{accD}}}
-  .kick::before{{content:"";width:22px;height:3px;border-radius:3px;background:{accD}}}
   .mid{{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center}}
   h1{{font-family:Sora;font-weight:800;line-height:1.04;letter-spacing:-.5px}}
   .accent{{color:{accD}}}
@@ -346,7 +341,7 @@ def _tpl_sombre(c, p, s, a, nom, secteur, logo):
     else:
         acc_html = f'<span class="accent">{_esc(c["accroche"])}</span>'
     sous = f'<div class="sous">{_esc(c["sous"])}</div>' if c.get("sous") else ""
-    body = (f'<div class="story"><span class="kick">Story</span>'
+    body = (f'<div class="story">'
             f'<div class="mid"><h1 style="font-size:{_fit(c["accroche"],44)}px">{acc_html}</h1>{sous}'
             f'<span class="cta">{_esc(c["cta"])}</span></div>'
             f'{_lockup(logo, nom, secteur, INK, MUT, accD)}</div>')
@@ -363,8 +358,6 @@ def _tpl_editorial(c, p, s, a, nom, secteur, logo):
     css = f'''<style>*{{box-sizing:border-box;margin:0}} body{{margin:0;font-family:Inter,sans-serif}}
   .story{{width:{STORY_W}px;height:{STORY_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;
     padding:66px 42px 74px;background:{BG};color:{INK}}}
-  .kick{{font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:600;color:{accL}}}
-  .rule{{height:1px;background:{INK};opacity:.16;margin:18px 0}}
   .mid{{flex:1;display:flex;flex-direction:column;justify-content:center}}
   h1{{font-family:Fraunces;font-weight:600;line-height:1.1;letter-spacing:-.2px}}
   .sous{{font-size:16px;line-height:1.6;color:{MUT};margin-top:20px;max-width:94%}}
@@ -375,7 +368,7 @@ def _tpl_editorial(c, p, s, a, nom, secteur, logo):
   .lk-nm{{font-size:15px;font-weight:600;font-family:Fraunces}} .lk-hd{{font-size:12px}}
 </style>'''
     sous = f'<div class="sous">{_esc(c["sous"])}</div>' if c.get("sous") else ""
-    body = (f'<div class="story"><div class="kick">Story</div><div class="rule"></div>'
+    body = (f'<div class="story">'
             f'<div class="mid"><h1 style="font-size:{_fit(c["accroche"],40)}px">{_esc(c["accroche"])}</h1>{sous}'
             f'<span class="cta">{_esc(c["cta"])}</span></div></div>')
     return _doc(head, css, body)
@@ -390,8 +383,6 @@ def _tpl_bloc(c, p, s, a, nom, secteur, logo):
     css = f'''<style>*{{box-sizing:border-box;margin:0}} body{{margin:0;font-family:Inter,sans-serif}}
   .story{{width:{STORY_W}px;height:{STORY_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;
     padding:60px 40px 70px;background:{A};color:{Aink}}}
-  .badge{{align-self:flex-start;background:{Aink};color:{A};font-family:Anton;font-size:13px;letter-spacing:1px;
-    text-transform:uppercase;padding:6px 13px;border-radius:6px}}
   .mid{{flex:1;display:flex;flex-direction:column;justify-content:center}}
   h1{{font-family:Anton;line-height:.98;letter-spacing:.4px;text-transform:uppercase}}
   .sous{{font-size:16px;line-height:1.5;font-weight:500;margin-top:18px;max-width:92%;opacity:.86}}
@@ -402,7 +393,7 @@ def _tpl_bloc(c, p, s, a, nom, secteur, logo):
   .lk-nm{{font-size:16px;font-weight:700}} .lk-hd{{font-size:12.5px;opacity:.8}}
 </style>'''
     sous = f'<div class="sous">{_esc(c["sous"])}</div>' if c.get("sous") else ""
-    body = (f'<div class="story"><span class="badge">Story</span>'
+    body = (f'<div class="story">'
             f'<div class="mid"><h1 style="font-size:{_fit(c["accroche"],56)}px">{_esc(c["accroche"])}</h1>{sous}'
             f'<span class="cta">{_esc(c["cta"])}</span></div>'
             f'{_lockup(logo, nom, secteur, Aink, Aink, Aink)}</div>')
@@ -422,8 +413,6 @@ def _tpl_photo(c, p, s, a, nom, secteur, logo):
   .photo{{position:absolute;inset:0;background:url('{img}') center/cover no-repeat}}
   /* Voile dégradé bas -> haut : le texte reste lisible quelle que soit la photo */
   .scrim{{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,10,20,.10) 0%,rgba(6,10,20,0) 34%,rgba(6,10,20,.72) 74%,rgba(6,10,20,.92) 100%)}}
-  .top{{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;justify-content:flex-start;padding:56px 40px 0}}
-  .kick{{background:{A};color:{Aink};font-family:Sora;font-weight:800;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:7px 13px;border-radius:8px}}
   .body{{position:relative;z-index:3;padding:0 40px 68px}}
   h1{{font-family:Sora;font-weight:800;line-height:1.05;letter-spacing:-.5px;text-shadow:0 2px 22px rgba(0,0,0,.5)}}
   .accent{{color:{accD}}}
@@ -441,7 +430,6 @@ def _tpl_photo(c, p, s, a, nom, secteur, logo):
         acc_html = _esc(c["accroche"])
     sous = f'<div class="sous">{_esc(c["sous"])}</div>' if c.get("sous") else ""
     body = (f'<div class="story"><div class="photo"></div><div class="scrim"></div>'
-            f'<div class="top"><span class="kick">Story</span></div>'
             f'<div class="body"><h1 style="font-size:{_fit(c["accroche"],42)}px">{acc_html}</h1>{sous}'
             f'<span class="cta">{_esc(c["cta"])}</span>'
             f'{_lockup(logo, nom, secteur, "#fff", "rgba(255,255,255,.7)", A)}</div></div>')
@@ -461,8 +449,6 @@ def _tpl_photo_flou(c, p, s, a, nom, secteur, logo):
   .blur{{position:absolute;inset:-6%;background:url('{img}') center/cover no-repeat;filter:blur(26px) brightness(.55);transform:scale(1.12)}}
   .photo{{position:absolute;left:0;right:0;top:0;bottom:150px;background:url('{img}') center/contain no-repeat}}
   .scrim{{position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,10,20,.35) 0%,rgba(6,10,20,0) 26%,rgba(6,10,20,.55) 72%,rgba(6,10,20,.9) 100%)}}
-  .top{{position:absolute;top:0;left:0;right:0;z-index:3;padding:56px 40px 0}}
-  .kick{{background:{A};color:{Aink};font-family:Sora;font-weight:800;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:7px 13px;border-radius:8px}}
   .body{{position:relative;z-index:3;padding:0 40px 58px}}
   h1{{font-family:Sora;font-weight:800;line-height:1.06;letter-spacing:-.4px;font-size:30px;text-shadow:0 2px 20px rgba(0,0,0,.6)}}
   .cta{{display:inline-flex;align-items:center;gap:8px;background:{A};color:{Aink};font-family:Sora;font-weight:800;font-size:15px;padding:13px 22px;border-radius:12px;margin-top:16px}}
@@ -471,7 +457,6 @@ def _tpl_photo_flou(c, p, s, a, nom, secteur, logo):
   .lk-nm{{font-size:14px;font-weight:700}} .lk-hd{{font-size:11.5px;color:rgba(255,255,255,.7)}}
 </style>'''
     body = (f'<div class="story"><div class="blur"></div><div class="photo"></div><div class="scrim"></div>'
-            f'<div class="top"><span class="kick">Story</span></div>'
             f'<div class="body"><h1>{_esc(c["accroche"])}</h1>'
             f'<span class="cta">{_esc(c["cta"])}</span>'
             f'{_lockup(logo, nom, secteur, "#fff", "rgba(255,255,255,.7)", A)}</div></div>')
@@ -489,7 +474,6 @@ def _tpl_split(c, p, s, a, nom, secteur, logo):
     css = f'''<style>*{{box-sizing:border-box;margin:0}} body{{margin:0;font-family:Inter,sans-serif}}
   .story{{width:{STORY_W}px;height:{STORY_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:{NEAR};color:{INK}}}
   .pic{{height:58%;background:url('{img}') center/cover no-repeat;position:relative}}
-  .pic .kick{{position:absolute;top:52px;left:36px;background:{A};color:{Aink};font-family:Sora;font-weight:800;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;padding:7px 13px;border-radius:8px}}
   .blk{{flex:1;display:flex;flex-direction:column;justify-content:center;padding:32px 40px 40px}}
   h1{{font-family:Sora;font-weight:800;line-height:1.06;letter-spacing:-.4px}}
   .accent{{color:{accD}}}
@@ -506,7 +490,7 @@ def _tpl_split(c, p, s, a, nom, secteur, logo):
     else:
         acc_html = _esc(c["accroche"])
     sous = f'<div class="sous">{_esc(c["sous"])}</div>' if c.get("sous") else ""
-    body = (f'<div class="story"><div class="pic"><span class="kick">Story</span></div>'
+    body = (f'<div class="story"><div class="pic"></div>'
             f'<div class="blk"><h1 style="font-size:{_fit(c["accroche"],32)}px">{acc_html}</h1>{sous}'
             f'<span class="cta">{_esc(c["cta"])}</span>'
             f'{_lockup(logo, nom, secteur, INK, MUT, accD)}</div></div>')
@@ -590,9 +574,7 @@ def _tpl_rico(c, p, s, a, nom, secteur, logo):
     padding:52px 40px 0;background:linear-gradient(160deg,{BG},{BG2});color:{INK}}}
   .story::after{{content:"";position:absolute;right:-120px;top:-70px;width:320px;height:320px;border-radius:50%;
     background:radial-gradient(circle,{_mix(A,BG,.25)},transparent 70%);opacity:.6}}
-  .head{{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between}}
-  .kick{{background:{A};color:{Aink};font-family:Sora;font-weight:800;font-size:12px;letter-spacing:1.5px;
-    text-transform:uppercase;padding:7px 13px;border-radius:8px}}
+  .head{{position:relative;z-index:3;display:flex;align-items:center;justify-content:flex-start}}
   .lockup{{display:flex;align-items:center;gap:9px}}
   .av{{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:15px;overflow:hidden}}
   .lk-nm{{font-size:13.5px;font-weight:800}} .lk-hd{{font-size:11px}}
@@ -607,7 +589,7 @@ def _tpl_rico(c, p, s, a, nom, secteur, logo):
     sous = f'<div class="sous">{_esc(c["sous"])}</div>' if c.get("sous") else ""
     lock = _lockup(logo, nom, secteur, INK, MUT, A)
     body = (f'<div class="story">'
-            f'<div class="head"><span class="kick">Story</span>{lock}</div>'
+            f'<div class="head">{lock}</div>'
             f'<div class="mid"><h1 style="font-size:{_fit(c["accroche"],38)}px">{_esc(c["accroche"])}</h1>{sous}'
             f'<span class="cta">{_esc(c["cta"])}</span></div>'
             f'<img class="rico" src="{rico_url}" alt=""></div>')

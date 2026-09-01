@@ -1,18 +1,21 @@
 import React from 'react';
 import {
-  AbsoluteFill, Img, interpolate, spring,
-  useCurrentFrame, useVideoConfig,
+  AbsoluteFill, Img, interpolate,
+  useCurrentFrame,
 } from 'remotion';
 
 /*
   Story animee — 5 s (150 frames) · 1080x1920 · meme forme Brand que les Reels.
-  Premier gabarit anime (les 11 modeles statiques Playwright restent inchanges) :
-  fond qui respire (deux nappes qui derivent), accroche qui entre, mot-cle (ou
-  toute l'accroche si aucun mot n'est designe) en degrade mouvant, CTA en relief
-  avec reflet + flottaison + UN passage de lumiere — direction validee en amont
-  via deux prototypes CSS interactifs. Lue une seule fois (pas de boucle : une
-  story se regarde une fois, contrairement aux demos CSS qui tournaient en
-  continu pour la preview live).
+  Premier gabarit anime (les 11 modeles statiques Playwright restent inchanges).
+  Aucune « apparition » : accroche/sous-titre/CTA sont visibles des la frame 0,
+  jamais de fade-in ni de slide-in — Instagram affiche deja natal que c'est une
+  story, un kicker « Story » dans l'image serait redondant (meme logique que
+  les gabarits statiques, cf. story_service.py). Seuls des mouvements CONTINUS
+  habillent la composition deja en place : fond qui respire (deux nappes qui
+  derivent), mot-cle (ou toute l'accroche si aucun mot n'est designe) en
+  degrade mouvant, CTA en relief avec reflet + flottaison + un passage de
+  lumiere — direction validee en amont via deux prototypes CSS interactifs.
+  Lue une seule fois (pas de boucle : une story se regarde une fois).
 */
 
 type Brand = {
@@ -58,27 +61,14 @@ const LogoOrInitiale: React.FC<{ brand: Brand }> = ({ brand }) => {
 
 export const StoryAnime: React.FC<Props> = ({ brand, accroche, motAccent, sous, cta }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
 
-  const kickOpacity = interpolate(frame, [0, 18], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-
-  const accS = spring({ frame: frame - 8, fps, config: { damping: 16, stiffness: 120 } });
-  const accOpacity = Math.min(1, accS);
-  const accY = (1 - accS) * 34;
-
-  // Passage de lumiere sur le mot-cle (ou toute l'accroche si aucun mot designe) — une fois, 20→70
-  const shinePos = interpolate(frame, [20, 78], [-40, 140], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-
-  const sousOpacity = interpolate(frame, [34, 54], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const sousY = interpolate(frame, [34, 54], [14, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-
-  const ctaS = spring({ frame: frame - 46, fps, config: { damping: 14, stiffness: 130 } });
-  const ctaScale = 0.75 + Math.min(1, ctaS) * 0.25;
-  const ctaOpacity = Math.min(1, ctaS * 1.4);
-  // flottaison continue, discrete, apres l'entree
-  const ctaFloat = frame > 55 ? Math.sin((frame - 55) / 22) * 3 : 0;
-  // UN sweep de lumiere sur le bouton, 60→100 (ne se repete pas)
-  const ctaSheen = interpolate(frame, [60, 104], [-40, 140], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  // Rien n'« apparaît » : accroche, sous-titre et CTA sont visibles dès la
+  // frame 0 (pas de fade-in / translateY d'entrée). Seuls des mouvements
+  // continus habillent une composition déjà en place : aurore qui dérive,
+  // flottaison du CTA, et deux passages de lumière (mot-clé, bouton).
+  const shinePos = interpolate(frame, [8, 66], [-40, 140], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const ctaFloat = Math.sin(frame / 22) * 3;
+  const ctaSheen = interpolate(frame, [30, 74], [-40, 140], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 
   const accentText = motAccent && accroche.includes(motAccent) ? motAccent : accroche;
   const [before, after] = motAccent && accroche.includes(motAccent)
@@ -90,21 +80,12 @@ export const StoryAnime: React.FC<Props> = ({ brand, accroche, motAccent, sous, 
       <Aurora brand={brand} />
 
       <AbsoluteFill style={{ padding: '11% 9% 12%', display: 'flex', flexDirection: 'column' }}>
-        {/* Kicker */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10, opacity: kickOpacity,
-          fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: 22, letterSpacing: 4,
-          textTransform: 'uppercase', color: brand.accent,
-        }}>
-          <span style={{ width: 30, height: 5, borderRadius: 3, background: brand.accent, display: 'inline-block' }} />
-          Story
-        </div>
-
-        {/* Accroche + sous-titre, centres verticalement dans l'espace restant */}
+        {/* Accroche + sous-titre, centres verticalement dans l'espace restant — visibles
+            dès la frame 0, seul le degrade du mot-cle bouge (voir shinePos) */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 28 }}>
           <div style={{
             fontFamily: 'Sora, sans-serif', fontWeight: 800, lineHeight: 1.08, letterSpacing: '-0.01em',
-            fontSize: 78, color: '#fff', opacity: accOpacity, transform: `translateY(${accY}px)`, maxWidth: '94%',
+            fontSize: 78, color: '#fff', maxWidth: '94%',
           }}>
             {before}
             <span style={{
@@ -120,7 +101,7 @@ export const StoryAnime: React.FC<Props> = ({ brand, accroche, motAccent, sous, 
           {sous ? (
             <div style={{
               fontFamily: 'Inter, sans-serif', fontSize: 40, lineHeight: 1.5, color: 'rgba(255,255,255,.66)',
-              maxWidth: '92%', opacity: sousOpacity, transform: `translateY(${sousY}px)`,
+              maxWidth: '92%',
             }}>
               {sous}
             </div>
@@ -130,8 +111,8 @@ export const StoryAnime: React.FC<Props> = ({ brand, accroche, motAccent, sous, 
         {/* CTA en relief : reflet spéculaire fixe (haut), ombre colorée, un sweep, flottaison légère */}
         {cta ? (
           <div style={{
-            position: 'relative', alignSelf: 'flex-start', opacity: ctaOpacity,
-            transform: `scale(${ctaScale}) translateY(${ctaFloat}px)`, transformOrigin: 'left center',
+            position: 'relative', alignSelf: 'flex-start',
+            transform: `translateY(${ctaFloat}px)`, transformOrigin: 'left center',
           }}>
             <div style={{
               position: 'relative', overflow: 'hidden', borderRadius: 999, padding: '30px 52px',
@@ -155,7 +136,7 @@ export const StoryAnime: React.FC<Props> = ({ brand, accroche, motAccent, sous, 
           </div>
         ) : null}
 
-        <div style={{ position: 'absolute', bottom: '5%', left: '9%', display: 'flex', alignItems: 'center', gap: 12, opacity: kickOpacity }}>
+        <div style={{ position: 'absolute', bottom: '5%', left: '9%', display: 'flex', alignItems: 'center', gap: 12 }}>
           <LogoOrInitiale brand={brand} />
           <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 700, fontSize: 26, color: '#fff' }}>{brand.nom}</span>
         </div>
