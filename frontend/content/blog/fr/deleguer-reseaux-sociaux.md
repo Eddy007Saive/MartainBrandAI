@@ -57,7 +57,7 @@ Et les résultats le confirment : **les marques qui gèrent tout en interne obti
 ### Ce que vous pouvez déléguer sans risque
 
 - La production de visuels et la mise en forme des posts
-- La programmation et la publication aux meilleurs horaires
+- La programmation et la publication aux meilleurs horaires, via un bon [outil de gestion des réseaux sociaux](/blog/outil-gestion-reseaux-sociaux-pme)
 - La veille concurrentielle et sectorielle
 - Le suivi des métriques et la production de rapports
 - La gestion des commentaires génériques (remercier, rediriger)
@@ -232,7 +232,7 @@ Sans cette charte, vous obtiendrez du contenu générique - même avec le meille
 ### Étape 5 - Mettre en place le suivi et les points de contrôle
 
 - **Fréquence de validation :** hebdomadaire au début, puis bi-mensuelle une fois la confiance établie
-- **KPIs mensuels :** portée, engagement, leads générés via les réseaux, qualité des candidatures (si marque employeur)
+- **KPIs mensuels :** portée, engagement, leads générés via les réseaux, qualité des candidatures (si [marque employeur](/blog/marque-employeur-reseaux-sociaux-pme))
 - **Point de recalibrage trimestriel :** le contenu publié sonne-t-il encore comme vous ?
 
 ---

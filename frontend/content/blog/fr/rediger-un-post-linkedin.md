@@ -83,7 +83,7 @@ La mise en forme est aussi importante que le contenu lui-même :
 **Les 3 approches qui fonctionnent** ([Digilityx](https://www.digilityx.com/blog/comment-ecrire-un-bon-post-linkedin/)) :
 
 1. **Conseil / expertise** - partager une découverte, un outil, un tip métier. Asseoir sa légitimité, être reconnu comme expert.
-2. **Storytelling** - romancer un aboutissement ou un échec, conclure par une leçon. Créer de l'empathie sans se mettre trop en avant.
+2. **Storytelling** - romancer un aboutissement ou un échec, conclure par une leçon. Créer de l'empathie sans se mettre trop en avant - c'est un des piliers du [personal branding LinkedIn](/blog/personal-branding-linkedin-guide-dirigeants) d'un dirigeant.
 3. **Prise de position** - réagir à une idée reçue ou une tendance. Inviter au débat et augmenter naturellement la portée.
 
 **Ce qui tue le corps :** les blocs de texte denses, le jargon, les généralités, le contenu inspirant recyclé. Sur mobile - où se fait 60% du trafic LinkedIn - un paragraphe compact devient un mur illisible.
@@ -151,7 +151,7 @@ Quelques précisions importantes :
 
 Publier un excellent post et disparaître immédiatement, c'est laisser de la portée sur la table.
 
-**L'algorithme LinkedIn observe l'engagement dans les 30 à 60 premières minutes** après publication ([MagicPost](https://magicpost.in/fr/blog/comment-r%C3%A9diger-un-poste-linkedin)). Ce qui se passe dans cette fenêtre détermine si le post sera distribué largement ou enterré.
+**L'algorithme LinkedIn observe l'engagement dans les 30 à 60 premières minutes** après publication ([MagicPost](https://magicpost.in/fr/blog/comment-r%C3%A9diger-un-poste-linkedin)). Ce qui se passe dans cette fenêtre détermine si le post sera distribué largement ou enterré - un des facteurs qui expliquent les écarts de [taux d'engagement LinkedIn](/blog/taux-engagement-linkedin) d'un post à l'autre.
 
 **3 actions à faire dans les 60 minutes après publication :**
 
@@ -173,7 +173,7 @@ Vous pouvez avoir un excellent contenu et rater votre publication pour des raiso
 
 3. **Pas de CTA** - le lecteur ne sait pas quoi faire après avoir lu. Il passe à autre chose. Vous perdez l'engagement que votre contenu aurait pu générer.
 
-4. **Publier depuis la page entreprise plutôt que le profil personnel** - les pages entreprise reçoivent environ **2% de l'exposition totale** sans amplification des employés ([MagicPost](https://magicpost.in/fr/blog/comment-r%C3%A9diger-un-poste-linkedin)). Publiez depuis votre profil personnel.
+4. **Publier depuis la page entreprise plutôt que le profil personnel** - les pages entreprise reçoivent environ **2% de l'exposition totale** sans amplification des employés ([MagicPost](https://magicpost.in/fr/blog/comment-r%C3%A9diger-un-poste-linkedin)). Publiez depuis votre profil personnel, au cœur d'une présence [LinkedIn pour dirigeant](/blog/linkedin-pour-dirigeant) bien construite.
 
 5. **Poster et disparaître** - rater la fenêtre critique des 60 premières minutes, c'est brider la portée d'un post qui aurait pu performer.
 
@@ -219,7 +219,7 @@ Voici comment se répartit ce temps :
 
 **La méthode batching :** rédiger 3 à 4 posts en une session de 2h, programmer à l'avance - puis ne plus y penser jusqu'à la semaine suivante. C'est le point de départ durable recommandé : 3 publications par semaine ([MagicPost](https://magicpost.in/fr/blog/comment-r%C3%A9diger-un-poste-linkedin)), ou 1 à 2 par semaine si elles sont bien construites ([Digilityx](https://www.digilityx.com/blog/comment-ecrire-un-bon-post-linkedin/)).
 
-**L'IA comme accélérateur :** générer un premier jet à partir d'une idée brute ou d'une anecdote → relire, ajuster le ton, valider. 15 à 20 minutes au lieu de 45. L'IA ne remplace pas votre voix - elle vous évite la page blanche.
+**L'IA comme accélérateur :** générer un premier jet à partir d'une idée brute ou d'une anecdote → relire, ajuster le ton, valider. 15 à 20 minutes au lieu de 45. L'IA ne remplace pas votre voix - elle vous évite la page blanche. Si vous hésitez entre l'IA et un prestataire humain, notre comparatif du [ghostwriting LinkedIn](/blog/ghostwriting-linkedin) détaille les deux options.
 
 **Ce qui doit rester vous :**
 

@@ -78,7 +78,7 @@ Structure recommandée :
 
 Soignez particulièrement les **deux premières lignes** : ce sont les seules visibles avant que le lecteur clique sur « voir plus ». Si elles ne donnent pas envie de lire la suite, le reste n'existe pas.
 
-Pensez aussi aux mots-clés de votre secteur : ils améliorent votre référencement interne sur LinkedIn et vous rendent trouvable par les bons profils.
+Pensez aussi aux mots-clés de votre secteur : ils améliorent votre référencement interne sur LinkedIn et vous rendent trouvable par les bons profils. C'est la base du [personal branding LinkedIn](/blog/personal-branding-linkedin-guide-dirigeants) d'un dirigeant.
 
 > **Checklist profil LinkedIn de dirigeant - les 6 indispensables**
 > - [ ] Photo professionnelle et avenante
@@ -94,7 +94,7 @@ Pensez aussi aux mots-clés de votre secteur : ils améliorent votre référence
 
 Le contenu générique ne génère rien. Citations sans contexte, actualités partagées sans angle, posts de circonstance pour la rentrée ou le 1er mai : ce type de publication n'apporte rien de mémorable, donc rien de commercial.
 
-Ce qui fonctionne : **le contenu ancré dans votre pratique réelle**. Spécifique. Que personne d'autre ne peut écrire à votre place.
+Ce qui fonctionne : **le contenu ancré dans votre pratique réelle**. Spécifique. Que personne d'autre ne peut écrire à votre place. Notre guide pour [rédiger un post LinkedIn](/blog/rediger-un-post-linkedin) détaille la structure qui fait la différence.
 
 ### 1. Les coulisses opérationnelles
 
@@ -156,7 +156,7 @@ La méthode concrète :
 - Utilisez vos notes, vos réunions, vos décisions de la semaine comme matière première
 - **L'IA comme accélérateur** : générez un premier jet à partir de vos notes brutes, programmez à l'avance, gardez uniquement la relecture et la touche finale
 
-La **stratégie linkedin dirigeant** qui fonctionne n'est pas celle du créateur de contenu à plein temps. C'est celle du dirigeant qui a trouvé un rythme soutenable et qui le tient.
+La **[stratégie linkedin dirigeant](/blog/strategie-linkedin-pme)** qui fonctionne n'est pas celle du créateur de contenu à plein temps. C'est celle du dirigeant qui a trouvé un rythme soutenable et qui le tient.
 
 > **Conseil de Caroline Mignaux, LinkedIn Top Voice FR** (cité par Qonto) : *"La régularité, vous privilégierez. Rien ne sert de courir, il faut poster à temps. Trouvez le rythme qui vous rend efficace et imposez-vous une routine rigoureuse."* Et pour tenir ce rythme : *"Une seule idée, vous exposerez"* - un post, un message, une action attendue.
 
@@ -166,7 +166,7 @@ La **stratégie linkedin dirigeant** qui fonctionne n'est pas celle du créateur
 
 La **visibilité linkedin dirigeant** ne se mesure pas en likes.
 
-Les vanity metrics - vues, likes, commentaires - flattent l'ego. Ils ne remplissent pas le carnet de commandes. Un post à 50 000 vues qui ne génère aucune demande commerciale est un post raté. Un post à 800 vues qui produit deux rendez-vous qualifiés est une réussite.
+Les vanity metrics - vues, likes, commentaires - flattent l'ego. Ils ne remplissent pas le carnet de commandes. Le [Social Selling Index LinkedIn](/blog/social-selling-index-linkedin) offre un indicateur plus structuré si vous voulez suivre votre activité dans le temps. Un post à 50 000 vues qui ne génère aucune demande commerciale est un post raté. Un post à 800 vues qui produit deux rendez-vous qualifiés est une réussite.
 
 **Les indicateurs qui comptent vraiment :**
 

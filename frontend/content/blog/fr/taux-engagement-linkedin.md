@@ -161,7 +161,7 @@ Formats qui fonctionnent :
 - Une contradiction : *« Publier tous les jours sur LinkedIn est une erreur. »*
 - Une question directe : *« Vous publiez, mais personne ne commente. Pourquoi ? »*
 
-Critères à respecter : court, concret, sans jargon, qui donne envie de lire la suite.
+Critères à respecter : court, concret, sans jargon, qui donne envie de lire la suite - voir notre méthode complète pour [rédiger un post LinkedIn](/blog/rediger-un-post-linkedin).
 
 ### 2. Misez sur les carrousels
 
@@ -224,9 +224,9 @@ Le taux d'engagement est un indicateur utile. Il mesure la qualité de votre rel
 
 Mais **taux d'engagement ≠ business**.
 
-Un post avec 8 % d'engagement qui ne génère aucune prise de contact ne vaut pas grand-chose pour un dirigeant. À l'inverse, un post avec 2 % d'engagement qui déclenche 3 demandes de rendez-vous est un succès.
+Un post avec 8 % d'engagement qui ne génère aucune prise de contact ne vaut pas grand-chose pour un [dirigeant](/blog/linkedin-pour-dirigeant). À l'inverse, un post avec 2 % d'engagement qui déclenche 3 demandes de rendez-vous est un succès.
 
-Ce qui compte vraiment pour un dirigeant ou un indépendant :
+Ce qui compte vraiment pour un dirigeant ou un indépendant, à mettre en regard de votre [Social Selling Index LinkedIn](/blog/social-selling-index-linkedin) :
 - **La qualité des interactions** : est-ce que les bons profils commentent ?
 - **Les prises de contact** : est-ce que des prospects vous écrivent après vos posts ?
 - **La progression dans le temps** : votre taux monte-t-il mois après mois ?
