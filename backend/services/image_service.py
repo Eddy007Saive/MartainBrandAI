@@ -31,7 +31,19 @@ IMAGE_MODELS = {
 
 ROLE_PROMPT = (
     "Tu es directeur artistique. À partir d'un post et de la charte de marque, tu écris UN prompt "
-    "d'image (en anglais, plus efficace pour le modèle) pour illustrer le post. "
+    "d'image (en anglais, plus efficace pour le modèle) pour illustrer le post.\n\n"
+    "Structure le prompt en couches, dans cet ordre, pour cibler précisément le modèle :\n"
+    "1. Angle/cadrage caméra (ex. \"medium shot\", \"three-quarter angle\", \"overhead flat lay\")\n"
+    "2. Sujet (personne, objet ou scène) décrit précisément\n"
+    "3. Action / composition (ce qui se passe dans le cadre)\n"
+    "4. Environnement (décor, contexte)\n"
+    "5. Éclairage avec température de couleur (ex. \"soft natural window light 5500K\")\n"
+    "6. Technique caméra (ex. \"85mm f/1.8\", \"shallow depth of field\")\n"
+    "7. Un repère de pellicule photo pour ancrer le rendu (\"Kodak Portra 400\" pour un rendu lifestyle "
+    "chaleureux, \"Kodak Ektar 100\" pour un produit saturé, \"Fujifilm Provia 100F\" pour un rendu "
+    "neutre et documentaire)\n\n"
+    "Termine TOUJOURS le prompt par : \"visible natural texture, no over-smoothing, photographic "
+    "realism, no text\" — pour éviter un rendu plastique/IA. "
     "Le visuel doit coller au message, rester professionnel, épuré et lisible, et respecter la palette "
     "de la marque. Évite tout texte dans l'image. Réponds UNIQUEMENT avec le prompt, rien d'autre.\n\n"
 )
@@ -136,6 +148,13 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     # Story : composition verticale plein écran (le recadrage Cloudinary suivra en 9:16)
     if ratio == "9:16":
         prompt = f"{prompt}\n\nFormat VERTICAL 9:16 plein écran mobile (story Instagram) : composition pensée pour la hauteur, éléments importants centrés (pas collés aux bords hauts/bas)."
+
+    # Garde-fou anti-plastique appliqué à TOUTE génération photo (pas seulement quand une photo de
+    # référence est fournie) : l'utilisateur peut avoir édité le prompt de Claude et retiré la
+    # consigne de réalisme d'origine (voir ROLE_PROMPT). Absent pour template_mode : là, on édite un
+    # gabarit graphique existant, pas une photo — la fidélité au design prime sur le réalisme photo.
+    if not template_mode:
+        prompt = f"{prompt}\n\nRender with visible natural texture, no over-smoothing, no plastic/AI look. Photographic realism, no text."
 
     # Photo de l'utilisateur demandée -> PHOTO RÉALISTE (pas d'illustration)
     photo_refs = []
