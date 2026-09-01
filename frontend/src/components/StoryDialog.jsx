@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X, Loader2, Check, RefreshCw, Sparkles } from 'lucide-react';
+import { X, Loader2, Check, RefreshCw, Sparkles, Film } from 'lucide-react';
 import { toast } from 'sonner';
 import { contenuService } from '../services/contenuService';
 
@@ -20,6 +20,7 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
   const [preview, setPreview] = useState(null);
   const [rendering, setRendering] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [animating, setAnimating] = useState(false);
 
   const corps = useCallback((t) => ({
     template: t, accroche, sous, cta, colors,
@@ -90,6 +91,28 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
     } catch (e) {
       setSaving(false);
       toast.error(e.response?.data?.detail || 'La création de la story a échoué.');
+    }
+  };
+
+  // Version animée (Remotion, ~1-2 min) : réutilise le texte/couleurs déjà édités
+  // ici, aucun nouvel appel IA. Premier gabarit animé — indépendant des 11 modèles
+  // statiques du sélecteur ci-dessus.
+  const creerAnimee = async () => {
+    setAnimating(true);
+    const toastId = toast.loading("Génération de la version animée… jusqu'à 2 min");
+    try {
+      const d = await contenuService.storyAnimee(contenu.id, { accroche, sous, cta, colors });
+      const dt = d.date_publication
+        ? new Date(d.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
+        : null;
+      toast.success(dt ? `Story animée créée pour le ${dt} — à valider` : 'Story animée créée — à valider', { id: toastId });
+      onCreated?.(d);
+      onClose();
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.detail || "La version animée a échoué.", { id: toastId });
+      else toast.dismiss(toastId);
+    } finally {
+      setAnimating(false);
     }
   };
 
@@ -255,7 +278,15 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
               Annuler
             </button>
             <button
-              onClick={valider} disabled={saving || rendering || !preview}
+              onClick={creerAnimee} disabled={saving || animating || rendering || !accroche.trim()}
+              title="Rendu vidéo ~1-2 min, gabarit unique (indépendant du modèle choisi ci-dessus)"
+              className="inline-flex items-center gap-2 px-4 h-10 rounded-xl text-sm font-semibold text-white bg-white/[0.06] border border-white/10 hover:border-white/25 transition-colors disabled:opacity-50"
+            >
+              {animating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4" />}
+              Version animée
+            </button>
+            <button
+              onClick={valider} disabled={saving || animating || rendering || !preview}
               data-testid="story-valider"
               className="inline-flex items-center gap-2 px-5 h-10 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] transition-transform active:scale-[0.97] disabled:opacity-50"
             >

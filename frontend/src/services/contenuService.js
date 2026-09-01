@@ -68,4 +68,6 @@ export const contenuService = {
   storyOptions: (id) => api.get(`/contenus/${id}/story/options`).then(r => r.data),
   storyApercu: (id, body) => api.post(`/contenus/${id}/story/apercu`, body).then(r => r.data),
   storyCreer: (id, body) => api.post(`/contenus/${id}/story`, body).then(r => r.data),
+  // Story animée (Remotion, ~1-2 min) — même timeout long que les Reels
+  storyAnimee: (id, body) => api.post(`/contenus/${id}/story-anime`, body, { timeout: 300000 }).then(r => r.data),
 };

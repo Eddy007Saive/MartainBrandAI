@@ -14,9 +14,6 @@ Env optionnels :
 import json
 import os
 import re
-import subprocess
-import tempfile
-import time
 from datetime import datetime, timezone
 
 import cloudinary
@@ -26,19 +23,9 @@ from config import (
     CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
 )
 from services.agent_service import _charger_marque, _messages_create
-from services import planning_service, music_library
+from services import planning_service, music_library, remotion_service
 
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
-
-_BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REMOTION_DIR = os.environ.get("REMOTION_DIR") or os.path.join(_BACKEND_DIR, "remotion")
-REMOTION_BROWSER = os.environ.get("REMOTION_BROWSER")
-
-# Cout d'une minute de rendu, en dollars. Un rendu Remotion sature les coeurs du
-# conteneur : le seul cout reel est le TEMPS de calcul facture par l'hebergeur.
-# Valeur par defaut prudente pour ~2 vCPU + 2 Go sur Railway ; a ajuster depuis la
-# facture reelle via REMOTION_COUT_MINUTE_USD.
-COUT_RENDU_MINUTE_USD = float(os.environ.get("REMOTION_COUT_MINUTE_USD", "0.0014"))
 
 _MODELE_SCRIPT = "claude-haiku-4-5"
 
@@ -620,48 +607,11 @@ def _rendre_mp4(props: dict, composition: str = "ReelBrand",
                 telegram_id: str = None, etiquette: str = None) -> str:
     """Lance le rendu Remotion en subprocess. Retourne le chemin du MP4.
 
-    Le temps de calcul est journalise dans usage_log (colonne duree_s) avec son
-    cout estime : c'est la seule depense reelle d'un rendu, et la moyenne permet
-    de savoir ce que coute un reel. Les echecs sont journalises aussi — ils
-    consomment du CPU sans rien produire."""
-    if not os.path.isdir(os.path.join(REMOTION_DIR, "node_modules")):
-        raise RuntimeError(f"Remotion non installe ({REMOTION_DIR}) : lancer `npm ci` dans ce dossier.")
-    fd, props_path = tempfile.mkstemp(suffix=".json")
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        json.dump(props, f, ensure_ascii=False)
-    out_path = os.path.join(tempfile.gettempdir(), f"reel_{next(tempfile._get_candidate_names())}.mp4")
-    npx = "npx.cmd" if os.name == "nt" else "npx"
-    cmd = [npx, "remotion", "render", "src/index.ts", composition, out_path, f"--props={props_path}", "--timeout=120000"]
-    if REMOTION_BROWSER:
-        cmd.append(f"--browser-executable={REMOTION_BROWSER}")
-    depart = time.monotonic()
-    ok = False
-    try:
-        r = subprocess.run(cmd, cwd=REMOTION_DIR, capture_output=True, text=True,
-                           encoding="utf-8", errors="replace", timeout=900)
-        if r.returncode != 0 or not os.path.exists(out_path):
-            tail = (r.stderr or r.stdout or "")[-800:]
-            raise RuntimeError(f"rendu remotion (code {r.returncode}) : {tail}")
-        ok = True
-        return out_path
-    finally:
-        duree = time.monotonic() - depart
-        if telegram_id:
-            try:
-                from services import usage_service
-                usage_service.log(
-                    telegram_id,
-                    "reel_rendu" if ok else "reel_rendu_echec",
-                    etiquette or composition, {}, 0,
-                    cost_override=round(duree / 60 * COUT_RENDU_MINUTE_USD, 6),
-                    duree_s=duree,
-                )
-            except Exception as e:
-                logger.warning(f"journal du rendu {composition}: {e}")
-        try:
-            os.unlink(props_path)
-        except OSError:
-            pass
+    Plomberie deplacee dans remotion_service.py (partagee avec la Story animee) —
+    ce wrapper ne fait que fixer le prefixe "reel" (fichier temp + libelle de
+    journal usage_log, inchange : reel_rendu/reel_rendu_echec)."""
+    return remotion_service.render_mp4(
+        props, composition, telegram_id=telegram_id, etiquette=etiquette, prefix="reel")
 
 
 def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: str = "Instagram",

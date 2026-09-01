@@ -207,6 +207,61 @@ async def decliner_story(contenu_id: str, body: dict = None, payload: dict = Dep
     return {"contenu_id": new_id, "date_publication": row.get("date_publication"), "lien_visuel": image_url}
 
 
+@router.post("/{contenu_id}/story-anime")
+async def decliner_story_animee(contenu_id: str, body: dict = None, payload: dict = Depends(verify_token)):
+    """Crée une STORY ANIMÉE (Remotion, ~5s, gabarit « StoryAnime ») à partir du texte
+    déjà écrit/édité dans le dialog (même accroche/sous/cta/couleurs que l'aperçu
+    statique — aucun nouvel appel IA ici). Contenu jumeau séparé (type « Story » avec
+    video_url en plus du poster), comme les Reels : le post d'origine et une
+    éventuelle story statique déjà créée restent intacts. Rendu ~1-2 min, comme les
+    Reels — pas de quota par génération (même logique que les Reels : seul le mur
+    d'abonnement bloque, le coût réel est journalisé en interne)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
+    cur = contenu_service.get_contenu(contenu_id, telegram_id)
+    if not cur:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    if cur.get("reseau_cible") not in ("Instagram", "Facebook"):
+        raise HTTPException(status_code=409, detail="Les stories ne sont possibles que sur Instagram ou Facebook.")
+    body = body or {}
+    accroche = (body.get("accroche") or "").strip()
+    if not accroche:
+        raise HTTPException(status_code=400, detail="Accroche requise.")
+    from services import story_service, planning_service
+    from datetime import datetime, timezone
+    from config import supabase as sb
+    row = {
+        "telegram_id": telegram_id,
+        "titre": (cur.get("titre") or "")[:120],
+        "contenu": cur.get("contenu"),
+        "reseau_cible": cur["reseau_cible"],
+        "type": "Story",
+        "statut": "A valider",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    creneau = planning_service.prochain_creneau(telegram_id, cur["reseau_cible"], "Story")
+    if creneau:
+        row["date_publication"] = creneau
+    ins = sb.table("contenu").insert(row).execute()
+    new_id = ins.data[0]["id"] if ins.data else None
+    if not new_id:
+        raise HTTPException(status_code=500, detail="Création du contenu impossible.")
+    res = await story_service.generer_story_animee(
+        telegram_id, accroche, body.get("sous"), body.get("cta"),
+        colors=body.get("colors"), mot_accent=body.get("mot_accent"), contenu_id=new_id)
+    if not res.get("video_url"):
+        sb.table("contenu").delete().eq("id", new_id).execute()
+        raise HTTPException(status_code=500, detail="Le rendu de la story animée a échoué, réessaie.")
+    sb.table("contenu").update({
+        "video_url": res["video_url"], "video_status": "ready",
+        "video_preview_url": res["video_preview_url"], "lien_visuel": res["video_preview_url"],
+    }).eq("id", new_id).execute()
+    return {"id": new_id, "video_url": res["video_url"], "video_preview_url": res["video_preview_url"],
+            "date_publication": row.get("date_publication")}
+
+
 @router.post("/{contenu_id}/recycler")
 async def recycler_contenu(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
     """Recycle un post vers d'autres réseaux (une copie par réseau, créneau propre)."""
