@@ -15,9 +15,10 @@ import asyncio
 import os
 import re
 import json
+from datetime import datetime, timedelta, timezone
 import cloudinary
 import cloudinary.uploader
-from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLAUDE_API_KEY, logger
+from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLAUDE_API_KEY, logger, supabase
 from services.agent_service import _charger_marque, _messages_create, REGLES_ANTI_IA
 # On réutilise tels quels les utilitaires du carrousel : contraste, couleurs, échappement,
 # lockup de marque, application des polices, et l'atelier de rendu (sémaphore partagée).
@@ -261,6 +262,169 @@ def choisir_story_ia(telegram_id: str, contenu: dict) -> dict:
     except Exception as e:
         logger.warning(f"choix story IA {telegram_id}: {e}")
         return base_out
+
+
+# Gabarits proposables pour une SÉRIE : uniquement texte/photo, jamais liste/
+# citation/rico/signature — une liste ou une citation répétée sur 3 écrans n'a
+# pas de sens narratif, et rico reste un choix explicite du compte.
+_CANDIDATS_SERIE = {"epure", "sombre", "editorial", "bloc", "photo", "photo-flou", "split"}
+
+
+def decouper_story_ia(telegram_id: str, contenu: dict) -> dict:
+    """Découpe un post riche en 2 à 4 stories qui se lisent à la suite (Instagram
+    n'a pas de story multi-écrans — ce sont plusieurs stories du même compte
+    postées proches dans le temps). UN SEUL gabarit texte/photo, partagé par tous
+    les écrans pour la cohérence visuelle de la série ; chaque écran développe UNE
+    étape d'un raisonnement qui progresse, le dernier porte le CTA.
+    Retombe sur un seul écran (choisir_story_ia) si l'IA est indisponible ou si
+    elle ne renvoie pas assez d'écrans exploitables — dégrade, n'échoue jamais."""
+    a_un_visuel = bool(contenu.get("lien_visuel"))
+    defaut_id = "photo-flou" if a_un_visuel else "epure"
+    base = parts_depuis_contenu(contenu)
+    repli_un_ecran = {"template": defaut_id, "ecrans": [
+        {"accroche": base["accroche"], "sous": base["sous"], "cta": base["cta"]}]}
+    post = ((contenu.get("titre") or "") + "\n\n" + (contenu.get("contenu") or "")).strip()
+    if not CLAUDE_API_KEY or not post:
+        return repli_un_ecran
+    try:
+        candidats = [t for t in modeles_pour(telegram_id, a_un_visuel)
+                     if t["id"] in _CANDIDATS_SERIE]
+        if not candidats:
+            return repli_un_ecran
+        catalogue = "\n".join(f"- {t['id']} : {t['hint']}" for t in candidats)
+        u = _charger_marque(telegram_id)
+        system = (
+            "Tu découpes un post en une SÉRIE de stories Instagram/Facebook (9:16) "
+            "qui se lisent à la suite — pas une story unique, plusieurs stories "
+            "postées l'une après l'autre. 2 à 4 écrans selon la matière du post : "
+            "ne force pas 4 écrans si le post ne tient qu'en 2 idées.\n\n"
+            f"Gabarits disponibles (UN SEUL choisi, partagé par tous les écrans) :\n{catalogue}\n\n"
+            "Chaque écran développe UNE étape qui fait progresser le raisonnement — "
+            "jamais deux écrans qui répètent la même idée reformulée. Le dernier "
+            "écran conclut et porte le CTA le plus fort ; les écrans précédents "
+            "peuvent avoir un CTA vide ou implicite (« Swipe pour la suite » par "
+            "exemple) si ça sert mieux la progression.\n\n"
+            "Réponds STRICTEMENT en JSON :\n"
+            '{"template":"...", "ecrans":[{"accroche":"4 à 8 mots, sans guillemets", '
+            '"sous":"UNE phrase de 8 à 14 mots ou chaîne vide", "cta":"appel à l\'action bref ou vide"}, '
+            '... 2 à 4 items]}\n'
+            f"Voix de marque : {u.get('voix_marque') or '—'}. Secteur : {u.get('secteur') or '—'}."
+            + REGLES_ANTI_IA
+        )
+        resp = _messages_create(
+            model="claude-haiku-4-5", max_tokens=800, system=system,
+            messages=[{"role": "user", "content": f"Post :\n\n{post}\n\nDécoupe-le en série de stories."}],
+        )
+        brut = "".join(b.text for b in resp.content if b.type == "text").strip()
+        m = re.search(r"\{.*\}", brut, re.S)
+        data = json.loads(m.group(0) if m else brut)
+        tpl = (data.get("template") or "").strip().lower()
+        if tpl not in {t["id"] for t in candidats}:
+            tpl = defaut_id
+        bruts = data.get("ecrans") if isinstance(data.get("ecrans"), list) else []
+        ecrans = []
+        for e in bruts:
+            if not isinstance(e, dict):
+                continue
+            acc = (e.get("accroche") or "").strip().strip('"').strip()
+            if not acc:
+                continue
+            sous = (e.get("sous") or "").strip()
+            if sous and len(sous.split()) < 4:
+                sous = ""
+            ecrans.append({"accroche": acc, "sous": sous, "cta": (e.get("cta") or "").strip()})
+        ecrans = ecrans[:4]
+        if len(ecrans) < 2:
+            return repli_un_ecran  # pas assez d'écrans exploitables : une seule story plutôt qu'une série boiteuse
+        # Le dernier écran porte le CTA le plus fort : jamais vide, retombe sur le post si l'IA l'a laissé vide.
+        if not ecrans[-1]["cta"]:
+            ecrans[-1]["cta"] = base["cta"] or "Réponds en DM 👉"
+        return {"template": tpl, "ecrans": ecrans}
+    except Exception as e:
+        logger.warning(f"decoupage story IA {telegram_id}: {e}")
+        return repli_un_ecran
+
+
+async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
+    """Découpe un post en 2-4 stories (decouper_story_ia), les rend et les crée
+    en base « À valider » — comme une story simple, la programmation Zernio
+    reste un pas séparé déclenché par le compte (« Valider & programmer »),
+    donc rien à orchestrer de ce côté ici. Retourne {"ids": [...], "count": n}
+    ou {"error": "..."}."""
+    from services import planning_service, quota_service
+    res = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+    if not res.data:
+        return {"error": "Contenu introuvable."}
+    cur = res.data[0]
+    if cur.get("reseau_cible") not in ("Instagram", "Facebook"):
+        return {"error": "Les stories ne sont possibles que sur Instagram ou Facebook."}
+
+    # Réserve le pire cas (4 écrans) AVANT de dépenser quoi que ce soit — on ne
+    # connaît le nombre réel qu'après le découpage IA — puis rembourse la
+    # différence une fois ce nombre connu (voir plus bas).
+    q = quota_service.consume(telegram_id, "story", qty=4)
+    if not q.get("ok"):
+        return {"error": q.get("message") or "Quota story épuisé.", "quota": True}
+
+    decoupe = decouper_story_ia(telegram_id, cur)
+    template = template_valide(decoupe["template"])
+    ecrans = decoupe["ecrans"]
+    n = len(ecrans)
+
+    slides = cur.get("slides_images") or []
+    titre_source = (cur.get("titre") or "").strip()
+    reseau = cur["reseau_cible"]
+
+    # Un seul créneau pour toute la série (prochain_creneau est déterministe pour
+    # un même (compte, réseau, famille, jour) tant que rien n'est inséré entre
+    # deux appels) ; chaque écran est ensuite décalé de 90s pour garantir l'ordre
+    # d'affichage (aucune garantie d'ordre côté API Zernio/Instagram).
+    creneau = planning_service.prochain_creneau(telegram_id, reseau, "Story")
+    creneau_dt = datetime.fromisoformat(creneau) if creneau else None
+
+    ids = []
+    for i, ecran in enumerate(ecrans):
+        image = slides[i % len(slides)] if slides else cur.get("lien_visuel")
+        content = {"accroche": ecran["accroche"], "sous": ecran["sous"], "cta": ecran["cta"], "image": image}
+        try:
+            # Index préfixé AVANT troncature : generer_story tronque contenu_id à
+            # 16 caractères pour le public_id Cloudinary — sans ce préfixe, les
+            # écrans partageraient le même public_id et s'écraseraient entre eux.
+            render_res = await generer_story(telegram_id, content, template, colors=None,
+                                              contenu_id=f"{i}{contenu_id}")
+        except AtelierSature:
+            break  # rendus saturés : on garde ce qui a déjà été créé plutôt que tout perdre
+        image_url = render_res.get("image")
+        if not image_url:
+            logger.warning(f"serie story ecran {i} rendu echoue, {telegram_id}")
+            continue
+        row = {
+            "telegram_id": telegram_id,
+            "titre": f"{titre_source[:100]} — écran {i + 1}/{n}" if titre_source else f"Story {i + 1}/{n}",
+            # Texte PROPRE à cet écran, jamais le post source verbatim : Late
+            # rejette un post dont le texte est identique à un post récent du
+            # même compte (garde-fou anti-doublon, voir _story_contenu ailleurs).
+            "contenu": (ecran["accroche"] + (f" — {ecran['sous']}" if ecran["sous"] else "")).strip(),
+            "lien_visuel": image_url,
+            "reseau_cible": reseau,
+            "type": "Story",
+            "statut": "A valider",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        if creneau_dt:
+            row["date_publication"] = (creneau_dt + timedelta(seconds=90 * i)).isoformat()
+        ins = supabase.table("contenu").insert(row).execute()
+        new_id = ins.data[0]["id"] if ins.data else None
+        if new_id:
+            ids.append(new_id)
+
+    manques = 4 - len(ids)
+    if manques > 0:
+        quota_service.refund({**q, "qty": manques})
+    if not ids:
+        return {"error": "Le rendu de la série a échoué, réessaie."}
+    quota_service.confirm({**q, "qty": len(ids)})
+    return {"ids": ids, "count": len(ids)}
 
 
 def _fit(text: str, base: int, seuils=((26, 1.0), (40, 0.82), (58, 0.66), (999, 0.54))) -> int:

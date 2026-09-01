@@ -216,6 +216,24 @@ async def decliner_story(contenu_id: str, body: dict = None, payload: dict = Dep
     return {"contenu_id": new_id, "date_publication": row.get("date_publication"), "lien_visuel": image_url}
 
 
+@router.post("/{contenu_id}/story-serie")
+async def decliner_story_serie(contenu_id: str, payload: dict = Depends(verify_token)):
+    """Découpe le post en 2-4 stories qui se lisent à la suite (un seul gabarit
+    texte/photo choisi par l'IA, partagé par tous les écrans), les crée « À
+    valider » d'un coup. Pas de dialog de retouche — un clic, comme "Générer un
+    reel animé" ; chaque écran reste éditable/régénérable individuellement via
+    les outils existants une fois créé."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
+    from services import story_service
+    res = await story_service.creer_serie_stories(telegram_id, contenu_id)
+    if res.get("error"):
+        raise HTTPException(status_code=402 if res.get("quota") else 500, detail=res["error"])
+    return res
+
+
 @router.post("/{contenu_id}/story-anime")
 async def decliner_story_animee(contenu_id: str, body: dict = None, payload: dict = Depends(verify_token)):
     """Crée une STORY ANIMÉE (Remotion, ~5s, gabarit « StoryAnime ») à partir du texte
