@@ -23,7 +23,15 @@ from services.agent_service import _messages_create
 # n'invente aucun détail. On utilise donc la SUPER-RÉSOLUTION IA de Cloudinary
 # (e_upscale), qui reconstruit une image ~2000px nette, puis un léger sharpen.
 # Chaque pose (11) n'est générée qu'une seule fois, puis servie par le CDN (cache 1 an).
-_BASE = "https://res.cloudinary.com/dy9gp5pim/image/upload/e_upscale/e_sharpen:30,q_auto:best,f_auto/brand/rico-v4"
+#
+# e_upscale (super-résolution IA) aplatit lui-même la transparence sur fond blanc
+# AVANT l'encodage — un simple f_png ne suffit pas, l'alpha est déjà perdu à ce
+# stade (vérifié pixel par pixel, pas juste au format du fichier). Il faut donc
+# redécouper Rico après l'upscale : e_background_removal (IA) rend un fond
+# transparent réel. f_png fige le format pour ne pas dépendre du Accept du
+# Chromium headless qui rend nos carrousels/stories (qui ne négocie pas comme un
+# vrai navigateur, d'où le JPEG opaque qu'on avait avant même ce fix).
+_BASE = "https://res.cloudinary.com/dy9gp5pim/image/upload/e_upscale/e_background_removal/e_sharpen:30,q_auto:best,f_png/brand/rico-v4"
 
 # id -> ce que la pose RACONTE. Ces phrases sont lues par l'IA : elles décrivent
 # l'intention, pas l'anatomie, car c'est l'intention qui doit coller au propos.
