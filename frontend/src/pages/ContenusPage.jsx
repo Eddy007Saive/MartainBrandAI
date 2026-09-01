@@ -303,7 +303,10 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
             className={`group/thumb relative overflow-hidden bg-[#0a1120] ${c.lien_visuel ? 'cursor-zoom-in' : ''}`}>
             {c.lien_visuel
               ? <>
-                  <img src={c.lien_visuel} alt="" className="w-full h-full object-cover group-hover/thumb:scale-[1.04] transition-transform" onError={(e) => { e.target.style.display = 'none'; }} />
+                  {/* Fond flouté en cover : les stories sont verticales (9:16), la cellule
+                      2x2 est large — object-cover seul coupait le haut/bas du cadrage. */}
+                  <img src={c.lien_visuel} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-40" />
+                  <img src={c.lien_visuel} alt="" className="relative w-full h-full object-contain group-hover/thumb:scale-[1.04] transition-transform" onError={(e) => { e.target.style.display = 'none'; }} />
                   <span className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/20 grid place-items-center opacity-0 group-hover/thumb:opacity-100 transition-all">
                     <ZoomIn className="w-4 h-4 text-white drop-shadow" />
                   </span>
