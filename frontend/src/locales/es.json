@@ -316,7 +316,12 @@
       "plusActions": "Más acciones",
       "declinerStory": "Convertir en story",
       "declinerStorySerie": "Convertir en serie de stories",
-      "recycler": "Reciclar en otras redes"
+      "recycler": "Reciclar en otras redes",
+      "nEcrans": "{{n}} pantallas",
+      "serieDesc": "Serie de stories — {{n}} pantallas para publicar juntas.",
+      "validerTout": "Aprobar las {{n}}",
+      "refuserTout": "Rechazar las {{n}}",
+      "supprimerTout": "Eliminar las {{n}}"
     },
     "reel": {
       "generer": "Generar un reel animado",
@@ -529,7 +534,8 @@
     },
     "suppression": {
       "titre": "¿Eliminar este contenido?",
-      "description": "Esta acción es irreversible. El contenido se eliminará definitivamente."
+      "description": "Esta acción es irreversible. El contenido se eliminará definitivamente.",
+      "descriptionSerie": "Esta acción es irreversible. Las {{n}} pantallas de esta story se eliminarán definitivamente."
     },
     "image": {
       "apercu": "Vista previa",

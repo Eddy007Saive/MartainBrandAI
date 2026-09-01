@@ -409,11 +409,24 @@ async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
             "reseau_cible": reseau,
             "type": "Story",
             "statut": "A valider",
+            # Relie les 2-4 lignes pour l'affichage groupé côté frontend (une
+            # carte, badge "N écrans") — réutilise l'id du post source, pas de
+            # nouvel UUID à générer. NULL pour tout contenu hors-série.
+            "serie_id": contenu_id,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         if creneau_dt:
             row["date_publication"] = (creneau_dt + timedelta(seconds=90 * i)).isoformat()
-        ins = supabase.table("contenu").insert(row).execute()
+        try:
+            ins = supabase.table("contenu").insert(row).execute()
+        except Exception as e:
+            # Colonne serie_id pas encore migree (migrations/serie_stories.sql) :
+            # on degrade proprement plutot que de perdre tout le rendu deja fait.
+            if any(m in str(e) for m in ("PGRST204", "42703", "does not exist", "schema cache")):
+                row.pop("serie_id", None)
+                ins = supabase.table("contenu").insert(row).execute()
+            else:
+                raise
         new_id = ins.data[0]["id"] if ins.data else None
         if new_id:
             ids.append(new_id)
@@ -424,7 +437,7 @@ async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
     if not ids:
         return {"error": "Le rendu de la série a échoué, réessaie."}
     quota_service.confirm({**q, "qty": len(ids)})
-    return {"ids": ids, "count": len(ids)}
+    return {"ids": ids, "count": len(ids), "serie_id": contenu_id}
 
 
 def _fit(text: str, base: int, seuils=((26, 1.0), (40, 0.82), (58, 0.66), (999, 0.54))) -> int:

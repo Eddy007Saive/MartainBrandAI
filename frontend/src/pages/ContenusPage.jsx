@@ -324,18 +324,18 @@ function SerieCard({ groupe, onView, onValiderSerie, onRefuserSerie, onDeleteSer
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
             {premier.statut === 'A valider' && (
-              <button title={t('contenus.carte.validerTout')} onClick={() => onValiderSerie(groupe)} disabled={isLoading}
+              <button title={t('contenus.carte.validerTout', { n: items.length })} onClick={() => onValiderSerie(groupe)} disabled={isLoading}
                 className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               </button>
             )}
             {premier.statut === 'A valider' && (
-              <button title={t('contenus.carte.refuserTout')} onClick={() => onRefuserSerie(groupe)} disabled={isLoading}
+              <button title={t('contenus.carte.refuserTout', { n: items.length })} onClick={() => onRefuserSerie(groupe)} disabled={isLoading}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08]">
                 <X className="w-4 h-4" />
               </button>
             )}
-            <button title={t('contenus.carte.supprimerTout')} onClick={() => onDeleteSerie(groupe)} disabled={isLoading}
+            <button title={t('contenus.carte.supprimerTout', { n: items.length })} onClick={() => onDeleteSerie(groupe)} disabled={isLoading}
               className="w-9 h-8 grid place-items-center text-slate-400 hover:text-red-300 hover:bg-red-500/10 transition-colors border-l border-white/[0.08] first:border-l-0">
               <Trash2 className="w-4 h-4" />
             </button>
@@ -383,6 +383,7 @@ export default function ContenusPage() {
   const [editContenu, setEditContenu] = useState(null);
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [serieActionLoading, setSerieActionLoading] = useState(null);
   const [carrouselLoading, setCarrouselLoading] = useState(null);
   const [publishLoading, setPublishLoading] = useState(null);
   const [lightbox, setLightbox] = useState(null); // { images:[], index:0 }
@@ -1194,6 +1195,20 @@ export default function ContenusPage() {
 
   const handleDelete = async () => {
     if (!deleteContenu) return;
+    if (deleteContenu.isGroup) {
+      setSerieActionLoading(deleteContenu.serie_id);
+      try {
+        for (const c of deleteContenu.items) await contenuService.remove(c.id);
+        toast.success(t('contenus.toast.contenuSupprime'));
+        fetchContenus();
+        setDeleteContenu(null);
+      } catch (error) {
+        toast.error(t('contenus.toast.suppressionErreur'));
+      } finally {
+        setSerieActionLoading(null);
+      }
+      return;
+    }
     setActionLoading(deleteContenu.id);
     try {
       await contenuService.remove(deleteContenu.id);
@@ -1204,6 +1219,30 @@ export default function ContenusPage() {
       toast.error(t('contenus.toast.suppressionErreur'));
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  // Actions de groupe (story en série) : boucle l'action mono-contenu sur
+  // chaque écran, un seul fetch récapitulatif à la fin plutôt que N.
+  const validerSerie = async (groupe) => {
+    setSerieActionLoading(groupe.serie_id);
+    try {
+      for (const c of groupe.items) await handleUpdateStatut(c.id, 'Valider', { skipFetch: true, skipToast: true });
+      toast.success(t('contenus.toast.valideProgramme'));
+      fetchContenus();
+    } finally {
+      setSerieActionLoading(null);
+    }
+  };
+
+  const refuserSerie = async (groupe) => {
+    setSerieActionLoading(groupe.serie_id);
+    try {
+      for (const c of groupe.items) await handleUpdateStatut(c.id, 'Refuse', { skipFetch: true, skipToast: true });
+      toast.success(t('contenus.toast.contenuRefuse'));
+      fetchContenus();
+    } finally {
+      setSerieActionLoading(null);
     }
   };
 
@@ -1369,26 +1408,38 @@ export default function ContenusPage() {
             <p className="text-xs text-slate-500 font-inter">{groupedContenus.length > 1 ? t('contenus.compteur.contenusPluriel', { n: groupedContenus.length }) : t('contenus.compteur.contenus', { n: groupedContenus.length })}{pageCount > 1 ? t('contenus.compteur.page', { page: pageSafe, total: pageCount }) : ''}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {pagedContenus.map((contenu) => (
-                <ContentCard
-                  key={contenu.id}
-                  contenu={contenu}
-                  onView={setSelectedContenu}
-                  onImage={openImage}
-                  onRegenCarrousel={regenererCarrousel}
-                  carrouselLoading={carrouselLoading}
-                  onEdit={setEditContenu}
-                  onDelete={setDeleteContenu}
-                  onValidate={(id) => handleUpdateStatut(id, 'Valider')}
-                  onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
-                  onRecycle={openRecycle}
-                  onStory={declinerEnStory}
-                  onStorySerie={declinerEnStorySerie}
-                  onRenderSlides={rendreSlidesEnImages}
-                  renderLoading={renderSlidesLoading}
-                  onReel={(c) => { setReelFor(c); setReelReco(null); contenuService.reelRecommander(c.id).then(setReelReco).catch(() => {}); }}
-                  reelLoading={reelLoading}
-                  actionLoading={actionLoading}
-                />
+                contenu.isGroup ? (
+                  <SerieCard
+                    key={contenu.serie_id}
+                    groupe={contenu}
+                    onView={setSelectedContenu}
+                    onValiderSerie={validerSerie}
+                    onRefuserSerie={refuserSerie}
+                    onDeleteSerie={setDeleteContenu}
+                    loading={serieActionLoading}
+                  />
+                ) : (
+                  <ContentCard
+                    key={contenu.id}
+                    contenu={contenu}
+                    onView={setSelectedContenu}
+                    onImage={openImage}
+                    onRegenCarrousel={regenererCarrousel}
+                    carrouselLoading={carrouselLoading}
+                    onEdit={setEditContenu}
+                    onDelete={setDeleteContenu}
+                    onValidate={(id) => handleUpdateStatut(id, 'Valider')}
+                    onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
+                    onRecycle={openRecycle}
+                    onStory={declinerEnStory}
+                    onStorySerie={declinerEnStorySerie}
+                    onRenderSlides={rendreSlidesEnImages}
+                    renderLoading={renderSlidesLoading}
+                    onReel={(c) => { setReelFor(c); setReelReco(null); contenuService.reelRecommander(c.id).then(setReelReco).catch(() => {}); }}
+                    reelLoading={reelLoading}
+                    actionLoading={actionLoading}
+                  />
+                )
               ))}
             </div>
             {pageCount > 1 && (
@@ -2146,7 +2197,7 @@ export default function ContenusPage() {
             <AlertDialogHeader>
               <AlertDialogTitle className="text-white font-sora">{t('contenus.suppression.titre')}</AlertDialogTitle>
               <AlertDialogDescription className="text-slate-400 font-inter">
-                {t('contenus.suppression.description')}
+                {deleteContenu?.isGroup ? t('contenus.suppression.descriptionSerie', { n: deleteContenu.items.length }) : t('contenus.suppression.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
