@@ -770,7 +770,7 @@ def image_prompt(body: dict, payload: dict = Depends(verify_token)):
     texte = (body.get("texte") or "").strip()
     if not texte:
         raise HTTPException(status_code=400, detail="texte requis")
-    res = image_service.generer_prompt(telegram_id, texte, body.get("reseau", "linkedin"))
+    res = image_service.generer_prompt(telegram_id, texte, body.get("reseau", "linkedin"), avec_photo=bool(body.get("avec_photo")))
     if res.get("error") == "no_api_key":
         raise HTTPException(status_code=500, detail="Clé API IA non configurée")
     # Sauvegarde immédiate du prompt sur le contenu -> on ne le régénère pas à la réouverture (anti-gaspillage)
@@ -829,6 +829,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     if not q.get("ok"):
         raise _refus(q)
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
+    integrate_refs = body.get("integrate_refs") if isinstance(body.get("integrate_refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
     # Story -> visuel vertical 9:16 (sinon 4:5 feed)
     ratio = "4:5"
@@ -840,7 +841,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         except Exception:
             pass
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio)
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio, integrate_refs=integrate_refs)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent image error: {e}")

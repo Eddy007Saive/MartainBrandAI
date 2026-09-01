@@ -567,6 +567,8 @@
       "aucuneImageInstructions": "No images. Add one to use in your instructions.",
       "utilisee": "In use",
       "nonUtilisee": "Not used",
+      "toujoursIntegrer": "Always use this image (e.g. your mascot) instead of just a style reference",
+      "toujoursIntegree": "Always used — click to switch back to style-only",
       "agrandir": "Enlarge",
       "selectionneImageNote": "Select an image, then tell the AI what to do with it in “Instructions” (e.g. “put it in the circle”).",
       "descriptionImage": "Image description",

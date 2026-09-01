@@ -110,6 +110,32 @@ def list_inspirations(telegram_id: str) -> list:
         return []
 
 
+def list_integrate_flags(telegram_id: str) -> list:
+    """URLs des inspirations marquées « à toujours intégrer littéralement » (ex. la mascotte),
+    par opposition aux inspirations de simple STYLE. Le marqueur vit dans le context Cloudinary
+    de l'asset (clé `integrate`), pas dans Supabase — pas de table dédiée pour un simple flag."""
+    try:
+        res = cloudinary.api.resources(
+            type="upload", prefix=f"inspirations/{telegram_id}/", max_results=30, context=True,
+        )
+        return [
+            r["secure_url"] for r in res.get("resources", [])
+            if r.get("secure_url") and (r.get("context", {}).get("custom", {}) or {}).get("integrate") == "1"
+        ]
+    except Exception as e:
+        logger.warning(f"list_integrate_flags error: {e}")
+        return []
+
+
+def set_integration(telegram_id: str, url: str, integrate: bool) -> None:
+    """Marque (ou démarque) une inspiration comme « à toujours intégrer ». Vérifie que l'asset
+    appartient bien à ce compte avant de le modifier."""
+    pid = _public_id_from_cloudinary_url(url or "")
+    if not pid or not pid.startswith(f"inspirations/{telegram_id}/"):
+        raise ValueError("image invalide")
+    cloudinary.api.update(pid, resource_type="image", context=f"integrate={1 if integrate else 0}")
+
+
 def add_inspiration(telegram_id: str, file_bytes: bytes) -> list:
     cloudinary.uploader.upload(
         file_bytes, resource_type="image", folder=f"inspirations/{telegram_id}",

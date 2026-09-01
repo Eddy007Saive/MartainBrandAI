@@ -567,6 +567,8 @@
       "aucuneImageInstructions": "Aucune image. Ajoute-en une à intégrer via tes instructions.",
       "utilisee": "Utilisée",
       "nonUtilisee": "Non utilisée",
+      "toujoursIntegrer": "Toujours intégrer cette image (ex. ta mascotte) au lieu d'un simple style",
+      "toujoursIntegree": "Toujours intégrée — clique pour repasser en simple style",
       "agrandir": "Agrandir",
       "selectionneImageNote": "Sélectionne une image, puis dis à l'IA quoi en faire dans « Instructions » (ex. « mets-la dans le cercle »).",
       "descriptionImage": "Description de l'image",

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download, ZoomIn, Layers } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download, ZoomIn, Layers, Pin } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -73,6 +73,25 @@ const PUBLISH_BADGE = {
 // Video types = scripts vidéo, le reste = posts
 const VIDEO_TYPES = ['Video', 'Reel', 'Short'];
 const isVideoType = (c) => VIDEO_TYPES.includes(c.type);
+
+// Regroupe les contenus qui partagent un serie_id (story en série, 2-4 écrans
+// liés) en un seul item { isGroup, serie_id, items }, pour un affichage en une
+// carte au lieu de N. Contenu hors-série (serie_id absent) passe inchangé.
+function grouperParSerie(liste) {
+  const parId = new Map();
+  const out = [];
+  for (const c of liste) {
+    if (!c.serie_id) { out.push(c); continue; }
+    let g = parId.get(c.serie_id);
+    if (!g) {
+      g = { isGroup: true, serie_id: c.serie_id, items: [] };
+      parId.set(c.serie_id, g);
+      out.push(g);
+    }
+    g.items.push(c);
+  }
+  return out;
+}
 
 const RESEAU_CONFIG = {
   'linkedin': { label: 'LinkedIn', color: 'from-blue-500 to-cyan-600', short: 'LI' },
@@ -254,6 +273,72 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Story en série (2-4 écrans liés par serie_id) : une carte groupée, chaque
+// vignette reste individuellement cliquable (ouvre le détail de CET écran),
+// et trois actions de groupe en pied de carte plutôt qu'un menu "..." par écran.
+function SerieCard({ groupe, onView, onValiderSerie, onRefuserSerie, onDeleteSerie, loading }) {
+  const { t } = useTranslation();
+  const items = groupe.items;
+  const premier = items[0];
+  const isLoading = loading === groupe.serie_id;
+  const titre = (premier.titre || '').replace(/ — écran \d+\/\d+$/, '');
+  const date = premier.date_publication
+    ? new Date(premier.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+    : new Date(premier.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+  return (
+    <div className="group flex flex-col rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden hover:border-white/[0.12] hover:bg-[#111c33] transition-all">
+      {/* Mini-grille des visuels : chaque vignette ouvre le détail de SON écran */}
+      <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden grid grid-cols-2 gap-px">
+        {items.slice(0, 4).map((c) => (
+          <button key={c.id} onClick={() => onView(c)} className="relative overflow-hidden bg-[#0a1120] cursor-pointer">
+            {c.lien_visuel
+              ? <img src={c.lien_visuel} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+              : <div className="absolute inset-0 grid place-items-center text-slate-700"><ImageIcon className="w-4 h-4" /></div>}
+          </button>
+        ))}
+        <span className="absolute top-2.5 left-2.5 pointer-events-none"><ReseauBadge reseau={premier.reseau_cible} /></span>
+        <span className="absolute top-2.5 right-2.5 pointer-events-none"><StatusBadge statut={premier.statut} /></span>
+        <span className="absolute bottom-2.5 left-2.5 pointer-events-none inline-flex items-center gap-1 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
+          <Layers className="w-3 h-3" />{t('contenus.carte.nEcrans', { n: items.length })}
+        </span>
+      </div>
+
+      {/* Corps */}
+      <div className="p-4 flex-1 flex flex-col">
+        <div className="text-left">
+          {titre && <h3 className="text-white font-semibold font-sora text-[13.5px] mb-1 line-clamp-1">{titre}</h3>}
+          <p className="text-slate-400 font-inter text-[12.5px] leading-relaxed line-clamp-3">{t('contenus.carte.serieDesc', { n: items.length })}</p>
+        </div>
+
+        <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]">
+          <span className="text-[11px] text-slate-500 font-inter mr-auto inline-flex items-center gap-1">
+            {premier.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
+          </span>
+          <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+            {premier.statut === 'A valider' && (
+              <button title={t('contenus.carte.validerTout')} onClick={() => onValiderSerie(groupe)} disabled={isLoading}
+                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors">
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              </button>
+            )}
+            {premier.statut === 'A valider' && (
+              <button title={t('contenus.carte.refuserTout')} onClick={() => onRefuserSerie(groupe)} disabled={isLoading}
+                className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08]">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <button title={t('contenus.carte.supprimerTout')} onClick={() => onDeleteSerie(groupe)} disabled={isLoading}
+              className="w-9 h-8 grid place-items-center text-slate-400 hover:text-red-300 hover:bg-red-500/10 transition-colors border-l border-white/[0.08] first:border-l-0">
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -578,6 +663,8 @@ export default function ContenusPage() {
   // Images de référence (style) choisies à la génération
   const [inspirations, setInspirations] = useState([]);
   const [selectedRefs, setSelectedRefs] = useState([]);
+  // Sous-ensemble des inspirations marquées "à toujours intégrer" (ex. la mascotte)
+  const [integrateUrls, setIntegrateUrls] = useState([]);
   const [refImporting, setRefImporting] = useState(false);
   const refInputRef = useRef(null);
   // Templates de marque
@@ -698,6 +785,18 @@ export default function ContenusPage() {
     setSelectedRefs((prev) => (prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]));
   };
 
+  // Marque/démarque une image comme "à toujours intégrer" (ex. la mascotte) plutôt que simple
+  // inspiration de style. Mise à jour optimiste, annulée si l'appel échoue.
+  const toggleIntegrate = (url, e) => {
+    e.stopPropagation();
+    const next = !integrateUrls.includes(url);
+    setIntegrateUrls((prev) => (next ? [...prev, url] : prev.filter((u) => u !== url)));
+    userService.setInspirationIntegration(url, next).catch(() => {
+      setIntegrateUrls((prev) => (next ? prev.filter((u) => u !== url) : [...prev, url]));
+      toast.error(t('contenus.toast.ajoutEchec'));
+    });
+  };
+
   const appliquerTemplate = (t) => {
     if (activeTemplate === t.id) { // re-clic → on retire le template
       setActiveTemplate(null); setStyleNote('');
@@ -728,13 +827,19 @@ export default function ContenusPage() {
     }
   };
 
-  const chargerPrompt = async (contenu) => {
+  // avecPhotoOverride : au premier chargement (depuis openImage), le toggle vient d'être remis à
+  // false mais React n'a pas encore propagé cette valeur — on la passe explicitement pour éviter
+  // de générer une description "avec humain" par erreur. Le bouton "Proposer une description"
+  // (dialogue déjà ouvert) n'a pas ce problème et laisse lire l'état courant.
+  const chargerPrompt = async (contenu, avecPhotoOverride) => {
+    const avecPhoto = avecPhotoOverride !== undefined ? avecPhotoOverride : imgAvecPhoto;
     setImgLoadingPrompt(true);
     try {
       const data = await agentService.imagePrompt(
         contenu.contenu || contenu.titre || '',
         String(contenu.reseau_cible || 'linkedin').toLowerCase(),
         contenu.id,
+        avecPhoto,
       );
       setImgPrompt(data.prompt || '');
       // mémorise le prompt (sauvegardé en base) pour ne pas le régénérer à la réouverture
@@ -759,15 +864,16 @@ export default function ContenusPage() {
       .then((d) => {
         const arr = Array.isArray(d) ? d : (d?.images || []);
         setInspirations(arr);
+        setIntegrateUrls(d?.integrate || []);
         setSelectedRefs([]);
       })
-      .catch(() => { setInspirations([]); setSelectedRefs([]); });
+      .catch(() => { setInspirations([]); setIntegrateUrls([]); setSelectedRefs([]); });
     templateService.list().then((d) => setTemplates(d || [])).catch(() => {});
     if (contenu.prompt_image) {
       setImgPrompt(contenu.prompt_image);           // déjà généré → on réutilise (zéro régénération)
     } else {
       setImgPrompt('');
-      if (!contenu.lien_visuel) chargerPrompt(contenu); // 1ʳᵉ fois seulement → on prépare la description
+      if (!contenu.lien_visuel) chargerPrompt(contenu, false); // 1ʳᵉ fois seulement → on prépare la description (photo toujours désactivée à l'ouverture)
     }
   };
 
@@ -779,7 +885,8 @@ export default function ContenusPage() {
       // En template : l'image du GABARIT part TOUJOURS en 1re position, suivie des refs choisies.
       const tplImgs = activeTemplate ? ((templates.find((t) => t.id === activeTemplate)?.images) || []) : [];
       const refsToSend = activeTemplate ? [...tplImgs, ...selectedRefs.filter((u) => !tplImgs.includes(u))] : selectedRefs;
-      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate);
+      const integrateToSend = selectedRefs.filter((u) => integrateUrls.includes(u));
+      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate, null, integrateToSend);
       if (data.credits != null) updateUser({ credits: data.credits });
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
@@ -972,11 +1079,14 @@ export default function ContenusPage() {
     );
   }, [activeContenus, searchQuery, filterStatut]);
 
+  // Story en série (2-4 écrans liés par serie_id) : une carte groupée au lieu de N.
+  const groupedContenus = useMemo(() => grouperParSerie(filteredContenus), [filteredContenus]);
+
   // Pagination
   const PAGE_SIZE = 12;
-  const pageCount = Math.max(1, Math.ceil(filteredContenus.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(groupedContenus.length / PAGE_SIZE));
   const pageSafe = Math.min(page, pageCount);
-  const pagedContenus = filteredContenus.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
+  const pagedContenus = groupedContenus.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
   useEffect(() => { setPage(1); }, [searchQuery, activeTab, filterStatut]);
 
   const [renderSlidesLoading, setRenderSlidesLoading] = useState(null);
@@ -1016,13 +1126,16 @@ export default function ContenusPage() {
     }
   };
 
-  const handleUpdateStatut = async (id, newStatut) => {
+  // opts.skipFetch/skipToast : utilisés en boucle pour une action de groupe
+  // (story en série) — un seul fetch + un seul toast récapitulatif après la
+  // boucle plutôt que N refetch et N toasts redondants.
+  const handleUpdateStatut = async (id, newStatut, opts = {}) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
       const reseau = (cible?.reseau_cible || '').toLowerCase();
       const plateforme = SOCIAL_PLATFORMS.find((p) => p.id === reseau);
       if (plateforme && !user?.[plateforme.field]) {
-        toast.error(t('contenus.toast.reseauNonConnecte', { reseau: plateforme.name }), { duration: 7000 });
+        if (!opts.skipToast) toast.error(t('contenus.toast.reseauNonConnecte', { reseau: plateforme.name }), { duration: 7000 });
         return;
       }
     }
@@ -1040,23 +1153,22 @@ export default function ContenusPage() {
           const patch = { statut: 'Valider', date_publication: data.date_publication, publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null };
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
           track('post_valide', { reseau: (contenus.find((c) => c.id === id)?.reseau_cible || '').toLowerCase() });
-          toast.success(datePlanif ? t('contenus.toast.valideProgrammeDate', { date: datePlanif }) : t('contenus.toast.valideProgramme'));
+          if (!opts.skipToast) toast.success(datePlanif ? t('contenus.toast.valideProgrammeDate', { date: datePlanif }) : t('contenus.toast.valideProgramme'));
         } catch (e) {
           const msg = e.response?.data?.detail || t('contenus.toast.valideProgrammationEchec');
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'Valider', date_publication: data.date_publication, publish_status: 'échec', publish_error: msg } : c)));
-          toast.error(msg, { duration: 7000 });
+          if (!opts.skipToast) toast.error(msg, { duration: 7000 });
         }
         setSelectedContenu(null);
-        fetchContenus();
+        if (!opts.skipFetch) fetchContenus();
         return;
       }
 
-      if (newStatut === 'Refuse') toast.success(t('contenus.toast.contenuRefuse'));
-      else toast.success(t('contenus.toast.contenuMisAJour'));
-      fetchContenus();
+      if (!opts.skipToast) { if (newStatut === 'Refuse') toast.success(t('contenus.toast.contenuRefuse')); else toast.success(t('contenus.toast.contenuMisAJour')); }
+      if (!opts.skipFetch) fetchContenus();
       setSelectedContenu(null);
     } catch (error) {
-      toast.error(t('contenus.toast.majErreur'));
+      if (!opts.skipToast) toast.error(t('contenus.toast.majErreur'));
     } finally {
       setActionLoading(null);
     }
@@ -1095,12 +1207,14 @@ export default function ContenusPage() {
     }
   };
 
+  // Comptes groupés (une story en série = 1, pas N) pour matcher ce que la grille affiche.
+  const groupedActive = grouperParSerie(activeContenus);
   const stats = {
-    total: activeContenus.length,
-    aValider: activeContenus.filter(c => c.statut === 'A valider').length,
-    valides: activeContenus.filter(c => c.statut === 'Valider').length,
-    planifies: activeContenus.filter(c => c.statut === 'Planifie').length,
-    publies: activeContenus.filter(c => c.statut === 'Publie').length,
+    total: groupedActive.length,
+    aValider: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'A valider').length,
+    valides: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Valider').length,
+    planifies: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Planifie').length,
+    publies: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Publie').length,
   };
 
   // Pastilles de filtre : le chiffre EST le filtre (remplace stats + menu deroulant)
@@ -1252,7 +1366,7 @@ export default function ContenusPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs text-slate-500 font-inter">{filteredContenus.length > 1 ? t('contenus.compteur.contenusPluriel', { n: filteredContenus.length }) : t('contenus.compteur.contenus', { n: filteredContenus.length })}{pageCount > 1 ? t('contenus.compteur.page', { page: pageSafe, total: pageCount }) : ''}</p>
+            <p className="text-xs text-slate-500 font-inter">{groupedContenus.length > 1 ? t('contenus.compteur.contenusPluriel', { n: groupedContenus.length }) : t('contenus.compteur.contenus', { n: groupedContenus.length })}{pageCount > 1 ? t('contenus.compteur.page', { page: pageSafe, total: pageCount }) : ''}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {pagedContenus.map((contenu) => (
                 <ContentCard
@@ -2300,11 +2414,17 @@ export default function ContenusPage() {
                             <div className="flex flex-wrap gap-2">
                               {inspirations.map((url) => {
                                 const on = selectedRefs.includes(url);
+                                const pinned = integrateUrls.includes(url);
                                 return (
                                   <div key={url} onClick={() => toggleRef(url)} title={on ? t('contenus.image.utilisee') : t('contenus.image.nonUtilisee')}
                                     className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
                                     <img src={url} alt="" className="w-full h-full object-cover" />
                                     {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                                    <button type="button" onClick={(e) => toggleIntegrate(url, e)}
+                                      title={pinned ? t('contenus.image.toujoursIntegree') : t('contenus.image.toujoursIntegrer')}
+                                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded grid place-items-center transition-opacity ${pinned ? 'bg-[#5B6CFF] text-white opacity-100' : 'bg-black/70 text-white opacity-0 group-hover:opacity-100'}`}>
+                                      <Pin className="w-2.5 h-2.5" fill={pinned ? 'currentColor' : 'none'} />
+                                    </button>
                                     <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title={t('contenus.image.agrandir')}
                                       className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                       <Search className="w-2.5 h-2.5" />

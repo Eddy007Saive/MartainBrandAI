@@ -202,7 +202,30 @@ def list_inspirations(payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
-    return {"images": user_service.list_inspirations(telegram_id)}
+    return {
+        "images": user_service.list_inspirations(telegram_id),
+        "integrate": user_service.list_integrate_flags(telegram_id),
+    }
+
+
+@router.post("/me/inspirations/integrate")
+def set_inspiration_integration(body: dict, payload: dict = Depends(verify_token)):
+    """Marque/démarque une inspiration comme « à toujours intégrer littéralement » (ex. la mascotte)
+    plutôt que comme simple référence de style."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    url = (body.get("url") or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="url requise")
+    try:
+        user_service.set_integration(telegram_id, url, bool(body.get("integrate")))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="image invalide")
+    except Exception as e:
+        logger.error(f"set_integration error: {e}")
+        raise HTTPException(status_code=500, detail="Échec de la mise à jour")
+    return {"ok": True}
 
 
 @router.post("/me/inspirations")

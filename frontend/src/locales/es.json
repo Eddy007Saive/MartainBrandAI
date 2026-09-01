@@ -567,6 +567,8 @@
       "aucuneImageInstructions": "Ninguna imagen. Añade una para integrarla con tus instrucciones.",
       "utilisee": "En uso",
       "nonUtilisee": "Sin usar",
+      "toujoursIntegrer": "Usar siempre esta imagen (ej. tu mascota) en vez de solo el estilo",
+      "toujoursIntegree": "Siempre usada — haz clic para volver a solo estilo",
       "agrandir": "Ampliar",
       "selectionneImageNote": "Selecciona una imagen y dile a la IA qué hacer con ella en «Instrucciones» (ej. «ponla en el círculo»).",
       "descriptionImage": "Descripción de la imagen",
