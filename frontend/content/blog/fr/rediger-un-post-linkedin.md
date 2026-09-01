@@ -179,6 +179,33 @@ Vous pouvez avoir un excellent contenu et rater votre publication pour des raiso
 
 ---
 
+## Un exemple concret : le même sujet, deux versions
+
+Prenons un cas courant - un anniversaire d'entreprise. Deux façons de l'annoncer, avec la même information de départ. La différence explique à elle seule pourquoi certains posts stagnent à 8 likes et d'autres génèrent des dizaines de commentaires.
+
+> ❌ **Version classique**
+>
+> *"Nous sommes fiers d'annoncer que notre entreprise fête ses 10 ans cette année. C'est grâce à nos équipes, nos clients et nos partenaires que nous avons pu grandir avec succès. Merci à tous pour votre confiance."*
+>
+> Résultat probable : quelques likes de collègues, une portée limitée à votre réseau proche.
+
+> ✅ **Version hook / corps / CTA**
+>
+> *"Il y a 10 ans, j'ai signé mon premier contrat dans ma voiture, garée devant le bureau du client.*
+>
+> *Pas de bureau. Pas d'équipe. Juste une promesse : livrer ce que j'avais vendu.*
+>
+> *Aujourd'hui, voici les 3 choses que j'aurais voulu savoir avant de me lancer :*
+> *- Recruter vite coûte cher. Recruter bien prend du temps. Les deux sont vrais.*
+> *- Le premier client apprend plus qu'aucune formation.*
+> *- La trésorerie, c'est l'oxygène. Tout le reste, c'est du confort.*
+>
+> *Qu'est-ce que vous auriez voulu savoir avant de vous lancer ?"*
+
+Même sujet, même entreprise. Mais la seconde version a un hook (une scène précise, pas une annonce), un corps qui apporte une leçon réutilisable, et un CTA qui invite à répondre. C'est la structure - pas le sujet - qui fait la différence de portée.
+
+---
+
 ## Combien de temps faut-il pour rédiger un bon post LinkedIn ?
 
 La réalité : **45 minutes à 1h30 pour un post de qualité**, de l'idée à la publication.
