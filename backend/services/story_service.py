@@ -16,7 +16,7 @@ import json
 import cloudinary
 import cloudinary.uploader
 from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, CLAUDE_API_KEY, logger
-from services.agent_service import _charger_marque, _messages_create
+from services.agent_service import _charger_marque, _messages_create, REGLES_ANTI_IA
 # On réutilise tels quels les utilitaires du carrousel : contraste, couleurs, échappement,
 # lockup de marque, application des polices, et l'atelier de rendu (sémaphore partagée).
 from services.carrousel_service import (
@@ -40,6 +40,8 @@ TEMPLATES = [
     {"id": "photo",     "label": "Photo",     "hint": "Visuel plein cadre, texte en surimpression","image": True},
     {"id": "photo-flou","label": "Photo (entière)","hint": "Visuel entier + fond flouté, aucune bande vide","image": True},
     {"id": "split",     "label": "Photo + bloc","hint": "Visuel en haut, texte à la charte en bas","image": True},
+    {"id": "liste",     "label": "Liste",     "hint": "Jusqu'à 4 points clés + CTA",              "image": False},
+    {"id": "citation",  "label": "Citation",  "hint": "Grande citation extraite + attribution",   "image": False},
     {"id": "rico",      "label": "Rico",      "hint": "La mascotte Postorico, fond clair de marque","image": False, "rico": True},
     {"id": "signature", "label": "Signature", "hint": "Riche : Rico, 3 arguments, CTA (maison)","image": False, "rico": True},
 ]
@@ -139,6 +141,7 @@ def texte_story_ia(telegram_id: str, contenu: dict) -> dict:
             "- cta : appel à l'action bref adapté à une story (ex. « Réponds en DM », « Écris-moi VOIX »).\n"
             f"Voix de marque : {u.get('voix_marque') or '—'}. Secteur : {u.get('secteur') or '—'}.\n"
             'Réponds STRICTEMENT en JSON : {"accroche": "...", "sous": "...", "cta": "..."}.'
+            + REGLES_ANTI_IA
         )
         resp = _messages_create(
             model="claude-haiku-4-5", max_tokens=300, system=system,
@@ -161,6 +164,101 @@ def texte_story_ia(telegram_id: str, contenu: dict) -> dict:
     except Exception as e:
         logger.warning(f"texte story IA {telegram_id}: {e}")
         return base
+
+
+# Gabarits proposables au choix automatique de l'IA : les génériques (texte, photo,
+# liste, citation), jamais « rico »/« signature » — la mascotte reste un choix
+# explicite du compte (pose + droit d'accès), pas une décision de contenu.
+_CANDIDATS_IA = {"epure", "sombre", "editorial", "bloc", "photo", "photo-flou", "split", "liste", "citation"}
+
+
+def choisir_story_ia(telegram_id: str, contenu: dict) -> dict:
+    """Laisse l'IA choisir le GABARIT le plus adapté au contenu (pas seulement le texte) :
+    une liste de points reste une liste, une punchline devient une citation, un post
+    avec visuel peut devenir un plein cadre. Retombe sur le choix par défaut actuel
+    (photo-flou si visuel sinon épuré) si l'IA est indisponible ou hors clous."""
+    a_un_visuel = bool(contenu.get("lien_visuel"))
+    defaut_id = "photo-flou" if a_un_visuel else "epure"
+    base = parts_depuis_contenu(contenu)
+    base_out = {**base, "template": defaut_id, "points": None}
+    post = ((contenu.get("titre") or "") + "\n\n" + (contenu.get("contenu") or "")).strip()
+    if not CLAUDE_API_KEY or not post:
+        return base_out
+    try:
+        candidats = [t for t in modeles_pour(telegram_id, a_un_visuel)
+                     if t["id"] in _CANDIDATS_IA]
+        if not candidats:
+            return base_out
+        catalogue = "\n".join(f"- {t['id']} : {t['hint']}" for t in candidats)
+        u = _charger_marque(telegram_id)
+        system = (
+            "Tu prépares une story Instagram/Facebook (9:16) à partir d'un post existant. "
+            "Deux décisions : quel GABARIT convient le mieux à ce contenu, et le texte qui va dedans.\n\n"
+            f"Gabarits disponibles :\n{catalogue}\n\n"
+            "Le gabarit texte/photo classique (epure, sombre, editorial, bloc, photo, photo-flou, split) "
+            "est le choix PAR DÉFAUT — c'est lui qui convient à un post qui développe UNE idée, "
+            "un raisonnement, une anecdote ou un script de Reel, même s'il mentionne plusieurs éléments "
+            "au passage. C'est le cas la plupart du temps.\n"
+            "N'utilise 'liste' QUE si le post énumère déjà, explicitement et structurellement, 2 à 4 "
+            "éléments séparés du même ordre (des étapes numérotées, une checklist, des options qu'on "
+            "compare). Ne découpe JAMAIS un paragraphe continu ou un raisonnement en puces artificielles "
+            "pour remplir le gabarit 'liste' — si tu dois inventer des titres de puces qui ne sont pas "
+            "déjà des unités séparées dans le post, ce n'est PAS une liste, choisis un gabarit texte.\n"
+            "N'utilise 'citation' QUE si UNE phrase du post, prise telle quelle mot pour mot, fonctionne "
+            "seule sortie de son contexte comme une punchline complète (pas une phrase tronquée ou "
+            "réécrite).\n\n"
+            "Réponds STRICTEMENT en JSON, dont les clés dépendent du gabarit choisi :\n"
+            '- texte/photo (epure, sombre, editorial, bloc, photo, photo-flou, split) : '
+            '{"template":"...", "accroche":"4 à 8 mots, sans guillemets", '
+            '"sous":"UNE phrase de 8 à 14 mots ou chaîne vide", "cta":"appel à l\'action bref"}\n'
+            '- liste : {"template":"liste", "accroche":"4 à 8 mots", '
+            '"points":[{"titre":"2 à 4 mots","desc":"5 à 9 mots MAX, jamais une phrase complète"}, '
+            '... 2 à 4 items], "cta":"appel à l\'action bref"} — desc est un fragment, pas une phrase : '
+            'la carte est petite, un texte trop long déborde et casse le rendu.\n'
+            '- citation : {"template":"citation", "accroche":"la citation elle-même, mot pour mot, '
+            'telle qu\'écrite dans le post", "sous":"attribution courte (ex. « Extrait du post »)"}\n'
+            f"Voix de marque : {u.get('voix_marque') or '—'}. Secteur : {u.get('secteur') or '—'}."
+            + REGLES_ANTI_IA
+        )
+        resp = _messages_create(
+            model="claude-haiku-4-5", max_tokens=500, system=system,
+            messages=[{"role": "user", "content": f"Post :\n\n{post}\n\nChoisis le gabarit et écris le texte."}],
+        )
+        brut = "".join(b.text for b in resp.content if b.type == "text").strip()
+        m = re.search(r"\{.*\}", brut, re.S)
+        data = json.loads(m.group(0) if m else brut)
+        tpl = (data.get("template") or "").strip().lower()
+        if tpl not in {t["id"] for t in candidats}:
+            tpl = defaut_id
+        acc = (data.get("accroche") or "").strip().strip('"').strip() or base["accroche"]
+        sous = (data.get("sous") or "").strip()
+        cta = (data.get("cta") or "").strip()
+        points = None
+        if tpl == "liste":
+            bruts = data.get("points") if isinstance(data.get("points"), list) else []
+            # Garde-fou dur (au cas où le modèle dépasse la consigne) : la carte est petite,
+            # un fragment trop long déborde de sa zone fixe plutôt que d'être tronqué proprement.
+            def _court(t, n):
+                t = (t or "").strip()
+                return t if len(t) <= n else t[:n - 1].rstrip() + "…"
+            points = [{"titre": _court(p.get("titre"), 28), "desc": _court(p.get("desc"), 48)}
+                      for p in bruts if isinstance(p, dict) and (p.get("titre") or "").strip()][:4]
+            if len(points) < 2:
+                tpl = defaut_id  # pas assez de points valides : retombe sur un gabarit texte
+                points = None
+        if sous and tpl != "citation" and len(sous.split()) < 4:
+            sous = ""
+        return {
+            "template": tpl,
+            "accroche": acc,
+            "sous": sous or (base["sous"] if tpl == defaut_id else ""),
+            "cta": cta or base["cta"] or "Réponds en DM 👉",
+            "points": points,
+            "image": contenu.get("lien_visuel") or None,
+        }
+    except Exception as e:
+        logger.warning(f"choix story IA {telegram_id}: {e}")
+        return base_out
 
 
 def _fit(text: str, base: int, seuils=((26, 1.0), (40, 0.82), (58, 0.66), (999, 0.54))) -> int:
@@ -414,6 +512,65 @@ def _tpl_split(c, p, s, a, nom, secteur, logo):
 
 
 # =============================================================================
+# Modèle « Liste » — accroche + jusqu'à 4 points (icône numérotée/titre/desc) + CTA
+# =============================================================================
+def _tpl_liste(c, p, s, a, nom, secteur, logo):
+    P_ = p or "#003D2E"; S_ = s or "#8A6CFF"; A_ = a or "#3AFFA3"; Aink = _ink_on(A_)
+    BG1 = _mix(S_, "#050409", .86); BG2 = "#050409"
+    INK = "#ffffff"; MUT = "rgba(255,255,255,.66)"; LINE = "rgba(255,255,255,.10)"
+    marque = (f'<img src="{logo}" style="height:26px;width:auto;display:block" alt="">' if logo
+              else f'<span style="width:28px;height:28px;border-radius:8px;background:{A_};color:{Aink};display:grid;place-items:center;font-weight:800;font-family:Sora">{_esc((nom or "?")[:1].upper())}</span>')
+    points = (c.get("points") or [])[:4]
+    head = '<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">'
+    rows = []
+    for i, pt in enumerate(points):
+        div = f'<div style="height:1px;background:{LINE};margin:13px 0"></div>' if i else ""
+        rows.append(
+            f'{div}<div style="display:flex;align-items:flex-start;gap:13px">'
+            f'<span style="flex:0 0 auto;width:36px;height:36px;border-radius:10px;background:{_mix(A_,BG2,.82)};'
+            f'border:1px solid {_mix(A_,BG2,.45)};display:grid;place-items:center;font-family:Sora;font-weight:800;'
+            f'font-size:13px;color:{A_}">{i+1}</span>'
+            f'<div><div style="font-family:Sora;font-weight:700;font-size:16px;color:{INK};line-height:1.25">{_accentuer(pt.get("titre"), A_)}</div>'
+            f'<div style="font-size:13px;color:{MUT};margin-top:3px;line-height:1.4">{_esc(pt.get("desc"))}</div></div></div>')
+    cta = (f'<span style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;background:{A_};color:{Aink};'
+           f'font-family:Sora;font-weight:800;font-size:15px;padding:13px 22px;border-radius:30px;margin-top:24px">{_esc(c.get("cta"))} →</span>') if c.get("cta") else ""
+    css = f'''<style>*{{box-sizing:border-box;margin:0}} body{{margin:0;font-family:Inter,sans-serif}}
+  .story{{width:{STORY_W}px;height:{STORY_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;
+    padding:56px 36px 60px;background:linear-gradient(160deg,{BG1},{BG2});color:{INK}}}
+  .story::after{{content:"";position:absolute;left:-100px;bottom:-100px;width:300px;height:300px;border-radius:50%;
+    background:radial-gradient(circle,{_mix(A_,BG2,.3)},transparent 70%);opacity:.45;pointer-events:none}}
+  .brand{{position:relative;z-index:3;display:flex;align-items:center;gap:9px;font-family:Sora;font-weight:800;font-size:15px;color:{INK}}}
+  h1{{position:relative;z-index:3;font-family:Sora;font-weight:800;line-height:1.08;letter-spacing:-.4px;margin-top:22px}}
+  .card{{position:relative;z-index:3;margin-top:26px;border:1px solid {LINE};border-radius:16px;background:rgba(255,255,255,.035);padding:18px 18px}}
+</style>'''
+    body = (f'<div class="story"><div class="brand">{marque}<span>{_esc(nom or "Story")}</span></div>'
+            f'<h1 style="font-size:{_fit(c["accroche"],36)}px">{_esc(c["accroche"])}</h1>'
+            f'<div class="card">{"".join(rows)}</div>{cta}</div>')
+    return _doc(head, css, body)
+
+
+# =============================================================================
+# Modèle « Citation » — grand guillemet décoratif + citation + attribution
+# =============================================================================
+def _tpl_citation(c, p, s, a, nom, secteur, logo):
+    P_ = p or "#003D2E"; A_ = a or "#3AFFA3"
+    BG = _near(P_ or "#0b1020"); INK = "#ffffff"; MUT = "rgba(255,255,255,.62)"
+    head = '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">'
+    css = f'''<style>*{{box-sizing:border-box;margin:0}} body{{margin:0;font-family:Inter,sans-serif}}
+  .story{{width:{STORY_W}px;height:{STORY_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;
+    justify-content:center;padding:70px 44px;background:{BG};color:{INK}}}
+  .mark{{font-family:Fraunces;font-weight:600;font-size:96px;line-height:.5;color:{A_};opacity:.9;margin-bottom:6px}}
+  blockquote{{font-family:Fraunces;font-weight:500;font-style:italic;line-height:1.24;letter-spacing:-.2px;margin:0}}
+  .rule{{width:38px;height:3px;border-radius:3px;background:{A_};margin:24px 0 14px}}
+  .attrib{{font-size:13.5px;color:{MUT};font-weight:500}}
+</style>'''
+    body = (f'<div class="story"><div class="mark">&ldquo;</div>'
+            f'<blockquote style="font-size:{_fit(c["accroche"],34)}px">{_esc(c["accroche"])}</blockquote>'
+            f'<div class="rule"></div><div class="attrib">{_esc(c.get("sous"))}</div></div>')
+    return _doc(head, css, body)
+
+
+# =============================================================================
 # Modèle « Rico » — MAISON : la mascotte Postorico détourée, fond clair de marque,
 # accroche à gauche, Rico à droite. Réservé aux comptes qui utilisent la mascotte.
 # =============================================================================
@@ -549,7 +706,7 @@ def _tpl_signature(c, p, s, a, nom, secteur, logo):
 
 _FN = {"epure": _tpl_epure, "sombre": _tpl_sombre, "editorial": _tpl_editorial, "bloc": _tpl_bloc,
        "photo": _tpl_photo, "photo-flou": _tpl_photo_flou, "split": _tpl_split, "rico": _tpl_rico,
-       "signature": _tpl_signature}
+       "signature": _tpl_signature, "liste": _tpl_liste, "citation": _tpl_citation}
 
 
 def build_story_html(content: dict, p, s, a, nom, secteur, template="epure", logo=None) -> str:

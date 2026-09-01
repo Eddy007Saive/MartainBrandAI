@@ -17,6 +17,7 @@ LABELS = {
     "image_pro": "images HD",
     "carousel": "carrousels",
     "video": "vidéos",
+    "story": "stories",
 }
 
 
