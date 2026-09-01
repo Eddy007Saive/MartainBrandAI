@@ -318,7 +318,7 @@
       "declinerStorySerie": "Turn into a story series",
       "recycler": "Recycle to other networks",
       "nEcrans": "{{n}} screens",
-      "serieDesc": "Story series — {{n}} screens to publish together.",
+      "serieDesc": "{{n}} screens to publish together.",
       "validerTout": "Approve all {{n}}",
       "refuserTout": "Reject all {{n}}",
       "supprimerTout": "Delete all {{n}}"
