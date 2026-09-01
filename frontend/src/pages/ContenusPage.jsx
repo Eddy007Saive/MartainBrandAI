@@ -283,9 +283,10 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
 // Story en série (2-4 écrans liés par serie_id) : une carte groupée, chaque
 // vignette reste individuellement cliquable (ouvre le détail de CET écran),
 // et trois actions de groupe en pied de carte plutôt qu'un menu "..." par écran.
-function SerieCard({ groupe, onView, onValiderSerie, onRefuserSerie, onDeleteSerie, loading }) {
+function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDeleteSerie, loading }) {
   const { t } = useTranslation();
   const items = groupe.items;
+  const images = items.map((c) => c.lien_visuel).filter(Boolean);
   const premier = items[0];
   const isLoading = loading === groupe.serie_id;
   const titre = (premier.titre || '').replace(/ — écran \d+\/\d+$/, '');
@@ -298,9 +299,15 @@ function SerieCard({ groupe, onView, onValiderSerie, onRefuserSerie, onDeleteSer
       {/* Mini-grille des visuels : chaque vignette ouvre le détail de SON écran */}
       <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden grid grid-cols-2 gap-px">
         {items.slice(0, 4).map((c) => (
-          <button key={c.id} onClick={() => onView(c)} className="relative overflow-hidden bg-[#0a1120] cursor-pointer">
+          <button key={c.id} onClick={() => c.lien_visuel && onEnlarge(images, images.indexOf(c.lien_visuel))}
+            className={`group/thumb relative overflow-hidden bg-[#0a1120] ${c.lien_visuel ? 'cursor-zoom-in' : ''}`}>
             {c.lien_visuel
-              ? <img src={c.lien_visuel} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+              ? <>
+                  <img src={c.lien_visuel} alt="" className="w-full h-full object-cover group-hover/thumb:scale-[1.04] transition-transform" onError={(e) => { e.target.style.display = 'none'; }} />
+                  <span className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/20 grid place-items-center opacity-0 group-hover/thumb:opacity-100 transition-all">
+                    <ZoomIn className="w-4 h-4 text-white drop-shadow" />
+                  </span>
+                </>
               : <div className="absolute inset-0 grid place-items-center text-slate-700"><ImageIcon className="w-4 h-4" /></div>}
           </button>
         ))}
@@ -1412,7 +1419,7 @@ export default function ContenusPage() {
                   <SerieCard
                     key={contenu.serie_id}
                     groupe={contenu}
-                    onView={setSelectedContenu}
+                    onEnlarge={(images, index) => setLightbox({ images, index: Math.max(0, index) })}
                     onValiderSerie={validerSerie}
                     onRefuserSerie={refuserSerie}
                     onDeleteSerie={setDeleteContenu}
