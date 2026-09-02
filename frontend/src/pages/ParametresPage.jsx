@@ -1424,7 +1424,7 @@ export default function ParametresPage() {
           <div className={`flex items-center gap-3 px-4 py-3 rounded-lg ${avatarStatusConfig.bg}`}>
             <avatarStatusConfig.icon className={`w-4 h-4 ${avatarStatusConfig.color} ${avatar.status === 'in_progress' ? 'animate-spin' : ''}`} />
             <span className={`text-sm font-medium font-inter ${avatarStatusConfig.color}`}>{t(avatarStatusConfig.labelKey)}</span>
-            {avatar.avatar_name && <span className="text-slate-400 font-inter text-sm">— {avatar.avatar_name}</span>}
+            {avatar.avatar_name && <span className="text-slate-400 font-inter text-sm">· {avatar.avatar_name}</span>}
           </div>
 
           {/* Pending info */}

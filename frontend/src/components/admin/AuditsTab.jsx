@@ -49,7 +49,7 @@ export default function AuditsTab() {
     try {
       const full = await adminService.getAudit(id);
       setSelected(full);
-      setSubject(`Ton audit de marque — ${full.marque || 'Postorico'}`);
+      setSubject(`Ton audit de marque : ${full.marque || 'Postorico'}`);
       setMessage('');
     } catch (e) {
       toast.error('Impossible de charger cet audit');

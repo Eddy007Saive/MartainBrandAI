@@ -84,7 +84,7 @@ export const LEGAL = {
   adresse: '[ADRESSE POSTALE]',
   email: 'martindumoulin88@gmail.com',
   directeur: '[DIRECTEUR DE LA PUBLICATION]',
-  hebergeur: 'Railway (Railway Corp., 548 Market St, San Francisco, CA, USA) — frontend/back-end ; Supabase (bases de données)',
+  hebergeur: 'Railway (Railway Corp., 548 Market St, San Francisco, CA, USA) : frontend/back-end ; Supabase (bases de données)',
   maj: '24 juin 2026',
 };
 

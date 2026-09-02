@@ -46,7 +46,7 @@ export default function HeroPreview() {
             <img
               key={s.src}
               src={s.src}
-              alt={`Postorico — ${s.label}`}
+              alt={`Postorico : ${s.label}`}
               loading={idx === 0 ? 'eager' : 'lazy'}
               style={{
                 position: 'absolute', inset: 0, width: '100%', height: '100%',

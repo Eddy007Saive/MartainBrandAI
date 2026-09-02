@@ -51,7 +51,7 @@ export default function BlocFacturation({ telegramId }) {
       const r = await adminService.demarrerAbonnement(telegramId);
       toast.success(r.status === 'active'
         ? 'Abonnement démarré, premier paiement encaissé.'
-        : `Abonnement créé — statut « ${r.status} ».`);
+        : `Abonnement créé, statut « ${r.status} ».`);
       await lire();
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Déclenchement impossible.');
@@ -117,8 +117,8 @@ export default function BlocFacturation({ telegramId }) {
           ) : (
             <p className="text-[12px] text-slate-600 font-inter leading-relaxed">
               Aucune carte à débiter. Ce client n'a pas réglé son Pack par
-              Stripe, ou l'a fait avant que les cartes soient conservées —
-              envoie-lui un lien d'abonnement.
+              Stripe, ou l'a fait avant que les cartes soient conservées.
+              Envoie-lui un lien d'abonnement.
             </p>
           )}
         </>

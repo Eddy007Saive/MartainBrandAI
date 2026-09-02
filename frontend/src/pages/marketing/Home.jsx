@@ -20,9 +20,9 @@ const PAINS = [
 ];
 const GAINS = [
   'L’IA génère des sujets et des posts calibrés sur ta marque.',
-  'Tu valides en un clic — rien ne se publie sans ton feu vert.',
-  'Une fois validés, la programmation est automatique — la régularité sans y penser.',
-  'Tes vraies stats sous les yeux — tu sais enfin ce qui marche.',
+  'Tu valides en un clic. Rien ne se publie sans ton feu vert.',
+  'Une fois validés, la programmation est automatique : la régularité sans y penser.',
+  'Tes vraies stats sous les yeux. Tu sais enfin ce qui marche.',
 ];
 
 // Comparatif « Plutôt que… » — chaque option et ses attributs
@@ -41,15 +41,15 @@ const ICONS = {
 };
 // « Pour qui » par SITUATION (pas par secteur)
 const AUDIENCE = [
-  ['clock', '« Je n’ai pas le temps »', 'Tu fais tourner ta boîte, pas un studio de contenu. Postorico prend le relais — tu gardes la main, sans y passer tes journées.'],
+  ['clock', '« Je n’ai pas le temps »', 'Tu fais tourner ta boîte, pas un studio de contenu. Postorico prend le relais. Tu gardes la main, sans y passer tes journées.'],
   ['hands', '« Je délègue… et je croise les doigts »', 'Fini le quitte ou double du stagiaire. L’IA produit dans ta voix, tu valides en un clic. Régulier, sur marque, à chaque fois.'],
   ['building', '« Je paie une agence »', 'Même régularité, sans forfait limité ni facture à 2 000 €. Publie autant que tu veux, sur tous tes réseaux. Tu reprends le contrôle.'],
 ];
 
 const SETUP = [
   ['On étudie ta boîte', 'Positionnement, offres, cibles, ton de marque, concurrents. Un vrai audit, pas un formulaire.'],
-  ['On construit ton système', 'Lignes éditoriales, angles, calendrier, calibrage de l’IA sur ta voix — et des propositions concrètes de posts et formats vidéo à ton image.'],
-  ['Tu pilotes — en ~2 h/mois', 'Le système est prêt : tu génères tes sujets, tu valides, tu produis tes visuels et vidéos, tu programmes. C’est ton contenu, ta voix, tes validations — rien ne sort sans toi.'],
+  ['On construit ton système', 'Lignes éditoriales, angles, calendrier, calibrage de l’IA sur ta voix, et des propositions concrètes de posts et formats vidéo à ton image.'],
+  ['Tu pilotes, en ~2 h/mois', 'Le système est prêt : tu génères tes sujets, tu valides, tu produis tes visuels et vidéos, tu programmes. C’est ton contenu, ta voix, tes validations. Rien ne sort sans toi.'],
 ];
 
 // Témoignages VIDÉO clients (hébergés Cloudinary — q_auto pour le streaming adaptatif).
@@ -111,7 +111,7 @@ export default function Home() {
       <header className="hero"><div className="wrap">
         <span className="pill"><span className="dot" />Installé par des experts · Piloté par toi</span>
         <h1>On installe ton système marketing.<br /><span className="g">Tu le pilotes en 2 h par mois.</span></h1>
-        <p className="sub">Nos experts étudient ton entreprise, ton positionnement et ton ton de marque, puis bâtissent ton studio de contenu sur-mesure — calibré sur ta voix. Ensuite, c’est toi aux commandes : tu génères tes posts et visuels sur LinkedIn, Instagram, Facebook, TikTok &amp; YouTube, tu valides, tu publies. La régularité d’une agence, le contrôle total, sans la facture mensuelle.</p>
+        <p className="sub">Nos experts étudient ton entreprise, ton positionnement et ton ton de marque, puis bâtissent ton studio de contenu sur-mesure, calibré sur ta voix. Ensuite, c’est toi aux commandes : tu génères tes posts et visuels sur LinkedIn, Instagram, Facebook, TikTok &amp; YouTube, tu valides, tu publies. La régularité d’une agence, le contrôle total, sans la facture mensuelle.</p>
         <div className="cta-row">
           <a className="btn btn-grad" {...propsRdv()}>Réserve ton call de setup →</a>
           <Link className="btn btn-soft" to="/register">Créer mon compte</Link>
@@ -187,7 +187,7 @@ export default function Home() {
         </div>
         <div className="roles">
           <b>On installe. Tu pilotes.</b>
-          <p><b>Nous :</b> on étudie ta marque, on paramètre tout, on crée tes modèles de visuels. — <b>Toi :</b> ~2 h par mois pour générer, valider et publier. Tu gardes le contrôle, on porte la complexité.</p>
+          <p><b>Nous :</b> on étudie ta marque, on paramètre tout, on crée tes modèles de visuels. <b>Toi :</b> ~2 h par mois pour générer, valider et publier. Tu gardes le contrôle, on porte la complexité.</p>
         </div>
         <div className="cta-row center" style={{ marginTop: 32 }}>
           <a className="btn btn-grad" {...propsRdv()}>Réserve ton call de setup →</a>
@@ -222,7 +222,7 @@ export default function Home() {
       {/* Édité par GoodTime */}
       <section style={{ paddingTop: 0 }}><div className="wrap">
         <div className="gtband">
-          <span className="gt-t">Postorico est un produit <b>{GOODTIME.name}</b> — l’équipe derrière l’OS de la location courte durée. On construit des outils qui font gagner du temps aux pros.</span>
+          <span className="gt-t">Postorico est un produit <b>{GOODTIME.name}</b>, l’équipe derrière l’OS de la location courte durée. On construit des outils qui font gagner du temps aux pros.</span>
           <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">Découvrir GoodTime ↗</a>
         </div>
       </div></section>

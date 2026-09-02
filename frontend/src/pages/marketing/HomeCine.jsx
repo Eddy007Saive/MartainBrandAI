@@ -101,7 +101,7 @@ const SCENES = [
 function SceneCap({ scene }) {
   const { t } = useTranslation();
   return (
-    <><b>{t(scene.labelKey)}</b> — <em>{t(scene.tagKey)}</em> · {t(scene.descKey)}</>
+    <><b>{t(scene.labelKey)}</b> : <em>{t(scene.tagKey)}</em> · {t(scene.descKey)}</>
   );
 }
 

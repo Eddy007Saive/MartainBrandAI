@@ -337,7 +337,7 @@ export default function PlanificationPage() {
         }}
         onClick={(e) => { if (justDragged.current) return; e.stopPropagation(); openContenu(c); }}
         role="button" tabIndex={0}
-        title={`${c.titre || ''}${pub ? ` · ${t(`planif.${pub.labelKey}`)}` : ''} — ${t('planif.glisseReplanifier')}`}
+        title={`${c.titre || ''}${pub ? ` · ${t(`planif.${pub.labelKey}`)}` : ''} · ${t('planif.glisseReplanifier')}`}
         className="w-full flex flex-col gap-1 px-1.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] transition-colors text-left cursor-grab active:cursor-grabbing"
       >
         <div className="flex items-center gap-1.5">
