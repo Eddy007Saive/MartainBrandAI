@@ -68,8 +68,10 @@ api.interceptors.response.use(
       const message = (typeof brut === 'object' ? brut?.message : brut) || 'Génération indisponible.';
       if (error.response?.data) error.response.data.detail = message;
 
-      if (raison === 'no_subscription' || raison === 'expired') {
-        window.dispatchEvent(new CustomEvent('postorico:mur-paiement', { detail: { message } }));
+      if (raison === 'no_subscription' || raison === 'canceled' || raison === 'expired') {
+        // canceled : ex-abonné (résilié / paiement définitivement en échec) — le mur
+        // affiche un message différent (pas de nouvel essai gratuit promis).
+        window.dispatchEvent(new CustomEvent('postorico:mur-paiement', { detail: { message, raison } }));
       } else {
         toast.error(message, {
           action: { label: 'Voir mon offre', onClick: () => { window.location.href = '/dashboard/parametres?s=abonnement'; } },

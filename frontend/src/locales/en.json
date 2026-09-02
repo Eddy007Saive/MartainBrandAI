@@ -2484,7 +2484,16 @@
     "g2": "The first payment happens on day 15, not before.",
     "g3": "Cancel any time, in one click from Settings.",
     "cta": "Start my 14 days",
-    "stripe": "Secure payment by Stripe. We never see your card number."
+    "stripe": "Secure payment by Stripe. We never see your card number.",
+    "retour": {
+      "surTitre": "Pick up where you left off",
+      "titre": "Reactivate your subscription",
+      "texte": "Your previous subscription has ended. Resubscribe to resume generating, scheduling and auto-publishing.",
+      "g1": "Billed immediately, no new free trial.",
+      "g2": "Your setup, brand voice and templates are kept.",
+      "g3": "Cancel any time, in one click from Settings.",
+      "cta": "Reactivate my subscription"
+    }
   },
   "resil": {
     "fermer": "Close",

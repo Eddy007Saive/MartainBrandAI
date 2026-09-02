@@ -19,9 +19,10 @@ import { billingService } from '../services/billingService';
  * différents, et il en existera d'autres. Un seul point d'écoute évite d'avoir
  * à s'en souvenir à chaque nouvelle fonctionnalité.
  */
-// « presente-cote » : la mascotte présente le bouton, comme sur la connexion.
+// « accueille » : distincte de la pose « presente-cote » déjà utilisée sur l'écran
+// de connexion (AfficheAuth) — éviter la répétition d'image entre les deux écrans.
 const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_420,q_auto,f_auto/'
-           + 'brand/rico-v4/presente-cote.png';
+           + 'brand/rico-v4/accueille.png';
 
 const Garantie = ({ icone: Icone, children }) => (
   <li className="flex items-start gap-2.5 text-[13.5px] text-slate-400 font-inter">
@@ -34,10 +35,14 @@ export default function MurPaiement() {
   const { t } = useTranslation();
   const [ouvert, setOuvert] = useState(false);
   const [envoi, setEnvoi] = useState(false);
+  // ex-abonné (résilié / paiement en échec définitif) : a_deja_eu_un_abonnement()
+  // lui bloque déjà tout nouvel essai gratuit côté checkout — lui promettre
+  // « 14 jours gratuits » comme au premier écran serait faux.
+  const [retour, setRetour] = useState(false);
   const boutonRef = useRef(null);
 
   useEffect(() => {
-    const surRefus = () => setOuvert(true);
+    const surRefus = (e) => { setRetour(e.detail?.raison === 'canceled'); setOuvert(true); };
     window.addEventListener('postorico:mur-paiement', surRefus);
     return () => window.removeEventListener('postorico:mur-paiement', surRefus);
   }, []);
@@ -95,23 +100,23 @@ export default function MurPaiement() {
             <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase
                              tracking-[0.11em] text-[#3AFFA3] font-inter">
               <span className="w-[5px] h-[5px] rounded-full bg-[#3AFFA3]" />
-              {t('mur.surTitre')}
+              {t(retour ? 'mur.retour.surTitre' : 'mur.surTitre')}
             </span>
 
             <h2 id="mur-titre" className="mt-3 font-sora text-[23px] sm:text-[27px] font-bold
                                           leading-[1.16] tracking-[-0.5px] text-white">
-              {t('mur.titre')}
+              {t(retour ? 'mur.retour.titre' : 'mur.titre')}
             </h2>
             <p className="mt-2.5 max-w-[46ch] text-[14px] leading-[1.62] text-slate-400 font-inter">
-              {t('mur.texte')}
+              {t(retour ? 'mur.retour.texte' : 'mur.texte')}
             </p>
 
             {/* Les trois garanties sont à côté du bouton, pas en petits
                 caractères : c'est exactement là que se prend la décision. */}
             <ul className="mt-5 space-y-2.5">
-              <Garantie icone={Ban}>{t('mur.g1')}</Garantie>
-              <Garantie icone={CalendarClock}>{t('mur.g2')}</Garantie>
-              <Garantie icone={ShieldCheck}>{t('mur.g3')}</Garantie>
+              <Garantie icone={retour ? CreditCard : Ban}>{t(retour ? 'mur.retour.g1' : 'mur.g1')}</Garantie>
+              <Garantie icone={CalendarClock}>{t(retour ? 'mur.retour.g2' : 'mur.g2')}</Garantie>
+              <Garantie icone={ShieldCheck}>{t(retour ? 'mur.retour.g3' : 'mur.g3')}</Garantie>
             </ul>
 
             <button ref={boutonRef} onClick={demarrer} disabled={envoi}
@@ -125,7 +130,7 @@ export default function MurPaiement() {
                          transition-[transform,filter,box-shadow] duration-150 ease-out-strong">
               {envoi ? <Loader2 className="w-[18px] h-[18px] animate-spin" />
                      : <CreditCard className="w-[18px] h-[18px]" />}
-              {t('mur.cta')}
+              {t(retour ? 'mur.retour.cta' : 'mur.cta')}
             </button>
 
             <p className="mt-3 text-[12.5px] text-slate-600 font-inter">{t('mur.stripe')}</p>
