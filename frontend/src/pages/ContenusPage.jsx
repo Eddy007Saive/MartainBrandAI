@@ -248,7 +248,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                     <Edit2 className="w-4 h-4 opacity-70" />{t('contenus.carte.modifierTexte')}
                   </DropdownMenuItem>
                 )}
-                {!isCarrousel && !isVideo && (
+                {!isCarrousel && !isVideo && contenu.type !== 'Story' && (
                   <DropdownMenuItem onClick={() => onReel(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
                     <Clapperboard className="w-4 h-4 opacity-70" />{t('contenus.reel.generer')}
                   </DropdownMenuItem>
