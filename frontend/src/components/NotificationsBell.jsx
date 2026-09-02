@@ -1,7 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { Bell, Volume2, VolumeX } from 'lucide-react';
 import { notificationService } from '../services/notificationService';
+
+const CLE_SON = 'postorico_notif_son';
+
+// Petit carillon (deux notes, ~0,3 s) synthétisé avec la Web Audio API : aucun
+// fichier à charger, et ça reste discret. Le navigateur peut refuser de jouer un
+// son avant la première interaction sur la page : on échoue alors en silence.
+function carillon() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const notes = [[660, 0], [880, 0.14]];
+    notes.forEach(([freq, depart]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t0 = ctx.currentTime + depart;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.25);
+    });
+    setTimeout(() => { try { ctx.close(); } catch (e) { /* ignore */ } }, 600);
+  } catch (e) { /* autoplay bloqué ou API absente : pas de son, pas d'erreur */ }
+}
 
 const EVENT_DOT = {
   'post.published': 'bg-emerald-400',
@@ -32,17 +60,38 @@ export default function NotificationsBell() {
     navigate('/dashboard/contenus');
   };
 
+  // Son à l'arrivée d'une nouvelle notification (activé par défaut, mémorisé).
+  const [son, setSon] = useState(() => {
+    try { return localStorage.getItem(CLE_SON) !== '0'; } catch (e) { return true; }
+  });
+  const sonRef = useRef(son);
+  sonRef.current = son;
+  const nonLuesPrec = useRef(null); // null = premier chargement, on ne sonne pas
+
+  const basculerSon = (e) => {
+    e.stopPropagation();
+    const v = !son;
+    setSon(v);
+    try { localStorage.setItem(CLE_SON, v ? '1' : '0'); } catch (err) { /* ignore */ }
+    if (v) carillon(); // aperçu immédiat
+  };
+
   const load = async () => {
     try {
       const d = await notificationService.list();
+      const nonLues = d.unread || 0;
       setItems(d.items || []);
-      setUnread(d.unread || 0);
+      setUnread(nonLues);
+      // Une (ou plusieurs) nouvelle(s) non lue(s) depuis le dernier passage -> carillon.
+      if (nonLuesPrec.current !== null && nonLues > nonLuesPrec.current && sonRef.current) carillon();
+      nonLuesPrec.current = nonLues;
     } catch (e) { /* silencieux */ }
   };
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 60000);
+    // 20 s (au lieu de 60) : un rendu qui se termine doit sonner sans attendre.
+    const t = setInterval(load, 20000);
     return () => clearInterval(t);
   }, []);
 
@@ -77,7 +126,14 @@ export default function NotificationsBell() {
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-80 max-h-[26rem] overflow-y-auto rounded-xl border border-white/10 bg-[#0b1322] shadow-2xl z-[60] p-2">
-          <div className="px-2 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Notifications</div>
+          <div className="flex items-center justify-between px-2 py-1.5">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Notifications</span>
+            <button type="button" onClick={basculerSon} data-testid="notif-son"
+              title={son ? 'Son activé : cliquer pour couper' : 'Son coupé : cliquer pour activer'}
+              className="w-7 h-7 rounded-md grid place-items-center text-slate-500 hover:text-white hover:bg-white/[0.06] transition-colors">
+              {son ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+            </button>
+          </div>
           {items.length === 0 ? (
             <p className="text-sm text-slate-500 px-2 py-8 text-center font-inter">Aucune notification</p>
           ) : items.map((n) => (
