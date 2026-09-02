@@ -2468,7 +2468,16 @@
     "g2": "El primer cobro se hace el día 15, no antes.",
     "g3": "Cancelable cuando quieras, con un clic desde Ajustes.",
     "cta": "Empezar mis 14 días",
-    "stripe": "Pago seguro con Stripe. Nunca vemos tu número de tarjeta."
+    "stripe": "Pago seguro con Stripe. Nunca vemos tu número de tarjeta.",
+    "retour": {
+      "surTitre": "Retoma donde lo dejaste",
+      "titre": "Reactiva tu suscripción",
+      "texte": "Tu suscripción anterior ha terminado. Vuelve a suscribirte para retomar la generación, programación y publicación automática.",
+      "g1": "Cobro inmediato, sin nuevo periodo de prueba gratuito.",
+      "g2": "Tu configuración, tono de marca y plantillas se conservan.",
+      "g3": "Cancelable cuando quieras, con un clic desde Ajustes.",
+      "cta": "Reactivar mi suscripción"
+    }
   },
   "resil": {
     "fermer": "Cerrar",

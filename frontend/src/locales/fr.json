@@ -2468,7 +2468,16 @@
     "g2": "Le premier prélèvement a lieu le 15e jour, pas avant.",
     "g3": "Résiliable à tout moment, en un clic depuis Paramètres.",
     "cta": "Démarrer mes 14 jours",
-    "stripe": "Paiement sécurisé par Stripe. Nous ne voyons jamais votre numéro de carte."
+    "stripe": "Paiement sécurisé par Stripe. Nous ne voyons jamais votre numéro de carte.",
+    "retour": {
+      "surTitre": "Reprends où tu t'es arrêté",
+      "titre": "Réactive ton abonnement",
+      "texte": "Ton abonnement précédent est terminé. Réabonne-toi pour reprendre la génération, la programmation et la publication automatique.",
+      "g1": "Facturation immédiate, pas de nouvel essai gratuit.",
+      "g2": "Ta configuration, ton ton de marque et tes gabarits sont conservés.",
+      "g3": "Résiliable à tout moment, en un clic depuis Paramètres.",
+      "cta": "Réactiver mon abonnement"
+    }
   },
   "resil": {
     "fermer": "Fermer",

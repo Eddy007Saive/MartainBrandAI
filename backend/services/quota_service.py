@@ -93,20 +93,31 @@ def statut_abonnement(telegram_id: str) -> str | None:
         return None
 
 
+def _raison_sans_abonnement(telegram_id: str) -> tuple[str, str]:
+    """Un compte sans abonnement actif tombe dans deux cas bien différents :
+    jamais abonné (on lui propose l'essai gratuit) ou déjà résilié (il a déjà
+    consommé son essai — a_deja_eu_un_abonnement() l'empêche d'en reprendre un,
+    donc lui promettre « 14 jours gratuits » serait faux). Le raison distinct
+    permet au mur de paiement d'afficher le bon message et le bon CTA."""
+    from services.billing_service import a_deja_eu_un_abonnement
+    if a_deja_eu_un_abonnement(telegram_id):
+        return "canceled", "Réactive ton abonnement pour continuer."
+    return "no_subscription", "Ajoute ta carte pour lancer tes 14 jours d'essai."
+
+
 def exiger_abonnement(telegram_id: str) -> None:
     """Mur de paiement PARTAGE : un compte SANS aucun abonnement ne peut lancer
-    aucune action qui produit ou consomme. Lève un 402 { raison: no_subscription }
-    que l'intercepteur du front transforme en popup (mur de paiement).
+    aucune action qui produit ou consomme. Lève un 402 { raison, message } que
+    l'intercepteur du front transforme en popup (mur de paiement) — raison vaut
+    no_subscription (jamais abonné) ou canceled (ex-abonné, plus d'essai offert).
 
     Un compte en essai (trialing), actif ou past_due passe : il a déjà donné sa
     carte. À poser en tête de tout nouvel endpoint qui produit/consomme, pour que
     TOUTES les actions ressortent le même popup — pas seulement « Générer »."""
     if statut_abonnement(telegram_id) is None:
         from fastapi import HTTPException
-        raise HTTPException(status_code=402, detail={
-            "raison": "no_subscription",
-            "message": "Ajoute ta carte pour lancer tes 14 jours d'essai.",
-        })
+        raison, message = _raison_sans_abonnement(telegram_id)
+        raise HTTPException(status_code=402, detail={"raison": raison, "message": message})
 
 
 def reseaux_autorises(telegram_id: str) -> int | None:
@@ -156,6 +167,11 @@ def _message(action_type: str, reason: str, limit=None) -> str:
         # libre-service. Lui dire « ton essai est termine » est faux et
         # decourageant — il n'a rien commence.
         return "Ajoute ta carte pour lancer tes 14 jours d'essai."
+    if reason == "canceled":
+        # Ex-abonne (resilie/echec de paiement abandonne) : a_deja_eu_un_abonnement()
+        # lui bloque deja tout nouvel essai gratuit cote checkout, donc lui promettre
+        # « 14 jours gratuits » ici serait faux.
+        return "Réactive ton abonnement pour continuer."
     if reason == "expired":
         return "Ton essai est terminé. Passe à l'offre Pro pour continuer."
     if reason == "not_in_plan":
@@ -202,6 +218,10 @@ def consume(telegram_id: str, action_type: str, qty: int = 1) -> dict:
     data["action_type"] = action_type
     data["qty"] = qty
     if not data.get("ok"):
+        # La RPC ne distingue pas jamais-abonne / ex-abonne (elle ne voit que
+        # l'absence d'abonnement actif) — affine ici, meme logique que exiger_abonnement().
+        if data.get("reason") == "no_subscription":
+            data["reason"], _ = _raison_sans_abonnement(telegram_id)
         data["message"] = _message(action_type, data.get("reason"), data.get("limit"))
     return data
 
