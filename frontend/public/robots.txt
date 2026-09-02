@@ -64,5 +64,9 @@ Disallow: /register
 Disallow: /pending
 Disallow: /forgot-password
 Disallow: /reset-password
+# Page de démarchage envoyée en lien direct : rien à indexer ni à citer.
+Disallow: /pourquoi
+Disallow: /en/pourquoi
+Disallow: /es/pourquoi
 
 Sitemap: https://postorico.com/sitemap.xml

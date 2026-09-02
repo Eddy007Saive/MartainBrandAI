@@ -35,6 +35,7 @@ export const PAGES_PUBLIQUES = [
 export const PAGES_TRADUITES = [
   ...PAGES_PUBLIQUES,
   '/login', '/register', '/pending', '/forgot-password', '/reset-password',
+  '/pourquoi',
 ];
 
 /** Extrait la langue d'un chemin. `/es/tarifs` -> 'es' ; `/tarifs` -> 'fr'. */
