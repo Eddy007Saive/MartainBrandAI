@@ -375,7 +375,7 @@
         "etape1": "The AI is writing the script…",
         "etape2": "Rendering the video, shot by shot…",
         "etape3": "Final touches and upload…",
-        "note": "About 2 minutes. Stay on this page, your reel will appear in Contents once ready.",
+        "note": "Rendering happens in the background: you can leave this page, we'll notify you when your reel is ready.",
         "pillReel": "Reel in progress",
         "pillCarrousel": "Carousel in progress",
         "pillSlides": "Slides in progress"
@@ -392,8 +392,7 @@
       "longDesc": "Hook → context → full-screen proof → quoted takeaway → CTA."
     },
     "toast": {
-      "reelEnCours": "Generating the “{{label}}” reel (~{{min}} min)…",
-      "reelGenere": "Reel generated 🎬. It's now “To review”",
+      "reelEnFile": "Reel rendering (~2 min) 🎬, we'll notify you when it's ready",
       "reelEchec": "Reel generation failed",
       "recycleOk": "Post recycled to {{n}} network ♻️. The copies are “To review”",
       "recycleOkPluriel": "Post recycled to {{n}} networks ♻️. The copies are “To review”",

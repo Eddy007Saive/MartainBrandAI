@@ -375,7 +375,7 @@
         "etape1": "La IA escribe el guion…",
         "etape2": "Renderizando el vídeo, plano a plano…",
         "etape3": "Últimos ajustes y subida…",
-        "note": "Unos 2 minutos. Quédate en esta página, tu reel aparecerá en Contenidos en cuanto esté listo.",
+        "note": "El renderizado se hace en segundo plano: puedes salir de la página, te avisaremos cuando tu reel esté listo.",
         "pillReel": "Reel en fabricación",
         "pillCarrousel": "Carrusel en fabricación",
         "pillSlides": "Slides en fabricación"
@@ -392,8 +392,7 @@
       "longDesc": "Gancho → contexto → pruebas a pantalla completa → lección en cita → CTA."
     },
     "toast": {
-      "reelEnCours": "Generando el reel «{{label}}» (~{{min}} min)…",
-      "reelGenere": "Reel generado 🎬, está «Por validar»",
+      "reelEnFile": "Reel en renderizado (~2 min) 🎬, te avisaremos cuando esté listo",
       "reelEchec": "Error al generar el reel",
       "recycleOk": "Post reciclado en {{n}} red ♻️, las copias están «Por validar»",
       "recycleOkPluriel": "Post reciclado en {{n}} redes ♻️, las copias están «Por validar»",

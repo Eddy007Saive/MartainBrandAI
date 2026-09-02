@@ -13,6 +13,8 @@ const EVENT_DOT = {
   // Rendus en arrière-plan (stories animées)
   'story.anime.ready': 'bg-emerald-400',
   'story.anime.echec': 'bg-red-400',
+  'reel.ready': 'bg-emerald-400',
+  'reel.echec': 'bg-red-400',
 };
 
 export default function NotificationsBell() {

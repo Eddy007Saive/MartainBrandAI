@@ -579,7 +579,6 @@ export default function ContenusPage() {
     if (seqLibre && !seqBrief.trim()) { toast.error(t('contenus.reel.seq.briefRequis')); return; }
     setSeqFor(null);
     setReelLoading(contenu.id);
-    toast.info(t('contenus.toast.reelEnCours', { label: 'Séquence', min: 2 }));
     seqStopPreview();
     const payload = {
       images: seqImages.map((i) => ({ url: i.url, desc: i.desc || null })),
@@ -590,14 +589,14 @@ export default function ContenusPage() {
       if (seqLibre) {
         await contenuService.creerReel({ ...payload, reseau: seqReseau, style: seqStyle });
       } else if (seqRegen) {
-        const d = await contenuService.regenererReel(contenu.id, { ...payload, style: seqStyle });
-        const patch = { video_url: d.video_url, video_preview_url: d.video_preview_url, lien_visuel: d.video_preview_url };
-        setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
+        // Re-rendu en arrière-plan : la ligne passe en « Rendu en cours » (video_url
+        // vidée le temps du rendu), l'ancienne vidéo est restaurée si ça échoue.
+        await contenuService.regenererReel(contenu.id, { ...payload, style: seqStyle });
         delete seqCache.current[contenu.id];
       } else {
         await contenuService.genererReel(contenu.id, 'sequence', { ...payload, style: seqStyle });
       }
-      toast.success(t('contenus.toast.reelGenere'));
+      toast.success(t('contenus.toast.reelEnFile'));
       fetchContenus();
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));
@@ -609,11 +608,11 @@ export default function ContenusPage() {
     if (reelLoading) return;
     setReelFor(null);
     setReelLoading(contenu.id);
-    const tpl = reelTemplates.find((x) => x.id === duree);
-    toast.info(t('contenus.toast.reelEnCours', { label: tpl?.label || t('contenus.reelTpl.afficheLabel'), min: (tpl?.duree || 11) > 15 ? 2 : 1 }));
     try {
+      // Réponse immédiate : la ligne « Reel » apparaît en « Rendu en cours », le
+      // worker rend en arrière-plan et la liste se rafraîchit seule (poll).
       await contenuService.genererReel(contenu.id, duree);
-      toast.success(t('contenus.toast.reelGenere'));
+      toast.success(t('contenus.toast.reelEnFile'));
       fetchContenus();
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));
@@ -1121,6 +1120,18 @@ export default function ContenusPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rendusEnCours]);
 
+  // La dialog de détail garde un instantané : quand la liste se rafraîchit (poll
+  // pendant un rendu, régénération), on la réaligne sur la ligne fraîche — le
+  // spinner « rendu en cours » devient la vidéo sans avoir à fermer/rouvrir.
+  useEffect(() => {
+    if (!selectedContenu) return;
+    const frais = contenus.find((c) => c.id === selectedContenu.id);
+    if (frais && (frais.video_status !== selectedContenu.video_status || frais.video_url !== selectedContenu.video_url)) {
+      setSelectedContenu(frais);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contenus]);
+
   const scripts = useMemo(() => contenus.filter(c => isVideoType(c) && !c.lien_video_dropbox), [contenus]);
   const videos = useMemo(() => contenus.filter(c => isVideoType(c) && !!c.lien_video_dropbox), [contenus]);
   const stories = useMemo(() => contenus.filter(c => c.type === 'Story'), [contenus]);
@@ -1570,7 +1581,7 @@ export default function ContenusPage() {
                       <video src={selectedContenu.video_url} controls className="w-full max-h-[70vh] rounded-xl bg-black object-contain" poster={selectedContenu.lien_visuel || undefined} />
                       {selectedContenu.type === 'Reel' && selectedContenu.reel_data && selectedContenu.statut === 'A valider' && (
                         <button type="button" onClick={() => openSequenceRegen(selectedContenu)} data-testid="reel-modifier"
-                          disabled={reelLoading === selectedContenu.id}
+                          disabled={reelLoading === selectedContenu.id || selectedContenu.video_status === 'en_traitement'}
                           className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-3.5 py-2.5 rounded-[10px] transition-colors active:scale-[0.98] disabled:opacity-50">
                           {reelLoading === selectedContenu.id ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.modifier')}
                         </button>

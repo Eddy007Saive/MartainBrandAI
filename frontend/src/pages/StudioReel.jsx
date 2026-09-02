@@ -94,14 +94,15 @@ export default function StudioReel() {
     if (!brief.trim()) { toast.error(t('contenus.reel.seq.briefRequis')); return; }
     stopPreview();
     setGenerating(true);
-    toast.info(t('contenus.toast.reelEnCours', { label: 'Séquence', min: 2 }));
     try {
+      // Réponse immédiate : le rendu se fait en arrière-plan (worker), la carte
+      // « Rendu en cours » prend le relais dans Contenus, puis une notification.
       await contenuService.creerReel({
         brief: brief.trim(),
         images: images.map((i) => ({ url: i.url, desc: i.desc || null })),
         reseau, style, musique,
       });
-      toast.success(t('contenus.toast.reelGenere'));
+      toast.success(t('contenus.toast.reelEnFile'));
       navigate('/dashboard/contenus');
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));

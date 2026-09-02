@@ -27,8 +27,9 @@ export const contenuService = {
   // Recycle un post vers d'autres réseaux (une copie par réseau, créneau propre)
   recycler: (id, reseaux) => api.post(`/contenus/${id}/recycler`, { reseaux }).then(r => r.data),
 
-  // Génère un reel animé à la charte (Remotion) — rendu long : timeout large
-  genererReel: (id, template = 'affiche', extra = {}) => api.post('/reels/generer', { contenu_id: id, template, ...extra }, { timeout: 300000 }).then(r => r.data),
+  // Génère un reel animé à la charte (Remotion). Le rendu se fait en arrière-plan
+  // (worker) : la réponse est immédiate ({id, video_status: 'en_traitement'}).
+  genererReel: (id, template = 'affiche', extra = {}) => api.post('/reels/generer', { contenu_id: id, template, ...extra }).then(r => r.data),
   // Séquence : visuels choisis par le client + banque de la marque
   reelUploadImage: (file) => {
     const form = new FormData();
@@ -51,8 +52,8 @@ export const contenuService = {
   reelMusiqueSupprimer: (id) => api.delete(`/reels/musique/${id}`).then(r => r.data),
   reelMusiqueDecouper: (id, debut_s, duree_s) =>
     api.patch(`/reels/musique/${id}`, { debut_s, duree_s }).then(r => r.data),
-  regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }, { timeout: 300000 }).then(r => r.data),
-  creerReel: (extra = {}) => api.post('/reels/creer', extra, { timeout: 300000 }).then(r => r.data),
+  regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }).then(r => r.data),
+  creerReel: (extra = {}) => api.post('/reels/creer', extra).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data),   // {templates, musiques, categories}
   reelRecommander: (id) => api.get(`/reels/recommander/${id}`).then(r => r.data),
 
