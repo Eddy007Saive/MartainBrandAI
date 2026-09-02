@@ -68,8 +68,11 @@ export const contenuService = {
   storyOptions: (id) => api.get(`/contenus/${id}/story/options`).then(r => r.data),
   storyApercu: (id, body) => api.post(`/contenus/${id}/story/apercu`, body).then(r => r.data),
   storyCreer: (id, body) => api.post(`/contenus/${id}/story`, body).then(r => r.data),
-  // Story animée (Remotion, ~1-2 min) — même timeout long que les Reels
-  storyAnimee: (id, body) => api.post(`/contenus/${id}/story-anime`, body, { timeout: 300000 }).then(r => r.data),
-  // Story en série (2-4 écrans, un clic) — découpe IA + 2-4 rendus Playwright, sous la minute
-  storySerie: (id) => api.post(`/contenus/${id}/story-serie`).then(r => r.data),
+  // Story animée (Remotion) : la ligne est créée tout de suite, le rendu se fait en
+  // arrière-plan (worker) — la réponse est immédiate, plus de timeout long.
+  storyAnimee: (id, body) => api.post(`/contenus/${id}/story-anime`, body).then(r => r.data),
+  // Story en série depuis un carrousel : les écrans édités dans le dialog
+  // {template, colors, anime, ecrans:[{accroche, sous, cta, image_source}]}.
+  // Statique : jusqu'à 6 rendus Playwright dans la requête -> timeout large.
+  storySerie: (id, body) => api.post(`/contenus/${id}/story-serie`, body, { timeout: 180000 }).then(r => r.data),
 };

@@ -141,7 +141,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onStorySerie, dejaDecline, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, dejaDecline, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
   const { t } = useTranslation();
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
@@ -191,6 +191,21 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
         {contenu.type === 'Story' && (
           <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
             {t('contenus.carte.story24h')}
+          </span>
+        )}
+        {/* Rendu vidéo en arrière-plan (story animée / reel) : la carte le montre, pas
+            seulement le dialog de détail. */}
+        {contenu.video_status === 'en_traitement' && (
+          <div className="absolute inset-0 grid place-items-center bg-black/45 backdrop-blur-[1px]">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold font-inter bg-[#0f172a]/90 text-[#a5b0ff] border border-[#5B6CFF]/40">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />{t('contenus.carte.renduEnCours')}
+            </span>
+          </div>
+        )}
+        {contenu.video_status === 'echec' && (
+          <span className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium font-inter bg-red-500/15 text-red-400 border border-red-500/25"
+            title={contenu.render_job?.erreur || ''}>
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400" />{t('contenus.carte.renduEchoue')}
           </span>
         )}
       </div>
@@ -253,20 +268,16 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                     <Clapperboard className="w-4 h-4 opacity-70" />{t('contenus.reel.generer')}
                   </DropdownMenuItem>
                 )}
+                {/* Un seul bouton : le format suit le contenu (post -> story unique,
+                    carrousel -> série narrative), choisi côté serveur dans le dialog. */}
                 {!isVideo && contenu.type !== 'Story'
                   && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
-                  <>
-                    <DropdownMenuItem onClick={() => !dejaDecline && onStory(contenu)} disabled={dejaDecline}
-                      title={dejaDecline ? t('contenus.carte.dejaDecline') : undefined}
-                      className="gap-2.5 focus:bg-white/[0.07]">
-                      <Sparkles className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStory')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => !dejaDecline && onStorySerie(contenu)} disabled={dejaDecline}
-                      title={dejaDecline ? t('contenus.carte.dejaDecline') : undefined}
-                      className="gap-2.5 focus:bg-white/[0.07]">
-                      <Layers className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStorySerie')}
-                    </DropdownMenuItem>
-                  </>
+                  <DropdownMenuItem onClick={() => !dejaDecline && onStory(contenu)} disabled={dejaDecline}
+                    title={dejaDecline ? t('contenus.carte.dejaDecline') : undefined}
+                    className="gap-2.5 focus:bg-white/[0.07]">
+                    {isCarrousel ? <Layers className="w-4 h-4 opacity-70" /> : <Sparkles className="w-4 h-4 opacity-70" />}
+                    {t('contenus.carte.declinerStory')}
+                  </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={() => onRecycle(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
                   <Repeat2 className="w-4 h-4 opacity-70" />{t('contenus.carte.recycler')}
@@ -293,6 +304,12 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
   const images = items.map((c) => c.lien_visuel).filter(Boolean);
   const premier = items[0];
   const isLoading = loading === groupe.serie_id;
+  // Série animée : écrans encore en rendu (worker) / en échec -> pas de validation
+  // tant que toutes les vidéos ne sont pas là (la dialog de détail a déjà ce garde,
+  // la carte groupée doit l'avoir aussi).
+  const enRendu = items.filter((c) => c.video_status === 'en_traitement').length;
+  const enEchec = items.filter((c) => c.video_status === 'echec').length;
+  const bloqueValidation = enRendu > 0 || items.some((c) => c.video_status && !c.video_url);
   const titre = (premier.titre || '').replace(/ — écran \d+\/\d+$/, '');
   const date = premier.date_publication
     ? new Date(premier.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
@@ -300,9 +317,9 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
 
   return (
     <div className="group flex flex-col rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden hover:border-white/[0.12] hover:bg-[#111c33] transition-all">
-      {/* Mini-grille des visuels : chaque vignette ouvre le détail de SON écran */}
-      <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden grid grid-cols-2 gap-px">
-        {items.slice(0, 4).map((c) => (
+      {/* Mini-grille des visuels : chaque vignette agrandit SON écran */}
+      <div className={`relative aspect-[16/10] bg-[#0a1120] overflow-hidden grid gap-px ${items.length > 4 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        {items.slice(0, 6).map((c) => (
           <button key={c.id} onClick={() => c.lien_visuel && onEnlarge(images, images.indexOf(c.lien_visuel))}
             className={`group/thumb relative overflow-hidden bg-[#0a1120] ${c.lien_visuel ? 'cursor-zoom-in' : ''}`}>
             {c.lien_visuel
@@ -316,6 +333,12 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
                   </span>
                 </>
               : <div className="absolute inset-0 grid place-items-center text-slate-700"><ImageIcon className="w-4 h-4" /></div>}
+            {c.video_status === 'en_traitement' && (
+              <span className="absolute inset-0 grid place-items-center bg-black/50"><Loader2 className="w-4 h-4 animate-spin text-[#a5b0ff]" /></span>
+            )}
+            {c.video_status === 'echec' && (
+              <span className="absolute inset-0 grid place-items-center bg-red-950/60 text-red-300" title={c.render_job?.erreur || ''}><X className="w-4 h-4" /></span>
+            )}
           </button>
         ))}
         <span className="absolute top-2.5 left-2.5 pointer-events-none"><ReseauBadge reseau={premier.reseau_cible} /></span>
@@ -323,6 +346,16 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
         <span className="absolute bottom-2.5 left-2.5 pointer-events-none inline-flex items-center gap-1 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
           <Layers className="w-3 h-3" />{t('contenus.carte.nEcrans', { n: items.length })}
         </span>
+        {enRendu > 0 && (
+          <span className="absolute bottom-2.5 right-2.5 pointer-events-none inline-flex items-center gap-1.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-[#0f172a]/90 text-[#a5b0ff] border border-[#5B6CFF]/40">
+            <Loader2 className="w-3 h-3 animate-spin" />{t('contenus.carte.renduEnCours')} {items.length - enRendu}/{items.length}
+          </span>
+        )}
+        {enRendu === 0 && enEchec > 0 && (
+          <span className="absolute bottom-2.5 right-2.5 pointer-events-none inline-flex items-center gap-1.5 text-[10px] font-medium font-inter px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/25">
+            {t('contenus.carte.renduEchoue')} {enEchec}/{items.length}
+          </span>
+        )}
       </div>
 
       {/* Corps */}
@@ -338,8 +371,9 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
             {premier.statut === 'A valider' && (
-              <button title={t('contenus.carte.validerTout', { n: items.length })} onClick={() => onValiderSerie(groupe)} disabled={isLoading}
-                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors">
+              <button title={bloqueValidation ? t('contenus.toast.attendsRendu') : t('contenus.carte.validerTout', { n: items.length })}
+                onClick={() => !bloqueValidation && onValiderSerie(groupe)} disabled={isLoading || bloqueValidation}
+                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               </button>
             )}
@@ -406,7 +440,6 @@ export default function ContenusPage() {
   const [imageContenu, setImageContenu] = useState(null);
   const [postManuelOpen, setPostManuelOpen] = useState(false);  // post écrit à la main (sans IA)
   const [storyFor, setStoryFor] = useState(null);  // post en cours de déclinaison en story
-  const [storySerieLoading, setStorySerieLoading] = useState(null);  // id du post en cours de déclinaison en série
 
   // Recyclage : republier un post sur d'autres réseaux (une copie par réseau)
   const [recycleFor, setRecycleFor] = useState(null);   // contenu source
@@ -1064,17 +1097,29 @@ export default function ContenusPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchContenus = async () => {
-    setLoading(true);
+  // silencieux : rafraîchissement en arrière-plan (rendus en cours) sans l'écran de
+  // chargement ni toast d'erreur, pour ne pas clignoter toutes les 10 s.
+  const fetchContenus = async ({ silencieux = false } = {}) => {
+    if (!silencieux) setLoading(true);
     try {
       const data = await contenuService.getAll();
       setContenus(data);
     } catch (error) {
-      toast.error(t('contenus.toast.chargementErreur'));
+      if (!silencieux) toast.error(t('contenus.toast.chargementErreur'));
     } finally {
-      setLoading(false);
+      if (!silencieux) setLoading(false);
     }
   };
+
+  // Tant qu'un rendu vidéo tourne en arrière-plan (story animée, worker Remotion),
+  // la liste se met à jour seule : la page ne pollait jamais jusqu'ici.
+  const rendusEnCours = useMemo(() => contenus.some((c) => c.video_status === 'en_traitement'), [contenus]);
+  useEffect(() => {
+    if (!rendusEnCours) return undefined;
+    const t = setInterval(() => fetchContenus({ silencieux: true }), 10000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rendusEnCours]);
 
   const scripts = useMemo(() => contenus.filter(c => isVideoType(c) && !c.lien_video_dropbox), [contenus]);
   const videos = useMemo(() => contenus.filter(c => isVideoType(c) && !!c.lien_video_dropbox), [contenus]);
@@ -1134,29 +1179,17 @@ export default function ContenusPage() {
   // Ouvre le sélecteur de story (modèle 9:16 + retouche) ; la création se fait à la validation.
   const declinerEnStory = (contenu) => setStoryFor(contenu);
 
-  // Story en série (2-4 écrans, un clic) : pas de dialog, l'IA découpe + rend tout d'un coup.
-  const declinerEnStorySerie = async (contenu) => {
-    if (storySerieLoading) return;
-    setStorySerieLoading(contenu.id);
-    const toastId = toast.loading('Découpage en série de stories…');
-    try {
-      const d = await contenuService.storySerie(contenu.id);
-      toast.success(`${d.count} stories créées, à valider ensemble pour qu'elles s'enchaînent`, { id: toastId });
-      fetchContenus();
-    } catch (e) {
-      if (!e.__handled) toast.error(e.response?.data?.detail || 'La déclinaison en série a échoué.', { id: toastId });
-      else toast.dismiss(toastId);
-    } finally {
-      setStorySerieLoading(null);
-    }
-  };
-
   // opts.skipFetch/skipToast : utilisés en boucle pour une action de groupe
   // (story en série) — un seul fetch + un seul toast récapitulatif après la
   // boucle plutôt que N refetch et N toasts redondants.
   const handleUpdateStatut = async (id, newStatut, opts = {}) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
+      // Vidéo encore en rendu (worker) : rien à programmer tant que le média n'est pas là.
+      if (cible?.video_status && !cible?.video_url) {
+        if (!opts.skipToast) toast.error(t('contenus.toast.attendsRendu'));
+        return;
+      }
       const reseau = (cible?.reseau_cible || '').toLowerCase();
       const plateforme = SOCIAL_PLATFORMS.find((p) => p.id === reseau);
       if (plateforme && !user?.[plateforme.field]) {
@@ -1435,7 +1468,7 @@ export default function ContenusPage() {
               {pagedContenus.map((contenu) => (
                 contenu.isGroup ? (
                   <SerieCard
-                    key={contenu.serie_id}
+                    key={`serie-${contenu.serie_id}`}
                     groupe={contenu}
                     onEnlarge={(images, index) => setLightbox({ images, index: Math.max(0, index) })}
                     onValiderSerie={validerSerie}
@@ -1457,7 +1490,6 @@ export default function ContenusPage() {
                     onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
                     onRecycle={openRecycle}
                     onStory={declinerEnStory}
-                    onStorySerie={declinerEnStorySerie}
                     dejaDecline={sourcesAvecStory.has(contenu.id)}
                     onRenderSlides={rendreSlidesEnImages}
                     renderLoading={renderSlidesLoading}

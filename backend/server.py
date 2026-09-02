@@ -74,6 +74,7 @@ app.add_middleware(
 _cron_task = None
 _sweep_task = None
 _newsletter_task = None
+_render_task = None
 
 
 async def _analytics_cron():
@@ -103,6 +104,22 @@ async def _publish_sweep_cron():
         await asyncio.sleep(600)
 
 
+async def _render_worker():
+    """File de rendu Remotion en arrière-plan (stories animées). Un rendu à la fois :
+    un rendu sature déjà les cœurs du conteneur. Tick 10 s quand la file est vide,
+    enchaîne tant qu'il reste des jobs. Les jobs vivent sur les lignes contenu
+    (render_job / render_started_at), donc survivent à un redémarrage."""
+    from services import render_service
+    await asyncio.sleep(30)
+    while True:
+        try:
+            while await render_service.traiter_suivant():
+                pass
+        except Exception as e:
+            logger.error(f"render worker loop: {e}")
+        await asyncio.sleep(10)
+
+
 async def _newsletter_cron():
     """Newsletter hebdomadaire : chaque mardi matin (heure de Paris), on prépare
     l'édition et on l'envoie à Martin pour validation. Rien ne part aux abonnés
@@ -130,7 +147,7 @@ async def _newsletter_cron():
 
 @app.on_event("startup")
 async def startup():
-    global _cron_task, _sweep_task, _newsletter_task
+    global _cron_task, _sweep_task, _newsletter_task, _render_task
     if ANALYTICS_CRON_HOURS and ANALYTICS_CRON_HOURS > 0:
         _cron_task = asyncio.create_task(_analytics_cron())
         logger.info(f"Cron analytics activé (toutes les {ANALYTICS_CRON_HOURS} h)")
@@ -139,6 +156,9 @@ async def startup():
     if os.environ.get("NEWSLETTER_ACTIVE", "1") != "0":
         _newsletter_task = asyncio.create_task(_newsletter_cron())
         logger.info("Cron newsletter hebdomadaire activé")
+    if os.environ.get("RENDER_WORKER_ACTIVE", "1") != "0":
+        _render_task = asyncio.create_task(_render_worker())
+        logger.info("Worker de rendu Remotion (stories animées) activé")
 
 
 @app.on_event("shutdown")
@@ -149,6 +169,8 @@ async def shutdown():
         _sweep_task.cancel()
     if _newsletter_task:
         _newsletter_task.cancel()
+    if _render_task:
+        _render_task.cancel()
 
 
 # Lancement direct (Railway/Docker) : lit le port depuis $PORT, sans dépendre de l'expansion shell.

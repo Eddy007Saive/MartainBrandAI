@@ -23,7 +23,7 @@ from services.agent_service import _charger_marque, _messages_create, REGLES_ANT
 # On réutilise tels quels les utilitaires du carrousel : contraste, couleurs, échappement,
 # lockup de marque, application des polices, et l'atelier de rendu (sémaphore partagée).
 from services.carrousel_service import (
-    _esc, _av_span, _lighten, _mix, _near, _ink_on, _acc_light, _acc_dark,
+    _parts, _esc, _av_span, _lighten, _mix, _near, _ink_on, _acc_light, _acc_dark,
     _apply_font, _rendre, AtelierSature,
 )
 
@@ -93,6 +93,18 @@ def template_valide(template: str) -> str:
     return t if t in TEMPLATE_IDS else "epure"
 
 
+def template_effectif(template: str, content: dict) -> str:
+    """Gabarit réellement rendu pour UN écran : un gabarit photo sans image
+    (écran-question d'une série, slide sans visuel) retombe sur « epure » plutôt que
+    de rendre un cadre vide ou d'échouer — une série peut ainsi mélanger écrans
+    photo et écrans texte."""
+    t = template_valide(template)
+    tinfo = next((x for x in TEMPLATES if x["id"] == t), None)
+    if tinfo and tinfo.get("image") and not (content or {}).get("image"):
+        return "epure"
+    return t
+
+
 def _phrase(txt: str) -> str:
     """Première phrase « propre » d'un texte de post, pour le sous-titre de la story."""
     t = re.sub(r"\s+", " ", (txt or "").strip())
@@ -103,6 +115,13 @@ def _phrase(txt: str) -> str:
     if len(s) > 120:
         s = s[:118].rstrip() + "…"
     return s
+
+
+def _court(t, n: int) -> str:
+    """Tronque proprement un fragment à n caractères (les cartes sont petites : un texte
+    trop long déborde de sa zone fixe plutôt que d'être coupé proprement)."""
+    t = (t or "").strip()
+    return t if len(t) <= n else t[:n - 1].rstrip() + "…"
 
 
 def parts_depuis_contenu(contenu: dict) -> dict:
@@ -241,9 +260,6 @@ def choisir_story_ia(telegram_id: str, contenu: dict) -> dict:
             bruts = data.get("points") if isinstance(data.get("points"), list) else []
             # Garde-fou dur (au cas où le modèle dépasse la consigne) : la carte est petite,
             # un fragment trop long déborde de sa zone fixe plutôt que d'être tronqué proprement.
-            def _court(t, n):
-                t = (t or "").strip()
-                return t if len(t) <= n else t[:n - 1].rstrip() + "…"
             points = [{"titre": _court(p.get("titre"), 28), "desc": _court(p.get("desc"), 48)}
                       for p in bruts if isinstance(p, dict) and (p.get("titre") or "").strip()][:4]
             if len(points) < 2:
@@ -265,84 +281,198 @@ def choisir_story_ia(telegram_id: str, contenu: dict) -> dict:
 
 
 # Gabarits proposables pour une SÉRIE : uniquement texte/photo, jamais liste/
-# citation/rico/signature — une liste ou une citation répétée sur 3 écrans n'a
+# citation/rico/signature — une liste ou une citation répétée sur N écrans n'a
 # pas de sens narratif, et rico reste un choix explicite du compte.
 _CANDIDATS_SERIE = {"epure", "sombre", "editorial", "bloc", "photo", "photo-flou", "split"}
 
+# Plafond d'écrans d'une série (décision produit) : quota = nombre d'écrans, et en
+# animé chaque écran coûte 50-90 s de rendu Remotion.
+SERIE_MAX_ECRANS = 6
+_ROLES_SERIE = {"hook", "problem", "value", "interaction", "revelation", "solution", "cta"}
+_INTERACTIONS = {"poll", "quiz", "question", "slider", "none"}
 
-def decouper_story_ia(telegram_id: str, contenu: dict) -> dict:
-    """Découpe un post riche en 2 à 4 stories qui se lisent à la suite (Instagram
-    n'a pas de story multi-écrans — ce sont plusieurs stories du même compte
-    postées proches dans le temps). UN SEUL gabarit texte/photo, partagé par tous
-    les écrans pour la cohérence visuelle de la série ; chaque écran développe UNE
-    étape d'un raisonnement qui progresse, le dernier porte le CTA.
-    Retombe sur un seul écran (choisir_story_ia) si l'IA est indisponible ou si
-    elle ne renvoie pas assez d'écrans exploitables — dégrade, n'échoue jamais."""
-    a_un_visuel = bool(contenu.get("lien_visuel"))
-    defaut_id = "photo-flou" if a_un_visuel else "epure"
-    base = parts_depuis_contenu(contenu)
-    repli_un_ecran = {"template": defaut_id, "ecrans": [
-        {"accroche": base["accroche"], "sous": base["sous"], "cta": base["cta"]}]}
-    post = ((contenu.get("titre") or "") + "\n\n" + (contenu.get("contenu") or "")).strip()
-    if not CLAUDE_API_KEY or not post:
-        return repli_un_ecran
-    try:
-        candidats = [t for t in modeles_pour(telegram_id, a_un_visuel)
-                     if t["id"] in _CANDIDATS_SERIE]
-        if not candidats:
-            return repli_un_ecran
-        catalogue = "\n".join(f"- {t['id']} : {t['hint']}" for t in candidats)
-        u = _charger_marque(telegram_id)
-        system = (
-            "Tu découpes un post en une SÉRIE de stories Instagram/Facebook (9:16) "
-            "qui se lisent à la suite — pas une story unique, plusieurs stories "
-            "postées l'une après l'autre. 2 à 4 écrans selon la matière du post : "
-            "ne force pas 4 écrans si le post ne tient qu'en 2 idées.\n\n"
-            f"Gabarits disponibles (UN SEUL choisi, partagé par tous les écrans) :\n{catalogue}\n\n"
-            "Chaque écran développe UNE étape qui fait progresser le raisonnement — "
-            "jamais deux écrans qui répètent la même idée reformulée. Le dernier "
-            "écran conclut et porte le CTA le plus fort ; les écrans précédents "
-            "peuvent avoir un CTA vide ou implicite (« Swipe pour la suite » par "
-            "exemple) si ça sert mieux la progression.\n\n"
-            "Réponds STRICTEMENT en JSON :\n"
-            '{"template":"...", "ecrans":[{"accroche":"4 à 8 mots, sans guillemets", '
-            '"sous":"UNE phrase de 8 à 14 mots ou chaîne vide", "cta":"appel à l\'action bref ou vide"}, '
-            '... 2 à 4 items]}\n'
-            f"Voix de marque : {u.get('voix_marque') or '—'}. Secteur : {u.get('secteur') or '—'}."
-            + REGLES_ANTI_IA
-        )
-        resp = _messages_create(
-            model="claude-haiku-4-5", max_tokens=800, system=system,
-            messages=[{"role": "user", "content": f"Post :\n\n{post}\n\nDécoupe-le en série de stories."}],
-        )
-        brut = "".join(b.text for b in resp.content if b.type == "text").strip()
-        m = re.search(r"\{.*\}", brut, re.S)
-        data = json.loads(m.group(0) if m else brut)
-        tpl = (data.get("template") or "").strip().lower()
-        if tpl not in {t["id"] for t in candidats}:
-            tpl = defaut_id
-        bruts = data.get("ecrans") if isinstance(data.get("ecrans"), list) else []
-        ecrans = []
-        for e in bruts:
-            if not isinstance(e, dict):
-                continue
-            acc = (e.get("accroche") or "").strip().strip('"').strip()
-            if not acc:
-                continue
-            sous = (e.get("sous") or "").strip()
-            if sous and len(sous.split()) < 4:
-                sous = ""
-            ecrans.append({"accroche": acc, "sous": sous, "cta": (e.get("cta") or "").strip()})
-        ecrans = ecrans[:4]
-        if len(ecrans) < 2:
-            return repli_un_ecran  # pas assez d'écrans exploitables : une seule story plutôt qu'une série boiteuse
-        # Le dernier écran porte le CTA le plus fort : jamais vide, retombe sur le post si l'IA l'a laissé vide.
-        if not ecrans[-1]["cta"]:
-            ecrans[-1]["cta"] = base["cta"] or "Réponds en DM 👉"
-        return {"template": tpl, "ecrans": ecrans}
-    except Exception as e:
-        logger.warning(f"decoupage story IA {telegram_id}: {e}")
-        return repli_un_ecran
+# Prompt fourni par le product owner (stratégie de contenu Instagram), adapté au
+# moteur de rendu : le schéma de sortie parle accroche/sous/cta + image de slide,
+# et les interactions sont des écrans-question (pas de sticker cliquable via l'API).
+_PROMPT_SERIE = """Tu es un expert en stratégie de contenu Instagram, storytelling et engagement.
+Ta mission est de transformer le contenu fourni (un carrousel : hook, slides, CTA, légende) en une séquence de Stories Instagram engageante qui se lit à la suite.
+
+OBJECTIF :
+Créer une séquence qui pousse l'utilisateur à regarder les Stories jusqu'à la fin, à réagir lorsque c'est pertinent, puis à effectuer l'action souhaitée.
+
+RÈGLES :
+- NE PAS simplement convertir les slides du carrousel une par une.
+- Conserver le message, les informations et l'intention du contenu original.
+- Reconstruire la narration spécifiquement pour le format Story.
+- Chaque Story doit transmettre UNE seule idée principale.
+- La première Story doit être un HOOK fort qui donne envie de continuer.
+- Introduire une interaction lorsque celle-ci apporte réellement quelque chose au contenu.
+- L'interaction doit être naturelle et directement liée au sujet.
+- Ne pas utiliser une interaction artificielle uniquement pour en ajouter.
+- Alterner contenu, curiosité et interaction pour éviter une séquence monotone.
+- Utiliser des textes courts, lisibles en 5 secondes sur mobile.
+- Ne jamais inventer de faits, chiffres ou promesses absents du contenu original.
+- Terminer par un CTA clair et cohérent avec l'objectif marketing.
+
+TYPES D'INTERACTIONS : poll (2 choix), quiz (2 à 4 réponses, une bonne), question (réponse libre), slider (mesurer une réaction), none.
+CHOISIS AUTOMATIQUEMENT LE TYPE LE PLUS PERTINENT.
+IMPORTANT : les stickers ne sont PAS cliquables une fois publiés (publication par API). Une interaction est AFFICHÉE comme une question à l'écran et la réponse se fait en DM — écris la question et les choix en conséquence (« Réponds A ou B en DM »).
+
+STRUCTURE RECOMMANDÉE (adapte : entre 4 et {max_ecrans} Stories, jamais de Story inutile pour atteindre un nombre) :
+1 HOOK → curiosité, surprise ou identification.
+2 PROBLÈME → pourquoi le sujet concerne l'utilisateur.
+3 INTERACTION → question qui permet de se positionner.
+4 VALEUR → information ou explication.
+5 INTERACTION OU RÉVÉLATION → seconde interaction seulement si pertinente.
+6 SOLUTION → la réponse, méthode ou conclusion.
+Dernière CTA → l'action souhaitée.
+
+RÈGLES POUR LES INTERACTIONS :
+- POLL : 2 choix courts, compréhensibles immédiatement.
+- QUIZ : 2 à 4 réponses, une seule bonne, déductible du contenu.
+- QUESTION : quand la réponse personnelle de l'audience apporte de la valeur ; question simple.
+- SLIDER : opinion, émotion ou niveau d'intérêt ; pas de réponse précise attendue.
+
+L'interaction doit être intégrée à la narration.
+❌ Mauvais : contenu / contenu / « Êtes-vous d'accord ? » [Oui/Non] / contenu.
+✅ Bon : « Tu fais probablement cette erreur sans le savoir… » / « Est-ce que tu fais ça ? » [Oui / Non] / « Si tu as répondu oui, voici pourquoi… » / explication / solution / CTA.
+
+FORMAT DE SORTIE — réponds STRICTEMENT avec ce JSON, rien d'autre :
+{{"stories":[{{"story_number":1,"role":"hook|problem|value|interaction|revelation|solution|cta",
+"accroche":"4 à 8 mots, sans guillemets — le texte principal de l'écran",
+"sous":"UNE phrase de 8 à 14 mots, ou chaîne vide",
+"cta":"appel à l'action bref, ou chaîne vide (le dernier écran en a toujours un)",
+"slide_image":<index de l'image du carrousel qui illustre le mieux cet écran (0 = couverture, 1..n = slides, n+1 = slide CTA), ou null si aucune>,
+"interaction":{{"type":"poll|quiz|question|slider|none","question":"…","options":["…","…"],"correct_answer":null}}}}, …]}}
+Pour un écran interaction : accroche = la question (≤ 8 mots), options courtes ; pour les autres : interaction.type = "none".
+Voix de marque : {voix}. Secteur : {secteur}.
+"""
+
+
+def _ecrans_repli_carrousel(hook: str, slides: list, cta: dict, imgs: list, lien_visuel):
+    """Repli déterministe (IA indisponible / JSON invalide) : hook, 3 premières slides,
+    CTA — images mappées par index (slides_images[0] = hook, [1+i] = slide i, [-1] = cta)."""
+    def img(i):
+        return imgs[i] if 0 <= i < len(imgs) else (lien_visuel or None)
+    ecrans = [{"role": "hook", "interaction": None, "accroche": _court(hook, 60), "sous": "",
+               "cta": "", "image": img(0)}]
+    for i, s in enumerate(slides[:3]):
+        acc = (s.get("titre") or _phrase(s.get("texte") or "")).strip()
+        if not acc:
+            continue
+        ecrans.append({"role": "value", "interaction": None, "accroche": _court(acc, 60),
+                       "sous": _court(s.get("texte") or "", 90), "cta": "", "image": img(1 + i)})
+    ecrans.append({"role": "cta", "interaction": None,
+                   "accroche": _court(cta.get("titre") or "On en parle ?", 60),
+                   "sous": _court(cta.get("texte") or "", 90), "cta": "Réponds en DM 👉",
+                   "image": img(1 + len(slides))})
+    return ecrans
+
+
+def preparer_serie_carrousel(telegram_id: str, cur: dict, max_ecrans: int = SERIE_MAX_ECRANS) -> dict:
+    """Réécrit un CARROUSEL (contenu.carrousel_data) en série narrative de 4 à
+    max_ecrans stories — hook → problème → question → valeur → solution → CTA —
+    avec le prompt du product owner. UN appel Claude, à l'ouverture du dialog : c'est
+    le format qui sera utilisé, rien de spéculatif. Dégrade sur un repli
+    déterministe, n'échoue jamais (le dialog s'ouvre toujours).
+    Retourne {"format": "serie", "template": id, "ecrans": [{role, interaction,
+    accroche, sous, cta, image}, …]}."""
+    hook, slides, cta = _parts(cur.get("carrousel_data"))
+    imgs = cur.get("slides_images") or []
+    lien_visuel = cur.get("lien_visuel")
+    repli = _ecrans_repli_carrousel(hook, slides, cta, imgs, lien_visuel)
+    n = len(slides)
+
+    def _img(idx):
+        try:
+            idx = int(idx)
+        except (TypeError, ValueError):
+            return None
+        return imgs[idx] if 0 <= idx < len(imgs) else None
+
+    ecrans = None
+    if CLAUDE_API_KEY and (hook or slides):
+        try:
+            u = _charger_marque(telegram_id)
+            lignes = [f"COUVERTURE (image 0) : {hook}"]
+            for i, s in enumerate(slides):
+                extra = ""
+                if s.get("pills"):
+                    extra += f" | points : {', '.join(str(p) for p in s['pills'][:4])}"
+                if s.get("pro_tip"):
+                    extra += f" | astuce : {s['pro_tip']}"
+                lignes.append(f"SLIDE {i + 1} (image {i + 1}) : {s.get('titre') or ''} — {s.get('texte') or ''}{extra}")
+            lignes.append(f"CTA (image {n + 1}) : {cta.get('titre') or ''} — {cta.get('texte') or ''}")
+            if cur.get("contenu"):
+                lignes.append(f"LÉGENDE : {cur['contenu']}")
+            system = _PROMPT_SERIE.format(max_ecrans=max_ecrans,
+                                          voix=u.get("voix_marque") or "—",
+                                          secteur=u.get("secteur") or "—") + REGLES_ANTI_IA
+            resp = _messages_create(
+                model="claude-haiku-4-5", max_tokens=1500, system=system,
+                messages=[{"role": "user", "content": "CONTENU SOURCE :\n\n" + "\n".join(lignes)
+                           + "\n\nÉcris la séquence de Stories."}],
+            )
+            brut = "".join(b.text for b in resp.content if b.type == "text").strip()
+            m = re.search(r"\{.*\}", brut, re.S)
+            data = json.loads(m.group(0) if m else brut)
+            bruts = data.get("stories") if isinstance(data.get("stories"), list) else []
+            out = []
+            for e in bruts:
+                if not isinstance(e, dict):
+                    continue
+                acc = (e.get("accroche") or "").strip().strip('"').strip()
+                if not acc:
+                    continue
+                role = (e.get("role") or "").strip().lower()
+                inter = e.get("interaction") if isinstance(e.get("interaction"), dict) else {}
+                itype = (inter.get("type") or "none").strip().lower()
+                if itype not in _INTERACTIONS:
+                    itype = "none"
+                sous = (e.get("sous") or "").strip()
+                ctae = (e.get("cta") or "").strip()
+                if itype != "none":
+                    # Écran-question : la question à l'écran, les choix en sous-titre,
+                    # la réponse en DM (pas de sticker cliquable via l'API).
+                    q = (inter.get("question") or acc).strip()
+                    acc = _court(q, 64)
+                    options = [str(o).strip() for o in (inter.get("options") or []) if str(o).strip()]
+                    if itype in ("poll", "quiz") and options:
+                        sous = " · ".join(options[:4])
+                    elif not sous:
+                        sous = ""
+                    ctae = ctae or "Réponds en DM 👉"
+                    role = "interaction"
+                if role not in _ROLES_SERIE:
+                    role = "value"
+                if sous and len(sous.split()) < 4:
+                    sous = ""
+                out.append({
+                    "role": role,
+                    "interaction": {"type": itype, "question": inter.get("question"),
+                                    "options": inter.get("options"),
+                                    "correct_answer": inter.get("correct_answer")} if itype != "none" else None,
+                    "accroche": _court(acc, 64), "sous": _court(sous, 110), "cta": ctae,
+                    "image": _img(e.get("slide_image")),
+                })
+            out = out[:max_ecrans]
+            if len(out) >= 4:
+                out[0]["role"] = out[0]["role"] if out[0]["role"] != "value" else "hook"
+                if not out[-1]["cta"]:
+                    out[-1]["cta"] = "Réponds en DM 👉"
+                if out[-1]["role"] not in ("cta", "solution"):
+                    out[-1]["role"] = "cta"
+                ecrans = out
+            else:
+                logger.warning(f"serie carrousel IA {telegram_id}: {len(out)} écran(s) exploitable(s), repli")
+        except Exception as e:
+            logger.warning(f"serie carrousel IA {telegram_id}: {e}")
+
+    if ecrans is None:
+        ecrans = repli
+    a_une_image = any(e.get("image") for e in ecrans)
+    tpl = "photo-flou" if a_une_image else "epure"
+    return {"format": "serie", "template": tpl, "ecrans": ecrans}
 
 
 def a_deja_une_story(telegram_id: str, contenu_id: str) -> bool:
@@ -358,13 +488,21 @@ def a_deja_une_story(telegram_id: str, contenu_id: str) -> bool:
         return False  # colonne pas encore migree / erreur reseau -> ne bloque pas
 
 
-async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
-    """Découpe un post en 2-4 stories (decouper_story_ia), les rend et les crée
-    en base « À valider » — comme une story simple, la programmation Zernio
-    reste un pas séparé déclenché par le compte (« Valider & programmer »),
-    donc rien à orchestrer de ce côté ici. Retourne {"ids": [...], "count": n}
-    ou {"error": "..."}."""
-    from services import planning_service, quota_service
+async def creer_serie_stories(telegram_id: str, contenu_id: str, contents: list,
+                              template: str, colors: dict = None, anime: bool = False) -> dict:
+    """Crée une SÉRIE de stories (2 à SERIE_MAX_ECRANS écrans) à partir des écrans
+    édités dans le dialog — `contents` déjà normalisés par la route via
+    _story_contenu (image_source validée). Comme une story simple, la programmation
+    Zernio reste un pas séparé (« Valider & programmer »).
+
+    - statique : chaque écran est rendu ici (Playwright, secondes) ;
+    - anime    : chaque ligne est créée en video_status=en_traitement avec son
+                 render_job, rendue ensuite par le worker (render_service).
+    Quota : la 1re unité a été payée à l'ouverture du dialog (story_options) ;
+    on consomme ici n-1, remboursées au prorata des écrans non rendus (statique)
+    ou par le worker en cas d'échec (anime).
+    Retourne {"ids", "count", "serie_id", "date_publication"[, "video_status"]} ou {"error"}."""
+    from services import planning_service, quota_service, render_service
     res = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     if not res.data:
         return {"error": "Contenu introuvable."}
@@ -373,23 +511,17 @@ async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
         return {"error": "Les stories ne sont possibles que sur Instagram ou Facebook."}
     if a_deja_une_story(telegram_id, contenu_id):
         return {"error": "Ce post a déjà une story. Supprime-la pour en refaire une.", "conflict": True}
+    n = len(contents)
+    if n < 2 or n > SERIE_MAX_ECRANS:
+        return {"error": f"Entre 2 et {SERIE_MAX_ECRANS} écrans requis."}
 
-    # Réserve le pire cas (4 écrans) AVANT de dépenser quoi que ce soit — on ne
-    # connaît le nombre réel qu'après le découpage IA — puis rembourse la
-    # différence une fois ce nombre connu (voir plus bas).
-    q = quota_service.consume(telegram_id, "story", qty=4)
+    extra = n - 1
+    q = quota_service.consume(telegram_id, "story", qty=extra)
     if not q.get("ok"):
         return {"error": q.get("message") or "Quota story épuisé.", "quota": True}
 
-    decoupe = decouper_story_ia(telegram_id, cur)
-    template = template_valide(decoupe["template"])
-    ecrans = decoupe["ecrans"]
-    n = len(ecrans)
-
-    slides = cur.get("slides_images") or []
     titre_source = (cur.get("titre") or "").strip()
     reseau = cur["reseau_cible"]
-
     # Un seul créneau pour toute la série (prochain_creneau est déterministe pour
     # un même (compte, réseau, famille, jour) tant que rien n'est inséré entre
     # deux appels) ; chaque écran est ensuite décalé de 90s pour garantir l'ordre
@@ -397,43 +529,49 @@ async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
     creneau = planning_service.prochain_creneau(telegram_id, reseau, "Story")
     creneau_dt = datetime.fromisoformat(creneau) if creneau else None
 
-    ids = []
-    for i, ecran in enumerate(ecrans):
-        image = slides[i % len(slides)] if slides else cur.get("lien_visuel")
-        content = {"accroche": ecran["accroche"], "sous": ecran["sous"], "cta": ecran["cta"], "image": image}
-        try:
-            # Index préfixé AVANT troncature : generer_story tronque contenu_id à
-            # 16 caractères pour le public_id Cloudinary — sans ce préfixe, les
-            # écrans partageraient le même public_id et s'écraseraient entre eux.
-            render_res = await generer_story(telegram_id, content, template, colors=None,
-                                              contenu_id=f"{i}{contenu_id}")
-        except AtelierSature:
-            break  # rendus saturés : on garde ce qui a déjà été créé plutôt que tout perdre
-        image_url = render_res.get("image")
-        if not image_url:
-            logger.warning(f"serie story ecran {i} rendu echoue, {telegram_id}")
-            continue
+    ids, premiere_date = [], None
+    for i, content in enumerate(contents):
+        image_url = None
+        if not anime:
+            try:
+                # Index préfixé AVANT troncature : generer_story tronque contenu_id à
+                # 16 caractères pour le public_id Cloudinary — sans ce préfixe, les
+                # écrans partageraient le même public_id et s'écraseraient entre eux.
+                # Un écran sans image sous un gabarit photo (ex. écran-question) est
+                # rendu en gabarit texte plutôt que d'échouer : série mixte.
+                render_res = await generer_story(telegram_id, content, template_effectif(template, content),
+                                                  colors=colors, contenu_id=f"{i}{contenu_id}")
+            except AtelierSature:
+                break  # rendus saturés : on garde ce qui a déjà été créé plutôt que tout perdre
+            image_url = render_res.get("image")
+            if not image_url:
+                logger.warning(f"serie story ecran {i} rendu echoue, {telegram_id}")
+                continue
         row = {
             "telegram_id": telegram_id,
             "titre": f"{titre_source[:100]} — écran {i + 1}/{n}" if titre_source else f"Story {i + 1}/{n}",
             # Texte PROPRE à cet écran, jamais le post source verbatim : Late
             # rejette un post dont le texte est identique à un post récent du
             # même compte (garde-fou anti-doublon, voir _story_contenu ailleurs).
-            "contenu": (ecran["accroche"] + (f" — {ecran['sous']}" if ecran["sous"] else "")).strip(),
-            "lien_visuel": image_url,
+            "contenu": (content["accroche"] + (f" — {content['sous']}" if content.get("sous") else "")).strip(),
+            # Anime : poster provisoire = image de la slide (la carte n'est pas vide
+            # pendant le rendu), remplacé par la vignette vidéo quand elle est prête.
+            "lien_visuel": image_url or content.get("image"),
             "reseau_cible": reseau,
             "type": "Story",
             "statut": "A valider",
-            # Relie les 2-4 lignes pour l'affichage groupé côté frontend (une
+            # Relie les N lignes pour l'affichage groupé côté frontend (une
             # carte, badge "N écrans") — réutilise l'id du post source, pas de
             # nouvel UUID à générer. NULL pour tout contenu hors-série.
             "serie_id": contenu_id,
             # Meme valeur que serie_id ici, mais un role different : story_source_id
             # sert a bloquer un second declin du post (a_deja_une_story), pas a
-            # grouper l'affichage (voir Contexte migrations/story_source.sql).
+            # grouper l'affichage (voir migrations/story_source.sql).
             "story_source_id": contenu_id,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
+        if anime:
+            row["video_status"] = "en_traitement"
         if creneau_dt:
             row["date_publication"] = (creneau_dt + timedelta(seconds=90 * i)).isoformat()
         try:
@@ -448,16 +586,32 @@ async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
             else:
                 raise
         new_id = ins.data[0]["id"] if ins.data else None
-        if new_id:
-            ids.append(new_id)
+        if not new_id:
+            continue
+        if anime:
+            try:
+                render_service.enqueue_story_animee(new_id, telegram_id, content["accroche"],
+                                                    content.get("sous"), content.get("cta"), colors=colors)
+            except Exception as e:
+                logger.error(f"serie story anime enqueue {new_id}: {e}")
+                supabase.table("contenu").delete().eq("id", new_id).execute()
+                continue
+        ids.append(new_id)
+        if premiere_date is None:
+            premiere_date = row.get("date_publication")
 
-    manques = 4 - len(ids)
-    if manques > 0:
-        quota_service.refund({**q, "qty": manques})
+    rendus = len(ids)
+    a_rembourser = min(n - rendus, extra)
+    if a_rembourser > 0:
+        quota_service.refund({**q, "qty": a_rembourser})
     if not ids:
         return {"error": "Le rendu de la série a échoué, réessaie."}
-    quota_service.confirm({**q, "qty": len(ids)})
-    return {"ids": ids, "count": len(ids), "serie_id": contenu_id}
+    if rendus - 1 > 0:
+        quota_service.confirm({**q, "qty": rendus - 1})
+    out = {"ids": ids, "count": rendus, "serie_id": contenu_id, "date_publication": premiere_date}
+    if anime:
+        out["video_status"] = "en_traitement"
+    return out
 
 
 def _fit(text: str, base: int, seuils=((26, 1.0), (40, 0.82), (58, 0.66), (999, 0.54))) -> int:
@@ -977,31 +1131,25 @@ async def generer_story(telegram_id: str, content: dict, template: str = "epure"
     return {"image": None, "template": template}
 
 
-async def generer_story_animee(telegram_id: str, accroche: str, sous: str, cta: str,
-                                colors: dict = None, mot_accent: str = None,
-                                contenu_id: str = None) -> dict:
-    """Rend une story ANIMÉE (Remotion, ~5s, gabarit « StoryAnime ») et l'envoie sur
-    Cloudinary en vidéo. Renvoie {'video_url', 'video_preview_url'} (ou vide si échec).
-
-    Texte/couleurs viennent déjà écrits/édités par l'utilisateur (StoryDialog) —
-    aucun appel Claude ici, contrairement au choix de gabarit statique."""
-    from services import remotion_service
+def props_story_animee(telegram_id: str, accroche: str, sous: str, cta: str,
+                       colors: dict = None, mot_accent: str = None) -> dict:
+    """Props du gabarit Remotion « StoryAnime » (charte du compte + texte édité).
+    Sérialisables en JSON : c'est ce que la file de rendu (render_service) stocke
+    dans contenu.render_job pour rendre en arrière-plan."""
     u = _charger_marque(telegram_id)
     p, _s, a = _couleurs_marque(u, colors)
     nom = u.get("nom") or u.get("username") or "Ma marque"
     logo = u.get("logo_url") or None
-    props = {
+    return {
         "brand": {"nom": nom, "principale": p, "accent": a, "fond": "#0b1020", "logo": logo},
         "accroche": accroche or "", "motAccent": mot_accent or "",
         "sous": sous or "", "cta": cta or "",
     }
-    try:
-        mp4 = await asyncio.to_thread(
-            remotion_service.render_mp4, props, "StoryAnime",
-            telegram_id=telegram_id, etiquette="story_anime", prefix="story_anime")
-    except Exception as e:
-        logger.error(f"Story animée rendu error: {e}")
-        return {"video_url": None}
+
+
+def upload_story_video(mp4: str, telegram_id: str, contenu_id: str = None) -> dict:
+    """Envoie le MP4 rendu sur Cloudinary (vidéo) et supprime le fichier local.
+    Renvoie {'video_url', 'video_preview_url'} ou {'video_url': None}."""
     base = (contenu_id or "tmp").replace("-", "")[:16]
     try:
         up = cloudinary.uploader.upload(
@@ -1020,3 +1168,22 @@ async def generer_story_animee(telegram_id: str, accroche: str, sous: str, cta: 
             os.unlink(mp4)
         except OSError:
             pass
+
+
+async def generer_story_animee(telegram_id: str, accroche: str, sous: str, cta: str,
+                                colors: dict = None, mot_accent: str = None,
+                                contenu_id: str = None) -> dict:
+    """Rend une story ANIMÉE (Remotion, ~5s, gabarit « StoryAnime ») EN LIGNE et
+    l'envoie sur Cloudinary. Conservé pour les appels synchrones ; le produit passe
+    désormais par la file de rendu (render_service) qui réutilise
+    props_story_animee + upload_story_video sans bloquer une requête HTTP."""
+    from services import remotion_service
+    props = props_story_animee(telegram_id, accroche, sous, cta, colors=colors, mot_accent=mot_accent)
+    try:
+        mp4 = await asyncio.to_thread(
+            remotion_service.render_mp4, props, "StoryAnime",
+            telegram_id=telegram_id, etiquette="story_anime", prefix="story_anime")
+    except Exception as e:
+        logger.error(f"Story animée rendu error: {e}")
+        return {"video_url": None}
+    return upload_story_video(mp4, telegram_id, contenu_id)

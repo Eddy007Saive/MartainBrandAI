@@ -120,16 +120,39 @@ def story_options(contenu_id: str, payload: dict = Depends(verify_token)):
     from services import story_service
     from services.agent_service import _charger_marque
     u = _charger_marque(telegram_id)
-    # L'IA choisit le GABARIT le mieux adapté au contenu (pas seulement le texte) —
-    # l'utilisateur peut toujours changer de modèle dans le sélecteur ensuite.
-    choix = story_service.choisir_story_ia(telegram_id, cur)
+    a_un_visuel = bool(cur.get("lien_visuel"))
+    # Le FORMAT suit le type de contenu : un carrousel (slides structurées dans
+    # carrousel_data) devient une SÉRIE narrative réécrite par l'IA ; un post texte
+    # reste une story unique. Un vieux carrousel sans carrousel_data dégrade en unique.
+    est_serie = cur.get("type") == "Carrousel" and bool(cur.get("carrousel_data"))
+    if est_serie:
+        prep = story_service.preparer_serie_carrousel(telegram_id, cur)
+        ecrans = [{"role": e.get("role"), "interaction": e.get("interaction"),
+                   "accroche": e["accroche"], "sous": e.get("sous") or "", "cta": e.get("cta") or "",
+                   "image_source": e.get("image")} for e in prep["ecrans"]]
+        parts = {k: ecrans[0][k] for k in ("accroche", "sous", "cta")}
+        template_suggere, points, fmt = prep["template"], None, "serie"
+        # Série : gabarits texte/photo seulement (liste/citation/rico/signature
+        # répétés sur N écrans n'ont pas de sens narratif).
+        modeles = [m for m in story_service.modeles_pour(telegram_id, a_un_visuel)
+                   if m["id"] in story_service._CANDIDATS_SERIE]
+    else:
+        # L'IA choisit le GABARIT le mieux adapté au contenu (pas seulement le texte) —
+        # l'utilisateur peut toujours changer de modèle dans le sélecteur ensuite.
+        choix = story_service.choisir_story_ia(telegram_id, cur)
+        ecrans = None
+        parts = {"accroche": choix["accroche"], "sous": choix["sous"], "cta": choix["cta"]}
+        template_suggere, points, fmt = choix["template"], choix.get("points"), "unique"
+        modeles = story_service.modeles_pour(telegram_id, a_un_visuel)
     quota_service.confirm(q)
     return {
-        "parts": {"accroche": choix["accroche"], "sous": choix["sous"], "cta": choix["cta"]},
-        "template_suggere": choix["template"],
-        "points_suggeres": choix.get("points"),
-        "a_un_visuel": bool(cur.get("lien_visuel")),
-        "modeles": story_service.modeles_pour(telegram_id, bool(cur.get("lien_visuel"))),
+        "format": fmt,
+        "ecrans": ecrans,
+        "parts": parts,
+        "template_suggere": template_suggere,
+        "points_suggeres": points,
+        "a_un_visuel": a_un_visuel,
+        "modeles": modeles,
         "signature": story_service.DEFAULT_SIGNATURE,
         "couleurs": {
             "p": u.get("carrousel_couleur_principale") or u.get("couleur_principale") or "#003D2E",
@@ -152,7 +175,9 @@ async def story_apercu(contenu_id: str, body: dict, payload: dict = Depends(veri
         raise HTTPException(status_code=404, detail="Contenu introuvable")
     from services import story_service
     content = _story_contenu(cur, body or {})
-    template = story_service.template_valide((body or {}).get("template"))
+    # Gabarit photo sans image (écran-question d'une série) -> aperçu en gabarit texte,
+    # comme à la création, plutôt qu'un cadre vide.
+    template = story_service.template_effectif((body or {}).get("template"), content)
     try:
         res = await story_service.generer_story(telegram_id, content, template,
                                                 (body or {}).get("colors"), contenu_id=contenu_id)
@@ -229,18 +254,41 @@ async def decliner_story(contenu_id: str, body: dict = None, payload: dict = Dep
 
 
 @router.post("/{contenu_id}/story-serie")
-async def decliner_story_serie(contenu_id: str, payload: dict = Depends(verify_token)):
-    """Découpe le post en 2-4 stories qui se lisent à la suite (un seul gabarit
-    texte/photo choisi par l'IA, partagé par tous les écrans), les crée « À
-    valider » d'un coup. Pas de dialog de retouche — un clic, comme "Générer un
-    reel animé" ; chaque écran reste éditable/régénérable individuellement via
-    les outils existants une fois créé."""
+async def decliner_story_serie(contenu_id: str, body: dict = None, payload: dict = Depends(verify_token)):
+    """Crée la SÉRIE de stories d'un carrousel à partir des écrans édités dans le
+    dialog : body = {template, colors, anime, ecrans:[{accroche, sous, cta, image_source}]}
+    (2 à SERIE_MAX_ECRANS écrans ; 1 écran = « couverture seule » → POST /story).
+    Statique : rendu Playwright dans la requête. Animé : lignes créées en
+    video_status=en_traitement, rendues par le worker (render_service)."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
+    cur = contenu_service.get_contenu(contenu_id, telegram_id)
+    if not cur:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    if cur.get("reseau_cible") not in ("Instagram", "Facebook"):
+        raise HTTPException(status_code=409, detail="Les stories ne sont possibles que sur Instagram ou Facebook.")
+    body = body or {}
     from services import story_service
-    res = await story_service.creer_serie_stories(telegram_id, contenu_id)
+    if story_service.a_deja_une_story(telegram_id, contenu_id):
+        raise HTTPException(status_code=409, detail="Ce post a déjà une story. Supprime-la pour en refaire une.")
+    ecrans = body.get("ecrans")
+    if not isinstance(ecrans, list) or not (2 <= len(ecrans) <= story_service.SERIE_MAX_ECRANS) \
+            or not all(isinstance(e, dict) and (e.get("accroche") or "").strip() for e in ecrans):
+        raise HTTPException(status_code=400,
+                            detail=f"Entre 2 et {story_service.SERIE_MAX_ECRANS} écrans avec une accroche requis.")
+    anime = bool(body.get("anime"))
+    template = story_service.template_valide(body.get("template"))
+    if template not in story_service._CANDIDATS_SERIE:
+        template = "epure"
+    # _story_contenu réutilisé par écran : texte édité + image_source validée
+    # (visuels DU contenu seulement, jamais une URL arbitraire).
+    # Un écran sans image sous un gabarit photo est rendu en gabarit texte
+    # (story_service.template_effectif) : pas de 409, série mixte.
+    contents = [_story_contenu(cur, e) for e in ecrans]
+    res = await story_service.creer_serie_stories(telegram_id, contenu_id, contents, template,
+                                                  colors=body.get("colors"), anime=anime)
     if res.get("error"):
         code = 402 if res.get("quota") else 409 if res.get("conflict") else 500
         raise HTTPException(status_code=code, detail=res["error"])
@@ -298,18 +346,18 @@ async def decliner_story_animee(contenu_id: str, body: dict = None, payload: dic
     new_id = ins.data[0]["id"] if ins.data else None
     if not new_id:
         raise HTTPException(status_code=500, detail="Création du contenu impossible.")
-    res = await story_service.generer_story_animee(
-        telegram_id, accroche, body.get("sous"), body.get("cta"),
-        colors=body.get("colors"), mot_accent=body.get("mot_accent"), contenu_id=new_id)
-    if not res.get("video_url"):
+    # Rendu en ARRIÈRE-PLAN (render_service / worker de server.py) : la requête
+    # répond tout de suite, la carte affiche « rendu en cours », l'utilisateur est
+    # notifié à la fin — plus de requête HTTP ouverte 1-2 min.
+    from services import render_service
+    try:
+        render_service.enqueue_story_animee(new_id, telegram_id, accroche, body.get("sous"), body.get("cta"),
+                                            colors=body.get("colors"), mot_accent=body.get("mot_accent"))
+    except Exception as e:
+        logger.error(f"story anime enqueue {new_id}: {e}")
         sb.table("contenu").delete().eq("id", new_id).execute()
-        raise HTTPException(status_code=500, detail="Le rendu de la story animée a échoué, réessaie.")
-    sb.table("contenu").update({
-        "video_url": res["video_url"], "video_status": "ready",
-        "video_preview_url": res["video_preview_url"], "lien_visuel": res["video_preview_url"],
-    }).eq("id", new_id).execute()
-    return {"id": new_id, "video_url": res["video_url"], "video_preview_url": res["video_preview_url"],
-            "date_publication": row.get("date_publication")}
+        raise HTTPException(status_code=500, detail="Impossible de lancer le rendu, réessaie.")
+    return {"id": new_id, "video_status": "en_traitement", "date_publication": row.get("date_publication")}
 
 
 @router.post("/{contenu_id}/recycler")

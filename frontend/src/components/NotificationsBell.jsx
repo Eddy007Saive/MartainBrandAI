@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import { notificationService } from '../services/notificationService';
 
@@ -9,6 +10,9 @@ const EVENT_DOT = {
   'post.partial': 'bg-amber-400',
   'post.scheduled': 'bg-cyan-400',
   'post.cancelled': 'bg-slate-400',
+  // Rendus en arrière-plan (stories animées)
+  'story.anime.ready': 'bg-emerald-400',
+  'story.anime.echec': 'bg-red-400',
 };
 
 export default function NotificationsBell() {
@@ -16,6 +20,15 @@ export default function NotificationsBell() {
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const navigate = useNavigate();
+
+  // Une notification liée à un contenu (publication, rendu terminé) ramène à la
+  // liste Contenus — c'est là que l'utilisateur voit le résultat.
+  const ouvrir = (n) => {
+    if (!n.contenu_id) return;
+    setOpen(false);
+    navigate('/dashboard/contenus');
+  };
 
   const load = async () => {
     try {
@@ -66,7 +79,8 @@ export default function NotificationsBell() {
           {items.length === 0 ? (
             <p className="text-sm text-slate-500 px-2 py-8 text-center font-inter">Aucune notification</p>
           ) : items.map((n) => (
-            <div key={n.id} className={`px-3 py-2.5 rounded-lg ${n.lu ? '' : 'bg-white/[0.03]'} hover:bg-white/[0.05] transition-colors`}>
+            <div key={n.id} onClick={() => ouvrir(n)} role={n.contenu_id ? 'button' : undefined}
+              className={`px-3 py-2.5 rounded-lg ${n.lu ? '' : 'bg-white/[0.03]'} hover:bg-white/[0.05] transition-colors ${n.contenu_id ? 'cursor-pointer' : ''}`}>
               <div className="flex items-center gap-2">
                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${EVENT_DOT[n.event] || 'bg-slate-500'}`} />
                 <div className="text-[13px] text-white font-medium font-inter">{n.titre}</div>
