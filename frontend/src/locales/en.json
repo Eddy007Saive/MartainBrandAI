@@ -316,6 +316,7 @@
       "plusActions": "More actions",
       "declinerStory": "Turn into a story",
       "declinerStorySerie": "Turn into a story series",
+      "dejaDecline": "Already turned into a story. Delete the existing one to make another.",
       "recycler": "Recycle to other networks",
       "nEcrans": "{{n}} screens",
       "serieDesc": "{{n}} screens to publish together.",
@@ -452,6 +453,7 @@
     "onglets": {
       "tous": "All",
       "posts": "Posts",
+      "story": "Story",
       "scripts": "Scripts",
       "videos": "Videos"
     },
@@ -465,11 +467,13 @@
       "voirTous": "View all content ({{n}})",
       "aucunScript": "No video scripts",
       "aucuneVideo": "No videos found",
+      "aucuneStory": "No stories found",
       "aucunPost": "No posts found",
       "aucunContenu": "No content found",
       "essayezAutresTermes": "Try different search terms",
       "scriptsIci": "Video scripts to review or film will show up here",
       "videosIci": "Filmed videos with a Dropbox link will show up here",
+      "storiesIci": "Stories declined from a post will show up here",
       "postsIci": "Your generated posts will show up here",
       "contenusIci": "Your generated content will show up here"
     },

@@ -345,6 +345,19 @@ def decouper_story_ia(telegram_id: str, contenu: dict) -> dict:
         return repli_un_ecran
 
 
+def a_deja_une_story(telegram_id: str, contenu_id: str) -> bool:
+    """Un post ne peut avoir qu'UNE story active a la fois (simple/serie/animee).
+    Requete live, pas de flag : si la story est supprimee (DELETE reel, voir
+    contenu_service.delete_contenu), cette ligne disparait et le post redevient
+    declinable sans rien a faire de plus."""
+    try:
+        r = (supabase.table("contenu").select("id")
+             .eq("telegram_id", telegram_id).eq("story_source_id", contenu_id).limit(1).execute())
+        return bool(r.data)
+    except Exception:
+        return False  # colonne pas encore migree / erreur reseau -> ne bloque pas
+
+
 async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
     """Découpe un post en 2-4 stories (decouper_story_ia), les rend et les crée
     en base « À valider » — comme une story simple, la programmation Zernio
@@ -358,6 +371,8 @@ async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
     cur = res.data[0]
     if cur.get("reseau_cible") not in ("Instagram", "Facebook"):
         return {"error": "Les stories ne sont possibles que sur Instagram ou Facebook."}
+    if a_deja_une_story(telegram_id, contenu_id):
+        return {"error": "Ce post a déjà une story. Supprime-la pour en refaire une.", "conflict": True}
 
     # Réserve le pire cas (4 écrans) AVANT de dépenser quoi que ce soit — on ne
     # connaît le nombre réel qu'après le découpage IA — puis rembourse la
@@ -413,6 +428,10 @@ async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
             # carte, badge "N écrans") — réutilise l'id du post source, pas de
             # nouvel UUID à générer. NULL pour tout contenu hors-série.
             "serie_id": contenu_id,
+            # Meme valeur que serie_id ici, mais un role different : story_source_id
+            # sert a bloquer un second declin du post (a_deja_une_story), pas a
+            # grouper l'affichage (voir Contexte migrations/story_source.sql).
+            "story_source_id": contenu_id,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         if creneau_dt:
@@ -420,10 +439,11 @@ async def creer_serie_stories(telegram_id: str, contenu_id: str) -> dict:
         try:
             ins = supabase.table("contenu").insert(row).execute()
         except Exception as e:
-            # Colonne serie_id pas encore migree (migrations/serie_stories.sql) :
-            # on degrade proprement plutot que de perdre tout le rendu deja fait.
+            # Colonnes serie_id/story_source_id pas encore migrees : on degrade
+            # proprement plutot que de perdre tout le rendu deja fait.
             if any(m in str(e) for m in ("PGRST204", "42703", "does not exist", "schema cache")):
                 row.pop("serie_id", None)
+                row.pop("story_source_id", None)
                 ins = supabase.table("contenu").insert(row).execute()
             else:
                 raise

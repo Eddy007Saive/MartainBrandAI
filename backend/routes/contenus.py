@@ -179,6 +179,8 @@ async def decliner_story(contenu_id: str, body: dict = None, payload: dict = Dep
         raise HTTPException(status_code=409, detail="Les stories ne sont possibles que sur Instagram ou Facebook.")
     body = body or {}
     from services import story_service
+    if story_service.a_deja_une_story(telegram_id, contenu_id):
+        raise HTTPException(status_code=409, detail="Ce post a déjà une story. Supprime-la pour en refaire une.")
     template = story_service.template_valide(body.get("template"))
     tinfo = next((t for t in story_service.TEMPLATES if t["id"] == template), None)
     if tinfo and tinfo["image"] and not cur.get("lien_visuel"):
@@ -206,12 +208,22 @@ async def decliner_story(contenu_id: str, body: dict = None, payload: dict = Dep
         "reseau_cible": cur["reseau_cible"],
         "type": "Story",
         "statut": "A valider",
+        # Bloque un second declin de ce meme post (a_deja_une_story) tant que
+        # cette ligne existe ; disparait avec un DELETE reel de la story.
+        "story_source_id": contenu_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     creneau = planning_service.prochain_creneau(telegram_id, cur["reseau_cible"], "Story")
     if creneau:
         row["date_publication"] = creneau
-    ins = sb.table("contenu").insert(row).execute()
+    try:
+        ins = sb.table("contenu").insert(row).execute()
+    except Exception as e:
+        if any(m in str(e) for m in ("PGRST204", "42703", "does not exist", "schema cache")):
+            row.pop("story_source_id", None)
+            ins = sb.table("contenu").insert(row).execute()
+        else:
+            raise
     new_id = ins.data[0]["id"] if ins.data else None
     return {"contenu_id": new_id, "date_publication": row.get("date_publication"), "lien_visuel": image_url}
 
@@ -230,7 +242,8 @@ async def decliner_story_serie(contenu_id: str, payload: dict = Depends(verify_t
     from services import story_service
     res = await story_service.creer_serie_stories(telegram_id, contenu_id)
     if res.get("error"):
-        raise HTTPException(status_code=402 if res.get("quota") else 500, detail=res["error"])
+        code = 402 if res.get("quota") else 409 if res.get("conflict") else 500
+        raise HTTPException(status_code=code, detail=res["error"])
     return res
 
 
@@ -259,6 +272,8 @@ async def decliner_story_animee(contenu_id: str, body: dict = None, payload: dic
     from services import story_service, planning_service
     from datetime import datetime, timezone
     from config import supabase as sb
+    if story_service.a_deja_une_story(telegram_id, contenu_id):
+        raise HTTPException(status_code=409, detail="Ce post a déjà une story. Supprime-la pour en refaire une.")
     row = {
         "telegram_id": telegram_id,
         "titre": (cur.get("titre") or "")[:120],
@@ -266,12 +281,20 @@ async def decliner_story_animee(contenu_id: str, body: dict = None, payload: dic
         "reseau_cible": cur["reseau_cible"],
         "type": "Story",
         "statut": "A valider",
+        "story_source_id": contenu_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     creneau = planning_service.prochain_creneau(telegram_id, cur["reseau_cible"], "Story")
     if creneau:
         row["date_publication"] = creneau
-    ins = sb.table("contenu").insert(row).execute()
+    try:
+        ins = sb.table("contenu").insert(row).execute()
+    except Exception as e:
+        if any(m in str(e) for m in ("PGRST204", "42703", "does not exist", "schema cache")):
+            row.pop("story_source_id", None)
+            ins = sb.table("contenu").insert(row).execute()
+        else:
+            raise
     new_id = ins.data[0]["id"] if ins.data else None
     if not new_id:
         raise HTTPException(status_code=500, detail="Création du contenu impossible.")

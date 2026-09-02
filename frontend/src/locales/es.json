@@ -316,6 +316,7 @@
       "plusActions": "Más acciones",
       "declinerStory": "Convertir en story",
       "declinerStorySerie": "Convertir en serie de stories",
+      "dejaDecline": "Ya convertido en story. Elimina la story existente para crear otra.",
       "recycler": "Reciclar en otras redes",
       "nEcrans": "{{n}} pantallas",
       "serieDesc": "{{n}} pantallas para publicar juntas.",
@@ -452,6 +453,7 @@
     "onglets": {
       "tous": "Todos",
       "posts": "Posts",
+      "story": "Story",
       "scripts": "Guiones",
       "videos": "Vídeos"
     },
@@ -465,11 +467,13 @@
       "voirTous": "Ver todos los contenidos ({{n}})",
       "aucunScript": "Ningún guion de vídeo",
       "aucuneVideo": "No se encontraron vídeos",
+      "aucuneStory": "No se encontraron stories",
       "aucunPost": "No se encontraron posts",
       "aucunContenu": "No se encontró contenido",
       "essayezAutresTermes": "Prueba con otros términos de búsqueda",
       "scriptsIci": "Los guiones de vídeo por validar o grabar aparecerán aquí",
       "videosIci": "Los vídeos grabados con enlace de Dropbox aparecerán aquí",
+      "storiesIci": "Las stories creadas a partir de un post aparecerán aquí",
       "postsIci": "Tus posts generados aparecerán aquí",
       "contenusIci": "Tus contenidos generados aparecerán aquí"
     },

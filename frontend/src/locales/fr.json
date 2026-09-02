@@ -316,6 +316,7 @@
       "plusActions": "Plus d'actions",
       "declinerStory": "Décliner en story",
       "declinerStorySerie": "Décliner en story (série)",
+      "dejaDecline": "Déjà décliné en story. Supprime la story existante pour en refaire une.",
       "recycler": "Recycler sur d'autres réseaux",
       "nEcrans": "{{n}} écrans",
       "serieDesc": "{{n}} écrans à publier ensemble.",
@@ -452,6 +453,7 @@
     "onglets": {
       "tous": "Tous",
       "posts": "Posts",
+      "story": "Story",
       "scripts": "Scripts",
       "videos": "Vidéos"
     },
@@ -465,11 +467,13 @@
       "voirTous": "Voir tous les contenus ({{n}})",
       "aucunScript": "Aucun script vidéo",
       "aucuneVideo": "Aucune vidéo trouvée",
+      "aucuneStory": "Aucune story trouvée",
       "aucunPost": "Aucun post trouvé",
       "aucunContenu": "Aucun contenu trouvé",
       "essayezAutresTermes": "Essayez avec d'autres termes de recherche",
       "scriptsIci": "Les scripts vidéo à valider ou tourner apparaîtront ici",
       "videosIci": "Les vidéos tournées avec lien Dropbox apparaîtront ici",
+      "storiesIci": "Tes stories déclinées depuis un post apparaîtront ici",
       "postsIci": "Vos posts générés apparaîtront ici",
       "contenusIci": "Vos contenus générés apparaîtront ici"
     },

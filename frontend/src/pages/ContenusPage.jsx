@@ -141,7 +141,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onStorySerie, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onStorySerie, dejaDecline, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
   const { t } = useTranslation();
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
@@ -256,10 +256,14 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                 {!isVideo && contenu.type !== 'Story'
                   && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
                   <>
-                    <DropdownMenuItem onClick={() => onStory(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
+                    <DropdownMenuItem onClick={() => !dejaDecline && onStory(contenu)} disabled={dejaDecline}
+                      title={dejaDecline ? t('contenus.carte.dejaDecline') : undefined}
+                      className="gap-2.5 focus:bg-white/[0.07]">
                       <Sparkles className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStory')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onStorySerie(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
+                    <DropdownMenuItem onClick={() => !dejaDecline && onStorySerie(contenu)} disabled={dejaDecline}
+                      title={dejaDecline ? t('contenus.carte.dejaDecline') : undefined}
+                      className="gap-2.5 focus:bg-white/[0.07]">
                       <Layers className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStorySerie')}
                     </DropdownMenuItem>
                   </>
@@ -1074,9 +1078,19 @@ export default function ContenusPage() {
 
   const scripts = useMemo(() => contenus.filter(c => isVideoType(c) && !c.lien_video_dropbox), [contenus]);
   const videos = useMemo(() => contenus.filter(c => isVideoType(c) && !!c.lien_video_dropbox), [contenus]);
-  const posts = useMemo(() => contenus.filter(c => !isVideoType(c)), [contenus]);
+  const stories = useMemo(() => contenus.filter(c => c.type === 'Story'), [contenus]);
+  const posts = useMemo(() => contenus.filter(c => !isVideoType(c) && c.type !== 'Story'), [contenus]);
 
-  const activeContenus = activeTab === 'scripts' ? scripts : activeTab === 'videos' ? videos : activeTab === 'posts' ? posts : contenus;
+  const activeContenus = activeTab === 'scripts' ? scripts : activeTab === 'videos' ? videos : activeTab === 'story' ? stories : activeTab === 'posts' ? posts : contenus;
+
+  // Un post ne peut avoir qu'une story active a la fois (simple/serie/animee).
+  // Calcule sur `contenus` (pas `activeContenus`) pour rester correct meme si
+  // la story resultante est filtree sur un autre onglet/statut que le post.
+  const sourcesAvecStory = useMemo(() => {
+    const s = new Set();
+    for (const c of contenus) if (c.story_source_id) s.add(c.story_source_id);
+    return s;
+  }, [contenus]);
 
   const filteredContenus = useMemo(() => {
     let list = activeContenus;
@@ -1324,6 +1338,7 @@ export default function ContenusPage() {
           {[
             { id: 'all', label: t('contenus.onglets.tous'), icon: Sparkles, count: contenus.length },
             { id: 'posts', label: t('contenus.onglets.posts'), icon: FileText, count: posts.length },
+            { id: 'story', label: t('contenus.onglets.story'), icon: Layers, count: stories.length },
             { id: 'scripts', label: t('contenus.onglets.scripts'), icon: ScrollText, count: scripts.length },
             { id: 'videos', label: t('contenus.onglets.videos'), icon: Video, count: videos.length },
           ].map(tab => (
@@ -1406,10 +1421,10 @@ export default function ContenusPage() {
             </div>
             <div className="text-center">
               <p className="text-slate-400 font-inter font-medium">
-                {activeTab === 'scripts' ? t('contenus.etat.aucunScript') : activeTab === 'videos' ? t('contenus.etat.aucuneVideo') : activeTab === 'posts' ? t('contenus.etat.aucunPost') : t('contenus.etat.aucunContenu')}
+                {activeTab === 'scripts' ? t('contenus.etat.aucunScript') : activeTab === 'videos' ? t('contenus.etat.aucuneVideo') : activeTab === 'story' ? t('contenus.etat.aucuneStory') : activeTab === 'posts' ? t('contenus.etat.aucunPost') : t('contenus.etat.aucunContenu')}
               </p>
               <p className="text-slate-600 font-inter text-sm mt-1">
-                {searchQuery ? t('contenus.etat.essayezAutresTermes') : activeTab === 'scripts' ? t('contenus.etat.scriptsIci') : activeTab === 'videos' ? t('contenus.etat.videosIci') : activeTab === 'posts' ? t('contenus.etat.postsIci') : t('contenus.etat.contenusIci')}
+                {searchQuery ? t('contenus.etat.essayezAutresTermes') : activeTab === 'scripts' ? t('contenus.etat.scriptsIci') : activeTab === 'videos' ? t('contenus.etat.videosIci') : activeTab === 'story' ? t('contenus.etat.storiesIci') : activeTab === 'posts' ? t('contenus.etat.postsIci') : t('contenus.etat.contenusIci')}
               </p>
             </div>
           </div>
@@ -1443,6 +1458,7 @@ export default function ContenusPage() {
                     onRecycle={openRecycle}
                     onStory={declinerEnStory}
                     onStorySerie={declinerEnStorySerie}
+                    dejaDecline={sourcesAvecStory.has(contenu.id)}
                     onRenderSlides={rendreSlidesEnImages}
                     renderLoading={renderSlidesLoading}
                     onReel={(c) => { setReelFor(c); setReelReco(null); contenuService.reelRecommander(c.id).then(setReelReco).catch(() => {}); }}
