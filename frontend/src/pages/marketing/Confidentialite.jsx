@@ -32,13 +32,13 @@ export default function Confidentialite() {
       <h3>Sous-traitants &amp; partage</h3>
       <p>Pour faire fonctionner le service, nous faisons appel à des prestataires qui traitent des données pour notre compte :</p>
       <ul>
-        <li><b>Supabase</b> — hébergement de la base de données.</li>
-        <li><b>Railway</b> — hébergement de l'application.</li>
-        <li><b>Stripe</b> — paiements et abonnements.</li>
-        <li><b>Cloudinary</b> — stockage des médias (images, carrousels).</li>
-        <li><b>Late / Zernio</b> — connexion et publication sur les réseaux sociaux, analytics et commentaires.</li>
-        <li><b>Google Firebase</b> — envoi des notifications push.</li>
-        <li>Un <b>prestataire d'intelligence artificielle générative</b> — pour produire les contenus à partir de tes consignes.</li>
+        <li><b>Supabase</b> : hébergement de la base de données.</li>
+        <li><b>Railway</b> : hébergement de l'application.</li>
+        <li><b>Stripe</b> : paiements et abonnements.</li>
+        <li><b>Cloudinary</b> : stockage des médias (images, carrousels).</li>
+        <li><b>Late / Zernio</b> : connexion et publication sur les réseaux sociaux, analytics et commentaires.</li>
+        <li><b>Google Firebase</b> : envoi des notifications push.</li>
+        <li>Un <b>prestataire d'intelligence artificielle générative</b> : pour produire les contenus à partir de tes consignes.</li>
       </ul>
       <p>Nous ne vendons pas tes données personnelles.</p>
 

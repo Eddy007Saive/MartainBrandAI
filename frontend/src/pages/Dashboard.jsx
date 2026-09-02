@@ -191,7 +191,7 @@ export default function Dashboard() {
                 name="photo_url"
                 value={user?.photo_url}
                 onChange={handleChange}
-                hint={"Comment obtenir l'URL depuis Google Drive :\n1. Uploadez votre photo sur Google Drive\n2. Faites un clic droit → « Partager »\n3. Passez en accès « Tout le monde avec le lien »\n4. Copiez l'ID du fichier dans l'URL (ex: .../d/XXXXXXX/view)\n5. Collez ce lien ici — le système l'utilisera pour vos contenus."}
+                hint={"Comment obtenir l'URL depuis Google Drive :\n1. Uploadez votre photo sur Google Drive\n2. Faites un clic droit → « Partager »\n3. Passez en accès « Tout le monde avec le lien »\n4. Copiez l'ID du fichier dans l'URL (ex: .../d/XXXXXXX/view)\n5. Collez ce lien ici, le système l'utilisera pour vos contenus."}
               />
 
               <div className="space-y-2">
@@ -222,7 +222,7 @@ export default function Dashboard() {
                         <Info className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300 cursor-help transition-colors" />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs bg-slate-800 border border-slate-700 text-slate-200 text-xs leading-relaxed" side="top">
-                        {"Casual — décontracté du quotidien\nBusiness — tenue professionnelle sobre\nSportif — vêtements de sport / athleisure\nÉlégant — habillé, soirée, formel\nDécontracté — entre casual et sport\nStreetwear — urban, tendance, hype\nClassique — intemporel, costume, chic"}
+                        {"Casual : décontracté du quotidien\nBusiness : tenue professionnelle sobre\nSportif : vêtements de sport / athleisure\nÉlégant : habillé, soirée, formel\nDécontracté : entre casual et sport\nStreetwear : urban, tendance, hype\nClassique : intemporel, costume, chic"}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -495,7 +495,7 @@ export default function Dashboard() {
                     <li>Cliquez sur « Connecter » pour le réseau souhaité</li>
                     <li>Vous serez redirigé vers la page d'autorisation du réseau social</li>
                     <li>Autorisez l'accès à votre compte</li>
-                    <li>Vous serez redirigé automatiquement ici — votre compte sera lié</li>
+                    <li>Vous serez redirigé automatiquement ici, votre compte sera lié</li>
                   </ol>
                 </div>
               </div>

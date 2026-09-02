@@ -34,7 +34,7 @@ function LienPack({ affilies }) {
   const champ = 'bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-1.5 outline-none focus:border-[#5B6CFF]/50';
   return (
     <div className="rounded-2xl border border-white/10 bg-[#0f172a] p-5">
-      <h3 className="text-[15px] font-bold text-white font-sora mb-1">Lien de paiement — Pack Fondations</h3>
+      <h3 className="text-[15px] font-bold text-white font-sora mb-1">Lien de paiement : Pack Fondations</h3>
       <p className="text-[12.5px] text-slate-500 font-inter mb-4">
         À envoyer après le rendez-vous. 1 499 € en euro, 699 $ pour le marché hispanophone.
       </p>
@@ -58,7 +58,7 @@ function LienPack({ affilies }) {
       </div>
       {lien && (
         <p className="text-[12px] text-slate-400 font-mono mt-3 break-all">
-          {lien} <span className="text-slate-600 font-inter">— copié, valable 24 h</span>
+          {lien} <span className="text-slate-600 font-inter">(copié, valable 24 h)</span>
         </p>
       )}
     </div>

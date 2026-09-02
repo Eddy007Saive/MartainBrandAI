@@ -92,7 +92,7 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
       const dt = d.date_publication
         ? new Date(d.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
         : null;
-      toast.success(dt ? `Story créée pour le ${dt} — à valider` : 'Story créée — à valider');
+      toast.success(dt ? `Story créée pour le ${dt}, à valider` : 'Story créée, à valider');
       onCreated?.(d);
       onClose();
     } catch (e) {
@@ -112,7 +112,7 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
       const dt = d.date_publication
         ? new Date(d.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
         : null;
-      toast.success(dt ? `Story animée créée pour le ${dt} — à valider` : 'Story animée créée — à valider', { id: toastId });
+      toast.success(dt ? `Story animée créée pour le ${dt}, à valider` : 'Story animée créée, à valider', { id: toastId });
       onCreated?.(d);
       onClose();
     } catch (e) {
@@ -140,7 +140,7 @@ export default function StoryDialog({ contenu, onClose, onCreated }) {
             </div>
             <div>
               <p className="text-white font-semibold font-sora text-[15px] leading-tight">Décliner en story</p>
-              <p className="text-slate-500 text-[12px] font-inter">Format 9:16, à la charte — {contenu.reseau_cible}</p>
+              <p className="text-slate-500 text-[12px] font-inter">Format 9:16, à la charte · {contenu.reseau_cible}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-white"><X className="w-5 h-5" /></button>

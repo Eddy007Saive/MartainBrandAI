@@ -99,7 +99,7 @@ export default function AdminPromos() {
             <TicketPercent className="w-6 h-6 text-orange-400" />Codes promo
           </h2>
           <p className="text-sm text-slate-500 font-inter mt-1">
-            Réductions saisies au paiement Stripe — 1ᵉʳ mois, N mois ou à vie.
+            Réductions saisies au paiement Stripe : 1ᵉʳ mois, N mois ou à vie.
           </p>
         </div>
         <div className="flex gap-2">
@@ -117,7 +117,7 @@ export default function AdminPromos() {
         <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /></div>
       ) : promos.length === 0 ? (
         <div className="text-center py-16 text-slate-500 font-inter text-sm border border-dashed border-white/10 rounded-2xl">
-          Aucun code promo. Crée le premier — par exemple <b className="text-slate-300">BIENVENUE50</b> (−50 % pendant 3 mois).
+          Aucun code promo. Crée le premier, par exemple <b className="text-slate-300">BIENVENUE50</b> (−50 % pendant 3 mois).
         </div>
       ) : (
         <div className="rounded-2xl border border-white/[0.07] overflow-hidden">

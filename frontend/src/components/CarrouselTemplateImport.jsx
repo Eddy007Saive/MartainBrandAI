@@ -82,7 +82,7 @@ export default function CarrouselTemplateImport() {
         <div className="rounded-[10px] border border-white/[0.06] bg-[#0c1322] p-3.5 space-y-3 text-[12px] text-slate-400 leading-relaxed">
           <p>
             Le HTML ne décrit que <b className="text-slate-200">trois slides</b>. Le moteur répète celle du
-            milieu autant de fois que le contenu l'exige — un carrousel peut faire 4 slides comme 8.
+            milieu autant de fois que le contenu l'exige. Un carrousel peut faire 4 slides comme 8.
           </p>
           <div className="space-y-1">
             <p className="text-slate-300 font-medium">Les trois blocs obligatoires</p>
@@ -108,7 +108,7 @@ export default function CarrouselTemplateImport() {
           <div className="space-y-1">
             <p className="text-slate-300 font-medium">Contraintes</p>
             <p>Format d'une slide : <b className="text-slate-200">360 × 450 px</b> (rendu en 1080 × 1350).
-              Les scripts, iframes et gestionnaires d'évènements sont retirés à l'import — le rendu
+              Les scripts, iframes et gestionnaires d'évènements sont retirés à l'import : le rendu
               s'exécute sur nos serveurs. Prévois des titres qui tiennent : un texte trop long débordera.</p>
           </div>
           <button type="button" onClick={() => setForm((f) => ({ ...f, html: EXEMPLE }))}

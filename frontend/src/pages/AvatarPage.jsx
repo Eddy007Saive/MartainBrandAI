@@ -200,7 +200,7 @@ export default function AvatarPage() {
               {statusConfig.label}
             </span>
             {avatar.avatar_name && (
-              <span className="text-slate-400 font-inter">— {avatar.avatar_name}</span>
+              <span className="text-slate-400 font-inter">· {avatar.avatar_name}</span>
             )}
           </div>
 

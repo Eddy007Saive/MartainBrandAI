@@ -1323,7 +1323,7 @@ export default function Admin() {
                                 ${apiBalances.openrouter.restant_usd} <span className="text-sm font-normal text-slate-500">restants</span>
                               </p>
                               <p className="text-xs text-slate-500 mt-1">${apiBalances.openrouter.consomme_usd} consommés / ${apiBalances.openrouter.achete_usd} achetés</p>
-                              {apiBalances.openrouter.restant_usd < 20 && <p className="text-xs text-red-400 mt-1.5">⚠ Solde faible — recharge sur openrouter.ai</p>}
+                              {apiBalances.openrouter.restant_usd < 20 && <p className="text-xs text-red-400 mt-1.5">⚠ Solde faible, recharge sur openrouter.ai</p>}
                             </>
                           ) : <p className="text-sm text-slate-500">Indisponible</p>}
                         </div>
@@ -1333,7 +1333,7 @@ export default function Admin() {
                             <>
                               <p className="text-2xl font-bold font-sora text-white">${apiBalances.anthropic.mois_usd} <span className="text-sm font-normal text-slate-500">ce mois-ci</span></p>
                               <p className="text-xs text-slate-500 mt-1">
-                                {apiBalances.anthropic.mode === 'officiel' ? 'Chiffre officiel (clé Admin Anthropic)' : 'Estimation interne (usage_log) — solde visible sur console.anthropic.com'}
+                                {apiBalances.anthropic.mode === 'officiel' ? 'Chiffre officiel (clé Admin Anthropic)' : 'Estimation interne (usage_log), solde visible sur console.anthropic.com'}
                               </p>
                             </>
                           ) : <p className="text-sm text-slate-500">Indisponible</p>}
@@ -1469,7 +1469,7 @@ export default function Admin() {
                       </table>
                       {system.rendus.total.echecs > 0 && (
                         <p className="text-xs text-amber-400/80 mt-3">
-                          {system.rendus.total.echecs} rendu(s) échoué(s) — ils consomment du CPU sans rien produire.
+                          {system.rendus.total.echecs} rendu(s) échoué(s). Ils consomment du CPU sans rien produire.
                         </p>
                       )}
                     </div>
@@ -1484,7 +1484,7 @@ export default function Admin() {
                         Synchroniser les analytics
                       </Button>
                     </div>
-                    <p className="text-xs text-slate-500 mt-3">Les quotas se réinitialisent seuls à chaque période — rien à faire ici.</p>
+                    <p className="text-xs text-slate-500 mt-3">Les quotas se réinitialisent seuls à chaque période, rien à faire ici.</p>
                   </div>
                 </>
               )}
@@ -1577,13 +1577,13 @@ export default function Admin() {
               {/* Quotas (période en cours) — jauges + bonus individuel par type */}
               <div className="rounded-[14px] border border-white/[0.06] bg-[#0a1120] p-4">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold">Quotas — période en cours</div>
+                  <div className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold">Quotas (période en cours)</div>
                   {userUsage?.plan_name && <span className="text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-[#5B6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">{userUsage.plan_name}</span>}
                 </div>
                 {!userUsage ? (
                   <div className="flex items-center gap-2 text-slate-400 text-xs py-3"><Loader2 className="w-3.5 h-3.5 animate-spin" />Chargement des quotas…</div>
                 ) : !(userUsage.gauges || []).length ? (
-                  <p className="text-xs text-slate-500 py-2">Aucun abonnement actif — pas de quotas à afficher.</p>
+                  <p className="text-xs text-slate-500 py-2">Aucun abonnement actif, pas de quotas à afficher.</p>
                 ) : (
                   <>
                     <p className="text-[11px] text-slate-600 mt-1.5 mb-1">« Bonus » = offert en plus du plan, pour ce client, sur la période en cours.</p>

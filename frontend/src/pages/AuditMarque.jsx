@@ -222,13 +222,13 @@ export default function AuditMarque() {
     const lines = [];
     const sep = '═══════════════════════════════════════════';
     lines.push(sep);
-    lines.push('AUDIT DE MARQUE — ONBOARDING PRESENCE OS');
+    lines.push('AUDIT DE MARQUE : ONBOARDING PRESENCE OS');
     lines.push('Marque : ' + (val('marque') || '—'));
     lines.push('Date : ' + new Date().toLocaleDateString('fr-FR'));
     lines.push(sep);
     FORM.forEach((sec, i) => {
       lines.push('');
-      lines.push(`### ${num(i)} — ${tf(`audit.sec.${sec.id}.title`).toUpperCase()}`);
+      lines.push(`### ${num(i)} · ${tf(`audit.sec.${sec.id}.title`).toUpperCase()}`);
       sec.fields.forEach((f) => {
         const label = tf(`audit.f.${f.id}.label`);
         if (f.type === 'tabs') {
@@ -460,7 +460,7 @@ export default function AuditMarque() {
           <main>
             {FORM.map((sec, i) => (
               <section className="block" id={sec.id} key={sec.id}>
-                <div className="eyebrow">{num(i)} — {t('audit.ui.etape')}</div>
+                <div className="eyebrow">{num(i)} · {t('audit.ui.etape')}</div>
                 <h2>{t(`audit.sec.${sec.id}.title`)}</h2>
                 <p className="sub">{t(`audit.sec.${sec.id}.sub`)}</p>
                 {sec.fields.map((f) => renderField(f))}

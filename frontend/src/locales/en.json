@@ -59,7 +59,7 @@
     "strengthWeak": "weak",
     "strengthMedium": "fair",
     "strengthStrong": "strong",
-    "paiementIndisponible": "Payment is unavailable right now — your account is created, add your card from the dashboard."
+    "paiementIndisponible": "Payment is unavailable right now. Your account is created, add your card from the dashboard."
   },
   "pending": {
     "title": "Account pending",
@@ -142,7 +142,7 @@
     "ignorer": "Dismiss",
     "champsRemplis_one": "1 field filled",
     "champsRemplis_other": "{{count}} fields filled",
-    "rienAremplir": "Your fields are already filled — use « Replace everything » to overwrite them.",
+    "rienAremplir": "Your fields are already filled. Use « Replace everything » to overwrite them.",
     "rappelEnregistrer": "Read it over, fix it, then save at the bottom of the page.",
     "champ": {
       "secteur": "Industry",
@@ -155,11 +155,11 @@
     },
     "logo": {
       "trouve": "Logo found on your site",
-      "faviconSeule": "Only the favicon was found — usually too small for a carousel.",
+      "faviconSeule": "Only the favicon was found, usually too small for a carousel.",
       "utiliser": "Use it",
       "repris": "Logo saved",
       "echec": "This logo could not be retrieved.",
-      "pasUnLogo": "No logo found in the header — this is the site's share image, worth a look."
+      "pasUnLogo": "No logo found in the header. This is the site's share image, worth a look."
     }
   },
   "nav": {
@@ -224,7 +224,7 @@
     "noteLinkedin": "Published as a PDF (document)",
     "noteInstagram": "Image carousel (up to 10)",
     "noteFacebook": "Image carousel",
-    "panneauTitre": "{{reseau}} — pick a style",
+    "panneauTitre": "{{reseau}}: pick a style",
     "enregistrerCeStyle": "Save this style",
     "lightboxHint": "{{reseau}} · swipe to see all 5 slides",
     "toastCouleursEnregistrees": "Carousel colors saved ✨",
@@ -311,7 +311,7 @@
       "story24h": "Story · 24h",
       "regenererCarrousel": "Regenerate the carousel",
       "modifierTexte": "Edit the text",
-      "visuelModifier": "Visual — edit",
+      "visuelModifier": "Visual: edit",
       "creerVisuel": "Create the visual",
       "plusActions": "More actions",
       "declinerStory": "Turn into a story",
@@ -329,11 +329,11 @@
       "nouveau": "★ New",
       "seq": {
         "titre": "Sequence Reel",
-        "description": "Pick the images for your reel (upload or bank), add instructions if you want — the AI writes the texts and edits the video.",
+        "description": "Pick the images for your reel (upload or bank), add instructions if you want. The AI writes the texts and edits the video.",
         "importer": "Add images",
         "envoi": "Uploading…",
         "banque": "Your image bank",
-        "banqueVide": "Your bank is empty — upload images above: they are kept here for all your reels.",
+        "banqueVide": "Your bank is empty. Upload images above: they are kept here for all your reels.",
         "brief": "Instructions (optional)",
         "briefPh": "E.g.: highlight the -20% promo, energetic tone, end on the logo…",
         "generer": "Generate the reel",
@@ -356,7 +356,7 @@
         "ecouter": "Preview the track",
         "importerMp3": "Upload an MP3",
         "mesMusiques": "My music",
-        "mp3Aide": "You can upload your own track (MP3, 15 MB max) — make sure you hold the rights.",
+        "mp3Aide": "You can upload your own track (MP3, 15 MB max). Make sure you hold the rights.",
         "mp3Ajoute": "\"{{nom}}\" added to your music",
         "mp3Echec": "Could not upload the track.",
         "couper": "Keep an excerpt",
@@ -373,7 +373,7 @@
         "etape1": "The AI is writing the script…",
         "etape2": "Rendering the video, shot by shot…",
         "etape3": "Final touches and upload…",
-        "note": "About 2 minutes — stay on this page, your reel will appear in Contents once ready.",
+        "note": "About 2 minutes. Stay on this page, your reel will appear in Contents once ready.",
         "pillReel": "Reel in progress",
         "pillCarrousel": "Carousel in progress",
         "pillSlides": "Slides in progress"
@@ -391,10 +391,10 @@
     },
     "toast": {
       "reelEnCours": "Generating the “{{label}}” reel (~{{min}} min)…",
-      "reelGenere": "Reel generated 🎬 — it's now “To review”",
+      "reelGenere": "Reel generated 🎬. It's now “To review”",
       "reelEchec": "Reel generation failed",
-      "recycleOk": "Post recycled to {{n}} network ♻️ — the copies are “To review”",
-      "recycleOkPluriel": "Post recycled to {{n}} networks ♻️ — the copies are “To review”",
+      "recycleOk": "Post recycled to {{n}} network ♻️. The copies are “To review”",
+      "recycleOkPluriel": "Post recycled to {{n}} networks ♻️. The copies are “To review”",
       "recycleEchec": "Recycling failed",
       "carrouselRetouche": "Carousel touched up ✨",
       "retoucheEchec": "Touch-up failed",
@@ -412,23 +412,23 @@
       "importEchec": "Image upload failed",
       "carrouselEnCours": "Generating carousel… up to 1 min",
       "carrouselRegenere": "Carousel regenerated ✨",
-      "slidesNonRendues": "Slides not rendered — try again",
+      "slidesNonRendues": "Slides not rendered. Try again",
       "creditsInsuffisants": "Not enough credits",
       "regenerationEchec": "Regeneration failed",
-      "publicationProgrammee": "Post scheduled ✓ — it will go out at the planned date",
+      "publicationProgrammee": "Post scheduled ✓. It will go out at the planned date",
       "programmationEchec": "Scheduling failed",
       "replanifie": "Rescheduled → {{date}} ✓",
-      "replanifieEchecEnvoi": "Rescheduled, but sending failed — try again.",
+      "replanifieEchecEnvoi": "Rescheduled, but sending failed. Try again.",
       "replanificationEchec": "Rescheduling failed",
       "envoiAnnule": "Sending canceled",
       "annulationEchec": "Cancellation failed",
       "chargementErreur": "Error loading content",
       "slidesRendues": "Slides rendered as images ✨",
       "renduSlidesEchec": "Slide rendering failed",
-      "storyCreeeDate": "Story created (To review) — slot on {{date}} ✨",
+      "storyCreeeDate": "Story created (To review), slot on {{date}} ✨",
       "storyCreee": "Story created (To review) ✨",
       "storyEchec": "Failed to turn into a story",
-      "reseauNonConnecte": "{{reseau}} is not connected — connect the account in Settings before approving this post.",
+      "reseauNonConnecte": "{{reseau}} is not connected. Connect the account in Settings before approving this post.",
       "valideProgrammeDate": "Approved and scheduled for {{date}} ✓",
       "valideProgramme": "Approved and scheduled ✓",
       "valideProgrammationEchec": "Approved, but scheduling failed (is the network connected?).",
@@ -460,7 +460,7 @@
     },
     "etat": {
       "chargement": "Loading content...",
-      "rienAValider": "Nothing to review — all caught up ✨",
+      "rienAValider": "Nothing to review, all caught up ✨",
       "rienAValiderSous": "Your scheduled and published content is in the other filters.",
       "voirTous": "View all content ({{n}})",
       "aucunScript": "No video scripts",
@@ -489,7 +489,7 @@
       "montageVideoEnCours": "Video editing in progress…",
       "slide": "slide {{n}}",
       "agrandir": "Enlarge",
-      "apercuLive": "Live preview — reflects your tweaks",
+      "apercuLive": "Live preview: reflects your tweaks",
       "aucunVisuel": "No visual",
       "changerVisuel": "Change / regenerate the visual",
       "genererImage": "Generate an image",
@@ -522,14 +522,14 @@
     "edition": {
       "titre": "Edit content",
       "compteur": "{{n}} / {{lim}} characters",
-      "tropLong": " — too long, publishing will be rejected"
+      "tropLong": " (too long, publishing will be rejected)"
     },
     "recyclage": {
       "titre": "Recycle this post",
       "descAvant": "A copy of the post will be created for each selected network, each with its own publishing slot. The copies arrive as ",
       "descBadge": "“To review”",
-      "descApres": " — you can tweak the text before approving.",
-      "aucunReseau": "No other network connected — connect one in Settings → Social networks.",
+      "descApres": ". You can tweak the text before approving.",
+      "aucunReseau": "No other network connected. Connect one in Settings → Social networks.",
       "bouton": "Recycle ({{n}})"
     },
     "suppression": {
@@ -559,7 +559,7 @@
       "utiliserPhoto": "Use this photo",
       "photoGenereeSelectionnee": "Generated photo selected",
       "decrisPhotoPlaceholder": "Or describe the photo to generate…",
-      "photoAutoNote": "If you describe it, the photo is generated automatically (AI) when the visual is created — uses 1 standard image.",
+      "photoAutoNote": "If you describe it, the photo is generated automatically (AI) when the visual is created. It uses 1 standard image.",
       "tesTemplates": "Your brand templates",
       "nouveau": "New",
       "aucunTemplate": "No templates. Create one in Settings → Style & Colors.",
@@ -574,7 +574,7 @@
       "utilisee": "In use",
       "nonUtilisee": "Not used",
       "toujoursIntegrer": "Always use this image (e.g. your mascot) instead of just a style reference",
-      "toujoursIntegree": "Always used — click to switch back to style-only",
+      "toujoursIntegree": "Always used. Click to switch back to style-only",
       "agrandir": "Enlarge",
       "selectionneImageNote": "Select an image, then tell the AI what to do with it in “Instructions” (e.g. “put it in the circle”).",
       "descriptionImage": "Image description",
@@ -627,14 +627,14 @@
     "labelUserName": "Display name",
     "hintUserName": "The public name shown on your posts and profiles (can contain spaces).",
     "labelPhotoUrl": "Photo URL",
-    "hintPhotoUrl": "How to get the URL from Google Drive:\n1. Upload your photo to Google Drive\n2. Right-click → \"Share\"\n3. Set access to \"Anyone with the link\"\n4. Copy the file ID from the URL (e.g. .../d/XXXXXXX/view)\n5. Paste that link here — the system will use it for your content.",
+    "hintPhotoUrl": "How to get the URL from Google Drive:\n1. Upload your photo to Google Drive\n2. Right-click → \"Share\"\n3. Set access to \"Anyone with the link\"\n4. Copy the file ID from the URL (e.g. .../d/XXXXXXX/view)\n5. Paste that link here. The system will use it for your content.",
     "labelSexe": "Gender",
     "selectPlaceholder": "Select",
     "sexeHomme": "Male",
     "sexeFemme": "Female",
     "sexeAutre": "Other",
     "labelStyleVestimentaire": "Clothing style",
-    "tooltipStyles": "Casual — everyday relaxed wear\nBusiness — understated professional attire\nSporty — sportswear / athleisure\nElegant — dressy, evening, formal\nRelaxed — between casual and sporty\nStreetwear — urban, trendy, hype\nClassic — timeless, suit, chic",
+    "tooltipStyles": "Casual : everyday relaxed wear\nBusiness : understated professional attire\nSporty : sportswear / athleisure\nElegant : dressy, evening, formal\nRelaxed : between casual and sporty\nStreetwear : urban, trendy, hype\nClassic : timeless, suit, chic",
     "styleCasual": "Casual",
     "styleBusiness": "Business",
     "styleSportif": "Sporty",
@@ -676,7 +676,7 @@
     "howStep1": "Click \"Connect\" for the network you want",
     "howStep2": "You'll be redirected to the social network's authorization page",
     "howStep3": "Grant access to your account",
-    "howStep4": "You'll be redirected back here automatically — your account will be linked",
+    "howStep4": "You'll be redirected back here automatically. Your account will be linked",
     "logout": "Log out",
     "profileTitle": "My Profile",
     "profileSubtitle": "Manage your personal information",
@@ -762,7 +762,7 @@
       "echecSuppressionLogo": "Failed to remove the logo",
       "remplirDeuxChamps": "Fill in both fields.",
       "mdpTropCourt": "The new password must be at least 6 characters long.",
-      "mdpChange": "Password changed ✓ — other devices will be signed out.",
+      "mdpChange": "Password changed ✓. Other devices will be signed out.",
       "echecChangementMdp": "Password change failed"
     },
     "marque": {
@@ -796,7 +796,7 @@
       "exemplesPlaceholder": "Paste your best {{reseau}} posts here…\n\nPost 1\n---\nPost 2",
       "surTotal": "of {{total}} filled in",
       "positionnementSous": "Who you are, and who you speak to.",
-      "voixContenuSous": "How it sounds when you speak — and what would ring false.",
+      "voixContenuSous": "How it sounds when you speak, and what would ring false.",
       "matiere": "Raw material",
       "matiereSous": "Your themes, your hooks, your calls to action. One idea per line.",
       "secteurPlaceholder": "Sports physiotherapy practice",
@@ -876,13 +876,13 @@
       "offrePro": "Pro plan",
       "offreEssai": "Trial / Free plan",
       "actif": "Active",
-      "resilieJusquau": "Canceled — active until {{date}}",
+      "resilieJusquau": "Canceled, active until {{date}}",
       "renouvellement": "Renews on {{date}}",
       "gerer": "Manage",
       "cePassera": "What will happen on {{date}}",
-      "resil1": "Your social networks will be <b>disconnected</b> — automatic publishing will stop.",
+      "resil1": "Your social networks will be <b>disconnected</b>. Automatic publishing will stop.",
       "resil2": "Your plan will revert to free: limited generation.",
-      "resil3": "Your content, brand guidelines and history remain <b>saved</b> — resubscribe and everything picks up again (you'll just need to reconnect your networks).",
+      "resil3": "Your content, brand guidelines and history remain <b>saved</b>. Resubscribe and everything picks up again (you'll just need to reconnect your networks).",
       "resilNote": "Until that date, everything keeps working normally. You can cancel the termination at any time via \"Manage\".",
       "pro": "Pro",
       "parMois": "/month",
@@ -923,7 +923,7 @@
       "templatesDesc": "A reusable style (reference images + note). When generating a visual, pick a template to keep your posts consistent.",
       "nouveau": "New",
       "tplNomPlaceholder": "Template name (e.g. Quote, Promo…)",
-      "tplNotePlaceholder": "Style note (optional) — e.g. dark background, brand green, large text, minimalist mood…",
+      "tplNotePlaceholder": "Style note (optional): e.g. dark background, brand green, large text, minimalist mood…",
       "imagesRef_one": "Template reference images ({{count}} selected)",
       "imagesRef_other": "Template reference images ({{count}} selected)",
       "ajouterImage": "Add an image",
@@ -937,7 +937,7 @@
     "avatar": {
       "bientot": "Coming soon",
       "titre": "AI video avatar",
-      "desc": "Generate videos with your AI avatar from simple text. This feature is coming soon — we'll let you know as soon as it's ready.",
+      "desc": "Generate videos with your AI avatar from simple text. This feature is coming soon. We'll let you know as soon as it's ready.",
       "statutPending": "Awaiting processing",
       "statutInProgress": "Being created",
       "statutComplete": "Ready",
@@ -977,7 +977,7 @@
       "intro": "Your brand visuals, reusable across all your reels. Each image is described automatically by the AI so it knows when to use it.",
       "ajouter": "Add images",
       "envoi": "Uploading…",
-      "vide": "Your bank is empty. Add visuals — they'll be offered every time you build a reel.",
+      "vide": "Your bank is empty. Add visuals. They'll be offered every time you build a reel.",
       "supprimer": "Remove from bank",
       "compteur": "{{n}} image(s) in your bank",
       "ajoutee": "{{n}} image(s) added",
@@ -1013,9 +1013,9 @@
     "postsHeading": "Posts",
     "noData": "No data for this period (syncing can take a moment after publishing).",
     "postFallback": "Post",
-    "tipImpressions": "Impressions — number of times the post was displayed",
-    "tipReach": "Reach — number of unique accounts that saw the post",
-    "tipLikes": "Likes — number of likes",
+    "tipImpressions": "Impressions: number of times the post was displayed",
+    "tipReach": "Reach: number of unique accounts that saw the post",
+    "tipLikes": "Likes: number of likes",
     "tipComments": "Comments received",
     "tipShares": "Shares",
     "tipEngagement": "Engagement rate = (likes + comments + shares) ÷ impressions"
@@ -1037,7 +1037,7 @@
     "sousTitre": "Fill in your monthly calendar, network by network.",
     "jaugeTitre": "{{used}}/{{limit}} content items used this month",
     "contenusRestants": "Content remaining",
-    "moisBoucle": "Month complete ✓ — move on to the next month ▶",
+    "moisBoucle": "Month complete ✓. Move on to the next month ▶",
     "contenusDuMois": "content items this month",
     "reseauxBoucles": "networks completed",
     "gardeFouMarque": "Fill in your <gras>industry</gras> in <lien>Settings → Brand voice</lien> to start generating.",
@@ -1060,7 +1060,7 @@
     "nbReseaux_other": "{{count}} networks",
     "choisisUnReseau": "pick a network",
     "reseauxLabel": "Networks:",
-    "aucunReseauConnecte": "No network connected — connect an account in Settings →",
+    "aucunReseauConnecte": "No network connected. Connect an account in Settings →",
     "fmtPost": "Post",
     "fmtCarrousel": "Carousel",
     "fmtReel": "Reel",
@@ -1087,7 +1087,7 @@
     "toastRafaleSuccess_other": "{{count}} content items generated → Content tab",
     "toastRafaleEchecs_one": " ({{count}} failure)",
     "toastRafaleEchecs_other": " ({{count}} failures)",
-    "toastQuotaAtteint": "Quota reached — no more content available this month",
+    "toastQuotaAtteint": "Quota reached, no more content available this month",
     "toastEchecRafale": "Batch generation failed"
   },
   "planif": {
@@ -1191,12 +1191,12 @@
     "dateEnregReprogEchec": "Date saved, but rescheduling failed",
     "dateMaj": "Date updated",
     "echecMajDate": "Failed to update the date",
-    "pubProgrammee": "Post scheduled ✓ — it will go out at the planned time",
+    "pubProgrammee": "Post scheduled ✓. It will go out at the planned time",
     "echecProgrammation": "Scheduling failed",
     "replanifieVers": "Rescheduled → {{date}} ✓",
-    "replanifieEnvoiEchec": "Rescheduled, but sending failed — try again.",
+    "replanifieEnvoiEchec": "Rescheduled, but sending failed. Try again.",
     "echecReplanification": "Rescheduling failed",
-    "envoiAnnule": "Sending canceled — post removed from Late",
+    "envoiAnnule": "Sending canceled, post removed from Late",
     "echecAnnulation": "Cancellation failed",
     "confirmSuppression": "Permanently delete this post?\nIt will be removed from the Late queue and deleted from your content.",
     "postSupprime": "Post deleted",
@@ -1250,7 +1250,7 @@
     "filterReset": "Reset targeting",
     "resetReco": "Reco",
     "writeOwnBrief": "Write my own brief",
-    "briefPlaceholder": "E.g.: Promo for the Goodtime module launch — enthusiastic tone, key benefits, sign-up CTA.",
+    "briefPlaceholder": "E.g.: Promo for the Goodtime module launch, enthusiastic tone, key benefits, sign-up CTA.",
     "formatLabel": "Format",
     "typeLabel": "Type",
     "networksLabel": "Networks",
@@ -1272,9 +1272,9 @@
     "yourContentsTitle": "2. Your content",
     "draftsCount_one": "{{count}} draft",
     "draftsCount_other": "{{count}} drafts",
-    "emptyContentsHint": "Turn a topic (on the left) into a post or a script — it will appear here.",
+    "emptyContentsHint": "Turn a topic (on the left) into a post or a script. It will appear here.",
     "removeTitle": "Remove",
-    "carouselGenerationErrorLong": "Error during generation — if it still went through on the server, find it in the Content tab before retrying (to avoid a duplicate).",
+    "carouselGenerationErrorLong": "Error during generation. If it still went through on the server, find it in the Content tab before retrying (to avoid a duplicate).",
     "generationErrorShort": "Error during generation.",
     "retry": "Try again",
     "creatingCarousel": "Creating the carousel… (slides + images)",
@@ -1287,7 +1287,7 @@
     "close": "Close",
     "prevSlide": "Previous",
     "nextSlide": "Next",
-    "noImagesGenerated": "No images generated — try again.",
+    "noImagesGenerated": "No images generated. Try again.",
     "carouselSaved": "Carousel saved → Content tab",
     "regenerate": "Regenerate",
     "validate": "Approve",
@@ -1304,13 +1304,13 @@
     "defaultTitle": "Video",
     "fileType": "Pick a video file (mp4, mov…)",
     "fileTooBig": "Video too large (300 MB max)",
-    "networksSaved": "Network(s) saved ✓ — review & publish from Contents.",
+    "networksSaved": "Network(s) saved ✓. Review & publish from Contents.",
     "networksError": "Failed to save the networks.",
     "proOnly": "Pro plan only",
     "startError": "The operation could not start",
     "script": {
       "title": "Your script",
-      "sub": "— read it while filming"
+      "sub": "Read it while filming"
     },
     "upload": {
       "cta": "Upload your filmed video",
@@ -1356,7 +1356,7 @@
       "badTakesTip": "Detects and cuts hesitations, false starts and failed takes (the \"uhs\", repetitions).",
       "badTakesSub": "Cleans up hesitations.",
       "cleanAudio": "Clean up audio",
-      "cleanAudioTip": "Reduces background noise and improves voice clarity — a more professional sound.",
+      "cleanAudioTip": "Reduces background noise and improves voice clarity, for a more professional sound.",
       "cleanAudioSub": "Less noise, clearer voice."
     },
     "music": {
@@ -1368,7 +1368,7 @@
     },
     "direct": {
       "title": "Video imported as is",
-      "sub": "No AI editing, no captions added — your video is published exactly as you filmed/edited it.",
+      "sub": "No AI editing, no captions added. Your video is published exactly as you filmed/edited it.",
       "free": "Free",
       "sub2": ", does not use any quota."
     },
@@ -1386,7 +1386,7 @@
       "transcribing": "Transcription & captions…",
       "exporting": "Editing, b-roll & export…",
       "preparing": "Preparing the edit…",
-      "canLeave": "You can leave, it keeps going — the video will appear in Contents."
+      "canLeave": "You can leave, it keeps going. The video will appear in Contents."
     },
     "error": {
       "failed": "The edit failed",
@@ -1400,7 +1400,7 @@
       "seeContents": "View in Contents",
       "preview": "Preview",
       "newVideo": "New video",
-      "note1": "Pick the network(s) then \"Save & publish\" — you then review it in",
+      "note1": "Pick the network(s) then \"Save & publish\". You then review it in",
       "note2": "Contents"
     }
   },
@@ -1468,13 +1468,13 @@
         "badge": "The switch",
         "title": "With Postorico",
         "1": "The AI generates topics and posts tuned to your brand.",
-        "2": "You approve in one click — nothing goes out without your green light.",
-        "3": "Once approved, scheduling is automatic — consistency without thinking about it.",
-        "4": "Your real numbers in front of you — you finally know what works."
+        "2": "You approve in one click. Nothing goes out without your green light.",
+        "3": "Once approved, scheduling is automatic: consistency without thinking about it.",
+        "4": "Your real numbers in front of you. You finally know what works."
       }
     },
     "scenes": {
-      "alt": "Postorico — {{name}}",
+      "alt": "Postorico: {{name}}",
       "studio": {
         "label": "AI Studio",
         "tag": "your voice, not generic filler",
@@ -1498,7 +1498,7 @@
       "performance": {
         "label": "Performance",
         "tag": "you know what works",
-        "desc": "Impressions, reach, engagement — network by network."
+        "desc": "Impressions, reach, engagement, network by network."
       },
       "carrousels": {
         "label": "Carousels",
@@ -1558,14 +1558,14 @@
     "aud": {
       "eyebrow": "Who it's for",
       "title": "Does one of these sound like you?",
-      "lead": "We're not built for one industry — we're built for the reality of running a company.",
+      "lead": "We're not built for one industry. We're built for the reality of running a company.",
       "1": {
         "title": "\"I don't have the time\"",
         "text": "You're running a business, not a content studio. Postorico is your pocket-sized marketing agency: original content that fits your brand, in just 2 to 3 hours a month."
       },
       "2": {
         "title": "\"I delegate… and cross my fingers\"",
-        "text": "No more all-or-nothing bet on an intern. Postorico writes in your voice and you approve in one click. Consistent across every network — your tone, your brand."
+        "text": "No more all-or-nothing bet on an intern. Postorico writes in your voice and you approve in one click. Consistent across every network: your tone, your brand."
       },
       "3": {
         "title": "\"I'm paying an agency\"",
@@ -1582,15 +1582,15 @@
       },
       "2": {
         "title": "We build your system",
-        "text": "Editorial pillars, angles, calendar, AI tuned to your voice — plus concrete post and video ideas that look like you."
+        "text": "Editorial pillars, angles, calendar, AI tuned to your voice, plus concrete post and video ideas that look like you."
       },
       "3": {
-        "title": "You run it — in ~2 hrs/month",
+        "title": "You run it: in ~2 hrs/month",
         "text": "The system is ready: you generate topics, approve them, produce your visuals and videos, and schedule. Nothing goes out without you."
       },
       "roles": {
         "title": "We set it up. You run it.",
-        "text": "<b>Us:</b> we study your brand, configure everything, and build your visual templates. — <b>You:</b> ~2 hours a month to generate, approve and publish. You keep control, we carry the complexity."
+        "text": "<b>Us:</b> we study your brand, configure everything, and build your visual templates. <b>You:</b> ~2 hours a month to generate, approve and publish. You keep control, we carry the complexity."
       }
     },
     "testi": {
@@ -1613,10 +1613,10 @@
     },
     "final": {
       "title": "Ready to take back control of your presence?",
-      "text": "Book your setup call — we study your business, we build your system, you run it."
+      "text": "Book your setup call. We study your business, we build your system, you run it."
     },
     "footer": {
-      "about": "Your AI content studio, set up by experts and tuned to your voice. You generate, you approve, you publish — 2 hours a month, every network.",
+      "about": "Your AI content studio, set up by experts and tuned to your voice. You generate, you approve, you publish, 2 hours a month, every network.",
       "product": "Product",
       "account": "Account",
       "legal": "Legal notice",
@@ -1625,7 +1625,7 @@
       "legalNotice": "Legal notice",
       "apk": "Android app",
       "book": "Book a call",
-      "copy": "© 2026 Postorico — a GoodTime BNB product",
+      "copy": "© 2026 Postorico, a GoodTime BNB product",
       "made": "Made with 🐓 in France",
       "productOf": "A product by",
       "pricing": "Pricing",
@@ -1642,11 +1642,11 @@
       "list": {
         "1": {
           "t": "AI generation",
-          "d": "Posts tuned to your brand voice, your industry and your content pillars — in seconds."
+          "d": "Posts tuned to your brand voice, your industry and your content pillars, in seconds."
         },
         "2": {
           "t": "Every network",
-          "d": "LinkedIn, Instagram, Facebook, TikTok, YouTube — publish everywhere from one place."
+          "d": "LinkedIn, Instagram, Facebook, TikTok, YouTube: publish everywhere from one place."
         },
         "3": {
           "t": "Scheduling",
@@ -1654,7 +1654,7 @@
         },
         "4": {
           "t": "Comments & inbox",
-          "d": "Reply, like and hide comments from a single inbox — with a notification the moment a new one lands."
+          "d": "Reply, like and hide comments from a single inbox, with a notification the moment a new one lands."
         },
         "5": {
           "t": "Performance analytics",
@@ -1666,7 +1666,7 @@
         },
         "7": {
           "t": "Push notifications",
-          "d": "Know when a post is scheduled, published or fails — even with the app closed."
+          "d": "Know when a post is scheduled, published or fails, even with the app closed."
         },
         "8": {
           "t": "AI video avatar",
@@ -1682,7 +1682,7 @@
         },
         "2": {
           "t": "The AI creates",
-          "d": "Topics, posts, carousels, video scripts — tailored to each network."
+          "d": "Topics, posts, carousels, video scripts, tailored to each network."
         },
         "3": {
           "t": "Approve & schedule",
@@ -1707,7 +1707,7 @@
         },
         "2": {
           "t": "The AI creates for you",
-          "p": "From a single topic, the AI writes content tailored to each network — in your voice.",
+          "p": "From a single topic, the AI writes content tailored to each network, in your voice.",
           "li": {
             "1": "Topic ideas in one click",
             "2": "Posts tuned per network",
@@ -1765,7 +1765,7 @@
         },
         "1": {
           "t": "At the right time",
-          "p": "Your posts go out in the optimal slot, in your time zone — wherever your clients are."
+          "p": "Your posts go out in the optimal slot, in your time zone, wherever your clients are."
         },
         "2": {
           "t": "You stay informed",
@@ -1803,7 +1803,7 @@
           "2": "Publishing to LinkedIn, Instagram, Facebook, TikTok, YouTube & X",
           "3": "Your Google Business Profile, handled",
           "4": "Editorial calendar + scheduling",
-          "5": "You approve — nothing goes out without your green light",
+          "5": "You approve. Nothing goes out without your green light",
           "6": "No commitment, cancel any time"
         },
         "cta": "Start my trial",
@@ -1811,7 +1811,7 @@
         "note": "14 days to try it. You only pay at the end of the trial, and you can stop whenever you want."
       },
       "pack": {
-        "name": "Foundations Pack — optional",
+        "name": "Foundations Pack (optional)",
         "desc": "Real agency work, once. After that, you're on your own two feet.",
         "feat": {
           "1": "Brand audit (positioning, audience, competitors)",
@@ -1895,7 +1895,7 @@
           },
           "2": {
             "q": "Is it fully automatic?",
-            "a": "No, and that's deliberate. The tool prepares everything — ideas, copy, visuals, calendar — but nothing is published without your approval."
+            "a": "No, and that's deliberate. The tool prepares everything (ideas, copy, visuals, calendar), but nothing is published without your approval."
           },
           "3": {
             "q": "Won't the content sound generic?",
@@ -1907,7 +1907,7 @@
           },
           "5": {
             "q": "Which networks does it work with?",
-            "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube and X — plus your Google Business Profile. All from a single interface."
+            "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube and X, plus your Google Business Profile. All from a single interface."
           },
           "6": {
             "q": "Can I cancel whenever I want?",
@@ -1922,7 +1922,7 @@
         "ph": "your@email.com",
         "cta": "Subscribe",
         "note": "One letter a week. Unsubscribe in one click, any time.",
-        "ok": "Noted — you'll get the next letter.",
+        "ok": "Noted. You'll get the next letter.",
         "err": "Could not sign you up right now."
       },
       "final": {
@@ -1939,15 +1939,15 @@
       "list": {
         "1": {
           "q": "What exactly is Postorico?",
-          "a": "It's a communications agency, inside a piece of software. Our experts lay your brand's foundations — tone, editorial line, art direction — then the tool generates, schedules and publishes your content across your 6 networks (LinkedIn, Instagram, Facebook, TikTok, YouTube, X) and your Google listing. You approve, and you stay in control. The result: the consistency of an agency, for a fraction of the price, in a few hours a month."
+          "a": "It's a communications agency, inside a piece of software. Our experts lay your brand's foundations (tone, editorial line, art direction), then the tool generates, schedules and publishes your content across your 6 networks (LinkedIn, Instagram, Facebook, TikTok, YouTube, X) and your Google listing. You approve, and you stay in control. The result: the consistency of an agency, for a fraction of the price, in a few hours a month."
         },
         "2": {
           "q": "Won't the content sound generic, like all AI?",
-          "a": "That's the first worry, and it's a fair one. What makes the difference here is what happens before: our experts study your brand, your positioning and the way you speak, then calibrate the tool on YOU. So it doesn't come out as “an AI” — it comes out as your content, in your voice. That's exactly what sets Postorico apart from an off-the-shelf post generator."
+          "a": "That's the first worry, and it's a fair one. What makes the difference here is what happens before: our experts study your brand, your positioning and the way you speak, then calibrate the tool on YOU. So it doesn't come out as “an AI”. It comes out as your content, in your voice. That's exactly what sets Postorico apart from an off-the-shelf post generator."
         },
         "3": {
           "q": "Is it fully automatic? Does it publish on its own?",
-          "a": "No, and that's deliberate. The tool does the heavy lifting: it generates your ideas, your copy, your visuals, your calendar. But nothing goes live without your approval. You read it, you adjust, you approve — only then does publishing happen automatically. It's your brand: you always keep your hands on it."
+          "a": "No, and that's deliberate. The tool does the heavy lifting: it generates your ideas, your copy, your visuals, your calendar. But nothing goes live without your approval. You read it, you adjust, you approve. Only then does publishing happen automatically. It's your brand: you always keep your hands on it."
         },
         "4": {
           "q": "How much of my time does it take each month?",
@@ -1955,11 +1955,11 @@
         },
         "5": {
           "q": "How much does it cost?",
-          "a": "The subscription is €279 a month, all-inclusive, no commitment, with a 14-day trial. If you'd like experts to lay your brand's foundations before you publish, the Foundations Pack is €1,499, once — it's optional. Compare that to an agency, which typically bills €2,000 to €3,000 a month, forever."
+          "a": "The subscription is €279 a month, all-inclusive, no commitment, with a 14-day trial. If you'd like experts to lay your brand's foundations before you publish, the Foundations Pack is €1,499, once. It's optional. Compare that to an agency, which typically bills €2,000 to €3,000 a month, forever."
         },
         "6": {
           "q": "What is the Foundations Pack for, if it's optional?",
-          "a": "Saving time, and starting right. Our experts do genuine agency work: brand audit, tone of voice, editorial line, art direction, feed templates and custom carousels. That's what guarantees everything that follows looks like you, from day one. An agency would bill this at €3,000 or more — and keep billing you every month."
+          "a": "Saving time, and starting right. Our experts do genuine agency work: brand audit, tone of voice, editorial line, art direction, feed templates and custom carousels. That's what guarantees everything that follows looks like you, from day one. An agency would bill this at €3,000 or more, and keep billing you every month."
         },
         "7": {
           "q": "Can I start without the Foundations Pack?",
@@ -1967,7 +1967,7 @@
         },
         "8": {
           "q": "I already have an apprentice running my networks. Is Postorico here to replace them?",
-          "a": "No — it's here to free them up. An apprentice spending their days writing posts is wasted potential. With Postorico, the tool becomes the content machine (copy, visuals, volume, consistency), and your apprentice focuses on what a machine will never do: shooting reels, filming the field, capturing the real thing. The right team is both."
+          "a": "No. It's here to free them up. An apprentice spending their days writing posts is wasted potential. With Postorico, the tool becomes the content machine (copy, visuals, volume, consistency), and your apprentice focuses on what a machine will never do: shooting reels, filming the field, capturing the real thing. The right team is both."
         },
         "9": {
           "q": "What happens the day the person running my networks leaves?",
@@ -1975,11 +1975,11 @@
         },
         "10": {
           "q": "Does it really handle my Google listing?",
-          "a": "Yes, and it's too often overlooked. Your Google listing is frequently the first place a customer discovers you, before your website. Postorico feeds it regularly, like your networks, so you show up — and reassure — when someone searches for your service nearby."
+          "a": "Yes, and it's too often overlooked. Your Google listing is frequently the first place a customer discovers you, before your website. Postorico feeds it regularly, like your networks, so you show up (and reassure) when someone searches for your service nearby."
         },
         "11": {
           "q": "Which networks does it work with?",
-          "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube and X — plus your Google Business Profile. All run from a single place, with content adapted to each platform."
+          "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube and X, plus your Google Business Profile. All run from a single place, with content adapted to each platform."
         },
         "12": {
           "q": "I have several locations / several brands. Do you handle that?",
@@ -1998,7 +1998,7 @@
       "placeholder": "you@email.com",
       "bouton": "Subscribe",
       "envoi": "Subscribing…",
-      "merci": "You're in — the next letter is on its way.",
+      "merci": "You're in. The next letter is on its way.",
       "erreur": "Could not sign you up right now.",
       "legal": "One letter a week. Unsubscribe in one click, any time."
     },
@@ -2023,7 +2023,7 @@
   },
   "manuel": {
     "titre": "Write a post",
-    "sousTitre": "Your text, your visual — no AI, no quota used.",
+    "sousTitre": "Your text, your visual, no AI, no quota used.",
     "reseau": "Network",
     "story": "Publish as a Story (24h)",
     "texte": "Post text",
@@ -2033,7 +2033,7 @@
     "retirerImage": "Remove the image",
     "annuler": "Cancel",
     "creer": "Create post",
-    "cree": "Post created ✓ — waiting for you in \"To review\".",
+    "cree": "Post created ✓. Waiting for you in \"To review\".",
     "erreur": "The post could not be created",
     "texteRequis": "Write your text before saving",
     "tropLong": "Text too long for this network ({{limite}} characters max)",
@@ -2061,7 +2061,7 @@
       },
       "piliers": {
         "title": "Content pillars",
-        "sub": "Your big recurring topics — what you talk about all the time."
+        "sub": "Your big recurring topics: what you talk about all the time."
       },
       "eviter": {
         "title": "Red lines",
@@ -2139,7 +2139,7 @@
       },
       "concurrents": {
         "label": "Your 2-3 competitors or alternatives",
-        "help": "We'll never mention them — it's just to map your market.",
+        "help": "We'll never mention them. It's just to map your market.",
         "ph": "E.g.: other tools, agencies, doing it yourself"
       },
       "histoire": {
@@ -2348,7 +2348,7 @@
       },
       "charte": {
         "label": "Your logo",
-        "help": "Upload your logo (PNG, JPG, SVG, WebP — 5 MB max)."
+        "help": "Upload your logo (PNG, JPG, SVG, WebP, 5 MB max)."
       },
       "style_visuel": {
         "label": "The visual style you like",
@@ -2366,7 +2366,7 @@
       },
       "visuels_upload": {
         "label": "Visuals you like (upload)",
-        "help": "Upload example visuals — {{max}} images max, {{mb}} MB each."
+        "help": "Upload example visuals: {{max}} images max, {{mb}} MB each."
       },
       "objectif": {
         "label": "Your #1 goal for social media",
@@ -2394,8 +2394,8 @@
       "h1b": "So the AI speaks",
       "h1em": "exactly",
       "h1c": "like you.",
-      "lead": "This questionnaire is the setup step for your account. The more precise and detailed your answers, the more the generated content sounds right — your tone, your audience, your words. Allow 20 to 30 minutes. Answer in your own words, no need to polish.",
-      "note": "Take the time to fill in everything, as precisely as possible. This is the material we use to run a real, complete audit of your brand and fine-tune your account — not a generic setup. The more detailed your answers, the more the AI will sound like you.",
+      "lead": "This questionnaire is the setup step for your account. The more precise and detailed your answers, the more the generated content sounds right: your tone, your audience, your words. Allow 20 to 30 minutes. Answer in your own words, no need to polish.",
+      "note": "Take the time to fill in everything, as precisely as possible. This is the material we use to run a real, complete audit of your brand and fine-tune your account, not a generic setup. The more detailed your answers, the more the AI will sound like you.",
       "etape": "Step",
       "finiEyebrow": "You're done",
       "finiTitre": "Send your answers",
@@ -2420,7 +2420,7 @@
       "maxAtteint": "Maximum reached ({{n}})",
       "retirer": "Remove",
       "maxImages": "{{n}} images max.",
-      "maxImagesTronque": "{{n}} images max — only the first {{room}} were added.",
+      "maxImagesTronque": "{{n}} images max. Only the first {{room}} were added.",
       "pasImage": "“{{name}}” is not an image.",
       "tropGros": "“{{name}}” exceeds {{mb}} MB.",
       "trop429": "Too many uploads, try again in a few minutes.",
@@ -2453,7 +2453,7 @@
   "quota": {
     "sansCarte": {
       "titre": "Add your card to get started",
-      "texte": "Your account is ready. All that's left is your card to start your 14-day trial — nothing is charged today, and you can stop any time before it ends.",
+      "texte": "Your account is ready. All that's left is your card to start your 14-day trial. Nothing is charged today, and you can stop any time before it ends.",
       "cta": "Start my 14 days",
       "surTitre": "Last step",
       "g1": "Nothing is charged today.",
@@ -2469,7 +2469,7 @@
     "onglet": "Page not found",
     "titre1": "Rico looked everywhere.",
     "titre2": "This page doesn't exist.",
-    "texte": "The link may be out of date, or the address has a typo. Nothing is lost — the rest of the site is one click away.",
+    "texte": "The link may be out of date, or the address has a typo. Nothing is lost. The rest of the site is one click away.",
     "adresse": "Address requested:",
     "accueil": "Back to home",
     "tarifs": "See pricing",
@@ -2480,7 +2480,7 @@
     "fermer": "Close",
     "titre": "Start your free 14-day trial",
     "texte": "You've seen what the studio can do. All that's left to run your first generation is your card.",
-    "g1": "14 days free — nothing is charged during the trial.",
+    "g1": "14 days free. Nothing is charged during the trial.",
     "g2": "The first payment happens on day 15, not before.",
     "g3": "Cancel any time, in one click from Settings.",
     "cta": "Start my 14 days",
@@ -2521,17 +2521,17 @@
       },
       "fonctionnalite": {
         "titre": "Which one is missing?",
-        "texte": "Tell us in the field above — it may already be on the way. We'll let you know when it ships.",
+        "texte": "Tell us in the field above. It may already be on the way. We'll let you know when it ships.",
         "cta": "Stay and wait"
       },
       "appel_prix": {
         "titre": "What if we looked at your budget together?",
-        "texte": "Before leaving over price, let's talk for twenty minutes. Depending on how you use it, there may be a plan or an adjustment that fits you better — and if not, you cancel, no hard feelings.",
+        "texte": "Before leaving over price, let's talk for twenty minutes. Depending on how you use it, there may be a plan or an adjustment that fits you better. And if not, you cancel, no hard feelings.",
         "cta": "Book a call"
       }
     },
     "e4": {
-      "titre": "No need to stop everything — pause your account.",
+      "titre": "No need to stop everything: pause your account.",
       "texte": "Suspend your subscription for one, two or three months. We keep your setup, your brand voice and your templates. Come back whenever, it's all ready.",
       "mois": "{{count}} months",
       "note": "While paused, nothing is charged and access is suspended. Your data stays intact.",
@@ -2540,7 +2540,7 @@
     "fin": {
       "surTitre": "Cancellation recorded",
       "titre": "Done.",
-      "texte": "Your access stays active until {{date}}. You can reactivate any time — we keep everything safe. Thanks for trying Postorico.",
+      "texte": "Your access stays active until {{date}}. You can reactivate any time. We keep everything safe. Thanks for trying Postorico.",
       "texteSansDate": "Your access stays active until the end of your current period. You can reactivate any time. Thanks for trying Postorico.",
       "cta": "Close"
     }
@@ -2549,7 +2549,7 @@
     "surTitre": "Account paused",
     "titre": "Your account is paused.",
     "texte": "Nothing is being charged, and access resumes on {{date}}. There's nothing to do until then.",
-    "conserve": "Your setup, brand voice, templates and all your content are kept — nothing was deleted.",
+    "conserve": "Your setup, brand voice, templates and all your content are kept. Nothing was deleted.",
     "cta": "Resume now",
     "note": "Resuming is immediate and billing restarts from that date.",
     "repriseOk": "Account reactivated, everything is back.",

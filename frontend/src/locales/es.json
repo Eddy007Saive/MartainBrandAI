@@ -59,7 +59,7 @@
     "strengthWeak": "débil",
     "strengthMedium": "correcta",
     "strengthStrong": "sólida",
-    "paiementIndisponible": "El pago no está disponible ahora — tu cuenta está creada, añade tu tarjeta desde el panel."
+    "paiementIndisponible": "El pago no está disponible ahora. Tu cuenta está creada, añade tu tarjeta desde el panel."
   },
   "pending": {
     "title": "Cuenta pendiente",
@@ -142,7 +142,7 @@
     "ignorer": "Descartar",
     "champsRemplis_one": "1 campo rellenado",
     "champsRemplis_other": "{{count}} campos rellenados",
-    "rienAremplir": "Tus campos ya están rellenados — usa « Reemplazar todo » si quieres sobrescribirlos.",
+    "rienAremplir": "Tus campos ya están rellenados. Usa « Reemplazar todo » si quieres sobrescribirlos.",
     "rappelEnregistrer": "Repásalo, corrígelo y guarda al final de la página.",
     "champ": {
       "secteur": "Sector",
@@ -155,11 +155,11 @@
     },
     "logo": {
       "trouve": "Logo encontrado en tu web",
-      "faviconSeule": "Solo se encontró el favicon — suele ser pequeño para un carrusel.",
+      "faviconSeule": "Solo se encontró el favicon. Suele ser pequeño para un carrusel.",
       "utiliser": "Usarlo",
       "repris": "Logo guardado",
       "echec": "No se ha podido recuperar este logo.",
-      "pasUnLogo": "No se encontró logo en la cabecera — esta es la imagen para compartir, revísala."
+      "pasUnLogo": "No se encontró logo en la cabecera. Esta es la imagen para compartir, revísala."
     }
   },
   "nav": {
@@ -224,7 +224,7 @@
     "noteLinkedin": "Publicado como PDF (documento)",
     "noteInstagram": "Carrusel de imágenes (hasta 10)",
     "noteFacebook": "Carrusel de imágenes",
-    "panneauTitre": "{{reseau}} — elige un estilo",
+    "panneauTitre": "{{reseau}}: elige un estilo",
     "enregistrerCeStyle": "Guardar este estilo",
     "lightboxHint": "{{reseau}} · desliza para ver las 5 diapositivas",
     "toastCouleursEnregistrees": "Colores del carrusel guardados ✨",
@@ -311,7 +311,7 @@
       "story24h": "Story · 24h",
       "regenererCarrousel": "Regenerar el carrusel",
       "modifierTexte": "Editar el texto",
-      "visuelModifier": "Visual — editar",
+      "visuelModifier": "Visual: editar",
       "creerVisuel": "Crear el visual",
       "plusActions": "Más acciones",
       "declinerStory": "Convertir en story",
@@ -329,11 +329,11 @@
       "nouveau": "★ Nuevo",
       "seq": {
         "titre": "Reel Secuencia",
-        "description": "Elige las imágenes de tu reel (subida o banco), añade indicaciones si quieres — la IA escribe los textos y monta el vídeo.",
+        "description": "Elige las imágenes de tu reel (subida o banco), añade indicaciones si quieres. La IA escribe los textos y monta el vídeo.",
         "importer": "Añadir imágenes",
         "envoi": "Subiendo…",
         "banque": "Tu banco de imágenes",
-        "banqueVide": "Tu banco está vacío — sube imágenes arriba: se conservarán aquí para todos tus reels.",
+        "banqueVide": "Tu banco está vacío. Sube imágenes arriba: se conservarán aquí para todos tus reels.",
         "brief": "Indicaciones (opcional)",
         "briefPh": "Ej.: destaca la promo -20 %, tono enérgico, termina con el logo…",
         "generer": "Generar el reel",
@@ -356,7 +356,7 @@
         "ecouter": "Escuchar la pista",
         "importerMp3": "Importar un MP3",
         "mesMusiques": "Mi música",
-        "mp3Aide": "Puedes subir tu propia música (MP3, 15 MB máx.) — asegúrate de tener los derechos.",
+        "mp3Aide": "Puedes subir tu propia música (MP3, 15 MB máx.). Asegúrate de tener los derechos.",
         "mp3Ajoute": "«{{nom}}» añadida a tu música",
         "mp3Echec": "No se pudo importar la música.",
         "couper": "Guardar un fragmento",
@@ -373,7 +373,7 @@
         "etape1": "La IA escribe el guion…",
         "etape2": "Renderizando el vídeo, plano a plano…",
         "etape3": "Últimos ajustes y subida…",
-        "note": "Unos 2 minutos — quédate en esta página, tu reel aparecerá en Contenidos en cuanto esté listo.",
+        "note": "Unos 2 minutos. Quédate en esta página, tu reel aparecerá en Contenidos en cuanto esté listo.",
         "pillReel": "Reel en fabricación",
         "pillCarrousel": "Carrusel en fabricación",
         "pillSlides": "Slides en fabricación"
@@ -391,10 +391,10 @@
     },
     "toast": {
       "reelEnCours": "Generando el reel «{{label}}» (~{{min}} min)…",
-      "reelGenere": "Reel generado 🎬 — está «Por validar»",
+      "reelGenere": "Reel generado 🎬, está «Por validar»",
       "reelEchec": "Error al generar el reel",
-      "recycleOk": "Post reciclado en {{n}} red ♻️ — las copias están «Por validar»",
-      "recycleOkPluriel": "Post reciclado en {{n}} redes ♻️ — las copias están «Por validar»",
+      "recycleOk": "Post reciclado en {{n}} red ♻️, las copias están «Por validar»",
+      "recycleOkPluriel": "Post reciclado en {{n}} redes ♻️, las copias están «Por validar»",
       "recycleEchec": "Error al reciclar",
       "carrouselRetouche": "Carrusel retocado ✨",
       "retoucheEchec": "Error al retocar",
@@ -412,23 +412,23 @@
       "importEchec": "Error al importar la imagen",
       "carrouselEnCours": "Generando el carrusel… hasta 1 min",
       "carrouselRegenere": "Carrusel regenerado ✨",
-      "slidesNonRendues": "Diapositivas no renderizadas — inténtalo de nuevo",
+      "slidesNonRendues": "Diapositivas no renderizadas, inténtalo de nuevo",
       "creditsInsuffisants": "Créditos insuficientes",
       "regenerationEchec": "Error al regenerar",
-      "publicationProgrammee": "Publicación programada ✓ — saldrá en la fecha prevista",
+      "publicationProgrammee": "Publicación programada ✓, saldrá en la fecha prevista",
       "programmationEchec": "Error al programar",
       "replanifie": "Replanificado → {{date}} ✓",
-      "replanifieEchecEnvoi": "Replanificado, pero el envío falló — inténtalo de nuevo.",
+      "replanifieEchecEnvoi": "Replanificado, pero el envío falló. Inténtalo de nuevo.",
       "replanificationEchec": "Error al replanificar",
       "envoiAnnule": "Envío cancelado",
       "annulationEchec": "Error al cancelar",
       "chargementErreur": "Error al cargar los contenidos",
       "slidesRendues": "Diapositivas convertidas en imágenes ✨",
       "renduSlidesEchec": "Error al renderizar las diapositivas",
-      "storyCreeeDate": "Story creada (Por validar) — hueco del {{date}} ✨",
+      "storyCreeeDate": "Story creada (Por validar): hueco del {{date}} ✨",
       "storyCreee": "Story creada (Por validar) ✨",
       "storyEchec": "Error al convertir en story",
-      "reseauNonConnecte": "{{reseau}} no está conectado — conecta la cuenta en Ajustes antes de validar este post.",
+      "reseauNonConnecte": "{{reseau}} no está conectado. Conecta la cuenta en Ajustes antes de validar este post.",
       "valideProgrammeDate": "Validado y programado para el {{date}} ✓",
       "valideProgramme": "Validado y programado ✓",
       "valideProgrammationEchec": "Validado, pero la programación falló (¿red conectada?).",
@@ -460,7 +460,7 @@
     },
     "etat": {
       "chargement": "Cargando contenidos...",
-      "rienAValider": "Nada por validar — todo está al día ✨",
+      "rienAValider": "Nada por validar, todo está al día ✨",
       "rienAValiderSous": "Tus contenidos planificados y publicados están en los otros filtros.",
       "voirTous": "Ver todos los contenidos ({{n}})",
       "aucunScript": "Ningún guion de vídeo",
@@ -489,7 +489,7 @@
       "montageVideoEnCours": "Montaje del vídeo en curso…",
       "slide": "diapositiva {{n}}",
       "agrandir": "Ampliar",
-      "apercuLive": "Vista previa en vivo — refleja tus retoques",
+      "apercuLive": "Vista previa en vivo: refleja tus retoques",
       "aucunVisuel": "Sin visual",
       "changerVisuel": "Cambiar / regenerar el visual",
       "genererImage": "Generar una imagen",
@@ -522,14 +522,14 @@
     "edition": {
       "titre": "Editar el contenido",
       "compteur": "{{n}} / {{lim}} caracteres",
-      "tropLong": " — demasiado largo, la publicación será rechazada"
+      "tropLong": ": demasiado largo, la publicación será rechazada"
     },
     "recyclage": {
       "titre": "Reciclar este post",
       "descAvant": "Se creará una copia del post para cada red marcada, con su propio hueco de publicación. Las copias llegan en ",
       "descBadge": "«Por validar»",
-      "descApres": " — puedes ajustar el texto antes de validar.",
-      "aucunReseau": "Ninguna otra red conectada — conecta una red en Ajustes → Redes sociales.",
+      "descApres": ", puedes ajustar el texto antes de validar.",
+      "aucunReseau": "Ninguna otra red conectada. Conecta una red en Ajustes → Redes sociales.",
       "bouton": "Reciclar ({{n}})"
     },
     "suppression": {
@@ -559,7 +559,7 @@
       "utiliserPhoto": "Usar esta foto",
       "photoGenereeSelectionnee": "Foto generada seleccionada",
       "decrisPhotoPlaceholder": "O describe la foto a generar…",
-      "photoAutoNote": "Si la describes, la foto se genera automáticamente (IA) al crear el visual — consume 1 imagen estándar.",
+      "photoAutoNote": "Si la describes, la foto se genera automáticamente (IA) al crear el visual. Consume 1 imagen estándar.",
       "tesTemplates": "Tus templates de marca",
       "nouveau": "Nuevo",
       "aucunTemplate": "Ningún template. Crea uno en Ajustes → Estilo y Colores.",
@@ -574,7 +574,7 @@
       "utilisee": "En uso",
       "nonUtilisee": "Sin usar",
       "toujoursIntegrer": "Usar siempre esta imagen (ej. tu mascota) en vez de solo el estilo",
-      "toujoursIntegree": "Siempre usada — haz clic para volver a solo estilo",
+      "toujoursIntegree": "Siempre usada, haz clic para volver a solo estilo",
       "agrandir": "Ampliar",
       "selectionneImageNote": "Selecciona una imagen y dile a la IA qué hacer con ella en «Instrucciones» (ej. «ponla en el círculo»).",
       "descriptionImage": "Descripción de la imagen",
@@ -627,14 +627,14 @@
     "labelUserName": "Nombre para mostrar",
     "hintUserName": "El nombre público que se muestra en tus posts y perfiles (puede contener espacios).",
     "labelPhotoUrl": "URL de la foto",
-    "hintPhotoUrl": "Cómo obtener la URL desde Google Drive:\n1. Sube tu foto a Google Drive\n2. Haz clic derecho → «Compartir»\n3. Cambia el acceso a «Cualquier persona con el enlace»\n4. Copia el ID del archivo en la URL (p. ej. .../d/XXXXXXX/view)\n5. Pega ese enlace aquí — el sistema lo usará para tus contenidos.",
+    "hintPhotoUrl": "Cómo obtener la URL desde Google Drive:\n1. Sube tu foto a Google Drive\n2. Haz clic derecho → «Compartir»\n3. Cambia el acceso a «Cualquier persona con el enlace»\n4. Copia el ID del archivo en la URL (p. ej. .../d/XXXXXXX/view)\n5. Pega ese enlace aquí. El sistema lo usará para tus contenidos.",
     "labelSexe": "Sexo",
     "selectPlaceholder": "Seleccionar",
     "sexeHomme": "Hombre",
     "sexeFemme": "Mujer",
     "sexeAutre": "Otro",
     "labelStyleVestimentaire": "Estilo de vestimenta",
-    "tooltipStyles": "Casual — informal del día a día\nBusiness — vestimenta profesional sobria\nDeportivo — ropa de deporte / athleisure\nElegante — arreglado, de noche, formal\nRelajado — entre casual y deportivo\nStreetwear — urbano, tendencia, hype\nClásico — atemporal, traje, chic",
+    "tooltipStyles": "Casual : informal del día a día\nBusiness : vestimenta profesional sobria\nDeportivo : ropa de deporte / athleisure\nElegante : arreglado, de noche, formal\nRelajado : entre casual y deportivo\nStreetwear : urbano, tendencia, hype\nClásico : atemporal, traje, chic",
     "styleCasual": "Casual",
     "styleBusiness": "Business",
     "styleSportif": "Deportivo",
@@ -676,7 +676,7 @@
     "howStep1": "Haz clic en «Conectar» en la red que quieras",
     "howStep2": "Serás redirigido a la página de autorización de la red social",
     "howStep3": "Autoriza el acceso a tu cuenta",
-    "howStep4": "Volverás aquí automáticamente — tu cuenta quedará vinculada",
+    "howStep4": "Volverás aquí automáticamente, tu cuenta quedará vinculada",
     "logout": "Cerrar sesión",
     "profileTitle": "Mi Perfil",
     "profileSubtitle": "Gestiona tu información personal",
@@ -762,7 +762,7 @@
       "echecSuppressionLogo": "Error al eliminar el logo",
       "remplirDeuxChamps": "Rellena los dos campos.",
       "mdpTropCourt": "La nueva contraseña debe tener al menos 6 caracteres.",
-      "mdpChange": "Contraseña cambiada ✓ — los demás dispositivos se desconectarán.",
+      "mdpChange": "Contraseña cambiada ✓. Los demás dispositivos se desconectarán.",
       "echecChangementMdp": "Error al cambiar la contraseña"
     },
     "marque": {
@@ -796,7 +796,7 @@
       "exemplesPlaceholder": "Pega aquí tus mejores posts de {{reseau}}…\n\nPost 1\n---\nPost 2",
       "surTotal": "de {{total}} rellenados",
       "positionnementSous": "Quién eres y a quién le hablas.",
-      "voixContenuSous": "Cómo suena cuando hablas tú — y qué sonaría falso.",
+      "voixContenuSous": "Cómo suena cuando hablas tú, y qué sonaría falso.",
       "matiere": "Material para escribir",
       "matiereSous": "Tus temas, tus ganchos, tus llamadas a la acción. Una idea por línea.",
       "secteurPlaceholder": "Consulta de fisioterapia deportiva",
@@ -876,13 +876,13 @@
       "offrePro": "Plan Pro",
       "offreEssai": "Plan Prueba / Gratis",
       "actif": "Activo",
-      "resilieJusquau": "Cancelado — activo hasta el {{date}}",
+      "resilieJusquau": "Cancelado, activo hasta el {{date}}",
       "renouvellement": "Renovación el {{date}}",
       "gerer": "Gestionar",
       "cePassera": "Lo que pasará el {{date}}",
-      "resil1": "Tus redes sociales serán <b>desconectadas</b> — la publicación automática se detendrá.",
+      "resil1": "Tus redes sociales serán <b>desconectadas</b>. La publicación automática se detendrá.",
       "resil2": "Tu plan volverá al gratuito: generación limitada.",
-      "resil3": "Tus contenidos, tu guía de marca y tu historial quedan <b>conservados</b> — al volver a suscribirte, todo arranca de nuevo (solo tendrás que reconectar tus redes).",
+      "resil3": "Tus contenidos, tu guía de marca y tu historial quedan <b>conservados</b>. Al volver a suscribirte, todo arranca de nuevo (solo tendrás que reconectar tus redes).",
       "resilNote": "Hasta esa fecha, todo sigue funcionando con normalidad. Puedes anular la cancelación en cualquier momento desde «Gestionar».",
       "pro": "Pro",
       "parMois": "/mes",
@@ -923,7 +923,7 @@
       "templatesDesc": "Un estilo reutilizable (imágenes de referencia + nota). Al generar un visual, elige una plantilla para mantener tus posts coherentes.",
       "nouveau": "Nueva",
       "tplNomPlaceholder": "Nombre de la plantilla (p. ej. Cita, Promo…)",
-      "tplNotePlaceholder": "Nota de estilo (opcional) — p. ej. fondo oscuro, verde de la marca, texto grande, ambiente minimalista…",
+      "tplNotePlaceholder": "Nota de estilo (opcional): p. ej. fondo oscuro, verde de la marca, texto grande, ambiente minimalista…",
       "imagesRef_one": "Imágenes de referencia de la plantilla ({{count}} elegida)",
       "imagesRef_other": "Imágenes de referencia de la plantilla ({{count}} elegidas)",
       "ajouterImage": "Añadir una imagen",
@@ -937,7 +937,7 @@
     "avatar": {
       "bientot": "Próximamente",
       "titre": "Avatar de vídeo IA",
-      "desc": "Genera vídeos con tu avatar IA a partir de un simple texto. Esta función llegará pronto — te avisaremos en cuanto esté lista.",
+      "desc": "Genera vídeos con tu avatar IA a partir de un simple texto. Esta función llegará pronto. Te avisaremos en cuanto esté lista.",
       "statutPending": "Pendiente de procesar",
       "statutInProgress": "En proceso de creación",
       "statutComplete": "Listo",
@@ -1013,9 +1013,9 @@
     "postsHeading": "Publicaciones",
     "noData": "No hay datos en este período (la sincronización puede tardar un poco después de publicar).",
     "postFallback": "Publicación",
-    "tipImpressions": "Impresiones — número de veces que se mostró la publicación",
-    "tipReach": "Alcance — número de cuentas únicas que vieron la publicación",
-    "tipLikes": "Me gusta — número de likes",
+    "tipImpressions": "Impresiones: número de veces que se mostró la publicación",
+    "tipReach": "Alcance: número de cuentas únicas que vieron la publicación",
+    "tipLikes": "Me gusta: número de likes",
     "tipComments": "Comentarios recibidos",
     "tipShares": "Compartidos",
     "tipEngagement": "Tasa de interacción = (me gusta + comentarios + compartidos) ÷ impresiones"
@@ -1037,7 +1037,7 @@
     "sousTitre": "Rellena tu calendario del mes, red por red.",
     "jaugeTitre": "{{used}}/{{limit}} contenidos usados este mes",
     "contenusRestants": "Contenidos restantes",
-    "moisBoucle": "Mes completado ✓ — pasa al mes siguiente ▶",
+    "moisBoucle": "Mes completado ✓, pasa al mes siguiente ▶",
     "contenusDuMois": "contenidos del mes",
     "reseauxBoucles": "redes completadas",
     "gardeFouMarque": "Indica tu <gras>sector</gras> en <lien>Ajustes → Voz de marca</lien> para generar.",
@@ -1060,7 +1060,7 @@
     "nbReseaux_other": "{{count}} redes",
     "choisisUnReseau": "elige una red",
     "reseauxLabel": "Redes:",
-    "aucunReseauConnecte": "Ninguna red conectada — conecta una cuenta en Ajustes →",
+    "aucunReseauConnecte": "Ninguna red conectada, conecta una cuenta en Ajustes →",
     "fmtPost": "Post",
     "fmtCarrousel": "Carrusel",
     "fmtReel": "Reel",
@@ -1087,7 +1087,7 @@
     "toastRafaleSuccess_other": "{{count}} contenidos generados → pestaña Contenidos",
     "toastRafaleEchecs_one": " ({{count}} fallo)",
     "toastRafaleEchecs_other": " ({{count}} fallos)",
-    "toastQuotaAtteint": "Cuota alcanzada — no quedan contenidos disponibles este mes",
+    "toastQuotaAtteint": "Cuota alcanzada, no quedan contenidos disponibles este mes",
     "toastEchecRafale": "Fallo en la generación en ráfaga"
   },
   "planif": {
@@ -1191,12 +1191,12 @@
     "dateEnregReprogEchec": "Fecha guardada, pero la reprogramación falló",
     "dateMaj": "Fecha actualizada",
     "echecMajDate": "Error al actualizar la fecha",
-    "pubProgrammee": "Publicación programada ✓ — saldrá en la fecha prevista",
+    "pubProgrammee": "Publicación programada ✓, saldrá en la fecha prevista",
     "echecProgrammation": "Error al programar",
     "replanifieVers": "Reprogramado → {{date}} ✓",
-    "replanifieEnvoiEchec": "Reprogramado, pero el envío falló — inténtalo de nuevo.",
+    "replanifieEnvoiEchec": "Reprogramado, pero el envío falló. Inténtalo de nuevo.",
     "echecReplanification": "Error al reprogramar",
-    "envoiAnnule": "Envío cancelado — post eliminado de Late",
+    "envoiAnnule": "Envío cancelado, post eliminado de Late",
     "echecAnnulation": "Error al cancelar",
     "confirmSuppression": "¿Eliminar definitivamente este post?\nSe quitará de la cola de Late y se borrará de tus contenidos.",
     "postSupprime": "Post eliminado",
@@ -1250,7 +1250,7 @@
     "filterReset": "Restablecer enfoque",
     "resetReco": "Reco",
     "writeOwnBrief": "Escribir mi propio brief",
-    "briefPlaceholder": "Ej.: Promo por el lanzamiento del módulo Goodtime — tono entusiasta, beneficios clave, CTA de inscripción.",
+    "briefPlaceholder": "Ej.: Promo por el lanzamiento del módulo Goodtime: tono entusiasta, beneficios clave, CTA de inscripción.",
     "formatLabel": "Formato",
     "typeLabel": "Tipo",
     "networksLabel": "Redes",
@@ -1272,9 +1272,9 @@
     "yourContentsTitle": "2. Tus contenidos",
     "draftsCount_one": "{{count}} borrador",
     "draftsCount_other": "{{count}} borradores",
-    "emptyContentsHint": "Transforma un tema (a la izquierda) en post o en guion — aparecerá aquí.",
+    "emptyContentsHint": "Transforma un tema (a la izquierda) en post o en guion. Aparecerá aquí.",
     "removeTitle": "Quitar",
-    "carouselGenerationErrorLong": "Error durante la generación — si aun así se completó en el servidor, búscalo en la pestaña Contenidos antes de reintentar (para evitar un duplicado).",
+    "carouselGenerationErrorLong": "Error durante la generación. Si aun así se completó en el servidor, búscalo en la pestaña Contenidos antes de reintentar (para evitar un duplicado).",
     "generationErrorShort": "Error durante la generación.",
     "retry": "Reintentar",
     "creatingCarousel": "Creando el carrusel… (slides + imágenes)",
@@ -1287,7 +1287,7 @@
     "close": "Cerrar",
     "prevSlide": "Anterior",
     "nextSlide": "Siguiente",
-    "noImagesGenerated": "No se generó ninguna imagen — inténtalo de nuevo.",
+    "noImagesGenerated": "No se generó ninguna imagen, inténtalo de nuevo.",
     "carouselSaved": "Carrusel guardado → pestaña Contenidos",
     "regenerate": "Regenerar",
     "validate": "Validar",
@@ -1304,13 +1304,13 @@
     "defaultTitle": "Vídeo",
     "fileType": "Elige un archivo de vídeo (mp4, mov…)",
     "fileTooBig": "Vídeo demasiado pesado (300 MB máx.)",
-    "networksSaved": "Red(es) guardada(s) ✓ — valida y publica desde Contenidos.",
+    "networksSaved": "Red(es) guardada(s) ✓. Valida y publica desde Contenidos.",
     "networksError": "No se pudieron guardar las redes.",
     "proOnly": "Reservado al plan Pro",
     "startError": "La operación no pudo iniciarse",
     "script": {
       "title": "Tu guion",
-      "sub": "— léelo mientras grabas"
+      "sub": "Léelo mientras grabas"
     },
     "upload": {
       "cta": "Sube tu vídeo grabado",
@@ -1356,7 +1356,7 @@
       "badTakesTip": "Detecta y corta las dudas, los falsos comienzos y las tomas fallidas (los «eh», repeticiones).",
       "badTakesSub": "Limpia las vacilaciones.",
       "cleanAudio": "Limpiar el audio",
-      "cleanAudioTip": "Reduce el ruido de fondo y mejora la claridad de la voz — un sonido más profesional.",
+      "cleanAudioTip": "Reduce el ruido de fondo y mejora la claridad de la voz: un sonido más profesional.",
       "cleanAudioSub": "Menos ruido, voz más nítida."
     },
     "music": {
@@ -1368,7 +1368,7 @@
     },
     "direct": {
       "title": "Vídeo importado tal cual",
-      "sub": "Sin edición IA, sin subtítulos añadidos — tu vídeo se publica tal y como lo grabaste/editaste.",
+      "sub": "Sin edición IA, sin subtítulos añadidos: tu vídeo se publica tal y como lo grabaste/editaste.",
       "free": "Gratis",
       "sub2": ", no consume cuota."
     },
@@ -1386,7 +1386,7 @@
       "transcribing": "Transcripción y subtítulos…",
       "exporting": "Edición, b-roll y exportación…",
       "preparing": "Preparando la edición…",
-      "canLeave": "Puedes salir, continúa en segundo plano — el vídeo aparecerá en Contenidos."
+      "canLeave": "Puedes salir, continúa en segundo plano: el vídeo aparecerá en Contenidos."
     },
     "error": {
       "failed": "La edición falló",
@@ -1400,7 +1400,7 @@
       "seeContents": "Ver en Contenidos",
       "preview": "Vista previa",
       "newVideo": "Nuevo vídeo",
-      "note1": "Elige la(s) red(es) y luego «Guardar y publicar» — después lo validas en",
+      "note1": "Elige la(s) red(es) y luego «Guardar y publicar», después lo validas en",
       "note2": "Contenidos"
     }
   },
@@ -1474,7 +1474,7 @@
       }
     },
     "scenes": {
-      "alt": "Postorico — {{name}}",
+      "alt": "Postorico: {{name}}",
       "studio": {
         "label": "Estudio IA",
         "tag": "tu voz, nada genérico",
@@ -1582,15 +1582,15 @@
       },
       "2": {
         "title": "Construimos tu sistema",
-        "text": "Líneas editoriales, ángulos, calendario, calibrado de la IA con tu voz — y propuestas concretas de posts y formatos de vídeo a tu imagen."
+        "text": "Líneas editoriales, ángulos, calendario, calibrado de la IA con tu voz, y propuestas concretas de posts y formatos de vídeo a tu imagen."
       },
       "3": {
-        "title": "Tú pilotas — en ~2 h/mes",
+        "title": "Tú pilotas: en ~2 h/mes",
         "text": "El sistema está listo: generas tus temas, validas, produces tus visuales y vídeos, programas. Nada sale sin ti."
       },
       "roles": {
         "title": "Nosotros instalamos. Tú pilotas.",
-        "text": "<b>Nosotros:</b> estudiamos tu marca, lo configuramos todo y creamos tus plantillas de visuales. — <b>Tú:</b> ~2 h al mes para generar, validar y publicar. Tú mantienes el control, nosotros cargamos con la complejidad."
+        "text": "<b>Nosotros:</b> estudiamos tu marca, lo configuramos todo y creamos tus plantillas de visuales. <b>Tú:</b> ~2 h al mes para generar, validar y publicar. Tú mantienes el control, nosotros cargamos con la complejidad."
       }
     },
     "testi": {
@@ -1616,7 +1616,7 @@
       "text": "Reserva tu call de setup: estudiamos tu empresa, construimos tu sistema, tú pilotas."
     },
     "footer": {
-      "about": "Tu estudio de contenido IA, instalado por expertos y calibrado con tu voz. Generas, validas, publicas — 2 h al mes, en todas las redes.",
+      "about": "Tu estudio de contenido IA, instalado por expertos y calibrado con tu voz. Generas, validas, publicas: 2 h al mes, en todas las redes.",
       "product": "Producto",
       "account": "Cuenta",
       "legal": "Aviso legal",
@@ -1625,7 +1625,7 @@
       "legalNotice": "Aviso legal",
       "apk": "App Android",
       "book": "Reservar una llamada",
-      "copy": "© 2026 Postorico — un producto de GoodTime BNB",
+      "copy": "© 2026 Postorico, un producto de GoodTime BNB",
       "made": "Hecho con 🐓 en Francia",
       "productOf": "Un producto de",
       "pricing": "Precios",
@@ -1642,11 +1642,11 @@
       "list": {
         "1": {
           "t": "Generación con IA",
-          "d": "Publicaciones ajustadas a la voz de tu marca, tu sector y tus pilares de contenido — en segundos."
+          "d": "Publicaciones ajustadas a la voz de tu marca, tu sector y tus pilares de contenido, en segundos."
         },
         "2": {
           "t": "Todas las redes",
-          "d": "LinkedIn, Instagram, Facebook, TikTok, YouTube — publica en todas desde un solo sitio."
+          "d": "LinkedIn, Instagram, Facebook, TikTok, YouTube: publica en todas desde un solo sitio."
         },
         "3": {
           "t": "Planificación",
@@ -1654,7 +1654,7 @@
         },
         "4": {
           "t": "Comentarios y bandeja",
-          "d": "Responde, da me gusta y oculta comentarios desde un solo sitio — con aviso en cuanto llega uno nuevo."
+          "d": "Responde, da me gusta y oculta comentarios desde un solo sitio, con aviso en cuanto llega uno nuevo."
         },
         "5": {
           "t": "Análisis de resultados",
@@ -1666,7 +1666,7 @@
         },
         "7": {
           "t": "Notificaciones push",
-          "d": "Entérate cuando una publicación se programa, se publica o falla — aunque la app esté cerrada."
+          "d": "Entérate cuando una publicación se programa, se publica o falla, aunque la app esté cerrada."
         },
         "8": {
           "t": "Avatar de vídeo con IA",
@@ -1682,7 +1682,7 @@
         },
         "2": {
           "t": "La IA genera",
-          "d": "Temas, publicaciones, carruseles y guiones de vídeo — adaptados a cada red."
+          "d": "Temas, publicaciones, carruseles y guiones de vídeo, adaptados a cada red."
         },
         "3": {
           "t": "Valida y programa",
@@ -1707,7 +1707,7 @@
         },
         "2": {
           "t": "La IA genera por ti",
-          "p": "A partir de un tema, la IA redacta contenidos adaptados a cada red — con tu voz.",
+          "p": "A partir de un tema, la IA redacta contenidos adaptados a cada red, con tu voz.",
           "li": {
             "1": "Ideas de temas en un clic",
             "2": "Publicaciones ajustadas a cada red",
@@ -1765,7 +1765,7 @@
         },
         "1": {
           "t": "A la hora justa",
-          "p": "Tus publicaciones salen en la franja óptima, en tu zona horaria — estén donde estén tus clientes."
+          "p": "Tus publicaciones salen en la franja óptima, en tu zona horaria, estén donde estén tus clientes."
         },
         "2": {
           "t": "Siempre informado",
@@ -1803,7 +1803,7 @@
           "2": "Publicación en LinkedIn, Instagram, Facebook, TikTok, YouTube y X",
           "3": "Gestión de tu ficha de Google Business Profile",
           "4": "Calendario editorial + programación",
-          "5": "Tú validas, tú mantienes el control — nada sale sin tu visto bueno",
+          "5": "Tú validas, tú mantienes el control: nada sale sin tu visto bueno",
           "6": "Sin permanencia, cancelable en cualquier momento"
         },
         "cta": "Empezar mi prueba",
@@ -1811,7 +1811,7 @@
         "note": "14 días para probarlo. Solo pagas al final de la prueba, y puedes parar cuando quieras."
       },
       "pack": {
-        "name": "Pack Fundaciones — opcional",
+        "name": "Pack Fundaciones (opcional)",
         "desc": "El trabajo real de una agencia, una sola vez. Después, eres autónomo.",
         "feat": {
           "1": "Auditoría de tu marca (posicionamiento, público, competencia)",
@@ -1895,7 +1895,7 @@
           },
           "2": {
             "q": "¿Es 100 % automático?",
-            "a": "No, y es a propósito. La herramienta lo prepara todo — ideas, textos, visuales, calendario — pero nada se publica sin tu validación."
+            "a": "No, y es a propósito. La herramienta lo prepara todo (ideas, textos, visuales, calendario), pero nada se publica sin tu validación."
           },
           "3": {
             "q": "¿El contenido no va a sonar « genérico »?",
@@ -1907,7 +1907,7 @@
           },
           "5": {
             "q": "¿En qué redes funciona?",
-            "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube y X — más tu ficha de Google Business Profile. Todo desde una sola interfaz."
+            "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube y X, más tu ficha de Google Business Profile. Todo desde una sola interfaz."
           },
           "6": {
             "q": "¿Puedo cancelar cuando quiera?",
@@ -1922,7 +1922,7 @@
         "ph": "tu@email.com",
         "cta": "Me suscribo",
         "note": "Una carta por semana. Baja en un clic, cuando quieras.",
-        "ok": "Anotado — recibirás la próxima carta.",
+        "ok": "Anotado. Recibirás la próxima carta.",
         "err": "No se pudo completar la suscripción ahora mismo."
       },
       "final": {
@@ -1943,11 +1943,11 @@
         },
         "2": {
           "q": "¿El contenido no va a sonar genérico, como toda la IA?",
-          "a": "Es el primer miedo, y es legítimo. La diferencia aquí está en lo que pasa antes: nuestros expertos estudian tu marca, tu posicionamiento y tu forma de hablar, y calibran la herramienta sobre TI. Así no sale «una IA» — sale tu contenido, con tu voz. Es justo lo que distingue a Postorico de un generador de publicaciones cualquiera."
+          "a": "Es el primer miedo, y es legítimo. La diferencia aquí está en lo que pasa antes: nuestros expertos estudian tu marca, tu posicionamiento y tu forma de hablar, y calibran la herramienta sobre TI. Así no sale «una IA», sale tu contenido, con tu voz. Es justo lo que distingue a Postorico de un generador de publicaciones cualquiera."
         },
         "3": {
           "q": "¿Es 100 % automático? ¿Publica solo?",
-          "a": "No, y es a propósito. La herramienta hace el grueso del trabajo: genera tus ideas, tus textos, tus visuales, tu calendario. Pero nada se publica sin tu validación. Lo revisas, lo ajustas, lo validas — y solo entonces la publicación se hace automáticamente. Es tu marca: siempre llevas el timón."
+          "a": "No, y es a propósito. La herramienta hace el grueso del trabajo: genera tus ideas, tus textos, tus visuales, tu calendario. Pero nada se publica sin tu validación. Lo revisas, lo ajustas, lo validas, y solo entonces la publicación se hace automáticamente. Es tu marca: siempre llevas el timón."
         },
         "4": {
           "q": "¿Cuánto tiempo me lleva al mes?",
@@ -1955,11 +1955,11 @@
         },
         "5": {
           "q": "¿Cuánto cuesta?",
-          "a": "La suscripción cuesta 279 € al mes, todo incluido, sin permanencia y con 14 días de prueba. Si quieres que unos expertos sienten las bases de tu marca antes de publicar, el Pack Fundaciones cuesta 1 499 €, una sola vez — es opcional. Compáralo con una agencia, que suele facturar entre 2 000 y 3 000 € al mes, de forma continua."
+          "a": "La suscripción cuesta 279 € al mes, todo incluido, sin permanencia y con 14 días de prueba. Si quieres que unos expertos sienten las bases de tu marca antes de publicar, el Pack Fundaciones cuesta 1 499 €, una sola vez (es opcional). Compáralo con una agencia, que suele facturar entre 2 000 y 3 000 € al mes, de forma continua."
         },
         "6": {
           "q": "¿Para qué sirve el Pack Fundaciones, si es opcional?",
-          "a": "Para ganar tiempo y arrancar bien. Nuestros expertos hacen un trabajo de agencia de verdad: auditoría de marca, tono de voz, línea editorial, dirección artística, plantillas de feed y carruseles personalizados. Es lo que garantiza que todo lo que salga después sea a tu imagen, desde el primer día. Una agencia facturaría este trabajo a 3 000 € o más — y te seguiría facturando cada mes."
+          "a": "Para ganar tiempo y arrancar bien. Nuestros expertos hacen un trabajo de agencia de verdad: auditoría de marca, tono de voz, línea editorial, dirección artística, plantillas de feed y carruseles personalizados. Es lo que garantiza que todo lo que salga después sea a tu imagen, desde el primer día. Una agencia facturaría este trabajo a 3 000 € o más, y te seguiría facturando cada mes."
         },
         "7": {
           "q": "¿Puedo empezar sin el Pack Fundaciones?",
@@ -1967,7 +1967,7 @@
         },
         "8": {
           "q": "Ya tengo a alguien en prácticas que lleva mis redes. ¿Postorico viene a sustituirlo?",
-          "a": "No — viene a liberarlo. Alguien que se pasa el día escribiendo publicaciones es potencial desaprovechado. Con Postorico, la herramienta se convierte en la máquina de contenido (redacción, visuales, volumen, constancia), y esa persona se centra en lo que una máquina nunca hará: grabar los reels, filmar el terreno, captar lo auténtico. El buen equipo son los dos."
+          "a": "No, viene a liberarlo. Alguien que se pasa el día escribiendo publicaciones es potencial desaprovechado. Con Postorico, la herramienta se convierte en la máquina de contenido (redacción, visuales, volumen, constancia), y esa persona se centra en lo que una máquina nunca hará: grabar los reels, filmar el terreno, captar lo auténtico. El buen equipo son los dos."
         },
         "9": {
           "q": "¿Y el día que se va la persona que lleva mis redes?",
@@ -1975,11 +1975,11 @@
         },
         "10": {
           "q": "¿Gestiona de verdad mi ficha de Google?",
-          "a": "Sí, y se descuida demasiado a menudo. Tu ficha de Google suele ser el primer sitio donde un cliente te descubre, incluso antes que tu web. Postorico la alimenta con regularidad, como tus redes, para que aparezcas — y des confianza — cuando alguien busca tu servicio cerca."
+          "a": "Sí, y se descuida demasiado a menudo. Tu ficha de Google suele ser el primer sitio donde un cliente te descubre, incluso antes que tu web. Postorico la alimenta con regularidad, como tus redes, para que aparezcas, y des confianza, cuando alguien busca tu servicio cerca."
         },
         "11": {
           "q": "¿En qué redes funciona?",
-          "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube y X — más tu ficha de Google Business Profile. Todo pilotado desde un solo sitio, con contenido adaptado a cada plataforma."
+          "a": "LinkedIn, Instagram, Facebook, TikTok, YouTube y X, más tu ficha de Google Business Profile. Todo pilotado desde un solo sitio, con contenido adaptado a cada plataforma."
         },
         "12": {
           "q": "Tengo varios establecimientos / varias marcas. ¿Lo gestionáis?",
@@ -1998,7 +1998,7 @@
       "placeholder": "tu@email.com",
       "bouton": "Me suscribo",
       "envoi": "Suscribiendo…",
-      "merci": "Listo — recibirás la próxima carta.",
+      "merci": "Listo. Recibirás la próxima carta.",
       "erreur": "No se pudo completar la suscripción.",
       "legal": "Una carta por semana. Baja en un clic, cuando quieras."
     },
@@ -2023,7 +2023,7 @@
   },
   "manuel": {
     "titre": "Escribir una publicación",
-    "sousTitre": "Tu texto, tu visual — sin IA, sin consumir cuota.",
+    "sousTitre": "Tu texto, tu visual, sin IA, sin consumir cuota.",
     "reseau": "Red",
     "story": "Publicar como Historia (24 h)",
     "texte": "Texto de la publicación",
@@ -2033,7 +2033,7 @@
     "retirerImage": "Quitar la imagen",
     "annuler": "Cancelar",
     "creer": "Crear la publicación",
-    "cree": "Publicación creada ✓ — te espera en «Por validar».",
+    "cree": "Publicación creada ✓. Te espera en «Por validar».",
     "erreur": "No se pudo crear la publicación",
     "texteRequis": "Escribe tu texto antes de guardar",
     "tropLong": "Texto demasiado largo para esta red ({{limite}} caracteres máx.)",
@@ -2348,7 +2348,7 @@
       },
       "charte": {
         "label": "Tu logo",
-        "help": "Sube tu logo (PNG, JPG, SVG, WebP — 5 MB máx.)."
+        "help": "Sube tu logo (PNG, JPG, SVG, WebP, 5 MB máx.)."
       },
       "style_visuel": {
         "label": "El estilo visual que te gusta",
@@ -2366,7 +2366,7 @@
       },
       "visuels_upload": {
         "label": "Visuales que te gustan (subida)",
-        "help": "Sube ejemplos de visuales — {{max}} imágenes máx., {{mb}} MB cada una."
+        "help": "Sube ejemplos de visuales: {{max}} imágenes máx., {{mb}} MB cada una."
       },
       "objectif": {
         "label": "Objetivo nº1 de tus redes",
@@ -2453,7 +2453,7 @@
   "quota": {
     "sansCarte": {
       "titre": "Añade tu tarjeta para empezar",
-      "texte": "Tu cuenta está creada. Solo falta tu tarjeta para iniciar tus 14 días de prueba — hoy no se cobra nada, y puedes parar cuando quieras antes del final.",
+      "texte": "Tu cuenta está creada. Solo falta tu tarjeta para iniciar tus 14 días de prueba. Hoy no se cobra nada, y puedes parar cuando quieras antes del final.",
       "cta": "Empezar mis 14 días",
       "surTitre": "Último paso",
       "g1": "Hoy no se cobra nada.",
@@ -2526,7 +2526,7 @@
       },
       "appel_prix": {
         "titre": "¿Y si revisamos tu presupuesto juntos?",
-        "texte": "Antes de irte por una cuestión de precio, hablémoslo veinte minutos. Según tu uso, quizá haya un plan o un ajuste que te convenga más — y si no, cancelas, sin problema.",
+        "texte": "Antes de irte por una cuestión de precio, hablémoslo veinte minutos. Según tu uso, quizá haya un plan o un ajuste que te convenga más. Y si no, cancelas, sin problema.",
         "cta": "Reservar una llamada"
       }
     },

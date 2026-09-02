@@ -58,9 +58,9 @@ export default function TopPosts({ limit = 5 }) {
                 </div>
               </div>
               <div className="hidden sm:flex items-center gap-4 text-[12px] text-slate-400 shrink-0">
-                <span title="Impressions — nombre de fois où le post a été affiché" className="flex items-center gap-1 cursor-help"><Eye className="w-3.5 h-3.5" />{fmt(m.impressions)}</span>
-                <span title="Portée — nombre de comptes uniques qui ont vu le post" className="flex items-center gap-1 cursor-help"><Users className="w-3.5 h-3.5" />{fmt(m.reach)}</span>
-                <span title="J'aime — nombre de likes" className="flex items-center gap-1 cursor-help"><Heart className="w-3.5 h-3.5" />{fmt(m.likes)}</span>
+                <span title="Impressions : nombre de fois où le post a été affiché" className="flex items-center gap-1 cursor-help"><Eye className="w-3.5 h-3.5" />{fmt(m.impressions)}</span>
+                <span title="Portée : nombre de comptes uniques qui ont vu le post" className="flex items-center gap-1 cursor-help"><Users className="w-3.5 h-3.5" />{fmt(m.reach)}</span>
+                <span title="J'aime : nombre de likes" className="flex items-center gap-1 cursor-help"><Heart className="w-3.5 h-3.5" />{fmt(m.likes)}</span>
                 <span title="Commentaires reçus" className="flex items-center gap-1 cursor-help"><MessageCircle className="w-3.5 h-3.5" />{fmt(m.comments)}</span>
               </div>
               <span title="Taux d'engagement = (j'aime + commentaires + partages) ÷ impressions"

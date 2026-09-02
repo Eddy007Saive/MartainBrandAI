@@ -1127,7 +1127,7 @@ export default function ContenusPage() {
     const toastId = toast.loading('Découpage en série de stories…');
     try {
       const d = await contenuService.storySerie(contenu.id);
-      toast.success(`${d.count} stories créées — à valider ensemble pour qu'elles s'enchaînent`, { id: toastId });
+      toast.success(`${d.count} stories créées, à valider ensemble pour qu'elles s'enchaînent`, { id: toastId });
       fetchContenus();
     } catch (e) {
       if (!e.__handled) toast.error(e.response?.data?.detail || 'La déclinaison en série a échoué.', { id: toastId });

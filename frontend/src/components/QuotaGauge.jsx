@@ -47,7 +47,7 @@ function Bar({ g, onRachat }) {
         <button onClick={() => onRachat(g)}
           className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-[#3AFFA3] hover:underline">
           <Plus className="w-3 h-3" />
-          {fini ? `Tu as fini tes ${g.label} — ajoute un pack` : `Bientôt à court — ajoute un pack`}
+          {fini ? `Tu as fini tes ${g.label}, ajoute un pack` : `Bientôt à court, ajoute un pack`}
         </button>
       )}
     </div>
