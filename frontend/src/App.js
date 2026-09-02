@@ -13,6 +13,7 @@ import Pricing from "./pages/marketing/Pricing";
 import Faq from "./pages/marketing/Faq";
 import Blog from "./pages/marketing/Blog";
 import Article from "./pages/marketing/Article";
+import Pourquoi from "./pages/marketing/Pourquoi";
 import Cgu from "./pages/marketing/Cgu";
 import Confidentialite from "./pages/marketing/Confidentialite";
 import MentionsLegales from "./pages/marketing/MentionsLegales";
@@ -61,6 +62,9 @@ const routesPubliques = () => (
       <Route path="mentions-legales" element={<MentionsLegales />} />
     </Route>
     <Route path="audit-marque" element={<AuditMarque />} />
+    {/* Page de démarchage envoyée en lien direct : pas dans le menu, propre
+        header réduit, exclue de l'indexation (robots.txt). */}
+    <Route path="pourquoi" element={<Pourquoi />} />
     {/* Publiques et traduites, mais exclues de l'indexation par robots.txt :
         un visiteur espagnol qui clique « Empezar » depuis /es/tarifs doit
         trouver un formulaire en espagnol, pas un retour au francais. */}
