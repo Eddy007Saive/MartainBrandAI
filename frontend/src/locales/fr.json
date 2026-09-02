@@ -2547,5 +2547,99 @@
     "note": "La reprise est immédiate et la facturation redémarre à cette date.",
     "repriseOk": "Compte réactivé, tout est revenu.",
     "erreur": "Reprise impossible pour le moment."
+  },
+  "pourquoi": {
+    "meta": {
+      "titre": "Studio Postorico — Ce qu'on voit de vous quand on vous cherche",
+      "description": "Pourquoi soigner ses réseaux et sa fiche Google même quand on a déjà assez de clients."
+    },
+    "entete": { "nom": "Postorico", "sousTitre": "Studio de contenu IA" },
+    "cta": {
+      "reserver": "Je réserve ma démo",
+      "sansEngagement": "Aucun engagement",
+      "sansEngagement20": "20 minutes, aucun engagement"
+    },
+    "hero": {
+      "oeil": "Réseaux sociaux et fiche Google, pris en charge de bout en bout",
+      "h1Debut": "Vous n'avez pas besoin d'un client de plus. ",
+      "h1Lueur": "Vous avez besoin qu'on vous prenne au sérieux avant même de vous appeler.",
+      "chapeau": "Cette page ne parle pas de vous trouver des prospects. Elle parle de ce que voit une personne à qui on vient de vous recommander, quand elle tape votre nom pour vérifier à qui elle a affaire. En 2026, c'est le premier entretien, et il a lieu sans vous.",
+      "signe": "Martin Kraemer, Studio Postorico"
+    },
+    "dit": {
+      "eyebrow": "Ce qu'on me dit",
+      "titre": "Ce qu'on me répond au téléphone, presque tous les jours",
+      "phrase1": "« On a déjà assez de clients. »",
+      "phrase2": "« On n'a pas les effectifs pour suivre davantage. »",
+      "phrase3": "« Les réseaux, ce n'est pas notre priorité. »",
+      "apresAvant": "Ces trois réponses sont bonnes. Elles disent que l'entreprise tourne, que le carnet est plein, que le temps manque. Aucune n'est une raison de laisser ses pages à l'abandon, parce qu'elles répondent toutes à une question qu'on ne pose pas. ",
+      "apresFort": "La question n'est pas de savoir combien de clients vous voulez en plus. Elle est de savoir de quoi vous avez l'air quand quelqu'un vérifie."
+    },
+    "ordre": {
+      "eyebrow": "Dans l'ordre",
+      "titre": "Prendre le problème dans l'ordre",
+      "intro": "La plupart des entreprises abordent les réseaux par la fin : elles se demandent combien de clients ça rapporte. C'est la deuxième question. La première arrive bien avant, et elle se pose que vous publiiez ou non.",
+      "etape1": { "rang": "D'abord", "titre": "Être crédible quand on vous cherche", "texte": "Des pages propres, à jour, cohérentes avec ce que vous êtes. Une fiche Google vivante. Le minimum pour que celui qui vérifie referme l'onglet rassuré. Ça ne demande pas de volume, ça demande de la régularité." },
+      "etape2": { "rang": "Ensuite, si vous en avez besoin", "titre": "Faire venir des clients", "texte": "De l'acquisition, du ciblage, de la conquête. Utile le jour où le carnet se vide, inutile tant qu'il est plein. Et impossible à démarrer proprement si la base d'en face n'existe pas." },
+      "sortie": "Tant que la première marche n'est pas posée, tout le reste tape dans le vide. Et la première marche, elle, ne devient jamais moins urgente parce que vous avez du travail."
+    },
+    "raisons": {
+      "eyebrow": "Cinq raisons",
+      "titre": "Cinq raisons qui valent même quand le carnet est plein",
+      "intro": "Aucune ne parle de générer des prospects.",
+      "r1": { "titre": "Le bouche-à-oreille finit toujours sur un écran", "texte": "On vous recommande à quelqu'un. Cette personne ne décroche pas son téléphone dans la foulée : elle tape votre nom. C'est là que se joue votre réputation, dans les trente secondes qui suivent une recommandation que vous avez mis des années à mériter. Vos pages ne remplacent pas le bouche-à-oreille, elles le confirment ou elles le cassent." },
+      "r2": { "titre": "Une page à l'arrêt raconte quelque chose de faux sur vous", "texte": "Un dernier post il y a huit mois, ça se lit comme un signal : entreprise ralentie, activité incertaine, peut-être même fermée. C'est presque toujours faux. Vous n'avez pas ralenti, vous avez juste eu autre chose à faire. Mais celui qui vous découvre n'a aucun moyen de le savoir, et il ne vous appellera pas pour vous poser la question." },
+      "r3": { "titre": "La régularité est ce qui se lit, pas le contenu", "texte": "Personne ne lit vos publications une par une. On regarde une chose : est-ce que ça vit. Trois publications par semaine depuis six mois disent « entreprise structurée, équipe en place, ça tourne ». Un post tous les trois mois dit le contraire, quelle que soit la qualité de ce qui est écrit. La régularité est un signal de sérieux avant d'être un outil de communication." },
+      "r4": { "titre": "La fiche Google passe avant tout le reste", "texte": "C'est le premier écran que voit quelqu'un qui vous cherche, avant votre site et avant vos réseaux : horaires, photos, avis, publications récentes. C'est aussi celui qu'on laisse dormir le plus longtemps. Une fiche vide ou datée coûte des clients qu'on ne voit jamais passer, parce qu'ils ne vous ont pas appelé pour vous prévenir qu'ils avaient renoncé." },
+      "r5": { "titre": "Une présence claire trie vos demandes au lieu de les multiplier", "texte": "C'est le point qui compte quand on manque de bras. Des pages qui disent précisément ce que vous faites, pour qui et comment vous travaillez, filtrent en amont. Les demandes arrivent déjà cadrées, avec moins de dossiers hors sujet et moins d'allers-retours pour expliquer votre façon de faire. Ce n'est pas un robinet qu'on ouvre. C'est un filtre qu'on installe." },
+      "compteFort": "Et le jour où vous en aurez besoin : ",
+      "compteTexte": "une image de marque ne se construit pas dans l'urgence. Quand le carnet se creuse, celui qui a publié régulièrement pendant deux ans repart d'une base solide. Celui qui commence ce jour-là repart de zéro, au pire moment."
+    },
+    "bande": { "titre": "Vingt minutes pour voir ce que ça donne sur votre entreprise." },
+    "etapes": {
+      "eyebrow": "Comment ça marche",
+      "titre": "Ce qu'on a construit, et ce qu'il vous reste à faire",
+      "intro": "Le vrai obstacle n'a jamais été l'envie, c'est le temps et les effectifs. Alors on a fait un logiciel qui prend en charge la chaîne complète, de l'idée jusqu'à la publication. Votre seule intervention est à l'étape 3.",
+      "e1": { "titre": "Configuration", "texte": "Une seule fois, au démarrage. On paramètre le compte sur votre entreprise : votre positionnement, votre clientèle, votre façon de parler, vos sujets, ce que vous ne voulez surtout pas voir écrit. C'est cette étape qui fait que le contenu vous ressemble au lieu de ressembler à n'importe quelle entreprise de votre secteur.", "tag": "Nous, à l'ouverture du compte" },
+      "e2": { "titre": "Création", "texte": "Le logiciel produit vos contenus : publications, visuels, stories, textes de fiche Google. Vous ne partez plus jamais d'une page blanche et vous n'avez plus à chercher quoi raconter cette semaine.", "tag": "Automatique" },
+      "e3": { "titre": "Validation", "texte": "Vous ouvrez, vous lisez, vous validez ou vous corrigez. Depuis votre téléphone, entre deux rendez-vous. Rien ne part sans votre accord, jamais. C'est votre marque, vous gardez la main dessus de bout en bout.", "tag": "Vous, et vous seul" },
+      "e4": { "titre": "Planification", "texte": "Ce que vous avez validé se place tout seul dans le calendrier, aux bons jours et aux bonnes heures, sur chaque réseau. Vous voyez d'un coup d'œil ce qui est prévu pour les semaines à venir.", "tag": "Automatique" },
+      "e5": { "titre": "Publication", "texte": "La publication part toute seule, sur vos réseaux et sur votre fiche Google. Rien à recopier, rien à reposter à la main, rien à ne pas oublier le dimanche soir.", "tag": "Automatique" },
+      "e6": { "titre": "Suivi", "texte": "Vous retrouvez au même endroit ce qui est passé, ce qui arrive et l'état de votre présence sur chaque canal. Une seule interface au lieu de cinq applications ouvertes.", "tag": "Automatique" },
+      "sortie": "Sur six étapes, une seule vous demande d'être présent. Les cinq autres tournent sans vous. C'est ce qui rend la régularité tenable pour une équipe qui n'a personne à mettre dessus."
+    },
+    "captures": {
+      "eyebrow": "L'application",
+      "titre": "L'application, telle que vous l'aurez sous les yeux",
+      "intro": "Ce ne sont pas des maquettes. C'est le logiciel en fonctionnement.",
+      "c1": "Tout ce qui vous attend, trié par état : à valider, validés, planifiés, publiés. Le texte et le visuel sont déjà faits.",
+      "c2": "Vous ouvrez une publication, vous lisez, et vous avez deux boutons. Refuser, ou valider et programmer. C'est là que se joue votre seule minute de travail.",
+      "c3": "Le mois complet, réseau par réseau, heure par heure. Ce qui est coché est parti tout seul."
+    },
+    "iaRaisons": {
+      "eyebrow": "Pas de l'IA générique",
+      "titre": "Pourquoi ça ne ressemble pas à de l'intelligence artificielle",
+      "intro": "C'est le reproche qu'on fait à ces outils, et c'est le point sur lequel on a le plus travaillé.",
+      "r1": { "titre": "Un outil grand public écrit comme un outil grand public", "texte": "Tout le monde reconnaît maintenant un texte sorti d'un assistant généraliste : le même rythme, les mêmes tournures, les mêmes formules. Publié sous votre nom, ça vous fait plus de mal que de ne rien publier du tout. Sur une page dont le seul rôle est de rassurer, c'est exactement l'effet inverse." },
+      "r2": { "titre": "Un compte configuré écrit comme vous", "texte": "Le logiciel travaille à partir de vos réponses, de vos mots, de vos meilleures publications et de vos interdits. Les modèles utilisés sont parmi les plus performants du marché, mais ce qui change tout, c'est le paramétrage fait en amont sur votre entreprise. Deux entreprises du même secteur configurées chez nous ne sortent pas le même contenu, parce qu'elles n'ont pas répondu la même chose." },
+      "r3": { "titre": "Et si une phrase ne vous va pas, vous la changez", "texte": "Au moment de valider, vous corrigez ce que vous voulez. Plus vous utilisez le compte, moins vous avez à corriger." },
+      "compte1Fort": "Votre temps : ",
+      "compte1Texte": "2 à 4 heures par mois, selon le nombre de réseaux connectés, au moment de valider. Pas de réunion, pas de brief à rédiger, pas de relance à faire, personne à recruter.",
+      "compte2Fort": "Le coût : ",
+      "compte2Texte": "une fraction de ce que coûte une agence classique pour le même périmètre, réseaux et fiche Google compris.",
+      "compte3Fort": "Ce que vous gardez : ",
+      "compte3Texte": "le contrôle. Aucune publication ne sort sans que vous l'ayez lue."
+    },
+    "studio": {
+      "eyebrow": "Le studio",
+      "titre": "Le studio derrière le logiciel",
+      "intro": "Postorico n'est pas un abonnement qu'on vous laisse entre les mains. On configure le compte sur votre entreprise, on le règle avec vous, et on reste joignable ensuite. Le logiciel fait le travail, le studio fait le réglage. C'est ce réglage qui fait la différence entre une page qui vous ressemble et une page qui ressemble à tout le monde."
+    },
+    "final": {
+      "eyebrow": "La démo",
+      "titre": "Vingt minutes, et vous saurez",
+      "intro": "Le plus simple reste que je vous montre le logiciel en train de tourner sur votre entreprise, avec vos réseaux et votre fiche Google. Vingt minutes en visio, à l'heure qui vous arrange, y compris tôt le matin ou en fin de journée si vos journées sont pleines. Si au bout de cinq minutes vous voyez que ce n'est pas pour vous, vous me le dites et on arrête.",
+      "promesse": "Pas d'engagement à la sortie de la démo, et pas de relance en boucle si le sujet n'est pas d'actualité. Vous me le dites, je vous laisse travailler."
+    }
   }
 }
