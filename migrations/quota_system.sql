@@ -119,7 +119,7 @@ DECLARE
     v_limit    int;
 BEGIN
     SELECT * INTO v_sub FROM subscriptions
-        WHERE user_id = p_user AND status IN ('trialing', 'active')
+        WHERE user_id = p_user AND status IN ('trialing', 'active', 'past_due')
         ORDER BY created_at DESC LIMIT 1;
     IF v_sub.id IS NULL THEN
         RETURN jsonb_build_object('ok', false, 'reason', 'no_subscription');
