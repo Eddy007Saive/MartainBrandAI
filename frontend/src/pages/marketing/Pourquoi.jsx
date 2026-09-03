@@ -38,11 +38,7 @@ const PAGE_CSS = `
 .lp .hero-visual::before{content:"";position:absolute;inset:-30px -30px 4px;background:radial-gradient(circle at 28% 22%,rgba(138,108,255,.32),transparent 62%);filter:blur(8px);z-index:0}
 .lp .hero-img{position:relative;z-index:1;border-radius:20px;border:1px solid var(--line2);width:100%;display:block;box-shadow:0 40px 90px -40px rgba(91,108,255,.55);transition:transform 420ms var(--ease),box-shadow 420ms var(--ease)}
 @media(hover:hover) and (pointer:fine){.lp .hero-visual:hover .hero-img{transform:translateY(-4px);box-shadow:0 50px 100px -35px rgba(91,108,255,.65)}}
-.lp .signature-card{position:relative;z-index:2;margin:-22px 0 0 22px;width:fit-content;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:11px 18px 11px 11px;box-shadow:0 22px 44px -22px rgba(0,0,0,.65)}
-.lp .signature-card .avatar{width:34px;height:34px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:12.5px;color:#fff;flex:none}
-.lp .signature-card b{font-family:Sora;font-weight:700;font-size:13px;display:block}
-.lp .signature-card small{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}
-@media(max-width:860px){.lp .hero-grid{grid-template-columns:1fr;text-align:center}.lp .hero-grid .cta-row{justify-content:center}.lp .hero-grid .sub{margin-left:auto;margin-right:auto}.lp .signature-card{margin:-22px auto 0}}
+@media(max-width:860px){.lp .hero-grid{grid-template-columns:1fr;text-align:center}.lp .hero-grid .cta-row{justify-content:center}.lp .hero-grid .sub{margin-left:auto;margin-right:auto}}
 
 .lp .phrases{margin-top:44px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .lp .phrases p{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:0 14px 14px 0;padding:18px 20px;font-size:16px;font-weight:600;letter-spacing:-.01em;line-height:1.35}
@@ -98,7 +94,6 @@ const PAGE_CSS = `
 
 export default function Pourquoi() {
   const { t } = useTranslation();
-  const [signeNom, signeRole] = t('pourquoi.hero.signe').split(', ');
 
   // Reveal au scroll — même mécanique que MarketingLayout, appliquée ici
   // puisque cette page ne passe pas par ce layout.
@@ -154,10 +149,6 @@ export default function Pourquoi() {
             </div>
             <div className="hero-visual">
               <img className="hero-img" src={RICO_STUDIO} alt="Studio Postorico" />
-              <div className="signature-card">
-                <span className="avatar">MK</span>
-                <div><b>{signeNom}</b><small>{signeRole}</small></div>
-              </div>
             </div>
           </div>
         </div></section>
