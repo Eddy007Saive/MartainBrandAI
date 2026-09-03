@@ -27,8 +27,9 @@ export const contenuService = {
   // Recycle un post vers d'autres réseaux (une copie par réseau, créneau propre)
   recycler: (id, reseaux) => api.post(`/contenus/${id}/recycler`, { reseaux }).then(r => r.data),
 
-  // Génère un reel animé à la charte (Remotion) — rendu long : timeout large
-  genererReel: (id, template = 'affiche', extra = {}) => api.post('/reels/generer', { contenu_id: id, template, ...extra }, { timeout: 300000 }).then(r => r.data),
+  // Génère un reel animé à la charte (Remotion). Le rendu se fait en arrière-plan
+  // (worker) : la réponse est immédiate ({id, video_status: 'en_traitement'}).
+  genererReel: (id, template = 'affiche', extra = {}) => api.post('/reels/generer', { contenu_id: id, template, ...extra }).then(r => r.data),
   // Séquence : visuels choisis par le client + banque de la marque
   reelUploadImage: (file) => {
     const form = new FormData();
@@ -51,8 +52,8 @@ export const contenuService = {
   reelMusiqueSupprimer: (id) => api.delete(`/reels/musique/${id}`).then(r => r.data),
   reelMusiqueDecouper: (id, debut_s, duree_s) =>
     api.patch(`/reels/musique/${id}`, { debut_s, duree_s }).then(r => r.data),
-  regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }, { timeout: 300000 }).then(r => r.data),
-  creerReel: (extra = {}) => api.post('/reels/creer', extra, { timeout: 300000 }).then(r => r.data),
+  regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }).then(r => r.data),
+  creerReel: (extra = {}) => api.post('/reels/creer', extra).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data),   // {templates, musiques, categories}
   reelRecommander: (id) => api.get(`/reels/recommander/${id}`).then(r => r.data),
 
@@ -68,6 +69,11 @@ export const contenuService = {
   storyOptions: (id) => api.get(`/contenus/${id}/story/options`).then(r => r.data),
   storyApercu: (id, body) => api.post(`/contenus/${id}/story/apercu`, body).then(r => r.data),
   storyCreer: (id, body) => api.post(`/contenus/${id}/story`, body).then(r => r.data),
-  // Story animée (Remotion, ~1-2 min) — même timeout long que les Reels
-  storyAnimee: (id, body) => api.post(`/contenus/${id}/story-anime`, body, { timeout: 300000 }).then(r => r.data),
+  // Story animée (Remotion) : la ligne est créée tout de suite, le rendu se fait en
+  // arrière-plan (worker) — la réponse est immédiate, plus de timeout long.
+  storyAnimee: (id, body) => api.post(`/contenus/${id}/story-anime`, body).then(r => r.data),
+  // Story en série depuis un carrousel : les écrans édités dans le dialog
+  // {template, colors, anime, ecrans:[{accroche, sous, cta, image_source}]}.
+  // Statique : jusqu'à 6 rendus Playwright dans la requête -> timeout large.
+  storySerie: (id, body) => api.post(`/contenus/${id}/story-serie`, body, { timeout: 180000 }).then(r => r.data),
 };

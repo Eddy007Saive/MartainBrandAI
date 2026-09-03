@@ -17,7 +17,7 @@ DECLARE
     v_leftover int;
 BEGIN
     SELECT * INTO v_sub FROM subscriptions
-        WHERE user_id = p_user AND status IN ('trialing', 'active')
+        WHERE user_id = p_user AND status IN ('trialing', 'active', 'past_due')
         ORDER BY created_at DESC LIMIT 1;
     IF v_sub.id IS NULL THEN RETURN; END IF;
 
@@ -57,7 +57,10 @@ DECLARE
     v_limit    int;
 BEGIN
     SELECT * INTO v_sub FROM subscriptions
-        WHERE user_id = p_user AND status IN ('trialing', 'active')
+        -- past_due inclus : le compte a deja donne sa carte (meme convention que
+        -- statut_abonnement()/exiger_abonnement() cote Python), on ne le bloque
+        -- pas ici alors qu'il passe partout ailleurs.
+        WHERE user_id = p_user AND status IN ('trialing', 'active', 'past_due')
         ORDER BY created_at DESC LIMIT 1;
     IF v_sub.id IS NULL THEN
         RETURN jsonb_build_object('ok', false, 'reason', 'no_subscription');

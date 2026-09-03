@@ -21,6 +21,9 @@ export const agentService = {
   // Liste les sujets sauvegardés (persistants)
   sujetsList: () => api.get('/agent/sujets').then((r) => r.data),
 
+  // Enregistre l'override de dimensions d'un sujet (la reco d'origine, l'⭐, n'est pas touchée)
+  majDimensions: (id, dimensions) => api.patch(`/agent/sujets/${id}`, { dimensions }).then((r) => r.data),
+
   // Supprime un sujet sauvegardé
   supprimerSujet: (id) => api.delete(`/agent/sujets/${id}`).then((r) => r.data),
 
@@ -59,14 +62,17 @@ export const agentService = {
   enregistrerScript: (script, titre, type_video = 'Reel') =>
     api.post('/agent/enregistrer-script', { script, titre, type_video }).then((r) => r.data),
 
-  // Claude écrit un prompt d'image à partir du texte du post (éditable) ; sauvegardé sur le contenu
-  imagePrompt: (texte, reseau = 'linkedin', contenu_id = null) =>
-    api.post('/agent/image-prompt', { texte, reseau, contenu_id }).then((r) => r.data),
+  // Claude écrit un prompt d'image à partir du texte du post (éditable) ; sauvegardé sur le contenu.
+  // avec_photo : si false, la description ne doit décrire AUCUN humain (règle produit).
+  imagePrompt: (texte, reseau = 'linkedin', contenu_id = null, avecPhoto = false) =>
+    api.post('/agent/image-prompt', { texte, reseau, contenu_id, avec_photo: avecPhoto }).then((r) => r.data),
 
   // Génère l'image (nano-banana) et l'attache au contenu.
-  // refs : images de référence de style (URLs) ; style_note : directive de style (template).
-  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null, style_note = null, template_mode = false, bg_image = null) =>
-    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}), ...(style_note ? { style_note } : {}), ...(template_mode ? { template_mode: true } : {}), ...(bg_image ? { bg_image } : {}) }).then((r) => r.data),
+  // refs : images de référence (URLs) ; integrateRefs : sous-ensemble de refs à intégrer
+  // littéralement (ex. la mascotte), le reste reste une simple inspiration de style ;
+  // style_note : directive de style (template).
+  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null, style_note = null, template_mode = false, bg_image = null, integrateRefs = null) =>
+    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}), ...(style_note ? { style_note } : {}), ...(template_mode ? { template_mode: true } : {}), ...(bg_image ? { bg_image } : {}), ...(integrateRefs && integrateRefs.length ? { integrate_refs: integrateRefs } : {}) }).then((r) => r.data),
 
   // Gabarits de post (feed cohérent) : compose le texte du post puis rend le visuel
   gabarits: () => api.get('/agent/gabarits').then((r) => r.data),

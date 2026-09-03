@@ -97,6 +97,12 @@ def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
+    q = quota_service.consume(telegram_id, "reel")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail={
+            "raison": q.get("reason") or "quota",
+            "message": q.get("message") or "Génération indisponible.",
+        })
     template = body.template or "affiche"
     if body.duree == "long":  # retro-compat
         template = "long"
@@ -106,10 +112,13 @@ def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
                                         images=images or None, brief=(body.brief or "").strip() or None,
                                         style=body.style, musique=body.musique)
     except Exception as e:
+        quota_service.refund(q)
         logger.error(f"generer reel: {e}")
         raise HTTPException(status_code=500, detail="Echec de la generation du reel")
     if res.get("error"):
+        quota_service.refund(q)
         raise HTTPException(status_code=400, detail=res["error"])
+    quota_service.confirm(q)
     return res
 
 
@@ -127,16 +136,26 @@ def creer(body: ReelLibreRequest, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
+    q = quota_service.consume(telegram_id, "reel")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail={
+            "raison": q.get("reason") or "quota",
+            "message": q.get("message") or "Génération indisponible.",
+        })
     images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
     try:
         res = reel_service.creer_reel_libre(telegram_id, body.brief,
                                             images=images or None, reseau=body.reseau or "Instagram",
                                             style=body.style, musique=body.musique)
     except Exception as e:
+        quota_service.refund(q)
         logger.error(f"creer reel libre: {e}")
         raise HTTPException(status_code=500, detail="Echec de la creation du reel")
     if res.get("error"):
+        quota_service.refund(q)
         raise HTTPException(status_code=400, detail=res["error"])
+    quota_service.confirm(q)
     return res
 
 
@@ -150,20 +169,32 @@ class ReelRegenRequest(BaseModel):
 
 @router.post("/regenerer")
 def regenerer(body: ReelRegenRequest, payload: dict = Depends(verify_token)):
-    """Modifie un reel Sequence existant (A valider) : nouvelles images/brief -> re-rendu SUR PLACE."""
+    """Modifie un reel Sequence existant (A valider) : nouvelles images/brief -> re-rendu SUR PLACE.
+    Consomme aussi un quota 'reel' : Claude reecrit le scenario et Remotion re-rend a chaque appel,
+    sinon regenerer en boucle contournerait le plafond de /generer."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
+    quota_service.exiger_abonnement(telegram_id)  # sans carte -> popup mur de paiement
+    q = quota_service.consume(telegram_id, "reel")
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail={
+            "raison": q.get("reason") or "quota",
+            "message": q.get("message") or "Génération indisponible.",
+        })
     images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
     try:
         res = reel_service.regenerer_reel(telegram_id, body.reel_id,
                                           images=images or None, brief=(body.brief or "").strip() or None,
                                           style=body.style, musique=body.musique)
     except Exception as e:
+        quota_service.refund(q)
         logger.error(f"regenerer reel: {e}")
         raise HTTPException(status_code=500, detail="Echec de la regeneration du reel")
     if res.get("error"):
+        quota_service.refund(q)
         raise HTTPException(status_code=400, detail=res["error"])
+    quota_service.confirm(q)
     return res
 
 

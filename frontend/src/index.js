@@ -5,6 +5,18 @@ import "@/i18n"; // langue de l'interface : localStorage → navigateur → fr
 import App from "@/App";
 import { hydrateAuth } from "@/lib/auth";
 import { initAnalytics } from "@/lib/analytics";
+import { Capacitor } from "@capacitor/core";
+
+// Natif (APK/iOS) : l'app ne doit PAS ouvrir sur la home marketing. Elle
+// cold-start toujours sur "/" (index.html embarque) → on redirige vers le
+// login AVANT le premier rendu. Login renvoie ensuite vers /dashboard si un
+// jeton valide existe. Le web garde "/" = site marketing (SEO).
+if (Capacitor.isNativePlatform()) {
+  const p = window.location.pathname;
+  if (p === "/" || p === "" || p.endsWith("/index.html")) {
+    window.history.replaceState(null, "", "/login");
+  }
+}
 
 initAnalytics();
 

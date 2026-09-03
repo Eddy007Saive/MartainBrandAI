@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
 import { openTawk, identifyTawk, hideTawk, resetTawk } from '../lib/tawk';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, Handshake, ShieldCheck } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, Handshake, ShieldCheck, Package } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -43,6 +43,7 @@ const navItems = [
 const SETTINGS_NAV = [
   { id: 'identity', label: 'nav.identity', icon: User },
   { id: 'marque', label: 'nav.brandVoice', icon: Megaphone },
+  { id: 'offres', label: 'nav.offers', icon: Package },
   { id: 'connections', label: 'nav.socials', icon: Plug },
   { id: 'schedules', label: 'nav.planning', icon: Calendar },
   { id: 'abonnement', label: 'nav.subscription', icon: CreditCard },

@@ -67,6 +67,9 @@ export const userService = {
 
   removeInspiration: (url) =>
     api.delete('/users/me/inspirations', { data: { url } }).then(r => r.data),
+  // Marque/démarque une inspiration comme "à toujours intégrer littéralement" (ex. la mascotte)
+  setInspirationIntegration: (url, integrate) =>
+    api.post('/users/me/inspirations/integrate', { url, integrate }).then(r => r.data),
 
   connectPlatform: (platform) =>
     api.post('/users/me/connect', { platform }).then(r => r.data),

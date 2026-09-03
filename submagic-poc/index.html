@@ -439,7 +439,7 @@
         </div>
         <div class="row">
           <label>Plans B-roll (IA)<small>l'IA illustre les concepts concrets avec des clips stock</small></label>
-          <div class="switch"><input type="checkbox" id="brolls"><span class="track"><span class="knob"></span></span></div>
+          <div><input type="range" id="brolls" min="0" max="100" value="0" step="5"> <span class="val" id="brollsVal">0%</span></div>
         </div>
       </section>
 
@@ -786,6 +786,8 @@ document.getElementById("aiHooks").onclick = async () => {
 }));
 document.getElementById("zoom").addEventListener("input", e =>
   document.getElementById("zoomVal").textContent = e.target.value + "%");
+document.getElementById("brolls").addEventListener("input", e =>
+  document.getElementById("brollsVal").textContent = e.target.value + "%");
 renderCaption();
 
 /* ---- musique de fond ---- */
@@ -955,7 +957,8 @@ go.onclick = async () => {
     music_id: document.getElementById("musicSelect").value,
     music_volume: +document.getElementById("musicVol").value,
     emojis: document.getElementById("emojis").checked,
-    brolls: document.getElementById("brolls").checked,
+    brolls: +document.getElementById("brolls").value > 0,
+    brolls_count: Math.max(1, Math.round(+document.getElementById("brolls").value / 100 * 6)),
     font: state.font.ass,
     hl_color: state.color,
     fontscale: document.getElementById("size").value / 100,

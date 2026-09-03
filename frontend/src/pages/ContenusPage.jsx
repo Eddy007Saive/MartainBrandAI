@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download, ZoomIn, Layers, Pin } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -74,6 +74,25 @@ const PUBLISH_BADGE = {
 const VIDEO_TYPES = ['Video', 'Reel', 'Short'];
 const isVideoType = (c) => VIDEO_TYPES.includes(c.type);
 
+// Regroupe les contenus qui partagent un serie_id (story en série, 2-4 écrans
+// liés) en un seul item { isGroup, serie_id, items }, pour un affichage en une
+// carte au lieu de N. Contenu hors-série (serie_id absent) passe inchangé.
+function grouperParSerie(liste) {
+  const parId = new Map();
+  const out = [];
+  for (const c of liste) {
+    if (!c.serie_id) { out.push(c); continue; }
+    let g = parId.get(c.serie_id);
+    if (!g) {
+      g = { isGroup: true, serie_id: c.serie_id, items: [] };
+      parId.set(c.serie_id, g);
+      out.push(g);
+    }
+    g.items.push(c);
+  }
+  return out;
+}
+
 const RESEAU_CONFIG = {
   'linkedin': { label: 'LinkedIn', color: 'from-blue-500 to-cyan-600', short: 'LI' },
   'instagram': { label: 'Instagram', color: 'from-pink-500 to-purple-600', short: 'IG' },
@@ -122,7 +141,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, dejaDecline, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
   const { t } = useTranslation();
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
@@ -172,6 +191,21 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
         {contenu.type === 'Story' && (
           <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
             {t('contenus.carte.story24h')}
+          </span>
+        )}
+        {/* Rendu vidéo en arrière-plan (story animée / reel) : la carte le montre, pas
+            seulement le dialog de détail. */}
+        {contenu.video_status === 'en_traitement' && (
+          <div className="absolute inset-0 grid place-items-center bg-black/45 backdrop-blur-[1px]">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold font-inter bg-[#0f172a]/90 text-[#a5b0ff] border border-[#5B6CFF]/40">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />{t('contenus.carte.renduEnCours')}
+            </span>
+          </div>
+        )}
+        {contenu.video_status === 'echec' && (
+          <span className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium font-inter bg-red-500/15 text-red-400 border border-red-500/25"
+            title={contenu.render_job?.erreur || ''}>
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400" />{t('contenus.carte.renduEchoue')}
           </span>
         )}
       </div>
@@ -229,15 +263,20 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                     <Edit2 className="w-4 h-4 opacity-70" />{t('contenus.carte.modifierTexte')}
                   </DropdownMenuItem>
                 )}
-                {!isCarrousel && !isVideo && (
+                {!isCarrousel && !isVideo && contenu.type !== 'Story' && (
                   <DropdownMenuItem onClick={() => onReel(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
                     <Clapperboard className="w-4 h-4 opacity-70" />{t('contenus.reel.generer')}
                   </DropdownMenuItem>
                 )}
+                {/* Un seul bouton : le format suit le contenu (post -> story unique,
+                    carrousel -> série narrative), choisi côté serveur dans le dialog. */}
                 {!isVideo && contenu.type !== 'Story'
                   && ['instagram', 'facebook'].includes(String(contenu.reseau_cible || '').toLowerCase()) && (
-                  <DropdownMenuItem onClick={() => onStory(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
-                    <Sparkles className="w-4 h-4 opacity-70" />{t('contenus.carte.declinerStory')}
+                  <DropdownMenuItem onClick={() => !dejaDecline && onStory(contenu)} disabled={dejaDecline}
+                    title={dejaDecline ? t('contenus.carte.dejaDecline') : undefined}
+                    className="gap-2.5 focus:bg-white/[0.07]">
+                    {isCarrousel ? <Layers className="w-4 h-4 opacity-70" /> : <Sparkles className="w-4 h-4 opacity-70" />}
+                    {t('contenus.carte.declinerStory')}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={() => onRecycle(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
@@ -249,6 +288,105 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Story en série (2-4 écrans liés par serie_id) : une carte groupée, chaque
+// vignette reste individuellement cliquable (ouvre le détail de CET écran),
+// et trois actions de groupe en pied de carte plutôt qu'un menu "..." par écran.
+function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDeleteSerie, loading }) {
+  const { t } = useTranslation();
+  const items = groupe.items;
+  const images = items.map((c) => c.lien_visuel).filter(Boolean);
+  const premier = items[0];
+  const isLoading = loading === groupe.serie_id;
+  // Série animée : écrans encore en rendu (worker) / en échec -> pas de validation
+  // tant que toutes les vidéos ne sont pas là (la dialog de détail a déjà ce garde,
+  // la carte groupée doit l'avoir aussi).
+  const enRendu = items.filter((c) => c.video_status === 'en_traitement').length;
+  const enEchec = items.filter((c) => c.video_status === 'echec').length;
+  const bloqueValidation = enRendu > 0 || items.some((c) => c.video_status && !c.video_url);
+  const titre = (premier.titre || '').replace(/ — écran \d+\/\d+$/, '');
+  const date = premier.date_publication
+    ? new Date(premier.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+    : new Date(premier.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+  return (
+    <div className="group flex flex-col rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden hover:border-white/[0.12] hover:bg-[#111c33] transition-all">
+      {/* Mini-grille des visuels : chaque vignette agrandit SON écran */}
+      <div className={`relative aspect-[16/10] bg-[#0a1120] overflow-hidden grid gap-px ${items.length > 4 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        {items.slice(0, 6).map((c) => (
+          <button key={c.id} onClick={() => c.lien_visuel && onEnlarge(images, images.indexOf(c.lien_visuel))}
+            className={`group/thumb relative overflow-hidden bg-[#0a1120] ${c.lien_visuel ? 'cursor-zoom-in' : ''}`}>
+            {c.lien_visuel
+              ? <>
+                  {/* Fond flouté en cover : les stories sont verticales (9:16), la cellule
+                      2x2 est large — object-cover seul coupait le haut/bas du cadrage. */}
+                  <img src={c.lien_visuel} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-40" />
+                  <img src={c.lien_visuel} alt="" className="relative w-full h-full object-contain group-hover/thumb:scale-[1.04] transition-transform" onError={(e) => { e.target.style.display = 'none'; }} />
+                  <span className="absolute inset-0 bg-black/0 group-hover/thumb:bg-black/20 grid place-items-center opacity-0 group-hover/thumb:opacity-100 transition-all">
+                    <ZoomIn className="w-4 h-4 text-white drop-shadow" />
+                  </span>
+                </>
+              : <div className="absolute inset-0 grid place-items-center text-slate-700"><ImageIcon className="w-4 h-4" /></div>}
+            {c.video_status === 'en_traitement' && (
+              <span className="absolute inset-0 grid place-items-center bg-black/50"><Loader2 className="w-4 h-4 animate-spin text-[#a5b0ff]" /></span>
+            )}
+            {c.video_status === 'echec' && (
+              <span className="absolute inset-0 grid place-items-center bg-red-950/60 text-red-300" title={c.render_job?.erreur || ''}><X className="w-4 h-4" /></span>
+            )}
+          </button>
+        ))}
+        <span className="absolute top-2.5 left-2.5 pointer-events-none"><ReseauBadge reseau={premier.reseau_cible} /></span>
+        <span className="absolute top-2.5 right-2.5 pointer-events-none"><StatusBadge statut={premier.statut} /></span>
+        <span className="absolute bottom-2.5 left-2.5 pointer-events-none inline-flex items-center gap-1 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
+          <Layers className="w-3 h-3" />{t('contenus.carte.nEcrans', { n: items.length })}
+        </span>
+        {enRendu > 0 && (
+          <span className="absolute bottom-2.5 right-2.5 pointer-events-none inline-flex items-center gap-1.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-[#0f172a]/90 text-[#a5b0ff] border border-[#5B6CFF]/40">
+            <Loader2 className="w-3 h-3 animate-spin" />{t('contenus.carte.renduEnCours')} {items.length - enRendu}/{items.length}
+          </span>
+        )}
+        {enRendu === 0 && enEchec > 0 && (
+          <span className="absolute bottom-2.5 right-2.5 pointer-events-none inline-flex items-center gap-1.5 text-[10px] font-medium font-inter px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/25">
+            {t('contenus.carte.renduEchoue')} {enEchec}/{items.length}
+          </span>
+        )}
+      </div>
+
+      {/* Corps */}
+      <div className="p-4 flex-1 flex flex-col">
+        <div className="text-left">
+          {titre && <h3 className="text-white font-semibold font-sora text-[13.5px] mb-1 line-clamp-1">{titre}</h3>}
+          <p className="text-slate-400 font-inter text-[12.5px] leading-relaxed line-clamp-3">{t('contenus.carte.serieDesc', { n: items.length })}</p>
+        </div>
+
+        <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]">
+          <span className="text-[11px] text-slate-500 font-inter mr-auto inline-flex items-center gap-1">
+            {premier.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
+          </span>
+          <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+            {premier.statut === 'A valider' && (
+              <button title={bloqueValidation ? t('contenus.toast.attendsRendu') : t('contenus.carte.validerTout', { n: items.length })}
+                onClick={() => !bloqueValidation && onValiderSerie(groupe)} disabled={isLoading || bloqueValidation}
+                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              </button>
+            )}
+            {premier.statut === 'A valider' && (
+              <button title={t('contenus.carte.refuserTout', { n: items.length })} onClick={() => onRefuserSerie(groupe)} disabled={isLoading}
+                className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08]">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <button title={t('contenus.carte.supprimerTout', { n: items.length })} onClick={() => onDeleteSerie(groupe)} disabled={isLoading}
+              className="w-9 h-8 grid place-items-center text-slate-400 hover:text-red-300 hover:bg-red-500/10 transition-colors border-l border-white/[0.08] first:border-l-0">
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -271,6 +409,7 @@ export default function ContenusPage() {
   const [czR, setCzR] = useState(null);     // retouche couleurs/police d'un carrousel (aperçu live)
   const [czRBusy, setCzRBusy] = useState(false);
   const [czSlide, setCzSlide] = useState(0); // slide affichée dans l'aperçu
+  const [czBig, setCzBig] = useState(false); // aperçu live agrandi (plein écran)
   const [czTemplates, setCzTemplates] = useState({}); // template de carrousel par réseau
   // Styles proposables à ce compte (communs + sur mesure attribués), pour le choix ponctuel.
   const [czStyles, setCzStyles] = useState([]);
@@ -292,6 +431,7 @@ export default function ContenusPage() {
   const [editContenu, setEditContenu] = useState(null);
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [serieActionLoading, setSerieActionLoading] = useState(null);
   const [carrouselLoading, setCarrouselLoading] = useState(null);
   const [publishLoading, setPublishLoading] = useState(null);
   const [lightbox, setLightbox] = useState(null); // { images:[], index:0 }
@@ -439,7 +579,6 @@ export default function ContenusPage() {
     if (seqLibre && !seqBrief.trim()) { toast.error(t('contenus.reel.seq.briefRequis')); return; }
     setSeqFor(null);
     setReelLoading(contenu.id);
-    toast.info(t('contenus.toast.reelEnCours', { label: 'Séquence', min: 2 }));
     seqStopPreview();
     const payload = {
       images: seqImages.map((i) => ({ url: i.url, desc: i.desc || null })),
@@ -450,14 +589,14 @@ export default function ContenusPage() {
       if (seqLibre) {
         await contenuService.creerReel({ ...payload, reseau: seqReseau, style: seqStyle });
       } else if (seqRegen) {
-        const d = await contenuService.regenererReel(contenu.id, { ...payload, style: seqStyle });
-        const patch = { video_url: d.video_url, video_preview_url: d.video_preview_url, lien_visuel: d.video_preview_url };
-        setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
+        // Re-rendu en arrière-plan : la ligne passe en « Rendu en cours » (video_url
+        // vidée le temps du rendu), l'ancienne vidéo est restaurée si ça échoue.
+        await contenuService.regenererReel(contenu.id, { ...payload, style: seqStyle });
         delete seqCache.current[contenu.id];
       } else {
         await contenuService.genererReel(contenu.id, 'sequence', { ...payload, style: seqStyle });
       }
-      toast.success(t('contenus.toast.reelGenere'));
+      toast.success(t('contenus.toast.reelEnFile'));
       fetchContenus();
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));
@@ -469,11 +608,11 @@ export default function ContenusPage() {
     if (reelLoading) return;
     setReelFor(null);
     setReelLoading(contenu.id);
-    const tpl = reelTemplates.find((x) => x.id === duree);
-    toast.info(t('contenus.toast.reelEnCours', { label: tpl?.label || t('contenus.reelTpl.afficheLabel'), min: (tpl?.duree || 11) > 15 ? 2 : 1 }));
     try {
+      // Réponse immédiate : la ligne « Reel » apparaît en « Rendu en cours », le
+      // worker rend en arrière-plan et la liste se rafraîchit seule (poll).
       await contenuService.genererReel(contenu.id, duree);
-      toast.success(t('contenus.toast.reelGenere'));
+      toast.success(t('contenus.toast.reelEnFile'));
       fetchContenus();
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));
@@ -571,6 +710,8 @@ export default function ContenusPage() {
   // Images de référence (style) choisies à la génération
   const [inspirations, setInspirations] = useState([]);
   const [selectedRefs, setSelectedRefs] = useState([]);
+  // Sous-ensemble des inspirations marquées "à toujours intégrer" (ex. la mascotte)
+  const [integrateUrls, setIntegrateUrls] = useState([]);
   const [refImporting, setRefImporting] = useState(false);
   const refInputRef = useRef(null);
   // Templates de marque
@@ -691,6 +832,18 @@ export default function ContenusPage() {
     setSelectedRefs((prev) => (prev.includes(url) ? prev.filter((u) => u !== url) : [...prev, url]));
   };
 
+  // Marque/démarque une image comme "à toujours intégrer" (ex. la mascotte) plutôt que simple
+  // inspiration de style. Mise à jour optimiste, annulée si l'appel échoue.
+  const toggleIntegrate = (url, e) => {
+    e.stopPropagation();
+    const next = !integrateUrls.includes(url);
+    setIntegrateUrls((prev) => (next ? [...prev, url] : prev.filter((u) => u !== url)));
+    userService.setInspirationIntegration(url, next).catch(() => {
+      setIntegrateUrls((prev) => (next ? prev.filter((u) => u !== url) : [...prev, url]));
+      toast.error(t('contenus.toast.ajoutEchec'));
+    });
+  };
+
   const appliquerTemplate = (t) => {
     if (activeTemplate === t.id) { // re-clic → on retire le template
       setActiveTemplate(null); setStyleNote('');
@@ -721,13 +874,19 @@ export default function ContenusPage() {
     }
   };
 
-  const chargerPrompt = async (contenu) => {
+  // avecPhotoOverride : au premier chargement (depuis openImage), le toggle vient d'être remis à
+  // false mais React n'a pas encore propagé cette valeur — on la passe explicitement pour éviter
+  // de générer une description "avec humain" par erreur. Le bouton "Proposer une description"
+  // (dialogue déjà ouvert) n'a pas ce problème et laisse lire l'état courant.
+  const chargerPrompt = async (contenu, avecPhotoOverride) => {
+    const avecPhoto = avecPhotoOverride !== undefined ? avecPhotoOverride : imgAvecPhoto;
     setImgLoadingPrompt(true);
     try {
       const data = await agentService.imagePrompt(
         contenu.contenu || contenu.titre || '',
         String(contenu.reseau_cible || 'linkedin').toLowerCase(),
         contenu.id,
+        avecPhoto,
       );
       setImgPrompt(data.prompt || '');
       // mémorise le prompt (sauvegardé en base) pour ne pas le régénérer à la réouverture
@@ -752,15 +911,16 @@ export default function ContenusPage() {
       .then((d) => {
         const arr = Array.isArray(d) ? d : (d?.images || []);
         setInspirations(arr);
+        setIntegrateUrls(d?.integrate || []);
         setSelectedRefs([]);
       })
-      .catch(() => { setInspirations([]); setSelectedRefs([]); });
+      .catch(() => { setInspirations([]); setIntegrateUrls([]); setSelectedRefs([]); });
     templateService.list().then((d) => setTemplates(d || [])).catch(() => {});
     if (contenu.prompt_image) {
       setImgPrompt(contenu.prompt_image);           // déjà généré → on réutilise (zéro régénération)
     } else {
       setImgPrompt('');
-      if (!contenu.lien_visuel) chargerPrompt(contenu); // 1ʳᵉ fois seulement → on prépare la description
+      if (!contenu.lien_visuel) chargerPrompt(contenu, false); // 1ʳᵉ fois seulement → on prépare la description (photo toujours désactivée à l'ouverture)
     }
   };
 
@@ -772,7 +932,8 @@ export default function ContenusPage() {
       // En template : l'image du GABARIT part TOUJOURS en 1re position, suivie des refs choisies.
       const tplImgs = activeTemplate ? ((templates.find((t) => t.id === activeTemplate)?.images) || []) : [];
       const refsToSend = activeTemplate ? [...tplImgs, ...selectedRefs.filter((u) => !tplImgs.includes(u))] : selectedRefs;
-      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate);
+      const integrateToSend = selectedRefs.filter((u) => integrateUrls.includes(u));
+      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate, null, integrateToSend);
       if (data.credits != null) updateUser({ credits: data.credits });
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
@@ -914,28 +1075,78 @@ export default function ContenusPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, [lightbox]);
 
+  // Ferme l'agrandissement si la retouche live se ferme
+  useEffect(() => { if (!czR) setCzBig(false); }, [czR]);
+
+  // Navigation clavier de l'aperçu live agrandi
+  useEffect(() => {
+    if (!czBig) return undefined;
+    const n = (czPreviewSlides() || []).length;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setCzBig(false);
+      else if (n > 1 && e.key === 'ArrowRight') setCzSlide((s) => (s + 1) % n);
+      else if (n > 1 && e.key === 'ArrowLeft') setCzSlide((s) => (s - 1 + n) % n);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [czBig]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     fetchContenus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchContenus = async () => {
-    setLoading(true);
+  // silencieux : rafraîchissement en arrière-plan (rendus en cours) sans l'écran de
+  // chargement ni toast d'erreur, pour ne pas clignoter toutes les 10 s.
+  const fetchContenus = async ({ silencieux = false } = {}) => {
+    if (!silencieux) setLoading(true);
     try {
       const data = await contenuService.getAll();
       setContenus(data);
     } catch (error) {
-      toast.error(t('contenus.toast.chargementErreur'));
+      if (!silencieux) toast.error(t('contenus.toast.chargementErreur'));
     } finally {
-      setLoading(false);
+      if (!silencieux) setLoading(false);
     }
   };
 
+  // Tant qu'un rendu vidéo tourne en arrière-plan (story animée, worker Remotion),
+  // la liste se met à jour seule : la page ne pollait jamais jusqu'ici.
+  const rendusEnCours = useMemo(() => contenus.some((c) => c.video_status === 'en_traitement'), [contenus]);
+  useEffect(() => {
+    if (!rendusEnCours) return undefined;
+    const t = setInterval(() => fetchContenus({ silencieux: true }), 10000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rendusEnCours]);
+
+  // La dialog de détail garde un instantané : quand la liste se rafraîchit (poll
+  // pendant un rendu, régénération), on la réaligne sur la ligne fraîche — le
+  // spinner « rendu en cours » devient la vidéo sans avoir à fermer/rouvrir.
+  useEffect(() => {
+    if (!selectedContenu) return;
+    const frais = contenus.find((c) => c.id === selectedContenu.id);
+    if (frais && (frais.video_status !== selectedContenu.video_status || frais.video_url !== selectedContenu.video_url)) {
+      setSelectedContenu(frais);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contenus]);
+
   const scripts = useMemo(() => contenus.filter(c => isVideoType(c) && !c.lien_video_dropbox), [contenus]);
   const videos = useMemo(() => contenus.filter(c => isVideoType(c) && !!c.lien_video_dropbox), [contenus]);
-  const posts = useMemo(() => contenus.filter(c => !isVideoType(c)), [contenus]);
+  const stories = useMemo(() => contenus.filter(c => c.type === 'Story'), [contenus]);
+  const posts = useMemo(() => contenus.filter(c => !isVideoType(c) && c.type !== 'Story'), [contenus]);
 
-  const activeContenus = activeTab === 'scripts' ? scripts : activeTab === 'videos' ? videos : activeTab === 'posts' ? posts : contenus;
+  const activeContenus = activeTab === 'scripts' ? scripts : activeTab === 'videos' ? videos : activeTab === 'story' ? stories : activeTab === 'posts' ? posts : contenus;
+
+  // Un post ne peut avoir qu'une story active a la fois (simple/serie/animee).
+  // Calcule sur `contenus` (pas `activeContenus`) pour rester correct meme si
+  // la story resultante est filtree sur un autre onglet/statut que le post.
+  const sourcesAvecStory = useMemo(() => {
+    const s = new Set();
+    for (const c of contenus) if (c.story_source_id) s.add(c.story_source_id);
+    return s;
+  }, [contenus]);
 
   const filteredContenus = useMemo(() => {
     let list = activeContenus;
@@ -949,11 +1160,14 @@ export default function ContenusPage() {
     );
   }, [activeContenus, searchQuery, filterStatut]);
 
+  // Story en série (2-4 écrans liés par serie_id) : une carte groupée au lieu de N.
+  const groupedContenus = useMemo(() => grouperParSerie(filteredContenus), [filteredContenus]);
+
   // Pagination
   const PAGE_SIZE = 12;
-  const pageCount = Math.max(1, Math.ceil(filteredContenus.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(groupedContenus.length / PAGE_SIZE));
   const pageSafe = Math.min(page, pageCount);
-  const pagedContenus = filteredContenus.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
+  const pagedContenus = groupedContenus.slice((pageSafe - 1) * PAGE_SIZE, pageSafe * PAGE_SIZE);
   useEffect(() => { setPage(1); }, [searchQuery, activeTab, filterStatut]);
 
   const [renderSlidesLoading, setRenderSlidesLoading] = useState(null);
@@ -976,13 +1190,21 @@ export default function ContenusPage() {
   // Ouvre le sélecteur de story (modèle 9:16 + retouche) ; la création se fait à la validation.
   const declinerEnStory = (contenu) => setStoryFor(contenu);
 
-  const handleUpdateStatut = async (id, newStatut) => {
+  // opts.skipFetch/skipToast : utilisés en boucle pour une action de groupe
+  // (story en série) — un seul fetch + un seul toast récapitulatif après la
+  // boucle plutôt que N refetch et N toasts redondants.
+  const handleUpdateStatut = async (id, newStatut, opts = {}) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
+      // Vidéo encore en rendu (worker) : rien à programmer tant que le média n'est pas là.
+      if (cible?.video_status && !cible?.video_url) {
+        if (!opts.skipToast) toast.error(t('contenus.toast.attendsRendu'));
+        return;
+      }
       const reseau = (cible?.reseau_cible || '').toLowerCase();
       const plateforme = SOCIAL_PLATFORMS.find((p) => p.id === reseau);
       if (plateforme && !user?.[plateforme.field]) {
-        toast.error(t('contenus.toast.reseauNonConnecte', { reseau: plateforme.name }), { duration: 7000 });
+        if (!opts.skipToast) toast.error(t('contenus.toast.reseauNonConnecte', { reseau: plateforme.name }), { duration: 7000 });
         return;
       }
     }
@@ -1000,23 +1222,22 @@ export default function ContenusPage() {
           const patch = { statut: 'Valider', date_publication: data.date_publication, publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null };
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
           track('post_valide', { reseau: (contenus.find((c) => c.id === id)?.reseau_cible || '').toLowerCase() });
-          toast.success(datePlanif ? t('contenus.toast.valideProgrammeDate', { date: datePlanif }) : t('contenus.toast.valideProgramme'));
+          if (!opts.skipToast) toast.success(datePlanif ? t('contenus.toast.valideProgrammeDate', { date: datePlanif }) : t('contenus.toast.valideProgramme'));
         } catch (e) {
           const msg = e.response?.data?.detail || t('contenus.toast.valideProgrammationEchec');
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'Valider', date_publication: data.date_publication, publish_status: 'échec', publish_error: msg } : c)));
-          toast.error(msg, { duration: 7000 });
+          if (!opts.skipToast) toast.error(msg, { duration: 7000 });
         }
         setSelectedContenu(null);
-        fetchContenus();
+        if (!opts.skipFetch) fetchContenus();
         return;
       }
 
-      if (newStatut === 'Refuse') toast.success(t('contenus.toast.contenuRefuse'));
-      else toast.success(t('contenus.toast.contenuMisAJour'));
-      fetchContenus();
+      if (!opts.skipToast) { if (newStatut === 'Refuse') toast.success(t('contenus.toast.contenuRefuse')); else toast.success(t('contenus.toast.contenuMisAJour')); }
+      if (!opts.skipFetch) fetchContenus();
       setSelectedContenu(null);
     } catch (error) {
-      toast.error(t('contenus.toast.majErreur'));
+      if (!opts.skipToast) toast.error(t('contenus.toast.majErreur'));
     } finally {
       setActionLoading(null);
     }
@@ -1042,6 +1263,20 @@ export default function ContenusPage() {
 
   const handleDelete = async () => {
     if (!deleteContenu) return;
+    if (deleteContenu.isGroup) {
+      setSerieActionLoading(deleteContenu.serie_id);
+      try {
+        for (const c of deleteContenu.items) await contenuService.remove(c.id);
+        toast.success(t('contenus.toast.contenuSupprime'));
+        fetchContenus();
+        setDeleteContenu(null);
+      } catch (error) {
+        toast.error(t('contenus.toast.suppressionErreur'));
+      } finally {
+        setSerieActionLoading(null);
+      }
+      return;
+    }
     setActionLoading(deleteContenu.id);
     try {
       await contenuService.remove(deleteContenu.id);
@@ -1055,12 +1290,38 @@ export default function ContenusPage() {
     }
   };
 
+  // Actions de groupe (story en série) : boucle l'action mono-contenu sur
+  // chaque écran, un seul fetch récapitulatif à la fin plutôt que N.
+  const validerSerie = async (groupe) => {
+    setSerieActionLoading(groupe.serie_id);
+    try {
+      for (const c of groupe.items) await handleUpdateStatut(c.id, 'Valider', { skipFetch: true, skipToast: true });
+      toast.success(t('contenus.toast.valideProgramme'));
+      fetchContenus();
+    } finally {
+      setSerieActionLoading(null);
+    }
+  };
+
+  const refuserSerie = async (groupe) => {
+    setSerieActionLoading(groupe.serie_id);
+    try {
+      for (const c of groupe.items) await handleUpdateStatut(c.id, 'Refuse', { skipFetch: true, skipToast: true });
+      toast.success(t('contenus.toast.contenuRefuse'));
+      fetchContenus();
+    } finally {
+      setSerieActionLoading(null);
+    }
+  };
+
+  // Comptes groupés (une story en série = 1, pas N) pour matcher ce que la grille affiche.
+  const groupedActive = grouperParSerie(activeContenus);
   const stats = {
-    total: activeContenus.length,
-    aValider: activeContenus.filter(c => c.statut === 'A valider').length,
-    valides: activeContenus.filter(c => c.statut === 'Valider').length,
-    planifies: activeContenus.filter(c => c.statut === 'Planifie').length,
-    publies: activeContenus.filter(c => c.statut === 'Publie').length,
+    total: groupedActive.length,
+    aValider: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'A valider').length,
+    valides: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Valider').length,
+    planifies: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Planifie').length,
+    publies: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Publie').length,
   };
 
   // Pastilles de filtre : le chiffre EST le filtre (remplace stats + menu deroulant)
@@ -1121,6 +1382,7 @@ export default function ContenusPage() {
           {[
             { id: 'all', label: t('contenus.onglets.tous'), icon: Sparkles, count: contenus.length },
             { id: 'posts', label: t('contenus.onglets.posts'), icon: FileText, count: posts.length },
+            { id: 'story', label: t('contenus.onglets.story'), icon: Layers, count: stories.length },
             { id: 'scripts', label: t('contenus.onglets.scripts'), icon: ScrollText, count: scripts.length },
             { id: 'videos', label: t('contenus.onglets.videos'), icon: Video, count: videos.length },
           ].map(tab => (
@@ -1203,37 +1465,50 @@ export default function ContenusPage() {
             </div>
             <div className="text-center">
               <p className="text-slate-400 font-inter font-medium">
-                {activeTab === 'scripts' ? t('contenus.etat.aucunScript') : activeTab === 'videos' ? t('contenus.etat.aucuneVideo') : activeTab === 'posts' ? t('contenus.etat.aucunPost') : t('contenus.etat.aucunContenu')}
+                {activeTab === 'scripts' ? t('contenus.etat.aucunScript') : activeTab === 'videos' ? t('contenus.etat.aucuneVideo') : activeTab === 'story' ? t('contenus.etat.aucuneStory') : activeTab === 'posts' ? t('contenus.etat.aucunPost') : t('contenus.etat.aucunContenu')}
               </p>
               <p className="text-slate-600 font-inter text-sm mt-1">
-                {searchQuery ? t('contenus.etat.essayezAutresTermes') : activeTab === 'scripts' ? t('contenus.etat.scriptsIci') : activeTab === 'videos' ? t('contenus.etat.videosIci') : activeTab === 'posts' ? t('contenus.etat.postsIci') : t('contenus.etat.contenusIci')}
+                {searchQuery ? t('contenus.etat.essayezAutresTermes') : activeTab === 'scripts' ? t('contenus.etat.scriptsIci') : activeTab === 'videos' ? t('contenus.etat.videosIci') : activeTab === 'story' ? t('contenus.etat.storiesIci') : activeTab === 'posts' ? t('contenus.etat.postsIci') : t('contenus.etat.contenusIci')}
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs text-slate-500 font-inter">{filteredContenus.length > 1 ? t('contenus.compteur.contenusPluriel', { n: filteredContenus.length }) : t('contenus.compteur.contenus', { n: filteredContenus.length })}{pageCount > 1 ? t('contenus.compteur.page', { page: pageSafe, total: pageCount }) : ''}</p>
+            <p className="text-xs text-slate-500 font-inter">{groupedContenus.length > 1 ? t('contenus.compteur.contenusPluriel', { n: groupedContenus.length }) : t('contenus.compteur.contenus', { n: groupedContenus.length })}{pageCount > 1 ? t('contenus.compteur.page', { page: pageSafe, total: pageCount }) : ''}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {pagedContenus.map((contenu) => (
-                <ContentCard
-                  key={contenu.id}
-                  contenu={contenu}
-                  onView={setSelectedContenu}
-                  onImage={openImage}
-                  onRegenCarrousel={regenererCarrousel}
-                  carrouselLoading={carrouselLoading}
-                  onEdit={setEditContenu}
-                  onDelete={setDeleteContenu}
-                  onValidate={(id) => handleUpdateStatut(id, 'Valider')}
-                  onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
-                  onRecycle={openRecycle}
-                  onStory={declinerEnStory}
-                  onRenderSlides={rendreSlidesEnImages}
-                  renderLoading={renderSlidesLoading}
-                  onReel={(c) => { setReelFor(c); setReelReco(null); contenuService.reelRecommander(c.id).then(setReelReco).catch(() => {}); }}
-                  reelLoading={reelLoading}
-                  actionLoading={actionLoading}
-                />
+                contenu.isGroup ? (
+                  <SerieCard
+                    key={`serie-${contenu.serie_id}`}
+                    groupe={contenu}
+                    onEnlarge={(images, index) => setLightbox({ images, index: Math.max(0, index) })}
+                    onValiderSerie={validerSerie}
+                    onRefuserSerie={refuserSerie}
+                    onDeleteSerie={setDeleteContenu}
+                    loading={serieActionLoading}
+                  />
+                ) : (
+                  <ContentCard
+                    key={contenu.id}
+                    contenu={contenu}
+                    onView={setSelectedContenu}
+                    onImage={openImage}
+                    onRegenCarrousel={regenererCarrousel}
+                    carrouselLoading={carrouselLoading}
+                    onEdit={setEditContenu}
+                    onDelete={setDeleteContenu}
+                    onValidate={(id) => handleUpdateStatut(id, 'Valider')}
+                    onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
+                    onRecycle={openRecycle}
+                    onStory={declinerEnStory}
+                    dejaDecline={sourcesAvecStory.has(contenu.id)}
+                    onRenderSlides={rendreSlidesEnImages}
+                    renderLoading={renderSlidesLoading}
+                    onReel={(c) => { setReelFor(c); setReelReco(null); contenuService.reelRecommander(c.id).then(setReelReco).catch(() => {}); }}
+                    reelLoading={reelLoading}
+                    actionLoading={actionLoading}
+                  />
+                )
               ))}
             </div>
             {pageCount > 1 && (
@@ -1306,7 +1581,7 @@ export default function ContenusPage() {
                       <video src={selectedContenu.video_url} controls className="w-full max-h-[70vh] rounded-xl bg-black object-contain" poster={selectedContenu.lien_visuel || undefined} />
                       {selectedContenu.type === 'Reel' && selectedContenu.reel_data && selectedContenu.statut === 'A valider' && (
                         <button type="button" onClick={() => openSequenceRegen(selectedContenu)} data-testid="reel-modifier"
-                          disabled={reelLoading === selectedContenu.id}
+                          disabled={reelLoading === selectedContenu.id || selectedContenu.video_status === 'en_traitement'}
                           className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-3.5 py-2.5 rounded-[10px] transition-colors active:scale-[0.98] disabled:opacity-50">
                           {reelLoading === selectedContenu.id ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.modifier')}
                         </button>
@@ -1326,9 +1601,14 @@ export default function ContenusPage() {
                         const idx = Math.min(czSlide, Math.max(0, slides.length - 1));
                         return (
                           <div className="space-y-2.5">
-                            <div className="relative mx-auto rounded-xl overflow-hidden ring-1 ring-white/10 shadow-xl" style={{ width: 220, height: 275 }}>
+                            <button type="button" onClick={() => setCzBig(true)}
+                              title={t('contenus.detail.agrandir', 'Agrandir')}
+                              className="group relative mx-auto block rounded-xl overflow-hidden ring-1 ring-white/10 shadow-xl cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-[#5B6CFF]" style={{ width: 220, height: 275 }}>
                               <div className="origin-top-left" style={{ transform: 'scale(1.1)', width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: slides[idx] || '' }} />
-                            </div>
+                              <span className="absolute inset-0 flex items-center justify-center bg-slate-950/0 group-hover:bg-slate-950/40 transition-colors">
+                                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </span>
+                            </button>
                             <div className="flex gap-1.5 justify-center flex-wrap">
                               {slides.map((_, i) => (
                                 <button key={i} onClick={() => setCzSlide(i)} title={t('contenus.detail.slide', { n: i + 1 })}
@@ -1986,7 +2266,7 @@ export default function ContenusPage() {
             <AlertDialogHeader>
               <AlertDialogTitle className="text-white font-sora">{t('contenus.suppression.titre')}</AlertDialogTitle>
               <AlertDialogDescription className="text-slate-400 font-inter">
-                {t('contenus.suppression.description')}
+                {deleteContenu?.isGroup ? t('contenus.suppression.descriptionSerie', { n: deleteContenu.items.length }) : t('contenus.suppression.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -2254,11 +2534,17 @@ export default function ContenusPage() {
                             <div className="flex flex-wrap gap-2">
                               {inspirations.map((url) => {
                                 const on = selectedRefs.includes(url);
+                                const pinned = integrateUrls.includes(url);
                                 return (
                                   <div key={url} onClick={() => toggleRef(url)} title={on ? t('contenus.image.utilisee') : t('contenus.image.nonUtilisee')}
                                     className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
                                     <img src={url} alt="" className="w-full h-full object-cover" />
                                     {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                                    <button type="button" onClick={(e) => toggleIntegrate(url, e)}
+                                      title={pinned ? t('contenus.image.toujoursIntegree') : t('contenus.image.toujoursIntegrer')}
+                                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded grid place-items-center transition-opacity ${pinned ? 'bg-[#5B6CFF] text-white opacity-100' : 'bg-black/70 text-white opacity-0 group-hover:opacity-100'}`}>
+                                      <Pin className="w-2.5 h-2.5" fill={pinned ? 'currentColor' : 'none'} />
+                                    </button>
                                     <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title={t('contenus.image.agrandir')}
                                       className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                       <Search className="w-2.5 h-2.5" />
@@ -2358,6 +2644,44 @@ export default function ContenusPage() {
             )}
           </div>
         ), document.body)}
+
+        {/* Aperçu live agrandi : re-rend la slide HTML en grand (portal AU-DESSUS du Dialog) */}
+        {czBig && czR && selectedContenu?.carrousel_data && createPortal((() => {
+          const slides = czPreviewSlides() || [];
+          if (!slides.length) return null;
+          const idx = Math.min(czSlide, slides.length - 1);
+          return (
+            <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+              onClick={() => setCzBig(false)}>
+              <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
+              <button onClick={() => setCzBig(false)} title={t('contenus.actions.fermer')}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+              {slides.length > 1 && (
+                <button onClick={(e) => { e.stopPropagation(); setCzSlide((s) => (s - 1 + slides.length) % slides.length); }}
+                  title={t('contenus.lightbox.precedent')}
+                  className="absolute left-3 md:left-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+              )}
+              <div className="flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                <div className="rounded-2xl overflow-hidden ring-1 ring-white/15 shadow-2xl" style={{ width: 600, height: 750 }}>
+                  <div className="origin-top-left" style={{ transform: 'scale(3)', width: 200, height: 250 }}
+                    dangerouslySetInnerHTML={{ __html: slides[idx] || '' }} />
+                </div>
+                <span className="text-sm text-white/70 font-inter">{idx + 1} / {slides.length}</span>
+              </div>
+              {slides.length > 1 && (
+                <button onClick={(e) => { e.stopPropagation(); setCzSlide((s) => (s + 1) % slides.length); }}
+                  title={t('contenus.lightbox.suivant')}
+                  className="absolute right-3 md:right-6 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              )}
+            </div>
+          );
+        })(), document.body)}
       </div>
 
       <PostManuelDialog open={postManuelOpen} onOpenChange={setPostManuelOpen} onCreated={fetchContenus} />

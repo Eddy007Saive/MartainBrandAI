@@ -87,6 +87,34 @@ def _charger_marque(telegram_id: str) -> dict:
 
 LANGUES_CONTENU = {"fr": "français", "en": "anglais (English)", "es": "espagnol (Español)"}
 
+# Règles d'écriture humaine (distillées du guide « Signs of AI writing »), appliquées à
+# TOUTES les générations via le contexte de marque. Objectif : que le contenu ne « sente » pas l'IA.
+REGLES_ANTI_IA = (
+    "\n## STYLE — HUMAN WRITING (mandatory; overrides everything else if in doubt)\n"
+    "Write like a real person with an opinion, never like an AI. In the OUTPUT LANGUAGE:\n"
+    "- Punctuation: NEVER use an em dash (—) or en dash (–), neither as separator nor as an aside. "
+    "Rewrite with a comma, period, colon or parentheses. Hyphen (-) only inside a compound word. "
+    "Use the target language's proper quotes (French uses « »), never curly quotes “ ”.\n"
+    "- Ban AI-cliché vocabulary and filler. When writing FRENCH, avoid: « au cœur de », « à l'ère de », "
+    "« dans un monde où », « véritable », « incontournable », « riche »/« vibrant », « profond », "
+    "« révolutionnaire », « témoigne de », « s'inscrit dans une dynamique », « en constante évolution », "
+    "« il est important de noter », « force est de constater », « plongeons/découvrons ensemble », « à ne pas manquer ». "
+    "In other languages, avoid the equivalent LLM clichés.\n"
+    "- No forced triplets (rule of three) and no negative parallelisms (\"it's not X, it's Y\", \"not only… but also\").\n"
+    "- Direct verbs (is/has/does), not \"constitutes\", \"represents\", \"positions itself as\".\n"
+    "- No decorative present-participle padding that inflates sentences.\n"
+    "- No promotional superlatives, no generic upbeat conclusion.\n"
+    "- NEVER invent figures, percentages, prices, dates or statistics. Use ONLY numbers explicitly "
+    "provided by the brand (its key figures / proof / examples). If a number would help but you don't "
+    "have it, either phrase it qualitatively (\"most\", \"in a few weeks\") or leave a visible bracketed "
+    "placeholder written in the OUTPUT LANGUAGE (e.g. in French [chiffre à compléter], in English "
+    "[number to add]) for the user to fill. Never state a precise figure you cannot source.\n"
+    "- No plan announcement (\"in this post we will see\"), no meta-commentary.\n"
+    "- Emoji only if the brand actually uses them and it serves the point; never as mechanical bullet/title decoration.\n"
+    "- Vary sentence rhythm (short AND long), take a stance, stay concrete (specific examples, real numbers), "
+    "and cut filler and pompous phrasing."
+)
+
 
 def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
     """Construit le bloc 'voix de marque' à partir des champs disponibles.
@@ -101,13 +129,14 @@ def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
     # Langue de rédaction du client (clients étrangers) — s'applique à TOUTES les générations
     # (sujets, posts, carrousels, scripts, gabarits) car ce contexte est injecté partout.
     lang = (u.get("langue") or "fr").lower()
-    if lang != "fr":
-        lignes.append(
-            f"LANGUE DE RÉDACTION OBLIGATOIRE : {LANGUES_CONTENU.get(lang, lang)}. "
-            "TOUT le contenu produit (titres, posts, accroches, slides, scripts, CTA, hashtags) "
-            "doit être écrit dans CETTE langue, même si les instructions ci-dessous sont en français. "
-            "Ne mélange jamais les langues dans un même contenu."
-        )
+    langue_sortie = LANGUES_CONTENU.get(lang, lang)
+    # Toujours explicite (fr inclus) : les instructions sont en anglais pour économiser des tokens,
+    # mais TOUTE la sortie doit être dans la langue du client.
+    lignes.append(
+        f"OUTPUT LANGUAGE: write ALL produced content (titles, posts, hooks, slides, scripts, CTAs, hashtags) "
+        f"in {langue_sortie}. The instructions below may be in English, but the output MUST be in {langue_sortie}. "
+        f"Never mix languages within a single piece of content."
+    )
     # Champs optionnels — utilisés s'ils existent (ajoutés via le formulaire "Voix de marque")
     if u.get("secteur"):
         lignes.append(f"Secteur / activité : {u['secteur']}")
@@ -136,6 +165,11 @@ def _contexte_marque(u: dict, inclure_hooks: bool = True) -> str:
             "(Profil de marque peu renseigné — reste générique, professionnel et "
             "crédible ; évite les promesses chiffrées et le jargon creux.)"
         )
+    # NB : les offres NE SONT PAS injectées ici (contexte mis en cache + coût tokens).
+    # Elles sont ajoutées de façon CONDITIONNELLE, dans le message utilisateur :
+    # - liste courte à la génération de sujets (offres_liste_courte)
+    # - faits complets à la rédaction, seulement si l'objectif est commercial (bloc_offres_si_commercial)
+    lignes.append(REGLES_ANTI_IA)
     return "\n".join(lignes)
 
 
@@ -173,8 +207,8 @@ def _system(role: str, contexte: str, extra: str = "", cache: bool = False):
 # Agent SUJETS
 # ---------------------------------------------------------------------------
 ROLE_SUJETS = (
-    "Tu es un stratège de contenu pour la marque personnelle décrite ci-dessous. "
-    "Tu proposes des idées de sujets de posts pertinents pour son secteur et son audience.\n\n"
+    "You are a content strategist for the personal brand described below. "
+    "You propose post topic ideas relevant to its sector and audience.\n\n"
 )
 
 # Chaque sujet n'est pas une simple phrase : c'est un brief à 4 dimensions, pour que
@@ -187,15 +221,131 @@ DIMENSIONS = {
                  "Storytelling", "Témoignage", "Démonstration", "Inspiration",
                  "Humour", "Curiosité"],
     "cible":    ["Nouvelle audience", "Prospect", "Client", "Client fidèle", "Segment spécifique"],
-    "format":   ["Reel/TikTok", "Post", "Carrousel", "Story", "Article", "Vidéo longue"],
+    "format":   ["Reel", "Post", "Carrousel", "Story", "Article", "Vidéo longue"],
 }
-_DIM_LABELS = {"objectif": "Objectif", "angle": "Angle", "cible": "Cible", "format": "Format"}
+_DIM_LABELS = {"objectif": "Objective", "angle": "Angle", "cible": "Target", "format": "Format"}
+
+# Un format n'a de sens que si un réseau capable de le publier est connecté.
+# (au moins un des réseaux listés suffit)
+FORMAT_PLATEFORMES = {
+    "Post":         {"linkedin", "facebook", "instagram", "googlebusiness", "twitter"},
+    "Carrousel":    {"linkedin", "instagram", "facebook"},
+    "Story":        {"instagram", "facebook"},
+    "Reel":         {"tiktok", "instagram", "youtube"},
+    "Article":      {"linkedin"},
+    "Vidéo longue": {"youtube"},
+}
+
+
+def _formats_disponibles(telegram_id: str) -> list:
+    """Sous-ensemble de DIMENSIONS['format'] réellement publiable vu les réseaux
+    connectés de ce compte. Repli sur ['Post','Carrousel'] si rien de connecté."""
+    try:
+        from services import social_service
+        connectes = set(social_service.comptes(telegram_id).keys())
+    except Exception:
+        connectes = set()
+    dispo = [f for f in DIMENSIONS["format"] if FORMAT_PLATEFORMES.get(f, set()) & connectes]
+    return dispo or ["Post", "Carrousel"]
+
+
+def dimensions_pour(telegram_id: str) -> dict:
+    """Les listes de dimensions pour ce compte : 'format' filtré sur ses réseaux,
+    'offre' = ses offres actives (liste dynamique, vide si aucune)."""
+    d = {**DIMENSIONS, "format": _formats_disponibles(telegram_id)}
+    try:
+        from services import offers_service
+        d["offre"] = offers_service.noms(telegram_id)
+    except Exception:
+        d["offre"] = []
+    return d
 
 
 def _valider_dimension(cle: str, valeur) -> str | None:
     """Garde une valeur de dimension seulement si elle appartient à la liste figée."""
     v = (valeur or "").strip() if isinstance(valeur, str) else ""
     return v if v in DIMENSIONS.get(cle, ()) else None
+
+
+# Objectifs pour lesquels le contenu s'appuie vraiment sur une offre (logique 80/20 :
+# on ne « vend » pas dans un contenu éducatif/notoriété/engagement).
+OBJECTIFS_COMMERCIAUX = {"Conversion", "Génération de prospects", "Preuve sociale", "Fidélisation"}
+
+
+def _offres_liste_courte(telegram_id: str) -> str:
+    try:
+        from services import offers_service
+        return offers_service.noms_offres(telegram_id)
+    except Exception as e:
+        logger.warning(f"offres liste courte: {e}")
+        return ""
+
+
+def _valider_offre(telegram_id: str, valeur) -> str | None:
+    """Garde une valeur « offre » seulement si elle correspond à une offre réelle du compte."""
+    v = (valeur or "").strip() if isinstance(valeur, str) else ""
+    if not v:
+        return None
+    try:
+        from services import offers_service
+        return v if v in offers_service.noms(telegram_id) else None
+    except Exception:
+        return None
+
+
+def _bloc_offre(telegram_id: str, dimensions: dict) -> str:
+    """Faits d'offre à la rédaction :
+    - si le brief cible UNE offre (dimension « offre ») -> uniquement CETTE offre ;
+    - sinon, si l'objectif est commercial -> repli sur toutes les offres ;
+    - sinon -> rien (contenu orienté valeur, zéro token d'offres)."""
+    try:
+        from services import offers_service
+        offre = _valider_offre(telegram_id, (dimensions or {}).get("offre"))
+        if offre:
+            return offers_service.faits_offre(telegram_id, offre)
+        obj = _valider_dimension("objectif", (dimensions or {}).get("objectif"))
+        if obj in OBJECTIFS_COMMERCIAUX:
+            return offers_service.contexte_offres(telegram_id)
+    except Exception as e:
+        logger.warning(f"bloc offre: {e}")
+    return ""
+
+
+def _valider_format(valeur, autorises: list) -> str:
+    """Valide un format ET le contraint aux formats publiables ; repli sur Post."""
+    v = _valider_dimension("format", valeur)
+    if v and v in autorises:
+        return v
+    return "Post" if "Post" in autorises else (autorises[0] if autorises else "Post")
+
+
+# Valeurs de contenu.reseau_cible (enum capitalisé) depuis la clé réseau du front.
+_RESEAU_CIBLE = {"linkedin": "LinkedIn", "instagram": "Instagram", "facebook": "Facebook",
+                 "tiktok": "TikTok", "youtube": "YouTube", "googlebusiness": "GoogleBusiness"}
+
+
+def _exemples_memoire(telegram_id: str, sujet: str, dimensions: dict, genre: str,
+                      reseau: str = None, reseau_label: str = "") -> str:
+    """Bloc « exemples de la voix réelle » (posts validés du compte proches du sujet),
+    à ajouter à la partie `extra` du system prompt. "" si désactivé, compte neuf,
+    ou mémoire indisponible — la rédaction se comporte alors comme avant."""
+    from config import MEMOIRE_VOIX_ACTIVE
+    if not MEMOIRE_VOIX_ACTIVE:
+        return ""
+    try:
+        from services import memoire_service
+        d = dimensions or {}
+        requete = " — ".join(x for x in (sujet, d.get("angle"), d.get("cible")) if x)
+        cible = _RESEAU_CIBLE.get((reseau or "").lower())
+        ex = memoire_service.exemples_voix(telegram_id, requete, genre, reseau=cible)
+        if not ex and genre != "post":
+            # Peu de carrousels/scripts validés : la voix est la même dans les posts.
+            ex = memoire_service.exemples_voix(telegram_id, requete, "post", reseau=cible)
+            genre = "post"
+        return memoire_service.bloc_exemples(ex, genre, reseau_label)
+    except Exception as e:
+        logger.warning(f"mémoire de voix ({genre}): {e}")
+        return ""
 
 
 def brief_dimensions(dims: dict) -> str:
@@ -209,10 +359,34 @@ def brief_dimensions(dims: dict) -> str:
         v = _valider_dimension(cle, dims.get(cle))
         if v:
             lignes.append(f"- {label} : {v}")
+    # Offre concernée (dimension dynamique, non incluse dans _DIM_LABELS)
+    offre = (dims.get("offre") or "").strip() if isinstance(dims.get("offre"), str) else ""
+    if offre:
+        lignes.append(f"- Offre : {offre}")
     if not lignes:
         return ""
-    return ("\n\nBRIEF de ce contenu (à respecter dans le ton et l'intention) :\n"
-            + "\n".join(lignes))
+    txt = ("\n\nCONTENT BRIEF (respect its tone and intent):\n" + "\n".join(lignes))
+    # CTA driven by the whole brief: action = objective, tone = angle, audience = target.
+    # No fixed table: the model writes the CTA by combining the three (+ the brand's usual CTAs).
+    if _valider_dimension("objectif", dims.get("objectif")):
+        txt += ("\nEnd with a call to action (CTA) that follows this brief: the objective sets the action, "
+                "the angle sets the tone, the target sets who you address. Reuse one of the brand's usual CTAs "
+                "if it fits, otherwise write a natural, specific one, never generic.")
+    return txt
+
+
+def _sans_tiret(txt: str) -> str:
+    """Voix Postorico : aucun tiret cadratin/demi-cadratin. On les remplace par
+    une virgule (séparateur/incise) et on nettoie les espaces."""
+    if not isinstance(txt, str):
+        return txt
+    t = (txt.replace(" — ", ", ").replace(" – ", ", ")
+            .replace(" —", ", ").replace(" –", ", ")
+            .replace("— ", ", ").replace("– ", ", ")
+            .replace("—", ", ").replace("–", ", "))
+    while "  " in t:
+        t = t.replace("  ", " ")
+    return t.replace(" ,", ",").replace(",,", ",").strip(" ,")
 
 
 def _norm(s: str) -> str:
@@ -255,7 +429,7 @@ def _sujets_historique(telegram_id: str, limit: int = 60) -> list:
 def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> dict:
     """Propose des sujets TAGGÉS (objectif/angle/cible/format), pas une liste plate.
     `filtres` : dimensions imposées par l'utilisateur (ex. {objectif:'Conversion',
-    format:'Reel/TikTok'}) ; celles laissées libres sont variées automatiquement."""
+    format:'Reel'}) ; celles laissées libres sont variées automatiquement."""
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -269,21 +443,40 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
     if historique:
         deja = "\n".join(f"- {t}" for t in historique[:20])  # petite liste = coût négligeable
         consigne = (
-            f"\n\nSujets DÉJÀ proposés ou publiés pour cette marque — tu ne dois NI les répéter, "
-            f"NI les reformuler, NI en proposer de simples variantes :\n{deja}\n"
-            f"Propose des angles VRAIMENT nouveaux et différents de cette liste."
+            f"\n\nTopics ALREADY proposed or published for this brand. You must NOT repeat them, "
+            f"rephrase them, or propose simple variants:\n{deja}\n"
+            f"Propose genuinely new angles, different from this list."
         )
 
+    # Formats limités aux réseaux connectés (pas de Reel si aucun compte adapté).
+    formats_ok = _formats_disponibles(telegram_id)
+
     # Dimensions : imposées par l'utilisateur (filtres) OU variées par l'IA pour la diversité.
+    filtre_offre = _valider_offre(telegram_id, (filtres or {}).get("offre"))  # offre imposée (optionnel)
     filtres = {k: v for k in DIMENSIONS if (v := _valider_dimension(k, (filtres or {}).get(k)))}
     contraintes = []
     for cle, label in _DIM_LABELS.items():
+        valeurs = formats_ok if cle == "format" else DIMENSIONS[cle]
         if cle in filtres:
-            contraintes.append(f"{label} = « {filtres[cle]} » pour TOUS les sujets (imposé).")
+            contraintes.append(f"{label} = \"{filtres[cle]}\" for ALL topics (imposed).")
         else:
-            contraintes.append(f"{label} : à choisir DANS [{', '.join(DIMENSIONS[cle])}], "
-                               f"en VARIANT d'un sujet à l'autre.")
+            contraintes.append(f"{label}: pick ONE from [{', '.join(valeurs)}], varying it from one topic to the next.")
     menu = "\n".join(f"- {c}" for c in contraintes)
+
+    # Offres du client (liste courte) : sert à proposer des sujets COMMERCIAUX pertinents,
+    # sans imposer la vente aux sujets éducatifs/notoriété (logique 80/20).
+    offres_court = _offres_liste_courte(telegram_id)
+    hint_offres = ""
+    if offres_court:
+        hint_offres = (
+            "\n\nThe client's offers (products/services):\n" + offres_court +
+            "\nAdd an \"offre\" field to each topic: for a COMMERCIAL topic (objective Conversion or "
+            "Génération de prospects), set \"offre\" to the EXACT name of the most relevant offer from "
+            "the list above; for educational / awareness / engagement topics, set \"offre\" to an empty "
+            "string \"\" (stay value-first, do NOT push an offer)."
+        )
+        if filtre_offre:
+            hint_offres += f"\nIMPORTANT: every topic must target the offer \"{filtre_offre}\" (set \"offre\" to it)."
 
     # On demande quelques sujets de rab : après filtrage des doublons, il en reste assez.
     demande = nombre + 4
@@ -294,13 +487,13 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
         messages=[{
             "role": "user",
             "content": (
-                f"Propose {demande} idées de sujets de contenu pour cette marque. Chaque sujet est "
-                f"un BRIEF exploitable, décrit par 4 dimensions :\n{menu}\n\n"
-                f"Réponds UNIQUEMENT avec un tableau JSON (aucun texte autour), un objet par sujet :\n"
-                f'[{{"sujet":"…","objectif":"…","angle":"…","cible":"…","format":"…"}}]\n'
-                f"« sujet » = une accroche concrète et accrocheuse (pas un thème vague). Les autres "
-                f"champs prennent EXACTEMENT une valeur des listes ci-dessus."
-                + consigne
+                f"Propose {demande} content topic ideas for this brand. Each topic is an actionable "
+                f"BRIEF described by 4 dimensions:\n{menu}\n\n"
+                f"Answer ONLY with a JSON array (no surrounding text), one object per topic:\n"
+                f'[{{"sujet":"…","objectif":"…","angle":"…","cible":"…","format":"…","offre":"…"}}]\n'
+                f'"sujet" = a concrete, catchy hook (not a vague theme), written in the output language. '
+                f"The other fields take EXACTLY one value from the lists above."
+                + consigne + hint_offres
             ),
         }],
     )
@@ -316,7 +509,7 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
     seen, uniques = set(), []
     for o in brut:
         s = (o.get("sujet") if isinstance(o, dict) else str(o)) or ""
-        s = s.strip()
+        s = _sans_tiret(s.strip())
         k = _norm(s)
         if not k or k in existants or k in seen:
             continue
@@ -327,7 +520,8 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
             "objectif": filtres.get("objectif") or _valider_dimension("objectif", d.get("objectif")),
             "angle":    filtres.get("angle")    or _valider_dimension("angle", d.get("angle")),
             "cible":    filtres.get("cible")    or _valider_dimension("cible", d.get("cible")),
-            "format":   filtres.get("format")   or _valider_dimension("format", d.get("format")),
+            "format":   filtres.get("format")   or _valider_format(d.get("format"), formats_ok),
+            "offre":    filtre_offre            or _valider_offre(telegram_id, d.get("offre")),
         })
     return {"sujets": uniques[:nombre], "usage": _usage(resp)}
 
@@ -352,16 +546,16 @@ LONGUEURS = {
 def _consigne_longueur(reseau: str) -> str:
     cible, limite = LONGUEURS.get(reseau, (2500, 3000))
     return (
-        f" LONGUEUR STRICTE : {cible} caractères MAXIMUM, espaces et hashtags compris "
-        f"(limite {RESEAUX.get(reseau, reseau)} : {limite} — un post trop long est refusé à la publication)."
+        f" STRICT LENGTH: {cible} characters MAXIMUM, spaces and hashtags included "
+        f"({RESEAUX.get(reseau, reseau)} limit: {limite}; an over-long post is rejected at publish time)."
     )
 
 
 ROLE_REDACTION = (
-    "Tu es le rédacteur attitré de la marque personnelle décrite ci-dessous. "
-    "Tu écris EXCLUSIVEMENT dans sa voix. Tu produis un post prêt à publier : "
-    "pas d'explications, pas de méta-commentaire, pas de 'Voici votre post'. "
-    "Réponds uniquement avec le texte du post, en français.\n\n"
+    "You are the dedicated copywriter for the personal brand described below. "
+    "You write EXCLUSIVELY in its voice. You produce a ready-to-publish post: "
+    "no explanations, no meta-commentary, no 'Here is your post'. "
+    "Answer only with the post text.\n\n"
 )
 
 
@@ -377,9 +571,12 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
     extra = ""
     if exemples:
         extra = (
-            f"\n\n## EXEMPLES DE POSTS {reseau_label} DU CLIENT "
-            f"(imite ce style, cette structure et ce ton — n'invente pas un autre style)\n\n{exemples}"
+            f"\n\n## CLIENT'S {reseau_label} POST EXAMPLES "
+            f"(mimic this style, structure and tone; do not invent a different style)\n\n{exemples}"
         )
+    # Mémoire de voix : les posts VALIDÉS du compte les plus proches du sujet, après les
+    # exemples saisis à la main (ceux-ci décrivent le style voulu, ceux-là le style réel).
+    extra += _exemples_memoire(telegram_id, sujet, dimensions, "post", reseau, reseau_label)
 
     resp = _messages_create(
         model=model or CLAUDE_MODEL,
@@ -388,12 +585,13 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
         messages=[{
             "role": "user",
             "content": (
-                f"Écris UN post {reseau_label} prêt à publier sur le sujet :\n\n\"{sujet}\""
+                f"Write ONE ready-to-publish {reseau_label} post on the topic:\n\n\"{sujet}\""
                 + brief_dimensions(dimensions)
-                + f"\n\nFormat {reseau_label} : accroche forte en 1ʳᵉ ligne, lignes courtes et aérées, "
-                f"une seule idée centrale, et une question/appel à l'engagement en fin."
+                + _bloc_offre(telegram_id, dimensions)
+                + f"\n\n{reseau_label} format: strong hook on the first line, short airy lines, "
+                f"one central idea, and a question / engagement prompt at the end."
                 + _consigne_longueur(reseau)
-                + " Donne uniquement le texte du post."
+                + " Give only the post text."
             ),
         }],
     )
@@ -411,13 +609,13 @@ def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,
     reseau_label = RESEAUX.get(reseau, "LinkedIn")
     contexte = _contexte_marque(u)
     exemples = (u.get(f"exemples_{reseau}") or "").strip()
-    extra = (f"\n\n## EXEMPLES DE POSTS {reseau_label} DU CLIENT (imite ce style)\n\n{exemples}" if exemples else "")
+    extra = (f"\n\n## CLIENT'S {reseau_label} POST EXAMPLES (mimic this style)\n\n{exemples}" if exemples else "")
     role = (
-        "Tu es le rédacteur attitré de la marque ci-dessous. On te donne une PHOTO. "
-        "Observe ce qu'elle montre (sujet, contexte, ambiance, détails) et écris un post prêt à publier "
-        "qui s'APPUIE sur cette photo, dans la voix de la marque — sans décrire la photo platement, "
-        "mais en t'en servant comme point de départ d'un message pertinent pour l'audience. "
-        "Accroche forte, lignes courtes, une idée, un appel à l'engagement. Donne uniquement le texte du post.\n\n"
+        "You are the dedicated copywriter for the brand below. You are given a PHOTO. "
+        "Observe what it shows (subject, context, mood, details) and write a ready-to-publish post "
+        "that BUILDS on this photo, in the brand's voice: do not describe the photo flatly, "
+        "use it as the starting point for a message relevant to the audience. "
+        "Strong hook, short lines, one idea, an engagement prompt. Give only the post text.\n\n"
     )
     resp = _messages_create(
         model=model or CLAUDE_MODEL,
@@ -427,9 +625,9 @@ def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,
             "role": "user",
             "content": [
                 {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_b64}},
-                {"type": "text", "text": f"Écris UN post {reseau_label} prêt à publier à partir de cette photo, "
-                                         f"dans la voix de la marque.{_consigne_longueur(reseau)} "
-                                         f"Donne uniquement le texte."},
+                {"type": "text", "text": f"Write ONE ready-to-publish {reseau_label} post from this photo, "
+                                         f"in the brand's voice.{_consigne_longueur(reseau)} "
+                                         f"Give only the text."},
             ],
         }],
     )
@@ -452,18 +650,17 @@ ICON_HINTS = {
 }
 
 ROLE_CARROUSEL = (
-    "Tu crées des CARROUSELS pour la marque personnelle décrite ci-dessous, dans sa voix. "
-    "Structure : un HOOK (accroche très courte qui stoppe le scroll), des ÉTAPES/IDÉES "
-    "(une idée forte chacune), et un CTA final. Chaque idée a un titre TRÈS court (2-5 mots, "
-    "façon gros titre), 1 à 2 phrases d'explication, 2 à 4 mots-clés (pills), un 'pro_tip' "
-    "(une phrase de conseil concret) et un 'icon' (le mot-clé d'illustration le plus pertinent "
-    "dans cette liste : " + ", ".join(ICON_HINTS.keys()) + "). "
-    "Texte court, percutant, lisible sur une slide. "
-    "La 'legende' est le TEXTE DU POST (la description au-dessus du carrousel) : COURTE (2 à 4 lignes). "
-    "Un hook qui stoppe le scroll + une invitation à swiper/enregistrer + UN SEUL CTA. Elle NE répète PAS "
-    "le contenu des slides — le carrousel porte le fond, la légende ne fait qu'accrocher. "
-    "Tu peux terminer par 2 à 4 hashtags ciblés. "
-    "Réponds UNIQUEMENT avec du JSON valide de cette forme :\n"
+    "You create CAROUSELS for the personal brand described below, in its voice. "
+    "Structure: a HOOK (very short scroll-stopping line), STEPS/IDEAS (one strong idea each), "
+    "and a final CTA. Each idea has a VERY short title (2-5 words, headline style), 1-2 explanatory "
+    "sentences, 2-4 keywords (pills), a 'pro_tip' (one concrete piece of advice) and an 'icon' "
+    "(the most relevant illustration keyword from this list: " + ", ".join(ICON_HINTS.keys()) + "). "
+    "Short, punchy text, readable on a slide. "
+    "The 'legende' is the POST TEXT (the caption above the carousel): SHORT (2 to 4 lines). "
+    "A scroll-stopping hook + an invitation to swipe/save + ONE single CTA. It does NOT repeat "
+    "the slides' content; the carousel carries the substance, the caption only hooks. "
+    "You may end with 2 to 4 targeted hashtags. "
+    "Answer ONLY with valid JSON of this shape:\n"
     '{"hook":"...","legende":"...","slides":[{"titre":"...","texte":"...","pills":["..",".."],"pro_tip":"...","icon":"chart"}],'
     '"cta":{"titre":"...","texte":"..."}}\n\n'
 )
@@ -477,15 +674,18 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
     nb_idees = max(1, nb_slides - 2)  # hook + idées + cta
+    # Mémoire de voix : carrousels validés proches du sujet (repli : posts validés).
+    extra = _exemples_memoire(telegram_id, sujet, dimensions, "carrousel")
     resp = _messages_create(
         model=model or CLAUDE_MODEL,
         max_tokens=1600,
-        system=_system(ROLE_CARROUSEL, contexte, "", cache),
+        system=_system(ROLE_CARROUSEL, contexte, extra, cache),
         messages=[{
             "role": "user",
-            "content": (f"Sujet du carrousel : \"{sujet}\"." + brief_dimensions(dimensions) + "\n"
-                        f"Donne le hook, la legende (courte : accroche + invitation à swiper + 1 CTA, sans répéter les slides), "
-                        f"EXACTEMENT {nb_idees} idées (avec titre court, texte, pills, pro_tip) et le cta, en JSON."),
+            "content": (f"Carousel topic: \"{sujet}\"." + brief_dimensions(dimensions)
+                        + _bloc_offre(telegram_id, dimensions) + "\n"
+                        f"Give the hook, the legende (short: hook + swipe invitation + 1 CTA, without repeating the slides), "
+                        f"EXACTLY {nb_idees} ideas (with short titre, texte, pills, pro_tip) and the cta, as JSON."),
         }],
     )
     txt = _texte(resp)
@@ -537,11 +737,11 @@ TYPES_VIDEO = {
 }
 
 ROLE_SCRIPT = (
-    "Tu es scénariste vidéo pour la marque personnelle décrite ci-dessous. "
-    "Tu écris des scripts vidéo prêts à tourner, percutants, dans la voix de la marque. "
-    "Structure imposée : un HOOK très fort (les 3 premières secondes), puis le CORPS "
-    "(scènes / idées avec le texte exact à dire), puis un CTA final. "
-    "Réponds uniquement avec le script, en français.\n\n"
+    "You are a video scriptwriter for the personal brand described below. "
+    "You write ready-to-shoot, punchy video scripts in the brand's voice. "
+    "Required structure: a very strong HOOK (first 3 seconds), then the BODY "
+    "(scenes / ideas with the exact words to say), then a final CTA. "
+    "Answer only with the script.\n\n"
 )
 
 
@@ -553,22 +753,25 @@ def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
     tv = TYPES_VIDEO.get(type_video, type_video)
+    # Mémoire de voix : scripts validés proches du sujet (repli : posts validés).
+    extra = _exemples_memoire(telegram_id, sujet, dimensions, "script")
 
     resp = _messages_create(
         model=model or CLAUDE_MODEL,
         max_tokens=1500,
-        system=_system(ROLE_SCRIPT, contexte, "", cache),
+        system=_system(ROLE_SCRIPT, contexte, extra, cache),
         messages=[{
             "role": "user",
             "content": (
-                f"Écris un script vidéo de type « {tv} » sur le sujet :\n\n\"{sujet}\""
+                f"Write a \"{tv}\" video script on the topic:\n\n\"{sujet}\""
                 + brief_dimensions(dimensions)
-                + f"\n\n"
-                f"Format de sortie clair :\n"
-                f"[HOOK] — l'accroche des 3 premières secondes\n"
-                f"[CORPS] — les scènes / idées avec le texte exact à dire\n"
-                f"[CTA] — l'appel à l'action final\n"
-                f"Adapte la longueur au format. Donne uniquement le script."
+                + _bloc_offre(telegram_id, dimensions)
+                + "\n\n"
+                "Clear output format:\n"
+                "[HOOK] the first-3-seconds hook\n"
+                "[CORPS] the scenes / ideas with the exact words to say\n"
+                "[CTA] the final call to action\n"
+                "Adapt the length to the format. Give only the script."
             ),
         }],
     )

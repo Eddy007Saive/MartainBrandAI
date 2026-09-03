@@ -177,6 +177,7 @@
     "logout": "Déconnexion",
     "settingsGroup": "Réglages",
     "identity": "Identité",
+    "offers": "Offres",
     "brandVoice": "Voix de marque",
     "socials": "Réseaux sociaux",
     "subscription": "Abonnement",
@@ -314,7 +315,15 @@
       "creerVisuel": "Créer le visuel",
       "plusActions": "Plus d'actions",
       "declinerStory": "Décliner en story",
-      "recycler": "Recycler sur d'autres réseaux"
+      "dejaDecline": "Déjà décliné en story. Supprime la story existante pour en refaire une.",
+      "renduEnCours": "Rendu en cours",
+      "renduEchoue": "Rendu échoué",
+      "recycler": "Recycler sur d'autres réseaux",
+      "nEcrans": "{{n}} écrans",
+      "serieDesc": "{{n}} écrans à publier ensemble.",
+      "validerTout": "Valider les {{n}}",
+      "refuserTout": "Refuser les {{n}}",
+      "supprimerTout": "Supprimer les {{n}}"
     },
     "reel": {
       "generer": "Générer un reel animé",
@@ -365,7 +374,7 @@
         "etape1": "L'IA écrit le scénario…",
         "etape2": "Rendu de la vidéo, plan par plan…",
         "etape3": "Derniers réglages et upload…",
-        "note": "Environ 2 minutes. Reste sur cette page, ton reel apparaîtra dans Contenus dès qu'il est prêt.",
+        "note": "Le rendu se fait en arrière-plan : tu peux quitter la page, tu seras prévenu quand ton reel est prêt.",
         "pillReel": "Reel en fabrication",
         "pillCarrousel": "Carrousel en fabrication",
         "pillSlides": "Slides en fabrication"
@@ -383,8 +392,7 @@
       "longDesc": "Accroche → contexte → preuves plein écran → leçon en citation → CTA."
     },
     "toast": {
-      "reelEnCours": "Génération du reel « {{label}} » en cours (~{{min}} min)…",
-      "reelGenere": "Reel généré 🎬, il est « À valider »",
+      "reelEnFile": "Reel en cours de rendu (~2 min) 🎬, tu seras prévenu quand il est prêt",
       "reelEchec": "Échec de la génération du reel",
       "recycleOk": "Post recyclé sur {{n}} réseau ♻️, les copies sont « À valider »",
       "recycleOkPluriel": "Post recyclé sur {{n}} réseaux ♻️, les copies sont « À valider »",
@@ -426,6 +434,7 @@
       "valideProgramme": "Validé et programmé ✓",
       "valideProgrammationEchec": "Validé, mais la programmation a échoué (réseau connecté ?).",
       "contenuRefuse": "Contenu refusé",
+      "attendsRendu": "Attends la fin du rendu vidéo avant de valider.",
       "contenuMisAJour": "Contenu mis à jour",
       "majErreur": "Erreur lors de la mise à jour",
       "contenuModifie": "Contenu modifié",
@@ -445,6 +454,7 @@
     "onglets": {
       "tous": "Tous",
       "posts": "Posts",
+      "story": "Story",
       "scripts": "Scripts",
       "videos": "Vidéos"
     },
@@ -458,11 +468,13 @@
       "voirTous": "Voir tous les contenus ({{n}})",
       "aucunScript": "Aucun script vidéo",
       "aucuneVideo": "Aucune vidéo trouvée",
+      "aucuneStory": "Aucune story trouvée",
       "aucunPost": "Aucun post trouvé",
       "aucunContenu": "Aucun contenu trouvé",
       "essayezAutresTermes": "Essayez avec d'autres termes de recherche",
       "scriptsIci": "Les scripts vidéo à valider ou tourner apparaîtront ici",
       "videosIci": "Les vidéos tournées avec lien Dropbox apparaîtront ici",
+      "storiesIci": "Tes stories déclinées depuis un post apparaîtront ici",
       "postsIci": "Vos posts générés apparaîtront ici",
       "contenusIci": "Vos contenus générés apparaîtront ici"
     },
@@ -481,6 +493,7 @@
       "monterVideo": "Monter la vidéo",
       "montageVideoEnCours": "Montage vidéo en cours…",
       "slide": "slide {{n}}",
+      "agrandir": "Agrandir",
       "apercuLive": "Aperçu live, reflète ta retouche",
       "aucunVisuel": "Aucun visuel",
       "changerVisuel": "Changer / régénérer le visuel",
@@ -526,7 +539,8 @@
     },
     "suppression": {
       "titre": "Supprimer ce contenu ?",
-      "description": "Cette action est irréversible. Le contenu sera définitivement supprimé."
+      "description": "Cette action est irréversible. Le contenu sera définitivement supprimé.",
+      "descriptionSerie": "Cette action est irréversible. Les {{n}} écrans de cette story seront définitivement supprimés."
     },
     "image": {
       "apercu": "Aperçu",
@@ -564,6 +578,8 @@
       "aucuneImageInstructions": "Aucune image. Ajoute-en une à intégrer via tes instructions.",
       "utilisee": "Utilisée",
       "nonUtilisee": "Non utilisée",
+      "toujoursIntegrer": "Toujours intégrer cette image (ex. ta mascotte) au lieu d'un simple style",
+      "toujoursIntegree": "Toujours intégrée, clique pour repasser en simple style",
       "agrandir": "Agrandir",
       "selectionneImageNote": "Sélectionne une image, puis dis à l'IA quoi en faire dans « Instructions » (ex. « mets-la dans le cercle »).",
       "descriptionImage": "Description de l'image",
@@ -1237,6 +1253,7 @@
     "targetSubjects": "Cibler (optionnel)",
     "filterAny": "Au choix de l'IA",
     "filterReset": "Réinitialiser le ciblage",
+    "resetReco": "Reco",
     "writeOwnBrief": "Écrire mon propre brief",
     "briefPlaceholder": "Ex : Promo pour la sortie du module Goodtime, ton enthousiaste, bénéfices clés, CTA inscription.",
     "formatLabel": "Format",
@@ -1271,6 +1288,10 @@
     "writingPost": "Rédaction du post…",
     "photoSaved": "Post + photo enregistrés → onglet Contenus",
     "slideAlt": "slide {{n}}",
+    "enlargeSlide": "Agrandir",
+    "close": "Fermer",
+    "prevSlide": "Précédent",
+    "nextSlide": "Suivant",
     "noImagesGenerated": "Aucune image générée, réessaie.",
     "carouselSaved": "Carrousel enregistré → onglet Contenus",
     "regenerate": "Régénérer",
@@ -2553,7 +2574,10 @@
       "titre": "Studio Postorico — Ce qu'on voit de vous quand on vous cherche",
       "description": "Pourquoi soigner ses réseaux et sa fiche Google même quand on a déjà assez de clients."
     },
-    "entete": { "nom": "Postorico", "sousTitre": "Studio de contenu IA" },
+    "entete": {
+      "nom": "Postorico",
+      "sousTitre": "Studio de contenu IA"
+    },
     "cta": {
       "reserver": "Je réserve ma démo",
       "sansEngagement": "Aucun engagement",
@@ -2579,33 +2603,82 @@
       "eyebrow": "Dans l'ordre",
       "titre": "Prendre le problème dans l'ordre",
       "intro": "La plupart des entreprises abordent les réseaux par la fin : elles se demandent combien de clients ça rapporte. C'est la deuxième question. La première arrive bien avant, et elle se pose que vous publiiez ou non.",
-      "etape1": { "rang": "D'abord", "titre": "Être crédible quand on vous cherche", "texte": "Des pages propres, à jour, cohérentes avec ce que vous êtes. Une fiche Google vivante. Le minimum pour que celui qui vérifie referme l'onglet rassuré. Ça ne demande pas de volume, ça demande de la régularité." },
-      "etape2": { "rang": "Ensuite, si vous en avez besoin", "titre": "Faire venir des clients", "texte": "De l'acquisition, du ciblage, de la conquête. Utile le jour où le carnet se vide, inutile tant qu'il est plein. Et impossible à démarrer proprement si la base d'en face n'existe pas." },
+      "etape1": {
+        "rang": "D'abord",
+        "titre": "Être crédible quand on vous cherche",
+        "texte": "Des pages propres, à jour, cohérentes avec ce que vous êtes. Une fiche Google vivante. Le minimum pour que celui qui vérifie referme l'onglet rassuré. Ça ne demande pas de volume, ça demande de la régularité."
+      },
+      "etape2": {
+        "rang": "Ensuite, si vous en avez besoin",
+        "titre": "Faire venir des clients",
+        "texte": "De l'acquisition, du ciblage, de la conquête. Utile le jour où le carnet se vide, inutile tant qu'il est plein. Et impossible à démarrer proprement si la base d'en face n'existe pas."
+      },
       "sortie": "Tant que la première marche n'est pas posée, tout le reste tape dans le vide. Et la première marche, elle, ne devient jamais moins urgente parce que vous avez du travail."
     },
     "raisons": {
       "eyebrow": "Cinq raisons",
       "titre": "Cinq raisons qui valent même quand le carnet est plein",
       "intro": "Aucune ne parle de générer des prospects.",
-      "r1": { "titre": "Le bouche-à-oreille finit toujours sur un écran", "texte": "On vous recommande à quelqu'un. Cette personne ne décroche pas son téléphone dans la foulée : elle tape votre nom. C'est là que se joue votre réputation, dans les trente secondes qui suivent une recommandation que vous avez mis des années à mériter. Vos pages ne remplacent pas le bouche-à-oreille, elles le confirment ou elles le cassent." },
-      "r2": { "titre": "Une page à l'arrêt raconte quelque chose de faux sur vous", "texte": "Un dernier post il y a huit mois, ça se lit comme un signal : entreprise ralentie, activité incertaine, peut-être même fermée. C'est presque toujours faux. Vous n'avez pas ralenti, vous avez juste eu autre chose à faire. Mais celui qui vous découvre n'a aucun moyen de le savoir, et il ne vous appellera pas pour vous poser la question." },
-      "r3": { "titre": "La régularité est ce qui se lit, pas le contenu", "texte": "Personne ne lit vos publications une par une. On regarde une chose : est-ce que ça vit. Trois publications par semaine depuis six mois disent « entreprise structurée, équipe en place, ça tourne ». Un post tous les trois mois dit le contraire, quelle que soit la qualité de ce qui est écrit. La régularité est un signal de sérieux avant d'être un outil de communication." },
-      "r4": { "titre": "La fiche Google passe avant tout le reste", "texte": "C'est le premier écran que voit quelqu'un qui vous cherche, avant votre site et avant vos réseaux : horaires, photos, avis, publications récentes. C'est aussi celui qu'on laisse dormir le plus longtemps. Une fiche vide ou datée coûte des clients qu'on ne voit jamais passer, parce qu'ils ne vous ont pas appelé pour vous prévenir qu'ils avaient renoncé." },
-      "r5": { "titre": "Une présence claire trie vos demandes au lieu de les multiplier", "texte": "C'est le point qui compte quand on manque de bras. Des pages qui disent précisément ce que vous faites, pour qui et comment vous travaillez, filtrent en amont. Les demandes arrivent déjà cadrées, avec moins de dossiers hors sujet et moins d'allers-retours pour expliquer votre façon de faire. Ce n'est pas un robinet qu'on ouvre. C'est un filtre qu'on installe." },
+      "r1": {
+        "titre": "Le bouche-à-oreille finit toujours sur un écran",
+        "texte": "On vous recommande à quelqu'un. Cette personne ne décroche pas son téléphone dans la foulée : elle tape votre nom. C'est là que se joue votre réputation, dans les trente secondes qui suivent une recommandation que vous avez mis des années à mériter. Vos pages ne remplacent pas le bouche-à-oreille, elles le confirment ou elles le cassent."
+      },
+      "r2": {
+        "titre": "Une page à l'arrêt raconte quelque chose de faux sur vous",
+        "texte": "Un dernier post il y a huit mois, ça se lit comme un signal : entreprise ralentie, activité incertaine, peut-être même fermée. C'est presque toujours faux. Vous n'avez pas ralenti, vous avez juste eu autre chose à faire. Mais celui qui vous découvre n'a aucun moyen de le savoir, et il ne vous appellera pas pour vous poser la question."
+      },
+      "r3": {
+        "titre": "La régularité est ce qui se lit, pas le contenu",
+        "texte": "Personne ne lit vos publications une par une. On regarde une chose : est-ce que ça vit. Trois publications par semaine depuis six mois disent « entreprise structurée, équipe en place, ça tourne ». Un post tous les trois mois dit le contraire, quelle que soit la qualité de ce qui est écrit. La régularité est un signal de sérieux avant d'être un outil de communication."
+      },
+      "r4": {
+        "titre": "La fiche Google passe avant tout le reste",
+        "texte": "C'est le premier écran que voit quelqu'un qui vous cherche, avant votre site et avant vos réseaux : horaires, photos, avis, publications récentes. C'est aussi celui qu'on laisse dormir le plus longtemps. Une fiche vide ou datée coûte des clients qu'on ne voit jamais passer, parce qu'ils ne vous ont pas appelé pour vous prévenir qu'ils avaient renoncé."
+      },
+      "r5": {
+        "titre": "Une présence claire trie vos demandes au lieu de les multiplier",
+        "texte": "C'est le point qui compte quand on manque de bras. Des pages qui disent précisément ce que vous faites, pour qui et comment vous travaillez, filtrent en amont. Les demandes arrivent déjà cadrées, avec moins de dossiers hors sujet et moins d'allers-retours pour expliquer votre façon de faire. Ce n'est pas un robinet qu'on ouvre. C'est un filtre qu'on installe."
+      },
       "compteFort": "Et le jour où vous en aurez besoin : ",
       "compteTexte": "une image de marque ne se construit pas dans l'urgence. Quand le carnet se creuse, celui qui a publié régulièrement pendant deux ans repart d'une base solide. Celui qui commence ce jour-là repart de zéro, au pire moment."
     },
-    "bande": { "titre": "Vingt minutes pour voir ce que ça donne sur votre entreprise." },
+    "bande": {
+      "titre": "Vingt minutes pour voir ce que ça donne sur votre entreprise."
+    },
     "etapes": {
       "eyebrow": "Comment ça marche",
       "titre": "Ce qu'on a construit, et ce qu'il vous reste à faire",
       "intro": "Le vrai obstacle n'a jamais été l'envie, c'est le temps et les effectifs. Alors on a fait un logiciel qui prend en charge la chaîne complète, de l'idée jusqu'à la publication. Votre seule intervention est à l'étape 3.",
-      "e1": { "titre": "Configuration", "texte": "Une seule fois, au démarrage. On paramètre le compte sur votre entreprise : votre positionnement, votre clientèle, votre façon de parler, vos sujets, ce que vous ne voulez surtout pas voir écrit. C'est cette étape qui fait que le contenu vous ressemble au lieu de ressembler à n'importe quelle entreprise de votre secteur.", "tag": "Nous, à l'ouverture du compte" },
-      "e2": { "titre": "Création", "texte": "Le logiciel produit vos contenus : publications, visuels, stories, textes de fiche Google. Vous ne partez plus jamais d'une page blanche et vous n'avez plus à chercher quoi raconter cette semaine.", "tag": "Automatique" },
-      "e3": { "titre": "Validation", "texte": "Vous ouvrez, vous lisez, vous validez ou vous corrigez. Depuis votre téléphone, entre deux rendez-vous. Rien ne part sans votre accord, jamais. C'est votre marque, vous gardez la main dessus de bout en bout.", "tag": "Vous, et vous seul" },
-      "e4": { "titre": "Planification", "texte": "Ce que vous avez validé se place tout seul dans le calendrier, aux bons jours et aux bonnes heures, sur chaque réseau. Vous voyez d'un coup d'œil ce qui est prévu pour les semaines à venir.", "tag": "Automatique" },
-      "e5": { "titre": "Publication", "texte": "La publication part toute seule, sur vos réseaux et sur votre fiche Google. Rien à recopier, rien à reposter à la main, rien à ne pas oublier le dimanche soir.", "tag": "Automatique" },
-      "e6": { "titre": "Suivi", "texte": "Vous retrouvez au même endroit ce qui est passé, ce qui arrive et l'état de votre présence sur chaque canal. Une seule interface au lieu de cinq applications ouvertes.", "tag": "Automatique" },
+      "e1": {
+        "titre": "Configuration",
+        "texte": "Une seule fois, au démarrage. On paramètre le compte sur votre entreprise : votre positionnement, votre clientèle, votre façon de parler, vos sujets, ce que vous ne voulez surtout pas voir écrit. C'est cette étape qui fait que le contenu vous ressemble au lieu de ressembler à n'importe quelle entreprise de votre secteur.",
+        "tag": "Nous, à l'ouverture du compte"
+      },
+      "e2": {
+        "titre": "Création",
+        "texte": "Le logiciel produit vos contenus : publications, visuels, stories, textes de fiche Google. Vous ne partez plus jamais d'une page blanche et vous n'avez plus à chercher quoi raconter cette semaine.",
+        "tag": "Automatique"
+      },
+      "e3": {
+        "titre": "Validation",
+        "texte": "Vous ouvrez, vous lisez, vous validez ou vous corrigez. Depuis votre téléphone, entre deux rendez-vous. Rien ne part sans votre accord, jamais. C'est votre marque, vous gardez la main dessus de bout en bout.",
+        "tag": "Vous, et vous seul"
+      },
+      "e4": {
+        "titre": "Planification",
+        "texte": "Ce que vous avez validé se place tout seul dans le calendrier, aux bons jours et aux bonnes heures, sur chaque réseau. Vous voyez d'un coup d'œil ce qui est prévu pour les semaines à venir.",
+        "tag": "Automatique"
+      },
+      "e5": {
+        "titre": "Publication",
+        "texte": "La publication part toute seule, sur vos réseaux et sur votre fiche Google. Rien à recopier, rien à reposter à la main, rien à ne pas oublier le dimanche soir.",
+        "tag": "Automatique"
+      },
+      "e6": {
+        "titre": "Suivi",
+        "texte": "Vous retrouvez au même endroit ce qui est passé, ce qui arrive et l'état de votre présence sur chaque canal. Une seule interface au lieu de cinq applications ouvertes.",
+        "tag": "Automatique"
+      },
       "sortie": "Sur six étapes, une seule vous demande d'être présent. Les cinq autres tournent sans vous. C'est ce qui rend la régularité tenable pour une équipe qui n'a personne à mettre dessus."
     },
     "captures": {
@@ -2620,9 +2693,18 @@
       "eyebrow": "Pas de l'IA générique",
       "titre": "Pourquoi ça ne ressemble pas à de l'intelligence artificielle",
       "intro": "C'est le reproche qu'on fait à ces outils, et c'est le point sur lequel on a le plus travaillé.",
-      "r1": { "titre": "Un outil grand public écrit comme un outil grand public", "texte": "Tout le monde reconnaît maintenant un texte sorti d'un assistant généraliste : le même rythme, les mêmes tournures, les mêmes formules. Publié sous votre nom, ça vous fait plus de mal que de ne rien publier du tout. Sur une page dont le seul rôle est de rassurer, c'est exactement l'effet inverse." },
-      "r2": { "titre": "Un compte configuré écrit comme vous", "texte": "Le logiciel travaille à partir de vos réponses, de vos mots, de vos meilleures publications et de vos interdits. Les modèles utilisés sont parmi les plus performants du marché, mais ce qui change tout, c'est le paramétrage fait en amont sur votre entreprise. Deux entreprises du même secteur configurées chez nous ne sortent pas le même contenu, parce qu'elles n'ont pas répondu la même chose." },
-      "r3": { "titre": "Et si une phrase ne vous va pas, vous la changez", "texte": "Au moment de valider, vous corrigez ce que vous voulez. Plus vous utilisez le compte, moins vous avez à corriger." },
+      "r1": {
+        "titre": "Un outil grand public écrit comme un outil grand public",
+        "texte": "Tout le monde reconnaît maintenant un texte sorti d'un assistant généraliste : le même rythme, les mêmes tournures, les mêmes formules. Publié sous votre nom, ça vous fait plus de mal que de ne rien publier du tout. Sur une page dont le seul rôle est de rassurer, c'est exactement l'effet inverse."
+      },
+      "r2": {
+        "titre": "Un compte configuré écrit comme vous",
+        "texte": "Le logiciel travaille à partir de vos réponses, de vos mots, de vos meilleures publications et de vos interdits. Les modèles utilisés sont parmi les plus performants du marché, mais ce qui change tout, c'est le paramétrage fait en amont sur votre entreprise. Deux entreprises du même secteur configurées chez nous ne sortent pas le même contenu, parce qu'elles n'ont pas répondu la même chose."
+      },
+      "r3": {
+        "titre": "Et si une phrase ne vous va pas, vous la changez",
+        "texte": "Au moment de valider, vous corrigez ce que vous voulez. Plus vous utilisez le compte, moins vous avez à corriger."
+      },
       "compte1Fort": "Votre temps : ",
       "compte1Texte": "2 à 4 heures par mois, selon le nombre de réseaux connectés, au moment de valider. Pas de réunion, pas de brief à rédiger, pas de relance à faire, personne à recruter.",
       "compte2Fort": "Le coût : ",

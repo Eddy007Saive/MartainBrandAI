@@ -18,6 +18,7 @@ LABELS = {
     "carousel": "carrousels",
     "video": "vidéos",
     "story": "stories",
+    "reel": "reels",
 }
 
 

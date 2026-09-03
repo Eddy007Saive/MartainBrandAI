@@ -84,6 +84,17 @@ async def update_contenu(contenu_id: str, telegram_id: str, update_data: dict) -
     result = supabase.table("contenu").update(update_data).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     response = result.data[0] if result.data else contenu_data
 
+    # Mémoire de voix : un contenu validé entre dans les exemples donnés à Claude ;
+    # un texte modifié est réindexé ; un contenu repassé « À valider » en sort.
+    # Best-effort en thread : la validation n'attend ni ne dépend d'OpenAI.
+    if any(k in update_data for k in ("statut", "contenu", "titre")):
+        try:
+            import asyncio
+            from services import memoire_service
+            await asyncio.to_thread(memoire_service.indexer_contenu, response)
+        except Exception as e:
+            logger.warning(f"mémoire de voix {contenu_id}: {e}")
+
     # Validation = programmation : un contenu validé avec une date part sur Zernio tout de suite
     # (l'event post.scheduled confirmera le statut Planifie). Best-effort : un échec est stocké
     # dans publish_status/publish_error sans bloquer la validation.

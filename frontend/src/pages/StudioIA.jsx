@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
+  ChevronLeft, ChevronRight, X, ZoomIn,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +25,9 @@ const FORMATS = [
 ];
 // Les stories ne se publient que sur Instagram et Facebook (Zernio)
 const RESEAUX_STORY = ['instagram', 'facebook'];
+// Réseaux capables de publier un format vidéo (script). Reel = court/vertical ; Vidéo longue = YouTube.
+const RESEAUX_POUR_FORMAT = { Reel: ['tiktok', 'instagram', 'youtube'], 'Vidéo longue': ['youtube'] };
+const RESEAUX_VIDEO = ['tiktok', 'instagram', 'youtube', 'facebook', 'linkedin'];
 // Réseaux proposés pour un POST écrit (YouTube exclu : il faut une vidéo).
 // La liste affichée est ensuite filtrée sur les comptes réellement connectés.
 const RESEAUX = [
@@ -77,6 +81,63 @@ const Pill = ({ active, onClick, children }) => (
   </button>
 );
 
+// Valeurs de repli des dimensions si le fetch backend n'a pas (encore) répondu — garde le sélecteur utilisable.
+const DIM_FALLBACK = {
+  objectif: ['Engagement', 'Notoriété', 'Éducation', 'Conversion', 'Génération de prospects', 'Fidélisation', 'Preuve sociale'],
+  angle: ['Problème → solution', 'Astuce', 'Comparaison', 'Controverse', 'Storytelling', 'Témoignage', 'Démonstration', 'Inspiration', 'Humour', 'Curiosité'],
+  cible: ['Nouvelle audience', 'Prospect', 'Client', 'Client fidèle', 'Segment spécifique'],
+  format: ['Reel', 'Post', 'Carrousel', 'Story', 'Article', 'Vidéo longue'],
+};
+// La dimension "format" pilote le format de génération réel (cfgFormat).
+const FORMAT_DIM_TO_CFG = {
+  'Post': 'post', 'Article': 'post',
+  'Carrousel': 'carrousel',
+  'Story': 'story',
+  'Reel': 'script', 'Vidéo longue': 'script',
+};
+
+// Sélecteur d'une dimension : valeur recommandée ⭐ (reco IA), changeable ; point vert = modifié.
+const DimSelect = ({ emoji, label, value, reco, options, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+  const edited = value !== reco;
+  // Garde la valeur courante sélectionnable même si elle sort de la liste filtrée (réseaux).
+  const opts = value && !options.includes(value) ? [value, ...options] : options;
+  return (
+    <div className="relative" ref={ref}>
+      <div className="text-[10px] text-slate-500 font-medium mb-1 flex items-center gap-1">{emoji} {label}</div>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        className={`flex items-center gap-1.5 w-full rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-200 text-left transition-colors border ${open ? 'border-[#5B6CFF]/55 bg-[#0e1830]' : 'border-white/10 bg-slate-950/60 hover:border-white/20'}`}>
+        <span className="flex-1 min-w-0 truncate">{value || '—'}</span>
+        {edited
+          ? <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] flex-none" />
+          : <span className="text-amber-400 text-[10px] leading-none">★</span>}
+        <span className={`text-slate-500 text-[9px] transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+      {open && (
+        <div className="absolute z-30 left-0 right-0 top-[calc(100%+5px)] bg-[#0c1424] border border-white/10 rounded-xl p-1.5 shadow-2xl max-h-48 overflow-auto animate-fade-in">
+          {opts.map((v) => {
+            const sel = v === value;
+            return (
+              <button key={v} type="button" onClick={() => { onChange(v); setOpen(false); }}
+                className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs text-left transition-colors ${sel ? 'bg-gradient-to-r from-[#5B6CFF]/25 to-[#8A6CFF]/15 text-white font-semibold' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>
+                <span className="flex-1 min-w-0 truncate">{v}</span>
+                {sel ? <span className="text-[#3AFFA3] text-[11px]">✓</span> : (v === reco ? <span className="text-amber-400 text-[10px]">★</span> : null)}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function StudioIA() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -93,6 +154,11 @@ export default function StudioIA() {
   const reseaux = RESEAUX.filter((r) => !!user?.[`late_account_${r.id}`]);
   // Story : seulement Instagram/Facebook
   const reseauxPour = (fmt) => (fmt === 'story' ? reseaux.filter((r) => RESEAUX_STORY.includes(r.id)) : reseaux);
+  // Réseaux proposés pour un script vidéo, selon le format-dimension (Reel/Vidéo longue).
+  const reseauxVideo = (formatDim) => {
+    const allow = RESEAUX_POUR_FORMAT[formatDim] || RESEAUX_VIDEO;
+    return reseaux.filter((r) => allow.includes(r.id));
+  };
 
   const erreurGen = (e) => {
     if (e?.response?.status === 402) toast.error(e?.response?.data?.detail || t('studio.quotaReached'));
@@ -106,6 +172,7 @@ export default function StudioIA() {
   const [filtres, setFiltres] = useState({});  // dimensions imposées à la génération (optionnel)
   const [filtresOpen, setFiltresOpen] = useState(false); // panneau de ciblage optionnel
   const [openId, setOpenId] = useState(null); // sujet en cours de configuration
+  const [dimsEdit, setDimsEdit] = useState({}); // brief éditable du sujet ouvert (objectif/angle/cible/format)
   const [cfgFormat, setCfgFormat] = useState('post');
   // Multi-réseaux : on peut cocher plusieurs réseaux — le 1er devient le post principal,
   // les autres reçoivent une copie planifiée sur leur propre créneau (même méca que Recycler).
@@ -113,6 +180,19 @@ export default function StudioIA() {
   const [cfgType, setCfgType] = useState('Reel');
   const cfgQualite = 'equilibre'; // qualité unique (sélecteur retiré avec le système de crédits)
   const [nbSlides, setNbSlides] = useState(5); // carrousel
+  const [lightbox, setLightbox] = useState(null); // { images:[], index:number } — aperçu plein écran des slides
+
+  // Navigation clavier dans la lightbox (← → Échap)
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightbox(null);
+      else if (e.key === 'ArrowRight') setLightbox((l) => l && ({ ...l, index: (l.index + 1) % l.images.length }));
+      else if (e.key === 'ArrowLeft') setLightbox((l) => l && ({ ...l, index: (l.index - 1 + l.images.length) % l.images.length }));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightbox]);
 
   // Coche/décoche un réseau (toujours au moins un de coché)
   const toggleReseau = (setter) => (id) =>
@@ -215,9 +295,47 @@ export default function StudioIA() {
     if (id) { try { await agentService.supprimerSujet(id); } catch (e) { /* ignore */ } }
   };
 
+  // Applique un format (dimension "format") au format de génération réel + ajuste les réseaux (story).
+  const appliquerFormat = (formatDim) => {
+    const cfg = FORMAT_DIM_TO_CFG[formatDim] || 'post';
+    setCfgFormat(cfg);
+    if (cfg === 'story') {
+      setCfgReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
+    } else if (cfg === 'script') {
+      const vids = reseauxVideo(formatDim).map((r) => r.id);
+      setCfgReseaux((arr) => { const ok = arr.filter((x) => vids.includes(x)); return ok.length ? ok : [vids[0]].filter(Boolean); });
+    }
+  };
+
+  // Enregistre l'override côté serveur + met à jour la réserve locale (persiste au rechargement).
+  const persistDims = (id, dims) => {
+    if (!id) return;
+    const clean = { objectif: dims.objectif, angle: dims.angle, cible: dims.cible, format: dims.format, offre: dims.offre };
+    setSujets((prev) => prev.map((x) => (x.id === id ? { ...x, dimensions: clean } : x)));
+    agentService.majDimensions(id, clean).catch(() => {});
+  };
+
   const ouvrir = (s) => {
+    const d = s.dimensions || {};
+    setDimsEdit({ objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '', offre: d.offre || '' });
+    appliquerFormat(d.format);
     setOpenId(s.id);
-    setCfgFormat('post');
+  };
+
+  // Change une dimension du brief ; la dimension "format" repilote le format de génération.
+  // On persiste l'override (sans toucher à la reco d'origine de l'IA, l'⭐).
+  const changeDim = (cle, val) => {
+    setDimsEdit((prev) => { const next = { ...prev, [cle]: val }; persistDims(openId, next); return next; });
+    if (cle === 'format') appliquerFormat(val);
+  };
+
+  // Rétablit tout le brief recommandé par l'IA pour ce sujet (et l'enregistre).
+  const revertDims = (s) => {
+    const d = s.dimensions_reco || s.dimensions || {};
+    const next = { objectif: d.objectif || '', angle: d.angle || '', cible: d.cible || '', format: d.format || '', offre: d.offre || '' };
+    setDimsEdit(next);
+    persistDims(s.id, next);
+    appliquerFormat(d.format);
   };
 
   // --- Transformation d'un sujet en contenu ---
@@ -227,16 +345,17 @@ export default function StudioIA() {
   const genererContenu = async (s) => {
     const fmt = cfgFormat;
     const meta = fmt === 'script' ? cfgType : cfgReseaux[0];
+    const reseau = fmt === 'script' ? cfgReseaux[0] : undefined; // réseau cible du Reel/vidéo
     const extras = fmt === 'script' ? [] : cfgReseaux.slice(1); // réseaux additionnels cochés
     const qualite = cfgQualite;
     const cardId = nextId();
-    setContenus((prev) => [{ id: cardId, sujet: s.titre, sujetId: s.id, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
+    setContenus((prev) => [{ id: cardId, sujet: s.titre, sujetId: s.id, texte: '', statut: 'redaction', format: fmt, meta, reseau, extras, qualite }, ...prev]);
     setOpenId(null);
     // le sujet reste dispo tant que rien n'est validé : on peut le réutiliser pour un autre réseau
     // (il disparaît de la réserve seulement quand un contenu généré à partir de lui est validé — voir `valider`)
     try {
       if (fmt === 'carrousel') {
-        const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite, null, s.dimensions);
+        const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite, null, dimsEdit);
         if (d.credits != null) updateUser({ credits: d.credits });
         track('contenu_genere', { format: 'carrousel', reseau: meta, qualite });
         setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
@@ -253,8 +372,8 @@ export default function StudioIA() {
         return;
       }
       const d = fmt === 'script'
-        ? await agentService.script(s.titre, meta, qualite, s.dimensions)
-        : await agentService.rediger(s.titre, meta, false, qualite, s.dimensions);
+        ? await agentService.script(s.titre, meta, qualite, dimsEdit)
+        : await agentService.rediger(s.titre, meta, false, qualite, dimsEdit);
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
@@ -382,7 +501,7 @@ export default function StudioIA() {
     try {
       if (card.format === 'script') {
         // Script vidéo → contenu « À tourner » (apparaît dans Contenus, prêt à monter)
-        const d = await videoService.createDraft({ script: card.texte, titre: card.sujet });
+        const d = await videoService.createDraft({ script: card.texte, titre: card.sujet, ...(card.reseau ? { reseau: card.reseau } : {}) });
         setContenus((prev) => prev.filter((c) => c.id !== id));
         if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
         toast.success(t('studio.scriptReady'), {
@@ -515,6 +634,19 @@ export default function StudioIA() {
                       </select>
                     </label>
                   ))}
+                  {dims?.offre?.length ? (
+                    <label className="flex flex-col gap-1">
+                      <span className="text-xs text-slate-500 font-inter">📦 Offre</span>
+                      <select
+                        value={filtres.offre || ''}
+                        onChange={(e) => setFiltres((f) => ({ ...f, offre: e.target.value }))}
+                        data-testid="studio-filtre-offre"
+                        className="rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-2.5 py-1.5 outline-none focus:border-[#5B6CFF]/50">
+                        <option value="">{t('studio.filterAny')}</option>
+                        {dims.offre.map((v) => <option key={v} value={v}>{v}</option>)}
+                      </select>
+                    </label>
+                  ) : null}
                   {Object.values(filtres).filter(Boolean).length > 0 && (
                     <button onClick={() => setFiltres({})}
                       className="col-span-2 text-xs text-slate-500 hover:text-slate-300 transition-colors text-left">
@@ -654,71 +786,92 @@ export default function StudioIA() {
             </div>
           )}
 
-          {/* Liste des sujets */}
+          {/* Liste des sujets — accordéon : n° + titre, clic pour déplier le brief (4 dimensions ⭐) */}
           {sujets.length > 0 && (
             <div className="space-y-2 animate-fade-in">
-              {sujets.map((s) => {
+              {sujets.map((s, i) => {
                 const open = openId === s.id;
+                const reco = s.dimensions_reco || s.dimensions || {}; // reco d'origine de l'IA (fige l'⭐)
+                const anyEdited = open && (DIM_META.some(({ cle }) => dimsEdit[cle] !== (reco[cle] || '')) || (dimsEdit.offre || '') !== (reco.offre || ''));
                 return (
                   <div key={s.id} data-testid={`studio-sujet-${s.id}`}
-                    className={`rounded-xl border transition-all ${open ? 'border-[#5B6CFF]/40 bg-[#5B6CFF]/[0.06]' : 'border-white/5 bg-slate-800/40 hover:border-white/15'}`}>
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <div className="flex-1 min-w-0">
-                        <span className="block text-sm text-slate-200 font-inter">{s.titre}</span>
-                        {s.dimensions && Object.values(s.dimensions).some(Boolean) && (
-                          <div className="flex flex-wrap gap-1 mt-1.5">
-                            {DIM_META.map(({ cle, emoji }) => s.dimensions?.[cle] ? (
-                              <span key={cle} className="text-[10px] px-1.5 py-0.5 rounded-md bg-white/[0.04] border border-white/5 text-slate-400 font-inter">
-                                {emoji} {s.dimensions[cle]}
-                              </span>
-                            ) : null)}
-                          </div>
-                        )}
-                      </div>
-                      {!open && (
-                        <>
-                          <button onClick={() => ouvrir(s)} className="text-xs font-medium px-2.5 py-1 rounded-lg bg-[#5B6CFF]/20 text-white hover:bg-[#5B6CFF]/30 transition-all flex-shrink-0">
-                            {t('studio.createButton')}
-                          </button>
-                          <button onClick={() => supprimerSujet(s.id)} title={t('studio.deleteTitle')} className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
+                    className={`rounded-xl border transition-all ${open ? 'relative z-10 border-[#5B6CFF]/40 bg-[#5B6CFF]/[0.06]' : 'overflow-hidden border-white/5 bg-slate-800/40 hover:border-white/15'}`}>
+                    {/* Ligne repliée : numéro + titre + tag format + corbeille + chevron */}
+                    <div onClick={() => (open ? setOpenId(null) : ouvrir(s))}
+                      className="flex items-center gap-3 px-3.5 py-3 cursor-pointer select-none">
+                      <span className={`flex-none w-6 h-6 rounded-lg grid place-items-center text-[11px] font-bold font-inter ${open ? 'text-white bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF]' : 'text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25'}`}>
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="flex-1 min-w-0 text-[13.5px] font-semibold leading-snug text-slate-100 font-inter">{s.titre}</span>
+                      {!open && s.dimensions?.format && (
+                        <span className="flex-none text-[10px] font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">{s.dimensions.format}</span>
                       )}
+                      {!open && s.dimensions?.offre && (
+                        <span className="flex-none text-[10px] font-semibold text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25 rounded-md px-1.5 py-0.5">📦 {s.dimensions.offre}</span>
+                      )}
+                      <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} title={t('studio.deleteTitle')}
+                        className="flex-none text-slate-500 hover:text-red-400 transition-colors p-1">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                      <span className={`flex-none text-[11px] transition-transform ${open ? 'rotate-180 text-[#8A6CFF]' : 'text-slate-500'}`}>▾</span>
                     </div>
 
-                    {/* Config inline : format + réseau/type */}
+                    {/* Corps déplié : brief (4 dimensions ⭐) + réseaux/type + Créer */}
                     {open && (
-                      <div className="px-4 pb-4 pt-1 space-y-3 animate-fade-in">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-slate-500 font-inter">{t('studio.formatLabel')}</span>
-                          {FORMATS.map((f) => {
-                            const Icon = f.icon;
-                            return (
-                              <Pill key={f.id} active={cfgFormat === f.id} onClick={() => {
-                                setCfgFormat(f.id);
-                                if (f.id === 'story') setCfgReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
-                              }}>
-                                <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{t(`studio.${f.labelKey}`)}</span>
-                              </Pill>
-                            );
-                          })}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs text-slate-500 font-inter">{cfgFormat === 'script' ? t('studio.typeLabel') : t('studio.networksLabel')}</span>
-                          {cfgFormat !== 'script' && reseaux.length === 0
-                            ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
-                            : (cfgFormat === 'script' ? TYPES_VIDEO : reseauxPour(cfgFormat)).map((r) => (
-                            <Pill key={r.id}
-                              active={cfgFormat === 'script' ? cfgType === r.id : cfgReseaux.includes(r.id)}
-                              onClick={() => (cfgFormat === 'script' ? setCfgType(r.id) : toggleReseau(setCfgReseaux)(r.id))}>
-                              {cfgFormat !== 'script' && cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.labelKey ? t(`studio.${r.labelKey}`) : r.label}
-                            </Pill>
+                      <div className="px-3.5 pb-4 pt-1 space-y-3 animate-fade-in">
+                        <div className="grid grid-cols-2 gap-2">
+                          {DIM_META.map(({ cle, emoji, label }) => (
+                            <DimSelect key={cle} emoji={emoji} label={label}
+                              value={dimsEdit[cle]} reco={reco[cle]}
+                              options={(dims && dims[cle] && dims[cle].length) ? dims[cle] : DIM_FALLBACK[cle]}
+                              onChange={(v) => changeDim(cle, v)} />
                           ))}
-                          {cfgFormat !== 'script' && cfgReseaux.length > 1 && (
-                            <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: cfgReseaux.length })}</span>
-                          )}
                         </div>
+                        {/* 5e dimension « Offre » (dynamique, optionnelle) — seulement si le compte a des offres */}
+                        {dims?.offre?.length ? (
+                          <DimSelect emoji="📦" label="Offre mise en avant"
+                            value={dimsEdit.offre || 'Aucune'} reco={reco.offre || 'Aucune'}
+                            options={['Aucune', ...dims.offre]}
+                            onChange={(v) => changeDim('offre', v === 'Aucune' ? '' : v)} />
+                        ) : null}
+
+                        {/* Le format vient de la dimension. Script vidéo = Type + Réseau ; sinon = Réseaux */}
+                        {cfgFormat === 'script' ? (
+                          <>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs text-slate-500 font-inter">{t('studio.typeLabel')}</span>
+                              {TYPES_VIDEO.map((r) => (
+                                <Pill key={r.id} active={cfgType === r.id} onClick={() => setCfgType(r.id)}>
+                                  {t(`studio.${r.labelKey}`)}
+                                </Pill>
+                              ))}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs text-slate-500 font-inter">{t('studio.networkLabel')}</span>
+                              {reseauxVideo(dimsEdit.format).length === 0
+                                ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
+                                : reseauxVideo(dimsEdit.format).map((r) => (
+                                  <Pill key={r.id} active={cfgReseaux[0] === r.id} onClick={() => setCfgReseaux([r.id])}>
+                                    {r.label}
+                                  </Pill>
+                                ))}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-slate-500 font-inter">{t('studio.networksLabel')}</span>
+                            {reseaux.length === 0
+                              ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
+                              : reseauxPour(cfgFormat).map((r) => (
+                                <Pill key={r.id} active={cfgReseaux.includes(r.id)} onClick={() => toggleReseau(setCfgReseaux)(r.id)}>
+                                  {cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.labelKey ? t(`studio.${r.labelKey}`) : r.label}
+                                </Pill>
+                              ))}
+                            {cfgReseaux.length > 1 && (
+                              <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: cfgReseaux.length })}</span>
+                            )}
+                          </div>
+                        )}
                         {cfgFormat === 'carrousel' && (
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-slate-500 font-inter">{t('studio.slidesLabel')}</span>
@@ -727,8 +880,11 @@ export default function StudioIA() {
                               className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
                           </div>
                         )}
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => setOpenId(null)} className="text-xs text-slate-400 hover:text-white font-inter px-2">{t('studio.cancel')}</button>
+                        <div className="flex items-center gap-2">
+                          {anyEdited && (
+                            <button onClick={() => revertDims(s)} className="text-[11px] text-slate-500 hover:text-[#3AFFA3] transition-colors inline-flex items-center gap-1">↺ {t('studio.resetReco')}</button>
+                          )}
+                          <button onClick={() => setOpenId(null)} className="ml-auto text-xs text-slate-400 hover:text-white font-inter px-2">{t('studio.cancel')}</button>
                           <Button onClick={() => genererContenu(s)} className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
                             <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.generateButton')}</span>
                           </Button>
@@ -807,9 +963,18 @@ export default function StudioIA() {
                       {c.images && c.images.length ? (
                         <div className="grid grid-cols-3 gap-2">
                           {c.images.map((u, i) => (
-                            <div key={i} className="w-full aspect-[4/5] rounded-lg border border-white/10 overflow-hidden bg-slate-950/60">
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setLightbox({ images: c.images, index: i })}
+                              className="group relative w-full aspect-[4/5] rounded-lg border border-white/10 overflow-hidden bg-slate-950/60 cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                              title={t('studio.enlargeSlide', 'Agrandir')}
+                            >
                               <img src={u} alt={t('studio.slideAlt', { n: i + 1 })} className="w-full h-full object-cover" />
-                            </div>
+                              <span className="absolute inset-0 flex items-center justify-center bg-slate-950/0 group-hover:bg-slate-950/40 transition-colors">
+                                <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </span>
+                            </button>
                           ))}
                         </div>
                       ) : (
@@ -841,6 +1006,55 @@ export default function StudioIA() {
           )}
         </section>
       </div>
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-sm p-4 sm:p-8"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+            title={t('studio.close', 'Fermer')}
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {lightbox.images.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setLightbox((l) => ({ ...l, index: (l.index - 1 + l.images.length) % l.images.length })); }}
+              className="absolute left-2 sm:left-6 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white"
+              title={t('studio.prevSlide', 'Précédent')}
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          <div className="flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={lightbox.images[lightbox.index]}
+              alt={t('studio.slideAlt', { n: lightbox.index + 1 })}
+              className="max-h-[82vh] max-w-full w-auto rounded-xl border border-white/10 shadow-2xl object-contain"
+            />
+            <span className="text-sm text-slate-300 font-inter">
+              {lightbox.index + 1} / {lightbox.images.length}
+            </span>
+          </div>
+
+          {lightbox.images.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setLightbox((l) => ({ ...l, index: (l.index + 1) % l.images.length })); }}
+              className="absolute right-2 sm:right-6 p-2 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white"
+              title={t('studio.nextSlide', 'Suivant')}
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

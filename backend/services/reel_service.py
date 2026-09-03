@@ -1,16 +1,18 @@
 """
 Studio Reels (Remotion) :
   1. Claude (Haiku) condense un post existant en {hook, points, cta}.
-  2. Remotion rend un reel MP4 vertical 1080x1920 a la charte du client
-     (template remotion/src/ReelBrand.tsx, rendu par subprocess CLI).
-  3. Upload Cloudinary (video) -> nouveau contenu "Reel" en "A valider",
-     publie ensuite par le flux normal (validation -> Zernio).
+  2. La ligne contenu "Reel" est creee tout de suite (A valider, video_status
+     en_traitement) et le rendu Remotion (1080x1920) est fait EN ARRIERE-PLAN par
+     la file de rendu (render_service + worker server.py), qui uploade sur
+     Cloudinary et notifie a la fin. Plus de requete HTTP ouverte 1-2 min.
+  3. Publication ensuite par le flux normal (validation -> Zernio).
 
 Prerequis serveur : Node + `npm ci` dans le dossier remotion/ (voir REMOTION_DIR).
 Env optionnels :
   REMOTION_DIR      chemin du projet Remotion (defaut: <repo>/remotion)
   REMOTION_BROWSER  chemin d'un Chrome/Chromium deja present (evite un telechargement)
 """
+import hashlib
 import json
 import os
 import re
@@ -34,7 +36,7 @@ def _journal_llm(telegram_id: str, action: str, resp, modele: str = _MODELE_SCRI
     """Journalise un appel LLM du studio reels dans usage_log.
 
     Un reel coute DEUX choses : l'ecriture du scenario par Claude (tokens, ici) et
-    le rendu Remotion (temps de calcul, voir _rendre_mp4). Sans cette moitie, le
+    le rendu Remotion (temps de calcul, journalise par remotion_service.render_mp4). Sans cette moitie, le
     cout affiche a l'admin serait faux."""
     if not telegram_id or resp is None:
         return
@@ -135,12 +137,19 @@ _ROLE_RECO = (
 
 
 def recommander_template(telegram_id: str, contenu_id: str) -> dict:
-    """L'IA choisit le template le plus adapte au post (badge « Recommande » de la galerie)."""
-    res = (supabase.table("contenu").select("contenu, titre").eq("id", contenu_id)
+    """L'IA choisit le template le plus adapte au post (badge « Recommande » de la galerie).
+    Resultat mis en CACHE sur la ligne (contenu.reel_reco = {template, raison, h}) :
+    le dialog s'ouvre souvent plusieurs fois pour le meme post, et son texte ne change
+    presque jamais -> un seul appel Claude par version du texte."""
+    res = (supabase.table("contenu").select("contenu, titre, reel_reco").eq("id", contenu_id)
            .eq("telegram_id", telegram_id).execute())
     if not res.data:
         return {"template": "sequence", "raison": ""}
     texte = (res.data[0].get("contenu") or res.data[0].get("titre") or "")[:2500]
+    h = hashlib.sha1(texte.encode("utf-8")).hexdigest()
+    cache = res.data[0].get("reel_reco") or {}
+    if isinstance(cache, dict) and cache.get("h") == h and cache.get("template") in TEMPLATES:
+        return {"template": cache["template"], "raison": str(cache.get("raison") or "")[:120]}
     try:
         resp = _messages_create(
             model="claude-haiku-4-5", max_tokens=120, system=_ROLE_RECO,
@@ -151,7 +160,14 @@ def recommander_template(telegram_id: str, contenu_id: str) -> dict:
         m = re.search(r"\{.*\}", raw, re.S)
         data = json.loads(m.group(0) if m else raw)
         tpl = data.get("template") if data.get("template") in TEMPLATES else "sequence"
-        return {"template": tpl, "raison": str(data.get("raison") or "")[:120]}
+        out = {"template": tpl, "raison": str(data.get("raison") or "")[:120]}
+        try:
+            supabase.table("contenu").update({"reel_reco": {**out, "h": h}}).eq("id", contenu_id).execute()
+        except Exception as e:
+            # Colonne pas encore migree (migrations/reel_reco.sql) : on repond sans cache.
+            if not any(x in str(e) for x in ("PGRST204", "42703", "does not exist", "schema cache")):
+                logger.warning(f"reel reco cache: {e}")
+        return out
     except Exception as e:
         logger.warning(f"reel reco: {e}")
         low = texte.lower()
@@ -160,26 +176,6 @@ def recommander_template(telegram_id: str, contenu_id: str) -> dict:
         if any(k in low for k in ("chiffre", "résultat", "resultat", "x2", "x3")):
             return {"template": "stats", "raison": ""}
         return {"template": "sequence", "raison": ""}
-
-_ROLE = (
-    "Tu es copywriter pour reels courts. A partir d'un post, tu produis le script d'un reel de 8 s :\n"
-    "- hook : une phrase choc de 5 a 10 mots (la promesse ou la tension du post)\n"
-    "- points : 3 arguments TRES courts (3 a 6 mots chacun)\n"
-    "- cta : un appel a l'action de 2 a 5 mots\n"
-    "Ecris dans la langue du post. Reponds UNIQUEMENT en JSON strict : "
-    '{"hook": "...", "points": ["...", "...", "..."], "cta": "..."}'
-)
-
-_ROLE_LONG = (
-    "Tu es copywriter pour reels narratifs de 20-25 s. A partir d'un post, tu produis :\n"
-    "- hook : une phrase choc de 5 a 10 mots\n"
-    "- contexte : 1-2 phrases qui posent le decor (25 mots max)\n"
-    "- points : 3 arguments courts (5 a 10 mots chacun)\n"
-    "- lecon : la lecon du post en une phrase citation (15 mots max)\n"
-    "- cta : un appel a l'action de 2 a 5 mots\n"
-    "Ecris dans la langue du post, orthographe irreprochable. Reponds UNIQUEMENT en JSON strict : "
-    '{"hook": "...", "contexte": "...", "points": ["...", "...", "..."], "lecon": "...", "cta": "..."}'
-)
 
 
 _ROLE_AFFICHE = (
@@ -603,21 +599,41 @@ def _props_marque(u: dict, script: dict) -> dict:
     }
 
 
-def _rendre_mp4(props: dict, composition: str = "ReelBrand",
-                telegram_id: str = None, etiquette: str = None) -> str:
-    """Lance le rendu Remotion en subprocess. Retourne le chemin du MP4.
+def _props_sequence(u: dict, scenario: dict, telegram_id: str) -> dict:
+    """Props Remotion d'un reel Sequence (100 % JSON, URLs Cloudinary distantes) :
+    stockables dans contenu.render_job pour un rendu en arriere-plan."""
+    return {
+        "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
+        "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
+        "style": scenario.get("style") or "signature",
+        "musique": music_library.url_de(scenario.get("musique"), telegram_id, rendu=True),
+    }
 
-    Plomberie deplacee dans remotion_service.py (partagee avec la Story animee) —
-    ce wrapper ne fait que fixer le prefixe "reel" (fichier temp + libelle de
-    journal usage_log, inchange : reel_rendu/reel_rendu_echec)."""
-    return remotion_service.render_mp4(
-        props, composition, telegram_id=telegram_id, etiquette=etiquette, prefix="reel")
+
+def _poster_sequence(scenario: dict):
+    """Poster provisoire pendant le rendu : la premiere image de plan, sinon rien
+    (la carte affiche alors l'icone video sous le badge « Rendu en cours »)."""
+    for sg in (scenario or {}).get("segments", []) or []:
+        if sg.get("image"):
+            return sg["image"]
+    return None
+
+
+def _mettre_en_file(row_id: str, telegram_id: str, props: dict, composition: str, etiquette: str,
+                    restaurer: dict = None, extra: dict = None) -> None:
+    """Delegue le rendu au worker (render_service). public_id stable
+    reels/{telegram_id}/{row_id} : une regeneration remplace la video sur place."""
+    from services import render_service
+    render_service.enqueue(row_id, telegram_id, composition=composition, props=props, prefix="reel",
+                           etiquette=etiquette, upload={"public_id": f"reels/{telegram_id}/{row_id}"},
+                           action_type="reel", notif="reel", restaurer=restaurer, extra=extra)
 
 
 def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: str = "Instagram",
                      style: str = None, musique: str = None) -> dict:
     """Cree un reel Sequence SANS contenu source : le brief du client est le sujet.
-    Le resultat entre dans Contenus comme un Reel « A valider », planifie normalement."""
+    La ligne « Reel » entre dans Contenus en A valider / rendu en cours ; le worker
+    rend et uploade en arriere-plan, puis notifie."""
     if not (brief or "").strip():
         return {"error": "Decris ton reel : le brief est le sujet."}
     u = _charger_marque(telegram_id)
@@ -633,18 +649,7 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
         scenario = _script_sequence(brief, u, [], brief=brief, style=st)
     scenario["style"] = st
     scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
-    props = {
-        "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
-        "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
-        "style": st,
-        "musique": music_library.url_de(scenario["musique"], telegram_id, rendu=True),
-    }
-    try:
-        mp4 = _rendre_mp4(props, composition="ReelSequence",
-                          telegram_id=telegram_id, etiquette=f"sequence/{st}")
-    except Exception as e:
-        logger.error(f"reel libre rendu: {e}")
-        return {"error": "Le rendu du reel a echoue. Reessaie dans un instant."}
+    props = _props_sequence(u, scenario, telegram_id)
 
     hook = (scenario["segments"][0]["texte"] if scenario["segments"] else brief)[:60]
     row = {
@@ -654,6 +659,8 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
         "type": "Reel",
         "reseau_cible": reseau or "Instagram",
         "statut": "A valider",
+        "video_status": "en_traitement",
+        "lien_visuel": _poster_sequence(scenario),
         "reel_data": scenario,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -670,40 +677,23 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
             raise
     new_id = ins.data[0]["id"] if ins.data else None
     if not new_id:
-        try:
-            os.unlink(mp4)
-        except OSError:
-            pass
         return {"error": "Creation du contenu reel impossible."}
     try:
-        up = cloudinary.uploader.upload(
-            mp4, resource_type="video",
-            public_id=f"reels/{telegram_id}/{new_id}",
-            overwrite=True, invalidate=True,
-        )
-        url = up["secure_url"]
-        preview = url.rsplit(".", 1)[0] + ".jpg"
-        supabase.table("contenu").update({
-            "video_url": url, "video_status": "ready", "video_preview_url": preview,
-            "lien_visuel": preview,
-        }).eq("id", new_id).execute()
+        _mettre_en_file(new_id, telegram_id, props, "ReelSequence", f"sequence/{st}")
     except Exception as e:
-        logger.error(f"reel libre upload: {e}")
+        logger.error(f"reel libre mise en file: {e}")
         supabase.table("contenu").delete().eq("id", new_id).execute()
-        return {"error": "Upload de la video impossible."}
-    finally:
-        try:
-            os.unlink(mp4)
-        except OSError:
-            pass
-    return {"id": new_id, "video_url": url, "hook": hook,
+        return {"error": "Impossible de lancer le rendu, reessaie."}
+    return {"id": new_id, "video_status": "en_traitement", "hook": hook,
             "reseau": row["reseau_cible"], "date_publication": row.get("date_publication")}
 
 
 def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: str = None, style: str = None,
                    musique: str = None) -> dict:
     """Re-scenarise et re-rend un reel Sequence EXISTANT (statut A valider) : la video
-    est remplacee sur place (meme contenu, meme public_id Cloudinary), pas de doublon."""
+    est remplacee sur place (meme public_id Cloudinary), pas de doublon. Le rendu se
+    fait en arriere-plan ; pendant ce temps video_url est vide (aucune publication
+    possible) et, si le rendu echoue, la precedente video/scenario sont restaures."""
     res = supabase.table("contenu").select("*").eq("id", reel_id).eq("telegram_id", telegram_id).execute()
     if not res.data:
         return {"error": "Reel introuvable."}
@@ -712,6 +702,8 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         return {"error": "Ce contenu n'est pas un reel modifiable."}
     if cur.get("statut") not in ("A valider", "Refuse", "Refusé"):
         return {"error": "Ce reel a deja ete valide : il ne peut plus etre modifie."}
+    if cur.get("video_status") == "en_traitement":
+        return {"error": "Un rendu de ce reel est deja en cours."}
     texte = cur.get("contenu") or cur.get("titre") or ""
     u = _charger_marque(telegram_id)
     old_sc = cur.get("reel_data") or {}
@@ -735,44 +727,23 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
     scenario["style"] = st
     scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
-    props = {
-        "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
-        "segments": [{k: v for k, v in sg.items() if k != "image_id"} for sg in scenario["segments"]],
-        "style": st,
-        "musique": music_library.url_de(scenario["musique"], telegram_id, rendu=True),
-    }
+    props = _props_sequence(u, scenario, telegram_id)
+    restaurer = {"video_url": cur.get("video_url"), "video_preview_url": cur.get("video_preview_url"),
+                 "reel_data": old_sc}
     try:
-        mp4 = _rendre_mp4(props, composition="ReelSequence",
-                          telegram_id=telegram_id, etiquette=f"sequence/{st}")
+        _mettre_en_file(reel_id, telegram_id, props, "ReelSequence", f"sequence/{st}",
+                        restaurer=restaurer,
+                        extra={"reel_data": scenario, "video_url": None, "video_preview_url": None})
     except Exception as e:
-        logger.error(f"reel regen rendu: {e}")
-        return {"error": "Le rendu du reel a echoue. Reessaie dans un instant."}
-    try:
-        up = cloudinary.uploader.upload(
-            mp4, resource_type="video",
-            public_id=f"reels/{telegram_id}/{reel_id}",
-            overwrite=True, invalidate=True,
-        )
-        url = up["secure_url"]
-        preview = url.rsplit(".", 1)[0] + ".jpg"
-        maj = {"video_url": url, "video_preview_url": preview, "lien_visuel": preview,
-               "reel_data": scenario, "video_status": "ready"}
-        supabase.table("contenu").update(maj).eq("id", reel_id).execute()
-    except Exception as e:
-        logger.error(f"reel regen upload: {e}")
-        return {"error": "Upload de la video impossible."}
-    finally:
-        try:
-            os.unlink(mp4)
-        except OSError:
-            pass
-    return {"id": reel_id, "video_url": url, "video_preview_url": preview}
+        logger.error(f"reel regen mise en file: {e}")
+        return {"error": "Impossible de lancer le rendu, reessaie."}
+    return {"id": reel_id, "video_status": "en_traitement"}
 
 
 def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
                  images: list = None, brief: str = None, style: str = None,
                  musique: str = None) -> dict:
-    """Pipeline complet : post -> script -> rendu -> Cloudinary -> contenu jumeau 'Reel'.
+    """Post -> script (Claude) -> contenu jumeau 'Reel' en rendu en cours -> file de rendu.
     template : cle de TEMPLATES ('affiche', 'impact', 'stats', 'long')."""
     if template not in TEMPLATES:
         return {"error": "Template de reel inconnu."}
@@ -802,12 +773,7 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
         scenario["style"] = st
         scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
         script = {"hook": (scenario["segments"][0]["texte"] if scenario["segments"] else "")[:80]}
-        props = {
-            "brand": _props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
-            "segments": [{k: v for k, v in s.items() if k != "image_id"} for s in scenario["segments"]],
-            "style": st,
-            "musique": music_library.url_de(scenario["musique"], telegram_id, rendu=True),
-        }
+        props = _props_sequence(u, scenario, telegram_id)
     elif template == "affiche":
         script = _script_affiche(texte, u)
         props = {
@@ -826,14 +792,8 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
             props["contexte"] = script.get("contexte") or ""
             props["lecon"] = script.get("lecon") or ""
 
-    try:
-        mp4 = _rendre_mp4(props, composition=TEMPLATES[template]["composition"],
-                          telegram_id=telegram_id, etiquette=template)
-    except Exception as e:
-        logger.error(f"reel rendu: {e}")
-        return {"error": "Le rendu du reel a echoue. Reessaie dans un instant."}
-
-    # Nouveau contenu AVANT l'upload pour un public_id deterministe (remplace, n'accumule pas)
+    # La ligne existe tout de suite (A valider, rendu en cours) ; le worker rend,
+    # uploade (public_id reels/{tid}/{id}, stable) et notifie en arriere-plan.
     row = {
         "telegram_id": telegram_id,
         "titre": f"Reel — {cur.get('titre') or (script.get('hook') or script.get('headline') or '')[:60]}",
@@ -841,6 +801,8 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
         "type": "Reel",
         "reseau_cible": cur.get("reseau_cible"),
         "statut": "A valider",
+        "video_status": "en_traitement",
+        "lien_visuel": _poster_sequence(scenario) if scenario else None,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     creneau = planning_service.prochain_creneau(telegram_id, cur.get("reseau_cible"), cur.get("type") or "Reel")
@@ -862,33 +824,13 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
             raise
     new_id = ins.data[0]["id"] if ins.data else None
     if not new_id:
-        try:
-            os.unlink(mp4)
-        except OSError:
-            pass
         return {"error": "Creation du contenu reel impossible."}
-
     try:
-        up = cloudinary.uploader.upload(
-            mp4, resource_type="video",
-            public_id=f"reels/{telegram_id}/{new_id}",
-            overwrite=True, invalidate=True,
-        )
-        url = up["secure_url"]
-        preview = url.rsplit(".", 1)[0] + ".jpg"  # 1re frame en poster (transformation Cloudinary)
-        supabase.table("contenu").update({
-            "video_url": url, "video_status": "ready", "video_preview_url": preview,
-            "lien_visuel": preview,
-        }).eq("id", new_id).execute()
+        _mettre_en_file(new_id, telegram_id, props, TEMPLATES[template]["composition"], template)
     except Exception as e:
-        logger.error(f"reel upload: {e}")
+        logger.error(f"reel mise en file: {e}")
         supabase.table("contenu").delete().eq("id", new_id).execute()
-        return {"error": "Upload de la video impossible."}
-    finally:
-        try:
-            os.unlink(mp4)
-        except OSError:
-            pass
-
-    return {"id": new_id, "video_url": url, "hook": script.get("hook") or script.get("headline"),
+        return {"error": "Impossible de lancer le rendu, reessaie."}
+    return {"id": new_id, "video_status": "en_traitement",
+            "hook": script.get("hook") or script.get("headline"),
             "reseau": row.get("reseau_cible"), "date_publication": row.get("date_publication")}

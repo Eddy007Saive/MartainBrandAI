@@ -177,6 +177,7 @@
     "logout": "Log out",
     "settingsGroup": "Preferences",
     "identity": "Identity",
+    "offers": "Offers",
     "brandVoice": "Brand voice",
     "socials": "Social accounts",
     "subscription": "Subscription",
@@ -314,7 +315,15 @@
       "creerVisuel": "Create the visual",
       "plusActions": "More actions",
       "declinerStory": "Turn into a story",
-      "recycler": "Recycle to other networks"
+      "dejaDecline": "Already turned into a story. Delete the existing one to make another.",
+      "renduEnCours": "Rendering",
+      "renduEchoue": "Render failed",
+      "recycler": "Recycle to other networks",
+      "nEcrans": "{{n}} screens",
+      "serieDesc": "{{n}} screens to publish together.",
+      "validerTout": "Approve all {{n}}",
+      "refuserTout": "Reject all {{n}}",
+      "supprimerTout": "Delete all {{n}}"
     },
     "reel": {
       "generer": "Generate an animated reel",
@@ -366,7 +375,7 @@
         "etape1": "The AI is writing the script…",
         "etape2": "Rendering the video, shot by shot…",
         "etape3": "Final touches and upload…",
-        "note": "About 2 minutes. Stay on this page, your reel will appear in Contents once ready.",
+        "note": "Rendering happens in the background: you can leave this page, we'll notify you when your reel is ready.",
         "pillReel": "Reel in progress",
         "pillCarrousel": "Carousel in progress",
         "pillSlides": "Slides in progress"
@@ -383,8 +392,7 @@
       "longDesc": "Hook → context → full-screen proof → quoted takeaway → CTA."
     },
     "toast": {
-      "reelEnCours": "Generating the “{{label}}” reel (~{{min}} min)…",
-      "reelGenere": "Reel generated 🎬. It's now “To review”",
+      "reelEnFile": "Reel rendering (~2 min) 🎬, we'll notify you when it's ready",
       "reelEchec": "Reel generation failed",
       "recycleOk": "Post recycled to {{n}} network ♻️. The copies are “To review”",
       "recycleOkPluriel": "Post recycled to {{n}} networks ♻️. The copies are “To review”",
@@ -426,6 +434,7 @@
       "valideProgramme": "Approved and scheduled ✓",
       "valideProgrammationEchec": "Approved, but scheduling failed (is the network connected?).",
       "contenuRefuse": "Content rejected",
+      "attendsRendu": "Wait for the video render to finish before approving.",
       "contenuMisAJour": "Content updated",
       "majErreur": "Error while updating",
       "contenuModifie": "Content edited",
@@ -445,6 +454,7 @@
     "onglets": {
       "tous": "All",
       "posts": "Posts",
+      "story": "Story",
       "scripts": "Scripts",
       "videos": "Videos"
     },
@@ -458,11 +468,13 @@
       "voirTous": "View all content ({{n}})",
       "aucunScript": "No video scripts",
       "aucuneVideo": "No videos found",
+      "aucuneStory": "No stories found",
       "aucunPost": "No posts found",
       "aucunContenu": "No content found",
       "essayezAutresTermes": "Try different search terms",
       "scriptsIci": "Video scripts to review or film will show up here",
       "videosIci": "Filmed videos with a Dropbox link will show up here",
+      "storiesIci": "Stories declined from a post will show up here",
       "postsIci": "Your generated posts will show up here",
       "contenusIci": "Your generated content will show up here"
     },
@@ -481,6 +493,7 @@
       "monterVideo": "Assemble the video",
       "montageVideoEnCours": "Video editing in progress…",
       "slide": "slide {{n}}",
+      "agrandir": "Enlarge",
       "apercuLive": "Live preview: reflects your tweaks",
       "aucunVisuel": "No visual",
       "changerVisuel": "Change / regenerate the visual",
@@ -526,7 +539,8 @@
     },
     "suppression": {
       "titre": "Delete this content?",
-      "description": "This action cannot be undone. The content will be permanently deleted."
+      "description": "This action cannot be undone. The content will be permanently deleted.",
+      "descriptionSerie": "This action cannot be undone. All {{n}} screens of this story will be permanently deleted."
     },
     "image": {
       "apercu": "Preview",
@@ -564,6 +578,8 @@
       "aucuneImageInstructions": "No images. Add one to use in your instructions.",
       "utilisee": "In use",
       "nonUtilisee": "Not used",
+      "toujoursIntegrer": "Always use this image (e.g. your mascot) instead of just a style reference",
+      "toujoursIntegree": "Always used. Click to switch back to style-only",
       "agrandir": "Enlarge",
       "selectionneImageNote": "Select an image, then tell the AI what to do with it in “Instructions” (e.g. “put it in the circle”).",
       "descriptionImage": "Image description",
@@ -1237,6 +1253,7 @@
     "targetSubjects": "Target (optional)",
     "filterAny": "AI's choice",
     "filterReset": "Reset targeting",
+    "resetReco": "Reco",
     "writeOwnBrief": "Write my own brief",
     "briefPlaceholder": "E.g.: Promo for the Goodtime module launch, enthusiastic tone, key benefits, sign-up CTA.",
     "formatLabel": "Format",
@@ -1271,6 +1288,10 @@
     "writingPost": "Writing the post…",
     "photoSaved": "Post + photo saved → Content tab",
     "slideAlt": "slide {{n}}",
+    "enlargeSlide": "Enlarge",
+    "close": "Close",
+    "prevSlide": "Previous",
+    "nextSlide": "Next",
     "noImagesGenerated": "No images generated. Try again.",
     "carouselSaved": "Carousel saved → Content tab",
     "regenerate": "Regenerate",
@@ -2553,7 +2574,10 @@
       "titre": "Postorico Studio — What people see about you when they look you up",
       "description": "Why your social presence and Google listing still matter even when you already have enough clients."
     },
-    "entete": { "nom": "Postorico", "sousTitre": "AI content studio" },
+    "entete": {
+      "nom": "Postorico",
+      "sousTitre": "AI content studio"
+    },
     "cta": {
       "reserver": "Book my demo",
       "sansEngagement": "No commitment",
@@ -2579,33 +2603,82 @@
       "eyebrow": "In order",
       "titre": "Taking the problem in the right order",
       "intro": "Most businesses approach social media backwards: they start by asking how many clients it brings in. That's the second question. The first one comes long before, and it applies whether you post or not.",
-      "etape1": { "rang": "First", "titre": "Being credible when people look you up", "texte": "Clean, up-to-date pages that match who you are. A Google listing that's alive. The bare minimum so whoever's checking closes the tab reassured. It doesn't take volume — it takes consistency." },
-      "etape2": { "rang": "Then, if you need it", "titre": "Bringing in clients", "texte": "Acquisition, targeting, outreach. Useful the day your books start to empty, useless while they're full. And impossible to start properly if the foundation on the other side doesn't exist." },
+      "etape1": {
+        "rang": "First",
+        "titre": "Being credible when people look you up",
+        "texte": "Clean, up-to-date pages that match who you are. A Google listing that's alive. The bare minimum so whoever's checking closes the tab reassured. It doesn't take volume — it takes consistency."
+      },
+      "etape2": {
+        "rang": "Then, if you need it",
+        "titre": "Bringing in clients",
+        "texte": "Acquisition, targeting, outreach. Useful the day your books start to empty, useless while they're full. And impossible to start properly if the foundation on the other side doesn't exist."
+      },
       "sortie": "Until that first step is in place, everything else hits nothing. And that first step never gets less urgent just because you're busy."
     },
     "raisons": {
       "eyebrow": "Five reasons",
       "titre": "Five reasons that hold even when you're fully booked",
       "intro": "None of them are about generating leads.",
-      "r1": { "titre": "Word of mouth always ends up on a screen", "texte": "Someone recommends you. That person doesn't pick up the phone right away — they type your name. That's where your reputation is decided, in the thirty seconds after a referral you spent years earning. Your pages don't replace word of mouth; they confirm it or they kill it." },
-      "r2": { "titre": "An inactive page tells a false story about you", "texte": "A last post from eight months ago reads like a signal: slowing down, uncertain, maybe even closed. It's almost always false. You didn't slow down — you just had other things to deal with. But whoever's discovering you has no way to know that, and they won't call to ask." },
-      "r3": { "titre": "Consistency is what people read, not the content itself", "texte": "Nobody reads your posts one by one. People check one thing: is it alive. Three posts a week for six months says “this business is organized, staffed, running.” One post every three months says the opposite, no matter how good the writing is. Consistency is a signal of seriousness before it's a communication tool." },
-      "r4": { "titre": "Your Google listing comes before everything else", "texte": "It's the first screen anyone sees when they search for you — before your website, before your social pages: hours, photos, reviews, recent posts. It's also the one people neglect the longest. An empty or outdated listing costs you clients you'll never see walk away, because they never called to tell you they'd given up." },
-      "r5": { "titre": "A clear presence filters your inquiries instead of multiplying them", "texte": "This is the part that matters when you're short-staffed. Pages that state precisely what you do, for whom, and how you work filter people out upstream. Requests arrive already qualified, with fewer irrelevant inquiries and fewer back-and-forths explaining how you operate. It's not a tap you turn on. It's a filter you install." },
+      "r1": {
+        "titre": "Word of mouth always ends up on a screen",
+        "texte": "Someone recommends you. That person doesn't pick up the phone right away — they type your name. That's where your reputation is decided, in the thirty seconds after a referral you spent years earning. Your pages don't replace word of mouth; they confirm it or they kill it."
+      },
+      "r2": {
+        "titre": "An inactive page tells a false story about you",
+        "texte": "A last post from eight months ago reads like a signal: slowing down, uncertain, maybe even closed. It's almost always false. You didn't slow down — you just had other things to deal with. But whoever's discovering you has no way to know that, and they won't call to ask."
+      },
+      "r3": {
+        "titre": "Consistency is what people read, not the content itself",
+        "texte": "Nobody reads your posts one by one. People check one thing: is it alive. Three posts a week for six months says “this business is organized, staffed, running.” One post every three months says the opposite, no matter how good the writing is. Consistency is a signal of seriousness before it's a communication tool."
+      },
+      "r4": {
+        "titre": "Your Google listing comes before everything else",
+        "texte": "It's the first screen anyone sees when they search for you — before your website, before your social pages: hours, photos, reviews, recent posts. It's also the one people neglect the longest. An empty or outdated listing costs you clients you'll never see walk away, because they never called to tell you they'd given up."
+      },
+      "r5": {
+        "titre": "A clear presence filters your inquiries instead of multiplying them",
+        "texte": "This is the part that matters when you're short-staffed. Pages that state precisely what you do, for whom, and how you work filter people out upstream. Requests arrive already qualified, with fewer irrelevant inquiries and fewer back-and-forths explaining how you operate. It's not a tap you turn on. It's a filter you install."
+      },
       "compteFort": "And the day you'll need it: ",
       "compteTexte": "a brand image isn't built overnight. When your books start thinning, whoever posted consistently for two years starts from solid ground. Whoever starts that day starts from zero, at the worst possible time."
     },
-    "bande": { "titre": "Twenty minutes to see what it looks like on your own business." },
+    "bande": {
+      "titre": "Twenty minutes to see what it looks like on your own business."
+    },
     "etapes": {
       "eyebrow": "How it works",
       "titre": "What we built, and what's left for you to do",
       "intro": "The real obstacle was never willingness — it's time and staff. So we built software that handles the whole chain, from idea to published post. Your only step is step 3.",
-      "e1": { "titre": "Setup", "texte": "Once, at the start. We configure the account around your business: your positioning, your clientele, how you talk, your topics, what you never want to see written. This step is what makes the content sound like you instead of any business in your industry.", "tag": "Us, when the account opens" },
-      "e2": { "titre": "Creation", "texte": "The software produces your content: posts, visuals, stories, Google listing updates. You never start from a blank page again, and you never have to figure out what to post this week.", "tag": "Automatic" },
-      "e3": { "titre": "Validation", "texte": "You open it, read it, approve or correct it. From your phone, between two meetings. Nothing goes out without your approval, ever. It's your brand — you stay in control end to end.", "tag": "You, and only you" },
-      "e4": { "titre": "Scheduling", "texte": "What you approved places itself on the calendar, on the right days and times, on every network. You see at a glance what's coming up over the next few weeks.", "tag": "Automatic" },
-      "e5": { "titre": "Publishing", "texte": "It goes live on its own, on your social pages and your Google listing. Nothing to copy over, nothing to repost by hand, nothing to forget on a Sunday night.", "tag": "Automatic" },
-      "e6": { "titre": "Tracking", "texte": "You find, in one place, what's gone out, what's coming, and the state of your presence on every channel. One interface instead of five open apps.", "tag": "Automatic" },
+      "e1": {
+        "titre": "Setup",
+        "texte": "Once, at the start. We configure the account around your business: your positioning, your clientele, how you talk, your topics, what you never want to see written. This step is what makes the content sound like you instead of any business in your industry.",
+        "tag": "Us, when the account opens"
+      },
+      "e2": {
+        "titre": "Creation",
+        "texte": "The software produces your content: posts, visuals, stories, Google listing updates. You never start from a blank page again, and you never have to figure out what to post this week.",
+        "tag": "Automatic"
+      },
+      "e3": {
+        "titre": "Validation",
+        "texte": "You open it, read it, approve or correct it. From your phone, between two meetings. Nothing goes out without your approval, ever. It's your brand — you stay in control end to end.",
+        "tag": "You, and only you"
+      },
+      "e4": {
+        "titre": "Scheduling",
+        "texte": "What you approved places itself on the calendar, on the right days and times, on every network. You see at a glance what's coming up over the next few weeks.",
+        "tag": "Automatic"
+      },
+      "e5": {
+        "titre": "Publishing",
+        "texte": "It goes live on its own, on your social pages and your Google listing. Nothing to copy over, nothing to repost by hand, nothing to forget on a Sunday night.",
+        "tag": "Automatic"
+      },
+      "e6": {
+        "titre": "Tracking",
+        "texte": "You find, in one place, what's gone out, what's coming, and the state of your presence on every channel. One interface instead of five open apps.",
+        "tag": "Automatic"
+      },
       "sortie": "Out of six steps, only one asks anything of you. The other five run on their own. That's what makes consistency achievable for a team with nobody to spare on it."
     },
     "captures": {
@@ -2620,9 +2693,18 @@
       "eyebrow": "Not generic AI",
       "titre": "Why it doesn't read like AI",
       "intro": "That's the exact complaint people have about these tools — and it's the point we worked hardest on.",
-      "r1": { "titre": "A generic tool writes like a generic tool", "texte": "Everyone can spot text from a general-purpose assistant now: the same rhythm, the same phrasing, the same stock lines. Published under your name, it does you more harm than posting nothing at all. On a page whose only job is to reassure, that's the exact opposite effect." },
-      "r2": { "titre": "A configured account writes like you", "texte": "The software works from your answers, your words, your best posts, and what's off-limits. The models behind it are among the strongest on the market, but what actually changes everything is the setup done upfront on your business. Two businesses in the same industry, both set up with us, don't produce the same content — because they didn't answer the same way." },
-      "r3": { "titre": "And if a sentence doesn't sound right, you change it", "texte": "At the moment of approval, you edit whatever you want. The more you use the account, the less you have to correct." },
+      "r1": {
+        "titre": "A generic tool writes like a generic tool",
+        "texte": "Everyone can spot text from a general-purpose assistant now: the same rhythm, the same phrasing, the same stock lines. Published under your name, it does you more harm than posting nothing at all. On a page whose only job is to reassure, that's the exact opposite effect."
+      },
+      "r2": {
+        "titre": "A configured account writes like you",
+        "texte": "The software works from your answers, your words, your best posts, and what's off-limits. The models behind it are among the strongest on the market, but what actually changes everything is the setup done upfront on your business. Two businesses in the same industry, both set up with us, don't produce the same content — because they didn't answer the same way."
+      },
+      "r3": {
+        "titre": "And if a sentence doesn't sound right, you change it",
+        "texte": "At the moment of approval, you edit whatever you want. The more you use the account, the less you have to correct."
+      },
       "compte1Fort": "Your time: ",
       "compte1Texte": "2 to 4 hours a month, depending on how many networks are connected, spent approving. No meetings, no brief to write, no chasing anyone, nobody to hire.",
       "compte2Fort": "The cost: ",

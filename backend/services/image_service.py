@@ -31,13 +31,25 @@ IMAGE_MODELS = {
 
 ROLE_PROMPT = (
     "Tu es directeur artistique. À partir d'un post et de la charte de marque, tu écris UN prompt "
-    "d'image (en anglais, plus efficace pour le modèle) pour illustrer le post. "
+    "d'image (en anglais, plus efficace pour le modèle) pour illustrer le post.\n\n"
+    "Structure le prompt en couches, dans cet ordre, pour cibler précisément le modèle :\n"
+    "1. Angle/cadrage caméra (ex. \"medium shot\", \"three-quarter angle\", \"overhead flat lay\")\n"
+    "2. Sujet (personne, objet ou scène) décrit précisément\n"
+    "3. Action / composition (ce qui se passe dans le cadre)\n"
+    "4. Environnement (décor, contexte)\n"
+    "5. Éclairage avec température de couleur (ex. \"soft natural window light 5500K\")\n"
+    "6. Technique caméra (ex. \"85mm f/1.8\", \"shallow depth of field\")\n"
+    "7. Un repère de pellicule photo pour ancrer le rendu (\"Kodak Portra 400\" pour un rendu lifestyle "
+    "chaleureux, \"Kodak Ektar 100\" pour un produit saturé, \"Fujifilm Provia 100F\" pour un rendu "
+    "neutre et documentaire)\n\n"
+    "Termine TOUJOURS le prompt par : \"visible natural texture, no over-smoothing, photographic "
+    "realism, no text\" — pour éviter un rendu plastique/IA. "
     "Le visuel doit coller au message, rester professionnel, épuré et lisible, et respecter la palette "
     "de la marque. Évite tout texte dans l'image. Réponds UNIQUEMENT avec le prompt, rien d'autre.\n\n"
 )
 
 
-def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin") -> dict:
+def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", avec_photo: bool = False) -> dict:
     """Claude écrit le prompt d'image (modifiable ensuite par l'utilisateur)."""
     if not _client:
         return {"error": "no_api_key"}
@@ -48,6 +60,22 @@ def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin") 
         f"Palette de marque (à utiliser) : principale {u.get('couleur_principale')}, "
         f"secondaire {u.get('couleur_secondaire')}, accent {u.get('couleur_accent')}."
     )
+    # Règle produit : sans photo du client, on ne met JAMAIS en scène un humain inventé de toutes
+    # pièces (visage générique, non identifiable à la marque, potentiellement incohérent d'un post
+    # à l'autre). Le visuel doit alors reposer sur un objet, un environnement, une composition
+    # abstraite/graphique — jamais un personnage humain.
+    if avec_photo:
+        contexte += (
+            " Le client A fourni une photo de lui-même comme référence : tu peux décrire une scène "
+            "avec CETTE personne (le visage exact sera préservé au moment de la génération)."
+        )
+    else:
+        contexte += (
+            " Le client N'A PAS fourni de photo de référence : NE DÉCRIS AUCUN visage ni personnage "
+            "humain, même générique ou de dos. Décris plutôt un objet, un environnement, une "
+            "composition graphique/abstraite, une icône 3D ou une scène sans personnage — jamais un "
+            "humain inventé."
+        )
     # Si le client a des images d'inspiration (appliquées en référence à la génération),
     # on prévient Claude pour qu'il ne sur-décrive pas un style qui entrerait en conflit.
     if u.get("use_inspirations", True) and inspiration_urls(telegram_id, limit=1):
@@ -116,11 +144,14 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5") -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
-    `refs` : images de référence de STYLE choisies à la génération (URLs). Si fourni
-    (même vide), il a priorité ; sinon on retombe sur les inspirations du compte.
+    `refs` : images de référence choisies à la génération (URLs). Si fourni (même vide), il a
+    priorité ; sinon on retombe sur les inspirations du compte.
+    `integrate_refs` : sous-ensemble de `refs` marqué « à toujours intégrer littéralement »
+    (ex. la mascotte) — par opposition aux autres, traitées comme simple inspiration de STYLE
+    (sauf si le texte du prompt demande explicitement de les intégrer).
     Les images de référence (photo + style) sont validées : liens Drive convertis,
     images invalides ignorées (la génération continue sans elles plutôt que d'échouer).
     `ratio` : format de sortie ("4:5" feed par défaut, "9:16" pour les stories).
@@ -137,6 +168,13 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     if ratio == "9:16":
         prompt = f"{prompt}\n\nFormat VERTICAL 9:16 plein écran mobile (story Instagram) : composition pensée pour la hauteur, éléments importants centrés (pas collés aux bords hauts/bas)."
 
+    # Garde-fou anti-plastique appliqué à TOUTE génération photo (pas seulement quand une photo de
+    # référence est fournie) : l'utilisateur peut avoir édité le prompt de Claude et retiré la
+    # consigne de réalisme d'origine (voir ROLE_PROMPT). Absent pour template_mode : là, on édite un
+    # gabarit graphique existant, pas une photo — la fidélité au design prime sur le réalisme photo.
+    if not template_mode:
+        prompt = f"{prompt}\n\nRender with visible natural texture, no over-smoothing, no plastic/AI look. Photographic realism, no text."
+
     # Photo de l'utilisateur demandée -> PHOTO RÉALISTE (pas d'illustration)
     photo_refs = []
     if avec_photo and u.get("photo_url"):
@@ -149,9 +187,19 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
         style_urls = inspiration_urls(telegram_id)[:3]
     else:
         style_urls = []
+
+    # Parmi les références choisies, celles marquées « à toujours intégrer » (ex. la mascotte)
+    # sont téléchargées à part : elles reçoivent une consigne plus forte que le simple style.
+    integrate_set = set(integrate_refs or [])
+    integrate_urls = [x for x in style_urls if x in integrate_set]
+    style_only_urls = [x for x in style_urls if x not in integrate_set]
+
+    integrate_data = []
+    if integrate_urls:
+        integrate_data, _ = await _prep_refs(integrate_urls)
     inspi_refs = []
-    if style_urls:
-        inspi_refs, _ = await _prep_refs(style_urls)
+    if style_only_urls:
+        inspi_refs, _ = await _prep_refs(style_only_urls)
 
     if photo_refs:
         tenue = (u.get("style_vestimentaire") or "").strip()
@@ -205,18 +253,31 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
             )
         content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
-    elif inspi_refs:
-        # Pas de photo : l'usage des images de référence est PILOTÉ PAR LA DESCRIPTION.
-        # - Si la description demande de les intégrer/réutiliser -> on compose avec leur contenu.
-        # - Sinon -> simple inspiration de style (comportement par défaut).
-        texte = prompt + (
-            "\n\nTu reçois une ou plusieurs images de référence. Si la description ci-dessus demande "
-            "explicitement de les utiliser ou de les intégrer (par ex. « ajoute l'image de référence », "
-            "« mets la photo dans le cercle », « combine les deux images »), alors INTÈGRE fidèlement leur "
-            "contenu dans la composition finale en suivant précisément la description. "
-            "Sinon, contente-toi de t'INSPIRER de leur STYLE VISUEL (composition, palette de couleurs, ambiance, "
-            "éclairage, traitement) sans copier leur contenu.")
+    elif integrate_data or inspi_refs:
+        # Pas de photo : deux familles de références.
+        # - integrate_data (marquées « à toujours intégrer », ex. la mascotte) -> leur contenu EXACT
+        #   doit apparaître dans le résultat, sans condition.
+        # - inspi_refs (le reste) : l'usage reste PILOTÉ PAR LA DESCRIPTION, comme avant — intégré
+        #   seulement si le texte le demande explicitement, sinon simple inspiration de style.
+        texte = prompt
+        if integrate_data:
+            texte += (
+                "\n\nTu reçois aussi une ou plusieurs IMAGES DE RÉFÉRENCE À INTÉGRER LITTÉRALEMENT dans "
+                "la scène décrite ci-dessus : reproduis fidèlement leur contenu exact (personnage, objet, "
+                "logo…), à la bonne échelle, intégré naturellement dans la composition. Ce ne sont PAS de "
+                "simples inspirations de style — leur contenu doit être clairement VISIBLE dans le résultat."
+            )
+        if inspi_refs:
+            texte += (
+                "\n\nTu reçois enfin une ou plusieurs images de référence de STYLE. Si la description "
+                "ci-dessus demande explicitement de les utiliser ou de les intégrer (par ex. « ajoute "
+                "l'image de référence », « mets la photo dans le cercle », « combine les deux images »), "
+                "alors INTÈGRE fidèlement leur contenu dans la composition finale en suivant précisément "
+                "la description. Sinon, contente-toi de t'INSPIRER de leur STYLE VISUEL (composition, "
+                "palette de couleurs, ambiance, éclairage, traitement) sans copier leur contenu."
+            )
         content = [{"type": "text", "text": texte}]
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in integrate_data]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
     else:
         content = prompt

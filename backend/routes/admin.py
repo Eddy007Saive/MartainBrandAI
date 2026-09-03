@@ -540,8 +540,11 @@ def send_push(body: PushBroadcast, payload: dict = Depends(verify_admin_token)):
 @router.delete("/users/{telegram_id}")
 def delete_user(telegram_id: str, payload: dict = Depends(verify_admin_token)):
     try:
-        result = supabase.table("users").delete().eq("telegram_id", telegram_id).execute()
-        if not result.data:
+        from services import user_service
+        # Purge complète (effacement des données perso/marque/contenu +
+        # anonymisation des pièces comptables) PUIS suppression de la ligne users.
+        ok = user_service.delete_user(telegram_id)
+        if not ok:
             raise HTTPException(status_code=404, detail="User not found")
         return {"success": True, "message": "User deleted"}
     except HTTPException:

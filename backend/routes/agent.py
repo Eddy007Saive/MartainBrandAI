@@ -97,27 +97,32 @@ def sujets(body: dict, payload: dict = Depends(verify_token)):
     # Sauvegarde des sujets comme brouillons (sans réseau — choisi à la transformation).
     # Chaque sujet porte ses dimensions {objectif, angle, cible, format} : un brief, pas un thème.
     def _dims(s):
-        return {k: s.get(k) for k in ("objectif", "angle", "cible", "format") if s.get(k)}
+        return {k: s.get(k) for k in ("objectif", "angle", "cible", "format", "offre") if s.get(k)}
     sujets = [s for s in result.get("sujets", []) if s.get("sujet")]
+    # dimensions = valeur EFFECTIVE (modifiable) ; dimensions_reco = reco d'origine de l'IA (fige l'⭐).
     rows = [{"telegram_id": telegram_id, "titre": s["sujet"][:200], "statut": "Brouillon",
-             "dimensions": _dims(s) or None} for s in sujets]
+             "dimensions": _dims(s) or None, "dimensions_reco": _dims(s) or None} for s in sujets]
     saved = []
     if rows:
         try:
             ins = supabase.table("brouillons").insert(rows).execute()
-            saved = [{"id": r["id"], "titre": r["titre"], "dimensions": r.get("dimensions")}
-                     for r in (ins.data or [])]
+            saved = [{"id": r["id"], "titre": r["titre"], "dimensions": r.get("dimensions"),
+                      "dimensions_reco": r.get("dimensions_reco")} for r in (ins.data or [])]
         except Exception as e:
             logger.error(f"Save sujets error: {e}")
-            saved = [{"id": None, "titre": s["sujet"], "dimensions": _dims(s)} for s in sujets]
+            saved = [{"id": None, "titre": s["sujet"], "dimensions": _dims(s), "dimensions_reco": _dims(s)} for s in sujets]
     return {"sujets": saved, "quota": {"action": "subject", "used": q.get("used"), "limit": q.get("limit")}}
 
 
 @router.get("/dimensions")
 def dimensions(payload: dict = Depends(verify_token)):
     """Les listes de valeurs des 4 dimensions d'un sujet (objectif/angle/cible/format).
-    Sert au Studio : filtres optionnels de génération + rendu des tags sur chaque sujet."""
-    return agent_service.DIMENSIONS
+    Sert au Studio : filtres optionnels de génération + rendu des tags sur chaque sujet.
+    Le 'format' est filtré sur les réseaux connectés (pas de Reel sans compte adapté)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    return agent_service.dimensions_pour(telegram_id)
 
 
 @router.get("/plan")
@@ -271,12 +276,35 @@ def list_sujets(payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="Invalid token")
     try:
         r = (supabase.table("brouillons")
-             .select("id, titre, reseau_cible, dimensions, created_at")
+             .select("id, titre, reseau_cible, dimensions, dimensions_reco, created_at")
              .eq("telegram_id", telegram_id).eq("statut", "Brouillon")
              .order("created_at", desc=True).execute())
         return r.data or []
     except Exception as e:
         logger.error(f"List sujets error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.patch("/sujets/{sujet_id}")
+def maj_sujet(sujet_id: str, body: dict, payload: dict = Depends(verify_token)):
+    """Enregistre les dimensions EFFECTIVES d'un sujet (override utilisateur).
+    dimensions_reco (l'⭐) n'est jamais touché : on garde la reco d'origine de l'IA."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    dims_in = body.get("dimensions") or {}
+    # Ne garde que des valeurs valides des listes figées.
+    dims = {k: v for k in ("objectif", "angle", "cible", "format")
+            if (v := agent_service._valider_dimension(k, dims_in.get(k)))}
+    offre = agent_service._valider_offre(telegram_id, dims_in.get("offre"))  # offre dynamique
+    if offre:
+        dims["offre"] = offre
+    try:
+        supabase.table("brouillons").update({"dimensions": dims or None}) \
+            .eq("id", sujet_id).eq("telegram_id", telegram_id).execute()
+        return {"success": True, "dimensions": dims}
+    except Exception as e:
+        logger.error(f"Maj sujet dimensions error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -742,7 +770,7 @@ def image_prompt(body: dict, payload: dict = Depends(verify_token)):
     texte = (body.get("texte") or "").strip()
     if not texte:
         raise HTTPException(status_code=400, detail="texte requis")
-    res = image_service.generer_prompt(telegram_id, texte, body.get("reseau", "linkedin"))
+    res = image_service.generer_prompt(telegram_id, texte, body.get("reseau", "linkedin"), avec_photo=bool(body.get("avec_photo")))
     if res.get("error") == "no_api_key":
         raise HTTPException(status_code=500, detail="Clé API IA non configurée")
     # Sauvegarde immédiate du prompt sur le contenu -> on ne le régénère pas à la réouverture (anti-gaspillage)
@@ -801,6 +829,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     if not q.get("ok"):
         raise _refus(q)
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
+    integrate_refs = body.get("integrate_refs") if isinstance(body.get("integrate_refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
     # Story -> visuel vertical 9:16 (sinon 4:5 feed)
     ratio = "4:5"
@@ -812,7 +841,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         except Exception:
             pass
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio)
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio, integrate_refs=integrate_refs)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent image error: {e}")

@@ -305,9 +305,65 @@ async def disconnect_platform(telegram_id: str, platform: str) -> dict:
     return {"success": True}
 
 
+async def _annuler_programmations(telegram_id: str) -> int:
+    """Fin d'abonnement : les publications déjà programmées ne partiront jamais (les comptes
+    Late vont être supprimés). Sans ça, elles resteraient affichées « Planifié » indéfiniment.
+
+    Pour chaque contenu programmé ou en cours d'envoi : annulation côté Zernio (best-effort,
+    AVANT la suppression des comptes, sinon l'appel n'a plus de sens), puis en base
+    statut « Validé » + publish_status « échec » avec la raison — c'est exactement l'état
+    que l'interface sait déjà afficher (badge rouge, raison dans le détail, bouton
+    « Réessayer ») : après réabonnement et reconnexion des réseaux, un clic reprogramme."""
+    from services import late_service
+    try:
+        r = (supabase.table("contenu").select("id, late_post_id, titre, reseau_cible")
+             .eq("telegram_id", telegram_id)
+             .or_("statut.eq.Planifie,publish_status.in.(envoi,programmé)")
+             .neq("statut", "Publie").execute())
+    except Exception as e:
+        logger.warning(f"annuler_programmations {telegram_id}: lecture impossible: {e}")
+        return 0
+    rows = r.data or []
+    if not rows:
+        return 0
+    for c in rows:
+        if c.get("late_post_id"):
+            try:
+                await late_service.cancel_post(c["late_post_id"])
+            except Exception as e:
+                logger.warning(f"annuler_programmations: cancel Late {c['late_post_id']}: {e}")
+    raison = ("Abonnement résilié : tes réseaux ont été déconnectés, la publication a été annulée. "
+              "Reconnecte tes réseaux puis clique « Réessayer » pour la reprogrammer.")
+    try:
+        (supabase.table("contenu")
+         .update({"statut": "Valider", "publish_status": "échec", "publish_error": raison, "late_post_id": None})
+         .in_("id", [c["id"] for c in rows]).execute())
+    except Exception as e:
+        logger.error(f"annuler_programmations {telegram_id}: update impossible: {e}")
+        return 0
+    try:
+        from services import notification_service
+        n = len(rows)
+        notification_service.notifier(
+            telegram_id, rows[0]["id"], rows[0].get("reseau_cible"), "post.cancelled",
+            f"{n} publication{'s' if n > 1 else ''} annulée{'s' if n > 1 else ''}",
+            "Ton abonnement est terminé : les publications programmées ne partiront pas. "
+            "Elles restent dans Contenus, prêtes à être reprogrammées si tu reviens.")
+    except Exception as e:
+        logger.warning(f"annuler_programmations notification: {e}")
+    logger.info(f"annuler_programmations : {len(rows)} publication(s) annulée(s) pour {telegram_id}")
+    return len(rows)
+
+
 async def disconnect_all(telegram_id: str) -> int:
     """Déconnecte TOUS les réseaux du compte (libère les slots Late -> stoppe le coût récurrent).
     Appelé quand un abonnement se termine définitivement (canceled/unpaid). Retourne le nb déconnectés."""
+    # D'abord les publications programmées (elles ne partiront jamais sans réseau), tant
+    # que les comptes Late existent encore pour pouvoir les annuler côté Zernio.
+    try:
+        await _annuler_programmations(telegram_id)
+    except Exception as e:
+        logger.error(f"disconnect_all annuler_programmations {telegram_id}: {e}")
     n = 0
     for plateforme, account_id in comptes(telegram_id).items():
         if LATE_API_KEY:

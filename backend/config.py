@@ -59,6 +59,12 @@ OPENROUTER_API_KEY = (os.environ.get('OPENROUTER_API_KEY')
                       or os.environ.get('api_openrouter')
                       or os.environ.get('API_OPENROUTER')
                       or '')
+# OpenAI : uniquement les embeddings de la « mémoire de voix » (services/memoire_service.py).
+# `OPENS_API` = nom historique de la variable dans backend/.env.
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY') or os.environ.get('OPENS_API') or ''
+EMBEDDING_MODEL = os.environ.get('EMBEDDING_MODEL', 'text-embedding-3-small')
+# Interrupteur : à 0, la rédaction n'injecte plus les exemples de posts validés (pour comparer).
+MEMOIRE_VOIX_ACTIVE = os.environ.get('MEMOIRE_VOIX_ACTIVE', '1') != '0'
 OPENROUTER_IMAGE_MODEL = os.environ.get('OPENROUTER_IMAGE_MODEL', 'google/gemini-2.5-flash-image')  # nano-banana · alt: google/gemini-3.1-flash-image-preview
 
 # HeyGen
