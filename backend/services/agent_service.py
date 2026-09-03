@@ -319,6 +319,35 @@ def _valider_format(valeur, autorises: list) -> str:
     return "Post" if "Post" in autorises else (autorises[0] if autorises else "Post")
 
 
+# Valeurs de contenu.reseau_cible (enum capitalisé) depuis la clé réseau du front.
+_RESEAU_CIBLE = {"linkedin": "LinkedIn", "instagram": "Instagram", "facebook": "Facebook",
+                 "tiktok": "TikTok", "youtube": "YouTube", "googlebusiness": "GoogleBusiness"}
+
+
+def _exemples_memoire(telegram_id: str, sujet: str, dimensions: dict, genre: str,
+                      reseau: str = None, reseau_label: str = "") -> str:
+    """Bloc « exemples de la voix réelle » (posts validés du compte proches du sujet),
+    à ajouter à la partie `extra` du system prompt. "" si désactivé, compte neuf,
+    ou mémoire indisponible — la rédaction se comporte alors comme avant."""
+    from config import MEMOIRE_VOIX_ACTIVE
+    if not MEMOIRE_VOIX_ACTIVE:
+        return ""
+    try:
+        from services import memoire_service
+        d = dimensions or {}
+        requete = " — ".join(x for x in (sujet, d.get("angle"), d.get("cible")) if x)
+        cible = _RESEAU_CIBLE.get((reseau or "").lower())
+        ex = memoire_service.exemples_voix(telegram_id, requete, genre, reseau=cible)
+        if not ex and genre != "post":
+            # Peu de carrousels/scripts validés : la voix est la même dans les posts.
+            ex = memoire_service.exemples_voix(telegram_id, requete, "post", reseau=cible)
+            genre = "post"
+        return memoire_service.bloc_exemples(ex, genre, reseau_label)
+    except Exception as e:
+        logger.warning(f"mémoire de voix ({genre}): {e}")
+        return ""
+
+
 def brief_dimensions(dims: dict) -> str:
     """Transforme les dimensions d'un sujet en BRIEF injecté dans la rédaction.
     Vide si aucune dimension exploitable — la rédaction retombe alors sur son
@@ -545,6 +574,9 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
             f"\n\n## CLIENT'S {reseau_label} POST EXAMPLES "
             f"(mimic this style, structure and tone; do not invent a different style)\n\n{exemples}"
         )
+    # Mémoire de voix : les posts VALIDÉS du compte les plus proches du sujet, après les
+    # exemples saisis à la main (ceux-ci décrivent le style voulu, ceux-là le style réel).
+    extra += _exemples_memoire(telegram_id, sujet, dimensions, "post", reseau, reseau_label)
 
     resp = _messages_create(
         model=model or CLAUDE_MODEL,
@@ -642,10 +674,12 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
     nb_idees = max(1, nb_slides - 2)  # hook + idées + cta
+    # Mémoire de voix : carrousels validés proches du sujet (repli : posts validés).
+    extra = _exemples_memoire(telegram_id, sujet, dimensions, "carrousel")
     resp = _messages_create(
         model=model or CLAUDE_MODEL,
         max_tokens=1600,
-        system=_system(ROLE_CARROUSEL, contexte, "", cache),
+        system=_system(ROLE_CARROUSEL, contexte, extra, cache),
         messages=[{
             "role": "user",
             "content": (f"Carousel topic: \"{sujet}\"." + brief_dimensions(dimensions)
@@ -719,11 +753,13 @@ def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
     tv = TYPES_VIDEO.get(type_video, type_video)
+    # Mémoire de voix : scripts validés proches du sujet (repli : posts validés).
+    extra = _exemples_memoire(telegram_id, sujet, dimensions, "script")
 
     resp = _messages_create(
         model=model or CLAUDE_MODEL,
         max_tokens=1500,
-        system=_system(ROLE_SCRIPT, contexte, "", cache),
+        system=_system(ROLE_SCRIPT, contexte, extra, cache),
         messages=[{
             "role": "user",
             "content": (
