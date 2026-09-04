@@ -33,24 +33,55 @@ MODELE_REPLI = "eleven_multilingual_v2"
 TAILLE_MAX_MO = 25
 DUREE_MIN_S = 45                     # en dessous, le clone est mauvais : on refuse
 
-# Voix natives françaises de la bibliothèque ElevenLabs, ajoutées au compte le 2026-09-04.
+# Voix natives de la bibliothèque ElevenLabs, ajoutées au compte le 2026-09-04, par
+# langue du compte (users.langue) : un client anglais ou espagnol entend des voix
+# natives, pas un Français qui lit de l'anglais. Deux hommes, une femme par langue.
 # Les libellés (nom, description) sont dans les locales du front (voixOff.voix.<id>).
-CATALOGUE = {
-    "victor": {"voice_id": "GPAQQPp9dazaB2bl4zg9", "genre": "homme",
-               "apercu": "https://res.cloudinary.com/dy9gp5pim/video/upload/brand/voix-apercus/victor.mp3"},
-    "yann":   {"voice_id": "nr2EGJNe96rzn9FRlTId", "genre": "homme",
-               "apercu": "https://res.cloudinary.com/dy9gp5pim/video/upload/brand/voix-apercus/yann.mp3"},
-    "adina":  {"voice_id": "FvmvwvObRqIHojkEGh5N", "genre": "femme",
-               "apercu": "https://res.cloudinary.com/dy9gp5pim/video/upload/brand/voix-apercus/adina.mp3"},
+_APERCU = "https://res.cloudinary.com/dy9gp5pim/video/upload/brand/voix-apercus/{}.mp3"
+CATALOGUE_PAR_LANGUE = {
+    "fr": {
+        "victor": {"voice_id": "GPAQQPp9dazaB2bl4zg9", "genre": "homme"},
+        "yann":   {"voice_id": "nr2EGJNe96rzn9FRlTId", "genre": "homme"},
+        "adina":  {"voice_id": "FvmvwvObRqIHojkEGh5N", "genre": "femme"},
+    },
+    "en": {
+        "mark":   {"voice_id": "WTUK291rZZ9CLPCiFTfh", "genre": "homme"},
+        "drew":   {"voice_id": "q0IMILNRPxOgtBTS4taI", "genre": "homme"},
+        "elise":  {"voice_id": "EST9Ui6982FZPSi7gCHi", "genre": "femme"},
+    },
+    "es": {
+        "sam":    {"voice_id": "18GZPpJvaVG53Nt3H52N", "genre": "homme"},   # latino-américain
+        "ginyin": {"voice_id": "nMPrFLO7QElx9wTR0JGo", "genre": "homme"},   # castillan neutre
+        "sara":   {"voice_id": "gD1IexrzCvsXPHUuT0s3", "genre": "femme"},   # castillan
+    },
 }
-VOIX_DEFAUT = "victor"
+for _l, _voix in CATALOGUE_PAR_LANGUE.items():
+    for _id, _v in _voix.items():
+        _v.setdefault("apercu", _APERCU.format(_id)); _v["langue"] = _l
+# Toutes les voix, quelle que soit la langue (résolution d'un choix déjà enregistré).
+CATALOGUE = {k: v for voix in CATALOGUE_PAR_LANGUE.values() for k, v in voix.items()}
+VOIX_DEFAUT_PAR_LANGUE = {"fr": "victor", "en": "mark", "es": "sam"}
+VOIX_DEFAUT = VOIX_DEFAUT_PAR_LANGUE["fr"]
 CLONE = "moi"
 
 REGLAGES = {"stability": 0.45, "similarity_boost": 0.8, "style": 0.3, "use_speaker_boost": True, "speed": 1.05}
-PHRASE_APERCU = ("Bonjour, c'est bien ma voix. Elle dira mes reels : direct, chaleureux, "
-                 "sans jargon. On en parle quand tu veux.")
+PHRASE_APERCU = {
+    "fr": "Bonjour, c'est bien ma voix. Elle dira mes reels : direct, chaleureux, sans jargon. On en parle quand tu veux.",
+    "en": "Hi, yes, that's my voice. It will speak my reels: direct, warm, no jargon. Let's talk whenever you want.",
+    "es": "Hola, sí, esta es mi voz. Dirá mis reels: directa, cálida, sin jerga. Hablamos cuando quieras.",
+}
 
 COLONNES_CLONE = "voix_clone_id, voix_clone_le, voix_consentement_le, voix_clone_apercu, voix_clone_duree_s, voix_defaut"
+
+
+def langue_du_compte(telegram_id: str) -> str:
+    """fr | en | es (users.langue), fr par défaut."""
+    try:
+        r = supabase.table("users").select("langue").eq("telegram_id", telegram_id).limit(1).execute()
+        l = ((r.data[0].get("langue") if r.data else None) or "fr").lower()[:2]
+    except Exception:
+        l = "fr"
+    return l if l in CATALOGUE_PAR_LANGUE else "fr"
 
 
 def _cloudinary():
@@ -66,20 +97,20 @@ def _entetes():
 
 
 # ------------------------------------------------------------------ synthèse
-def synthese(texte: str, voice_id: str, modele: str = MODELE) -> bytes:
+def synthese(texte: str, voice_id: str, modele: str = MODELE, langue: str = "fr") -> bytes:
     """Un MP3 (44,1 kHz, 128 kb/s) pour une phrase. Repli sur multilingual_v2 si
     le modèle v3 refuse (indisponible, texte trop long…)."""
     if not disponible():
         raise RuntimeError("ELEVENLABS_API_KEY absente")
     corps = {"text": texte, "model_id": modele, "voice_settings": REGLAGES}
     if modele != MODELE:
-        corps["language_code"] = "fr"
+        corps["language_code"] = langue if langue in CATALOGUE_PAR_LANGUE else "fr"
     r = httpx.post(f"{API}/text-to-speech/{voice_id}", headers=_entetes(),
                    params={"output_format": "mp3_44100_128"}, json=corps, timeout=120)
     if r.status_code != 200:
         if modele == MODELE:
             logger.warning(f"voix: {MODELE} a refusé ({r.status_code}), repli {MODELE_REPLI}")
-            return synthese(texte, voice_id, MODELE_REPLI)
+            return synthese(texte, voice_id, MODELE_REPLI, langue)
         raise RuntimeError(f"ElevenLabs {r.status_code} : {r.text[:200]}")
     return r.content
 
@@ -118,6 +149,7 @@ def appliquer(telegram_id: str, props: dict, voix: str) -> dict:
     voice_id = resoudre(telegram_id, voix)
     if not voice_id:
         raise RuntimeError(f"voix introuvable : {voix}")
+    langue = langue_du_compte(telegram_id)
     _cloudinary()
     segments = props.get("segments") or []
     for seg in segments:
@@ -126,7 +158,7 @@ def appliquer(telegram_id: str, props: dict, voix: str) -> dict:
         phrase = _phrase(seg)
         if not phrase:
             continue
-        data = synthese(phrase, voice_id)
+        data = synthese(phrase, voice_id, langue=langue)
         dur = duree_audio(data)
         up = cloudinary.uploader.upload(data, resource_type="video", folder=f"voix/{telegram_id}",
                                         public_id=uuid.uuid4().hex[:12])
@@ -164,12 +196,20 @@ def statut_clone(telegram_id: str) -> dict:
 def catalogue(telegram_id: str) -> dict:
     from services import quota_service
     clone = statut_clone(telegram_id)
+    langue = langue_du_compte(telegram_id)
+    voix = CATALOGUE_PAR_LANGUE[langue]
+    # Un défaut mémorisé dans une autre langue (compte passé du français à l'anglais)
+    # ne se propose plus : la voix par défaut de la nouvelle langue prend le relais.
+    defaut = clone.get("defaut")
+    if defaut and defaut != CLONE and defaut not in voix:
+        defaut = None
     return {
         "disponible": disponible(),
-        "voix": [{"id": k, "genre": v["genre"], "apercu": v["apercu"]} for k, v in CATALOGUE.items()],
+        "langue": langue,
+        "voix": [{"id": k, "genre": v["genre"], "apercu": v["apercu"]} for k, v in voix.items()],
         "clone": clone,
         "clone_autorise": quota_service.is_paid(telegram_id),   # clonage : forfait payé uniquement
-        "defaut": clone.get("defaut") or VOIX_DEFAUT,
+        "defaut": defaut or VOIX_DEFAUT_PAR_LANGUE[langue],
     }
 
 
@@ -242,7 +282,8 @@ def creer_clone(telegram_id: str, data: bytes, nom_fichier: str, consentement: b
     apercu = None
     try:
         _cloudinary()
-        up = cloudinary.uploader.upload(synthese(PHRASE_APERCU, voice_id), resource_type="video",
+        langue = langue_du_compte(telegram_id)
+        up = cloudinary.uploader.upload(synthese(PHRASE_APERCU[langue], voice_id, langue=langue), resource_type="video",
                                         public_id=f"voix/{telegram_id}/apercu", overwrite=True, invalidate=True)
         apercu = up["secure_url"]
     except Exception as e:
