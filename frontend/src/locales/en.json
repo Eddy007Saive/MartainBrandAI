@@ -330,6 +330,13 @@
       "description": "Your post is turned into an animated vertical video in your brand style. Pick a template:",
       "nouveau": "★ New",
       "seq": {
+        "depuisPost": "Reel from your post",
+        "descriptionDepuisPost": "The AI writes the script from the post. Pick a style, visuals, music and a voice; add instructions if you like.",
+        "postSource": "Source post",
+        "reelSource": "Reel being edited",
+        "changerPost": "Change post",
+        "remonter": "Render again",
+        "sourceIntrouvable": "Content not found.",
         "titre": "Sequence Reel",
         "description": "Pick the images for your reel (upload or bank), add instructions if you want. The AI writes the texts and edits the video.",
         "importer": "Add images",

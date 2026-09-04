@@ -330,6 +330,13 @@
       "description": "El post se transforma en un vídeo vertical animado con tu identidad. Elige la plantilla:",
       "nouveau": "★ Nuevo",
       "seq": {
+        "depuisPost": "Reel a partir de tu post",
+        "descriptionDepuisPost": "La IA escribe el guion a partir del post. Elige un estilo, visuales, música y una voz; añade indicaciones si quieres.",
+        "postSource": "Post de origen",
+        "reelSource": "Reel en edición",
+        "changerPost": "Cambiar de post",
+        "remonter": "Volver a montar",
+        "sourceIntrouvable": "Contenido no encontrado.",
         "titre": "Reel Secuencia",
         "description": "Elige las imágenes de tu reel (subida o banco), añade indicaciones si quieres. La IA escribe los textos y monta el vídeo.",
         "importer": "Añadir imágenes",

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, Link2, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, Maximize2, ChevronLeft, Play, Pause, Download, ZoomIn, Layers, Pin } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -30,7 +30,6 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { contenuService } from '../services/contenuService';
 import { PillFabrication } from '../components/Fabrication';
-import DecoupeMusique from '../components/DecoupeMusique';
 import { lienTelechargement } from '../lib/telechargement';
 import { agentService } from '../services/agentService';
 import { userService } from '../services/userService';
@@ -459,153 +458,25 @@ export default function ContenusPage() {
     { id: 'stats', label: t('contenus.reelTpl.statsLabel'), duree: 10, desc: t('contenus.reelTpl.statsDesc') },
     { id: 'long', label: t('contenus.reelTpl.longLabel'), duree: 22, desc: t('contenus.reelTpl.longDesc') },
   ]));
-  const [reelMusiques, setReelMusiques] = useState([]);      // bibliothèque partagée avec le Studio Vidéo
-  const [reelMusicCats, setReelMusicCats] = useState([]);
   useEffect(() => {
     contenuService.reelTemplates().then((d) => {
       const tpls = Array.isArray(d) ? d : d?.templates;       // rétro-compat ancienne réponse (liste nue)
       if (tpls?.length) setReelTemplates(tpls);
-      if (d?.musiques?.length) setReelMusiques(d.musiques);
-      if (d?.categories?.length) setReelMusicCats(d.categories);
     }).catch(() => {});
   }, []);
-  // Séquence : le CLIENT fournit les visuels (upload / banque) + un brief — l'IA monte
-  const [seqFor, setSeqFor] = useState(null);
-  const [seqImages, setSeqImages] = useState([]);      // {url, desc, src}
-  const [seqBrief, setSeqBrief] = useState('');
-  const [seqBanque, setSeqBanque] = useState(null);    // null = chargement
-  const [seqUploading, setSeqUploading] = useState(false);
-  const seqCache = useRef({});   // mémorise images + brief par contenu (fermer ≠ perdre)
-  const [seqRegen, setSeqRegen] = useState(false);   // true = modification d'un reel existant
-  const [seqLibre, setSeqLibre] = useState(false);   // true = reel créé de zéro (le brief est le sujet)
-  const [seqReseau, setSeqReseau] = useState('Instagram');
-  const [seqStyle, setSeqStyle] = useState('signature');
-  const [seqZoom, setSeqZoom] = useState(null);      // index du template agrandi (lightbox), null = fermé
-  const [seqMusique, setSeqMusique] = useState('none');  // piste de fond du reel (bibliothèque partagée)
-  const [seqMp3, setSeqMp3] = useState(false);           // import d'un MP3 perso en cours
-  // Import d'une musique du client : elle rejoint sa bibliothèque et devient la piste choisie.
-  const importerMp3 = async (file) => {
-    if (!file) return;
-    setSeqMp3(true);
-    try {
-      const m = await contenuService.reelMusiqueImporter(file);
-      setReelMusiques((prev) => [m, ...prev]);
-      setReelMusicCats((prev) => (prev.some((c) => c.id === 'perso')
-        ? prev : [{ id: 'perso', label: t('contenus.reel.seq.mesMusiques') }, ...prev]));
-      setSeqMusique(m.id);
-      toast.success(t('contenus.reel.seq.mp3Ajoute', { nom: m.label }));
-    } catch (e) {
-      toast.error(e.response?.data?.detail || t('contenus.reel.seq.mp3Echec'));
-    } finally { setSeqMp3(false); }
-  };
-  const [seqPlaying, setSeqPlaying] = useState(false);   // pré-écoute de la piste choisie
-  const seqAudioRef = useRef(null);
-  const seqStopPreview = () => { if (seqAudioRef.current) seqAudioRef.current.pause(); setSeqPlaying(false); };
-  const seqTogglePreview = () => {
-    const m = reelMusiques.find((x) => x.id === seqMusique);
-    const a = seqAudioRef.current;
-    if (!a || !m?.url) return;
-    if (seqPlaying) { a.pause(); setSeqPlaying(false); return; }
-    a.src = m.url; a.currentTime = 0;
-    a.play().then(() => setSeqPlaying(true)).catch(() => setSeqPlaying(false));
-  };
-  // La création LIBRE d'un reel vit désormais en pleine page : /dashboard/reel (StudioReel).
-  // Modifier un reel existant : dialogue pré-rempli depuis son scénario, re-rendu SUR PLACE
+  // Toute la création de reel vit dans le Studio Reel (/dashboard/reel) : un seul
+  // endroit, avec la voix off. Modifier un reel existant y ouvre le reel chargé.
   const openSequenceRegen = (reel) => {
     setSelectedContenu(null);
-    setSeqLibre(false);
-    setSeqRegen(true);
-    setSeqStyle(reel.reel_data?.style || 'signature');
-    setSeqMusique(reel.reel_data?.musique || 'none');
-    setSeqFor(reel);
-    const sc = reel.reel_data || {};
-    const imgs = [];
-    (sc.segments || []).forEach((s) => {
-      if (s.image && !imgs.some((i) => i.url === s.image)) imgs.push({ url: s.image, desc: null, src: 'reel' });
-    });
-    setSeqImages(imgs);
-    setSeqBrief(sc.brief || '');
-    setSeqBanque(null);
-    contenuService.reelBanque().then(setSeqBanque).catch(() => setSeqBanque([]));
-  };
-  const openSequence = (contenu, style = 'signature') => {
-    setReelFor(null);
-    setSeqLibre(false);
-    setSeqRegen(false);
-    setSeqStyle(style);
-    setSeqFor(contenu);
-    const cached = seqCache.current[contenu.id];
-    setSeqMusique(cached?.musique || 'none');
-    if (cached) {
-      setSeqImages(cached.images);
-      setSeqBrief(cached.brief);
-    } else {
-      // Les visuels du post sont proposés d'office (le principal présélectionné)
-      const init = [];
-      if (contenu.lien_visuel && !contenu.lien_visuel.endsWith('.mp4') && !contenu.lien_visuel.includes('/video/upload/')) {
-        init.push({ url: contenu.lien_visuel, desc: '', src: 'post' });
-      }
-      setSeqImages(init);
-      setSeqBrief('');
-    }
-    setSeqBanque(null);
-    contenuService.reelBanque().then(setSeqBanque).catch(() => setSeqBanque([]));
-  };
-  useEffect(() => {
-    if (seqFor) seqCache.current[seqFor.id] = { images: seqImages, brief: seqBrief, musique: seqMusique };
-  }, [seqFor, seqImages, seqBrief, seqMusique]);
-  const seqToggleBanque = (img) => {
-    setSeqImages((prev) => prev.some((i) => i.url === img.url)
-      ? prev.filter((i) => i.url !== img.url)
-      : (prev.length >= 6 ? prev : [...prev, { url: img.url, desc: img.description || '', src: 'banque', apercu_url: img.apercu_url || null, type: img.type || 'image' }]));
-  };
-  const seqUpload = async (files) => {
-    const list = Array.from(files || []).slice(0, 6 - seqImages.length);
-    if (!list.length) return;
-    setSeqUploading(true);
-    try {
-      for (const f of list) {
-        // L'image entre dans la BANQUE de la marque (conservée), puis est sélectionnée
-        const a = await contenuService.reelBanqueAjouter(f);
-        setSeqBanque((prev) => [a, ...(prev || [])]);
-        setSeqImages((prev) => prev.length >= 6 ? prev : [...prev, { url: a.url, desc: a.description || '', src: 'banque' }]);
-      }
-    } catch (e) {
-      toast.error(e.response?.data?.detail || t('contenus.reel.seq.uploadEchec'));
-    } finally { setSeqUploading(false); }
-  };
-  const doSeqReel = async () => {
-    if (!seqFor) return;
-    const contenu = seqFor;
-    if (seqLibre && !seqBrief.trim()) { toast.error(t('contenus.reel.seq.briefRequis')); return; }
-    setSeqFor(null);
-    setReelLoading(contenu.id);
-    seqStopPreview();
-    const payload = {
-      images: seqImages.map((i) => ({ url: i.url, desc: i.desc || null })),
-      brief: seqBrief.trim() || null,
-      musique: seqMusique,
-    };
-    try {
-      if (seqLibre) {
-        await contenuService.creerReel({ ...payload, reseau: seqReseau, style: seqStyle });
-      } else if (seqRegen) {
-        // Re-rendu en arrière-plan : la ligne passe en « Rendu en cours » (video_url
-        // vidée le temps du rendu), l'ancienne vidéo est restaurée si ça échoue.
-        await contenuService.regenererReel(contenu.id, { ...payload, style: seqStyle });
-        delete seqCache.current[contenu.id];
-      } else {
-        await contenuService.genererReel(contenu.id, 'sequence', { ...payload, style: seqStyle });
-      }
-      toast.success(t('contenus.toast.reelEnFile'));
-      fetchContenus();
-    } catch (e) {
-      toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));
-    } finally { setReelLoading(null); }
+    navigate(`/dashboard/reel?reel=${reel.id}`);
   };
 
   const doReel = async (contenu, duree = 'affiche') => {
-    if (duree.startsWith('sequence')) { openSequence(contenu, duree.split('-')[1] || 'signature'); return; }
+    if (duree.startsWith('sequence')) {
+      setReelFor(null);
+      navigate(`/dashboard/reel?contenu=${contenu.id}&style=${duree.split('-')[1] || 'signature'}`);
+      return;
+    }
     if (reelLoading) return;
     setReelFor(null);
     setReelLoading(contenu.id);
@@ -2007,251 +1878,6 @@ export default function ContenusPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Séquence : le client fournit les visuels + un brief, l'IA monte */}
-        <Dialog open={!!seqFor} onOpenChange={() => { setSeqFor(null); setSeqZoom(null); seqStopPreview(); }}>
-          <DialogContent className="bg-[#0f172a] border-slate-800 w-[96vw] sm:max-w-[1180px] max-h-[92vh] overflow-y-auto"
-            onEscapeKeyDown={(e) => { if (seqZoom !== null) { e.preventDefault(); setSeqZoom(null); } }}>
-            <DialogHeader>
-              <DialogTitle className="text-white font-sora">{t('contenus.reel.seq.titre')}</DialogTitle>
-            </DialogHeader>
-            {seqFor && (
-              <div className="space-y-4">
-                <p className="text-sm text-slate-400 font-inter">{t('contenus.reel.seq.description')}</p>
-
-                <div className="grid md:grid-cols-[minmax(0,1fr)_340px] gap-6">
-                {/* ---- COLONNE GAUCHE : vignettes compactes (loupe = aperçu grand) ---- */}
-                <div>
-                  <div className="flex items-baseline gap-2 mb-3">
-                    <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('contenus.reel.seq.tplTitre')}</span>
-                    {(() => {
-                      const cur = reelTemplates.find((x) => (x.id === 'sequence' ? 'signature' : x.id.split('-')[1]) === seqStyle && x.id.startsWith('sequence'));
-                      const nomSel = cur ? (cur.id === 'sequence' ? 'Signature' : cur.label.replace(/^Séquence\s*—\s*/, '')) : '';
-                      return nomSel ? <span className="ml-auto text-[12px] font-semibold text-[#3AFFA3]">✓ {nomSel}</span> : null;
-                    })()}
-                  </div>
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-3">
-                    {reelTemplates.filter((x) => x.id.startsWith('sequence')).map((tpl, idx) => {
-                      const st = tpl.id === 'sequence' ? 'signature' : tpl.id.split('-')[1];
-                      const on = seqStyle === st;
-                      const reco = reelReco?.template === tpl.id;
-                      const nom = tpl.id === 'sequence' ? 'Signature' : tpl.label.replace(/^Séquence\s*—\s*/, '');
-                      return (
-                        <div key={tpl.id} role="button" tabIndex={0} onClick={() => setSeqStyle(st)} data-testid={`seq-style-${st}`}
-                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSeqStyle(st); } }}
-                          className="group relative cursor-pointer transition-transform hover:-translate-y-0.5 active:scale-95">
-                          <div className={`relative aspect-[9/16] rounded-xl overflow-hidden bg-[#060b18] border-[1.5px] transition-all ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3,0_8px_30px_rgba(58,255,163,0.14)]' : 'border-white/[0.09] group-hover:border-[#8A6CFF]/60'}`}>
-                            {tpl.apercu && <video src={tpl.apercu} autoPlay muted loop playsInline className="w-full h-full object-cover" />}
-                            {on && <span className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#020617]/60 pointer-events-none" />}
-                            {reco && <span className="absolute top-1.5 left-1.5 z-[2] text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#3AFFA3] text-[#05261a]">★</span>}
-                            <button type="button" title={t('contenus.reel.seq.agrandir')} aria-label={t('contenus.reel.seq.agrandir')}
-                              onClick={(e) => { e.stopPropagation(); setSeqZoom(idx); }}
-                              className="absolute top-1.5 right-1.5 z-[3] w-[26px] h-[26px] rounded-lg border border-white/25 bg-[#020617]/75 text-white grid place-items-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity backdrop-blur-sm cursor-zoom-in active:scale-90">
-                              <Maximize2 className="w-3 h-3" />
-                            </button>
-                            {on && <span className="absolute right-1.5 bottom-1.5 z-[2] w-[22px] h-[22px] rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[11px] font-extrabold">✓</span>}
-                          </div>
-                          <div className={`mt-1.5 text-center text-[11.5px] font-sora font-bold truncate ${on ? 'text-[#3AFFA3]' : 'text-slate-300'}`}>{nom}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* ---- COLONNE DROITE : visuels, import, banque, brief ---- */}
-                <div className="space-y-4">
-                {/* Visuels choisis (dans l'ordre du montage) */}
-                {seqImages.length > 0 && (
-                  <div>
-                    <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.choisis')}</div>
-                    <div className="flex flex-wrap gap-2">
-                      {seqImages.map((img, idx) => (
-                        <div key={img.url} className="relative w-16 h-16 rounded-lg overflow-hidden border border-[#3AFFA3]/40">
-                          <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover" />
-                              {img.type === 'video' && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
-                          <span className="absolute bottom-0.5 left-0.5 text-[10px] font-bold text-white bg-black/60 rounded px-1">{idx + 1}</span>
-                          <button type="button" onClick={() => setSeqImages((p) => p.filter((i) => i.url !== img.url))}
-                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white text-[12px] leading-none">×</button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Visuels du post (sélectionnables) */}
-                {(() => {
-                  const postImgs = [seqFor.lien_visuel, ...(seqFor.slides_images || [])]
-                    .filter((u) => u && !u.endsWith('.mp4') && !u.includes('/video/upload/'))
-                    .filter((u, i, arr) => arr.indexOf(u) === i).slice(0, 6);
-                  if (!postImgs.length) return null;
-                  return (
-                    <div>
-                      <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.duPost')}</div>
-                      <div className="flex flex-wrap gap-2">
-                        {postImgs.map((u) => {
-                          const on = seqImages.some((i) => i.url === u);
-                          return (
-                            <button key={u} type="button" onClick={() => seqToggleBanque({ url: u, description: '' })}
-                              className={`relative w-16 h-16 rounded-lg overflow-hidden border transition-all ${on ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/40' : 'border-white/10 hover:border-white/30'}`}>
-                              <img src={u} alt="" className="w-full h-full object-cover" />
-                              {on && <span className="absolute inset-0 bg-[#3AFFA3]/20 grid place-items-center text-[#3AFFA3] font-bold">✓</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* Import direct */}
-                <label className={`inline-flex items-center gap-2 text-[13px] font-inter font-semibold px-3.5 py-2 rounded-[10px] border border-dashed cursor-pointer transition-colors ${seqUploading || seqImages.length >= 6 ? 'border-white/10 text-slate-600 cursor-not-allowed' : 'border-[#5B6CFF]/50 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
-                  <input type="file" accept="image/*,video/mp4,video/quicktime,.mp4,.mov" multiple className="hidden" disabled={seqUploading || seqImages.length >= 6}
-                    onChange={(e) => { seqUpload(e.target.files); e.target.value = ''; }} />
-                  {seqUploading ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.importer')}
-                </label>
-                <span className="ml-2 text-[11px] text-slate-500 font-inter">{seqImages.length}/6</span>
-
-                {/* Banque d'images de la marque */}
-                <div>
-                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.banque')}</div>
-                  {seqBanque === null ? (
-                    <div className="text-xs text-slate-500 font-inter">…</div>
-                  ) : seqBanque.length === 0 ? (
-                    <div className="text-xs text-slate-500 font-inter">{t('contenus.reel.seq.banqueVide')}</div>
-                  ) : (
-                    <div className="grid grid-cols-6 gap-2 max-h-[140px] overflow-y-auto pr-1">
-                      {seqBanque.map((img) => {
-                        const on = seqImages.some((i) => i.url === img.url);
-                        return (
-                          <button key={img.id} type="button" onClick={() => seqToggleBanque(img)} title={img.description || ''}
-                            className={`relative aspect-square rounded-lg overflow-hidden border transition-all ${on ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/40' : 'border-white/10 hover:border-white/30'}`}>
-                            <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover" />
-                              {img.type === 'video' && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
-                            {on && <span className="absolute inset-0 bg-[#3AFFA3]/20 grid place-items-center text-[#3AFFA3] font-bold">✓</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Musique de fond (bibliothèque partagée avec le Studio Vidéo) */}
-                {reelMusiques.length > 0 && (
-                  <div>
-                    <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.musique')}</div>
-                    <div className="flex items-center gap-2">
-                      <select value={seqMusique} onChange={(e) => { setSeqMusique(e.target.value); seqStopPreview(); }}
-                        data-testid="seq-musique"
-                        className="flex-1 bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
-                        <option value="none">{t('contenus.reel.seq.sansMusique')}</option>
-                        {reelMusicCats.map((c) => (
-                          <optgroup key={c.id} label={c.label}>
-                            {reelMusiques.filter((m) => m.category === c.id).map((m) => (
-                              <option key={m.id} value={m.id}>{m.label}</option>
-                            ))}
-                          </optgroup>
-                        ))}
-                      </select>
-                      <button type="button" onClick={seqTogglePreview} disabled={seqMusique === 'none'}
-                        title={t('contenus.reel.seq.ecouter')} aria-label={t('contenus.reel.seq.ecouter')}
-                        className={`w-9 h-9 rounded-lg border grid place-items-center transition-all active:scale-95 ${seqMusique === 'none' ? 'border-white/[0.06] text-slate-700' : seqPlaying ? 'border-[#3AFFA3]/60 text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-300 hover:border-white/25'}`}>
-                        {seqPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      </button>
-                      <label title={t('contenus.reel.seq.importerMp3')} aria-label={t('contenus.reel.seq.importerMp3')}
-                        className={`w-9 h-9 shrink-0 rounded-lg border grid place-items-center transition-all active:scale-95 cursor-pointer ${seqMp3 ? 'border-white/[0.06] text-slate-700' : 'border-[#5B6CFF]/40 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
-                        <input type="file" accept="audio/*,.mp3,.m4a,.wav" className="hidden" disabled={seqMp3}
-                          onChange={(e) => { importerMp3(e.target.files?.[0]); e.target.value = ''; }} />
-                        {seqMp3 ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                      </label>
-                    </div>
-                    <p className="text-[11px] text-slate-600 font-inter mt-1.5">{t('contenus.reel.seq.mp3Aide')}</p>
-                    {/* Découpe : seulement sur les musiques du client (les pistes partagées sont calibrées) */}
-                    {(() => {
-                      const p = reelMusiques.find((m) => m.id === seqMusique && m.category === 'perso');
-                      return p ? <DecoupeMusique piste={p} onChange={(m) => setReelMusiques((prev) => prev.map((x) => (x.id === m.id ? { ...x, ...m } : x)))} /> : null;
-                    })()}
-                    <audio ref={seqAudioRef} onEnded={() => setSeqPlaying(false)} className="hidden" />
-                  </div>
-                )}
-
-                {/* Réseau cible (mode création libre) */}
-                {seqLibre && (
-                  <div>
-                    <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.reseau')}</div>
-                    <select value={seqReseau} onChange={(e) => setSeqReseau(e.target.value)}
-                      className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
-                      {['Instagram', 'TikTok', 'Facebook', 'LinkedIn', 'YouTube'].map((n) => <option key={n} value={n}>{n}</option>)}
-                    </select>
-                  </div>
-                )}
-
-                {/* Brief libre */}
-                <div>
-                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{seqLibre ? t('contenus.reel.seq.briefSujet') : t('contenus.reel.seq.brief')}</div>
-                  <textarea value={seqBrief} onChange={(e) => setSeqBrief(e.target.value)} rows={3} maxLength={500}
-                    placeholder={t('contenus.reel.seq.briefPh')}
-                    className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 resize-none" />
-                </div>
-                </div>
-                </div>
-
-                <div className="flex justify-end gap-2 border-t border-white/[0.06] mt-1 pt-3">
-                  <button type="button" onClick={() => setSeqFor(null)}
-                    className="text-[13px] font-inter text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-white/10">{t('contenus.actions.annuler')}</button>
-                  <button type="button" onClick={doSeqReel} disabled={seqUploading} data-testid="seq-generer"
-                    className="text-[13px] font-semibold font-inter text-white px-5 py-2 rounded-lg bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 active:scale-[0.97] disabled:opacity-50">
-                    {t('contenus.reel.seq.monter')}
-                  </button>
-                </div>
-
-                {/* ---- LIGHTBOX : aperçu agrandi du template ---- */}
-                {seqZoom !== null && (() => {
-                  const seqTpls = reelTemplates.filter((x) => x.id.startsWith('sequence'));
-                  const tpl = seqTpls[seqZoom];
-                  if (!tpl) return null;
-                  const st = tpl.id === 'sequence' ? 'signature' : tpl.id.split('-')[1];
-                  const nom = tpl.id === 'sequence' ? 'Signature' : tpl.label.replace(/^Séquence\s*—\s*/, '');
-                  const prev = () => setSeqZoom((seqZoom - 1 + seqTpls.length) % seqTpls.length);
-                  const next = () => setSeqZoom((seqZoom + 1) % seqTpls.length);
-                  return (
-                    <div className="fixed inset-0 z-[60] grid place-items-center bg-[#020617]/85 backdrop-blur-md" onClick={() => setSeqZoom(null)}>
-                      <button type="button" aria-label={t('contenus.actions.annuler')} onClick={(e) => { e.stopPropagation(); setSeqZoom(null); }}
-                        className="absolute top-5 right-6 w-10 h-10 rounded-xl border border-white/15 bg-[#0f172a]/85 text-white grid place-items-center hover:bg-[#5B6CFF]/30 active:scale-95 transition-all"><X className="w-[18px] h-[18px]" /></button>
-                      {seqTpls.length > 1 && (<>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); prev(); }}
-                          className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full border border-white/15 bg-[#0f172a]/85 text-white grid place-items-center hover:bg-[#5B6CFF]/30 active:scale-95 transition-all"><ChevronLeft className="w-5 h-5" /></button>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); next(); }}
-                          className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full border border-white/15 bg-[#0f172a]/85 text-white grid place-items-center hover:bg-[#5B6CFF]/30 active:scale-95 transition-all"><ChevronRight className="w-5 h-5" /></button>
-                      </>)}
-                      <div className="flex flex-col md:flex-row items-center gap-5 md:gap-9 px-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="h-[52vh] md:h-[74vh] aspect-[9/16] rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-[#060b18] shrink-0">
-                          {tpl.apercu && <video key={tpl.id} src={tpl.apercu} autoPlay muted loop playsInline className="w-full h-full object-cover" />}
-                        </div>
-                        <div className="max-w-[330px] text-center md:text-left">
-                          <div className="text-[11px] font-bold tracking-[0.16em] uppercase text-[#3AFFA3]">{t('contenus.reel.seq.apercuTpl')}</div>
-                          <h2 className="font-sora font-extrabold text-white text-2xl md:text-3xl mt-2 tracking-tight">{nom}</h2>
-                          <p className="text-sm text-slate-400 font-inter leading-relaxed mt-3">{tpl.desc}</p>
-                          {(tpl.tags || []).length > 0 && (
-                            <div className="flex gap-2 flex-wrap justify-center md:justify-start mt-4">
-                              {tpl.tags.map((x) => <span key={x} className="text-[11px] text-slate-500 border border-white/10 rounded-full px-2.5 py-0.5">{x}</span>)}
-                            </div>
-                          )}
-                          <div className="flex gap-2.5 justify-center md:justify-start mt-6">
-                            <button type="button" onClick={() => setSeqZoom(null)}
-                              className="text-[13px] font-inter text-slate-400 hover:text-white px-4 py-2 rounded-lg border border-white/10">{t('contenus.actions.annuler')}</button>
-                            <button type="button" onClick={() => { setSeqStyle(st); setSeqZoom(null); }} data-testid="seq-zoom-choisir"
-                              className="text-[13px] font-semibold font-inter text-white px-5 py-2 rounded-lg bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 active:scale-[0.97]">
-                              {t('contenus.reel.seq.choisirTpl')}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
 
         {/* Fabrications longues : pastille flottante (reel > carrousel > slides) */}
         <PillFabrication

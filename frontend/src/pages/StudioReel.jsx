@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus } from 'lucide-react';
@@ -12,11 +12,22 @@ import VoixOff from '../components/VoixOff';
  * Studio Reel — création LIBRE d'un reel Séquence en pleine page.
  * Même moteur que le dialogue Séquence de Contenus (templates, banque, musique),
  * mais avec l'espace d'une vraie page : galerie à gauche, réglages à droite.
- * La modification d'un reel existant reste dans le popup de Contenus.
+ *
+ * Trois modes, selon l'URL :
+ *   /dashboard/reel                      création libre (le brief est le sujet)
+ *   /dashboard/reel?contenu=<id>&style=  reel à partir d'un post de Contenus (le post est le sujet,
+ *                                        le brief devient des consignes ; ses visuels sont proposés)
+ *   /dashboard/reel?reel=<id>            modification d'un reel existant (scénario pré-chargé,
+ *                                        re-rendu sur place)
+ * Un seul endroit pour faire un reel : c'est ici que vit la voix off.
  */
 export default function StudioReel() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const contenuId = params.get('contenu');   // mode « depuis un post »
+  const reelId = params.get('reel');         // mode « modification »
+  const [source, setSource] = useState(null);   // le post source, ou le reel modifié
 
   const [templates, setTemplates] = useState([]);
   const [musiques, setMusiques] = useState([]);
@@ -45,6 +56,41 @@ export default function StudioReel() {
     contenuService.reelBanque().then(setBanque).catch(() => setBanque([]));
   }, []);
   useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
+
+  // Pré-chargement depuis Contenus : le post (ses visuels, son réseau) ou le reel à modifier
+  // (son scénario : images, consignes, style, musique, voix).
+  useEffect(() => {
+    const id = reelId || contenuId;
+    if (!id) return;
+    contenuService.getById(id).then((c) => {
+      setSource(c);
+      if (c.reseau_cible) setReseau(c.reseau_cible);
+      if (reelId) {
+        const sc = c.reel_data || {};
+        const imgs = [];
+        (sc.segments || []).forEach((sg) => {
+          if (sg.image && !imgs.some((i) => i.url === sg.image)) imgs.push({ url: sg.image, desc: null, src: 'reel' });
+        });
+        setImages(imgs);
+        setBrief(sc.brief || '');
+        if (sc.style) setStyle(sc.style);
+        setMusique(sc.musique || 'none');
+        setVoix(sc.voix || null);
+      } else {
+        const st = params.get('style');
+        if (st) setStyle(st);
+        // Le visuel du post est proposé d'office (pas une vidéo)
+        const lv = c.lien_visuel;
+        if (lv && !lv.endsWith('.mp4') && !lv.includes('/video/upload/')) setImages([{ url: lv, desc: '', src: 'post' }]);
+      }
+    }).catch(() => {
+      toast.error(t('contenus.reel.seq.sourceIntrouvable'));
+      navigate('/dashboard/contenus');
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contenuId, reelId]);
+  const depuisPost = !!source && !reelId;
+  const modification = !!source && !!reelId;
 
   const stopPreview = () => { if (audioRef.current) audioRef.current.pause(); setPlaying(false); };
 
@@ -93,17 +139,25 @@ export default function StudioReel() {
   };
 
   const generer = async () => {
-    if (!brief.trim()) { toast.error(t('contenus.reel.seq.briefRequis')); return; }
+    if (!source && !brief.trim()) { toast.error(t('contenus.reel.seq.briefRequis')); return; }
     stopPreview();
     setGenerating(true);
     try {
       // Réponse immédiate : le rendu se fait en arrière-plan (worker), la carte
       // « Rendu en cours » prend le relais dans Contenus, puis une notification.
-      await contenuService.creerReel({
-        brief: brief.trim(),
+      const payload = {
+        brief: brief.trim() || null,
         images: images.map((i) => ({ url: i.url, desc: i.desc || null })),
-        reseau, style, musique, voix,
-      });
+        style, musique, voix,
+      };
+      if (modification) {
+        // Re-rendu sur place ; voix absente = on la retire explicitement (null = garder l'ancienne)
+        await contenuService.regenererReel(source.id, { ...payload, voix: voix || 'none' });
+      } else if (depuisPost) {
+        await contenuService.genererReel(source.id, 'sequence', payload);
+      } else {
+        await contenuService.creerReel({ ...payload, brief: brief.trim(), reseau });
+      }
       toast.success(t('contenus.toast.reelEnFile'));
       navigate('/dashboard/contenus');
     } catch (e) {
@@ -124,10 +178,13 @@ export default function StudioReel() {
           <ArrowLeft className="w-4 h-4" />
         </button>
         <h1 className="text-xl sm:text-2xl font-bold font-sora flex items-center gap-2.5">
-          <Clapperboard className="w-5 h-5 text-[#8A6CFF]" />{t('contenus.reel.seq.creerTitre')}
+          <Clapperboard className="w-5 h-5 text-[#8A6CFF]" />
+          {modification ? t('contenus.reel.seq.modifier') : depuisPost ? t('contenus.reel.seq.depuisPost') : t('contenus.reel.seq.creerTitre')}
         </h1>
       </div>
-      <p className="text-[13.5px] text-slate-400 font-inter mb-6 ml-12">{t('contenus.reel.seq.description')}</p>
+      <p className="text-[13.5px] text-slate-400 font-inter mb-6 ml-12">
+        {source ? t('contenus.reel.seq.descriptionDepuisPost') : t('contenus.reel.seq.description')}
+      </p>
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-7 items-start">
         {/* ---- GAUCHE : galerie de templates ---- */}
@@ -165,20 +222,36 @@ export default function StudioReel() {
 
         {/* ---- DROITE : sujet, réseau, images, musique, CTA ---- */}
         <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-4 sm:p-5 space-y-5">
+          {source && (
+            <div data-testid="studio-reel-source" className="rounded-xl border border-[#5B6CFF]/30 bg-[#5B6CFF]/[0.06] px-3.5 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[11px] font-semibold tracking-wide text-[#a5b0ff] uppercase">
+                  {modification ? t('contenus.reel.seq.reelSource') : t('contenus.reel.seq.postSource')}
+                </span>
+                <button type="button" onClick={() => navigate('/dashboard/contenus')} className="text-[12px] text-slate-400 hover:text-white font-inter">
+                  {t('contenus.reel.seq.changerPost')}
+                </button>
+              </div>
+              <p className="mt-1.5 text-[13px] font-semibold text-white font-inter line-clamp-2">{source.titre}</p>
+              {source.contenu && <p className="mt-1 text-[12px] text-slate-400 font-inter line-clamp-3 whitespace-pre-line">{source.contenu}</p>}
+            </div>
+          )}
           <div>
-            <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.briefSujet')}</div>
+            <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">
+              {source ? t('contenus.reel.seq.brief') : t('contenus.reel.seq.briefSujet')}
+            </div>
             <textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} maxLength={500}
               placeholder={t('contenus.reel.seq.briefPh')} data-testid="studio-reel-brief"
               className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 resize-none" />
           </div>
 
-          <div>
+          {!source && <div>
             <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.reseau')}</div>
             <select value={reseau} onChange={(e) => setReseau(e.target.value)}
               className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
               {['Instagram', 'TikTok', 'Facebook', 'LinkedIn', 'YouTube'].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
-          </div>
+          </div>}
 
           {/* Visuels choisis */}
           {images.length > 0 && (
@@ -271,7 +344,8 @@ export default function StudioReel() {
 
           <button type="button" onClick={generer} disabled={generating || uploading} data-testid="studio-reel-generer"
             className="w-full text-[14px] font-semibold font-inter text-white px-5 py-3 rounded-xl bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2">
-            {generating ? <><Loader2 className="w-4 h-4 animate-spin" />{t('contenus.reel.seq.envoi')}</> : t('contenus.reel.seq.monter')}
+            {generating ? <><Loader2 className="w-4 h-4 animate-spin" />{t('contenus.reel.seq.envoi')}</>
+              : modification ? t('contenus.reel.seq.remonter') : t('contenus.reel.seq.monter')}
           </button>
         </div>
       </div>

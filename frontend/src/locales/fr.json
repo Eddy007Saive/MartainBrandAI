@@ -330,6 +330,13 @@
       "description": "Le post est transformé en vidéo verticale animée à ta charte. Choisis le template :",
       "nouveau": "★ Nouveau",
       "seq": {
+        "depuisPost": "Reel à partir de ton post",
+        "descriptionDepuisPost": "L'IA écrit le scénario à partir du post. Choisis un style, des visuels, une musique et une voix ; ajoute des consignes si tu veux.",
+        "postSource": "Post source",
+        "reelSource": "Reel modifié",
+        "changerPost": "Changer de post",
+        "remonter": "Refaire le montage",
+        "sourceIntrouvable": "Contenu introuvable.",
         "titre": "Reel Séquence",
         "description": "Choisis les images de ton reel (import ou banque), ajoute des consignes si tu veux : l'IA écrit les textes et monte la vidéo.",
         "importer": "Ajouter des images",
