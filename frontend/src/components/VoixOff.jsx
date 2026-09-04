@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Check, Mic, Pause, Play } from 'lucide-react';
+import { Check, Mic, Play } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
 
 /**
@@ -78,38 +78,36 @@ export default function VoixOff({ valeur, onChange }) {
 
       {on && (
         <div className="mt-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1.5">
             {voix.map((v) => {
               const actif = valeur === v.id;
               const enEcoute = joue === v.id;
               const contenu = (
                 <>
-                  <button type="button" onClick={(e) => ecouter(e, v.id, v.apercu)} disabled={v.verrou || !v.apercu}
+                  <button type="button" onClick={(e) => ecouter(e, v.id, v.apercu)} disabled={v.verrou || !v.apercu} title={t('voixOff.ecouter')}
                     aria-label={t('voixOff.ecouter')} data-testid={`reel-voix-ecouter-${v.id}`}
-                    className={`w-9 h-9 rounded-[10px] border grid place-items-center shrink-0 transition-all ${enEcoute ? 'border-[#3AFFA3]/60 text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:border-white/30 hover:text-white'} ${v.verrou ? 'border-dashed' : ''}`}>
-                    {v.verrou ? <Mic className="w-3.5 h-3.5" />
-                      : enEcoute ? <span className="flex items-end gap-[2px] h-3.5">{ONDE.map((d) => <i key={d} className="block w-[2px] rounded-sm bg-current animate-onde" style={{ animationDelay: `${d}s` }} />)}</span>
-                      : <Play className="w-3.5 h-3.5" />}
+                    className={`w-7 h-7 rounded-lg border grid place-items-center shrink-0 transition-all ${enEcoute ? 'border-[#3AFFA3]/60 text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:border-white/30 hover:text-white'} ${v.verrou ? 'border-dashed' : ''}`}>
+                    {v.verrou ? <Mic className="w-3 h-3" />
+                      : enEcoute ? <span className="flex items-end gap-[2px] h-3">{ONDE.map((d) => <i key={d} className="block w-[2px] rounded-sm bg-current animate-onde" style={{ animationDelay: `${d}s` }} />)}</span>
+                      : <Play className="w-3 h-3" />}
                   </button>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2 text-[13.5px] font-semibold text-white font-inter">
-                      {v.nom}
-                      {v.id === 'moi' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#c4b5fd] border border-[#8A6CFF]/30 font-bold tracking-wide">PRO</span>}
-                    </span>
-                    <span className="block text-[12px] text-slate-500 font-inter leading-snug">{v.desc}</span>
+                  <span className="min-w-0 flex-1 flex items-center gap-1.5 text-[13px] font-semibold text-white font-inter">
+                    <span className="truncate">{v.nom}</span>
+                    {v.id === 'moi' && <span className="text-[8.5px] px-1 py-px rounded-full bg-[#8A6CFF]/15 text-[#c4b5fd] border border-[#8A6CFF]/30 font-bold tracking-wide shrink-0">PRO</span>}
                   </span>
-                  <span className={`w-[18px] h-[18px] rounded-full border-[1.5px] grid place-items-center shrink-0 ${actif ? 'border-[#3AFFA3] bg-[#3AFFA3] text-[#04130c]' : 'border-white/10 text-transparent'}`}>
-                    <Check className="w-[11px] h-[11px]" strokeWidth={3} />
+                  <span className={`w-4 h-4 rounded-full border-[1.5px] grid place-items-center shrink-0 ${actif ? 'border-[#3AFFA3] bg-[#3AFFA3] text-[#04130c]' : 'border-white/10 text-transparent'}`}>
+                    <Check className="w-[10px] h-[10px]" strokeWidth={3} />
                   </span>
                 </>
               );
-              const classes = `flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all ${actif ? 'border-[#3AFFA3]/55 bg-[#3AFFA3]/[0.05]' : 'border-white/10 bg-slate-950/40 hover:border-white/25'} ${v.verrou ? 'opacity-60' : ''}`;
+              // Nom seul ; la description vit dans l'infobulle (title) : la colonne est étroite.
+              const classes = `flex items-center gap-2 px-2 py-1.5 rounded-[10px] border text-left transition-all ${actif ? 'border-[#3AFFA3]/55 bg-[#3AFFA3]/[0.05]' : 'border-white/10 bg-slate-950/40 hover:border-white/25'} ${v.verrou ? 'opacity-60' : ''}`;
               return v.verrou
-                ? <Link key={v.id} to="/dashboard/parametres?s=marque" className={classes} data-testid="reel-voix-moi-creer" title={t('voixOff.maVoixAbsente')}>{contenu}</Link>
-                : <button key={v.id} type="button" onClick={() => choisir(v.id)} className={classes} data-testid={`reel-voix-${v.id}`}>{contenu}</button>;
+                ? <Link key={v.id} to="/dashboard/parametres?s=marque" className={classes} data-testid="reel-voix-moi-creer" title={v.desc}>{contenu}</Link>
+                : <button key={v.id} type="button" onClick={() => choisir(v.id)} className={classes} data-testid={`reel-voix-${v.id}`} title={v.desc}>{contenu}</button>;
             })}
           </div>
-          <div className="mt-2 flex items-start justify-between gap-3 text-[11.5px] text-slate-500 font-inter">
+          <div className="mt-2 flex items-start justify-between gap-3 text-[11px] text-slate-500 font-inter">
             <span>{valeur === 'moi' ? t('voixOff.resumeMoi') : t('voixOff.resume', { nom: nomChoisi || '' })}</span>
             {!cloneOk && <Link to="/dashboard/parametres?s=marque" className="shrink-0 font-semibold text-[#a5b0ff] hover:underline">{t('voixOff.creerMaVoix')}</Link>}
           </div>
