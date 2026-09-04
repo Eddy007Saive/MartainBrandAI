@@ -56,6 +56,16 @@ export const contenuService = {
   creerReel: (extra = {}) => api.post('/reels/creer', extra).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data),   // {templates, musiques, categories}
   reelRecommander: (id) => api.get(`/reels/recommander/${id}`).then(r => r.data),
+  // Voix off : catalogue (extraits), clone du client, voix par défaut
+  reelVoix: () => api.get('/reels/voix').then(r => r.data),
+  reelVoixCloner: (file, consentement) => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('consentement', consentement ? 'true' : 'false');
+    return api.post('/reels/voix/clone', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 240000 }).then(r => r.data);
+  },
+  reelVoixSupprimer: () => api.delete('/reels/voix/clone').then(r => r.data),
+  reelVoixDefaut: (voix) => api.patch('/reels/voix/defaut', { voix }).then(r => r.data),
 
   // Replanifie sur le prochain créneau libre (algorithme de planification) + reprogramme Zernio
   replanifier: (id) => api.post(`/contenus/${id}/replanifier`).then(r => r.data),

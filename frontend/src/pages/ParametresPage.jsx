@@ -26,6 +26,7 @@ import InvoicesList from '../components/InvoicesList';
 import { COMMON_TIMEZONES } from '../lib/tz';
 import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
+import MaVoix from '../components/MaVoix';
 import { billingService } from '../services/billingService';
 import { useAbonnement } from '../context/AbonnementContext';
 import Resiliation from '../components/Resiliation';
@@ -877,6 +878,9 @@ export default function ParametresPage() {
               placeholder={t('params.marque.aEviterPlaceholder')} />
           </div>
         </Bloc>
+
+        {/* MA VOIX — clone de la voix du client pour la voix off des reels */}
+        <MaVoix />
 
         {/* MATIERE A ECRIRE — trois listes, une idee par ligne */}
         <Bloc titre={t('params.marque.matiere')} sous={t('params.marque.matiereSous')}>

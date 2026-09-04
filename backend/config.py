@@ -62,6 +62,8 @@ OPENROUTER_API_KEY = (os.environ.get('OPENROUTER_API_KEY')
 # OpenAI : uniquement les embeddings de la « mémoire de voix » (services/memoire_service.py).
 # `OPENS_API` = nom historique de la variable dans backend/.env.
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY') or os.environ.get('OPENS_API') or ''
+# ElevenLabs : voix off des reels (catalogue + clone de la voix du client)
+ELEVENLABS_API_KEY = os.environ.get('ELEVENLABS_API_KEY', '')
 EMBEDDING_MODEL = os.environ.get('EMBEDDING_MODEL', 'text-embedding-3-small')
 # Interrupteur : à 0, la rédaction n'injecte plus les exemples de posts validés (pour comparer).
 MEMOIRE_VOIX_ACTIVE = os.environ.get('MEMOIRE_VOIX_ACTIVE', '1') != '0'

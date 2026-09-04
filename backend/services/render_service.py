@@ -39,7 +39,7 @@ STALE_MIN = 15
 # ----------------------------------------------------------------------------
 def enqueue(row_id: str, telegram_id: str, *, composition: str, props: dict, prefix: str,
             etiquette: str, upload: dict, action_type: str, notif: str,
-            restaurer: dict = None, extra: dict = None) -> None:
+            restaurer: dict = None, extra: dict = None, voix: str = None) -> None:
     """Accroche un job de rendu a une ligne contenu existante et la passe en
     en_traitement. `upload` = {public_id, folder?} (Cloudinary, resource_type video).
     `extra` = colonnes a poser en meme temps (ex. reel_data, video_url=None pour une
@@ -48,6 +48,8 @@ def enqueue(row_id: str, telegram_id: str, *, composition: str, props: dict, pre
            "upload": upload, "action_type": action_type, "notif": notif, "tentatives": 0}
     if restaurer:
         job["restaurer"] = restaurer
+    if voix:
+        job["voix"] = voix      # voix off : synthétisée par le worker juste avant le rendu
     maj = {"render_job": job, "video_status": "en_traitement", "render_started_at": None}
     if extra:
         maj.update(extra)
@@ -187,9 +189,26 @@ async def traiter_suivant() -> bool:
     rid, tid = row["id"], row.get("telegram_id")
     upload = job.get("upload") or {"folder": f"stories/{tid}",
                                    "public_id": f"{(rid or 'tmp').replace('-', '')[:16]}_anime"}
+    props = job.get("props") or {}
+    if job.get("voix") and not job.get("voix_faite") and not job.get("voix_echec"):
+        # Voix off : une phrase par plan, MP3 sur Cloudinary, durées posées dans les
+        # props. Persisté dans le job : une nouvelle tentative ne re-paie pas la synthèse.
+        from services import voix_service
+        try:
+            props = await asyncio.to_thread(voix_service.appliquer, tid, props, job["voix"])
+            job = {**job, "props": props, "voix_faite": True}
+            supabase.table("contenu").update({"render_job": job}).eq("id", rid).execute()
+        except Exception as e:
+            # La voix ne doit jamais faire échouer le reel : on rend sans, on rembourse la voix.
+            logger.warning(f"render worker: voix off impossible pour {rid}, rendu muet : {e}")
+            job = {**job, "voix_echec": str(e)[:200]}
+            try:
+                quota_service.refund_by_user(tid, "voix")
+            except Exception as e2:
+                logger.warning(f"render worker refund voix {rid}: {e2}")
     try:
         mp4 = await asyncio.to_thread(
-            remotion_service.render_mp4, job.get("props") or {}, composition,
+            remotion_service.render_mp4, props, composition,
             telegram_id=tid, etiquette=job.get("etiquette") or composition,
             prefix=job.get("prefix") or "remotion")
         if not _existe(rid):
@@ -234,6 +253,8 @@ async def traiter_suivant() -> bool:
         # Le rendu ne sera jamais publie : on rend son unite de quota.
         try:
             quota_service.refund_by_user(tid, job.get("action_type") or "story")
+            if job.get("voix") and not job.get("voix_echec"):
+                quota_service.refund_by_user(tid, "voix")
         except Exception as e2:
             logger.warning(f"render worker refund {rid}: {e2}")
         row["_echec"] = True

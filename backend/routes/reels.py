@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 from dependencies import verify_token
+from config import supabase
 from services import reel_service, banque_service, music_library, quota_service
 from config import logger
 
@@ -20,6 +21,7 @@ class ReelRequest(BaseModel):
     brief: str | None = None                # Sequence : consignes libres du client
     style: str | None = None                # Sequence : habillage (signature/cinema/…)
     musique: str | None = None              # Sequence : piste de fond (bibliotheque partagee)
+    voix: str | None = None                 # Sequence : voix off (victor|yann|adina|moi), None = muet
 
 
 @router.get("/templates")
@@ -88,6 +90,37 @@ def recommander(contenu_id: str, payload: dict = Depends(verify_token)):
     return reel_service.recommander_template(telegram_id, contenu_id)
 
 
+def _consommer_voix(telegram_id: str, voix: str | None, q_reel: dict) -> dict | None:
+    """Voix off demandée : valide le choix, puis consomme 1 « voix ». En cas de refus,
+    le quota reel déjà réservé est rendu (rien n'a été produit)."""
+    if not voix or voix == "none":
+        return None
+    from services import voix_service
+    try:
+        voix_service.valider_choix(telegram_id, voix)
+    except ValueError as e:
+        quota_service.refund(q_reel)
+        raise HTTPException(status_code=400, detail=str(e))
+    qv = quota_service.consume(telegram_id, "voix")
+    if not qv.get("ok"):
+        quota_service.refund(q_reel)
+        raise HTTPException(status_code=402, detail={
+            "raison": qv.get("reason") or "quota",
+            "message": qv.get("message") or "Voix off indisponible.",
+        })
+    return qv
+
+
+def _rendre_voix(qv: dict | None) -> None:
+    if qv:
+        quota_service.refund(qv)
+
+
+def _confirmer_voix(qv: dict | None) -> None:
+    if qv:
+        quota_service.confirm(qv)
+
+
 @router.post("/generer")
 def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
     """Transforme un post existant en reel MP4 anime a la charte du client (Remotion).
@@ -106,19 +139,21 @@ def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
     template = body.template or "affiche"
     if body.duree == "long":  # retro-compat
         template = "long"
+    voix = body.voix if template.startswith("sequence") else None
+    qv = _consommer_voix(telegram_id, voix, q)
     images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
     try:
         res = reel_service.generer_reel(telegram_id, body.contenu_id, template=template,
                                         images=images or None, brief=(body.brief or "").strip() or None,
-                                        style=body.style, musique=body.musique)
+                                        style=body.style, musique=body.musique, voix=voix)
     except Exception as e:
-        quota_service.refund(q)
+        quota_service.refund(q); _rendre_voix(qv)
         logger.error(f"generer reel: {e}")
         raise HTTPException(status_code=500, detail="Echec de la generation du reel")
     if res.get("error"):
-        quota_service.refund(q)
+        quota_service.refund(q); _rendre_voix(qv)
         raise HTTPException(status_code=400, detail=res["error"])
-    quota_service.confirm(q)
+    quota_service.confirm(q); _confirmer_voix(qv)
     return res
 
 
@@ -128,6 +163,7 @@ class ReelLibreRequest(BaseModel):
     reseau: str | None = None
     style: str | None = None
     musique: str | None = None
+    voix: str | None = None
 
 
 @router.post("/creer")
@@ -143,19 +179,20 @@ def creer(body: ReelLibreRequest, payload: dict = Depends(verify_token)):
             "raison": q.get("reason") or "quota",
             "message": q.get("message") or "Génération indisponible.",
         })
+    qv = _consommer_voix(telegram_id, body.voix, q)
     images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
     try:
         res = reel_service.creer_reel_libre(telegram_id, body.brief,
                                             images=images or None, reseau=body.reseau or "Instagram",
-                                            style=body.style, musique=body.musique)
+                                            style=body.style, musique=body.musique, voix=body.voix)
     except Exception as e:
-        quota_service.refund(q)
+        quota_service.refund(q); _rendre_voix(qv)
         logger.error(f"creer reel libre: {e}")
         raise HTTPException(status_code=500, detail="Echec de la creation du reel")
     if res.get("error"):
-        quota_service.refund(q)
+        quota_service.refund(q); _rendre_voix(qv)
         raise HTTPException(status_code=400, detail=res["error"])
-    quota_service.confirm(q)
+    quota_service.confirm(q); _confirmer_voix(qv)
     return res
 
 
@@ -165,6 +202,7 @@ class ReelRegenRequest(BaseModel):
     brief: str | None = None
     style: str | None = None
     musique: str | None = None
+    voix: str | None = None                 # None = garder celle du reel ; "none" = retirer
 
 
 @router.post("/regenerer")
@@ -182,19 +220,30 @@ def regenerer(body: ReelRegenRequest, payload: dict = Depends(verify_token)):
             "raison": q.get("reason") or "quota",
             "message": q.get("message") or "Génération indisponible.",
         })
+    voix = body.voix
+    if voix is None:
+        # Non précisée : on garde celle du reel, et elle se re-synthétise -> elle compte.
+        try:
+            cur = supabase.table("contenu").select("reel_data").eq("id", body.reel_id) \
+                .eq("telegram_id", telegram_id).limit(1).execute().data
+            voix = ((cur[0].get("reel_data") or {}).get("voix") if cur else None) or None
+        except Exception:
+            voix = None
+    qv = _consommer_voix(telegram_id, voix, q)
     images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
     try:
         res = reel_service.regenerer_reel(telegram_id, body.reel_id,
                                           images=images or None, brief=(body.brief or "").strip() or None,
-                                          style=body.style, musique=body.musique)
+                                          style=body.style, musique=body.musique,
+                                          voix=(body.voix if body.voix is not None else voix) or "none")
     except Exception as e:
-        quota_service.refund(q)
+        quota_service.refund(q); _rendre_voix(qv)
         logger.error(f"regenerer reel: {e}")
         raise HTTPException(status_code=500, detail="Echec de la regeneration du reel")
     if res.get("error"):
-        quota_service.refund(q)
+        quota_service.refund(q); _rendre_voix(qv)
         raise HTTPException(status_code=400, detail=res["error"])
-    quota_service.confirm(q)
+    quota_service.confirm(q); _confirmer_voix(qv)
     return res
 
 
@@ -260,3 +309,59 @@ def banque_supprimer(asset_id: str, payload: dict = Depends(verify_token)):
     if res.get("error"):
         raise HTTPException(status_code=404, detail=res["error"])
     return res
+
+
+# ---------------------------------------------------------------- voix off
+@router.get("/voix")
+def voix_catalogue(payload: dict = Depends(verify_token)):
+    """Catalogue des voix (extraits à écouter), état du clone du client, voix par défaut."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    from services import voix_service
+    return voix_service.catalogue(telegram_id)
+
+
+@router.post("/voix/clone")
+async def voix_cloner(file: UploadFile = File(...), consentement: bool = Form(False),
+                      payload: dict = Depends(verify_token)):
+    """Crée (ou remplace) le clone de la voix du client. Forfait payé + consentement."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if not quota_service.is_paid(telegram_id):
+        raise HTTPException(status_code=402, detail={"raison": "quota", "message": "La voix personnalisée est réservée à l'offre Pro."})
+    data = await file.read()
+    from services import voix_service
+    try:
+        return voix_service.creer_clone(telegram_id, data, file.filename, bool(consentement))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"voix clone {telegram_id}: {e}")
+        raise HTTPException(status_code=500, detail="Le clonage a échoué, réessaie.")
+
+
+@router.delete("/voix/clone")
+def voix_supprimer(payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    from services import voix_service
+    return voix_service.supprimer_clone(telegram_id)
+
+
+class VoixDefaut(BaseModel):
+    voix: str | None = None
+
+
+@router.patch("/voix/defaut")
+def voix_defaut(body: VoixDefaut, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    from services import voix_service
+    try:
+        return voix_service.choisir_defaut(telegram_id, body.voix)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
