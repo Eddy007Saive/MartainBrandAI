@@ -211,6 +211,14 @@ async def stripe_webhook(request: Request):
                 await mail_service.send_email(ADMIN_NOTIF_EMAIL, subject, html)
             except Exception as e:
                 logger.error(f"webhook admin notif: {e}")
+        # Mail 1 au CLIENT : premier échec de prélèvement (lien direct de régularisation)
+        impaye = result.get("client_impaye") if isinstance(result, dict) else None
+        if impaye:
+            try:
+                sujet, html = mail_service.impaye_echec_html(impaye.get("nom"), impaye["lien"])
+                await mail_service.send_email(impaye["email"], sujet, html)
+            except Exception as e:
+                logger.error(f"webhook mail impayé client: {e}")
         # Facture au CLIENT (paiement d'abonnement réussi ou achat de pack)
         facture = result.get("facture") if isinstance(result, dict) else None
         if facture:

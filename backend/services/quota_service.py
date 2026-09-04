@@ -88,7 +88,7 @@ def statut_abonnement(telegram_id: str) -> str | None:
     """« active », « trialing », « past_due »… ou None si le compte n'a rien."""
     try:
         r = (supabase.table("subscriptions").select("status").eq("user_id", telegram_id)
-             .in_("status", ["active", "trialing", "past_due"]).limit(1).execute())
+             .in_("status", ["active", "trialing", "past_due", "suspended"]).limit(1).execute())
         return r.data[0]["status"] if r.data else None
     except Exception:
         return None
@@ -173,6 +173,10 @@ def _message(action_type: str, reason: str, limit=None) -> str:
         # lui bloque deja tout nouvel essai gratuit cote checkout, donc lui promettre
         # « 14 jours gratuits » ici serait faux.
         return "Réactive ton abonnement pour continuer."
+    if reason == "impaye":
+        return "Ton dernier prélèvement n'est pas passé. Mets à jour ta carte pour reprendre la génération."
+    if reason == "suspendu":
+        return "Paiement en attente depuis plus de dix jours : tes réseaux ont été déconnectés. Régularise pour reprendre."
     if reason == "expired":
         return "Ton essai est terminé. Passe à l'offre Pro pour continuer."
     if reason == "not_in_plan":
@@ -195,7 +199,7 @@ def en_pause(telegram_id: str):
     """
     try:
         r = (supabase.table("subscriptions").select("pause_jusqu_au").eq("user_id", telegram_id)
-             .in_("status", ["active", "trialing", "past_due"]).limit(1).execute())
+             .in_("status", ["active", "trialing", "past_due", "suspended"]).limit(1).execute())
         return (r.data[0].get("pause_jusqu_au") if r.data else None) or None
     except Exception:
         return None   # colonne absente (migration non passee) : on ne bloque personne
@@ -210,6 +214,14 @@ def consume(telegram_id: str, action_type: str, qty: int = 1) -> dict:
     if en_pause(telegram_id):
         return {"ok": False, "reason": "pause", "action_type": action_type, "qty": qty,
                 "message": "Ton compte est en pause. Reprends-le quand tu veux, tout est conservé."}
+    # Impayé (cran 1) : la carte est là mais le dernier prélèvement a échoué. On
+    # arrête de dépenser pour ce compte jusqu'à l'encaissement. La RPC refuse
+    # aussi (filet) ; ici on distingue grâce et suspendu pour le mur.
+    statut = statut_abonnement(telegram_id)
+    if statut in ("past_due", "suspended"):
+        reason = "impaye" if statut == "past_due" else "suspendu"
+        return {"ok": False, "reason": reason, "action_type": action_type, "qty": qty,
+                "message": _message(action_type, reason)}
     try:
         res = supabase.rpc("consume_quota", {"p_user": telegram_id, "p_action": action_type, "p_qty": qty}).execute()
         data = res.data if isinstance(res.data, dict) else {}
@@ -232,7 +244,7 @@ def refund_by_user(telegram_id: str, action_type: str, qty: int = 1) -> None:
     quand on n'a plus le ctx du consume — on retrouve l'abonnement du compte."""
     try:
         r = (supabase.table("subscriptions").select("id").eq("user_id", telegram_id)
-             .in_("status", ["trialing", "active", "past_due"]).order("created_at", desc=True).limit(1).execute())
+             .in_("status", ["trialing", "active", "past_due", "suspended"]).order("created_at", desc=True).limit(1).execute())
         sub_id = r.data[0]["id"] if r.data else None
         if sub_id:
             refund({"subscription_id": sub_id, "action_type": action_type, "qty": qty})
@@ -279,7 +291,7 @@ def usage(telegram_id: str) -> dict:
         logger.warning(f"ensure_period_counters {telegram_id}: {e}")
     try:
         sub = (supabase.table("subscriptions").select("*").eq("user_id", telegram_id)
-               .in_("status", ["trialing", "active", "past_due"]).order("created_at", desc=True).limit(1).execute())
+               .in_("status", ["trialing", "active", "past_due", "suspended"]).order("created_at", desc=True).limit(1).execute())
         if not sub.data:
             return {"subscription": None, "gauges": []}
         s = sub.data[0]

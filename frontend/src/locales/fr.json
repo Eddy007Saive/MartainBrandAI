@@ -2530,6 +2530,16 @@
       "ok": "Continuer"
     }
   },
+  "reconnexion": {
+    "surTitre": "Bon retour",
+    "fermer": "Plus tard",
+    "titre": "Paiement reçu, reconnecte tes réseaux",
+    "texte": "Pendant l'impayé, ces réseaux ont été déconnectés. Reconnecte-les pour reprendre la publication : c'est trois clics, et tes publications annulées se reprogramment d'un bouton dans Contenus.",
+    "deconnecteLe": "Déconnecté le {{date}}",
+    "ignorer": "Ignorer",
+    "cta": "Reconnecter mes réseaux",
+    "note": "La génération reprend dès qu'au moins un réseau est reconnecté."
+  },
   "mur": {
     "surTitre": "Dernière étape",
     "fermer": "Fermer",
@@ -2540,6 +2550,24 @@
     "g3": "Résiliable à tout moment, en un clic depuis Paramètres.",
     "cta": "Démarrer mes 14 jours",
     "stripe": "Paiement sécurisé par Stripe. Nous ne voyons jamais votre numéro de carte.",
+    "impaye": {
+      "surTitre": "Paiement en attente",
+      "titre": "Ton dernier prélèvement n'est pas passé",
+      "texte": "Ta banque a refusé le paiement de ton abonnement, souvent une carte expirée. La génération est en pause jusqu'à la régularisation ; tes publications déjà validées continuent de partir.",
+      "g1": "Mets ta carte à jour en deux minutes, la génération reprend aussitôt.",
+      "g2": "Sans régularisation sous 10 jours, tes réseaux seront déconnectés.",
+      "g3": "Ta marque, tes gabarits et tes contenus restent en place.",
+      "cta": "Mettre à jour ma carte"
+    },
+    "suspendu": {
+      "surTitre": "Réseaux déconnectés",
+      "titre": "Paiement en attente depuis plus de 10 jours",
+      "texte": "Tes réseaux ont été déconnectés et les publications programmées annulées. Régularise ton paiement : un écran te proposera ensuite de tout reconnecter en trois clics.",
+      "g1": "Reconnexion guidée de tes réseaux dès le paiement reçu.",
+      "g2": "Sans régularisation sous 30 jours, l'abonnement sera résilié.",
+      "g3": "Tu gardes un accès en lecture à tous tes contenus.",
+      "cta": "Régulariser mon paiement"
+    },
     "retour": {
       "surTitre": "Reprends où tu t'es arrêté",
       "titre": "Réactive ton abonnement",

@@ -62,6 +62,11 @@ def enregistrer_compte(telegram_id: str, plateforme: str, account_id: str) -> bo
             demarrage_service.oublier(telegram_id)  # l'étape « réseau » du démarrage vient d'être faite
         except Exception:
             pass
+        try:
+            from services import impaye_service
+            impaye_service.marquer_retabli(telegram_id, plateforme)  # reconnexion guidée après suspension
+        except Exception:
+            pass
         return True
     except Exception as e:
         logger.error(f"enregistrer_compte {telegram_id}/{plateforme}: {e}")
@@ -315,7 +320,7 @@ async def disconnect_platform(telegram_id: str, platform: str) -> dict:
     return {"success": True}
 
 
-async def _annuler_programmations(telegram_id: str) -> int:
+async def _annuler_programmations(telegram_id: str, raison: str = None, titre_notif: str = None) -> int:
     """Fin d'abonnement : les publications déjà programmées ne partiront jamais (les comptes
     Late vont être supprimés). Sans ça, elles resteraient affichées « Planifié » indéfiniment.
 
@@ -342,8 +347,8 @@ async def _annuler_programmations(telegram_id: str) -> int:
                 await late_service.cancel_post(c["late_post_id"])
             except Exception as e:
                 logger.warning(f"annuler_programmations: cancel Late {c['late_post_id']}: {e}")
-    raison = ("Abonnement résilié : tes réseaux ont été déconnectés, la publication a été annulée. "
-              "Reconnecte tes réseaux puis clique « Réessayer » pour la reprogrammer.")
+    raison = raison or ("Abonnement résilié : tes réseaux ont été déconnectés, la publication a été annulée. "
+                        "Reconnecte tes réseaux puis clique « Réessayer » pour la reprogrammer.")
     try:
         (supabase.table("contenu")
          .update({"statut": "Valider", "publish_status": "échec", "publish_error": raison, "late_post_id": None})
@@ -357,8 +362,9 @@ async def _annuler_programmations(telegram_id: str) -> int:
         notification_service.notifier(
             telegram_id, rows[0]["id"], rows[0].get("reseau_cible"), "post.cancelled",
             f"{n} publication{'s' if n > 1 else ''} annulée{'s' if n > 1 else ''}",
-            "Ton abonnement est terminé : les publications programmées ne partiront pas. "
-            "Elles restent dans Contenus, prêtes à être reprogrammées si tu reviens.")
+            (f"{titre_notif} : les publications programmées ne partiront pas. " if titre_notif
+             else "Ton abonnement est terminé : les publications programmées ne partiront pas. ")
+            + "Elles restent dans Contenus, prêtes à être reprogrammées si tu reviens.")
     except Exception as e:
         logger.warning(f"annuler_programmations notification: {e}")
     logger.info(f"annuler_programmations : {len(rows)} publication(s) annulée(s) pour {telegram_id}")

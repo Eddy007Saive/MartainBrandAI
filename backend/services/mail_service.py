@@ -550,3 +550,111 @@ def releve_affilie_html(nom: str, periode: str, montant: float, devise: str, nb:
     </td></tr>"""
     return sujet, _shell(inner, width=480, teinte="succes",
                          apercu=f"{ventes} · {montant_txt} {devise_sym} à facturer")
+
+
+# ---------------------------------------------------------------- impayés
+def _impaye_liste_reseaux(reseaux) -> str:
+    if not reseaux:
+        return ""
+    items = "".join(f'<li style="margin:0 0 4px;">{_html.escape(str(r).capitalize())}</li>' for r in reseaux)
+    return f'<ul style="margin:0 0 18px;padding-left:20px;color:#334155;font-size:14px;line-height:1.6;">{items}</ul>'
+
+
+def impaye_echec_html(nom: str, lien: str) -> tuple:
+    """Mail 1 : le prélèvement a échoué. Ton neutre, pas de reproche : la plupart
+    du temps c'est une carte expirée. Lien DIRECT de régularisation."""
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Ton dernier paiement n'est pas passé</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 18px;">
+        Le prélèvement de ton abonnement Postorico a été refusé par ta banque. C'est souvent une carte
+        expirée ou un plafond atteint, rien de grave : il suffit de mettre à jour ton moyen de paiement.
+      </p>
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#fff8ec;border:1px solid #f6d9a6;border-radius:10px;margin:0 0 24px;">
+        <tr><td style="padding:14px 18px;color:#8a5a00;font-size:13.5px;line-height:1.6;">
+          En attendant, la génération de nouveaux contenus est <strong>en pause</strong>. Tes publications déjà
+          validées continuent de partir, et tu gardes accès à tout le reste.
+        </td></tr>
+      </table>
+      {_bouton(lien, "Mettre à jour mon moyen de paiement")}
+      {_lien_secours(lien)}
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
+        Une question, une trésorerie serrée ce mois-ci ? Réponds simplement à cet email, on trouve une solution.
+      </p>
+    </td></tr>"""
+    return ("Ton paiement Postorico n'est pas passé",
+            _shell(inner, width=480, teinte="alerte", apercu="Mets à jour ta carte pour reprendre la génération."))
+
+
+def impaye_avertissement_html(nom: str, lien: str) -> tuple:
+    """Mail 2, J+9 : demain, les réseaux seront déconnectés."""
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Demain, tes réseaux seront déconnectés</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 18px;">
+        Ton paiement est en attente depuis neuf jours. Sans régularisation d'ici demain, nous déconnecterons
+        tes réseaux sociaux de Postorico et annulerons les publications programmées.
+        Il faudra ensuite les reconnecter à la main.
+      </p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 18px;">
+        Deux minutes suffisent pour l'éviter :
+      </p>
+      {_bouton(lien, "Régulariser maintenant")}
+      {_lien_secours(lien)}
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
+        Rien n'est perdu : ta marque, tes gabarits et tes contenus restent en place quoi qu'il arrive.
+      </p>
+    </td></tr>"""
+    return ("Demain, tes réseaux seront déconnectés de Postorico",
+            _shell(inner, width=480, teinte="alerte", apercu="Régularise aujourd'hui pour garder tes réseaux connectés."))
+
+
+def impaye_suspension_html(nom: str, lien: str, reseaux=None) -> tuple:
+    """Mail 3, J+10 : confirmation de la suspension, liste des réseaux déconnectés."""
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Tes réseaux ont été déconnectés</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 14px;">
+        Faute de paiement depuis dix jours, nous avons déconnecté ces réseaux de Postorico et annulé
+        les publications qui étaient programmées :
+      </p>
+      {_impaye_liste_reseaux(reseaux)}
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 18px;">
+        Dès que ton paiement est régularisé, un écran te propose de les reconnecter en trois clics,
+        et tes publications annulées peuvent être reprogrammées d'un bouton.
+      </p>
+      {_bouton(lien, "Régulariser mon paiement")}
+      {_lien_secours(lien)}
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
+        Sans régularisation sous vingt jours, l'abonnement sera résilié. Tu gardes un accès en lecture à tes contenus.
+      </p>
+    </td></tr>"""
+    return ("Tes réseaux ont été déconnectés de Postorico",
+            _shell(inner, width=480, teinte="erreur", apercu="Régularise pour reconnecter tes réseaux en trois clics."))
+
+
+def impaye_dernier_avis_html(nom: str, lien: str) -> tuple:
+    """Mail 4, J+29 : dernier avis avant résiliation."""
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Dernier avis avant résiliation</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 18px;">
+        Ton abonnement Postorico est impayé depuis vingt-neuf jours. Demain, il sera résilié.
+        Tu conserveras un accès en lecture à tes contenus pendant six mois, mais la génération,
+        la programmation et la publication s'arrêteront.
+      </p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 18px;">
+        Pour continuer sans rien perdre, il suffit de régulariser aujourd'hui :
+      </p>
+      {_bouton(lien, "Régulariser et garder mon compte")}
+      {_lien_secours(lien)}
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
+        Si tu préfères arrêter, tu n'as rien à faire. Si c'est une question de trésorerie, réponds à cet email : on peut décaler.
+      </p>
+    </td></tr>"""
+    return ("Dernier avis avant la résiliation de ton abonnement Postorico",
+            _shell(inner, width=480, teinte="erreur", apercu="Demain, ton abonnement sera résilié. Régularise aujourd'hui."))

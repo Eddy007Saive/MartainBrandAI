@@ -18,6 +18,9 @@ export const userService = {
     api.patch('/users/me', data).then(r => r.data),
 
   // Premiers pas : état des 6 étapes du démarrage, calculé côté serveur depuis les données
+  // Reconnexion guidée après une suspension pour impayé (réseaux sauvegardés).
+  reconnexion: () => api.get('/users/me/reconnexion').then(r => r.data),
+  ignorerReconnexion: (plateforme) => api.post(`/users/me/reconnexion/${plateforme}/ignorer`).then(r => r.data),
   // force : contourne le cache serveur (20 s), juste après une action.
   demarrage: (force = false) =>
     api.get('/users/me/demarrage', { params: force ? { force: 1 } : {} }).then(r => r.data),

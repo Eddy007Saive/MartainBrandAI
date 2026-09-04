@@ -135,6 +135,10 @@ def exiger_profil(telegram_id: str) -> None:
     mur de paiement pour que l'intercepteur front sache quoi en faire. Une
     erreur de lecture laisse passer (le filet `profil_incomplet` de agent_service
     reste derrière)."""
+    # Après une suspension pour impayé régularisée : au moins un réseau reconnecté
+    # avant de générer (lève 400 reconnexion_requise, même forme d'objet).
+    from services import impaye_service
+    impaye_service.exiger_reconnexion(telegram_id)
     try:
         p = _profil(telegram_id)
     except Exception as e:

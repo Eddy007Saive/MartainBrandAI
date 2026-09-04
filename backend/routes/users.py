@@ -348,3 +348,25 @@ def update_schedules(data: ScheduleUpdate, payload: dict = Depends(verify_token)
     except Exception as e:
         logger.error(f"Update schedules error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/me/reconnexion")
+def get_reconnexion(payload: dict = Depends(verify_token)):
+    """Reconnexion guidée après une suspension pour impayé : les réseaux que le
+    compte avait, pas encore reconnectés. `a_afficher` une fois le paiement reçu."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=401, detail="Token invalide")
+    from services import impaye_service
+    return impaye_service.reconnexion(telegram_id)
+
+
+@router.post("/me/reconnexion/{plateforme}/ignorer")
+def ignorer_reconnexion(plateforme: str, payload: dict = Depends(verify_token)):
+    """Le client ne veut pas reconnecter ce réseau : on retire la ligne de la liste."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=401, detail="Token invalide")
+    from services import impaye_service
+    impaye_service.marquer_retabli(telegram_id, plateforme.lower(), abandonne=True)
+    return impaye_service.reconnexion(telegram_id)

@@ -2530,6 +2530,16 @@
       "ok": "Continuar"
     }
   },
+  "reconnexion": {
+    "surTitre": "Bienvenido de nuevo",
+    "fermer": "Más tarde",
+    "titre": "Pago recibido, reconecta tus redes",
+    "texte": "Durante el impago estas redes se desconectaron. Reconéctalas para retomar la publicación: tres clics, y tus publicaciones canceladas se reprograman con un botón en Contenidos.",
+    "deconnecteLe": "Desconectada el {{date}}",
+    "ignorer": "Omitir",
+    "cta": "Reconectar mis redes",
+    "note": "La generación se reanuda en cuanto al menos una red esté reconectada."
+  },
   "mur": {
     "surTitre": "Último paso",
     "fermer": "Cerrar",
@@ -2540,6 +2550,24 @@
     "g3": "Cancelable cuando quieras, con un clic desde Ajustes.",
     "cta": "Empezar mis 14 días",
     "stripe": "Pago seguro con Stripe. Nunca vemos tu número de tarjeta.",
+    "impaye": {
+      "surTitre": "Pago pendiente",
+      "titre": "Tu último cobro no se ha realizado",
+      "texte": "Tu banco rechazó el pago de la suscripción, normalmente una tarjeta caducada. La generación está en pausa hasta regularizarlo; tus publicaciones ya validadas siguen saliendo.",
+      "g1": "Actualiza tu tarjeta en dos minutos y la generación se reanuda al instante.",
+      "g2": "Sin regularización en 10 días, tus redes se desconectarán.",
+      "g3": "Tu marca, tus plantillas y tus contenidos se conservan.",
+      "cta": "Actualizar mi tarjeta"
+    },
+    "suspendu": {
+      "surTitre": "Redes desconectadas",
+      "titre": "Pago pendiente desde hace más de 10 días",
+      "texte": "Tus redes se han desconectado y las publicaciones programadas se han cancelado. Regulariza el pago: después una pantalla te ayudará a reconectar todo en tres clics.",
+      "g1": "Reconexión guiada de tus redes en cuanto se reciba el pago.",
+      "g2": "Sin regularización en 30 días, la suscripción se cancelará.",
+      "g3": "Conservas el acceso de lectura a todos tus contenidos.",
+      "cta": "Regularizar mi pago"
+    },
     "retour": {
       "surTitre": "Retoma donde lo dejaste",
       "titre": "Reactiva tu suscripción",

@@ -2530,6 +2530,16 @@
       "ok": "Continue"
     }
   },
+  "reconnexion": {
+    "surTitre": "Welcome back",
+    "fermer": "Later",
+    "titre": "Payment received, reconnect your networks",
+    "texte": "These networks were disconnected during the unpaid period. Reconnect them to resume publishing: three clicks, and your cancelled posts can be rescheduled with one button in Content.",
+    "deconnecteLe": "Disconnected on {{date}}",
+    "ignorer": "Skip",
+    "cta": "Reconnect my networks",
+    "note": "Generation resumes as soon as at least one network is reconnected."
+  },
   "mur": {
     "surTitre": "Last step",
     "fermer": "Close",
@@ -2540,6 +2550,24 @@
     "g3": "Cancel any time, in one click from Settings.",
     "cta": "Start my 14 days",
     "stripe": "Secure payment by Stripe. We never see your card number.",
+    "impaye": {
+      "surTitre": "Payment pending",
+      "titre": "Your last payment didn't go through",
+      "texte": "Your bank declined your subscription payment, usually an expired card. Generation is paused until it's settled; your already-approved posts keep publishing.",
+      "g1": "Update your card in two minutes and generation resumes immediately.",
+      "g2": "Without payment within 10 days, your networks will be disconnected.",
+      "g3": "Your brand, templates and content stay in place.",
+      "cta": "Update my card"
+    },
+    "suspendu": {
+      "surTitre": "Networks disconnected",
+      "titre": "Payment pending for over 10 days",
+      "texte": "Your networks have been disconnected and scheduled posts cancelled. Settle your payment: a screen will then help you reconnect everything in three clicks.",
+      "g1": "Guided reconnection of your networks as soon as payment is received.",
+      "g2": "Without payment within 30 days, the subscription will be cancelled.",
+      "g3": "You keep read access to all your content.",
+      "cta": "Settle my payment"
+    },
     "retour": {
       "surTitre": "Pick up where you left off",
       "titre": "Reactivate your subscription",

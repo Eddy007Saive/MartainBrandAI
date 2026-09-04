@@ -10,6 +10,7 @@ import { UserProvider, useUser } from '../context/UserContext';
 import { AbonnementProvider } from '../context/AbonnementContext';
 import MurPaiement from '../components/MurPaiement';
 import VisiteGuidee from '../components/VisiteGuidee';
+import EcranReconnexion from '../components/EcranReconnexion';
 import { DemarrageProvider } from '../context/DemarrageContext';
 import MurPause from '../components/MurPause';
 import { userService } from '../services/userService';
@@ -386,6 +387,7 @@ function DashboardContent() {
       {/* Visite guidée des premiers pas : même principe que le mur (une instance
           globale), l'étape courante vient du serveur (DemarrageContext). */}
       <VisiteGuidee />
+      <EcranReconnexion />
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative z-10 pt-16 md:pt-0">

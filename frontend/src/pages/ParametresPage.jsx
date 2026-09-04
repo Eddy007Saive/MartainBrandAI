@@ -1622,7 +1622,7 @@ export default function ParametresPage() {
     // chemin vers la resiliation — n'etait JAMAIS affiche a personne. Pas plus
     // que la date de renouvellement.
     const abo = usage?.subscription || null;
-    const abonne = ['active', 'trialing', 'past_due'].includes(abo?.status);
+    const abonne = ['active', 'trialing', 'past_due', 'suspended'].includes(abo?.status);
     const enEssai = abo?.status === 'trialing';
     const isPro = abonne;
     // « Pro reel » = paiement en cours (statut active). L'essai a un abonnement

@@ -54,16 +54,22 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthAttempt) {
       logout();  // session expirée -> efface localStorage + stockage natif (Preferences)
       window.location.href = '/login';
-    } else if (error.response?.status === 400 && error.response?.data?.detail?.raison === 'profil_incomplet') {
-      // Garde serveur du démarrage : profil de marque minimum manquant. On ramène le
-      // détail à sa chaîne (les appelants lisent `detail`), on prévient la visite
-      // guidée (qui se cale sur l'étape profil) et on propose le raccourci.
+    } else if (error.response?.status === 400
+               && ['profil_incomplet', 'reconnexion_requise'].includes(error.response?.data?.detail?.raison)) {
+      // Gardes serveur du démarrage : profil de marque minimum manquant, ou aucun
+      // réseau reconnecté après une suspension pour impayé. On ramène le détail à
+      // sa chaîne (les appelants lisent `detail`), on prévient la visite guidée
+      // (qui se cale sur l'étape concernée) et on propose le raccourci.
       const d = error.response.data.detail;
+      const reseau = d.raison === 'reconnexion_requise';
       const message = d.message || 'Complète ton profil de marque avant de générer.';
       error.response.data.detail = message;
       window.dispatchEvent(new CustomEvent('postorico:demarrage', { detail: d }));
       toast.error(message, {
-        action: { label: 'Compléter', onClick: () => { window.location.href = '/dashboard/parametres?s=marque'; } },
+        action: {
+          label: reseau ? 'Reconnecter' : 'Compléter',
+          onClick: () => { window.location.href = reseau ? '/dashboard/parametres?s=connections' : '/dashboard/parametres?s=marque'; },
+        },
         duration: 8000,
       });
       error.__handled = true;
@@ -89,9 +95,11 @@ api.interceptors.response.use(
       const message = (typeof brut === 'object' ? brut?.message : brut) || 'Génération indisponible.';
       if (error.response?.data) error.response.data.detail = message;
 
-      if (raison === 'no_subscription' || raison === 'canceled' || raison === 'expired') {
-        // canceled : ex-abonné (résilié / paiement définitivement en échec) — le mur
-        // affiche un message différent (pas de nouvel essai gratuit promis).
+      if (['no_subscription', 'canceled', 'expired', 'impaye', 'suspendu'].includes(raison)) {
+        // canceled : ex-abonné (résilié) — le mur affiche un message différent (pas
+        // de nouvel essai gratuit promis). impaye / suspendu : le dernier prélèvement
+        // a échoué (cran 1) ou les réseaux ont été déconnectés (J+10) — le mur ouvre
+        // le portail Stripe pour mettre la carte à jour, pas un nouveau checkout.
         window.dispatchEvent(new CustomEvent('postorico:mur-paiement', { detail: { message, raison } }));
       } else {
         toast.error(message, {

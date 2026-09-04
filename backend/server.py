@@ -75,6 +75,27 @@ _cron_task = None
 _sweep_task = None
 _newsletter_task = None
 _render_task = None
+_impaye_task = None
+
+
+async def _impaye_cron():
+    """Impayés : une passe par jour, tôt le matin (Europe/Paris), qui lit
+    impaye_depuis et applique les crans (mail J+9, suspension J+10, mail J+29,
+    résiliation J+30). Vérifie toutes les 30 min qu'il est l'heure."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from services import impaye_service
+    await asyncio.sleep(120)
+    dernier_jour = None
+    while True:
+        try:
+            maintenant = datetime.now(ZoneInfo("Europe/Paris"))
+            if maintenant.hour >= 6 and dernier_jour != maintenant.date():
+                await impaye_service.traiter_quotidien()
+                dernier_jour = maintenant.date()
+        except Exception as e:
+            logger.error(f"impayés cron loop: {e}")
+        await asyncio.sleep(1800)
 
 
 async def _analytics_cron():
@@ -147,7 +168,7 @@ async def _newsletter_cron():
 
 @app.on_event("startup")
 async def startup():
-    global _cron_task, _sweep_task, _newsletter_task, _render_task
+    global _cron_task, _sweep_task, _newsletter_task, _render_task, _impaye_task
     if ANALYTICS_CRON_HOURS and ANALYTICS_CRON_HOURS > 0:
         _cron_task = asyncio.create_task(_analytics_cron())
         logger.info(f"Cron analytics activé (toutes les {ANALYTICS_CRON_HOURS} h)")
@@ -159,6 +180,9 @@ async def startup():
     if os.environ.get("RENDER_WORKER_ACTIVE", "1") != "0":
         _render_task = asyncio.create_task(_render_worker())
         logger.info("Worker de rendu Remotion (stories animées) activé")
+    if os.environ.get("IMPAYES_CRON_ACTIVE", "1") != "0":
+        _impaye_task = asyncio.create_task(_impaye_cron())
+        logger.info("Cron impayés activé (une passe par jour, 6 h Europe/Paris)")
 
 
 @app.on_event("shutdown")
@@ -171,6 +195,8 @@ async def shutdown():
         _newsletter_task.cancel()
     if _render_task:
         _render_task.cancel()
+    if _impaye_task:
+        _impaye_task.cancel()
 
 
 # Lancement direct (Railway/Docker) : lit le port depuis $PORT, sans dépendre de l'expansion shell.

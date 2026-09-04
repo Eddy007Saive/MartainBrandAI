@@ -15,7 +15,10 @@ from config import (
 # Statut Stripe -> statut interne de l'abonnement (pilote les quotas)
 STATUS_MAP = {
     "active": "active", "trialing": "trialing", "past_due": "past_due",
-    "incomplete": "past_due", "canceled": "canceled", "unpaid": "canceled",
+    # unpaid : fin de la séquence de relance Stripe. Ce n'est plus une résiliation :
+    # la grâce, la suspension (J+10) et la résiliation (J+30) sont pilotées par
+    # impaye_service à partir de notre propre impaye_depuis.
+    "incomplete": "past_due", "canceled": "canceled", "unpaid": "past_due",
     "incomplete_expired": "canceled",
 }
 
@@ -301,9 +304,13 @@ def _upsert_subscription(uid: str, status: str, period_start, period_end, stripe
         row["current_period_start"] = period_start
     if period_end:
         row["current_period_end"] = period_end
-    existing = (supabase.table("subscriptions").select("id").eq("user_id", uid)
+    existing = (supabase.table("subscriptions").select("id, status").eq("user_id", uid)
                 .order("created_at", desc=True).limit(1).execute())
     if existing.data:
+        # Un compte suspendu par notre cron (réseaux déconnectés) le reste tant que
+        # Stripe ne signale qu'un past_due : sinon le cron le re-suspendrait en boucle.
+        if existing.data[0].get("status") == "suspended" and status == "past_due":
+            row["status"] = "suspended"
         supabase.table("subscriptions").update(row).eq("id", existing.data[0]["id"]).execute()
     elif period_end:
         row["user_id"] = uid
@@ -626,7 +633,7 @@ def demarrer_abonnement(telegram_id: str, devise: str = None) -> dict:
 
     try:
         deja = stripe.Subscription.list(customer=cust, status="all", limit=10)
-        vivant = next((x for x in deja.data if x.status in ("active", "trialing", "past_due")), None)
+        vivant = next((x for x in deja.data if x.status in ("active", "trialing", "past_due", "suspended")), None)
         if vivant and vivant.status == "trialing":
             # Le cas normal depuis que l'abonnement nait avec le Pack : il
             # existe deja et attend son terme. Le bouton de l'equipe ne le cree
@@ -701,7 +708,7 @@ def _apply_pack(session: dict):
     if not (tg and action and qty > 0):
         return
     sub = (supabase.table("subscriptions").select("id").eq("user_id", tg)
-           .in_("status", ["trialing", "active", "past_due"]).order("created_at", desc=True).limit(1).execute())
+           .in_("status", ["trialing", "active", "past_due", "suspended"]).order("created_at", desc=True).limit(1).execute())
     if not sub.data:
         logger.warning(f"pack: aucun abonnement pour {tg}")
         return
@@ -738,6 +745,39 @@ def _raison_echec_paiement(invoice_id: str) -> str | None:
     except Exception as e:
         logger.warning(f"raison echec paiement {invoice_id}: {e}")
         return None
+
+
+def _deja_traite(event_id: str, etype: str) -> bool:
+    """Insère l'événement dans evenements_stripe ; True si l'id y était déjà
+    (doublon Stripe). Une erreur technique (table absente…) laisse passer : on
+    préfère un doublon rare à un webhook bloqué."""
+    if not event_id:
+        return False
+    try:
+        supabase.table("evenements_stripe").insert({"stripe_event_id": event_id, "type": etype}).execute()
+        return False
+    except Exception as e:
+        msg = str(e)
+        if "23505" in msg or "duplicate" in msg.lower() or "already exists" in msg.lower():
+            logger.info(f"stripe webhook: doublon ignoré {event_id} ({etype})")
+            return True
+        logger.warning(f"stripe webhook: idempotence indisponible ({e})")
+        return False
+
+
+def _client_impaye_payload(uid: str, lien_facture: str = None):
+    """Infos pour le mail 1 (échec de prélèvement) au CLIENT : lien direct de
+    régularisation (la facture hébergée Stripe si on l'a, sinon Paramètres)."""
+    from config import FRONTEND_URL
+    try:
+        r = supabase.table("users").select("nom, email").eq("telegram_id", uid).limit(1).execute()
+        u = r.data[0] if r.data else {}
+    except Exception:
+        u = {}
+    if not u.get("email"):
+        return None
+    return {"nom": u.get("nom"), "email": u["email"],
+            "lien": lien_facture or f"{FRONTEND_URL}/dashboard/parametres?s=abonnement"}
 
 
 def _notify_payload(uid: str, kind: str, extra=None):
@@ -812,7 +852,7 @@ def _abonnement_apres_pack(customer: str, telegram_id: str = None, email: str = 
     try:
         # Un abonnement vivant : on ne double pas.
         deja = stripe.Subscription.list(customer=customer, status="all", limit=10)
-        if any(x.status in ("active", "trialing", "past_due") for x in deja.data):
+        if any(x.status in ("active", "trialing", "past_due", "suspended") for x in deja.data):
             return
 
         # La carte laissee au paiement du Pack. Sans elle, rien a prelever au
@@ -942,7 +982,7 @@ def _journal_depart(telegram_id: str, raison: str, commentaire: str = None,
 def _abonnement_courant(telegram_id: str):
     """(ligne locale, abonnement Stripe) de l'abonnement vivant du compte."""
     r = (supabase.table("subscriptions").select("*").eq("user_id", telegram_id)
-         .in_("status", ["active", "trialing", "past_due"])
+         .in_("status", ["active", "trialing", "past_due", "suspended"])
          .order("created_at", desc=True).limit(1).execute())
     if not r.data:
         return None, None
@@ -1088,8 +1128,13 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
         return {"ok": False, "error": "bad signature"}
 
     etype = event["type"]
+    # Idempotence : Stripe rejoue légitimement un événement. Un doublon ne doit ni
+    # créditer, ni notifier, ni suspendre deux fois -> 200 et on s'arrête là.
+    if _deja_traite(event.get("id"), etype):
+        return {"ok": True, "event": etype, "duplicate": True}
     obj = event["data"]["object"]
     canceled_uid = None  # à déconnecter (abo terminé) -> géré async par la route
+    client_impaye = None  # mail 1 (échec de prélèvement) au client -> envoyé par la route
     notify = None        # {"kind","nom","email",...} -> email admin envoyé par la route (async)
     facture = None       # {"email","montant",...} -> email facture CLIENT envoyé par la route (async)
     rappel = None        # {"email","montant","date",...} -> rappel J-3 au CLIENT (async)
@@ -1157,10 +1202,36 @@ def handle_webhook(payload_bytes: bytes, signature: str) -> dict:
             # branche plutot que de tenir notre propre minuteur : c'est la meme
             # raison qui nous a fait confier le compteur a Stripe.
             rappel = _rappel_payload(obj)
+        elif etype == "invoice.paid":
+            # Le SEUL chemin qui ramène un compte impayé à « actif » : un
+            # encaissement effectif. Jamais une date, jamais un cron.
+            uid = _uid_by_customer(obj.get("customer"))
+            if uid:
+                from services import impaye_service
+                reprise = impaye_service.regulariser(uid)
+                if reprise.get("changement"):
+                    logger.info(f"stripe: {uid} régularisé (reconnexion à faire: {reprise.get('reconnexion')})")
+                    if reprise.get("etait_suspendu"):
+                        try:
+                            from services import notification_service
+                            notification_service.notifier(
+                                uid, None, None, "billing.regularise", "Paiement reçu, merci",
+                                "Ton compte est de nouveau actif. Reconnecte tes réseaux pour reprendre la publication.",
+                                type_="facturation")
+                        except Exception as e:
+                            logger.warning(f"stripe: notification reprise {uid}: {e}")
         elif etype == "invoice.payment_failed":
             raison = _raison_echec_paiement(obj.get("id"))
-            notify = _notify_payload(_uid_by_customer(obj.get("customer")), "payment_failed", raison)
+            uid = _uid_by_customer(obj.get("customer"))
+            notify = _notify_payload(uid, "payment_failed", raison)
+            if uid:
+                # Cran 1 : le compte passe en grâce (génération bloquée), impaye_depuis
+                # posé au PREMIER échec seulement. Mail 1 au client, une seule fois.
+                from services import impaye_service
+                echec = impaye_service.marquer_echec(uid)
+                if echec.get("premier_echec"):
+                    client_impaye = _client_impaye_payload(uid, obj.get("hosted_invoice_url"))
     except Exception as e:
         logger.error(f"stripe webhook handle error: {e}")
-    return {"ok": True, "event": etype, "canceled_uid": canceled_uid, "notify": notify,
+    return {"ok": True, "event": etype, "canceled_uid": canceled_uid, "notify": notify, "client_impaye": client_impaye,
             "facture": facture, "rappel": rappel}
