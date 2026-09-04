@@ -26,7 +26,6 @@ import InvoicesList from '../components/InvoicesList';
 import { COMMON_TIMEZONES } from '../lib/tz';
 import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
-import RemplirDepuisSite from '../components/RemplirDepuisSite';
 import MaVoix from '../components/MaVoix';
 import { billingService } from '../services/billingService';
 import { useAbonnement } from '../context/AbonnementContext';
@@ -845,11 +844,6 @@ export default function ParametresPage() {
 
 
         {/* POSITIONNEMENT */}
-        {/* Pré-remplissage depuis le site du client : le moyen le plus rapide de passer
-            l'étape « Décris ta marque » du démarrage (les champs restent modifiables). */}
-        <RemplirDepuisSite user={user} onChange={handleChange}
-          onRefetch={() => userService.getMe().then((d) => setUser(d)).catch(() => {})} />
-
         <Bloc titre={t('params.marque.positionnement')} sous={t('params.marque.positionnementSous')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ChampMarque multi={false} label={t('params.marque.secteur')} name="secteur"

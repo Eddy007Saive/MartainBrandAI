@@ -2500,7 +2500,7 @@
     "etapes": {
       "profil": {
         "titre": "Décris ta marque",
-        "texte": "Secteur, voix, audience, piliers : c'est ce qui fait que les contenus te ressemblent. Remplis ces champs (ou laisse « Remplir depuis le site » le faire), puis enregistre."
+        "texte": "Secteur, voix, audience, piliers : c'est ce qui fait que les contenus te ressemblent. Remplis ces champs, puis enregistre."
       },
       "reseau": {
         "titre": "Connecte ton premier réseau",

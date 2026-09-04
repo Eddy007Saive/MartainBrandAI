@@ -27,7 +27,7 @@ const ETAPES = [
   { id: 'profil', route: '/dashboard/parametres', section: 'marque', pose: 'presente-produit',
     cibles: ['[data-testid="section-marque"]'],
     autorises: ['[data-testid="section-marque"]', '[data-testid="barre-enregistrer"]', '[data-testid="save-btn"]',
-      '[data-testid^="settings-nav-"]', '[data-testid^="site-"]'] },
+      '[data-testid^="settings-nav-"]'] },
   { id: 'reseau', route: '/dashboard/parametres', section: 'connections', pose: 'pointe-haut',
     cibles: ['[data-testid="section-connections"]'],
     autorises: ['[data-testid="section-connections"]', '[data-testid^="settings-nav-"]'] },
