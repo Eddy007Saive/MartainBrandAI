@@ -26,6 +26,7 @@ import InvoicesList from '../components/InvoicesList';
 import { COMMON_TIMEZONES } from '../lib/tz';
 import { PageHeader } from '../components/PageHeader';
 import { userService } from '../services/userService';
+import RemplirDepuisSite from '../components/RemplirDepuisSite';
 import { billingService } from '../services/billingService';
 import { useAbonnement } from '../context/AbonnementContext';
 import Resiliation from '../components/Resiliation';
@@ -823,7 +824,7 @@ export default function ParametresPage() {
     const total = CHAMPS_MARQUE.length + 1;
 
     return (
-      <div className="space-y-3.5">
+      <div className="space-y-3.5" data-testid="section-marque">
         {/* L'avancement : une fiche de marque se remplit en plusieurs fois, il
             faut pouvoir savoir ou on en est sans tout relire. */}
         <div className="flex items-end justify-between gap-5">
@@ -843,6 +844,11 @@ export default function ParametresPage() {
 
 
         {/* POSITIONNEMENT */}
+        {/* Pré-remplissage depuis le site du client : le moyen le plus rapide de passer
+            l'étape « Décris ta marque » du démarrage (les champs restent modifiables). */}
+        <RemplirDepuisSite user={user} onChange={handleChange}
+          onRefetch={() => userService.getMe().then((d) => setUser(d)).catch(() => {})} />
+
         <Bloc titre={t('params.marque.positionnement')} sous={t('params.marque.positionnementSous')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ChampMarque multi={false} label={t('params.marque.secteur')} name="secteur"
@@ -936,7 +942,7 @@ export default function ParametresPage() {
     const total = SOCIAL_PLATFORMS.length;
     const nb = connectedPlatforms.length;
     return (
-    <div className="space-y-5">
+    <div className="space-y-5" data-testid="section-connections">
       {/* En-tête + récap de connexion segmenté */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <p className="text-sm text-slate-400 font-inter max-w-md leading-relaxed">

@@ -6,6 +6,7 @@ import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2, Spark
 import { analyticsService } from '../services/analyticsService';
 import PerformanceCurve from '../components/PerformanceCurve';
 import TopPosts from '../components/TopPosts';
+import CartePremiersPas from '../components/CartePremiersPas';
 
 export default function AccueilPage() {
   const { t } = useTranslation();
@@ -48,6 +49,9 @@ export default function AccueilPage() {
       </div>
 
       {/* CTA Studio */}
+      {/* Premiers pas (visible tant que le démarrage n'est pas terminé) */}
+      <CartePremiersPas />
+
       <Link to="/dashboard/studio" className="block group">
         <div className="relative overflow-hidden rounded-2xl border border-[#5B6CFF]/20 bg-gradient-to-br from-[#5B6CFF]/10 to-[#8A6CFF]/[0.04] p-5 hover:border-[#5B6CFF]/40 transition-all">
           <div className="flex items-center justify-between gap-4">

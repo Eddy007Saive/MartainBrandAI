@@ -9,6 +9,8 @@ import { App as CapApp } from '@capacitor/app';
 import { UserProvider, useUser } from '../context/UserContext';
 import { AbonnementProvider } from '../context/AbonnementContext';
 import MurPaiement from '../components/MurPaiement';
+import VisiteGuidee from '../components/VisiteGuidee';
+import { DemarrageProvider } from '../context/DemarrageContext';
 import MurPause from '../components/MurPause';
 import { userService } from '../services/userService';
 import { removeToken, isAdminAuthenticated, memoriserEspace } from '../lib/auth';
@@ -331,7 +333,7 @@ function DashboardContent() {
       </aside>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#080c17]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
+      <div data-visite-libre className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#080c17]/90 backdrop-blur-xl border-b border-white/[0.06] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
           {!isHome && (
             <button onClick={goBack} aria-label="Retour" className="w-9 h-9 -ml-1 rounded-lg grid place-items-center text-slate-300 hover:text-white hover:bg-white/[0.06] transition-colors shrink-0">
@@ -342,7 +344,8 @@ function DashboardContent() {
         </div>
         <div className="flex items-center gap-2">
           <NotificationsBell />
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-400 hover:text-white">
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} data-testid="menu-mobile" aria-label="Menu"
+            className="text-slate-400 hover:text-white">
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -355,7 +358,7 @@ function DashboardContent() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-[#050810]/95 backdrop-blur-xl pt-20 flex flex-col overflow-y-auto">
+        <div data-visite-libre data-menu-mobile className="md:hidden fixed inset-0 z-40 bg-[#050810]/95 backdrop-blur-xl pt-20 flex flex-col overflow-y-auto">
           {/* Sélecteur de marque : présent aussi sur mobile (il n'existait que dans la sidebar desktop) */}
           {!inSettings && (
             <div className="px-4 pb-3">
@@ -379,6 +382,10 @@ function DashboardContent() {
           cela elle serait un abonnement gratuit. D'ou un mur qui couvre tout,
           la ou celui du paiement ne ferme que la generation. */}
       <MurPause />
+
+      {/* Visite guidée des premiers pas : même principe que le mur (une instance
+          globale), l'étape courante vient du serveur (DemarrageContext). */}
+      <VisiteGuidee />
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative z-10 pt-16 md:pt-0">
@@ -410,7 +417,9 @@ export default function DashboardLayout() {
   return (
     <UserProvider>
       <AbonnementProvider>
-        <DashboardContent />
+        <DemarrageProvider>
+          <DashboardContent />
+        </DemarrageProvider>
       </AbonnementProvider>
     </UserProvider>
   );

@@ -17,6 +17,11 @@ export const userService = {
   updateMe: (data) =>
     api.patch('/users/me', data).then(r => r.data),
 
+  // Premiers pas : état des 6 étapes du démarrage, calculé côté serveur depuis les données
+  // force : contourne le cache serveur (20 s), juste après une action.
+  demarrage: (force = false) =>
+    api.get('/users/me/demarrage', { params: force ? { force: 1 } : {} }).then(r => r.data),
+
   // Upload de la photo de profil (multipart) -> { photo_url }
   uploadPhoto: (file) => {
     const form = new FormData();

@@ -182,6 +182,17 @@ DERIVEES = {"is_subaccount"} | {f"late_account_{p}" for p in
              "googlebusiness", "twitter")}
 
 
+def _oublier_demarrage(telegram_id: str) -> None:
+    """L'étape « profil » du démarrage guidé a peut-être changé : on invalide son
+    cache, toujours APRÈS l'écriture en base (un GET concurrent entre l'invalidation
+    et l'écriture remettrait l'ancien état en cache pour 20 s)."""
+    try:
+        from services import demarrage_service
+        demarrage_service.oublier(telegram_id)
+    except Exception:
+        pass
+
+
 def update_user(telegram_id: str, update_data: dict) -> dict | None:
     # La page Paramètres envoie compte et marque dans la même requête : chaque champ
     # part dans sa table, `users` ne reçoit plus que ce qui décrit le compte.
@@ -190,6 +201,7 @@ def update_user(telegram_id: str, update_data: dict) -> dict | None:
     champs_compte, champs_marque = marque_service.separer(update_data)
     if champs_marque:
         marque_service.enregistrer(telegram_id, champs_marque)
+        _oublier_demarrage(telegram_id)         # APRÈS l'écriture, sinon un GET concurrent remet l'ancien état en cache
     if not champs_compte:                       # mise à jour purement marque
         return get_user(telegram_id)
     update_data = champs_compte
@@ -210,6 +222,7 @@ def update_user(telegram_id: str, update_data: dict) -> dict | None:
     if not result.data:
         return None
     user = sanitize_user(result.data[0])
+    _oublier_demarrage(telegram_id)
     from services import marque_service as _ms
     user.update(_ms.fiche(telegram_id))   # la réponse reflète la marque enregistrée
     return user

@@ -12,6 +12,7 @@ import { videoService } from '../services/videoService';
 import { contenuService } from '../services/contenuService';
 import { takePhoto, cameraAvailable } from '../lib/photo';
 import { useUser } from '../context/UserContext';
+import { useDemarrage } from '../context/DemarrageContext';
 import { track } from '../lib/analytics';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
@@ -149,7 +150,11 @@ export default function StudioIA() {
     const g = usage?.gauges?.find((x) => x.action_type === 'subject');
     return g ? Math.max(0, g.limit - g.used) : null;
   };
-  const marqueOk = !!(user?.secteur && String(user.secteur).trim());
+  // Profil minimum (secteur, voix, audience, piliers) + réseau + carte : l'état
+  // vient du serveur (démarrage guidé). Repli sur l'ancien test si pas encore chargé.
+  const { etat: demarrage } = useDemarrage();
+  const marqueOk = demarrage ? !demarrage.bloquant : !!(user?.secteur && String(user.secteur).trim());
+  const champsManquants = (demarrage?.etapes || []).find((e) => e.id === 'profil')?.manquants || [];
   // On ne propose que les réseaux dont le compte est connecté (Paramètres → Réseaux)
   const reseaux = RESEAUX.filter((r) => !!user?.[`late_account_${r.id}`]);
   // Story : seulement Instagram/Facebook
@@ -161,6 +166,8 @@ export default function StudioIA() {
   };
 
   const erreurGen = (e) => {
+    // Déjà traité par l'intercepteur (mur de paiement, toast quota, profil incomplet) : pas de doublon.
+    if (e?.__handled) { refreshUsage(); return; }
     if (e?.response?.status === 402) toast.error(e?.response?.data?.detail || t('studio.quotaReached'));
     else toast.error(e?.response?.data?.detail || t('studio.generationError'));
     refreshUsage();
@@ -574,6 +581,15 @@ export default function StudioIA() {
           <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
           <div className="text-sm font-inter">
             <p className="text-amber-300 font-medium">{t('studio.completeBrandFirst')}</p>
+            {champsManquants.length > 0 && (
+              <ul className="mt-1.5 flex flex-wrap gap-1.5" data-testid="studio-champs-manquants">
+                {champsManquants.map((c) => (
+                  <li key={c} className="text-[11.5px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-200 border border-amber-500/30">
+                    {t(`demarrage.champs.${c}`)}
+                  </li>
+                ))}
+              </ul>
+            )}
             <p className="text-amber-400/80 text-xs mt-1 leading-relaxed">
               {t('studio.guardIntro')} <span className="font-medium">{t('studio.guardSector')}</span> {t('studio.guardIn')}{' '}
               <Link to="/dashboard/parametres" className="underline text-amber-200 hover:text-white">{t('studio.settingsBrandVoice')}</Link>.
@@ -885,7 +901,7 @@ export default function StudioIA() {
                             <button onClick={() => revertDims(s)} className="text-[11px] text-slate-500 hover:text-[#3AFFA3] transition-colors inline-flex items-center gap-1">↺ {t('studio.resetReco')}</button>
                           )}
                           <button onClick={() => setOpenId(null)} className="ml-auto text-xs text-slate-400 hover:text-white font-inter px-2">{t('studio.cancel')}</button>
-                          <Button onClick={() => genererContenu(s)} className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
+                          <Button onClick={() => genererContenu(s)} data-testid={`studio-generer-post-${s.id}`} className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
                             <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.generateButton')}</span>
                           </Button>
                         </div>

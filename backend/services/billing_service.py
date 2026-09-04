@@ -316,6 +316,12 @@ def _apply_subscription(sub: dict):
     tg = meta.get("telegram_id")
     customer = sub.get("customer")
     status = STATUS_MAP.get(sub.get("status"), "past_due")
+    if tg:
+        try:
+            from services import demarrage_service
+            demarrage_service.oublier(tg)  # l'étape « carte » du démarrage a peut-être changé
+        except Exception:
+            pass
 
     uid = None
     if tg:

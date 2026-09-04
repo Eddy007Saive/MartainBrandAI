@@ -2480,6 +2480,56 @@
     "tarifs": "See pricing",
     "aide": "A question? The FAQ answers 13 of them"
   },
+  "demarrage": {
+    "etape": "Step {{n}}/{{total}}",
+    "yAller": "Go there",
+    "plusTard": "Later",
+    "jaiFait": "Done, check again",
+    "ajouterCarte": "Add my card",
+    "carte": {
+      "titre": "Getting started",
+      "sous": "Six steps to your first scheduled post.",
+      "reprendre": "Resume the tour"
+    },
+    "champs": {
+      "secteur": "Industry",
+      "voix_marque": "Brand voice",
+      "audience": "Target audience",
+      "piliers": "Pillars"
+    },
+    "etapes": {
+      "profil": {
+        "titre": "Describe your brand",
+        "texte": "Industry, voice, audience, pillars: this is what makes the content sound like you. Fill in these fields (or let “Fill from website” do it), then save."
+      },
+      "reseau": {
+        "titre": "Connect your first network",
+        "texte": "Nothing can be published without a connected network. One is enough to start."
+      },
+      "carte": {
+        "titre": "Add your card",
+        "texte": "14 days free, no payment during the trial. The first charge happens on day 15, not before."
+      },
+      "sujets": {
+        "titre": "Generate your first topics",
+        "texte": "The AI suggests ideas tailored to your brand, each with its objective, angle and target."
+      },
+      "post": {
+        "titre": "Write a post",
+        "texte": "Open a topic, click Generate, read it over, then click Validate: the post moves to Content."
+      },
+      "validation": {
+        "titre": "Approve and schedule",
+        "texte": "One click on the check mark: the post is scheduled for the next slot. Nothing goes out without your approval."
+      }
+    },
+    "fin": {
+      "titre": "You're all set",
+      "texte": "Your first post is scheduled. Your next content will sound more and more like you.",
+      "texteDate": "Your first post goes out on {{date}}. Your next content will sound more and more like you.",
+      "ok": "Continue"
+    }
+  },
   "mur": {
     "surTitre": "Last step",
     "fermer": "Close",

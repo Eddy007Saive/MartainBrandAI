@@ -305,6 +305,20 @@ async def get_social_accounts(payload: dict = Depends(verify_token)):
         return {"accounts": {}}
 
 
+@router.get("/me/demarrage")
+def get_demarrage(force: bool = False, payload: dict = Depends(verify_token)):
+    """Premiers pas du compte : les 6 étapes (profil, réseau, carte, sujets, post,
+    validation), l'étape courante et si elle bloque la génération. Calculé depuis
+    les données — sert la visite guidée et la carte « Premiers pas » de l'Accueil."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    from services import demarrage_service
+    # force=1 : juste après une action (post enregistré, sujet généré), le front veut
+    # l'état réel, pas le cache de 20 s.
+    return demarrage_service.etat(telegram_id, force=force)
+
+
 # ============ SCHEDULES ============
 
 @router.get("/me/schedules")

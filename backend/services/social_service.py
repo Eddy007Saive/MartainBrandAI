@@ -57,6 +57,11 @@ def enregistrer_compte(telegram_id: str, plateforme: str, account_id: str) -> bo
         supabase.table("comptes_sociaux").upsert(
             {"telegram_id": telegram_id, "plateforme": plateforme, "late_account_id": account_id},
             on_conflict="telegram_id,plateforme").execute()
+        try:
+            from services import demarrage_service
+            demarrage_service.oublier(telegram_id)  # l'étape « réseau » du démarrage vient d'être faite
+        except Exception:
+            pass
         return True
     except Exception as e:
         logger.error(f"enregistrer_compte {telegram_id}/{plateforme}: {e}")
@@ -69,6 +74,11 @@ def supprimer_compte(telegram_id: str, plateforme: str) -> bool:
         return False
     try:
         supabase.table("comptes_sociaux").delete().eq("telegram_id", telegram_id).eq("plateforme", plateforme).execute()
+        try:
+            from services import demarrage_service
+            demarrage_service.oublier(telegram_id)  # l'étape « réseau » du démarrage a changé
+        except Exception:
+            pass
         return True
     except Exception as e:
         logger.error(f"supprimer_compte {telegram_id}/{plateforme}: {e}")

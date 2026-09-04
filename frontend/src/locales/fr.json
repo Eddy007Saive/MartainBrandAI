@@ -2480,6 +2480,56 @@
     "tarifs": "Voir les tarifs",
     "aide": "Une question ? La FAQ répond en 13 points"
   },
+  "demarrage": {
+    "etape": "Étape {{n}}/{{total}}",
+    "yAller": "Y aller",
+    "plusTard": "Plus tard",
+    "jaiFait": "C'est fait, vérifier",
+    "ajouterCarte": "Ajouter ma carte",
+    "carte": {
+      "titre": "Premiers pas",
+      "sous": "Six étapes jusqu'à ton premier post programmé.",
+      "reprendre": "Reprendre le démarrage"
+    },
+    "champs": {
+      "secteur": "Secteur",
+      "voix_marque": "Voix de marque",
+      "audience": "Audience cible",
+      "piliers": "Piliers"
+    },
+    "etapes": {
+      "profil": {
+        "titre": "Décris ta marque",
+        "texte": "Secteur, voix, audience, piliers : c'est ce qui fait que les contenus te ressemblent. Remplis ces champs (ou laisse « Remplir depuis le site » le faire), puis enregistre."
+      },
+      "reseau": {
+        "titre": "Connecte ton premier réseau",
+        "texte": "Sans réseau connecté, rien ne peut être publié. Un seul suffit pour commencer."
+      },
+      "carte": {
+        "titre": "Ajoute ta carte",
+        "texte": "14 jours gratuits, aucun paiement pendant l'essai. Le premier prélèvement a lieu le 15e jour, pas avant."
+      },
+      "sujets": {
+        "titre": "Génère tes premiers sujets",
+        "texte": "L'IA propose des idées adaptées à ta marque, chacune avec son objectif, son angle et sa cible."
+      },
+      "post": {
+        "titre": "Rédige un post",
+        "texte": "Ouvre un sujet, clique sur Générer, relis, puis sur Valider : le post part dans Contenus."
+      },
+      "validation": {
+        "titre": "Valide et programme",
+        "texte": "Un clic sur la coche : le post est programmé au prochain créneau. Rien ne part sans ton accord."
+      }
+    },
+    "fin": {
+      "titre": "C'est parti",
+      "texte": "Ton premier post est programmé. Tes prochains contenus te ressembleront de plus en plus.",
+      "texteDate": "Ton premier post partira le {{date}}. Tes prochains contenus te ressembleront de plus en plus.",
+      "ok": "Continuer"
+    }
+  },
   "mur": {
     "surTitre": "Dernière étape",
     "fermer": "Fermer",

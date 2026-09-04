@@ -2480,6 +2480,56 @@
     "tarifs": "Ver precios",
     "aide": "¿Alguna duda? Las FAQ responden a 13"
   },
+  "demarrage": {
+    "etape": "Paso {{n}}/{{total}}",
+    "yAller": "Ir allí",
+    "plusTard": "Más tarde",
+    "jaiFait": "Hecho, comprobar",
+    "ajouterCarte": "Añadir mi tarjeta",
+    "carte": {
+      "titre": "Primeros pasos",
+      "sous": "Seis pasos hasta tu primer post programado.",
+      "reprendre": "Retomar la guía"
+    },
+    "champs": {
+      "secteur": "Sector",
+      "voix_marque": "Voz de marca",
+      "audience": "Audiencia objetivo",
+      "piliers": "Pilares"
+    },
+    "etapes": {
+      "profil": {
+        "titre": "Describe tu marca",
+        "texte": "Sector, voz, audiencia, pilares: es lo que hace que los contenidos se parezcan a ti. Rellena estos campos (o deja que «Rellenar desde el sitio» lo haga) y guarda."
+      },
+      "reseau": {
+        "titre": "Conecta tu primera red",
+        "texte": "Sin una red conectada no se puede publicar nada. Con una basta para empezar."
+      },
+      "carte": {
+        "titre": "Añade tu tarjeta",
+        "texte": "14 días gratis, sin pago durante la prueba. El primer cargo se hace el día 15, no antes."
+      },
+      "sujets": {
+        "titre": "Genera tus primeros temas",
+        "texte": "La IA propone ideas adaptadas a tu marca, cada una con su objetivo, ángulo y público."
+      },
+      "post": {
+        "titre": "Redacta un post",
+        "texte": "Abre un tema, pulsa Generar, revísalo y luego Validar: el post pasa a Contenidos."
+      },
+      "validation": {
+        "titre": "Valida y programa",
+        "texte": "Un clic en la marca: el post queda programado en el próximo hueco. Nada sale sin tu aprobación."
+      }
+    },
+    "fin": {
+      "titre": "Todo listo",
+      "texte": "Tu primer post está programado. Tus próximos contenidos se parecerán cada vez más a ti.",
+      "texteDate": "Tu primer post saldrá el {{date}}. Tus próximos contenidos se parecerán cada vez más a ti.",
+      "ok": "Continuar"
+    }
+  },
   "mur": {
     "surTitre": "Último paso",
     "fermer": "Cerrar",

@@ -4,7 +4,7 @@ import cloudinary.uploader
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from datetime import datetime, timezone
 from dependencies import verify_token
-from services import agent_service, credit_service, quota_service, usage_service, image_service, planning_service, plan_service, carrousel_service
+from services import agent_service, credit_service, quota_service, usage_service, image_service, planning_service, plan_service, carrousel_service, demarrage_service
 from config import supabase, logger, CLAUDE_MODEL, OPENROUTER_IMAGE_MODEL
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -40,7 +40,14 @@ def _map_agent_error(result: dict):
     if result.get("error") == "no_api_key":
         raise HTTPException(status_code=500, detail="Clé API IA non configurée")
     if result.get("error") == "profil_incomplet":
-        raise HTTPException(status_code=400, detail="Renseignez votre secteur dans Paramètres → Voix de marque avant de générer.")
+        # Même forme d'objet que le garde demarrage_service.exiger_profil (filet de
+        # sécurité si la garde en tête de route n'a pas joué) : l'intercepteur front
+        # sait la traiter (toast + visite guidée sur l'étape profil).
+        raise HTTPException(status_code=400, detail={
+            "raison": "profil_incomplet",
+            "message": "Complète ton profil de marque (secteur, voix, audience, piliers) avant de générer.",
+            "manquants": ["secteur"],
+        })
 
 
 def _carrousel_texte(content: dict) -> str:
@@ -77,6 +84,7 @@ def sujets(body: dict, payload: dict = Depends(verify_token)):
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "subject")
     if not q.get("ok"):
         raise _refus(q)
@@ -183,6 +191,7 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
         # story = texte court (accroche du visuel) -> même pipeline que post ; le visuel 9:16 suit
         action = "post" if fmt in ("post", "story") else "carrousel" if fmt == "carrousel" else "script"
         qtype = "carousel" if action == "carrousel" else "post"  # script compte comme un post
+        demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
         q = quota_service.consume(telegram_id, qtype)
         if not q.get("ok"):
             errors.append({"sujet": sujet, "reseau": reseau_low, "err": "quota", "message": q.get("message")})
@@ -428,6 +437,7 @@ async def gabarit_auto(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="gabarit requis")
 
     # Le gabarit produit un visuel via l'IA (composition du texte) -> décompté comme 1 image standard.
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "image_standard")
     if not q.get("ok"):
         raise _refus(q)
@@ -520,6 +530,7 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
     if not sujet:
         raise HTTPException(status_code=400, detail="sujet requis")
     qualite = body.get("qualite", "equilibre")
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "post")
     if not q.get("ok"):
         raise _refus(q)
@@ -558,6 +569,7 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
     if len(data) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
     reseau = (reseau or "linkedin").lower()
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "post")
     if not q.get("ok"):
         raise _refus(q)
@@ -614,6 +626,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     if not tmpl:
         tmpl = next((sch.get("carrousel_template") or "bold"
                      for sch in plan_service._schedules(telegram_id) if sch.get("platform") == reseau), "bold")
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "carousel")
     if not q.get("ok"):
         raise _refus(q)
@@ -681,6 +694,7 @@ def script(body: dict, payload: dict = Depends(verify_token)):
     if not sujet:
         raise HTTPException(status_code=400, detail="sujet requis")
     qualite = body.get("qualite", "equilibre")
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "post")  # script vidéo compte comme un post
     if not q.get("ok"):
         raise _refus(q)
@@ -825,6 +839,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     modele = body.get("modele", "nano2")
     model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
     action_type = quota_service.image_action(modele)  # nano2 -> image_standard, nano3 -> image_pro
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, action_type)
     if not q.get("ok"):
         raise _refus(q)
@@ -912,6 +927,7 @@ async def generate_photo(body: dict, payload: dict = Depends(verify_token)):
     modele = body.get("modele", "nano2")
     model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
     action_type = quota_service.image_action(modele)
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, action_type)
     if not q.get("ok"):
         raise _refus(q)

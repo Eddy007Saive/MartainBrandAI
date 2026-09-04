@@ -225,6 +225,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
             {contenu.statut === 'A valider' && (
               <button title={t('contenus.actions.validerProgrammer')} onClick={() => onValidate(contenu.id)} disabled={isLoading}
+                data-testid={`contenu-valider-${contenu.id}`}
                 className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               </button>
@@ -1813,7 +1814,7 @@ export default function ContenusPage() {
                       <>
                         <Button size="sm" onClick={() => handleUpdateStatut(selectedContenu.id, 'Refuse')} disabled={actionLoading === selectedContenu.id}
                           className="bg-transparent border border-white/[0.12] text-slate-400 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] px-4 transition-colors"><X className="w-4 h-4 mr-1.5" />{t('contenus.actions.refuser')}</Button>
-                        <Button size="sm" onClick={() => validerContenu(selectedContenu.id)}
+                        <Button size="sm" onClick={() => validerContenu(selectedContenu.id)} data-testid="contenu-valider-detail"
                           disabled={actionLoading === selectedContenu.id || czRBusy || ((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)}
                           title={((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url) ? t('contenus.detail.attendsMontage') : undefined}
                           className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] px-5 shadow-[0_8px_24px_rgba(91,108,255,0.35)] hover:-translate-y-px hover:shadow-[0_12px_30px_rgba(91,108,255,0.45)] transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none">

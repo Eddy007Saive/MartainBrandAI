@@ -36,6 +36,14 @@ api.interceptors.response.use(
       err.config = response.config;
       return Promise.reject(err);
     }
+    // Une action réussie (sujets générés, post enregistré, validation, réseau
+    // connecté) peut faire avancer le démarrage guidé : on le prévient tout de
+    // suite plutôt que d'attendre son prochain sondage.
+    const methode = (response.config?.method || 'get').toLowerCase();
+    const url = response.config?.url || '';
+    if (methode !== 'get' && /\/(agent|contenus|brouillons|video|late|users\/me)(\/|$|\?)/.test(url)) {
+      try { window.dispatchEvent(new CustomEvent('postorico:demarrage')); } catch (e) { /* ignore */ }
+    }
     return response;
   },
   (error) => {
@@ -46,6 +54,19 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthAttempt) {
       logout();  // session expirée -> efface localStorage + stockage natif (Preferences)
       window.location.href = '/login';
+    } else if (error.response?.status === 400 && error.response?.data?.detail?.raison === 'profil_incomplet') {
+      // Garde serveur du démarrage : profil de marque minimum manquant. On ramène le
+      // détail à sa chaîne (les appelants lisent `detail`), on prévient la visite
+      // guidée (qui se cale sur l'étape profil) et on propose le raccourci.
+      const d = error.response.data.detail;
+      const message = d.message || 'Complète ton profil de marque avant de générer.';
+      error.response.data.detail = message;
+      window.dispatchEvent(new CustomEvent('postorico:demarrage', { detail: d }));
+      toast.error(message, {
+        action: { label: 'Compléter', onClick: () => { window.location.href = '/dashboard/parametres?s=marque'; } },
+        duration: 8000,
+      });
+      error.__handled = true;
     } else if (error.response?.status === 402) {
       // Le serveur refuse une génération. Deux refus très différents vivent
       // derrière ce même code, et les confondre serait grossier :
