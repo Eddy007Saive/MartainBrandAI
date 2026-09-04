@@ -52,6 +52,54 @@ class AtelierSature(Exception):
     """Trop de rendus Remotion en cours : l'appelant doit repondre 503, pas faire attendre indefiniment."""
 
 
+def _urls_video_cloudinary(obj, acc=None) -> list:
+    """Toutes les URLs de vidéos Cloudinary TRANSFORMÉES (so_/du_/c_fill…) présentes
+    dans les props, à n'importe quelle profondeur."""
+    acc = [] if acc is None else acc
+    if isinstance(obj, dict):
+        for v in obj.values():
+            _urls_video_cloudinary(v, acc)
+    elif isinstance(obj, list):
+        for v in obj:
+            _urls_video_cloudinary(v, acc)
+    elif isinstance(obj, str) and "res.cloudinary.com" in obj and "/video/upload/" in obj:
+        fin = obj.split("/video/upload/", 1)[1]
+        if not fin.startswith("v1") and "," in fin.split("/", 1)[0]:   # segment de transformation
+            acc.append(obj)
+    return acc
+
+
+def prechauffer_medias(props: dict, attente_max_s: int = 150) -> None:
+    """Cloudinary fabrique un extrait vidéo transformé (coupe, recadrage) à la première
+    demande et répond 423 tant qu'il n'est pas prêt ; Remotion prend ce 423 pour une
+    erreur et abandonne le rendu. On demande donc chaque extrait AVANT de lancer le
+    rendu, et on attend qu'il réponde 200. Sans effet sur les URLs déjà prêtes."""
+    import httpx
+    urls = list(dict.fromkeys(_urls_video_cloudinary(props)))
+    if not urls:
+        return
+    depart = time.monotonic()
+    en_attente = set(urls)
+    with httpx.Client(timeout=30, follow_redirects=True) as client:
+        while en_attente and time.monotonic() - depart < attente_max_s:
+            for u in list(en_attente):
+                try:
+                    r = client.get(u, headers={"Range": "bytes=0-0"})
+                    if r.status_code in (200, 206):
+                        en_attente.discard(u)
+                    elif r.status_code not in (423, 425, 429):
+                        logger.warning(f"préchauffage média {r.status_code} : {u[:120]}")
+                        en_attente.discard(u)      # erreur franche : Remotion la signalera
+                except Exception as e:
+                    logger.warning(f"préchauffage média : {e}")
+            if en_attente:
+                time.sleep(3)
+    if en_attente:
+        logger.warning(f"préchauffage média : {len(en_attente)} extrait(s) toujours en préparation après {attente_max_s}s")
+    else:
+        logger.info(f"préchauffage média : {len(urls)} extrait(s) prêt(s) en {time.monotonic() - depart:.0f}s")
+
+
 def render_mp4(props: dict, composition: str, *, telegram_id: str = None,
                etiquette: str = None, prefix: str = "remotion") -> str:
     """Lance le rendu Remotion en subprocess. Retourne le chemin du MP4.
@@ -66,6 +114,7 @@ def render_mp4(props: dict, composition: str, *, telegram_id: str = None,
     story_anime_rendu_echec) selon l'appelant, sans dupliquer cette fonction."""
     if not os.path.isdir(os.path.join(REMOTION_DIR, "node_modules")):
         raise RuntimeError(f"Remotion non installe ({REMOTION_DIR}) : lancer `npm ci` dans ce dossier.")
+    prechauffer_medias(props)      # avant de prendre l'atelier : c'est du réseau, pas du CPU
     if not _atelier.acquire(timeout=REMOTION_ATTENTE_MAX_S):
         raise AtelierSature()
     fd, props_path = tempfile.mkstemp(suffix=".json")
