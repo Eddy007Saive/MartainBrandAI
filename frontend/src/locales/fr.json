@@ -2608,6 +2608,16 @@
     "supprimer": "Supprimer ma voix",
     "consentementLe": "Consentement donné le {{date}} · révocable à tout moment",
     "confirmerSuppression": "Supprimer ta voix ? Elle sera effacée chez nous et chez notre prestataire. Tes reels déjà rendus ne changent pas.",
+    "lecture": {
+      "titre": "Texte à lire",
+      "voir": "Voir le texte",
+      "masquer": "Masquer",
+      "nomDefaut": "moi",
+      "aide": "Lis à ton rythme, comme si tu parlais à quelqu'un. Tu te trompes ? Reprends la phrase, ce n'est pas grave. Une minute suffit, deux c'est mieux.",
+      "intro": "Bonjour, c'est {{nom}}.",
+      "secteur": "Je travaille dans {{secteur}}, et j'en parle tous les jours.",
+      "corps": "Ce que je préfère dans mon métier, c'est le moment où un client me dit qu'il n'a plus à y penser. Vous savez ce qui fait la différence entre une entreprise qu'on voit et une entreprise qu'on oublie ? Pas le budget. La régularité. Chaque semaine, un peu de contenu, une idée claire, une phrase qui donne envie de répondre. Alors oui, ça prend du temps. Et non, personne n'a envie d'y passer ses soirées. C'est exactement pour ça que j'ai décidé de m'organiser autrement. Je vous raconte tout ça dans mes prochaines vidéos, en quelques minutes, sans jargon. Et si vous avez une question, écrivez-moi : je réponds toujours, souvent le jour même. À très vite."
+    },
     "creee": "Ta voix est prête. Elle est proposée par défaut sur tes reels.",
     "supprimee": "Voix supprimée.",
     "echec": "Opération impossible pour le moment."

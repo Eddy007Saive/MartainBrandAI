@@ -2608,6 +2608,16 @@
     "supprimer": "Eliminar mi voz",
     "consentementLe": "Consentimiento dado el {{date}} · revocable en cualquier momento",
     "confirmerSuppression": "¿Eliminar tu voz? Se borrará en nuestro sistema y en el proveedor. Los reels ya renderizados no cambian.",
+    "lecture": {
+      "titre": "Texto para leer",
+      "voir": "Ver el texto",
+      "masquer": "Ocultar",
+      "nomDefaut": "yo",
+      "aide": "Lee a tu ritmo, como si hablaras con alguien. ¿Te equivocas? Repite la frase, no pasa nada. Un minuto basta, dos es mejor.",
+      "intro": "Hola, soy {{nom}}.",
+      "secteur": "Trabajo en {{secteur}}, y hablo de ello cada día.",
+      "corps": "Lo que más me gusta de mi trabajo es el momento en que un cliente me dice que ya no tiene que pensar en ello. ¿Sabes qué diferencia a una empresa que se ve de una que se olvida? No es el presupuesto. Es la regularidad. Cada semana, un poco de contenido, una idea clara, una frase que invita a responder. Así que sí, lleva tiempo. Y no, nadie quiere pasar sus tardes en eso. Precisamente por eso decidí organizarme de otra manera. Os lo cuento en mis próximos vídeos, en pocos minutos, sin jerga. Y si tenéis una pregunta, escribidme: siempre respondo, a menudo el mismo día. Hasta muy pronto."
+    },
     "creee": "Tu voz está lista. Se propone por defecto en tus reels.",
     "supprimee": "Voz eliminada.",
     "echec": "Operación no disponible por ahora."

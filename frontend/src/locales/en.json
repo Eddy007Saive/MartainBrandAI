@@ -2608,6 +2608,16 @@
     "supprimer": "Delete my voice",
     "consentementLe": "Consent given on {{date}} · revocable at any time",
     "confirmerSuppression": "Delete your voice? It will be removed from us and from our provider. Reels already rendered are unchanged.",
+    "lecture": {
+      "titre": "Text to read",
+      "voir": "Show text",
+      "masquer": "Hide",
+      "nomDefaut": "me",
+      "aide": "Read at your own pace, as if talking to someone. Slip up? Just repeat the sentence. One minute is enough, two is better.",
+      "intro": "Hi, this is {{nom}}.",
+      "secteur": "I work in {{secteur}}, and I talk about it every day.",
+      "corps": "What I love most about my job is the moment a client tells me they no longer have to think about it. Do you know what separates a business people notice from one they forget? Not the budget. Consistency. Every week, a bit of content, one clear idea, one line that makes people want to reply. So yes, it takes time. And no, nobody wants to spend their evenings on it. That's exactly why I decided to organise things differently. I'll tell you all about it in my next videos, in a few minutes, no jargon. And if you have a question, write to me: I always answer, often the same day. See you soon."
+    },
     "creee": "Your voice is ready. It is offered by default on your reels.",
     "supprimee": "Voice deleted.",
     "echec": "Operation unavailable right now."

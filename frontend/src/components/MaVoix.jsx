@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Check, Loader2, Mic, Pause, Play, Square, Upload } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
+import { useUser } from '../context/UserContext';
 
 /**
  * Paramètres › Voix de marque › « Ma voix » : le client enregistre (ou dépose) une à
@@ -15,6 +16,33 @@ const MIN_S = 45;      // en dessous, le serveur refuse (clone médiocre)
 const CIBLE_S = 60;
 
 const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+/** Le texte à lire pendant l'enregistrement : une minute de parole variée (une
+ *  question, une affirmation, une phrase posée), personnalisée avec le prénom et
+ *  le secteur. Lire quelque chose évite le « euh… je dis quoi ? » qui gâche la prise. */
+function TexteALire({ ouvertParDefaut = false }) {
+  const { t } = useTranslation();
+  const { user } = useUser();
+  const [ouvert, setOuvert] = useState(ouvertParDefaut);
+  const nom = (user?.nom || user?.user_name || '').trim().split(/\s+/)[0] || t('maVoix.lecture.nomDefaut');
+  const secteur = (user?.secteur || '').trim();
+  const texte = [t('maVoix.lecture.intro', { nom }), secteur ? t('maVoix.lecture.secteur', { secteur }) : '', t('maVoix.lecture.corps')]
+    .filter(Boolean).join(' ');
+  return (
+    <div className="mt-3.5 rounded-xl border border-white/[0.08] bg-slate-950/40" data-testid="ma-voix-texte">
+      <button type="button" onClick={() => setOuvert((o) => !o)} className="w-full flex items-center justify-between px-3.5 py-2.5 text-left">
+        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('maVoix.lecture.titre')}</span>
+        <span className="text-[12px] text-[#a5b0ff] font-inter">{ouvert ? t('maVoix.lecture.masquer') : t('maVoix.lecture.voir')}</span>
+      </button>
+      {ouvert && (
+        <div className="px-4 pb-4">
+          <p className="font-sora text-[17px] sm:text-[19px] leading-[1.55] text-white/95">{texte}</p>
+          <p className="mt-2.5 text-[12px] text-slate-500 font-inter">{t('maVoix.lecture.aide')}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function MaVoix() {
   const { t } = useTranslation();
@@ -136,6 +164,7 @@ export default function MaVoix() {
                 <li key={k} className="px-3 py-2 rounded-[10px] bg-white/[0.03] border border-white/[0.06]"><b className="text-white">{t(`maVoix.conseils.${k}.t`)}</b> {t(`maVoix.conseils.${k}.s`)}</li>
               ))}
             </ul>
+            <TexteALire />
             <label className="mt-3.5 flex items-start gap-2.5 p-3 rounded-xl border border-white/10 bg-slate-950/50 text-[12.5px] text-slate-400 font-inter cursor-pointer">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 accent-[#3AFFA3]" data-testid="ma-voix-consent" />
               <span>{t('maVoix.consentement')}</span>
@@ -147,7 +176,7 @@ export default function MaVoix() {
           </div>
         )}
 
-        {etat === 'enregistrement' && (
+        {etat === 'enregistrement' && (<>
           <div className="mt-4 rounded-[14px] border border-dashed border-white/20 p-5 flex items-center gap-4">
             <span className="w-14 h-14 rounded-full grid place-items-center border border-red-400/40 bg-red-400/10 text-red-300 animate-pulse"><span className="w-4 h-4 rounded-sm bg-current" /></span>
             <div className="flex-1 min-w-0">
@@ -160,7 +189,8 @@ export default function MaVoix() {
             <button type="button" onClick={arreterEnregistrement} disabled={secondes < 5} data-testid="ma-voix-arreter"
               className="h-10 px-4 rounded-[11px] border border-white/15 text-white text-sm font-semibold hover:border-white/30 disabled:opacity-50 flex items-center gap-2"><Square className="w-3.5 h-3.5" />{t('maVoix.arreter')}</button>
           </div>
-        )}
+          <TexteALire ouvertParDefaut />
+        </>)}
 
         {etat === 'analyse' && (
           <div className="mt-4 flex items-center gap-3.5 p-3.5 rounded-[14px] border border-[#8A6CFF]/35 bg-[#8A6CFF]/[0.06]">
