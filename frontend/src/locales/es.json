@@ -2540,6 +2540,78 @@
     "cta": "Reconectar mis redes",
     "note": "La generación se reanuda en cuanto al menos una red esté reconectada."
   },
+  "voixOff": {
+    "titre": "Voz en off",
+    "nouveau": "Nuevo",
+    "activer": "Activar la voz en off",
+    "ecouter": "Escuchar un extracto",
+    "maVoix": "Mi voz",
+    "maVoixPrete": "Tu voz, clonada desde Ajustes.",
+    "maVoixAbsente": "Aún no creada · Ajustes › Voz de marca",
+    "resume": "Claude escribe una frase hablada por plano, {{nom}} la dice. Unos 3 s más.",
+    "resumeMoi": "Claude escribe una frase hablada por plano, tu voz la dice. Unos 3 s más.",
+    "creerMaVoix": "Crear mi voz →",
+    "voix": {
+      "victor": {
+        "nom": "Victor",
+        "desc": "Hombre, joven, directo. Habla como a un amigo."
+      },
+      "yann": {
+        "nom": "Yann",
+        "desc": "Hombre, sereno, narración dinámica."
+      },
+      "adina": {
+        "nom": "Adina",
+        "desc": "Mujer, joven, clara. Hecha para las redes."
+      }
+    }
+  },
+  "maVoix": {
+    "titre": "Mi voz",
+    "sous": "Uno o dos minutos hablando, y tus reels se dicen con tu voz. Graba aquí o sube una nota de voz.",
+    "indisponible": "La voz personalizada aún no está activada en este servidor.",
+    "reserveePro": "La voz personalizada está reservada al plan Pro. Las voces del catálogo siguen disponibles en el Estudio Reel.",
+    "enregistrer": "Grabar ahora",
+    "enregistrerSous": "1 a 2 minutos, en silencio.",
+    "ou": "o",
+    "deposer": "Subir un audio",
+    "deposerSous": "mp3, m4a, wav · nota de voz de WhatsApp aceptada",
+    "fichierPret": "{{nom}} · {{taille}} KB, listo para enviar",
+    "retirer": "Quitar",
+    "conseils": {
+      "c1": {
+        "t": "Habla con naturalidad.",
+        "s": "Como a un cliente por teléfono, no como en la radio."
+      },
+      "c2": {
+        "t": "Sin música ni ruido.",
+        "s": "Una habitación tranquila basta, sin micrófono."
+      },
+      "c3": {
+        "t": "Varía un poco.",
+        "s": "Una pregunta, una afirmación, una frase serena."
+      }
+    },
+    "consentement": "Confirmo que es mi voz (o la de una persona que me dio su consentimiento escrito) y autorizo a Postorico a reproducirla únicamente para los contenidos de mi marca. Puedo eliminarla en cualquier momento; entonces también se borra en nuestro proveedor.",
+    "creer": "Crear mi voz",
+    "microRefuse": "Micrófono no disponible: permítelo en tu navegador o sube un archivo.",
+    "enCours": "Grabando…",
+    "encore": "{{s}} segundos más para un clon correcto.",
+    "presque": "Bien. Un minuto es aún mejor.",
+    "assez": "Perfecto, para cuando quieras.",
+    "arreter": "Detener",
+    "analyse": "Aprendiendo tu voz…",
+    "analyseSous": "Uno o dos minutos. No salgas de la página.",
+    "prete": "Tu voz está lista",
+    "preteSous": "Creada el {{date}} · {{duree}} de audio · propuesta por defecto en tus reels",
+    "reenregistrer": "Volver a grabar",
+    "supprimer": "Eliminar mi voz",
+    "consentementLe": "Consentimiento dado el {{date}} · revocable en cualquier momento",
+    "confirmerSuppression": "¿Eliminar tu voz? Se borrará en nuestro sistema y en el proveedor. Los reels ya renderizados no cambian.",
+    "creee": "Tu voz está lista. Se propone por defecto en tus reels.",
+    "supprimee": "Voz eliminada.",
+    "echec": "Operación no disponible por ahora."
+  },
   "mur": {
     "surTitre": "Último paso",
     "fermer": "Cerrar",

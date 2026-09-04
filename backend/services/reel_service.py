@@ -445,8 +445,19 @@ def _pimenter_reveals(segments: list, graine: str):
     return segments
 
 
+_CONSIGNE_VOIX = (
+    "\n\nVOICE-OVER. This reel will be read aloud by a narrator. For EVERY shot, add a field "
+    "\"voix\": one SPOKEN sentence (8 to 16 words) in the client's language, that a real person "
+    "would say out loud to a friend: natural oral phrasing, contractions allowed, a real verb, "
+    "no telegram style, no hashtags, no emoji. It must carry the same idea as the on-screen text "
+    "but NOT repeat it word for word (the screen shows 3 words, the voice says the full thought). "
+    "Vary the rhythm: one question, one punchy statement, one calm sentence. On the cta shot, "
+    "the voice says the call to action plainly. Add \"voix\" to each object of segments."
+)
+
+
 def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, imposees: bool = False,
-                     style: str = None) -> dict:
+                     style: str = None, avec_voix: bool = False) -> dict:
     """Scenario de sequence ; validation stricte + repli heuristique.
     imposees=True : les visuels ont ete CHOISIS par le client -> tous utilises.
     style : injecte la direction artistique du template dans l'ecriture."""
@@ -462,7 +473,8 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
     langue = _LANGUES.get((marque.get("langue") or "fr").lower(), "French")
     role = (_ROLE_SEQUENCE
             + f"\n\nCLIENT'S LANGUAGE — write every audience-facing word in {langue.upper()}."
-            + (f"\n\n{_GUIDES_STYLE[style]}" if style in _GUIDES_STYLE else ""))
+            + (f"\n\n{_GUIDES_STYLE[style]}" if style in _GUIDES_STYLE else "")
+            + (_CONSIGNE_VOIX if avec_voix else ""))
     consigne = ""
     if imposees and pool:
         consigne = ("\nIMPORTANT: the client picked these visuals himself. You MUST use them ALL, "
@@ -480,7 +492,7 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
     try:
         resp = _messages_create(
             model="claude-haiku-4-5",
-            max_tokens=900,
+            max_tokens=1400 if avec_voix else 900,
             system=role,
             messages=[{"role": "user", "content": f"{entete}Post:\n\n{texte[:4000]}\n\nAvailable visuals:\n{liste}{consigne}\n\nReturn the JSON."}],
         )
@@ -516,12 +528,16 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
                 seg["bar"] = str(s.get("bar") or marque.get("nom") or "")[:40]
             if s.get("label"):
                 seg["label"] = str(s["label"])[:40]
+            if avec_voix:
+                # La phrase parlée ; à défaut, le texte affiché sera lu tel quel.
+                seg["voix_texte"] = str(s.get("voix") or seg["texte"])[:240].strip()
             if seg["texte"]:
                 segs.append(seg)
         # invariants : 4-7 plans, le dernier est un cta
         if segs and segs[-1]["type"] != "cta":
             segs.append({"type": "cta", "dur": 3.2, "texte": segs[-1]["texte"][:40] or "Suis-nous",
-                         "accents": [], "bar": str(marque.get("nom") or "")[:40]})
+                         "accents": [], "bar": str(marque.get("nom") or "")[:40],
+                         **({"voix_texte": segs[-1]["texte"][:40] or "Suis-nous"} if avec_voix else {})})
         if len(segs) >= 4:
             segments = segs
     except Exception as e:
@@ -620,17 +636,17 @@ def _poster_sequence(scenario: dict):
 
 
 def _mettre_en_file(row_id: str, telegram_id: str, props: dict, composition: str, etiquette: str,
-                    restaurer: dict = None, extra: dict = None) -> None:
+                    restaurer: dict = None, extra: dict = None, voix: str = None) -> None:
     """Delegue le rendu au worker (render_service). public_id stable
     reels/{telegram_id}/{row_id} : une regeneration remplace la video sur place."""
     from services import render_service
     render_service.enqueue(row_id, telegram_id, composition=composition, props=props, prefix="reel",
                            etiquette=etiquette, upload={"public_id": f"reels/{telegram_id}/{row_id}"},
-                           action_type="reel", notif="reel", restaurer=restaurer, extra=extra)
+                           action_type="reel", notif="reel", restaurer=restaurer, extra=extra, voix=voix)
 
 
 def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: str = "Instagram",
-                     style: str = None, musique: str = None) -> dict:
+                     style: str = None, musique: str = None, voix: str = None) -> dict:
     """Cree un reel Sequence SANS contenu source : le brief du client est le sujet.
     La ligne « Reel » entre dans Contenus en A valider / rendu en cours ; le worker
     rend et uploade en arriere-plan, puis notifie."""
@@ -644,11 +660,12 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
         pool = [{"id": f"img_{i+1}", "url": im["url"],
                  "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                 for i, im in enumerate(imgs)]
-        scenario = _script_sequence(brief, u, pool, brief=brief, imposees=True, style=st)
+        scenario = _script_sequence(brief, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
     else:
-        scenario = _script_sequence(brief, u, [], brief=brief, style=st)
+        scenario = _script_sequence(brief, u, [], brief=brief, style=st, avec_voix=bool(voix))
     scenario["style"] = st
     scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
+    scenario["voix"] = voix or None
     props = _props_sequence(u, scenario, telegram_id)
 
     hook = (scenario["segments"][0]["texte"] if scenario["segments"] else brief)[:60]
@@ -679,7 +696,7 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
     if not new_id:
         return {"error": "Creation du contenu reel impossible."}
     try:
-        _mettre_en_file(new_id, telegram_id, props, "ReelSequence", f"sequence/{st}")
+        _mettre_en_file(new_id, telegram_id, props, "ReelSequence", f"sequence/{st}", voix=voix)
     except Exception as e:
         logger.error(f"reel libre mise en file: {e}")
         supabase.table("contenu").delete().eq("id", new_id).execute()
@@ -689,7 +706,7 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
 
 
 def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: str = None, style: str = None,
-                   musique: str = None) -> dict:
+                   musique: str = None, voix: str = None) -> dict:
     """Re-scenarise et re-rend un reel Sequence EXISTANT (statut A valider) : la video
     est remplacee sur place (meme public_id Cloudinary), pas de doublon. Le rendu se
     fait en arriere-plan ; pendant ce temps video_url est vide (aucune publication
@@ -713,6 +730,10 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         musique = old_sc.get("musique")   # None = garder ; "none" = retirer explicitement
     if brief is None:
         brief = old_sc.get("brief")
+    if voix is None:
+        voix = old_sc.get("voix")     # None = garder ; "none" = retirer explicitement
+    if voix == "none":
+        voix = None
     if images is None:
         images = [{"url": sg.get("image"), "desc": None}
                   for sg in old_sc.get("segments", []) if _est_image_source(sg.get("image"))]
@@ -721,18 +742,19 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         pool = [{"id": f"img_{i+1}", "url": im["url"],
                  "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                 for i, im in enumerate(images) if im.get("url")]
-        scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st)
+        scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
     else:
         pool = _pool_visuels(telegram_id, cur)
-        scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
+        scenario = _script_sequence(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix))
     scenario["style"] = st
     scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
+    scenario["voix"] = voix or None
     props = _props_sequence(u, scenario, telegram_id)
     restaurer = {"video_url": cur.get("video_url"), "video_preview_url": cur.get("video_preview_url"),
                  "reel_data": old_sc}
     try:
         _mettre_en_file(reel_id, telegram_id, props, "ReelSequence", f"sequence/{st}",
-                        restaurer=restaurer,
+                        restaurer=restaurer, voix=voix,
                         extra={"reel_data": scenario, "video_url": None, "video_preview_url": None})
     except Exception as e:
         logger.error(f"reel regen mise en file: {e}")
@@ -742,7 +764,7 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
 
 def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
                  images: list = None, brief: str = None, style: str = None,
-                 musique: str = None) -> dict:
+                 musique: str = None, voix: str = None) -> dict:
     """Post -> script (Claude) -> contenu jumeau 'Reel' en rendu en cours -> file de rendu.
     template : cle de TEMPLATES ('affiche', 'impact', 'stats', 'long')."""
     if template not in TEMPLATES:
@@ -766,12 +788,13 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
             pool = [{"id": f"img_{i+1}", "url": im["url"],
                      "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                     for i, im in enumerate(images) if _est_visuel(im.get("url"))]
-            scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st)
+            scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
         else:
             pool = _pool_visuels(telegram_id, cur)
-            scenario = _script_sequence(texte, u, pool, brief=brief, style=st)
+            scenario = _script_sequence(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix))
         scenario["style"] = st
         scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
+        scenario["voix"] = voix or None
         script = {"hook": (scenario["segments"][0]["texte"] if scenario["segments"] else "")[:80]}
         props = _props_sequence(u, scenario, telegram_id)
     elif template == "affiche":
@@ -826,7 +849,8 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
     if not new_id:
         return {"error": "Creation du contenu reel impossible."}
     try:
-        _mettre_en_file(new_id, telegram_id, props, TEMPLATES[template]["composition"], template)
+        _mettre_en_file(new_id, telegram_id, props, TEMPLATES[template]["composition"], template,
+                        voix=voix if scenario else None)
     except Exception as e:
         logger.error(f"reel mise en file: {e}")
         supabase.table("contenu").delete().eq("id", new_id).execute()

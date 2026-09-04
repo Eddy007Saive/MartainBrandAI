@@ -2540,6 +2540,78 @@
     "cta": "Reconnect my networks",
     "note": "Generation resumes as soon as at least one network is reconnected."
   },
+  "voixOff": {
+    "titre": "Voice-over",
+    "nouveau": "New",
+    "activer": "Enable voice-over",
+    "ecouter": "Play a sample",
+    "maVoix": "My voice",
+    "maVoixPrete": "Your voice, cloned from Settings.",
+    "maVoixAbsente": "Not created yet · Settings › Brand voice",
+    "resume": "Claude writes one spoken line per shot, {{nom}} says it. About 3 s longer.",
+    "resumeMoi": "Claude writes one spoken line per shot, your voice says it. About 3 s longer.",
+    "creerMaVoix": "Create my voice →",
+    "voix": {
+      "victor": {
+        "nom": "Victor",
+        "desc": "Male, young, direct. Talks like a friend."
+      },
+      "yann": {
+        "nom": "Yann",
+        "desc": "Male, steady, dynamic narration."
+      },
+      "adina": {
+        "nom": "Adina",
+        "desc": "Female, young, clear. Made for social."
+      }
+    }
+  },
+  "maVoix": {
+    "titre": "My voice",
+    "sous": "One to two minutes of you talking, and your reels are spoken in your voice. Record here, or drop a voice note.",
+    "indisponible": "Custom voice is not enabled on this server yet.",
+    "reserveePro": "Custom voice is reserved for the Pro plan. Catalogue voices remain available in the Reel Studio.",
+    "enregistrer": "Record now",
+    "enregistrerSous": "1 to 2 minutes, somewhere quiet.",
+    "ou": "or",
+    "deposer": "Upload an audio file",
+    "deposerSous": "mp3, m4a, wav · WhatsApp voice notes accepted",
+    "fichierPret": "{{nom}} · {{taille}} KB, ready to send",
+    "retirer": "Remove",
+    "conseils": {
+      "c1": {
+        "t": "Speak normally.",
+        "s": "Like a client on the phone, not a radio host."
+      },
+      "c2": {
+        "t": "No music, no noise.",
+        "s": "A quiet room is enough, no mic needed."
+      },
+      "c3": {
+        "t": "Vary a little.",
+        "s": "A question, a statement, a calm sentence."
+      }
+    },
+    "consentement": "I confirm this is my voice (or that of a person who gave me written consent), and I allow Postorico to reproduce it only for my brand's content. I can delete it at any time; it is then removed from our provider as well.",
+    "creer": "Create my voice",
+    "microRefuse": "Microphone unavailable: allow it in your browser, or upload a file.",
+    "enCours": "Recording…",
+    "encore": "{{s}} more seconds for a decent clone.",
+    "presque": "Good. One minute is even better.",
+    "assez": "Perfect, stop whenever you want.",
+    "arreter": "Stop",
+    "analyse": "Learning your voice…",
+    "analyseSous": "One to two minutes. Stay on this page.",
+    "prete": "Your voice is ready",
+    "preteSous": "Created on {{date}} · {{duree}} of audio · offered by default on your reels",
+    "reenregistrer": "Record again",
+    "supprimer": "Delete my voice",
+    "consentementLe": "Consent given on {{date}} · revocable at any time",
+    "confirmerSuppression": "Delete your voice? It will be removed from us and from our provider. Reels already rendered are unchanged.",
+    "creee": "Your voice is ready. It is offered by default on your reels.",
+    "supprimee": "Voice deleted.",
+    "echec": "Operation unavailable right now."
+  },
   "mur": {
     "surTitre": "Last step",
     "fermer": "Close",

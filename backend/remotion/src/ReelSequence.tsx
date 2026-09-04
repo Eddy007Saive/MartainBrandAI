@@ -35,7 +35,17 @@ export type SequenceSegment = {
   tilt?: number;                                 // inclinaison de la carte (degrés)
   bar?: string;                                  // texte du bandeau bas (type cta)
   label?: string;                                // badge du plan (AVANT/APRÈS, signature du témoin…)
+  voix?: { src: string; dur: number } | null;    // voix off du plan (MP3 + durée en s) : le plan dure au moins la voix
 };
+
+// Durée effective d'un plan : celle du scénario, étirée si la voix off est plus longue.
+// Sans voix : 1,2 à 6 s comme avant. Avec voix : jusqu'à 9 s (une phrase parlée).
+export const dureeSegment = (s: SequenceSegment): number => {
+  const base = Math.max(1.2, Math.min(6, s?.dur || 3));
+  const voix = s?.voix?.dur ? s.voix.dur + 0.45 : 0;
+  return Math.min(9, Math.max(base, voix));
+};
+const srcAudio = (src: string) => (/^https?:\/\//.test(src) ? src : staticFile(src));
 
 export type SequenceStyle =
   | 'signature' | 'cinema' | 'editorial'
@@ -551,11 +561,29 @@ const SegImage: React.FC<{
     </div>
   );
 
+  // Un CLIP occupe tout l'écran, le texte passe par-dessus : c'est la grammaire
+  // du reel, et une vidéo enfermée dans une vignette ne se voit pas. Une photo
+  // garde son cadre borné (le texte ne doit jamais la recouvrir).
+  const pleinEcran = !!seg.video;
+  // Le voile reprend le fond du style (papier crème en Carnet, nuit ailleurs)
+  // pour que le raccord avec le plan suivant reste invisible.
+  const fondStyle = mode === 'carnet' ? PAPER : mode === 'impact' ? '#05060a' : '#020617';
+  const scene = pleinEcran ? (
+    <AbsoluteFill style={{ opacity: Math.min(1, enter * 2) }}>
+      <AbsoluteFill style={{ overflow: 'hidden' }}>{contenu}</AbsoluteFill>
+      {/* voile bas : garantit la lisibilité du texte quelle que soit l'image */}
+      <AbsoluteFill style={{
+        background: `linear-gradient(to bottom, transparent 42%, ${fondStyle}b3 68%, ${fondStyle}f2 100%)`,
+      }} />
+    </AbsoluteFill>
+  ) : persp ? <AbsoluteFill style={{ perspective: 1400 }}>{cadre}</AbsoluteFill> : cadre;
+
   return (
     <Coquille durFrames={durFrames} last={last}>
       {mode === 'conseils' && planNo >= 1 && <TipChip brand={brand} n={planNo} top="12%" />}
-      {persp ? <AbsoluteFill style={{ perspective: 1400 }}>{cadre}</AbsoluteFill> : cadre}
-      <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand} size={mode === 'cinema' ? 78 : 88} top="67%" mode={mode} />
+      {scene}
+      <Karaoke texte={seg.texte} accents={seg.accents || []} brand={brand}
+        size={mode === 'cinema' ? 78 : 88} top={pleinEcran ? '72%' : '67%'} mode={mode} />
     </Coquille>
   );
 };
@@ -637,9 +665,10 @@ const Habillage: React.FC<{ style: SequenceStyle; brand: Brand; segCount: number
 };
 
 // ---- musique de fond : volume posé, fondu d'entrée court et fondu de sortie ----
-const Bgm: React.FC<{ src: string }> = ({ src }) => {
+const Bgm: React.FC<{ src: string; sousVoix?: boolean }> = ({ src, sousVoix = false }) => {
   const { fps, durationInFrames } = useVideoConfig();
-  const VOL = 0.3;
+  // Sous une voix off, la musique passe en fond (ducking fixe) : elle porte, elle ne couvre pas.
+  const VOL = sousVoix ? 0.1 : 0.3;
   return (
     <Audio
       src={src}
@@ -672,7 +701,8 @@ export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signat
   // départs cumulés (secondes) — sert aux Sequence ET au punch global
   const starts: number[] = [];
   let t = 0;
-  for (const s of segs) { starts.push(t); t += Math.max(1.2, Math.min(6, s.dur || 3)); }
+  for (const s of segs) { starts.push(t); t += dureeSegment(s); }
+  const avecVoix = segs.some((s) => !!s.voix?.src);
   const startsFrames = starts.map((st) => Math.round(st * fps));
 
   // numérotation des plans : ordre parmi les images (avant/après), ordre hors-CTA (conseils)
@@ -693,18 +723,23 @@ export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signat
 
   return (
     <AbsoluteFill style={{ background: papier ? PAPER : style === 'impact' ? '#05060a' : (brand.fond || '#020617'), overflow: 'hidden' }}>
-      {musique ? <Bgm src={musique} /> : null}
+      {musique ? <Bgm src={musique} sousVoix={avecVoix} /> : null}
       <Fond brand={brand} style={style} />
       <AbsoluteFill style={{ transform: `scale(${punch})`, transformOrigin: 'center 46%' }}>
         {segs.map((seg, i) => {
-          const durS = Math.max(1.2, Math.min(6, seg.dur || 3));
+          const durS = dureeSegment(seg);
           const last = i === segs.length - 1;
           const durFrames = Math.round((durS + (last ? 0 : XFADE)) * fps);
           const from = Math.round(starts[i] * fps);
           const sfx = sfxDe(style);
           return (
             <Sequence key={i} from={from} durationInFrames={durFrames}>
-              {bruitages && i > 0 && <Audio src={staticFile(sfx.coupe)} volume={0.5} />}
+              {seg.voix?.src && (
+                <Sequence from={Math.round(0.15 * fps)} durationInFrames={Math.max(1, durFrames - Math.round(0.15 * fps))}>
+                  <Audio src={srcAudio(seg.voix.src)} volume={1} />
+                </Sequence>
+              )}
+              {bruitages && i > 0 && <Audio src={staticFile(sfx.coupe)} volume={seg.voix?.src ? 0.3 : 0.5} />}
               {bruitages && seg.type === 'image' && (
                 <Sequence from={3} durationInFrames={durFrames - 3}>
                   <Audio src={staticFile(sfx.image)} volume={0.45} />
@@ -752,6 +787,6 @@ export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signat
 
 // Durée totale d'un scénario, en secondes (utilisée par calculateMetadata dans Root)
 export const dureeScenario = (segments: SequenceSegment[]): number => {
-  const s = (segments || []).reduce((acc, x) => acc + Math.max(1.2, Math.min(6, x?.dur || 3)), 0);
-  return Math.max(6, Math.min(40, s));
+  const s = (segments || []).reduce((acc, x) => acc + dureeSegment(x), 0);
+  return Math.max(6, Math.min(60, s));
 };

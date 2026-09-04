@@ -6,6 +6,7 @@ import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loa
 import { contenuService } from '../services/contenuService';
 import { OverlayFabrication } from '../components/Fabrication';
 import DecoupeMusique from '../components/DecoupeMusique';
+import VoixOff from '../components/VoixOff';
 
 /**
  * Studio Reel — création LIBRE d'un reel Séquence en pleine page.
@@ -27,6 +28,7 @@ export default function StudioReel() {
   const [reseau, setReseau] = useState('Instagram');
   const [images, setImages] = useState([]);          // {url, desc, src}
   const [musique, setMusique] = useState('none');
+  const [voix, setVoix] = useState(null);          // voix off : id (victor|yann|adina|moi) ou null = muet
   const [mp3, setMp3] = useState(false);          // import d'un MP3 perso en cours
   const [playing, setPlaying] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -100,7 +102,7 @@ export default function StudioReel() {
       await contenuService.creerReel({
         brief: brief.trim(),
         images: images.map((i) => ({ url: i.url, desc: i.desc || null })),
-        reseau, style, musique,
+        reseau, style, musique, voix,
       });
       toast.success(t('contenus.toast.reelEnFile'));
       navigate('/dashboard/contenus');
@@ -263,6 +265,9 @@ export default function StudioReel() {
               <audio ref={audioRef} onEnded={() => setPlaying(false)} className="hidden" />
             </div>
           )}
+
+          {/* Voix off : une phrase parlée par plan, dite par une voix du catalogue ou celle du client */}
+          <VoixOff valeur={voix} onChange={setVoix} />
 
           <button type="button" onClick={generer} disabled={generating || uploading} data-testid="studio-reel-generer"
             className="w-full text-[14px] font-semibold font-inter text-white px-5 py-3 rounded-xl bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2">

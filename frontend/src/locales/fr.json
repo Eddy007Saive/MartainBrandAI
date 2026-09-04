@@ -2540,6 +2540,78 @@
     "cta": "Reconnecter mes réseaux",
     "note": "La génération reprend dès qu'au moins un réseau est reconnecté."
   },
+  "voixOff": {
+    "titre": "Voix off",
+    "nouveau": "Nouveau",
+    "activer": "Activer la voix off",
+    "ecouter": "Écouter un extrait",
+    "maVoix": "Ma voix",
+    "maVoixPrete": "Ta voix, clonée depuis Paramètres.",
+    "maVoixAbsente": "Pas encore créée · Paramètres › Voix de marque",
+    "resume": "Claude écrit une phrase parlée par plan, {{nom}} la dit. Environ 3 s de plus.",
+    "resumeMoi": "Claude écrit une phrase parlée par plan, ta voix la dit. Environ 3 s de plus.",
+    "creerMaVoix": "Créer ma voix →",
+    "voix": {
+      "victor": {
+        "nom": "Victor",
+        "desc": "Homme, jeune, direct. Parle comme à un ami."
+      },
+      "yann": {
+        "nom": "Yann",
+        "desc": "Homme, posé, narration dynamique."
+      },
+      "adina": {
+        "nom": "Adina",
+        "desc": "Femme, jeune, claire. Faite pour les réseaux."
+      }
+    }
+  },
+  "maVoix": {
+    "titre": "Ma voix",
+    "sous": "Une à deux minutes de toi qui parles, et tes reels sont dits avec ta voix. Enregistre ici, ou dépose un vocal.",
+    "indisponible": "La voix personnalisée n'est pas encore activée sur ce serveur.",
+    "reserveePro": "La voix personnalisée est réservée à l'offre Pro. Les voix du catalogue restent disponibles dans le Studio Reel.",
+    "enregistrer": "Enregistrer maintenant",
+    "enregistrerSous": "1 à 2 minutes, au calme.",
+    "ou": "ou",
+    "deposer": "Déposer un audio",
+    "deposerSous": "mp3, m4a, wav · vocal WhatsApp accepté",
+    "fichierPret": "{{nom}} · {{taille}} Ko, prêt à envoyer",
+    "retirer": "Retirer",
+    "conseils": {
+      "c1": {
+        "t": "Parle normalement.",
+        "s": "Comme à un client au téléphone, pas comme à la radio."
+      },
+      "c2": {
+        "t": "Sans musique ni bruit.",
+        "s": "Une pièce calme suffit, pas besoin de micro."
+      },
+      "c3": {
+        "t": "Varie un peu.",
+        "s": "Une question, une affirmation, une phrase posée."
+      }
+    },
+    "consentement": "Je confirme que c'est ma voix (ou celle d'une personne qui m'a donné son accord écrit), et j'autorise Postorico à la reproduire uniquement pour les contenus de ma marque. Je peux la supprimer à tout moment, elle est alors effacée aussi chez notre prestataire.",
+    "creer": "Créer ma voix",
+    "microRefuse": "Micro indisponible : autorise-le dans ton navigateur, ou dépose un fichier.",
+    "enCours": "Enregistrement…",
+    "encore": "Encore {{s}} secondes pour un clone correct.",
+    "presque": "C'est bon. Une minute, c'est encore mieux.",
+    "assez": "Parfait, tu peux arrêter quand tu veux.",
+    "arreter": "Arrêter",
+    "analyse": "On apprend ta voix…",
+    "analyseSous": "Une à deux minutes. Ne quitte pas la page.",
+    "prete": "Ta voix est prête",
+    "preteSous": "Créée le {{date}} · {{duree}} d'audio · proposée par défaut sur tes reels",
+    "reenregistrer": "Réenregistrer",
+    "supprimer": "Supprimer ma voix",
+    "consentementLe": "Consentement donné le {{date}} · révocable à tout moment",
+    "confirmerSuppression": "Supprimer ta voix ? Elle sera effacée chez nous et chez notre prestataire. Tes reels déjà rendus ne changent pas.",
+    "creee": "Ta voix est prête. Elle est proposée par défaut sur tes reels.",
+    "supprimee": "Voix supprimée.",
+    "echec": "Opération impossible pour le moment."
+  },
   "mur": {
     "surTitre": "Dernière étape",
     "fermer": "Fermer",

@@ -11,6 +11,7 @@ TRIAL_DAYS = 14
 
 # Libellés client par type (résultats, jamais d'euros)
 LABELS = {
+    "voix": "voix off",
     "subject": "sujets",
     "post": "posts",
     "image_standard": "images standard",
