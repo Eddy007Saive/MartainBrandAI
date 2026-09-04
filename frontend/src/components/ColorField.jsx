@@ -22,14 +22,14 @@ export const ColorField = ({ label, name, value, onChange, className }) => {
       <Label className="text-sm font-medium text-slate-300 font-inter">
         {label}
       </Label>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <div className="relative">
           <input
             type="color"
             value={value || '#000000'}
             onChange={handleColorChange}
             data-testid={`color-picker-${name}`}
-            className="w-12 h-10 rounded-lg border-2 border-slate-700 cursor-pointer bg-transparent"
+            className="w-10 sm:w-12 h-10 rounded-lg border-2 border-slate-700 cursor-pointer bg-transparent"
           />
         </div>
         <Input
@@ -38,10 +38,12 @@ export const ColorField = ({ label, name, value, onChange, className }) => {
           onChange={handleHexChange}
           placeholder="#000000"
           data-testid={`color-hex-${name}`}
-          className="flex-1 bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 font-mono text-sm"
+          className="flex-1 min-w-0 px-2 sm:px-3 bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 font-mono text-xs sm:text-sm"
         />
+        {/* La pastille répète le sélecteur (qui affiche déjà la couleur) : on la garde
+            sur grand écran, on la retire sur mobile où chaque pixel de largeur compte. */}
         <div
-          className="w-10 h-10 rounded-lg border-2 border-slate-700"
+          className="hidden sm:block w-10 h-10 rounded-lg border-2 border-slate-700"
           style={{ backgroundColor: value || '#000000' }}
           data-testid={`color-preview-${name}`}
         />

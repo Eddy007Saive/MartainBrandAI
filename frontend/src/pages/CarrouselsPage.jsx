@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Loader2, Check, X, Maximize2, Sparkles } from 'lucide-react';
+import { Loader2, Check, X, Maximize2, Sparkles, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation, Trans } from 'react-i18next';
 import { useUser } from '../context/UserContext';
@@ -32,6 +32,18 @@ export default function CarrouselsPage() {
   // Couleurs PROPRES au carrousel (override) — défaut = couleurs de marque
   const [cz, setCz] = useState(null);
   const [savingCz, setSavingCz] = useState(false);
+  // Sur mobile, le bloc couleurs/polices est replié : l'essentiel de la page, c'est le choix
+  // du style par réseau. Sur grand écran il reste ouvert.
+  const [styleOuvert, setStyleOuvert] = useState(() => typeof window === 'undefined' || window.innerWidth >= 640);
+  const [largeurEcran, setLargeurEcran] = useState(() => (typeof window === 'undefined' ? 1024 : window.innerWidth));
+  useEffect(() => {
+    const onResize = () => setLargeurEcran(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  // Lightbox : une slide fait 340 px sur grand écran, et tient dans l'écran sur mobile.
+  const largeurSlide = Math.min(340, largeurEcran - 48);
+  const echelleSlide = largeurSlide / 200;
   useEffect(() => {
     if (user && !cz) setCz({
       p: user.carrousel_couleur_principale || brand.p,
@@ -176,26 +188,27 @@ export default function CarrouselsPage() {
       {/* Couleurs propres au carrousel */}
       {cz && (
         <div className="rounded-2xl border border-white/8 bg-[#0b1322] p-4 sm:p-5 mb-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <div>
-              <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('carrousels.styleDuCarrousel')}</div>
+          <div className="flex items-start justify-between gap-3">
+            <button type="button" onClick={() => setStyleOuvert((o) => !o)} className="flex-1 min-w-0 text-left sm:cursor-default sm:pointer-events-none"
+              aria-expanded={styleOuvert} data-testid="carr-style-toggle">
+              <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase flex items-center gap-2">
+                {t('carrousels.styleDuCarrousel')}
+                {czDirty && <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3]" />}
+              </div>
               <div className="text-xs text-slate-400 mt-0.5">{t('carrousels.styleDescription')}</div>
-            </div>
-            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-              <button onClick={resetColors} className="text-[12.5px] text-slate-400 hover:text-white px-3 py-2 rounded-lg border border-white/10">{t('carrousels.reinitialiser')}</button>
-              <button onClick={saveColors} disabled={!czDirty || savingCz}
-                className={`text-[13px] font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${czDirty ? 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white' : 'bg-white/5 text-slate-500 cursor-default'}`}>
-                {savingCz ? <Loader2 className="w-4 h-4 animate-spin" /> : (!czDirty && <Check className="w-4 h-4" />)}
-                {czDirty ? t('carrousels.enregistrer') : t('carrousels.dejaEnregistre')}
-              </button>
-            </div>
+            </button>
+            <button type="button" onClick={() => setStyleOuvert((o) => !o)} aria-label={t('carrousels.styleDuCarrousel')}
+              className="sm:hidden w-9 h-9 shrink-0 rounded-lg border border-white/10 grid place-items-center text-slate-400">
+              <ChevronDown className={`w-4 h-4 transition-transform ${styleOuvert ? 'rotate-180' : ''}`} />
+            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {styleOuvert && (<>
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
             <ColorField label={t('carrousels.couleurPrincipale')} name="p" value={cz.p} onChange={setColor} />
             <ColorField label={t('carrousels.couleurSecondaire')} name="s" value={cz.s} onChange={setColor} />
             <ColorField label={t('carrousels.couleurAccent')} name="a" value={cz.a} onChange={setColor} />
           </div>
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 max-w-xl">
             <div>
               <label className="block text-[12px] font-medium text-slate-300 mb-1.5">{t('carrousels.policeDesTitres')}</label>
               <select value={cz.font || ''} onChange={(e) => setColor('font', e.target.value)}
@@ -211,6 +224,15 @@ export default function CarrouselsPage() {
               </select>
             </div>
           </div>
+          <div className="mt-4 flex items-center gap-2">
+            <button onClick={resetColors} className="flex-1 sm:flex-none text-[12.5px] text-slate-400 hover:text-white px-3 py-2 rounded-lg border border-white/10">{t('carrousels.reinitialiser')}</button>
+            <button onClick={saveColors} disabled={!czDirty || savingCz}
+              className={`flex-1 sm:flex-none justify-center text-[13px] font-semibold px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${czDirty ? 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white' : 'bg-white/5 text-slate-500 cursor-default'}`}>
+              {savingCz ? <Loader2 className="w-4 h-4 animate-spin" /> : (!czDirty && <Check className="w-4 h-4" />)}
+              {czDirty ? t('carrousels.enregistrer') : t('carrousels.dejaEnregistre')}
+            </button>
+          </div>
+          </>)}
         </div>
       )}
 
@@ -219,17 +241,17 @@ export default function CarrouselsPage() {
       ) : (
         <>
           {/* Onglets réseaux */}
-          <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 mb-5">
+          <div className="flex gap-2 mb-5 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {NETS.map((n) => {
               const on = activeNet === n.id;
               return (
                 <button key={n.id} onClick={() => setActiveNet(n.id)} data-testid={`carr-tab-${n.id}`}
-                  className={`flex items-center justify-center sm:justify-start gap-2 px-2 sm:pl-2 sm:pr-4 py-2 rounded-xl border transition-all min-w-0 ${on ? 'border-[#5B6CFF] bg-[#5B6CFF]/12 text-white' : 'border-white/8 bg-white/[0.02] text-slate-400 hover:text-white hover:border-white/20'}`}>
+                  className={`flex items-center gap-2 pl-2 pr-3.5 sm:pr-4 py-2 rounded-xl border transition-all shrink-0 ${on ? 'border-[#5B6CFF] bg-[#5B6CFF]/12 text-white' : 'border-white/8 bg-white/[0.02] text-slate-400 hover:text-white hover:border-white/20'}`}>
                   <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg grid place-items-center text-white flex-shrink-0" style={{ background: n.bg }}>
                     <SocialIcon network={n.id} className="w-3.5 h-3.5" />
                   </span>
-                  <span className="font-sora font-semibold text-[12.5px] sm:text-sm truncate">{n.label}</span>
-                  <span className="hidden sm:inline text-[11px] text-[#3AFFA3] font-medium">· {labelOf(saved[n.id])}</span>
+                  <span className="font-sora font-semibold text-[13px] sm:text-sm whitespace-nowrap">{n.label}</span>
+                  <span className={`text-[11px] text-[#3AFFA3] font-medium whitespace-nowrap ${on ? 'inline' : 'hidden sm:inline'}`}>· {labelOf(saved[n.id])}</span>
                 </button>
               );
             })}
@@ -300,26 +322,31 @@ export default function CarrouselsPage() {
       {/* Lightbox */}
       {lightbox && createPortal((
         <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex flex-col animate-fade-in" onClick={() => setLightbox(null)}>
-          <div className="flex items-center justify-between px-6 py-4" onClick={(e) => e.stopPropagation()}>
-            <div>
-              <div className="text-white font-sora font-bold text-lg">{labelOf(lightbox.tpl)}</div>
+          <div className="flex items-start justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4" onClick={(e) => e.stopPropagation()}>
+            <div className="min-w-0">
+              <div className="text-white font-sora font-bold text-base sm:text-lg truncate">{labelOf(lightbox.tpl)}</div>
               <div className="text-slate-400 text-xs">{t('carrousels.lightboxHint', { reseau: NETS.find((n) => n.id === lightbox.net)?.label })}</div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <button onClick={() => { save(lightbox.net); setLightbox(null); }}
-                className="text-[13px] font-semibold px-4 py-2 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white">{t('carrousels.enregistrerCeStyle')}</button>
-              <button onClick={() => setLightbox(null)} className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><X className="w-5 h-5" /></button>
+                className="hidden sm:block text-[13px] font-semibold px-4 py-2 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white">{t('carrousels.enregistrerCeStyle')}</button>
+              <button onClick={() => setLightbox(null)} aria-label="Fermer" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><X className="w-5 h-5" /></button>
             </div>
           </div>
-          <div className="flex-1 overflow-x-auto overflow-y-hidden flex items-center gap-6 px-8 pb-8" onClick={(e) => e.stopPropagation()}>
+          <div className="flex-1 overflow-x-auto overflow-y-hidden flex items-center gap-4 sm:gap-6 px-6 sm:px-8 pb-4 sm:pb-8 snap-x snap-mandatory" onClick={(e) => e.stopPropagation()}>
             {renderSlides(lightbox.tpl, colors).map((sl, i) => (
-              <div key={i} className="flex-shrink-0">
-                <div style={{ width: 340, height: 425, overflow: 'hidden', borderRadius: 16, boxShadow: '0 18px 50px rgba(0,0,0,.5)' }}>
-                  <div style={{ transform: 'scale(1.7)', transformOrigin: 'top left' }} dangerouslySetInnerHTML={{ __html: sl }} />
+              <div key={i} className="flex-shrink-0 snap-center">
+                <div style={{ width: largeurSlide, height: largeurSlide * 1.25, overflow: 'hidden', borderRadius: 16, boxShadow: '0 18px 50px rgba(0,0,0,.5)' }}>
+                  <div style={{ transform: `scale(${echelleSlide})`, transformOrigin: 'top left' }} dangerouslySetInnerHTML={{ __html: sl }} />
                 </div>
                 <div className="text-center text-xs text-white/60 mt-3 font-medium">{SLIDE_LABELS[i] || ''}</div>
               </div>
             ))}
+          </div>
+          {/* Mobile : le bouton d'enregistrement en bas, pleine largeur, sous le pouce */}
+          <div className="sm:hidden px-4 pb-5 pt-1" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => { save(lightbox.net); setLightbox(null); }}
+              className="w-full text-[14px] font-semibold px-4 py-3 rounded-xl bg-[#e7ecf5] text-[#0b1322] hover:bg-white">{t('carrousels.enregistrerCeStyle')}</button>
           </div>
         </div>
       ), document.body)}
