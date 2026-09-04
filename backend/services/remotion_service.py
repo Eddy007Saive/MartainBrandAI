@@ -23,6 +23,10 @@ from config import logger
 _BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REMOTION_DIR = os.environ.get("REMOTION_DIR") or os.path.join(_BACKEND_DIR, "remotion")
 REMOTION_BROWSER = os.environ.get("REMOTION_BROWSER")
+# Qualité H.264 du rendu. Remotion encode par défaut en CRF 18 (quasi sans perte) : 8 à
+# 14 Mo pour vingt secondes. CRF 23 divise le poids par deux ou trois sans différence
+# visible sur un téléphone, et les réseaux recompressent de toute façon.
+REMOTION_CRF = int(os.environ.get("REMOTION_CRF", "23"))
 
 # Cout d'une minute de rendu, en dollars. Un rendu Remotion sature les coeurs du
 # conteneur : le seul cout reel est le TEMPS de calcul facture par l'hebergeur.
@@ -69,7 +73,8 @@ def render_mp4(props: dict, composition: str, *, telegram_id: str = None,
         json.dump(props, f, ensure_ascii=False)
     out_path = os.path.join(tempfile.gettempdir(), f"{prefix}_{next(tempfile._get_candidate_names())}.mp4")
     npx = "npx.cmd" if os.name == "nt" else "npx"
-    cmd = [npx, "remotion", "render", "src/index.ts", composition, out_path, f"--props={props_path}", "--timeout=120000"]
+    cmd = [npx, "remotion", "render", "src/index.ts", composition, out_path, f"--props={props_path}", "--timeout=120000",
+           f"--crf={REMOTION_CRF}"]
     if REMOTION_BROWSER:
         cmd.append(f"--browser-executable={REMOTION_BROWSER}")
     depart = time.monotonic()
