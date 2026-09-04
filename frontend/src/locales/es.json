@@ -2552,19 +2552,43 @@
     "resumeMoi": "Claude escribe una frase hablada por plano, tu voz la dice. Unos 3 s más.",
     "creerMaVoix": "Crear mi voz →",
     "voix": {
-      "victor": {
-        "nom": "Victor",
-        "desc": "Hombre, joven, directo. Habla como a un amigo."
-      },
-      "yann": {
-        "nom": "Yann",
-        "desc": "Hombre, sereno, narración dinámica."
-      },
-      "adina": {
-        "nom": "Adina",
-        "desc": "Mujer, joven, clara. Hecha para las redes."
+        "victor": {
+          "nom": "Victor",
+          "desc": "Hombre, joven, directo. Habla como a un amigo."
+        },
+        "yann": {
+          "nom": "Yann",
+          "desc": "Hombre, sereno, narración dinámica."
+        },
+        "adina": {
+          "nom": "Adina",
+          "desc": "Mujer, joven, clara. Hecha para las redes."
+        },
+        "mark": {
+          "nom": "Mark",
+          "desc": "Hombre, joven, americano. Enérgico, hecho para las redes."
+        },
+        "drew": {
+          "nom": "Drew",
+          "desc": "Hombre, relajado, curioso. Tono de conversación."
+        },
+        "elise": {
+          "nom": "Elise",
+          "desc": "Mujer, joven, cálida. Natural y serena."
+        },
+        "sam": {
+          "nom": "Sam",
+          "desc": "Hombre, joven, acento latinoamericano. Atrapa desde el principio."
+        },
+        "ginyin": {
+          "nom": "Ginyin",
+          "desc": "Hombre, joven, castellano neutro. Enérgico y claro."
+        },
+        "sara": {
+          "nom": "Sara",
+          "desc": "Mujer, joven, castellano. Viva y natural."
+        }
       }
-    }
   },
   "maVoix": {
     "titre": "Mi voz",

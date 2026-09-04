@@ -2552,19 +2552,43 @@
     "resumeMoi": "Claude écrit une phrase parlée par plan, ta voix la dit. Environ 3 s de plus.",
     "creerMaVoix": "Créer ma voix →",
     "voix": {
-      "victor": {
-        "nom": "Victor",
-        "desc": "Homme, jeune, direct. Parle comme à un ami."
-      },
-      "yann": {
-        "nom": "Yann",
-        "desc": "Homme, posé, narration dynamique."
-      },
-      "adina": {
-        "nom": "Adina",
-        "desc": "Femme, jeune, claire. Faite pour les réseaux."
+        "victor": {
+          "nom": "Victor",
+          "desc": "Homme, jeune, direct. Parle comme à un ami."
+        },
+        "yann": {
+          "nom": "Yann",
+          "desc": "Homme, posé, narration dynamique."
+        },
+        "adina": {
+          "nom": "Adina",
+          "desc": "Femme, jeune, claire. Faite pour les réseaux."
+        },
+        "mark": {
+          "nom": "Mark",
+          "desc": "Homme, jeune, américain. Énergique, fait pour les réseaux."
+        },
+        "drew": {
+          "nom": "Drew",
+          "desc": "Homme, décontracté, curieux. Ton conversation."
+        },
+        "elise": {
+          "nom": "Elise",
+          "desc": "Femme, jeune, chaleureuse. Naturelle et posée."
+        },
+        "sam": {
+          "nom": "Sam",
+          "desc": "Homme, jeune, accent latino-américain. Accrocheur."
+        },
+        "ginyin": {
+          "nom": "Ginyin",
+          "desc": "Homme, jeune, castillan neutre. Énergique et clair."
+        },
+        "sara": {
+          "nom": "Sara",
+          "desc": "Femme, jeune, castillan. Vive et naturelle."
+        }
       }
-    }
   },
   "maVoix": {
     "titre": "Ma voix",

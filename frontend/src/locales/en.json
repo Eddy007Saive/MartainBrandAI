@@ -2552,19 +2552,43 @@
     "resumeMoi": "Claude writes one spoken line per shot, your voice says it. About 3 s longer.",
     "creerMaVoix": "Create my voice →",
     "voix": {
-      "victor": {
-        "nom": "Victor",
-        "desc": "Male, young, direct. Talks like a friend."
-      },
-      "yann": {
-        "nom": "Yann",
-        "desc": "Male, steady, dynamic narration."
-      },
-      "adina": {
-        "nom": "Adina",
-        "desc": "Female, young, clear. Made for social."
+        "victor": {
+          "nom": "Victor",
+          "desc": "Male, young, direct. Talks like a friend."
+        },
+        "yann": {
+          "nom": "Yann",
+          "desc": "Male, steady, dynamic narration."
+        },
+        "adina": {
+          "nom": "Adina",
+          "desc": "Female, young, clear. Made for social."
+        },
+        "mark": {
+          "nom": "Mark",
+          "desc": "Male, young, American. Energetic, made for social."
+        },
+        "drew": {
+          "nom": "Drew",
+          "desc": "Male, casual, curious. Conversational tone."
+        },
+        "elise": {
+          "nom": "Elise",
+          "desc": "Female, young, warm. Natural and grounded."
+        },
+        "sam": {
+          "nom": "Sam",
+          "desc": "Male, young, Latin American accent. Catchy."
+        },
+        "ginyin": {
+          "nom": "Ginyin",
+          "desc": "Male, young, neutral Castilian. Energetic and clear."
+        },
+        "sara": {
+          "nom": "Sara",
+          "desc": "Female, young, Castilian. Lively and natural."
+        }
       }
-    }
   },
   "maVoix": {
     "titre": "My voice",
