@@ -45,11 +45,29 @@ def _trial_plan_id():
     return r.data[0]["id"] if r.data else _pro_plan_id()
 
 
+PLAN_INTERNE = "Boss"
+
+
+def est_boss(telegram_id: str) -> bool:
+    """Plan « Boss » = compte interne (équipe, démonstrations) : sans limite ET
+    hors de tout mécanisme d'impayé. Un Boss n'est jamais bloqué, suspendu ni
+    résilié, quoi que dise Stripe (un Boss peut avoir un abonnement Stripe de
+    test ou historique dont les factures n'ont aucune raison d'être payées)."""
+    try:
+        r = (supabase.table("subscriptions").select("plan_id, plans(name)").eq("user_id", telegram_id)
+             .in_("status", ["active", "trialing", "past_due", "suspended"])
+             .order("created_at", desc=True).limit(1).execute())
+        return bool(r.data) and ((r.data[0].get("plans") or {}).get("name") == PLAN_INTERNE)
+    except Exception:
+        return False
+
+
 def is_paid(telegram_id: str) -> bool:
-    """True si le compte a un abonnement payant actif (pas un simple essai trialing)."""
+    """True si le compte a un abonnement payant actif (pas un simple essai trialing).
+    Un compte Boss compte comme payant, quel que soit son statut."""
     try:
         r = supabase.table("subscriptions").select("id").eq("user_id", telegram_id).eq("status", "active").limit(1).execute()
-        return bool(r.data)
+        return bool(r.data) or est_boss(telegram_id)
     except Exception:
         return False
 
@@ -219,7 +237,7 @@ def consume(telegram_id: str, action_type: str, qty: int = 1) -> dict:
     # arrête de dépenser pour ce compte jusqu'à l'encaissement. La RPC refuse
     # aussi (filet) ; ici on distingue grâce et suspendu pour le mur.
     statut = statut_abonnement(telegram_id)
-    if statut in ("past_due", "suspended"):
+    if statut in ("past_due", "suspended") and not est_boss(telegram_id):
         reason = "impaye" if statut == "past_due" else "suspendu"
         return {"ok": False, "reason": reason, "action_type": action_type, "qty": qty,
                 "message": _message(action_type, reason)}

@@ -19,12 +19,16 @@ sont pilotés par NOTRE colonne `impaye_depuis`, jamais par le statut Stripe :
 la séquence de relance Stripe est configurable, notre calendrier n'en dépend pas.
 Règle absolue : on ne revient à « actif » que sur un encaissement (invoice.paid),
 jamais sur une date ou un cron.
+
+Exception : le plan « Boss » (comptes internes) est hors de tout ce mécanisme.
+Un échec de paiement Stripe sur un Boss est journalisé mais n'entame rien.
 """
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
 
 from config import supabase, logger, FRONTEND_URL, ADMIN_NOTIF_EMAIL, STRIPE_SECRET_KEY
+from services import quota_service
 
 STATUTS_VIVANTS = ("trialing", "active", "past_due", "suspended")
 J_AVERTISSEMENT = 9     # mail 2 : la veille de la coupure
@@ -69,6 +73,8 @@ def _oublier_demarrage(telegram_id: str) -> None:
 def etat_facturation(telegram_id: str) -> str:
     """actif / grace / suspendu / resilie / aucun, dérivé de subscriptions.status."""
     s = _sub(telegram_id)
+    if s and quota_service.est_boss(telegram_id):
+        return "actif"
     if not s:
         # Plus d'abonnement vivant : résilié (il en a eu un) ou jamais abonné.
         r = supabase.table("subscriptions").select("id").eq("user_id", telegram_id).limit(1).execute()
@@ -84,6 +90,9 @@ def marquer_echec(telegram_id: str) -> dict:
     s = _sub(telegram_id)
     if not s:
         return {"premier_echec": False, "statut": None}
+    if quota_service.est_boss(telegram_id):
+        logger.info(f"impayé: {telegram_id} est Boss, échec Stripe ignoré")
+        return {"premier_echec": False, "statut": s["status"], "boss": True}
     premier = not s.get("impaye_depuis")
     row = {}
     if s["status"] in ("active", "trialing"):
@@ -239,8 +248,10 @@ async def traiter_quotidien() -> dict:
     bilan = {"comptes": 0, "mail2": 0, "suspendus": 0, "mail4": 0, "resilies": 0, "echecs": 0}
     now = _now()
     for s in r.data or []:
-        bilan["comptes"] += 1
         uid = s["user_id"]
+        if quota_service.est_boss(uid):
+            continue
+        bilan["comptes"] += 1
         try:
             depuis = datetime.fromisoformat(str(s["impaye_depuis"]).replace("Z", "+00:00"))
             jours = (now - depuis).days

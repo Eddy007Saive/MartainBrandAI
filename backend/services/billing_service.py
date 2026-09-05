@@ -304,13 +304,19 @@ def _upsert_subscription(uid: str, status: str, period_start, period_end, stripe
         row["current_period_start"] = period_start
     if period_end:
         row["current_period_end"] = period_end
-    existing = (supabase.table("subscriptions").select("id, status").eq("user_id", uid)
+    existing = (supabase.table("subscriptions").select("id, status, plans(name)").eq("user_id", uid)
                 .order("created_at", desc=True).limit(1).execute())
     if existing.data:
         # Un compte suspendu par notre cron (réseaux déconnectés) le reste tant que
         # Stripe ne signale qu'un past_due : sinon le cron le re-suspendrait en boucle.
         if existing.data[0].get("status") == "suspended" and status == "past_due":
             row["status"] = "suspended"
+        # Un compte Boss (interne) garde son plan et reste actif : Stripe ne
+        # gouverne ni ses quotas ni son accès, seulement ses dates de période.
+        if (existing.data[0].get("plans") or {}).get("name") == "Boss":
+            row.pop("plan_id", None)
+            if status in ("past_due", "suspended"):
+                row["status"] = "active"
         supabase.table("subscriptions").update(row).eq("id", existing.data[0]["id"]).execute()
     elif period_end:
         row["user_id"] = uid
