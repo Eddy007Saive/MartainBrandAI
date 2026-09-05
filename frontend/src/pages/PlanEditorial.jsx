@@ -53,11 +53,9 @@ const defaultFormat = (netId, configFmt) => {
   const allowed = formatsFor(netId);
   return allowed.includes(configFmt) ? configFmt : allowed[0];
 };
-const QUALITES = [
-  { id: 'rapide', labelKey: 'qualiteRapide' },
-  { id: 'equilibre', labelKey: 'qualiteEquilibre' },
-  { id: 'premium', labelKey: 'qualitePremium' },
-];
+// Une seule qualité, la même que le Studio IA : le choix rapide/équilibré/premium
+// n'apportait qu'une question de plus au client. Le serveur garde le paramètre.
+const QUALITE = 'equilibre';
 const costKey = (fmt) => (fmt === 'post' || fmt === 'story' ? 'post' : fmt === 'carrousel' ? 'carrousel' : 'script');
 
 export default function PlanEditorial() {
@@ -75,7 +73,6 @@ export default function PlanEditorial() {
   const [loadingPlan, setLoadingPlan] = useState(true);
   const [subjects, setSubjects] = useState([]);
   const [sel, setSel] = useState({}); // { [subjectId]: { checked, nets:{netId: format} } } — réseaux + format PAR sujet
-  const [quality, setQuality] = useState('equilibre');
   const [nbSujets, setNbSujets] = useState(6);
   const [genSujets, setGenSujets] = useState(false);
   const [running, setRunning] = useState(false);
@@ -130,13 +127,13 @@ export default function PlanEditorial() {
       for (const [netId, fmt] of Object.entries(st.nets)) {
         posts += 1;
         if (fmt === 'reel' || fmt === 'video') videos += 1;  // scripts vidéo → « À tourner »
-        cost += COST[costKey(fmt)][quality];
-        items.push({ sujet: s.titre, reseau: netId, format: fmt, qualite: quality,
+        cost += COST[costKey(fmt)][QUALITE];
+        items.push({ sujet: s.titre, reseau: netId, format: fmt, qualite: QUALITE,
           ...(s.dimensions ? { dimensions: s.dimensions } : {}) });
       }
     }
     return { posts, videos, cost, items };
-  }, [subjects, sel, quality]);
+  }, [subjects, sel]);
 
   // coche/décoche un sujet ; le décocher vide ses réseaux
   const toggleSubj = (id) => setSel((p) => {
@@ -398,16 +395,8 @@ export default function PlanEditorial() {
                 : t('plan.pretsAValider')}
             </div>
           </div>
-          <div className="flex gap-0.5 p-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] md:ml-auto">
-            {QUALITES.map((q) => (
-              <button key={q.id} onClick={() => setQuality(q.id)}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${quality === q.id ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>
-                {t(`plan.${q.labelKey}`)}
-              </button>
-            ))}
-          </div>
           {postGauge && (
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[13px]"
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[13px] md:ml-auto"
               title={t('plan.jaugeRestantsTitre', { count: postsLeft, used: postGauge.used, limit: postGauge.limit })}>
             <span className={`font-bold ${rafale.posts > postsLeft ? 'text-red-400' : 'text-[#3AFFA3]'}`}>{postsLeft}</span>
             <span className="text-slate-400">{t('plan.contenusRestantsBadge', { count: postsLeft })}</span>
