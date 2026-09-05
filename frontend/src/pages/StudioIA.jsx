@@ -812,25 +812,45 @@ export default function StudioIA() {
                 return (
                   <div key={s.id} data-testid={`studio-sujet-${s.id}`}
                     className={`rounded-xl border transition-all ${open ? 'relative z-10 border-[#5B6CFF]/40 bg-[#5B6CFF]/[0.06]' : 'overflow-hidden border-white/5 bg-slate-800/40 hover:border-white/15'}`}>
-                    {/* Ligne repliée : numéro + titre + tag format + corbeille + chevron */}
-                    <div onClick={() => (open ? setOpenId(null) : ouvrir(s))}
-                      className="flex items-center gap-3 px-3.5 py-3 cursor-pointer select-none">
-                      <span className={`flex-none w-6 h-6 rounded-lg grid place-items-center text-[11px] font-bold font-inter ${open ? 'text-white bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF]' : 'text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25'}`}>
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                      <span className="flex-1 min-w-0 text-[13.5px] font-semibold leading-snug text-slate-100 font-inter">{s.titre}</span>
-                      {!open && s.dimensions?.format && (
-                        <span className="flex-none text-[10px] font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">{s.dimensions.format}</span>
-                      )}
-                      {!open && s.dimensions?.offre && (
-                        <span className="flex-none text-[10px] font-semibold text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25 rounded-md px-1.5 py-0.5">📦 {s.dimensions.offre}</span>
-                      )}
-                      <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} title={t('studio.deleteTitle')}
-                        className="flex-none text-slate-500 hover:text-red-400 transition-colors p-1">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                      <span className={`flex-none text-[11px] transition-transform ${open ? 'rotate-180 text-[#8A6CFF]' : 'text-slate-500'}`}>▾</span>
-                    </div>
+                    {/* Ligne repliée : numéro + titre + tag format + corbeille + chevron.
+                        Sur mobile, badges et boutons passent SOUS le titre : sur une seule
+                        ligne ils lui laissaient trois centimètres et il se cassait mot par mot. */}
+                    {(() => {
+                      const badges = (
+                        <>
+                          {!open && s.dimensions?.format && (
+                            <span className="flex-none text-[10px] font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">{s.dimensions.format}</span>
+                          )}
+                          {!open && s.dimensions?.offre && (
+                            <span className="flex-none max-w-[160px] truncate text-[10px] font-semibold text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25 rounded-md px-1.5 py-0.5">📦 {s.dimensions.offre}</span>
+                          )}
+                        </>
+                      );
+                      const actions = (
+                        <>
+                          <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} title={t('studio.deleteTitle')}
+                            className="flex-none text-slate-500 hover:text-red-400 transition-colors p-1">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <span className={`flex-none text-[11px] transition-transform ${open ? 'rotate-180 text-[#8A6CFF]' : 'text-slate-500'}`}>▾</span>
+                        </>
+                      );
+                      return (
+                        <div onClick={() => (open ? setOpenId(null) : ouvrir(s))} className="px-3.5 py-3 cursor-pointer select-none">
+                          <div className="flex items-start sm:items-center gap-3">
+                            <span className={`flex-none w-6 h-6 rounded-lg grid place-items-center text-[11px] font-bold font-inter ${open ? 'text-white bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF]' : 'text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25'}`}>
+                              {String(i + 1).padStart(2, '0')}
+                            </span>
+                            <span className={`flex-1 min-w-0 text-[13.5px] font-semibold leading-snug text-slate-100 font-inter ${open ? '' : 'line-clamp-2 sm:line-clamp-none'}`}>{s.titre}</span>
+                            <div className="hidden sm:flex items-center gap-2 flex-none">{badges}{actions}</div>
+                          </div>
+                          <div className="sm:hidden flex items-center gap-1.5 mt-2 pl-9">
+                            {badges}
+                            <span className="ml-auto flex items-center gap-0.5">{actions}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Corps déplié : brief (4 dimensions ⭐) + réseaux/type + Créer */}
                     {open && (
