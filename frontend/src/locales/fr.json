@@ -1033,6 +1033,8 @@
     "tipEngagement": "Taux d'engagement = (j'aime + commentaires + partages) ÷ impressions"
   },
   "plan": {
+    "briefSujet": "Brief",
+    "briefModifier": "Modifier dans le Studio",
     "moisJanvier": "Janvier",
     "moisFevrier": "Février",
     "moisMars": "Mars",

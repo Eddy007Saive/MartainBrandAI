@@ -1033,6 +1033,8 @@
     "tipEngagement": "Tasa de interacción = (me gusta + comentarios + compartidos) ÷ impresiones"
   },
   "plan": {
+    "briefSujet": "Brief",
+    "briefModifier": "Editar en el Estudio",
     "moisJanvier": "Enero",
     "moisFevrier": "Febrero",
     "moisMars": "Marzo",

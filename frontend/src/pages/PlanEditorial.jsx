@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useTranslation, Trans } from 'react-i18next';
 import { agentService } from '../services/agentService';
 import { useUser } from '../context/UserContext';
+import { useDemarrage } from '../context/DemarrageContext';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
 import { SocialIcon } from '../components/SocialIcon';
@@ -42,6 +43,12 @@ const FORMATS_BY_NET = {
   googlebusiness: ['post'],
 };
 const formatsFor = (netId) => FORMATS_BY_NET[netId] || ['post'];
+// La dimension « format » recommandée par l'IA sur le sujet (même vocabulaire que le Studio IA)
+// -> format de la rafale. Le réseau garde le dernier mot (formatsFor).
+const FORMAT_DIM_TO_PLAN = { 'Post': 'post', 'Article': 'post', 'Carrousel': 'carrousel', 'Story': 'story', 'Reel': 'reel', 'Vidéo longue': 'video' };
+const formatDuSujet = (s) => FORMAT_DIM_TO_PLAN[s?.dimensions?.format] || null;
+// Brief du sujet affiché sous le titre : mêmes dimensions que le Studio IA.
+const DIMS_BRIEF = [['objectif', '🎯'], ['angle', '🧠'], ['cible', '👥'], ['format', '📱'], ['offre', '📦']];
 const defaultFormat = (netId, configFmt) => {
   const allowed = formatsFor(netId);
   return allowed.includes(configFmt) ? configFmt : allowed[0];
@@ -56,7 +63,9 @@ const costKey = (fmt) => (fmt === 'post' || fmt === 'story' ? 'post' : fmt === '
 export default function PlanEditorial() {
   const { t } = useTranslation();
   const { user } = useUser();
-  const marqueOk = !!(user?.secteur && String(user.secteur).trim());
+  const { etat: demarrage } = useDemarrage();
+  // Même verrou que le Studio IA : profil minimum, réseau, carte (état du démarrage guidé).
+  const marqueOk = demarrage ? !demarrage.bloquant : !!(user?.secteur && String(user.secteur).trim());
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -122,7 +131,8 @@ export default function PlanEditorial() {
         posts += 1;
         if (fmt === 'reel' || fmt === 'video') videos += 1;  // scripts vidéo → « À tourner »
         cost += COST[costKey(fmt)][quality];
-        items.push({ sujet: s.titre, reseau: netId, format: fmt, qualite: quality });
+        items.push({ sujet: s.titre, reseau: netId, format: fmt, qualite: quality,
+          ...(s.dimensions ? { dimensions: s.dimensions } : {}) });
       }
     }
     return { posts, videos, cost, items };
@@ -139,7 +149,10 @@ export default function PlanEditorial() {
     const cur = p[id] || { checked: true, nets: {} };
     const nets = { ...cur.nets };
     if (netId in nets) { delete nets[netId]; }
-    else { nets[netId] = defaultFormat(netId, networks.find((n) => n.id === netId)?.format); }
+    else {
+      const sujet = subjects.find((x) => x.id === id);
+      nets[netId] = defaultFormat(netId, formatDuSujet(sujet) || networks.find((n) => n.id === netId)?.format);
+    }
     return { ...p, [id]: { checked: true, nets } };
   });
   // change le format d'un réseau pour ce sujet
@@ -332,6 +345,15 @@ export default function PlanEditorial() {
                   </div>
                   {st.checked && (
                     <div className="px-4 pb-4 pt-3 border-t border-white/[0.06]">
+                      {s.dimensions && DIMS_BRIEF.some(([k]) => s.dimensions[k]) && (
+                        <div className="flex items-center gap-1.5 flex-wrap mb-3" data-testid={`plan-brief-${s.id}`}>
+                          <span className="text-[11px] text-slate-500 mr-0.5">{t('plan.briefSujet')}</span>
+                          {DIMS_BRIEF.filter(([k]) => s.dimensions[k]).map(([k, emoji]) => (
+                            <span key={k} className="text-[11px] px-2 py-0.5 rounded-md border border-white/10 bg-white/[0.04] text-slate-300 font-inter">{emoji} {s.dimensions[k]}</span>
+                          ))}
+                          <Link to="/dashboard/studio" className="text-[11px] text-[#a5b0ff] hover:underline ml-1">{t('plan.briefModifier')}</Link>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-[11px] text-slate-500 mr-0.5">{t('plan.reseauxLabel')}</span>
                         {networks.length === 0 && <Link to="/dashboard/parametres" className="text-[11px] text-amber-400 hover:underline">{t('plan.aucunReseauConnecte')}</Link>}

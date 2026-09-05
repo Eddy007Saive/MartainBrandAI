@@ -1033,6 +1033,8 @@
     "tipEngagement": "Engagement rate = (likes + comments + shares) ÷ impressions"
   },
   "plan": {
+    "briefSujet": "Brief",
+    "briefModifier": "Edit in the Studio",
     "moisJanvier": "January",
     "moisFevrier": "February",
     "moisMars": "March",
