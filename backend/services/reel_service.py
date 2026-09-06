@@ -562,6 +562,25 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
             "segments": _pimenter_reveals(segments, (brief or "") + (texte or "")[:120])}
 
 
+def _scenariser(texte: str, marque: dict, pool: list, brief: str = None, imposees: bool = False,
+                style: str = None, avec_voix: bool = False) -> dict:
+    """Répartiteur : dès qu'un clip vidéo est dans le pool, le scénario est écrit par
+    un modèle qui REGARDE les clips et choisit les moments (montage_service) ;
+    sinon, ou si le montage échoue, le scénariste texte (Haiku) fait le travail."""
+    if any(_est_clip(p.get("url")) for p in (pool or [])):
+        try:
+            from services import montage_service
+            sc = montage_service.scenariser(texte, marque, pool, brief=brief, style=style,
+                                            avec_voix=avec_voix, telegram_id=marque.get("telegram_id"))
+        except Exception as e:
+            logger.warning(f"reel montage : {e}")
+            sc = None
+        if sc:
+            sc["segments"] = _pimenter_reveals(sc["segments"], (brief or "") + (texte or "")[:120])
+            return sc
+    return _script_sequence(texte, marque, pool, brief=brief, imposees=imposees, style=style, avec_voix=avec_voix)
+
+
 def _script_depuis_post(texte: str, marque: dict, long: bool = False) -> dict:
     """Claude condense le post ; repli heuristique si l'appel echoue."""
     try:
@@ -660,9 +679,9 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
         pool = [{"id": f"img_{i+1}", "url": im["url"],
                  "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                 for i, im in enumerate(imgs)]
-        scenario = _script_sequence(brief, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
+        scenario = _scenariser(brief, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
     else:
-        scenario = _script_sequence(brief, u, [], brief=brief, style=st, avec_voix=bool(voix))
+        scenario = _scenariser(brief, u, [], brief=brief, style=st, avec_voix=bool(voix))
     scenario["style"] = st
     scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
     scenario["voix"] = voix or None
@@ -735,17 +754,28 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
     if voix == "none":
         voix = None
     if images is None:
-        images = [{"url": sg.get("image"), "desc": None}
-                  for sg in old_sc.get("segments", []) if _est_image_source(sg.get("image"))]
+        # Photos ET clips du scénario précédent (un clip repart de son URL brute :
+        # le monteur choisit à nouveau le moment).
+        from services.montage_service import url_brute
+        images, vus = [], set()
+        for sg in old_sc.get("segments", []):
+            if _est_image_source(sg.get("image")):
+                u_ = sg["image"]
+            elif sg.get("video"):
+                u_ = url_brute(sg["video"])
+            else:
+                continue
+            if u_ not in vus:
+                vus.add(u_); images.append({"url": u_, "desc": None})
     st = style if style in _STYLES_SEQUENCE else "signature"
     if images:
         pool = [{"id": f"img_{i+1}", "url": im["url"],
                  "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                 for i, im in enumerate(images) if im.get("url")]
-        scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
+        scenario = _scenariser(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
     else:
         pool = _pool_visuels(telegram_id, cur)
-        scenario = _script_sequence(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix))
+        scenario = _scenariser(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix))
     scenario["style"] = st
     scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
     scenario["voix"] = voix or None
@@ -788,10 +818,10 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
             pool = [{"id": f"img_{i+1}", "url": im["url"],
                      "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
                     for i, im in enumerate(images) if _est_visuel(im.get("url"))]
-            scenario = _script_sequence(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
+            scenario = _scenariser(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix))
         else:
             pool = _pool_visuels(telegram_id, cur)
-            scenario = _script_sequence(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix))
+            scenario = _scenariser(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix))
         scenario["style"] = st
         scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
         scenario["voix"] = voix or None

@@ -70,6 +70,15 @@ export default function StudioReel() {
         const imgs = [];
         (sc.segments || []).forEach((sg) => {
           if (sg.image && !imgs.some((i) => i.url === sg.image)) imgs.push({ url: sg.image, desc: null, src: 'reel' });
+          if (sg.video) {
+            // Un plan vidéo : on reprend le clip d'origine (sans la découpe so_/du_ du plan),
+            // et sa vignette Cloudinary (image fixe à la 2e seconde) pour la pastille.
+            const url = sg.video.replace(/\/upload\/(?!v\d+\/)[^/]+\//, '/upload/');
+            if (!imgs.some((i) => i.url === url)) {
+              const apercu = url.replace('/upload/', '/upload/so_2,w_800,q_auto/').replace(/\.[a-z0-9]+$/i, '.jpg');
+              imgs.push({ url, desc: null, src: 'reel', type: 'video', apercu_url: apercu });
+            }
+          }
         });
         setImages(imgs);
         setBrief(sc.brief || '');
@@ -131,7 +140,7 @@ export default function StudioReel() {
       for (const f of list) {
         const a = await contenuService.reelBanqueAjouter(f);   // entre dans la banque (conservée)
         setBanque((prev) => [a, ...(prev || [])]);
-        setImages((prev) => prev.length >= 6 ? prev : [...prev, { url: a.url, desc: a.description || '', src: 'banque' }]);
+        setImages((prev) => prev.length >= 6 ? prev : [...prev, { url: a.url, desc: a.description || '', src: 'banque', apercu_url: a.apercu_url || null, type: a.type || 'image' }]);
       }
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.reel.seq.uploadEchec'));
@@ -278,6 +287,11 @@ export default function StudioReel() {
               {uploading ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.importer')}
             </label>
             <span className="ml-2 text-[11px] text-slate-500 font-inter">{images.length}/6</span>
+            {images.some((i) => i.type === 'video' || /\/video\/upload\//.test(i.url || '')) && (
+              <p data-testid="studio-reel-montage-note" className="mt-2 text-[11.5px] leading-snug text-[#3AFFA3]/90 font-inter">
+                🎬 {t('contenus.reel.seq.montageNote')}
+              </p>
+            )}
           </div>
 
           {/* Banque */}

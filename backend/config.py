@@ -68,6 +68,8 @@ EMBEDDING_MODEL = os.environ.get('EMBEDDING_MODEL', 'text-embedding-3-small')
 # Interrupteur : à 0, la rédaction n'injecte plus les exemples de posts validés (pour comparer).
 MEMOIRE_VOIX_ACTIVE = os.environ.get('MEMOIRE_VOIX_ACTIVE', '1') != '0'
 OPENROUTER_IMAGE_MODEL = os.environ.get('OPENROUTER_IMAGE_MODEL', 'google/gemini-2.5-flash-image')  # nano-banana · alt: google/gemini-3.1-flash-image-preview
+# Montage vidéo : le modèle qui REGARDE les clips du client (entrée video_url) et choisit les moments.
+OPENROUTER_VIDEO_MODEL = os.environ.get('OPENROUTER_VIDEO_MODEL', 'google/gemini-3.8-flash')
 
 # HeyGen
 HEYGEN_API_KEY = os.environ.get('HEYGEN_API_KEY', '')
