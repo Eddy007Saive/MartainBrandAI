@@ -94,6 +94,9 @@ RESEND_FROM = os.environ.get('RESEND_FROM', 'Postorico <onboarding@resend.dev>')
 ADMIN_NOTIF_EMAIL = os.environ.get('ADMIN_NOTIF_EMAIL', 'martindumoulin88@gmail.com')
 # URL du frontend (pour construire le lien de réinitialisation)
 FRONTEND_URL = (os.environ.get('FRONTEND_URL', 'http://localhost:3000')).rstrip('/')
+# « Continuer avec Google » : identifiant client OAuth (type Application Web). Public par
+# nature (il part dans le navigateur) ; sans lui, le bouton Google est masqué côté front.
+GOOGLE_CLIENT_ID = (os.environ.get('GOOGLE_CLIENT_ID') or '').strip()
 # URL publique du backend (pour le callback OAuth des réseaux) — en prod : l'URL Railway
 BACKEND_URL = (os.environ.get('BACKEND_URL', 'http://localhost:8000')).rstrip('/')
 

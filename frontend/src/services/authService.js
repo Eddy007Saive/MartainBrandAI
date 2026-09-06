@@ -22,6 +22,12 @@ export const authService = {
   register: (payload) =>
     api.post('/auth/register', payload).then(r => exigerSession(r.data)),
 
+  // « Continuer avec Google » : le client OAuth vient du serveur (vide = pas de bouton),
+  // puis le jeton d'accès obtenu dans le navigateur est échangé contre notre session.
+  googleConfig: () => api.get('/auth/google/config').then(r => r.data),
+  google: (payload) =>
+    api.post('/auth/google', payload).then(r => exigerSession(r.data)),
+
   adminLogin: (email, password) =>
     api.post('/auth/admin-login', { email, password }).then(r => exigerSession(r.data)),
 
