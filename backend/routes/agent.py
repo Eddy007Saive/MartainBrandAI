@@ -1,4 +1,5 @@
 import base64
+import time
 import cloudinary
 import cloudinary.uploader
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
@@ -523,6 +524,7 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
     q = quota_service.consume(telegram_id, "post")
     if not q.get("ok"):
         raise _refus(q)
+    depart = time.monotonic()
     try:
         result = agent_service.rediger_post(telegram_id, sujet, body.get("reseau", "linkedin"),
                                             agent_service.QUALITE_MODELS.get(qualite),
@@ -531,13 +533,15 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
         quota_service.refund(q)
         logger.error(f"Agent rediger error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    duree = time.monotonic() - depart
     if result.get("error"):
         quota_service.refund(q)
         _map_agent_error(result)
     quota_service.confirm(q)
-    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite)
+    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
     if body.get("save"):
         row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": result["contenu"],
+               "contenu_original": result["contenu"],
                "created_at": datetime.now(timezone.utc).isoformat()}
         ins = supabase.table("contenu").insert(row).execute()
         result["contenu_id"] = ins.data[0]["id"] if ins.data else None
@@ -561,6 +565,7 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
     q = quota_service.consume(telegram_id, "post")
     if not q.get("ok"):
         raise _refus(q)
+    depart = time.monotonic()
     try:
         r = agent_service.rediger_depuis_photo(
             telegram_id, base64.b64encode(data).decode(), file.content_type,
@@ -569,11 +574,12 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
         quota_service.refund(q)
         logger.error(f"rediger-photo error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    duree = time.monotonic() - depart
     if r.get("error"):
         quota_service.refund(q)
         _map_agent_error(r)
     quota_service.confirm(q)
-    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), r.get("usage"), q.get("unit_cost", 0), qualite)
+    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), r.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
 
     texte = r["contenu"]
     lien = None
@@ -583,8 +589,8 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
     except Exception as e:
         logger.error(f"rediger-photo cloudinary error: {e}")
     titre = ((texte.split("\n", 1)[0] if texte else "") or "Post photo")[:120]
-    row = {"telegram_id": telegram_id, "titre": titre, "contenu": texte, "statut": "A valider",
-           "created_at": datetime.now(timezone.utc).isoformat()}
+    row = {"telegram_id": telegram_id, "titre": titre, "contenu": texte, "contenu_original": texte,
+           "statut": "A valider", "created_at": datetime.now(timezone.utc).isoformat()}
     if reseau in RESEAU_MAP:
         row["reseau_cible"] = RESEAU_MAP[reseau]
         creneau = planning_service.prochain_creneau(telegram_id, row["reseau_cible"])
@@ -617,6 +623,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
     q = quota_service.consume(telegram_id, "carousel")
     if not q.get("ok"):
         raise _refus(q)
+    depart = time.monotonic()
     try:
         result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.QUALITE_MODELS.get(qualite),
                                                  dimensions=body.get("dimensions"))
@@ -624,25 +631,29 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
         quota_service.refund(q)
         logger.error(f"Carrousel texte error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    duree = time.monotonic() - depart
     if result.get("error"):
         quota_service.refund(q)
         if result["error"] == "parse":
             raise HTTPException(status_code=502, detail="Échec de génération des slides")
         _map_agent_error(result)
     quota_service.confirm(q)
-    usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite)
+    usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
 
     content = result["content"]
     texte = _carrousel_legende(content)
     existing_id = body.get("contenu_id")
     if existing_id:
-        # Régénération : met à jour le contenu existant (+ slides structurées pour la retouche live)
+        # Régénération : met à jour le contenu existant (+ slides structurées pour la retouche live).
+        # contenu_original suit la régénération : c'est une nouvelle proposition de l'IA, pas
+        # une retouche du client, donc la base de comparaison pour le taux de modification (H2)
+        # doit repartir de ce nouveau texte.
         supabase.table("contenu").update(
-            {"contenu": texte, "type": "Carrousel", "carrousel_data": content}
+            {"contenu": texte, "contenu_original": texte, "type": "Carrousel", "carrousel_data": content}
         ).eq("id", existing_id).eq("telegram_id", telegram_id).execute()
         contenu_id = existing_id
     else:
-        row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": texte,
+        row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": texte, "contenu_original": texte,
                "statut": "A valider", "type": "Carrousel", "carrousel_data": content,
                "created_at": datetime.now(timezone.utc).isoformat()}
         if reseau in RESEAU_MAP:
@@ -840,12 +851,14 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
                 ratio = "9:16"
         except Exception:
             pass
+    depart = time.monotonic()
     try:
         res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio, integrate_refs=integrate_refs)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent image error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    duree = time.monotonic() - depart
     if res.get("error"):
         quota_service.refund(q)
         err = res["error"]
@@ -894,7 +907,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
                 res["publish_status"] = "envoi" if pub.get("ok") else ("ignoré" if pub.get("skipped") else "échec")
             except Exception as e:
                 logger.warning(f"auto-programmation après visuel {contenu_id}: {e}")
-    usage_service.log(telegram_id, "image", model_id, {}, q.get("unit_cost", 0), cost_override=usage_service.IMAGE_PRICES.get(modele, 0.04))
+    usage_service.log(telegram_id, "image", model_id, {}, q.get("unit_cost", 0), cost_override=usage_service.IMAGE_PRICES.get(modele, 0.04), duree_s=duree)
     res["quota"] = {"action": action_type, "used": q.get("used"), "limit": q.get("limit")}
     return res
 
