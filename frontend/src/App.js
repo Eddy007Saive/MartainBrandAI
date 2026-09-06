@@ -1,44 +1,50 @@
 import "@/App.css";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAffiliateRef } from "./hooks/useAffiliateRef";
 import LangueParUrl from "./components/LangueParUrl";
 import { PREFIXEES } from "./lib/langues";
 import PopupRdv from "./components/PopupRdv";
 import { Toaster } from "./components/ui/sonner";
-import MarketingLayout from "./pages/marketing/MarketingLayout";
-import HomeCine from "./pages/marketing/HomeCine";
-import Features from "./pages/marketing/Features";
-import HowItWorks from "./pages/marketing/HowItWorks";
-import Pricing from "./pages/marketing/Pricing";
-import Faq from "./pages/marketing/Faq";
-import Blog from "./pages/marketing/Blog";
-import Article from "./pages/marketing/Article";
-import Pourquoi from "./pages/marketing/Pourquoi";
-import Cgu from "./pages/marketing/Cgu";
-import Confidentialite from "./pages/marketing/Confidentialite";
-import MentionsLegales from "./pages/marketing/MentionsLegales";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Pending from "./pages/Pending";
-import AuditMarque from "./pages/AuditMarque";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import DashboardLayout from "./layouts/DashboardLayout";
-import AccueilPage from "./pages/AccueilPage";
-import ContenusPage from "./pages/ContenusPage";
-import StudioIA from "./pages/StudioIA";
-import StudioVideo from "./pages/StudioVideo";
-import StudioReel from "./pages/StudioReel";
-import PlanEditorial from "./pages/PlanEditorial";
-import CommentairesPage from "./pages/CommentairesPage";
-import Performance from "./pages/Performance";
-import PlanificationPage from "./pages/PlanificationPage";
-import CarrouselsPage from "./pages/CarrouselsPage";
-import Affiliation from "./pages/Affiliation";
-import ParametresPage from "./pages/ParametresPage";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
+
+// Chargement à la demande, par route : la page d'accueil vitrine n'a aucune
+// raison de télécharger le code du tableau de bord (Studio IA, Contenus...),
+// et inversement. Chaque import() devient son propre fragment JS, chargé
+// seulement quand la route correspondante est visitée.
+const MarketingLayout = lazy(() => import("./pages/marketing/MarketingLayout"));
+const HomeCine = lazy(() => import("./pages/marketing/HomeCine"));
+const Features = lazy(() => import("./pages/marketing/Features"));
+const HowItWorks = lazy(() => import("./pages/marketing/HowItWorks"));
+const Pricing = lazy(() => import("./pages/marketing/Pricing"));
+const Faq = lazy(() => import("./pages/marketing/Faq"));
+const Blog = lazy(() => import("./pages/marketing/Blog"));
+const Article = lazy(() => import("./pages/marketing/Article"));
+const Pourquoi = lazy(() => import("./pages/marketing/Pourquoi"));
+const Cgu = lazy(() => import("./pages/marketing/Cgu"));
+const Confidentialite = lazy(() => import("./pages/marketing/Confidentialite"));
+const MentionsLegales = lazy(() => import("./pages/marketing/MentionsLegales"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Pending = lazy(() => import("./pages/Pending"));
+const AuditMarque = lazy(() => import("./pages/AuditMarque"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const DashboardLayout = lazy(() => import("./layouts/DashboardLayout"));
+const AccueilPage = lazy(() => import("./pages/AccueilPage"));
+const ContenusPage = lazy(() => import("./pages/ContenusPage"));
+const StudioIA = lazy(() => import("./pages/StudioIA"));
+const StudioVideo = lazy(() => import("./pages/StudioVideo"));
+const StudioReel = lazy(() => import("./pages/StudioReel"));
+const PlanEditorial = lazy(() => import("./pages/PlanEditorial"));
+const CommentairesPage = lazy(() => import("./pages/CommentairesPage"));
+const Performance = lazy(() => import("./pages/Performance"));
+const PlanificationPage = lazy(() => import("./pages/PlanificationPage"));
+const CarrouselsPage = lazy(() => import("./pages/CarrouselsPage"));
+const Affiliation = lazy(() => import("./pages/Affiliation"));
+const ParametresPage = lazy(() => import("./pages/ParametresPage"));
+const Admin = lazy(() => import("./pages/Admin"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Les pages publiques existent en trois langues. Le francais garde ses
 // adresses actuelles ; l'anglais et l'espagnol sont prefixes. Le bloc est
@@ -91,47 +97,48 @@ function App() {
         <PopupRdv />
         {/* L'adresse fait foi pour la langue, et pose canonical + hreflang. */}
         <LangueParUrl />
-        <Routes>
-          {/* Francais : les adresses d'origine, inchangees. */}
-          <Route path="/">{routesPubliques()}</Route>
-          {/* Anglais et espagnol : les memes pages, prefixees. */}
-          {PREFIXEES.map((l) => (
-            <Route key={l} path={`/${l}`}>{routesPubliques()}</Route>
-          ))}
+        <Suspense fallback={null}>
+          <Routes>
+            {/* Francais : les adresses d'origine, inchangees. */}
+            <Route path="/">{routesPubliques()}</Route>
+            {/* Anglais et espagnol : les memes pages, prefixees. */}
+            {PREFIXEES.map((l) => (
+              <Route key={l} path={`/${l}`}>{routesPubliques()}</Route>
+            ))}
 
-          
-          {/* Dashboard routes with layout */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<AccueilPage />} />
-            <Route path="studio" element={<StudioIA />} />
-            <Route path="video" element={<StudioVideo />} />
-            <Route path="reel" element={<StudioReel />} />
-            <Route path="plan" element={<PlanEditorial />} />
-            <Route path="contenus" element={<ContenusPage />} />
-            <Route path="commentaires" element={<CommentairesPage />} />
-            <Route path="performance" element={<Performance />} />
-            <Route path="planification" element={<PlanificationPage />} />
-            <Route path="carrousels" element={<CarrouselsPage />} />
-            <Route path="affiliation" element={<Affiliation />} />
-            <Route path="parametres" element={<ParametresPage />} />
-          </Route>
-          
-          <Route 
-            path="/admin" 
-            element={
-              <AdminRoute>
-                <Admin />
-              </AdminRoute>
-            }
-          />
-        </Routes>
+            {/* Dashboard routes with layout */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AccueilPage />} />
+              <Route path="studio" element={<StudioIA />} />
+              <Route path="video" element={<StudioVideo />} />
+              <Route path="reel" element={<StudioReel />} />
+              <Route path="plan" element={<PlanEditorial />} />
+              <Route path="contenus" element={<ContenusPage />} />
+              <Route path="commentaires" element={<CommentairesPage />} />
+              <Route path="performance" element={<Performance />} />
+              <Route path="planification" element={<PlanificationPage />} />
+              <Route path="carrousels" element={<CarrouselsPage />} />
+              <Route path="affiliation" element={<Affiliation />} />
+              <Route path="parametres" element={<ParametresPage />} />
+            </Route>
+
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
       <Toaster position="top-right" />
     </div>
