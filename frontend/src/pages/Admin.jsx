@@ -1475,6 +1475,44 @@ export default function Admin() {
                     </div>
                   )}
 
+                  {/* Temps de génération — texte, carrousel, image */}
+                  {system.durees?.total?.n > 0 && (
+                    <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-white font-sora mb-1">Temps de génération</h3>
+                      <p className="text-xs text-slate-500 mb-4">
+                        Chronométré depuis le 06/09/2026. Sert à comparer le temps machine réel au temps de production manuelle.
+                      </p>
+                      <div className="grid grid-cols-2 gap-4 mb-5">
+                        <div className="bg-slate-800/40 rounded-lg p-4 text-center">
+                          <p className="text-2xl font-bold text-white font-sora tabular-nums">{system.durees.total.n}</p>
+                          <p className="text-xs text-slate-500 mt-1">générations chronométrées</p>
+                        </div>
+                        <div className="bg-slate-800/40 rounded-lg p-4 text-center">
+                          <p className="text-2xl font-bold text-white font-sora tabular-nums">{system.durees.total.moyenne_s}s</p>
+                          <p className="text-xs text-slate-500 mt-1">durée moyenne, tous types</p>
+                        </div>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-slate-500 text-xs border-b border-white/5">
+                            <th className="text-left py-2 font-medium">Action</th>
+                            <th className="text-right py-2 font-medium">Générations</th>
+                            <th className="text-right py-2 font-medium">Moyenne</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {system.durees.par_action.map((r) => (
+                            <tr key={r.action} className="border-b border-white/[0.03]">
+                              <td className="py-2 text-slate-300">{r.action}</td>
+                              <td className="py-2 text-right text-slate-300 tabular-nums">{r.n}</td>
+                              <td className="py-2 text-right text-slate-400 tabular-nums">{r.moyenne_s}s</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
                   {/* Actions */}
                   <div className="bg-slate-900/40 border border-white/5 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-white font-sora mb-4">Actions</h3>

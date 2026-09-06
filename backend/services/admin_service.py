@@ -214,6 +214,30 @@ def system_info() -> dict:
     except Exception as e:
         logger.warning(f"stats rendus: {e}")
 
+    # Temps de génération (post, carrousel texte + rendu, image) — chronométré depuis le
+    # 06/09/2026 (migration contenu_original). Sert à comparer le temps machine réel au
+    # temps de production manuelle, mesure demandée par le mémoire (H1).
+    durees = {"total": {"n": 0, "moyenne_s": 0}, "par_action": []}
+    try:
+        lignes = (supabase.table("usage_log").select("action, duree_s")
+                  .not_.is_("duree_s", "null")
+                  .not_.like("action", "reel_rendu%").execute().data or [])
+        par = {}
+        for r in lignes:
+            a = r.get("action") or "?"
+            s = float(r.get("duree_s") or 0)
+            d = par.setdefault(a, {"n": 0, "secondes": 0.0})
+            d["n"] += 1
+            d["secondes"] += s
+        tot_n = sum(d["n"] for d in par.values())
+        tot_s = sum(d["secondes"] for d in par.values())
+        durees["par_action"] = sorted(
+            [{"action": a, "n": d["n"], "moyenne_s": round(d["secondes"] / d["n"], 1) if d["n"] else 0}
+             for a, d in par.items()], key=lambda x: -x["n"])
+        durees["total"] = {"n": tot_n, "moyenne_s": round(tot_s / tot_n, 1) if tot_n else 0}
+    except Exception as e:
+        logger.warning(f"stats durees: {e}")
+
     return {
         "integrations": integrations,
         "cron_analytics_h": ANALYTICS_CRON_HOURS,
@@ -222,6 +246,7 @@ def system_info() -> dict:
                   for p in (supabase.table("plans").select("name, price_cents").execute().data or [])},
         "usage": usage,
         "rendus": rendus,
+        "durees": durees,
     }
 
 
