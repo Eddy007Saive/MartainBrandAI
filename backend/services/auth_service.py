@@ -151,10 +151,12 @@ def reset_password(token: str, new_password: str) -> dict:
         return {"error": "used"}
     supabase.table("users").update({"password_hash": hash_password(new_password)}).eq("telegram_id", telegram_id).execute()
     _invalidate_fp(telegram_id)  # déconnecte les autres sessions
+    from services import mfa_service
+    mfa_service.oublier_appareils(telegram_id)
     return {"success": True}
 
 
-def login_user(email: str, password: str) -> dict:
+def login_user(email: str, password: str, appareil: str = None) -> dict:
     result = supabase.table("users").select("*").eq("email", email).execute()
 
     if not result.data:
@@ -164,6 +166,13 @@ def login_user(email: str, password: str) -> dict:
 
     if not verify_password(password, user.get("password_hash", "")):
         return {"error": "invalid"}
+
+    # Double vérification : appareil inconnu, ou administrateur -> pas de session
+    # tout de suite, un code par email d'abord (services/mfa_service).
+    from services import mfa_service
+    if mfa_service.exige_code(user, appareil):
+        return {"code_requis": True, "telegram_id": user["telegram_id"], "email": user["email"],
+                "nom": user.get("nom") or ""}
 
     # Un administrateur est un compte `users` avec is_admin=true : il se connecte
     # par le MÊME formulaire. On fusionne l'entrée, pas la politique — un jeton
@@ -286,6 +295,8 @@ def change_password(telegram_id: str, old_password: str, new_password: str) -> d
     new_hash = hash_password(new_password)
     supabase.table("users").update({"password_hash": new_hash}).eq("telegram_id", telegram_id).execute()
     _invalidate_fp(telegram_id)
+    from services import mfa_service
+    mfa_service.oublier_appareils(telegram_id)
     is_admin = bool(user.get("is_admin"))
     claims = {"telegram_id": telegram_id, "email": user.get("email"), "is_admin": is_admin,
               "origine": telegram_id, "fp": _pwd_fingerprint(new_hash)}
@@ -295,8 +306,9 @@ def change_password(telegram_id: str, old_password: str, new_password: str) -> d
     return {"success": True, "token": token}
 
 
-def login_admin(email: str, password: str) -> dict:
-    """Connexion admin par email + mot de passe (compte avec is_admin=true)."""
+def login_admin(email: str, password: str, appareil: str = None) -> dict:
+    """Connexion admin par email + mot de passe (compte avec is_admin=true).
+    Un administrateur donne TOUJOURS le code envoyé par email."""
     result = supabase.table("users").select("*").eq("email", email).execute()
     if not result.data:
         return {"error": "invalid"}
@@ -305,6 +317,8 @@ def login_admin(email: str, password: str) -> dict:
         return {"error": "invalid"}
     if not user.get("is_admin"):
         return {"error": "not_admin"}
+    return {"code_requis": True, "telegram_id": user["telegram_id"], "email": user["email"],
+            "nom": user.get("nom") or ""}
     token = create_token({
         "telegram_id": user["telegram_id"],
         "email": user["email"],

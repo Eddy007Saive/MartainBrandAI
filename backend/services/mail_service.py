@@ -333,6 +333,25 @@ def reset_email_html(nom: str, link: str) -> str:
                   apercu="Ton lien de réinitialisation est valable une heure.")
 
 
+def code_connexion_html(nom: str, code: str) -> tuple:
+    """Code de connexion à 6 chiffres (appareil inconnu ou administrateur)."""
+    salutation = f"Bonjour {_html.escape(nom)}," if nom else "Bonjour,"
+    code_aff = f"{code[:3]}&nbsp;{code[3:]}"
+    inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Ton code de connexion</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 20px;">
+        Quelqu'un se connecte à ton compte Postorico depuis un appareil que nous ne connaissons pas.
+        Si c'est toi, saisis ce code. Il expire dans <strong style="color:#334155;">10 minutes</strong>.
+      </p>
+      {_encadre("Code de connexion", "À saisir sur la page de connexion", code_aff, couleur="#0f172a")}
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
+        Ce n'est pas toi&nbsp;? N'entre pas ce code et change ton mot de passe : sans le code, personne n'entre.
+      </p>
+    </td></tr>"""
+    return f"{code} est ton code de connexion Postorico", _shell(inner, width=480, apercu=f"Code : {code}. Valable 10 minutes.")
+
+
 def facture_html(nom: str, montant: float, devise: str, libelle: str,
                  numero: str = None, url: str = None, pdf: str = None) -> tuple:
     """Email FACTURE au client après un paiement réussi (abonnement ou pack).

@@ -18,6 +18,17 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    appareil: Optional[str] = None   # secret « appareil de confiance » gardé par le navigateur
+
+
+class CodeVerifier(BaseModel):
+    jeton: str                 # jeton d'attente rendu par /login quand code_requis
+    code: str
+    confiance: bool = False    # marquer cet appareil de confiance (30 jours)
+
+
+class CodeRenvoyer(BaseModel):
+    jeton: str
 
 
 class GoogleLogin(BaseModel):
@@ -32,3 +43,4 @@ class GoogleLogin(BaseModel):
 class AdminLogin(BaseModel):
     email: EmailStr
     password: str
+    appareil: Optional[str] = None

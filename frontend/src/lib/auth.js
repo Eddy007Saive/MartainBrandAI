@@ -3,6 +3,9 @@ import { Capacitor } from '@capacitor/core';
 
 const TOKEN_KEY = 'token';
 const ADMIN_TOKEN_KEY = 'adminToken';
+// Secret « appareil de confiance » rendu par le serveur après un code de connexion
+// validé : tant qu'il est là (30 jours), le mot de passe suffit sur cet appareil.
+const APPAREIL_KEY = 'appareil';
 const native = Capacitor.isNativePlatform();
 
 // Miroir vers le stockage natif persistant (Android/iOS).
@@ -58,6 +61,15 @@ export const setToken = (token) => {
 };
 
 export const removeToken = () => { localStorage.removeItem(TOKEN_KEY); persist(TOKEN_KEY, null); };
+
+export const getAppareil = () => {
+  try { return localStorage.getItem(APPAREIL_KEY) || null; } catch { return null; }
+};
+export const setAppareil = (secret) => {
+  if (!secret) return;
+  try { localStorage.setItem(APPAREIL_KEY, secret); } catch { /* stockage refusé */ }
+  persist(APPAREIL_KEY, secret);
+};
 
 // Administrateur et client entrent par le MEME formulaire, avec le MEME jeton.
 // La qualite d'administrateur se lit dans la revendication du jeton — plus de
@@ -116,12 +128,14 @@ export const logout = () => {
 export const hydrateAuth = async () => {
   if (!native) return;
   try {
-    const [{ value: t }, { value: a }] = await Promise.all([
+    const [{ value: t }, { value: a }, { value: d }] = await Promise.all([
       Preferences.get({ key: TOKEN_KEY }),
       Preferences.get({ key: ADMIN_TOKEN_KEY }),
+      Preferences.get({ key: APPAREIL_KEY }),
     ]);
     if (jetonValide(t) && !localStorage.getItem(TOKEN_KEY)) localStorage.setItem(TOKEN_KEY, t);
     if (a && !localStorage.getItem(ADMIN_TOKEN_KEY)) localStorage.setItem(ADMIN_TOKEN_KEY, a);
+    if (d && !localStorage.getItem(APPAREIL_KEY)) localStorage.setItem(APPAREIL_KEY, d);
   } catch {
     /* ignore */
   }

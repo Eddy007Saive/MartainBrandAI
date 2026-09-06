@@ -16,8 +16,15 @@ const exigerSession = (data) => {
 };
 
 export const authService = {
-  login: (email, password) =>
-    api.post('/auth/login', { email, password }).then(r => exigerSession(r.data)),
+  // Deux issues possibles : une session, ou « code_requis » (appareil inconnu / admin) :
+  // le serveur a envoyé un code par email et rend un jeton d'attente.
+  login: (email, password, appareil) =>
+    api.post('/auth/login', { email, password, appareil: appareil || undefined })
+      .then(r => (r.data?.code_requis ? r.data : exigerSession(r.data))),
+  verifierCode: (jeton, code, confiance) =>
+    api.post('/auth/code/verifier', { jeton, code, confiance }).then(r => exigerSession(r.data)),
+  renvoyerCode: (jeton) =>
+    api.post('/auth/code/renvoyer', { jeton }).then(r => r.data),
 
   register: (payload) =>
     api.post('/auth/register', payload).then(r => exigerSession(r.data)),
@@ -28,8 +35,9 @@ export const authService = {
   google: (payload) =>
     api.post('/auth/google', payload).then(r => exigerSession(r.data)),
 
-  adminLogin: (email, password) =>
-    api.post('/auth/admin-login', { email, password }).then(r => exigerSession(r.data)),
+  adminLogin: (email, password, appareil) =>
+    api.post('/auth/admin-login', { email, password, appareil: appareil || undefined })
+      .then(r => (r.data?.code_requis ? r.data : exigerSession(r.data))),
 
   forgotPassword: (email) =>
     api.post('/auth/forgot-password', { email }).then(r => r.data),

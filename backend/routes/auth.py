@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Request
 from datetime import timedelta
-from models.auth import UserRegister, UserLogin, AdminLogin, GoogleLogin
+from models.auth import UserRegister, UserLogin, AdminLogin, GoogleLogin, CodeVerifier, CodeRenvoyer
 from services.auth_service import (
     login_user, login_admin, register_user, create_token,
     find_user_by_email, create_reset_token, reset_password, login_google,
 )
-from services import mail_service, rate_limit, affiliation_service
+from services import mail_service, rate_limit, affiliation_service, mfa_service
 from services.social_service import create_late_profile
 from config import FRONTEND_URL, GOOGLE_CLIENT_ID, logger
 
@@ -82,15 +82,32 @@ async def register(user_data: UserRegister, request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+async def _demander_code(result: dict, request: Request) -> dict:
+    """Le mot de passe est bon mais l'appareil est inconnu (ou compte admin) :
+    on envoie le code et on rend un jeton d'attente, pas une session."""
+    tid = result["telegram_id"]
+    code = mfa_service.creer_code(tid)
+    if code:
+        sujet, html = mail_service.code_connexion_html(result.get("nom"), code)
+        envoi = await mail_service.send_email(result["email"], sujet, html)
+        if envoi.get("error"):
+            logger.error(f"mfa: envoi du code impossible pour {tid}: {envoi}")
+            raise HTTPException(status_code=503, detail="envoi_code_impossible")
+    return {"code_requis": True, "jeton": mfa_service.jeton_attente(tid),
+            "email": mfa_service.masquer_email(result["email"])}
+
+
 @router.post("/login")
-def login(credentials: UserLogin, request: Request):
+async def login(credentials: UserLogin, request: Request):
     keys = _guard_login(request, credentials.email)
     try:
-        result = login_user(credentials.email, credentials.password)
+        result = login_user(credentials.email, credentials.password, appareil=credentials.appareil)
         if "error" in result:
             _record_login_fail(keys)
             raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect.")
         rate_limit.clear(keys[0])
+        if result.get("code_requis"):
+            return await _demander_code(result, request)
         return result
     except HTTPException:
         raise
@@ -138,6 +155,51 @@ async def google(body: GoogleLogin, request: Request):
             "nouveau": result["nouveau"]}
 
 
+@router.post("/code/verifier")
+def code_verifier(body: CodeVerifier, request: Request):
+    """Deuxième temps de la connexion : le code reçu par email -> la session.
+    `confiance` : l'appareil est retenu 30 jours (secret `appareil` à garder côté navigateur)."""
+    ip = _client_ip(request)
+    ki = f"loginip:{ip}"
+    if rate_limit.locked_for(ki) > 0:
+        raise HTTPException(status_code=429, detail="Trop de tentatives. Réessaie dans quelques minutes.")
+    try:
+        res = mfa_service.verifier(body.jeton, body.code, confiance=body.confiance,
+                                   libelle=request.headers.get("user-agent", "")[:160], ip=ip)
+    except ValueError as e:
+        if str(e) in ("code_faux", "trop_essais"):
+            rate_limit.fail(ki, *_LOGIN_IP)
+        raise HTTPException(status_code=401, detail=str(e))
+    rate_limit.clear(ki)
+    return {"token": res["token"], "is_admin": res["is_admin"], "pending": res["pending"],
+            "appareil": res.get("appareil")}
+
+
+@router.post("/code/renvoyer")
+async def code_renvoyer(body: CodeRenvoyer, request: Request):
+    """Un nouveau code, au plus un par minute."""
+    try:
+        code = mfa_service.renvoyer(body.jeton)
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    if not code:
+        raise HTTPException(status_code=429, detail="renvoi_trop_tot")
+    u = supabase_user(mfa_service._lire_attente(body.jeton))
+    sujet, html = mail_service.code_connexion_html(u.get("nom"), code)
+    envoi = await mail_service.send_email(u["email"], sujet, html)
+    if envoi.get("error"):
+        raise HTTPException(status_code=503, detail="envoi_code_impossible")
+    return {"ok": True, "email": mfa_service.masquer_email(u["email"])}
+
+
+def supabase_user(telegram_id: str) -> dict:
+    from config import supabase
+    r = supabase.table("users").select("telegram_id, email, nom").eq("telegram_id", telegram_id).limit(1).execute()
+    if not r.data:
+        raise HTTPException(status_code=401, detail="jeton_invalide")
+    return r.data[0]
+
+
 @router.post("/forgot-password")
 async def forgot_password(body: dict):
     """Envoie un email de réinitialisation via Resend. Réponse toujours identique (anti-énumération)."""
@@ -182,11 +244,13 @@ def reset_pw(body: dict):
 
 
 @router.post("/admin-login")
-def admin_login(credentials: AdminLogin, request: Request):
+async def admin_login(credentials: AdminLogin, request: Request):
     keys = _guard_login(request, credentials.email)
-    result = login_admin(credentials.email, credentials.password)
+    result = login_admin(credentials.email, credentials.password, appareil=credentials.appareil)
     if "error" in result:
         _record_login_fail(keys)
         raise HTTPException(status_code=401, detail="Identifiants administrateur invalides.")
     rate_limit.clear(keys[0])
+    if result.get("code_requis"):
+        return await _demander_code(result, request)
     return result
