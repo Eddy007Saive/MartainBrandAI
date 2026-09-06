@@ -50,7 +50,7 @@ api.interceptors.response.use(
     // Un 401 sur une TENTATIVE de connexion = mauvais identifiants (attendu) :
     // on laisse le composant afficher le toast, sans recharger la page (sinon champs vidés).
     const url = error.config?.url || '';
-    const isAuthAttempt = url.includes('/auth/login') || url.includes('/auth/admin-login');
+    const isAuthAttempt = url.includes('/auth/login') || url.includes('/auth/admin-login') || url.includes('/auth/google');
     if (error.response?.status === 401 && !isAuthAttempt) {
       logout();  // session expirée -> efface localStorage + stockage natif (Preferences)
       window.location.href = '/login';

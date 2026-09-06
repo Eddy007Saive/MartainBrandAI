@@ -4,7 +4,7 @@ import uuid
 import hashlib
 import time
 from datetime import datetime, timezone, timedelta
-from config import JWT_SECRET, supabase, logger, ADMIN_SESSION_HEURES
+from config import JWT_SECRET, supabase, logger, ADMIN_SESSION_HEURES, GOOGLE_CLIENT_ID
 
 
 def hash_password(password: str) -> str:
@@ -13,7 +13,13 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    # Un compte créé par Google n'a pas de mot de passe : bcrypt lèverait sur un hash vide.
+    if not password or not hashed:
+        return False
+    try:
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except ValueError:
+        return False
 
 
 def create_token(data: dict, expires_delta: timedelta = timedelta(days=7)) -> str:
@@ -189,6 +195,78 @@ def login_user(email: str, password: str) -> dict:
         "is_admin": est_admin,
         "pending": False if est_admin else not user.get("actif", False),
     }
+
+
+def _jeton_session(user: dict) -> dict:
+    """Le même jeton que login_user, à partir d'une ligne users."""
+    est_admin = bool(user.get("is_admin"))
+    claims = {"telegram_id": user["telegram_id"], "email": user["email"], "is_admin": est_admin,
+              "origine": user["telegram_id"], "fp": _pwd_fingerprint(user.get("password_hash", ""))}
+    if est_admin:
+        claims["role"] = "admin"
+    token = create_token(claims, expires_delta=timedelta(hours=ADMIN_SESSION_HEURES) if est_admin else timedelta(days=7))
+    return {"token": token, "user": sanitize_user(dict(user)), "is_admin": est_admin,
+            "pending": False if est_admin else not user.get("actif", False)}
+
+
+def _identite_google(access_token: str) -> dict:
+    """Vérifie un jeton d'accès Google et renvoie {sub, email, nom, photo}.
+
+    Deux appels à Google : tokeninfo (le jeton est-il bien émis POUR NOTRE client ?
+    sans ce contrôle, n'importe quel jeton Google d'une autre appli ouvrirait un
+    compte ici) puis userinfo (identité). Lève ValueError avec une raison courte."""
+    import httpx
+    if not GOOGLE_CLIENT_ID:
+        raise ValueError("google_indisponible")
+    with httpx.Client(timeout=15) as c:
+        ti = c.get("https://oauth2.googleapis.com/tokeninfo", params={"access_token": access_token})
+        if ti.status_code != 200:
+            raise ValueError("jeton_google_invalide")
+        info = ti.json()
+        if info.get("aud") != GOOGLE_CLIENT_ID and info.get("azp") != GOOGLE_CLIENT_ID:
+            raise ValueError("jeton_google_autre_client")
+        ui = c.get("https://openidconnect.googleapis.com/v1/userinfo",
+                   headers={"Authorization": f"Bearer {access_token}"})
+        if ui.status_code != 200:
+            raise ValueError("jeton_google_invalide")
+        u = ui.json()
+    email = (u.get("email") or "").strip().lower()
+    verifie = u.get("email_verified") in (True, "true")
+    if not u.get("sub") or not email or not verifie:
+        raise ValueError("email_google_non_verifie")
+    return {"sub": u["sub"], "email": email, "nom": (u.get("name") or "").strip(), "photo": u.get("picture")}
+
+
+def login_google(access_token: str, langue: str = None, fuseau: str = None) -> dict:
+    """Connexion ou inscription par Google. Ordre : compte déjà lié (google_sub) ;
+    sinon compte au même email (on le lie : l'email est vérifié par Google) ;
+    sinon création d'un compte sans mot de passe (il en posera un via « mot de
+    passe oublié » s'il en veut un). Renvoie le jeton habituel + nouveau: bool."""
+    import secrets
+    ident = _identite_google(access_token)
+    r = supabase.table("users").select("*").eq("google_sub", ident["sub"]).limit(1).execute()
+    user = r.data[0] if r.data else None
+    nouveau = False
+    if not user:
+        r = supabase.table("users").select("*").eq("email", ident["email"]).limit(1).execute()
+        if r.data:
+            user = r.data[0]
+            supabase.table("users").update({"google_sub": ident["sub"]}).eq("telegram_id", user["telegram_id"]).execute()
+        else:
+            cree = register_user(nom=ident["nom"] or ident["email"].split("@")[0], email=ident["email"], username=None,
+                                 password=secrets.token_urlsafe(32), langue=langue, fuseau=fuseau)
+            if "error" in cree:
+                raise ValueError(cree["error"])
+            maj = {"google_sub": ident["sub"], "password_hash": None}
+            if ident.get("photo"):
+                maj["avatar_url"] = ident["photo"]
+            supabase.table("users").update(maj).eq("telegram_id", cree["telegram_id"]).execute()
+            user = supabase.table("users").select("*").eq("telegram_id", cree["telegram_id"]).execute().data[0]
+            nouveau = True
+    res = _jeton_session(user)
+    res["nouveau"] = nouveau
+    res["telegram_id"] = user["telegram_id"]
+    return res
 
 
 def change_password(telegram_id: str, old_password: str, new_password: str) -> dict:

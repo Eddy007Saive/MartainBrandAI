@@ -1,13 +1,13 @@
 from fastapi import APIRouter, HTTPException, Request
 from datetime import timedelta
-from models.auth import UserRegister, UserLogin, AdminLogin
+from models.auth import UserRegister, UserLogin, AdminLogin, GoogleLogin
 from services.auth_service import (
     login_user, login_admin, register_user, create_token,
-    find_user_by_email, create_reset_token, reset_password,
+    find_user_by_email, create_reset_token, reset_password, login_google,
 )
 from services import mail_service, rate_limit, affiliation_service
 from services.social_service import create_late_profile
-from config import FRONTEND_URL, logger
+from config import FRONTEND_URL, GOOGLE_CLIENT_ID, logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -97,6 +97,45 @@ def login(credentials: UserLogin, request: Request):
     except Exception as e:
         logger.error(f"Login error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/google/config")
+def google_config():
+    """Le client OAuth Google, lu au chargement par le bouton (vide = bouton masqué).
+    Une seule variable à poser, côté serveur, plutôt qu'une par déploiement du front."""
+    return {"client_id": GOOGLE_CLIENT_ID}
+
+
+@router.post("/google")
+async def google(body: GoogleLogin, request: Request):
+    """Connexion / inscription « Continuer avec Google ». Même jeton que /login."""
+    ip = _client_ip(request)
+    ki = f"loginip:{ip}"
+    if rate_limit.locked_for(ki) > 0:
+        raise HTTPException(status_code=429, detail="Trop de tentatives. Réessaie dans quelques minutes.")
+    try:
+        result = login_google(body.access_token, langue=body.langue, fuseau=body.fuseau)
+    except ValueError as e:
+        rate_limit.fail(ki, *_LOGIN_IP)
+        raise HTTPException(status_code=401, detail=str(e))
+    except Exception as e:
+        logger.error(f"auth google: {e}")
+        raise HTTPException(status_code=500, detail="Connexion Google impossible")
+    if result.get("nouveau"):
+        # Mêmes suites qu'une inscription classique (best-effort, jamais bloquant).
+        tid = result["telegram_id"]
+        if body.ref:
+            try:
+                affiliation_service.attribuer(body.ref, telegram_id=tid, email=result["user"].get("email"), ip=ip)
+            except Exception as e:
+                logger.warning(f"attribution affiliation ignorée pour {tid}: {e}")
+        try:
+            await create_late_profile(tid, result["user"].get("nom", ""))
+        except Exception as e:
+            logger.warning(f"Late profile creation failed for {tid}: {e}")
+    rate_limit.clear(ki)
+    return {"token": result["token"], "is_admin": result["is_admin"], "pending": result["pending"],
+            "nouveau": result["nouveau"]}
 
 
 @router.post("/forgot-password")
