@@ -6,6 +6,10 @@ const KEY = process.env.REACT_APP_POSTHOG_KEY || 'phc_naLg2dDPq2sc5uE4cEmopTz83G
 const HOST = process.env.REACT_APP_POSTHOG_HOST || 'https://us.i.posthog.com';
 
 let ready = false;
+// L'initialisation est volontairement différée après le chargement de la page
+// (cf. index.js) : un compte chargé plus vite que ça n'attend pas — on garde
+// son identification en attente et on la rejoue dès que PostHog est prêt.
+let identificationEnAttente = null;
 
 export function initAnalytics() {
   if (ready || !KEY) return;
@@ -27,6 +31,10 @@ export function initAnalytics() {
       },
     });
     ready = true;
+    if (identificationEnAttente) {
+      identifyUser(identificationEnAttente);
+      identificationEnAttente = null;
+    }
   } catch (e) {
     console.error('PostHog init error:', e);
   }
@@ -34,7 +42,8 @@ export function initAnalytics() {
 
 // Lie la session au compte (appelé quand l'utilisateur est chargé)
 export function identifyUser(user) {
-  if (!ready || !user?.telegram_id) return;
+  if (!user?.telegram_id) return;
+  if (!ready) { identificationEnAttente = user; return; }
   try {
     posthog.identify(String(user.telegram_id), {
       email: user.email,

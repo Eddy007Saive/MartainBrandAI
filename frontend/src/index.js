@@ -18,7 +18,15 @@ if (Capacitor.isNativePlatform()) {
   }
 }
 
-initAnalytics();
+// PostHog télécharge lui-même ses modules lourds (enregistrement de session,
+// sondages) dès l'appel à init() : les lancer ici, avant le premier rendu,
+// leur fait concurrencer les ressources critiques de la page pendant la
+// fenêtre la plus surveillée (LCP). Un report après le chargement complet ne
+// coûte rien à la mesure — quelques centaines de ms sur une session dure
+// souvent des minutes — et libère la bande passante initiale pour la page.
+const demarrerAnalytics = () => setTimeout(initAnalytics, 1000);
+if (document.readyState === "complete") demarrerAnalytics();
+else window.addEventListener("load", demarrerAnalytics, { once: true });
 
 const conteneur = document.getElementById("root");
 const arbre = (
