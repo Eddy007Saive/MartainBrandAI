@@ -10,7 +10,13 @@
         <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+        <!-- Chargement non bloquant : le CSS des polices se charge en arrière-plan
+             (astuce media="print" + bascule au onload) au lieu de retarder le
+             premier rendu. font-display=swap affiche déjà la police de repli
+             entre-temps ; combiné, le texte s'affiche immédiatement. -->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+              media="print" onload="this.media='all'" />
+        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" /></noscript>
         <title>Postorico</title>
     </head>
     <body>
