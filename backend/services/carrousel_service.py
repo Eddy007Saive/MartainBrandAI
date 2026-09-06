@@ -8,6 +8,7 @@ calculée selon la luminosité du fond (toujours lisible), les fonds "sombres" s
 forcés en quasi-noir teinté.
 """
 import asyncio
+import time
 import html as _html
 from io import BytesIO
 from PIL import Image
@@ -631,19 +632,31 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     args = (telegram_id, content, p, s, a, nom, secteur, base, template, logo, font, font_corps)
     # Ratés intermittents de Playwright (timeout réseau/police) : jusqu'à 2 essais.
     res = {"images": [], "pdf": None}
-    for attempt in (1, 2):
+    depart = time.monotonic()
+    ok = False
+    try:
+        for attempt in (1, 2):
+            try:
+                res = await _rendre(_render_and_upload, *args)
+                if res.get("images"):
+                    ok = True
+                    break
+                logger.warning(f"Carrousel {base}: 0 slide rendue (essai {attempt})")
+            except AtelierSature:
+                # Ne PAS reessayer : la boucle rendrait l'attente de 45 s deux fois
+                # avant de renvoyer un carrousel vide. L'appelant doit repondre 503.
+                raise
+            except Exception as e:
+                logger.error(f"Carrousel render error (essai {attempt}): {e}")
+        return res
+    finally:
+        duree = time.monotonic() - depart
         try:
-            res = await _rendre(_render_and_upload, *args)
-            if res.get("images"):
-                break
-            logger.warning(f"Carrousel {base}: 0 slide rendue (essai {attempt})")
-        except AtelierSature:
-            # Ne PAS reessayer : la boucle rendrait l'attente de 45 s deux fois
-            # avant de renvoyer un carrousel vide. L'appelant doit repondre 503.
-            raise
+            from services import usage_service
+            usage_service.log(telegram_id, "carrousel_rendu" if ok else "carrousel_rendu_echec",
+                               template, {}, 0, duree_s=duree)
         except Exception as e:
-            logger.error(f"Carrousel render error (essai {attempt}): {e}")
-    return res
+            logger.warning(f"journal du rendu carrousel {base}: {e}")
 
 
 # =============================================================================
