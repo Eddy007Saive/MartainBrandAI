@@ -40,6 +40,15 @@ class GoogleLogin(BaseModel):
     ref: Optional[str] = None
 
 
+class GoogleLogin(BaseModel):
+    # Jeton d'accès Google obtenu dans le navigateur (google.accounts.oauth2) ;
+    # le serveur le vérifie auprès de Google, jamais le contraire.
+    access_token: str
+    langue: Optional[str] = None
+    fuseau: Optional[str] = None
+    ref: Optional[str] = None
+
+
 class AdminLogin(BaseModel):
     email: EmailStr
     password: str
