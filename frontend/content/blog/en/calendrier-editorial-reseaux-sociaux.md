@@ -188,6 +188,12 @@ Yes, and it's increasingly common. AI tools can generate post ideas, draft outli
 
 ---
 
+## Further reading
+
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [Professional Facebook Page: How to Create and Manage It in 2026](/en/blog/professional-facebook-page)
+- [Google Business Profile for Small Businesses: the Complete Guide to Local Visibility](/en/blog/google-business-profile-small-business)
+
 ## Useful sources
 
 - [France Num - The content calendar: a strategic tool for your digital communication](https://www.francenum.gouv.fr/guides-et-conseils/communication-et-publicite/strategie-de-communication/le-calendrier-editorial-un)

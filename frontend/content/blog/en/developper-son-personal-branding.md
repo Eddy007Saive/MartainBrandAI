@@ -198,6 +198,12 @@ Do the introspection exercise first: list 5 achievements, 3 values, write your m
 
 ---
 
+## Further reading
+
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [Cloning your voice with AI: how it works and why it matters for business owners](/en/blog/clone-voice-ai-business-owner)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [manager-go.com - Personal branding: building and mastering your professional image](https://www.manager-go.com/efficacite-professionnelle/personal-branding.htm)

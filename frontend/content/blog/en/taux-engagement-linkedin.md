@@ -249,6 +249,12 @@ Three actions with immediate impact: (1) nail your first 3 lines to stop the scr
 
 ---
 
+## Further reading
+
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [Buffer - State of Social Media Engagement 2026 (52M posts)](https://buffer.com/resources/state-of-social-media-engagement-2026/)

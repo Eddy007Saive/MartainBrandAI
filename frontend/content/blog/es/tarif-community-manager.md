@@ -143,6 +143,11 @@ Depende del perímetro. El freelance conviene a una microempresa o una pyme con 
 **¿Cómo saber si un freelance es realmente competente?**
 Pide un portfolio con resultados cuantificados: tasa de interacción, crecimiento de comunidad, ejemplos de campañas. Mira sus propias cuentas. Y empieza por una misión corta o una auditoría de tu presencia actual antes de comprometerte a largo plazo.
 
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Optimizar tu ficha de Google My Business: los 8 puntos que realmente marcan la diferencia](/es/blog/optimizar-ficha-google-my-business)
+
 ## Fuentes
 
 - [Malt: Barómetro de tarifas, community manager](https://www.malt.fr/t/barometre-tarifs/communication/community-manager)

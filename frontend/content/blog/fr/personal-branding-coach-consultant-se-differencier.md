@@ -209,6 +209,12 @@ Oui - et c'est même la meilleure approche. Les posts qui parlent des problèmes
 
 ---
 
+## Pour aller plus loin
+
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [Voix off IA : comment l'utiliser pour ses vidéos pros (sans studio ni comédien)](/blog/voix-off-ia)
+- [Rédiger un post LinkedIn qui performe : méthode hook/corps/CTA](/blog/rediger-un-post-linkedin)
+
 ## Sources utiles
 
 - [lucielebaz.com](https://www.lucielebaz.com/) - Experte en personal branding, modèle Révéler-Structurer-Incarner-Rayonner

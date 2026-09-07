@@ -188,6 +188,12 @@ Sí, y es cada vez más habitual. Las herramientas de IA pueden generar ideas de
 
 ---
 
+## Para ir más lejos
+
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [Página Facebook profesional: cómo crearla y gestionarla en 2026](/es/blog/pagina-facebook-profesional)
+- [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
+
 ## Fuentes útiles
 
 - [France Num - El calendario editorial: una herramienta estratégica para tu comunicación digital](https://www.francenum.gouv.fr/guides-et-conseils/communication-et-publicite/strategie-de-communication/le-calendrier-editorial-un)

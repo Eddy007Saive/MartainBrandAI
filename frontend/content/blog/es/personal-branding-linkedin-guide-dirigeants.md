@@ -200,6 +200,12 @@ Sí, pero es más lento. Puedes empezar únicamente por comentarios de alto valo
 
 ---
 
+## Para ir más lejos
+
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [Clonar su voz con IA: cómo funciona y por qué es útil para un directivo](/es/blog/clonar-voz-ia-dirigente-pyme)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [Linker Agency - Personal branding en LinkedIn 2025: guía estratégica](https://www.linker-agency.com/blog/booster-personal-branding-linkedin)

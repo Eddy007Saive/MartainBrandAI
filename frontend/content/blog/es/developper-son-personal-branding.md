@@ -198,6 +198,12 @@ Haz primero el ejercicio de introspección: enumera 5 logros, 3 valores, redacta
 
 ---
 
+## Para ir más lejos
+
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [Clonar su voz con IA: cómo funciona y por qué es útil para un directivo](/es/blog/clonar-voz-ia-dirigente-pyme)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [manager-go.com - Personal branding: construir y dominar tu imagen profesional](https://www.manager-go.com/efficacite-professionnelle/personal-branding.htm)

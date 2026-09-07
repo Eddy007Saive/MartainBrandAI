@@ -190,6 +190,12 @@ Oui, et c'est de plus en plus courant. Les outils IA peuvent générer des idée
 
 ---
 
+## Pour aller plus loin
+
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [Page Facebook professionnelle : comment la créer et l'animer en 2026](/blog/page-facebook-professionnelle)
+- [Google Business Profile pour PME : le guide complet pour être visible localement](/blog/google-business-profile-pme)
+
 ## Sources utiles
 
 - [France Num - Le calendrier éditorial : un outil stratégique pour votre communication digitale](https://www.francenum.gouv.fr/guides-et-conseils/communication-et-publicite/strategie-de-communication/le-calendrier-editorial-un)

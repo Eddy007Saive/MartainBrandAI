@@ -255,6 +255,11 @@ Una vez al mes es suficiente. Consultarla a diario no aporta ningún valor estra
 
 ---
 
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [SSI LinkedIn - Swello](https://swello.com/fr/blog/ssi-linkedin/)

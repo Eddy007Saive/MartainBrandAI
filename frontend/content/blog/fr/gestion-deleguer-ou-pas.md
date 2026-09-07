@@ -115,6 +115,11 @@ Dans la grande majorité des cas, le freelance est plus adapté : flexibilité, 
 **Peut-on déléguer ses réseaux sociaux sans perdre son authenticité ?**
 Oui, à condition de bien briefer. Partagez vos valeurs, votre ton, des exemples de contenus que vous aimez, et les sujets à ne jamais aborder. L'authenticité se construit dans le brief, pas dans le fait de tout écrire soi-même.
 
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+- [Google Business Profile pour PME : le guide complet pour être visible localement](/blog/google-business-profile-pme)
+
 ## Sources
 
 - [France Num : La présence sur Internet des TPE et PME](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme)

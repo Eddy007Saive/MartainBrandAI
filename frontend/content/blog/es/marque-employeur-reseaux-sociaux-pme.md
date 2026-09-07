@@ -231,6 +231,11 @@ Tres indicadores sencillos: el número de candidaturas recibidas al mes, la cali
 
 ---
 
+## Para ir más lejos
+
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [TikTok para empresas: por dónde empezar sin dedicarle toda la vida](/es/blog/tiktok-para-empresas-por-donde-empezar)
+
 ## Fuentes útiles
 
 - [Culture RH - Definición y estrategia de la marca empleadora](https://culture-rh.com/definition-marque-employeur/)

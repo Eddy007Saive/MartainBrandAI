@@ -94,3 +94,8 @@ Quinze lignes. Si vous ne parvenez pas à les remplir, le problème n'est pas vo
 Relisez cette page avant chaque session d'écriture, pendant un mois. Passé ce délai, elle sera intégrée et vous n'en aurez plus besoin qu'aux moments de doute.
 
 Si vous travaillez avec un outil de génération, ces quinze lignes sont exactement ce qu'il faut lui transmettre. C'est ce que Postorico demande à la création du profil de marque : sans piliers ni interdits, une IA écrit ce que tout le monde écrit. Avec, elle écrit ce que **vous** auriez écrit un bon jour.
+
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)

@@ -145,6 +145,11 @@ Cela dépend du périmètre. Le freelance convient à une TPE ou une PME avec un
 **Comment savoir si un freelance est vraiment compétent ?**
 Demandez un portfolio avec des résultats chiffrés : taux d'engagement, croissance de communauté, exemples de campagnes. Regardez ses propres comptes. Et commencez par une mission courte ou un audit de votre présence actuelle avant de vous engager sur la durée.
 
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+- [Optimiser sa fiche Google My Business : les 8 points qui font vraiment la différence](/blog/optimiser-fiche-google-my-business)
+
 ## Sources
 
 - [Malt : Baromètre des tarifs : community manager](https://www.malt.fr/t/barometre-tarifs/communication/community-manager)

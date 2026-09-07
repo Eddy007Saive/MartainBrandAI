@@ -311,6 +311,11 @@ When the published content no longer sounds like you, when the objectives are no
 
 ---
 
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Optimizing your Google My Business listing: the 8 points that actually make a difference](/en/blog/optimize-google-business-profile)
+
 ## Useful sources
 
 - [SocialSky - 5 reasons to delegate your social media to an agency](https://socialsky.eu/articles/deleguer-reseaux-sociaux)

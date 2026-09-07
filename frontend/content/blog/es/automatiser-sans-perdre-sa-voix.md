@@ -65,3 +65,8 @@ Una cuenta llevada a mano durante dos meses y luego abandonada vale menos que un
 Postorico produce las propuestas, tú las relees, tú decides. La generación parte de tu perfil de marca, pilares, voz, prohibiciones, audiencia, y no de una consigna genérica. Nada sale sin tu validación, y los comentarios vuelven a ti para que los respondas tú mismo.
 
 Es una elección asumida: una cadena totalmente automática publicaría más rápido, y publicaría contenidos que nadie leería.
+
+## Para ir más lejos
+
+- [Clonar su voz con IA: cómo funciona y por qué es útil para un directivo](/es/blog/clonar-voz-ia-dirigente-pyme)
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)

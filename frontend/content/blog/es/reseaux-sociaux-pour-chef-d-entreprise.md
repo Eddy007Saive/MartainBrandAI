@@ -180,6 +180,12 @@ Sí, a condición de mantener el control sobre lo que te hace único: tu punto d
 
 ---
 
+## Para ir más lejos
+
+- [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [TikTok para empresas: por dónde empezar sin dedicarle toda la vida](/es/blog/tiktok-para-empresas-por-donde-empezar)
+
 ## Fuentes útiles
 
 - [CCI Métropolitaine Aix-Marseille-Provence - La importancia de las redes sociales para tu empresa](https://www.cciamp.com/limportance-des-reseaux-sociaux-pour-votre-entreprise)

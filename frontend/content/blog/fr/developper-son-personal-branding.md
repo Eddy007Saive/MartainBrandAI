@@ -200,6 +200,12 @@ Faites d'abord l'exercice d'introspection : listez 5 réalisations, 3 valeurs, r
 
 ---
 
+## Pour aller plus loin
+
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [Cloner sa voix avec l'IA : comment ça marche et pourquoi c'est utile pour un dirigeant](/blog/cloner-voix-ia)
+- [Rédiger un post LinkedIn qui performe : méthode hook/corps/CTA](/blog/rediger-un-post-linkedin)
+
 ## Sources utiles
 
 - [manager-go.com - Personal branding : construire et maîtriser votre image professionnelle](https://www.manager-go.com/efficacite-professionnelle/personal-branding.htm)

@@ -139,6 +139,11 @@ Metricool, en la mayoría de los casos en Europa: versión gratuita funcional, t
 **¿Cuánto tiempo hace falta para manejar estas herramientas?**
 Buffer: menos de una hora para lo básico. Metricool: media jornada para recorrerla. Hootsuite: varios días, y una verdadera formación para explotar los paneles. Para una pequeña empresa, la sencillez suele contar más que la riqueza funcional.
 
+## Para ir más lejos
+
+- [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+
 ## Fuentes
 
 - [Buffer: Tarifas oficiales](https://buffer.com/pricing)

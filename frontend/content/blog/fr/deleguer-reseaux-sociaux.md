@@ -311,6 +311,11 @@ Quand le contenu publié ne vous ressemble plus, quand les objectifs ne sont pas
 
 ---
 
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+- [Optimiser sa fiche Google My Business : les 8 points qui font vraiment la différence](/blog/optimiser-fiche-google-my-business)
+
 ## Sources utiles
 
 - [SocialSky - 5 raisons de déléguer ses réseaux sociaux à une agence](https://socialsky.eu/articles/deleguer-reseaux-sociaux)

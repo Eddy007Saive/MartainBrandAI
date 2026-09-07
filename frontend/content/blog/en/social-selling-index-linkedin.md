@@ -255,6 +255,11 @@ Once a month is enough. Checking it daily adds no strategic value and can lead y
 
 ---
 
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [SSI LinkedIn - Swello](https://swello.com/fr/blog/ssi-linkedin/)

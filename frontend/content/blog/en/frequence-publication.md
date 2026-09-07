@@ -67,3 +67,9 @@ Three levers, from cheapest to most expensive.
 ## What to take away
 
 The right pace is the one that survives a hard week. Start below the recommended frequency, hold it for two months, then increase. An account posting twice a week for a year consistently beats an account that posted daily for six weeks before going dark.
+
+## Further reading
+
+- [Instagram Reels for Business: How to Create Them Without a Videographer or Editor](/en/blog/instagram-reels-small-business)
+- [TikTok for Business: How to Get Started Without It Taking Over Your Life](/en/blog/tiktok-for-business-getting-started)
+- [Professional Facebook Page: How to Create and Manage It in 2026](/en/blog/professional-facebook-page)

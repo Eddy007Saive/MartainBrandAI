@@ -214,6 +214,12 @@ No. Empieza por una sola red, estabiliza tu proceso, luego amplía. Cada platafo
 
 ---
 
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Voz en off IA: cómo usarla en tus videos profesionales (sin estudio ni locutor)](/es/blog/voz-en-off-ia-videos-profesionales-sin-estudio)
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+
 ## Fuentes útiles
 
 - [Les meilleurs outils pour automatiser vos posts sur les réseaux sociaux - Redacteur.com](https://www.redacteur.com/blog/automatiser-reseaux-sociaux/)

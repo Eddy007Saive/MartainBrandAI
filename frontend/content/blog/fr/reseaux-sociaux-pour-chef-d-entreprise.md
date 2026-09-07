@@ -182,6 +182,12 @@ Oui, à condition de garder la main sur ce qui vous rend unique : votre point de
 
 ---
 
+## Pour aller plus loin
+
+- [Google Business Profile pour PME : le guide complet pour être visible localement](/blog/google-business-profile-pme)
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [TikTok pour entreprise : par où commencer sans y passer sa vie](/blog/tiktok-pour-entreprise)
+
 ## Sources utiles
 
 - [CCI Métropolitaine Aix-Marseille-Provence - L'importance des réseaux sociaux pour votre entreprise](https://www.cciamp.com/limportance-des-reseaux-sociaux-pour-votre-entreprise)

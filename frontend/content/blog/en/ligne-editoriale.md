@@ -92,3 +92,8 @@ Fifteen lines. If you cannot fill them in, the problem is not your content strat
 Re-read that page before every writing session, for a month. After that it will be internalised and you will only need it in moments of doubt.
 
 If you work with a generation tool, those fifteen lines are exactly what it needs. That is what Postorico asks for when you create your brand profile: without pillars and bans, an AI writes what everyone writes. With them, it writes what **you** would have written on a good day.
+
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)

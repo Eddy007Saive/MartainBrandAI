@@ -251,6 +251,11 @@ Trois actions à impact immédiat : (1) soignez vos 3 premières lignes pour sto
 
 ---
 
+## Pour aller plus loin
+
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+
 ## Sources utiles
 
 - [Buffer - State of Social Media Engagement 2026 (52M posts)](https://buffer.com/resources/state-of-social-media-engagement-2026/)

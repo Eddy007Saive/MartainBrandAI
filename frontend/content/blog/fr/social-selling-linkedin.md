@@ -258,6 +258,12 @@ Sans IA : comptez 3 à 4 heures par semaine pour maintenir une présence efficac
 
 ---
 
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [Rédiger un post LinkedIn qui performe : méthode hook/corps/CTA](/blog/rediger-un-post-linkedin)
+
 ## Sources utiles
 
 - [Social selling LinkedIn : guide pour débutants - Senza Formations](https://senza-formations.com/nos-articles/social-selling-linkedin-guide-pour-debutants)

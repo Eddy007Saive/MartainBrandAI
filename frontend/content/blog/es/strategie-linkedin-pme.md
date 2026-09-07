@@ -235,6 +235,12 @@ Antes de los leads, verás aparecer: comentarios de calidad de personas de tu p�
 
 ---
 
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [Agence HKM - LinkedIn PME: comment générer des leads avec du contenu](https://agence-hkm.com/blog/linkedin-pme-generer-leads/)

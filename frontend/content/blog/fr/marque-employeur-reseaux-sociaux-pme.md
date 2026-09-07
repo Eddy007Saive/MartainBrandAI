@@ -231,6 +231,11 @@ Trois indicateurs simples : le nombre de candidatures reçues par mois, la quali
 
 ---
 
+## Pour aller plus loin
+
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [TikTok pour entreprise : par où commencer sans y passer sa vie](/blog/tiktok-pour-entreprise)
+
 ## Sources utiles
 
 - [Culture RH - Définition et stratégie de la marque employeur](https://culture-rh.com/definition-marque-employeur/)

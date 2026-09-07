@@ -224,6 +224,11 @@ Always from your personal profile. Company pages receive about 2% of total feed 
 
 ---
 
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [AI voiceover: how to use it for professional videos (no studio, no voice actor)](/en/blog/ai-voiceover-videos-small-business)
+
 ## Useful sources
 
 - [How to write a LinkedIn post that actually gets read - MagicPost](https://magicpost.in/fr/blog/comment-r%C3%A9diger-un-poste-linkedin)
