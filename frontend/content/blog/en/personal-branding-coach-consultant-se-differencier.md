@@ -209,6 +209,12 @@ Yes, and it's actually the best approach. Posts about your clients' problems, ab
 
 ---
 
+## Further reading
+
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [AI voiceover: how to use it for professional videos (no studio, no voice actor)](/en/blog/ai-voiceover-videos-small-business)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [lucielebaz.com](https://www.lucielebaz.com/) - Personal branding expert, Reveal-Structure-Embody-Radiate model

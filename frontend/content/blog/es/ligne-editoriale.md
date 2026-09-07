@@ -92,3 +92,8 @@ Quince líneas. Si no consigues rellenarlas, el problema no es tu línea editori
 Relee esa página antes de cada sesión de escritura, durante un mes. Pasado ese plazo la habrás integrado y solo la necesitarás en los momentos de duda.
 
 Si trabajas con una herramienta de generación, esas quince líneas son exactamente lo que hay que darle. Es lo que pide Postorico al crear el perfil de marca: sin pilares ni prohibiciones, una IA escribe lo que escribe todo el mundo. Con ellos, escribe lo que **tú** habrías escrito en un buen día.
+
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)

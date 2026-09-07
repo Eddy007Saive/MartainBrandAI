@@ -218,6 +218,12 @@ No. Es mejor dominar un solo canal que ser mediocre en cinco. Para la mayoría d
 
 ---
 
+## Para ir más lejos
+
+- [Reels de Instagram para empresas: cómo crearlos sin videoasta ni montador](/es/blog/reels-instagram-para-empresas)
+- [TikTok profesional: crear tu cuenta, entender el algoritmo y publicar sin perder horas](/es/blog/tiktok-profesional-cuenta-algoritmo-publicar)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [Freelance: développer son personal branding étape par étape - Hays.fr](https://www.hays.fr/conseils-carriere/article/content/freelance-developper-son-personal-branding-etape-par-etape)

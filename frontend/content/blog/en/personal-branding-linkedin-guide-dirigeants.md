@@ -200,6 +200,12 @@ Yes, but it is slower. You can start with high-value comments on posts in your s
 
 ---
 
+## Further reading
+
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [Cloning your voice with AI: how it works and why it matters for business owners](/en/blog/clone-voice-ai-business-owner)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [Linker Agency - LinkedIn personal branding 2025: strategic guide](https://www.linker-agency.com/blog/booster-personal-branding-linkedin)

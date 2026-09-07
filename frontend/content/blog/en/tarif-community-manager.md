@@ -143,6 +143,11 @@ It depends on the scope. The freelancer suits a small business or an SME with on
 **How do I know whether a freelancer is genuinely competent?**
 Ask for a portfolio with quantified results: engagement rate, community growth, campaign examples. Look at their own accounts. And start with a short assignment or an audit of your current presence before committing for the long term.
 
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Optimizing your Google My Business listing: the 8 points that actually make a difference](/en/blog/optimize-google-business-profile)
+
 ## Sources
 
 - [Malt: Rate barometer, community manager](https://www.malt.fr/t/barometre-tarifs/communication/community-manager)

@@ -287,6 +287,11 @@ Cada 6 a 12 meses es una buena cadencia. Actualízala en cuanto cambie tu posici
 
 ---
 
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [LaGrowthMachine - Cómo crear un buen banner de LinkedIn](https://lagrowthmachine.com/fr/comment-creer-une-bonne-banniere-linkedin/)

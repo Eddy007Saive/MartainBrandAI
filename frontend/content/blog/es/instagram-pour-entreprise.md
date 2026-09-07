@@ -226,6 +226,12 @@ Cuenta con 3 a 6 meses de publicación regular antes de observar un crecimiento 
 
 ---
 
+## Para ir más lejos
+
+- [Reels de Instagram para empresas: cómo crearlos sin videoasta ni montador](/es/blog/reels-instagram-para-empresas)
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [Página Facebook profesional: cómo crearla y gestionarla en 2026](/es/blog/pagina-facebook-profesional)
+
 ## Fuentes útiles
 
 - [Estadísticas de Instagram 2025, Shopify France](https://www.shopify.com/fr/blog/statistiques-instagram)

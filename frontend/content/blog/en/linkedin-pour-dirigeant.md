@@ -214,6 +214,12 @@ Count on 6 to 12 months for the first clear commercial results. Between 12 and 1
 
 ---
 
+## Further reading
+
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [Cloning your voice with AI: how it works and why it matters for business owners](/en/blog/clone-voice-ai-business-owner)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [Virage Média - LinkedIn for SME leaders: what to post to generate qualified contacts](https://viragemedia.fr/linkedin-pour-dirigeant-pme-que-publier/)

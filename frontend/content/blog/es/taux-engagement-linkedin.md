@@ -249,6 +249,12 @@ Tres acciones de impacto inmediato: (1) cuida tus 3 primeras líneas para detene
 
 ---
 
+## Para ir más lejos
+
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [Buffer - State of Social Media Engagement 2026 (52M posts)](https://buffer.com/resources/state-of-social-media-engagement-2026/)

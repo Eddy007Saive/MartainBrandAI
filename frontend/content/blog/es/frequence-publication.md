@@ -67,3 +67,9 @@ Tres palancas, de la más barata a la más cara.
 ## Lo que hay que retener
 
 El buen ritmo es el que sobrevive a una semana difícil. Empieza por debajo de la frecuencia recomendada, mantenla dos meses y súbela después. Una cuenta que publica dos veces por semana desde hace un año gana siempre a una cuenta que publicó a diario durante seis semanas antes de apagarse.
+
+## Para ir más lejos
+
+- [Reels de Instagram para empresas: cómo crearlos sin videoasta ni montador](/es/blog/reels-instagram-para-empresas)
+- [TikTok para empresas: por dónde empezar sin dedicarle toda la vida](/es/blog/tiktok-para-empresas-por-donde-empezar)
+- [Página Facebook profesional: cómo crearla y gestionarla en 2026](/es/blog/pagina-facebook-profesional)

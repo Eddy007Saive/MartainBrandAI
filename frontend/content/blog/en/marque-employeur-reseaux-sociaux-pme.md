@@ -231,6 +231,11 @@ Three simple indicators: the number of applications received per month, the perc
 
 ---
 
+## Further reading
+
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [TikTok for Business: How to Get Started Without It Taking Over Your Life](/en/blog/tiktok-for-business-getting-started)
+
 ## Useful sources
 
 - [Culture RH - Definition and strategy of employer branding](https://culture-rh.com/definition-marque-employeur/)

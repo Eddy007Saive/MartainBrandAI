@@ -258,6 +258,12 @@ Without AI: count on 3 to 4 hours a week to maintain an effective presence (publ
 
 ---
 
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [Social selling LinkedIn: guide pour débutants - Senza Formations](https://senza-formations.com/nos-articles/social-selling-linkedin-guide-pour-debutants)

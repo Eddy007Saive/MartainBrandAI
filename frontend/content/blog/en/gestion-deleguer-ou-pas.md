@@ -113,6 +113,11 @@ In the vast majority of cases, the freelancer is the better fit: flexibility, ad
 **Can you delegate your social media without losing your authenticity?**
 Yes, provided you brief well. Share your values, your tone, examples of content you like, and the topics never to touch. Authenticity is built in the brief, not in writing everything yourself.
 
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Google Business Profile for Small Businesses: the Complete Guide to Local Visibility](/en/blog/google-business-profile-small-business)
+
 ## Sources
 
 - [France Num: The online presence of small and mid-sized businesses](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme)

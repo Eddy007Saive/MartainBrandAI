@@ -216,6 +216,11 @@ Comptez 6 à 12 mois pour les premiers résultats commerciaux nets. Entre 12 et 
 
 ---
 
+## Pour aller plus loin
+
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [Cloner sa voix avec l'IA : comment ça marche et pourquoi c'est utile pour un dirigeant](/blog/cloner-voix-ia)
+
 ## Sources utiles
 
 - [Virage Média - LinkedIn pour dirigeant de PME : que publier pour générer des contacts qualifiés](https://viragemedia.fr/linkedin-pour-dirigeant-pme-que-publier/)

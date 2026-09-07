@@ -203,6 +203,11 @@ Oui, mais c'est plus lent. Vous pouvez commencer uniquement par des commentaires
 
 ---
 
+## Pour aller plus loin
+
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [Cloner sa voix avec l'IA : comment ça marche et pourquoi c'est utile pour un dirigeant](/blog/cloner-voix-ia)
+
 ## Sources utiles
 
 - [Linker Agency - Personal branding LinkedIn 2025 : guide stratégique](https://www.linker-agency.com/blog/booster-personal-branding-linkedin)

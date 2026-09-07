@@ -139,6 +139,11 @@ Metricool, in most cases in Europe: a functional free plan, reasonable prices, a
 **How long does it take to get to grips with these tools?**
 Buffer: under an hour for the basics. Metricool: half a day to cover it. Hootsuite: several days, and real training to make use of the dashboards. For a small business, simplicity often matters more than a wealth of features.
 
+## Further reading
+
+- [Google Business Profile for Small Businesses: the Complete Guide to Local Visibility](/en/blog/google-business-profile-small-business)
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+
 ## Sources
 
 - [Buffer: Official pricing](https://buffer.com/pricing)

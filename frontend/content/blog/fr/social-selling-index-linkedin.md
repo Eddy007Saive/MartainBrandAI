@@ -255,6 +255,10 @@ Une fois par mois suffit. Le consulter quotidiennement n'apporte aucune valeur s
 
 ---
 
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+
 ## Sources utiles
 
 - [SSI LinkedIn - Swello](https://swello.com/fr/blog/ssi-linkedin/)

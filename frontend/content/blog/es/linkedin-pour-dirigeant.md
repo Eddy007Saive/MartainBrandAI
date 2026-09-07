@@ -214,6 +214,12 @@ Cuenta con 6 a 12 meses para los primeros resultados comerciales nítidos. Entre
 
 ---
 
+## Para ir más lejos
+
+- [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [Clonar su voz con IA: cómo funciona y por qué es útil para un directivo](/es/blog/clonar-voz-ia-dirigente-pyme)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [Virage Média - LinkedIn para directivos de pyme: qué publicar para generar contactos cualificados](https://viragemedia.fr/linkedin-pour-dirigeant-pme-que-publier/)

@@ -237,6 +237,12 @@ Avant les leads, vous verrez apparaître : des commentaires de qualité de perso
 
 ---
 
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+- [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
+- [Rédiger un post LinkedIn qui performe : méthode hook/corps/CTA](/blog/rediger-un-post-linkedin)
+
 ## Sources utiles
 
 - [Agence HKM - LinkedIn PME : comment générer des leads avec du contenu](https://agence-hkm.com/blog/linkedin-pme-generer-leads/)

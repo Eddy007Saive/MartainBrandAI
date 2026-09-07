@@ -67,3 +67,8 @@ Un compte tenu à la main pendant deux mois puis abandonné vaut moins qu'un com
 Postorico produit les propositions, vous les relisez, vous décidez. La génération part de votre profil de marque, piliers, voix, interdits, audience, et non d'une consigne générique. Rien ne part sans votre validation, et les commentaires vous reviennent pour que vous y répondiez vous-même.
 
 C'est un choix assumé : une chaîne entièrement automatique publierait plus vite, et publierait des contenus que personne ne lirait.
+
+## Pour aller plus loin
+
+- [Cloner sa voix avec l'IA : comment ça marche et pourquoi c'est utile pour un dirigeant](/blog/cloner-voix-ia)
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)

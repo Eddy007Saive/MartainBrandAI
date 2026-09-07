@@ -251,6 +251,11 @@ Toujours depuis votre profil personnel. Les pages entreprise reçoivent environ 
 
 ---
 
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+- [Voix off IA : comment l'utiliser pour ses vidéos pros (sans studio ni comédien)](/blog/voix-off-ia)
+
 ## Sources utiles
 
 - [Comment rédiger un post LinkedIn qui est réellement lu - MagicPost](https://magicpost.in/fr/blog/comment-r%C3%A9diger-un-poste-linkedin)

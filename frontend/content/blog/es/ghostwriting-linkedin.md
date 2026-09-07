@@ -198,6 +198,12 @@ El ghostwriter humano aporta una dimensión estratégica y relacional que la IA 
 
 ---
 
+## Para ir más lejos
+
+- [Clonar su voz con IA: cómo funciona y por qué es útil para un directivo](/es/blog/clonar-voz-ia-dirigente-pyme)
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
+
 ## Fuentes útiles
 
 - [Ghostwriter de LinkedIn: guía completa, tarifas y opciones (Produscale)](https://www.produscale.com/blog/ghostwriter-linkedin)

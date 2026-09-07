@@ -65,3 +65,8 @@ An account run by hand for two months and then abandoned is worth less than an a
 Postorico produces the drafts, you review them, you decide. Generation starts from your brand profile, pillars, voice, bans, audience, not from a generic prompt. Nothing goes out without your approval, and comments come back to you so you answer them yourself.
 
 It is a deliberate choice: a fully automatic pipeline would publish faster, and would publish content nobody reads.
+
+## Further reading
+
+- [Cloning your voice with AI: how it works and why it matters for business owners](/en/blog/clone-voice-ai-business-owner)
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)

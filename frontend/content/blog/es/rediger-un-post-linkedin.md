@@ -224,6 +224,11 @@ Siempre desde tu perfil personal. Las páginas de empresa reciben alrededor del 
 
 ---
 
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Voz en off IA: cómo usarla en tus videos profesionales (sin estudio ni locutor)](/es/blog/voz-en-off-ia-videos-profesionales-sin-estudio)
+
 ## Fuentes útiles
 
 - [Cómo redactar un post de LinkedIn que realmente se lea - MagicPost](https://magicpost.in/fr/blog/comment-r%C3%A9diger-un-poste-linkedin)

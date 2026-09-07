@@ -195,6 +195,12 @@ Comptez 30 jours de test sur un seul cas d'usage pour avoir des données exploit
 
 ---
 
+## Pour aller plus loin
+
+- [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
+- [Voix off IA : comment l'utiliser pour ses vidéos pros (sans studio ni comédien)](/blog/voix-off-ia)
+- [Cloner sa voix avec l'IA : comment ça marche et pourquoi c'est utile pour un dirigeant](/blog/cloner-voix-ia)
+
 ## Sources utiles
 
 - [FranceNum - Comment améliorer la gestion de ses réseaux sociaux avec l'IA générative](https://www.francenum.gouv.fr/guides-et-conseils/intelligence-artificielle/generation-de-contenus-texte-image-son-video/comment)

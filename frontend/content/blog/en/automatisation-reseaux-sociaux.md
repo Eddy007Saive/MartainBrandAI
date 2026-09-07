@@ -214,6 +214,12 @@ No. Start with a single network, stabilize your process, then expand. Each platf
 
 ---
 
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [AI voiceover: how to use it for professional videos (no studio, no voice actor)](/en/blog/ai-voiceover-videos-small-business)
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+
 ## Useful sources
 
 - [Les meilleurs outils pour automatiser vos posts sur les réseaux sociaux - Redacteur.com](https://www.redacteur.com/blog/automatiser-reseaux-sociaux/)

@@ -193,6 +193,12 @@ Cuenta con 30 días de prueba sobre un solo caso de uso para tener datos aprovec
 
 ---
 
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Voz en off IA: cómo usarla en tus videos profesionales (sin estudio ni locutor)](/es/blog/voz-en-off-ia-videos-profesionales-sin-estudio)
+- [Clonar su voz con IA: cómo funciona y por qué es útil para un directivo](/es/blog/clonar-voz-ia-dirigente-pyme)
+
 ## Fuentes útiles
 
 - [FranceNum - Cómo mejorar la gestión de tus redes sociales con la IA generativa](https://www.francenum.gouv.fr/guides-et-conseils/intelligence-artificielle/generation-de-contenus-texte-image-son-video/comment)

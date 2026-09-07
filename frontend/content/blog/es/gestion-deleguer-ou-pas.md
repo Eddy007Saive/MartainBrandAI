@@ -113,6 +113,11 @@ En la gran mayoría de los casos, el freelance es más adecuado: flexibilidad, c
 **¿Se pueden delegar las redes sociales sin perder autenticidad?**
 Sí, a condición de informar bien. Comparte tus valores, tu tono, ejemplos de contenidos que te gustan y los temas que nunca hay que tocar. La autenticidad se construye en el brief, no en escribirlo todo uno mismo.
 
+## Para ir más lejos
+
+- [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
+
 ## Fuentes
 
 - [France Num: La presencia en internet de las microempresas y pymes](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme)

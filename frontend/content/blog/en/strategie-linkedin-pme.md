@@ -235,6 +235,12 @@ Before leads, you will see: quality comments from people in your target, inbound
 
 ---
 
+## Further reading
+
+- [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [Agence HKM - LinkedIn PME: comment générer des leads avec du contenu](https://agence-hkm.com/blog/linkedin-pme-generer-leads/)

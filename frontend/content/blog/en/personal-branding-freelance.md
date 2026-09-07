@@ -218,6 +218,12 @@ No. It is better to master a single channel than to be mediocre on five. For mos
 
 ---
 
+## Further reading
+
+- [Instagram Reels for Business: How to Create Them Without a Videographer or Editor](/en/blog/instagram-reels-small-business)
+- [Professional TikTok: set up your account, understand the algorithm, and post without it taking over your life](/en/blog/tiktok-professional-account-setup-guide)
+- [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
+
 ## Useful sources
 
 - [Freelance: développer son personal branding étape par étape - Hays.fr](https://www.hays.fr/conseils-carriere/article/content/freelance-developper-son-personal-branding-etape-par-etape)

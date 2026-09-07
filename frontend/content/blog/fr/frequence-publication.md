@@ -69,3 +69,9 @@ Trois leviers, du moins coûteux au plus coûteux.
 ## Ce qu'il faut retenir
 
 Le bon rythme est celui qui survit à une semaine difficile. Commencez sous la fréquence recommandée, tenez deux mois, augmentez ensuite. Un compte qui publie deux fois par semaine depuis un an bat systématiquement un compte qui a publié tous les jours pendant six semaines avant de s'éteindre.
+
+## Pour aller plus loin
+
+- [Reels Instagram pour entreprise : comment en créer sans vidéaste ni monteur](/blog/creer-reels-instagram-entreprise)
+- [TikTok pour entreprise : par où commencer sans y passer sa vie](/blog/tiktok-pour-entreprise)
+- [Page Facebook professionnelle : comment la créer et l'animer en 2026](/blog/page-facebook-professionnelle)
