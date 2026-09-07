@@ -309,7 +309,6 @@ export default function HomeCine() {
           muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
           style={{ transition: 'opacity 700ms ease', ...(c.transform ? { transform: c.transform } : {}) }} />
       ))}
-      <img className="poster-fallback" src="/images/hero-poster.jpg" alt="" />
       <div className="bg-tint" />
       <div className="grain" />
 
@@ -355,6 +354,10 @@ export default function HomeCine() {
       <div className="page">
         {/* HERO */}
         <section className="hero">
+          {/* Sur mobile, la vidéo/poster de fond est retirée (pas de Rico) :
+              les hexagones flottants — déjà utilisés plus bas sur cette page
+              et sur le reste du site — comblent le fond, sinon plat et vide. */}
+          {isTouch && <FondHexagones />}
           <div className="hero-copy">
             <span className="kicker"><span className="dot" />{t('lp.hero.kicker')}</span>
             <h1>{t('lp.hero.title1')}<br /><span className="g">{t('lp.hero.title2')}</span></h1>
