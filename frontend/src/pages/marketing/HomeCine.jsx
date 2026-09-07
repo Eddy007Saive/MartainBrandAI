@@ -204,13 +204,18 @@ export default function HomeCine() {
       gsap.ticker.lagSmoothing(0);
     }
 
-    // Entrée du hero en cascade
+    // Entrée du hero en cascade — fondu seul, sans déplacement. Un translateY
+    // bouge visuellement l'élément après le premier rendu : Chrome le compte
+    // comme décalage de mise en page (CLS) même si transform ne touche pas au
+    // flux, puisque le score se base sur la position visuelle, pas le layout.
+    // Sur le hero (entièrement au-dessus de la ligne de flottaison, vu à
+    // chaque visite), ça pénalisait directement le score sans bénéfice réel.
     if (!reduced) {
       [...rootRef.current.querySelectorAll('.hero-copy > *')].forEach((el, i) => {
-        el.style.opacity = 0; el.style.transform = 'translateY(22px)';
-        el.style.transition = `opacity 650ms cubic-bezier(.23,1,.32,1) ${i * 80}ms, transform 650ms cubic-bezier(.23,1,.32,1) ${i * 80}ms`;
+        el.style.opacity = 0;
+        el.style.transition = `opacity 650ms cubic-bezier(.23,1,.32,1) ${i * 80}ms`;
         requestAnimationFrame(() => requestAnimationFrame(() => {
-          el.style.opacity = 1; el.style.transform = 'none';
+          el.style.opacity = 1;
         }));
       });
     }
