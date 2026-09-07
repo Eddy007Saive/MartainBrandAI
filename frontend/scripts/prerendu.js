@@ -132,8 +132,18 @@ async function principal() {
       // « Vous devez activer JavaScript » n'est plus vrai sur une page
       // prérendue — et c'est justement cette phrase qu'un robot qui
       // n'exécute pas JavaScript lit en tête de page. On la retire.
+      //
+      // Le lien Google Fonts charge en media="print" puis bascule en "all" à
+      // son onload (chargement non bloquant, cf. index.html) — mais au moment
+      // où Puppeteer capture le DOM, ce onload a déjà eu lieu : le HTML figé
+      // contiendrait media="all" pour de bon, et tout visiteur qui reçoit
+      // cette page prérendue perdrait l'astuce. On restaure l'état de départ.
       const html = (await onglet.content())
-        .replace(/<noscript>[\s\S]*?<\/noscript>/gi, '');
+        .replace(/<noscript>[\s\S]*?<\/noscript>/gi, '')
+        .replace(
+          /<link rel="stylesheet" href="(https:\/\/fonts\.googleapis\.com\/[^"]*)"[^>]*>/i,
+          '<link rel="stylesheet" href="$1" media="print" onload="this.media=\'all\'">',
+        );
       const texte = await onglet.evaluate(
         () => document.querySelector('#root')?.innerText.trim().length || 0);
 
