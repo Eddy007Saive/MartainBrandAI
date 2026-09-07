@@ -64,6 +64,15 @@
 .cine .nav-cta:active{transform:scale(.97)}
 @media(hover:hover){.cine .nav-cta.grad:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(91,108,255,.5)}}
 @media(max-width:900px){.cine .nav-links{display:none}.cine .nav-link{display:none}}
+/* En dessous de ~430px, logo + sélecteur de langue + CTA + burger ne tiennent
+   plus sur une ligne : le burger se retrouvait poussé hors de l'écran (donc
+   invisible, pas juste caché). Le CTA fait double emploi avec celui du menu
+   burger (cf. .mmenu plus bas) : on le retire ici plutôt que de perdre le
+   burger, seul point d'accès au menu sur mobile. */
+@media(max-width:520px){.cine .nav-cta{display:none}}
+/* Le sous-titre passait sur deux lignes faute de place à côté du logo et du
+   sélecteur de langue : juste « Postorico » suffit sur un petit écran. */
+@media(max-width:520px){.cine .brand .bt small{display:none}}
 
 /* ===== Burger menu (mobile) ===== */
 .cine .burger{display:none;width:42px;height:42px;border-radius:11px;border:1px solid rgba(255,255,255,.13);
