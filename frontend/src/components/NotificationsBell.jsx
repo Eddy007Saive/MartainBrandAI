@@ -42,6 +42,7 @@ const EVENT_DOT = {
   'story.anime.ready': 'bg-emerald-400',
   'story.anime.echec': 'bg-red-400',
   'reel.ready': 'bg-emerald-400',
+  'reel.ready_sans_voix': 'bg-amber-400',
   'reel.echec': 'bg-red-400',
 };
 

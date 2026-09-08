@@ -144,6 +144,15 @@ def _notifier_fin(row: dict, job: dict) -> None:
             suite = " La version précédente est conservée." if job.get("restaurer") else " Supprime le reel et réessaie."
             notification_service.notifier(tid, cid, reseau, "reel.echec",
                                           "Reel : rendu échoué ❌", "Le rendu n'a pas abouti." + suite)
+        elif job.get("voix_echec"):
+            # La voix a échoué en cours de rendu (cf. traiter_suivant) : le reel est
+            # rendu muet et le quota voix a été remboursé, mais rien d'autre ne le
+            # signale au client — sans cette notification distincte, un reel muet
+            # est indiscernable d'un reel normal.
+            notification_service.notifier(tid, cid, reseau, "reel.ready_sans_voix",
+                                          "Ton reel est prêt, mais sans voix ⚠️",
+                                          "La voix off a échoué au rendu (quota remboursé). "
+                                          "Régénère le reel pour retenter la voix.")
         else:
             notification_service.notifier(tid, cid, reseau, "reel.ready",
                                           "Ton reel est prêt 🎬", "À valider dans Contenus.")
