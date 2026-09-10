@@ -143,7 +143,7 @@ def _css(layout: str, brand: dict, ratio: str, police: str = "impact") -> str:
     @import url('https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@500;600;700&family=Caveat:wght@700&family={po['gf']}&display=swap');
     html,body{{margin:0;padding:0;background:#000;}}
     .m{{position:relative;width:100vw;height:100vh;overflow:hidden;font-family:'Sora',sans-serif;color:#fff;}}
-    .m img.fond{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}}
+    .m img.fond{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.04);}}  /* rogne les bords que le générateur laisse parfois */
     .voile{{position:absolute;inset:0;}}
     .txt{{position:absolute;left:0;right:0;text-align:center;padding:0 6rem;word-wrap:break-word;}}
     .kicker{{font-family:'Inter',sans-serif;font-weight:700;letter-spacing:.28em;text-transform:uppercase;font-size:2.4rem;opacity:.9;}}
@@ -281,7 +281,7 @@ async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes:
     avec_photo = bool(u.get("photo_url"))
     scene = (g["scene"] if avec_photo else g["scene_sans_photo"]).replace("{objet}", textes.get("objet") or "a glowing object")
     sujet = (contenu.get("contenu") or contenu.get("titre") or "")[:400].replace("\n", " ")
-    orient = "Vertical 9:16 composition, full-bleed, no borders." if ratio != "16:9" else "Horizontal 16:9 composition, full-bleed, no borders."
+    orient = ("Vertical 9:16 composition" if ratio != "16:9" else "Horizontal 16:9 composition") + ", the image fills the whole frame edge to edge: NO border, NO frame, NO margin, NO paper edge, NO letterbox."
     st = STYLES.get(style) or STYLES["photo"]
     prompt = (f"{scene}\n\nSubject of the video, for context only (do NOT write any of it as text): {sujet}\n"
               f"{orient} STYLE: {st['texte']} ABSOLUTELY NO TEXT, NO LETTERS, NO LOGOS, NO WATERMARK anywhere in the image.")
