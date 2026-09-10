@@ -41,7 +41,7 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
   const [gabarit, setGabarit] = useState('affiche');
   const [textes, setTextes] = useState({ kicker: '', titre: '', sous: '', objet: '' });
   const [ratio, setRatio] = useState('9:16');
-  const [styles, setStyles] = useState(['photo', 'cinema', '3d', 'illustration', 'neon', 'pop']);
+  const [styles, setStyles] = useState(['photo', 'cinema', '3d', 'illustration', 'neon', 'pop'].map((id) => ({ id })));
   const [styleImg, setStyleImg] = useState('photo');
   const [polices, setPolices] = useState([]);
   const [police, setPolice] = useState(null);   // null = celle du gabarit
@@ -60,7 +60,7 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
     ]).then(([g, tx]) => {
       if (!vivant) return;
       setGabarits(g.gabarits || []);
-      if (g.styles?.length) setStyles(g.styles);
+      if (g.styles?.length) setStyles(g.styles.map((x) => (typeof x === 'string' ? { id: x } : x)));
       if (g.polices?.length) {
         setPolices(g.polices);
         // Les polices, une seule fois, pour que les pastilles s'affichent dans leur propre caractère.
@@ -128,6 +128,11 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
                       className={`group text-left transition-transform hover:-translate-y-0.5 ${on ? '' : 'opacity-90'}`}>
                       <div className={`relative aspect-[9/16] rounded-xl overflow-hidden border-[1.5px] ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}
                         style={{ background: a.fond }}>
+                        {/* L'image d'exemple (Rico pose) ; si elle manque, la maquette CSS prend le relais */}
+                        {x.apercu && (
+                          <img src={x.apercu} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover z-[1]"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                        )}
                         <div className="absolute inset-x-[18%] bottom-0 top-[35%] rounded-t-full bg-black/35" />
                         {a.blocs.map(([k, pos]) => (
                           <div key={k} className={`absolute inset-x-0 ${pos} ${a.align} ${BLOC_CLS[k]}`}>
@@ -146,13 +151,20 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
               {/* Le style de l'image : le gabarit dit quoi montrer, le style dit comment */}
               <div className="mt-4">
                 <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.miniature.styleImage')}</div>
-                <div className="flex flex-wrap gap-2">
-                  {styles.map((st) => (
-                    <button key={st} type="button" onClick={() => setStyleImg(st)} data-testid={`miniature-style-${st}`} title={t(`contenus.miniature.styles.${st}Desc`)}
-                      className={`px-3 py-1.5 rounded-lg text-[12.5px] font-inter font-semibold border ${styleImg === st ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-300 hover:border-white/25'}`}>
-                      {t(`contenus.miniature.styles.${st}`)}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-6 gap-2.5">
+                  {styles.map((st) => {
+                    const on = styleImg === st.id;
+                    return (
+                      <button key={st.id} type="button" onClick={() => setStyleImg(st.id)} data-testid={`miniature-style-${st.id}`} title={t(`contenus.miniature.styles.${st.id}Desc`)}
+                        className="group text-center">
+                        <div className={`relative aspect-[9/16] rounded-lg overflow-hidden border-[1.5px] bg-[#060b18] ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}>
+                          {st.apercu && <img src={st.apercu} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
+                          {on && <span className="absolute right-1 bottom-1 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[9px] font-extrabold">✓</span>}
+                        </div>
+                        <div className={`mt-1 text-[11px] font-sora font-bold truncate ${on ? 'text-[#3AFFA3]' : 'text-slate-300'}`}>{t(`contenus.miniature.styles.${st.id}`)}</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               {/* La police du titre : chaque gabarit a la sienne, le client peut en changer */}
