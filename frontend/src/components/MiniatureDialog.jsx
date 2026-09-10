@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { X, Loader2, Sparkles, Check, RefreshCw, Type } from 'lucide-react';
+import { X, Loader2, Sparkles, Check, Type } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
 
 /**
@@ -41,6 +41,8 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
   const [gabarit, setGabarit] = useState('affiche');
   const [textes, setTextes] = useState({ kicker: '', titre: '', sous: '', objet: '' });
   const [ratio, setRatio] = useState('9:16');
+  const [styles, setStyles] = useState(['photo', 'cinema', '3d', 'illustration', 'neon', 'pop']);
+  const [styleImg, setStyleImg] = useState('photo');
   const [chargement, setChargement] = useState(true);
   const [generation, setGeneration] = useState(null);   // 'fond' | 'texte' | null
   const [mini, setMini] = useState(contenu?.reel_data?.miniature || null);
@@ -56,8 +58,9 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
     ]).then(([g, tx]) => {
       if (!vivant) return;
       setGabarits(g.gabarits || []);
+      if (g.styles?.length) setStyles(g.styles);
       setTextes({ kicker: '', titre: '', sous: '', objet: '', ...(tx || {}) });
-      if (existante) { setGabarit(existante.gabarit); setRatio(existante.ratio || '9:16'); }
+      if (existante) { setGabarit(existante.gabarit); setRatio(existante.ratio || '9:16'); setStyleImg(existante.style || 'photo'); }
     }).catch(() => { if (vivant) toast.error(t('contenus.miniature.echecTextes')); })
       .finally(() => { if (vivant) setChargement(false); });
     return () => { vivant = false; };
@@ -66,13 +69,13 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
   if (!contenu) return null;
   const g = gabarits.find((x) => x.id === gabarit) || { id: gabarit, layout: 'titre-bas', textes: ['kicker', 'titre', 'sous'] };
   const champs = g.textes || [];
-  const peutRecomposer = !!mini?.fond && mini.gabarit === gabarit && mini.ratio === ratio;
+  const peutRecomposer = !!mini?.fond && mini.gabarit === gabarit && mini.ratio === ratio && (mini.style || 'photo') === styleImg;
 
   const lancer = async (mode) => {
     if (champs.includes('titre') && !textes.titre.trim() && g.layout !== 'aucun') { toast.error(t('contenus.miniature.titreRequis')); return; }
     setGeneration(mode);
     try {
-      const r = await contenuService.miniatureGenerer(contenu.id, { gabarit, textes, ratio, reutiliser_fond: mode === 'texte' });
+      const r = await contenuService.miniatureGenerer(contenu.id, { gabarit, textes, ratio, style: styleImg, reutiliser_fond: mode === 'texte' });
       setMini(r.miniature);
       toast.success(t(mode === 'texte' ? 'contenus.miniature.texteOk' : 'contenus.miniature.ok'));
     } catch (e) {
@@ -127,6 +130,18 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
                     </button>
                   );
                 })}
+              </div>
+              {/* Le style de l'image : le gabarit dit quoi montrer, le style dit comment */}
+              <div className="mt-4">
+                <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.miniature.styleImage')}</div>
+                <div className="flex flex-wrap gap-2">
+                  {styles.map((st) => (
+                    <button key={st} type="button" onClick={() => setStyleImg(st)} data-testid={`miniature-style-${st}`} title={t(`contenus.miniature.styles.${st}Desc`)}
+                      className={`px-3 py-1.5 rounded-lg text-[12.5px] font-inter font-semibold border ${styleImg === st ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-300 hover:border-white/25'}`}>
+                      {t(`contenus.miniature.styles.${st}`)}
+                    </button>
+                  ))}
+                </div>
               </div>
               <p className="text-[11.5px] text-slate-500 font-inter mt-3 leading-snug">{t('contenus.miniature.aide')}</p>
             </div>
