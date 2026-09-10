@@ -31,21 +31,43 @@ def _ig_fit(url: str) -> str:
     return url.replace("/image/upload/", f"/image/upload/{t}/", 1)
 
 
+def _jpg(url: str) -> str:
+    """Une couverture doit être un JPEG ou un PNG : nos miniatures sont servies en f_auto
+    (WebP/AVIF selon le navigateur), on force le JPEG pour les plateformes."""
+    if "res.cloudinary.com" in url and "/image/upload/" in url:
+        if "f_auto" in url:
+            return url.replace("f_auto", "f_jpg", 1)
+        if "/image/upload/q_auto" not in url and "/image/upload/f_" not in url:
+            return url.replace("/image/upload/", "/image/upload/q_auto,f_jpg/", 1)
+    return url
+
+
 def _couverture(contenu: dict) -> str | None:
-    """Image de couverture d'une vidéo. On préfère la vignette déjà calculée (`lien_visuel`
-    ou `video_preview_url`) ; à défaut on dérive une frame de la vidéo Cloudinary.
+    """Image de couverture d'une vidéo (JPEG). On préfère la miniature composée par le
+    client (miniature_service), puis la vignette déjà calculée (`lien_visuel` ou
+    `video_preview_url`) ; à défaut on dérive une frame de la vidéo Cloudinary.
     3 s et non 1 s : les reels Remotion n'ont pas fini leur animation d'entrée avant."""
     mini = ((contenu.get("reel_data") or {}).get("miniature") or {}).get("url")
     if mini:
-        return mini                            # miniature composée par le client (miniature_service)
+        return _jpg(mini)
     for cle in ("lien_visuel", "video_preview_url"):
         u = contenu.get(cle)
         if u and "res.cloudinary.com" in u and "/image/upload/" in u:
-            return u                       # vraie image (visuel importé ou gabarit rendu)
+            return _jpg(u)                 # vraie image (visuel importé ou gabarit rendu)
     v = contenu.get("video_url") or ""
     if "res.cloudinary.com" in v and "/video/upload/" in v:
         return v.rsplit(".", 1)[0].replace("/upload/", "/upload/so_3.0,q_auto/") + ".jpg"
     return None
+
+
+# Où chaque plateforme attend la couverture d'une vidéo (doc Zernio, septembre 2026) :
+# - Instagram Reels : platformSpecificData.instagramThumbnail (URL JPEG/PNG, 1080x1920) ;
+# - TikTok : platformSpecificData.video_cover_image_url (JPG/PNG/WebP, 20 Mo max), sinon
+#   videoCoverTimestampMs ; l'image est cousue en première frame de la vidéo ;
+# - Facebook (vidéo et Reels), LinkedIn, YouTube (vidéos, PAS les Shorts) :
+#   mediaItems[].thumbnail (JPG/PNG, 10 Mo max ; YouTube : 2 Mo, chaîne vérifiée).
+# Nos reels sont verticaux -> sur YouTube ce sont des Shorts, la miniature serait ignorée.
+_COUVERTURE_DANS_MEDIA = ("facebook", "linkedin")
 
 
 def _media_items(contenu: dict, reseau: str) -> list:
@@ -53,10 +75,7 @@ def _media_items(contenu: dict, reseau: str) -> list:
     # Vidéo / Reel : le montage final est une vidéo → média unique de type "video".
     if contenu.get("video_url"):
         item = {"url": contenu["video_url"], "type": "video"}
-        # Couverture du Reel : sans elle Instagram choisit une frame au hasard.
-        # (TikTok se règle par timestamp plus bas ; YouTube n'accepte pas de miniature
-        # sur les Shorts, et nos reels en sont toujours — donc rien à envoyer.)
-        if reseau == "instagram":
+        if reseau in _COUVERTURE_DANS_MEDIA:
             cover = _couverture(contenu)
             if cover:
                 item["thumbnail"] = cover
@@ -73,6 +92,25 @@ def _media_items(contenu: dict, reseau: str) -> list:
         u = contenu["lien_visuel"]
         return [{"url": (_ig_fit(u) if ig else u), "type": "image"}]
     return []
+
+
+def _plateforme(contenu: dict, reseau: str, account_id: str) -> dict:
+    """L'entrée `platforms[]` d'un post, avec la couverture au bon endroit pour une vidéo."""
+    entry = {"platform": reseau, "accountId": account_id}
+    if not contenu.get("video_url"):
+        return entry
+    cover = _couverture(contenu)
+    if reseau == "instagram" and cover:
+        # Sans elle Instagram choisit une frame au hasard.
+        entry["platformSpecificData"] = {"instagramThumbnail": cover}
+    elif reseau == "tiktok":
+        # Par défaut TikTok prend la frame à 1 s : trop tôt pour nos reels (animation
+        # d'entrée). Une miniature composée par le client est cousue en première frame ;
+        # sinon on se contente de décaler la frame à 3 s (pas de première frame figée).
+        mini = ((contenu.get("reel_data") or {}).get("miniature") or {}).get("url")
+        entry["platformSpecificData"] = ({"video_cover_image_url": _jpg(mini)} if mini
+                                         else {"videoCoverTimestampMs": 3000})
+    return entry
 
 
 def _to_tz_iso(value: str, tz: str) -> str:
@@ -125,11 +163,7 @@ async def publish_contenu(telegram_id: str, contenu: dict, publish_now: bool = F
             f"(limite {limite}). Raccourcis le texte puis revalide."
         )}
 
-    plat_entry = {"platform": reseau, "accountId": account_id}
-    # TikTok : la couverture est la frame prise à 1 s par défaut — trop tôt pour nos reels,
-    # dont l'animation d'entrée n'est pas terminée. On la décale à 3 s.
-    if reseau == "tiktok" and contenu.get("video_url"):
-        plat_entry["platformSpecificData"] = {"videoCoverTimestampMs": 3000}
+    plat_entry = _plateforme(contenu, reseau, account_id)
     # Story (Instagram/Facebook) : éphémère 24h, 1 média requis, pas de légende côté plateforme.
     if (contenu.get("type") == "Story") and reseau in ("instagram", "facebook"):
         if not media:

@@ -15,8 +15,9 @@ allongé, grande action, objet flottant, écran partagé, mot géant, objet en m
 
 La miniature devient la couverture du reel : `contenu.lien_visuel` et
 `video_preview_url` (vignette dans Postorico), `reel_data.miniature` (mémoire des
-choix), et late_service l'envoie comme `thumbnail` à Instagram (YouTube n'accepte
-pas de miniature sur un Short, TikTok se règle par instant de la vidéo).
+choix), et late_service l'envoie à la publication : `instagramThumbnail` pour Instagram,
+`video_cover_image_url` pour TikTok, `mediaItems[].thumbnail` pour Facebook et LinkedIn
+(YouTube n'accepte pas de miniature sur un Short).
 """
 import html as _html
 import json
