@@ -74,9 +74,28 @@ STYLES = {
 }
 LANGUES = {"fr": "French", "en": "English", "es": "Spanish"}
 
+# Polices de titre (Google Fonts, libres de droits) : une par caractère de miniature. Les
+# polices de films (Harry Potter, Star Wars…) sont protégées ; on prend leur équivalent libre.
+POLICES = {
+    "impact":    {"famille": "Anton",             "gf": "Anton",                         "poids": 400, "maj": True},
+    "cinema":    {"famille": "Bebas Neue",        "gf": "Bebas+Neue",                    "poids": 400, "maj": True},
+    "comics":    {"famille": "Bangers",           "gf": "Bangers",                       "poids": 400, "maj": True},
+    "elegant":   {"famille": "Playfair Display",  "gf": "Playfair+Display:ital,wght@0,900;1,900", "poids": 900, "maj": False},
+    "tech":      {"famille": "Orbitron",          "gf": "Orbitron:wght@900",             "poids": 900, "maj": True},
+    "fantasy":   {"famille": "Cinzel Decorative", "gf": "Cinzel+Decorative:wght@900",    "poids": 900, "maj": False},
+    "manuscrit": {"famille": "Permanent Marker",  "gf": "Permanent+Marker",              "poids": 400, "maj": False},
+    "retro":     {"famille": "Righteous",         "gf": "Righteous",                     "poids": 400, "maj": True},
+}
+POLICE_DEFAUT = {"affiche": "cinema", "action": "impact", "allonge": "elegant", "grande-action": "comics",
+                 "objet-flottant": "tech", "ecran-partage": "elegant", "mot-geant": "impact", "objet-main": "impact"}
+
 
 def gabarits() -> list:
-    return [{"id": g["id"], "layout": g["layout"], "textes": g["textes"]} for g in GABARITS]
+    return [{"id": g["id"], "layout": g["layout"], "textes": g["textes"], "police": POLICE_DEFAUT.get(g["id"], "impact")} for g in GABARITS]
+
+
+def polices() -> list:
+    return [{"id": k, "famille": v["famille"]} for k, v in POLICES.items()]
 
 
 def styles() -> list:
@@ -109,19 +128,20 @@ def proposer_textes(telegram_id: str, contenu: dict) -> dict:
 
 
 # ------------------------------------------------------------------ composition du texte
-def _css(layout: str, brand: dict, ratio: str) -> str:
+def _css(layout: str, brand: dict, ratio: str, police: str = "impact") -> str:
     acc = brand.get("accent") or "#3AFFA3"
     horiz = ratio == "16:9"
+    po = POLICES.get(police) or POLICES["impact"]
     base = f"""
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@500;600;700&family=Caveat:wght@700&family=Fraunces:opsz,wght@9..144,600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@500;600;700&family=Caveat:wght@700&family={po['gf']}&display=swap');
     html,body{{margin:0;padding:0;background:#000;}}
     .m{{position:relative;width:100vw;height:100vh;overflow:hidden;font-family:'Sora',sans-serif;color:#fff;}}
     .m img.fond{{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}}
     .voile{{position:absolute;inset:0;}}
     .txt{{position:absolute;left:0;right:0;text-align:center;padding:0 6rem;word-wrap:break-word;}}
     .kicker{{font-family:'Inter',sans-serif;font-weight:700;letter-spacing:.28em;text-transform:uppercase;font-size:2.4rem;opacity:.9;}}
-    .titre{{font-weight:800;text-transform:uppercase;line-height:.98;letter-spacing:-.02em;text-shadow:0 .6rem 2.4rem rgba(0,0,0,.55);}}
-    .sous{{font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:{acc};text-shadow:0 .4rem 1.6rem rgba(0,0,0,.5);}}
+    .titre{{font-family:'{po['famille']}',sans-serif;font-weight:{po['poids']};text-transform:{'uppercase' if po['maj'] else 'none'};line-height:.98;letter-spacing:-.01em;text-shadow:0 .6rem 2.4rem rgba(0,0,0,.55);}}
+    .sous{{font-family:'Inter',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:{acc};text-shadow:0 .4rem 1.6rem rgba(0,0,0,.5);}}
     """
     L = {
         "titre-bas": f"""
@@ -146,7 +166,7 @@ def _css(layout: str, brand: dict, ratio: str) -> str:
         "bande": f"""
     .voile{{background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.6) 50%,rgba(0,0,0,0) 70%);}}
     .txt{{top:{'44%' if horiz else '46%'};transform:translateY(-50%);}}
-    .titre{{font-family:'Fraunces',serif;text-transform:none;font-weight:600;font-size:{'9rem' if horiz else '11rem'};letter-spacing:-.01em;line-height:1;}}
+    .titre{{font-size:{'9rem' if horiz else '11rem'};line-height:1;}}
     .sous{{color:#fff;font-size:{'3.4rem' if horiz else '4.2rem'};letter-spacing:.18em;margin-top:1rem;}}""",
         "mot-geant": f"""
     .voile{{background:linear-gradient(180deg,rgba(0,0,0,.7) 0%,rgba(0,0,0,0) 55%);}}
@@ -157,7 +177,7 @@ def _css(layout: str, brand: dict, ratio: str) -> str:
     return base + L.get(layout, L["titre-bas"])
 
 
-def _html_miniature(fond_url: str, layout: str, textes: dict, brand: dict, ratio: str) -> str:
+def _html_miniature(fond_url: str, layout: str, textes: dict, brand: dict, ratio: str, police: str = "impact") -> str:
     e = _html.escape
     blocs = ""
     if textes.get("kicker") and layout in ("titre-bas", "mot-geant"):
@@ -166,16 +186,16 @@ def _html_miniature(fond_url: str, layout: str, textes: dict, brand: dict, ratio
         blocs += f'<div class="titre">{e(textes["titre"])}</div>'
     if textes.get("sous") and layout in ("titre-bas", "centre", "haut-neon", "bande"):
         blocs += f'<div class="sous">{e(textes["sous"])}</div>'
-    return (f"<!doctype html><html><head><meta charset='utf-8'><style>{_css(layout, brand, ratio)}</style></head>"
+    return (f"<!doctype html><html><head><meta charset='utf-8'><style>{_css(layout, brand, ratio, police)}</style></head>"
             f"<body><div class='m'><img class='fond' src='{e(fond_url)}'><div class='voile'></div>"
             f"<div class='txt'>{blocs}</div></div></body></html>")
 
 
-def composer(fond_url: str, layout: str, textes: dict, brand: dict, ratio: str = "9:16") -> bytes:
+def composer(fond_url: str, layout: str, textes: dict, brand: dict, ratio: str = "9:16", police: str = "impact") -> bytes:
     """Fond + texte -> PNG (1080x1920 ou 1280x720). Le titre rétrécit s'il déborde."""
     from playwright.sync_api import sync_playwright
     w, h, dsf = RATIOS.get(ratio, RATIOS["9:16"])
-    html_str = _html_miniature(fond_url, layout, textes, brand, ratio).replace("<html>", f"<html style='font-size:{w / 100}px'>")
+    html_str = _html_miniature(fond_url, layout, textes, brand, ratio, police).replace("<html>", f"<html style='font-size:{w / 100}px'>")
     args = ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
     with sync_playwright() as pw:
         try:
@@ -185,7 +205,7 @@ def composer(fond_url: str, layout: str, textes: dict, brand: dict, ratio: str =
         page = browser.new_page(viewport={"width": w, "height": h}, device_scale_factor=dsf)
         page.set_content(html_str, wait_until="load")
         try:
-            page.evaluate("() => Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 4000))])")
+            page.evaluate("() => Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 8000))])")
             page.wait_for_function("document.querySelector('img.fond').complete", timeout=15000)
         except Exception:
             pass
@@ -244,11 +264,12 @@ async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes:
     return res["lien_visuel"]
 
 
-def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, textes: dict, ratio: str, style: str = "photo") -> dict:
+def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, textes: dict, ratio: str, style: str = "photo", police: str = None) -> dict:
     """Compose le texte, dépose la miniature, en fait la couverture du reel."""
     g = _PAR_ID.get(gabarit_id) or GABARITS[0]
     u = _charger_marque(telegram_id)
-    png = composer(fond_url, g["layout"], textes, _brand(u), ratio)
+    police = police if police in POLICES else POLICE_DEFAUT.get(g["id"], "impact")
+    png = composer(fond_url, g["layout"], textes, _brand(u), ratio, police)
     up = cloudinary.uploader.upload(png, resource_type="image", public_id=f"miniatures/{telegram_id}/{contenu['id']}",
                                     overwrite=True, invalidate=True)
     # Servie optimisée par Cloudinary (1,6 Mo de PNG -> ~240 Ko en WebP/AVIF) : c'est cette
@@ -263,7 +284,7 @@ def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, t
                 cloudinary.uploader.destroy(m.group(1), resource_type="image", invalidate=True)
             except Exception as e:
                 logger.warning(f"miniature: ancien fond non supprimé: {e}")
-    mini = {"url": url, "fond": fond_url, "gabarit": g["id"], "textes": textes, "ratio": ratio, "style": style if style in STYLES else "photo",
+    mini = {"url": url, "fond": fond_url, "gabarit": g["id"], "textes": textes, "ratio": ratio, "style": style if style in STYLES else "photo", "police": police,
             "date": datetime.now(timezone.utc).isoformat()}
     rd = dict(contenu.get("reel_data") or {}); rd["miniature"] = mini
     supabase.table("contenu").update({"reel_data": rd, "lien_visuel": url, "video_preview_url": url}).eq("id", contenu["id"]).execute()

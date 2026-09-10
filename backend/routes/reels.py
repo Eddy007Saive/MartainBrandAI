@@ -379,11 +379,12 @@ class MiniatureRequest(BaseModel):
     modele: str = "nano2"             # nano2 standard, nano3 pro
     reutiliser_fond: bool = False     # recomposer le texte sur le fond existant (gratuit)
     style: str = "photo"              # photo, cinema, 3d, illustration, neon, pop
+    police: str | None = None         # police du titre (miniature_service.POLICES), défaut selon le gabarit
 
 
 @router.get("/miniature/gabarits")
 def miniature_gabarits(payload: dict = Depends(verify_token)):
-    return {"gabarits": miniature_service.gabarits(), "styles": miniature_service.styles()}
+    return {"gabarits": miniature_service.gabarits(), "styles": miniature_service.styles(), "polices": miniature_service.polices()}
 
 
 @router.post("/{contenu_id}/miniature/textes")
@@ -417,10 +418,11 @@ async def miniature_generer(contenu_id: str, body: MiniatureRequest, payload: di
     ratio = body.ratio if body.ratio in miniature_service.RATIOS else "9:16"
     gabarit = body.gabarit if body.gabarit in miniature_service._PAR_ID else "affiche"
     style = body.style if body.style in miniature_service.STYLES else "photo"
+    police = body.police if body.police in miniature_service.POLICES else None
     ancienne = ((c.get("reel_data") or {}).get("miniature") or {})
     if body.reutiliser_fond and ancienne.get("fond"):
         try:
-            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, ancienne["fond"], gabarit, textes, ratio, ancienne.get("style") or "photo")
+            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, ancienne["fond"], gabarit, textes, ratio, ancienne.get("style") or "photo", police)
         except Exception as e:
             logger.error(f"miniature recomposer: {e}")
             raise HTTPException(status_code=500, detail="Échec de la composition de la miniature.")
@@ -434,7 +436,7 @@ async def miniature_generer(contenu_id: str, body: MiniatureRequest, payload: di
                                                      "message": q.get("message") or "Génération indisponible."})
     try:
         fond = await miniature_service.generer_fond(telegram_id, c, gabarit, textes, ratio, modele=modele, style=style)
-        mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, fond, gabarit, textes, ratio, style)
+        mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, fond, gabarit, textes, ratio, style, police)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"miniature generer: {e}")

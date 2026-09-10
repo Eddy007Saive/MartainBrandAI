@@ -347,6 +347,8 @@
       "titre": "Miniature du reel",
       "gabarits": "Gabarits",
       "styleImage": "Style de l'image",
+      "police": "Police du titre",
+      "polices": {"impact": "Impact", "cinema": "Cinéma", "comics": "Comics", "elegant": "Élégante", "tech": "Tech", "fantasy": "Fantasy", "manuscrit": "Manuscrite", "retro": "Rétro"},
       "styles": {"photo": "Photo", "photoDesc": "Réaliste, comme une vraie photo", "cinema": "Cinéma", "cinemaDesc": "Image de film, lumière dramatique", "3d": "3D animée", "3dDesc": "Personnage 3D façon film d'animation", "illustration": "Illustration", "illustrationDesc": "Dessin vectoriel, aplats de couleurs", "neon": "Néon", "neonDesc": "Nuit, néons magenta et cyan", "pop": "Pop art", "popDesc": "Bande dessinée, trames et couleurs vives"},
       "aide": "L'IA fabrique l'image de fond avec ta photo de profil si tu en as une ; le texte est posé par nous, net et aux couleurs de ta marque. La miniature devient la couverture du reel et part à Instagram.",
       "chargement": "L'IA propose les textes…",

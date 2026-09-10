@@ -43,6 +43,8 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
   const [ratio, setRatio] = useState('9:16');
   const [styles, setStyles] = useState(['photo', 'cinema', '3d', 'illustration', 'neon', 'pop']);
   const [styleImg, setStyleImg] = useState('photo');
+  const [polices, setPolices] = useState([]);
+  const [police, setPolice] = useState(null);   // null = celle du gabarit
   const [chargement, setChargement] = useState(true);
   const [generation, setGeneration] = useState(null);   // 'fond' | 'texte' | null
   const [mini, setMini] = useState(contenu?.reel_data?.miniature || null);
@@ -59,8 +61,17 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
       if (!vivant) return;
       setGabarits(g.gabarits || []);
       if (g.styles?.length) setStyles(g.styles);
+      if (g.polices?.length) {
+        setPolices(g.polices);
+        // Les polices, une seule fois, pour que les pastilles s'affichent dans leur propre caractère.
+        if (!document.getElementById('miniature-polices')) {
+          const l = document.createElement('link'); l.id = 'miniature-polices'; l.rel = 'stylesheet';
+          l.href = 'https://fonts.googleapis.com/css2?' + g.polices.map((x) => 'family=' + encodeURIComponent(x.famille).replace(/%20/g, '+')).join('&') + '&display=swap';
+          document.head.appendChild(l);
+        }
+      }
       setTextes({ kicker: '', titre: '', sous: '', objet: '', ...(tx || {}) });
-      if (existante) { setGabarit(existante.gabarit); setRatio(existante.ratio || '9:16'); setStyleImg(existante.style || 'photo'); }
+      if (existante) { setGabarit(existante.gabarit); setRatio(existante.ratio || '9:16'); setStyleImg(existante.style || 'photo'); setPolice(existante.police || null); }
     }).catch(() => { if (vivant) toast.error(t('contenus.miniature.echecTextes')); })
       .finally(() => { if (vivant) setChargement(false); });
     return () => { vivant = false; };
@@ -69,13 +80,14 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
   if (!contenu) return null;
   const g = gabarits.find((x) => x.id === gabarit) || { id: gabarit, layout: 'titre-bas', textes: ['kicker', 'titre', 'sous'] };
   const champs = g.textes || [];
+  const policeEffective = police || g.police || 'impact';
   const peutRecomposer = !!mini?.fond && mini.gabarit === gabarit && mini.ratio === ratio && (mini.style || 'photo') === styleImg;
 
   const lancer = async (mode) => {
     if (champs.includes('titre') && !textes.titre.trim() && g.layout !== 'aucun') { toast.error(t('contenus.miniature.titreRequis')); return; }
     setGeneration(mode);
     try {
-      const r = await contenuService.miniatureGenerer(contenu.id, { gabarit, textes, ratio, style: styleImg, reutiliser_fond: mode === 'texte' });
+      const r = await contenuService.miniatureGenerer(contenu.id, { gabarit, textes, ratio, style: styleImg, police: policeEffective, reutiliser_fond: mode === 'texte' });
       setMini(r.miniature);
       toast.success(t(mode === 'texte' ? 'contenus.miniature.texteOk' : 'contenus.miniature.ok'));
     } catch (e) {
@@ -143,6 +155,24 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
                   ))}
                 </div>
               </div>
+              {/* La police du titre : chaque gabarit a la sienne, le client peut en changer */}
+              {polices.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.miniature.police')}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {polices.map((po) => {
+                      const on = policeEffective === po.id;
+                      return (
+                        <button key={po.id} type="button" onClick={() => setPolice(po.id === (g.police || 'impact') ? null : po.id)} data-testid={`miniature-police-${po.id}`}
+                          style={{ fontFamily: `'${po.famille}', sans-serif` }}
+                          className={`px-3 py-1.5 rounded-lg text-[15px] leading-none border ${on ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-200 hover:border-white/25'}`}>
+                          {t(`contenus.miniature.polices.${po.id}`)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <p className="text-[11.5px] text-slate-500 font-inter mt-3 leading-snug">{t('contenus.miniature.aide')}</p>
             </div>
 
