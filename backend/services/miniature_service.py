@@ -233,7 +233,9 @@ def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, t
     png = composer(fond_url, g["layout"], textes, _brand(u), ratio)
     up = cloudinary.uploader.upload(png, resource_type="image", public_id=f"miniatures/{telegram_id}/{contenu['id']}",
                                     overwrite=True, invalidate=True)
-    url = up["secure_url"]
+    # Servie optimisée par Cloudinary (1,6 Mo de PNG -> ~240 Ko en WebP/AVIF) : c'est cette
+    # adresse qui devient la couverture, la vignette dans Contenus et le thumbnail Instagram.
+    url = up["secure_url"].replace("/upload/", "/upload/q_auto,f_auto/", 1)
     # l'ancien fond, s'il change, est supprimé (pas d'accumulation)
     ancien = ((contenu.get("reel_data") or {}).get("miniature") or {}).get("fond")
     if ancien and ancien != fond_url:
