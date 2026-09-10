@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus } from 'lucide-react';
+import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus, Sparkles, Wand2 } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
 import { OverlayFabrication } from '../components/Fabrication';
 import DecoupeMusique from '../components/DecoupeMusique';
@@ -44,6 +44,12 @@ export default function StudioReel() {
   const [playing, setPlaying] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  // Image générée par l'IA : le client décrit (ou fait proposer une idée depuis le sujet),
+  // l'image arrive dans sa banque ET dans les visuels du reel.
+  const [genOuvert, setGenOuvert] = useState(false);
+  const [genPrompt, setGenPrompt] = useState('');
+  const [genEnCours, setGenEnCours] = useState(false);
+  const [ideeEnCours, setIdeeEnCours] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -145,6 +151,32 @@ export default function StudioReel() {
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.reel.seq.uploadEchec'));
     } finally { setUploading(false); }
+  };
+
+  const proposerIdee = async () => {
+    const sujet = brief.trim() || source?.contenu || source?.titre || '';
+    if (!sujet) { toast.error(t('contenus.reel.seq.genImageBriefRequis')); return; }
+    setIdeeEnCours(true);
+    try {
+      const r = await contenuService.reelImagePrompt(sujet);
+      setGenPrompt(r.prompt || '');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.reel.seq.genImageEchec'));
+    } finally { setIdeeEnCours(false); }
+  };
+  const genererImage = async () => {
+    if (genPrompt.trim().length < 8) { toast.error(t('contenus.reel.seq.genImageVide')); return; }
+    setGenEnCours(true);
+    try {
+      const a = await contenuService.reelImageGenerer(genPrompt.trim());
+      if (!a.hors_banque) setBanque((prev) => [a, ...(prev || [])]);
+      setImages((prev) => prev.length >= 6 || prev.some((i) => i.url === a.url) ? prev
+        : [...prev, { url: a.url, desc: a.description || genPrompt.trim(), src: 'ia', type: 'image' }]);
+      toast.success(t('contenus.reel.seq.genImageOk'));
+      setGenPrompt('');
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.detail || t('contenus.reel.seq.genImageEchec'));
+    } finally { setGenEnCours(false); }
   };
 
   const generer = async () => {
@@ -291,6 +323,36 @@ export default function StudioReel() {
               <p data-testid="studio-reel-montage-note" className="mt-2 text-[11.5px] leading-snug text-[#3AFFA3]/90 font-inter">
                 🎬 {t('contenus.reel.seq.montageNote')}
               </p>
+            )}
+          </div>
+
+          {/* Image générée par l'IA : pour ceux qui n'ont pas de visuel sous la main */}
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+            <button type="button" onClick={() => setGenOuvert((o) => !o)} data-testid="studio-reel-gen-image-toggle"
+              className="w-full flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-inter font-semibold text-slate-200 hover:text-white">
+              <Sparkles className="w-4 h-4 text-[#8A6CFF]" />
+              {t('contenus.reel.seq.genImageTitre')}
+              <span className="ml-auto text-[11px] font-normal text-slate-500">{genOuvert ? '−' : '+'}</span>
+            </button>
+            {genOuvert && (
+              <div className="px-3.5 pb-3.5 space-y-2.5">
+                <p className="text-[11.5px] text-slate-500 font-inter leading-snug">{t('contenus.reel.seq.genImageAide')}</p>
+                <textarea value={genPrompt} onChange={(e) => setGenPrompt(e.target.value)} rows={3} maxLength={600}
+                  placeholder={t('contenus.reel.seq.genImagePh')} data-testid="studio-reel-gen-image-prompt"
+                  className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 resize-none" />
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={proposerIdee} disabled={ideeEnCours || genEnCours} data-testid="studio-reel-gen-image-idee"
+                    className="inline-flex items-center gap-1.5 text-[12.5px] font-inter font-semibold px-3 py-2 rounded-lg border border-white/10 text-slate-300 hover:border-white/25 hover:text-white disabled:opacity-50">
+                    {ideeEnCours ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                    {t('contenus.reel.seq.genImageIdee')}
+                  </button>
+                  <button type="button" onClick={genererImage} disabled={genEnCours || images.length >= 6} data-testid="studio-reel-gen-image-generer"
+                    className="ml-auto inline-flex items-center gap-1.5 text-[12.5px] font-inter font-semibold px-3.5 py-2 rounded-lg text-white bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 disabled:opacity-50">
+                    {genEnCours ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    {genEnCours ? t('contenus.reel.seq.genImageEnCours') : t('contenus.reel.seq.genImageGenerer')}
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 

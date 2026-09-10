@@ -127,6 +127,24 @@ def ajouter(telegram_id: str, fichier, est_video: bool = False) -> dict:
     return ins.data[0]
 
 
+def ajouter_url(telegram_id: str, url: str, description: str, tags: list = None) -> dict:
+    """Range dans la banque une image DÉJÀ sur Cloudinary (ex. générée par l'IA depuis le
+    Studio Reel). La description est connue (c'est la demande du client) : pas d'appel vision."""
+    try:
+        if len(lister(telegram_id)) >= MAX_ASSETS:
+            return {"error": f"Banque pleine ({MAX_ASSETS} visuels maximum). Supprime des visuels d'abord."}
+    except Exception as e:
+        logger.warning(f"banque comptage: {e}")
+    row = {
+        "telegram_id": telegram_id, "url": url,
+        "description": (description or "")[:300].strip() or "Image générée par l'IA",
+        "tags": list(tags or ["ia"])[:6], "type": "image",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    ins = supabase.table("brand_assets").insert(row).execute()
+    return ins.data[0] if ins.data else {"error": "Enregistrement impossible."}
+
+
 def modifier_description(telegram_id: str, asset_id: str, description: str) -> dict:
     r = (supabase.table("brand_assets").update({"description": (description or "")[:200]})
          .eq("id", asset_id).eq("telegram_id", telegram_id).execute())

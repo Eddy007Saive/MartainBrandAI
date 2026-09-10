@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 from dependencies import verify_token
 from config import supabase
-from services import reel_service, banque_service, music_library, quota_service
+from services import reel_service, banque_service, music_library, quota_service, image_service, demarrage_service
 from config import logger
 
 router = APIRouter(prefix="/reels", tags=["reels"])
@@ -298,6 +298,76 @@ async def banque_ajouter(file: UploadFile = File(...), payload: dict = Depends(v
     if res.get("error"):
         raise HTTPException(status_code=400, detail=res["error"])
     return res
+
+
+class ReelImageGen(BaseModel):
+    prompt: str                 # ce que le client veut voir (sa description, ou celle proposée par l'IA)
+    modele: str = "nano2"       # nano2 = image standard, nano3 = image pro (quotas distincts)
+
+
+class ReelImagePrompt(BaseModel):
+    brief: str                  # le sujet du reel : l'IA en tire une idée d'image
+
+
+@router.post("/image/prompt")
+def image_prompt(body: ReelImagePrompt, payload: dict = Depends(verify_token)):
+    """Une idée d'image écrite par l'IA à partir du sujet du reel (gratuit, modifiable ensuite)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    brief = (body.brief or "").strip()
+    if not brief:
+        raise HTTPException(status_code=400, detail="Décris d'abord ton reel.")
+    try:
+        res = image_service.generer_prompt(telegram_id, brief, reseau="instagram")
+    except Exception as e:
+        logger.error(f"reel image prompt: {e}")
+        raise HTTPException(status_code=500, detail="Impossible de proposer une idée d'image.")
+    if res.get("error"):
+        raise HTTPException(status_code=500, detail="Impossible de proposer une idée d'image.")
+    return {"prompt": res["prompt"]}
+
+
+@router.post("/image")
+async def image_generer(body: ReelImageGen, payload: dict = Depends(verify_token)):
+    """Génère une image (nano-banana, format vertical 9:16) pour un reel et la range dans la
+    banque du client : elle est aussitôt sélectionnable, et réutilisable pour d'autres reels.
+    Même quota que les images du Studio IA (image_standard / image_pro)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    prompt = (body.prompt or "").strip()
+    if len(prompt) < 8:
+        raise HTTPException(status_code=400, detail="Décris l'image en quelques mots.")
+    demarrage_service.exiger_profil(telegram_id)
+    quota_service.exiger_abonnement(telegram_id)
+    modele = body.modele if body.modele in image_service.IMAGE_MODELS else "nano2"
+    q = quota_service.consume(telegram_id, quota_service.image_action(modele))
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail={"raison": q.get("reason") or "quota",
+                                                     "message": q.get("message") or "Génération indisponible."})
+    import uuid
+    public_id = f"banque/{telegram_id}/ia-{uuid.uuid4().hex[:10]}"
+    try:
+        res = await image_service.generer_image(telegram_id, prompt, False, image_service.IMAGE_MODELS[modele],
+                                                None, ratio="9:16", public_id=public_id)
+    except Exception as e:
+        quota_service.refund(q)
+        logger.error(f"reel image: {e}")
+        raise HTTPException(status_code=500, detail="Échec de la génération d'image.")
+    if res.get("error"):
+        quota_service.refund(q)
+        raise HTTPException(status_code=502, detail="Le générateur n'a pas renvoyé d'image. Réessaie, ou simplifie la description.")
+    try:
+        asset = banque_service.ajouter_url(telegram_id, res["lien_visuel"], prompt, tags=["ia"])
+    except Exception as e:
+        logger.error(f"reel image banque: {e}")
+        asset = {"error": str(e)}
+    quota_service.confirm(q)
+    if asset.get("error"):
+        # L'image existe (Cloudinary) mais n'a pu entrer dans la banque : on la rend quand même.
+        return {"url": res["lien_visuel"], "description": prompt, "type": "image", "hors_banque": True}
+    return asset
 
 
 @router.delete("/banque/{asset_id}")

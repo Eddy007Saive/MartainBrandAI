@@ -144,7 +144,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None, public_id: str = None) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     `refs` : images de référence choisies à la génération (URLs). Si fourni (même vide), il a
@@ -311,7 +311,11 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     # Le modèle rend parfois du 16:9 / 1:1 / 3:4 : on force un ratio unique à l'upload.
     fmt = [{"aspect_ratio": ratio, "crop": "fill", "gravity": "auto"}]
     # public_id déterministe par contenu -> une régénération ÉCRASE le même asset (pas d'accumulation)
-    if contenu_id:
+    if public_id:
+        # Emplacement imposé par l'appelant (ex. la banque de visuels d'un reel) : un asset neuf.
+        up = cloudinary.uploader.upload(img_bytes, resource_type="image", public_id=public_id,
+                                        overwrite=True, invalidate=True, transformation=fmt)
+    elif contenu_id:
         up = cloudinary.uploader.upload(img_bytes, resource_type="image",
                                         public_id=f"contenus/{telegram_id}/{contenu_id}",
                                         overwrite=True, invalidate=True, transformation=fmt)
