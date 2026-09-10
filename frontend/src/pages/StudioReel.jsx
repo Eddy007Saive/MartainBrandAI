@@ -138,6 +138,18 @@ export default function StudioReel() {
       ? prev.filter((i) => i.url !== img.url)
       : (prev.length >= 6 ? prev : [...prev, { url: img.url, desc: img.description || '', src: 'banque', apercu_url: img.apercu_url || null, type: img.type || 'image' }]));
   };
+  // Retirer un visuel de la banque : la ligne ET le fichier Cloudinary disparaissent (serveur).
+  const supprimerBanque = async (img) => {
+    if (!window.confirm(t('contenus.reel.seq.banqueSupprimerConfirm'))) return;
+    try {
+      await contenuService.reelBanqueSupprimer(img.id);
+      setBanque((prev) => (prev || []).filter((x) => x.id !== img.id));
+      setImages((prev) => prev.filter((i) => i.url !== img.url));
+      toast.success(t('contenus.reel.seq.banqueSupprime'));
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.reel.seq.banqueSupprimerEchec'));
+    }
+  };
   const upload = async (files) => {
     const list = Array.from(files || []).slice(0, 6 - images.length);
     if (!list.length) return;
@@ -368,12 +380,23 @@ export default function StudioReel() {
                 {banque.map((img) => {
                   const on = images.some((i) => i.url === img.url);
                   return (
-                    <button key={img.id} type="button" onClick={() => toggleImage(img)} title={img.description || ''}
-                      className={`relative aspect-square rounded-lg overflow-hidden border transition-all ${on ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/40' : 'border-white/10 hover:border-white/30'}`}>
-                      <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover" />
-                              {img.type === 'video' && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
-                      {on && <span className="absolute inset-0 bg-[#3AFFA3]/20 grid place-items-center text-[#3AFFA3] font-bold">✓</span>}
-                    </button>
+                    <div key={img.id} className="relative group">
+                      <button type="button" onClick={() => toggleImage(img)} title={img.description || ''}
+                        className={`w-full relative aspect-square rounded-lg overflow-hidden border transition-all ${on ? 'border-[#3AFFA3] ring-2 ring-[#3AFFA3]/40' : 'border-white/10 hover:border-white/30'}`}>
+                        <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover" />
+                        {img.type === 'video' && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
+                        {on && <span className="absolute inset-0 bg-[#3AFFA3]/20 grid place-items-center text-[#3AFFA3] font-bold">✓</span>}
+                      </button>
+                      {/* Retirer : toujours visible au doigt, au survol à la souris */}
+                      <button type="button" onClick={(e) => { e.stopPropagation(); supprimerBanque(img); }}
+                        title={t('contenus.reel.seq.banqueSupprimer')} aria-label={t('contenus.reel.seq.banqueSupprimer')}
+                        data-testid={`studio-reel-banque-suppr-${img.id}`}
+                        className="absolute -top-1.5 -right-1.5 z-[3] w-5 h-5 rounded-full bg-[#020617] border border-white/20 text-slate-300 text-[12px] leading-none grid place-items-center
+                                   hover:bg-red-500 hover:border-red-400 hover:text-white transition-colors
+                                   opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100">
+                        ×
+                      </button>
+                    </div>
                   );
                 })}
               </div>
