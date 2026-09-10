@@ -31,7 +31,9 @@ SUJET = ("Vidéo d'un dirigeant de PME qui partage ses conseils pour se faire co
          "sur les réseaux sociaux sans y passer ses soirées.")
 TEXTES = {"kicker": "NOUVEAU", "titre": "Le secret des pros", "sous": "Ce que personne ne te dit", "objet": "a giant glowing golden key"}
 MODELE = "nano3"    # ces images sont vues par tous les clients : la version pro
-SEMAPHORE = asyncio.Semaphore(3)
+# Un rendu à la fois : trois Playwright synchrones en parallèle dans des threads ont fait
+# tomber le pilote (« Connection closed while reading from the driver ») au 6e rendu.
+SEMAPHORE = asyncio.Semaphore(1)
 
 
 def _detruire(url: str):
