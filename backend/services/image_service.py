@@ -5,6 +5,7 @@ Agent Image :
      (+ photo du client en référence si demandé).
   3. Upload Cloudinary → URL.
 """
+import os
 import re
 import base64
 import httpx
@@ -24,6 +25,11 @@ cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, 
 _client = anthropic.Anthropic(api_key=CLAUDE_API_KEY) if CLAUDE_API_KEY else None
 
 # Modèles d'image proposés (le user choisit nano-banana 2.5 ou 3)
+# Délai d'attente du générateur d'images. nano-banana 3 (pro) dépasse parfois 2 min aux
+# heures chargées d'OpenRouter : à 120 s la génération partait en erreur alors que l'image
+# arrivait juste après. Le front attend 4 min sur ces appels.
+IMAGE_TIMEOUT_S = float(os.environ.get("OPENROUTER_IMAGE_TIMEOUT_S", "210"))
+
 IMAGE_MODELS = {
     "nano2": "google/gemini-2.5-flash-image",        # nano-banana 2.5 (standard)
     "nano3": "google/gemini-3-pro-image-preview",    # nano-banana 3 (Pro, meilleur)
@@ -144,7 +150,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None, public_id: str = None) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None, public_id: str = None, identite_stylisee: bool = False) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     `refs` : images de référence choisies à la génération (URLs). Si fourni (même vide), il a
@@ -201,7 +207,21 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     if style_only_urls:
         inspi_refs, _ = await _prep_refs(style_only_urls)
 
-    if photo_refs:
+    if photo_refs and identite_stylisee:
+        # Style non photographique demandé (3D, illustration, pop art…) : on garde l'IDENTITÉ
+        # de la personne mais on la rend dans le style décrit, sans le garde-fou réalisme.
+        tenue = (u.get("style_vestimentaire") or "").strip()
+        tenue_txt = f" La personne porte la tenue suivante : {tenue}." if tenue else ""
+        texte = (
+            "Mets en scène la personne EXACTE de la PREMIÈRE image de référence : même visage, mêmes "
+            "traits, coiffure et morphologie, immédiatement reconnaissable, mais RENDUE DANS LE STYLE "
+            "demandé ci-dessous (ce n'est pas une photo : suis le style à la lettre)." + tenue_txt
+            + "\n\n" + prompt
+        )
+        content = [{"type": "text", "text": texte},
+                   {"type": "image_url", "image_url": {"url": photo_refs[0]}}]
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
+    elif photo_refs:
         tenue = (u.get("style_vestimentaire") or "").strip()
         tenue_txt = f" La personne porte la tenue suivante : {tenue}." if tenue else ""
         texte = (
@@ -287,7 +307,7 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
         "messages": [{"role": "user", "content": content}],
         "modalities": ["image", "text"],
     }
-    async with httpx.AsyncClient(timeout=120) as client:
+    async with httpx.AsyncClient(timeout=IMAGE_TIMEOUT_S) as client:
         r = await client.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json"},
