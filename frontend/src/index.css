@@ -142,3 +142,18 @@ html, body, #root {
   border-radius: 8px !important;
   font-weight: 600 !important;
 }
+/* « Annuler » reste discret : le regard va sur l'action, pas sur la sortie de secours */
+.postorico-toast [data-button][data-cancel] {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: #cbd5e1 !important;
+}
+/* Toast de confirmation : texte sur toute la largeur, boutons en dessous, alignés à droite */
+.toast-confirm[data-sonner-toast] { flex-wrap: wrap; }
+.toast-confirm [data-content] { flex: 1 1 100%; }
+.toast-confirm [data-button] { margin-top: 2px; }
+.toast-confirm [data-button][data-cancel] { margin-left: auto; }
+/* Action destructive (retirer, supprimer) : rouge, pas violet */
+.toast-danger [data-button][data-action] {
+  background: linear-gradient(90deg, #ef4444, #f43f5e) !important;
+}

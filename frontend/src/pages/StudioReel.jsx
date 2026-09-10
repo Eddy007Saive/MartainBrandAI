@@ -140,8 +140,7 @@ export default function StudioReel() {
       : (prev.length >= 6 ? prev : [...prev, { url: img.url, desc: img.description || '', src: 'banque', apercu_url: img.apercu_url || null, type: img.type || 'image' }]));
   };
   // Retirer un visuel de la banque : la ligne ET le fichier Cloudinary disparaissent (serveur).
-  const supprimerBanque = async (img) => {
-    if (!window.confirm(t('contenus.reel.seq.banqueSupprimerConfirm'))) return;
+  const executerSuppression = async (img) => {
     try {
       await contenuService.reelBanqueSupprimer(img.id);
       setBanque((prev) => (prev || []).filter((x) => x.id !== img.id));
@@ -150,6 +149,18 @@ export default function StudioReel() {
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.reel.seq.banqueSupprimerEchec'));
     }
+  };
+  // La confirmation est un toast de l'application (pas la boîte grise du navigateur) :
+  // le bouton « Retirer » supprime, « Annuler » ou l'expiration ne fait rien.
+  const supprimerBanque = (img) => {
+    toast(t('contenus.reel.seq.banqueSupprimerTitre'), {
+      id: `banque-suppr-${img.id}`,
+      className: 'postorico-toast toast-confirm toast-danger',
+      description: t('contenus.reel.seq.banqueSupprimerConfirm'),
+      duration: 8000,
+      action: { label: t('contenus.reel.seq.banqueSupprimer'), onClick: () => executerSuppression(img) },
+      cancel: { label: t('contenus.actions.annuler'), onClick: () => {} },
+    });
   };
   const upload = async (files) => {
     const list = Array.from(files || []).slice(0, 6 - images.length);
