@@ -30,6 +30,26 @@ _client = anthropic.Anthropic(api_key=CLAUDE_API_KEY) if CLAUDE_API_KEY else Non
 # arrivait juste après. Le front attend 4 min sur ces appels.
 IMAGE_TIMEOUT_S = float(os.environ.get("OPENROUTER_IMAGE_TIMEOUT_S", "210"))
 
+def upload_avec_reprise(*args, essais: int = 3, **kwargs):
+    """cloudinary.uploader.upload, réessayé sur coupure réseau. Cloudinary ferme parfois la
+    connexion sans répondre (« Remote end closed connection ») : une image générée à 3 c
+    partait à la poubelle pour une reprise de 2 s. Les erreurs 4xx (refus) ne sont pas
+    réessayées."""
+    import time as _t
+    derniere = None
+    for i in range(essais):
+        try:
+            return cloudinary.uploader.upload(*args, **kwargs)
+        except Exception as e:  # cloudinary.exceptions.Error, requests ProtocolError…
+            derniere = e
+            msg = str(e).lower()
+            if any(k in msg for k in ("400", "401", "403", "404", "invalid", "not allowed")):
+                raise
+            logger.warning(f"cloudinary upload essai {i + 1}/{essais} : {e}")
+            _t.sleep(1.5 * (i + 1))
+    raise derniere
+
+
 IMAGE_MODELS = {
     "nano2": "google/gemini-2.5-flash-image",        # nano-banana 2.5 (standard)
     "nano3": "google/gemini-3-pro-image-preview",    # nano-banana 3 (Pro, meilleur)
@@ -333,16 +353,16 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     # public_id déterministe par contenu -> une régénération ÉCRASE le même asset (pas d'accumulation)
     if public_id:
         # Emplacement imposé par l'appelant (ex. la banque de visuels d'un reel) : un asset neuf.
-        up = cloudinary.uploader.upload(img_bytes, resource_type="image", public_id=public_id,
+        up = upload_avec_reprise(img_bytes, resource_type="image", public_id=public_id,
                                         overwrite=True, invalidate=True, transformation=fmt)
     elif contenu_id:
-        up = cloudinary.uploader.upload(img_bytes, resource_type="image",
+        up = upload_avec_reprise(img_bytes, resource_type="image",
                                         public_id=f"contenus/{telegram_id}/{contenu_id}",
                                         overwrite=True, invalidate=True, transformation=fmt)
     else:
         # Photo « à la volée » (pas encore attachée à un contenu) : slot brouillon UNIQUE par user
         # → une nouvelle génération écrase la précédente (pas d'accumulation d'orphelins).
-        up = cloudinary.uploader.upload(img_bytes, resource_type="image",
+        up = upload_avec_reprise(img_bytes, resource_type="image",
                                         public_id=f"contenus/{telegram_id}/draft-photo",
                                         overwrite=True, invalidate=True, transformation=fmt)
     return {"lien_visuel": up["secure_url"]}

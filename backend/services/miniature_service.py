@@ -210,10 +210,17 @@ def composer(fond_url: str, layout: str, textes: dict, brand: dict, ratio: str =
         except Exception:
             browser = pw.chromium.launch(channel="chromium", args=args)
         page = browser.new_page(viewport={"width": w, "height": h}, device_scale_factor=dsf)
-        page.set_content(html_str, wait_until="load")
+        # « domcontentloaded » et non « load » : « load » attend TOUTES les ressources (le fond
+        # de 1 à 3 Mo fraîchement déposé sur Cloudinary, la feuille Google Fonts) et partait en
+        # timeout à 30 s aux heures chargées. On attend ensuite explicitement l'image et les
+        # polices, avec de la marge, et on capture quoi qu'il arrive.
+        page.set_content(html_str, wait_until="domcontentloaded")
+        try:
+            page.wait_for_function("(() => { const i = document.querySelector('img.fond'); return i && i.complete && i.naturalWidth > 0; })()", timeout=60000)
+        except Exception as e:
+            logger.warning(f"miniature: fond lent à charger ({str(e)[:80]}), capture quand même")
         try:
             page.evaluate("() => Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 8000))])")
-            page.wait_for_function("document.querySelector('img.fond').complete", timeout=15000)
         except Exception:
             pass
         page.wait_for_timeout(250)
@@ -295,7 +302,8 @@ def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, t
     u = _charger_marque(telegram_id)
     police = police if police in POLICES else POLICE_DEFAUT.get(g["id"], "impact")
     png = composer(fond_url, g["layout"], textes, _brand(u), ratio, police)
-    up = cloudinary.uploader.upload(png, resource_type="image", public_id=f"miniatures/{telegram_id}/{contenu['id']}",
+    from services.image_service import upload_avec_reprise
+    up = upload_avec_reprise(png, resource_type="image", public_id=f"miniatures/{telegram_id}/{contenu['id']}",
                                     overwrite=True, invalidate=True)
     # Servie optimisée par Cloudinary (1,6 Mo de PNG -> ~240 Ko en WebP/AVIF) : c'est cette
     # adresse qui devient la couverture, la vignette dans Contenus et le thumbnail Instagram.

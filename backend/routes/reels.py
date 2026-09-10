@@ -445,11 +445,23 @@ async def miniature_generer(contenu_id: str, body: MiniatureRequest, payload: di
                                                      "message": q.get("message") or "Génération indisponible."})
     try:
         fond = await miniature_service.generer_fond(telegram_id, c, gabarit, textes, ratio, modele=modele, style=style)
-        mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, fond, gabarit, textes, ratio, style, police)
     except Exception as e:
         quota_service.refund(q)
-        logger.error(f"miniature generer: {e}")
-        raise HTTPException(status_code=502, detail="Échec de la génération de la miniature. Réessaie.")
+        logger.error(f"miniature generer (fond): {e}")
+        raise HTTPException(status_code=502, detail="Échec de la génération de l'image de fond. Réessaie.")
+    # Le fond est là (et payé) : la composition du texte se réessaie plutôt que de tout perdre.
+    mini, derniere = None, None
+    for essai in range(2):
+        try:
+            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, fond, gabarit, textes, ratio, style, police)
+            break
+        except Exception as e:
+            derniere = e
+            logger.warning(f"miniature composer essai {essai + 1}/2 : {e}")
+    if mini is None:
+        quota_service.refund(q)
+        logger.error(f"miniature generer (composition): {derniere}")
+        raise HTTPException(status_code=502, detail="Échec de la composition de la miniature. Réessaie.")
     quota_service.confirm(q)
     return {"miniature": mini}
 
