@@ -346,6 +346,8 @@
       "action": "Thumbnail (cover)",
       "titre": "Reel thumbnail",
       "gabarits": "Templates",
+      "styleImage": "Image style",
+      "styles": {"photo": "Photo", "photoDesc": "Realistic, like a real photo", "cinema": "Cinema", "cinemaDesc": "Film still, dramatic light", "3d": "3D animated", "3dDesc": "3D character, animated-movie look", "illustration": "Illustration", "illustrationDesc": "Vector drawing, flat colours", "neon": "Neon", "neonDesc": "Night, magenta and cyan neon", "pop": "Pop art", "popDesc": "Comic book, halftones, vivid colours"},
       "aide": "The AI builds the background with your profile photo if you have one; we lay the text, sharp and in your brand colours. The thumbnail becomes the reel cover and goes to Instagram.",
       "chargement": "The AI is suggesting texts…",
       "kicker": "Small text above",

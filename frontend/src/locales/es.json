@@ -346,6 +346,8 @@
       "action": "Miniatura (portada)",
       "titre": "Miniatura del reel",
       "gabarits": "Plantillas",
+      "styleImage": "Estilo de la imagen",
+      "styles": {"photo": "Foto", "photoDesc": "Realista, como una foto de verdad", "cinema": "Cine", "cinemaDesc": "Fotograma de película, luz dramática", "3d": "3D animado", "3dDesc": "Personaje 3D estilo película de animación", "illustration": "Ilustración", "illustrationDesc": "Dibujo vectorial, colores planos", "neon": "Neón", "neonDesc": "Noche, neones magenta y cian", "pop": "Pop art", "popDesc": "Cómic, tramas y colores vivos"},
       "aide": "La IA crea el fondo con tu foto de perfil si tienes una; el texto lo ponemos nosotros, nítido y con los colores de tu marca. La miniatura se convierte en la portada del reel y va a Instagram.",
       "chargement": "La IA propone los textos…",
       "kicker": "Texto pequeño arriba",

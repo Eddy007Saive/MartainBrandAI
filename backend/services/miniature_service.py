@@ -61,11 +61,26 @@ GABARITS = [
 ]
 _PAR_ID = {g["id"]: g for g in GABARITS}
 RATIOS = {"9:16": (360, 640, 3), "16:9": (640, 360, 2)}   # viewport x échelle -> 1080x1920 / 1280x720
+# Le style de l'image : le gabarit dit QUOI montrer (scène, cadrage), le style dit COMMENT.
+# La personne de la photo reste reconnaissable dans tous les styles (le générateur stylise
+# sans changer le visage). `photo` garde le garde-fou réalisme d'image_service, les autres non.
+STYLES = {
+    "photo":   {"photo": True,  "texte": "Photorealistic, high detail, natural skin texture, thumbnail-grade contrast."},
+    "cinema":  {"photo": True,  "texte": "Cinematic film still: anamorphic look, teal and orange grading, volumetric light, subtle film grain, high contrast."},
+    "3d":      {"photo": False, "texte": "Stylised 3D render like a modern animated feature film (Pixar-like): soft rounded shapes, expressive face, glossy materials, warm studio lighting. Keep the person recognisable as a 3D character."},
+    "illustration": {"photo": False, "texte": "Bold flat vector illustration with clean shapes, thick outlines, limited vivid palette, subtle paper grain, editorial poster look. Keep the person recognisable in a simplified drawn style."},
+    "neon":    {"photo": True,  "texte": "Dark cyberpunk mood: deep blacks, magenta and cyan neon rim lights, wet reflections, haze, dramatic high contrast, futuristic."},
+    "pop":     {"photo": False, "texte": "Pop-art comic style: halftone dots, bold black outlines, saturated primary colours, high energy, print texture. Keep the person recognisable."},
+}
 LANGUES = {"fr": "French", "en": "English", "es": "Spanish"}
 
 
 def gabarits() -> list:
     return [{"id": g["id"], "layout": g["layout"], "textes": g["textes"]} for g in GABARITS]
+
+
+def styles() -> list:
+    return list(STYLES.keys())
 
 
 # ------------------------------------------------------------------ textes proposés
@@ -207,7 +222,7 @@ def _brand(u: dict) -> dict:
     return {"principale": u.get("couleur_principale") or "#5B6CFF", "accent": u.get("couleur_accent") or "#3AFFA3"}
 
 
-async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes: dict, ratio: str, modele: str = "nano2") -> str:
+async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes: dict, ratio: str, modele: str = "nano2", style: str = "photo") -> str:
     """L'image de fond (nano-banana), avec la photo du client si elle existe. Retourne l'URL."""
     from services import image_service
     g = _PAR_ID.get(gabarit_id) or GABARITS[0]
@@ -216,17 +231,20 @@ async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes:
     scene = (g["scene"] if avec_photo else g["scene_sans_photo"]).replace("{objet}", textes.get("objet") or "a glowing object")
     sujet = (contenu.get("contenu") or contenu.get("titre") or "")[:400].replace("\n", " ")
     orient = "Vertical 9:16 composition, full-bleed, no borders." if ratio != "16:9" else "Horizontal 16:9 composition, full-bleed, no borders."
+    st = STYLES.get(style) or STYLES["photo"]
     prompt = (f"{scene}\n\nSubject of the video, for context only (do NOT write any of it as text): {sujet}\n"
-              f"{orient} Photorealistic, high detail, thumbnail-grade contrast. ABSOLUTELY NO TEXT, NO LETTERS, NO LOGOS, NO WATERMARK anywhere in the image.")
+              f"{orient} STYLE: {st['texte']} ABSOLUTELY NO TEXT, NO LETTERS, NO LOGOS, NO WATERMARK anywhere in the image.")
+    # Styles non photographiques : on coupe le garde-fou « réalisme photo » d'image_service
+    # (template_mode, sans référence, ne fait rien d'autre).
     res = await image_service.generer_image(telegram_id, prompt, avec_photo, image_service.IMAGE_MODELS.get(modele, image_service.IMAGE_MODELS["nano2"]),
-                                            None, refs=[], ratio=("16:9" if ratio == "16:9" else "9:16"),
+                                            None, refs=[], ratio=("16:9" if ratio == "16:9" else "9:16"), template_mode=not st["photo"],
                                             public_id=f"miniatures/{telegram_id}/{contenu['id']}-fond-{int(datetime.now(timezone.utc).timestamp())}")
     if res.get("error"):
         raise RuntimeError(res["error"])
     return res["lien_visuel"]
 
 
-def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, textes: dict, ratio: str) -> dict:
+def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, textes: dict, ratio: str, style: str = "photo") -> dict:
     """Compose le texte, dépose la miniature, en fait la couverture du reel."""
     g = _PAR_ID.get(gabarit_id) or GABARITS[0]
     u = _charger_marque(telegram_id)
@@ -245,7 +263,7 @@ def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, t
                 cloudinary.uploader.destroy(m.group(1), resource_type="image", invalidate=True)
             except Exception as e:
                 logger.warning(f"miniature: ancien fond non supprimé: {e}")
-    mini = {"url": url, "fond": fond_url, "gabarit": g["id"], "textes": textes, "ratio": ratio,
+    mini = {"url": url, "fond": fond_url, "gabarit": g["id"], "textes": textes, "ratio": ratio, "style": style if style in STYLES else "photo",
             "date": datetime.now(timezone.utc).isoformat()}
     rd = dict(contenu.get("reel_data") or {}); rd["miniature"] = mini
     supabase.table("contenu").update({"reel_data": rd, "lien_visuel": url, "video_preview_url": url}).eq("id", contenu["id"]).execute()
