@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus, Sparkles, Wand2 } from 'lucide-react';
@@ -455,8 +456,8 @@ export default function StudioReel() {
         const st = tpl.id === 'sequence' ? 'signature' : tpl.id.split('-')[1];
         const prev = () => setZoom((zoom - 1 + templates.length) % templates.length);
         const next = () => setZoom((zoom + 1) % templates.length);
-        return (
-          <div className="fixed inset-0 z-[60] grid place-items-center bg-[#020617]/85 backdrop-blur-md" onClick={() => setZoom(null)}>
+        return createPortal(
+          <div className="fixed inset-0 z-[110] grid place-items-center bg-[#020617]/85 backdrop-blur-md" onClick={() => setZoom(null)}>
             <button type="button" aria-label={t('contenus.actions.annuler')} onClick={(e) => { e.stopPropagation(); setZoom(null); }}
               className="absolute top-5 right-6 w-10 h-10 rounded-xl border border-white/15 bg-[#0f172a]/85 text-white grid place-items-center hover:bg-[#5B6CFF]/30 active:scale-95 transition-all"><X className="w-[18px] h-[18px]" /></button>
             {templates.length > 1 && (<>
@@ -488,7 +489,8 @@ export default function StudioReel() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body,
         );
       })()}
     </div>
