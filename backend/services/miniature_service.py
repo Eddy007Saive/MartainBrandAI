@@ -90,8 +90,14 @@ POLICE_DEFAUT = {"affiche": "cinema", "action": "impact", "allonge": "elegant", 
                  "objet-flottant": "tech", "ecran-partage": "elegant", "mot-geant": "impact", "objet-main": "impact"}
 
 
+# Images d'exemple, une par gabarit et par style, générées une fois pour toutes par
+# scripts/apercus_miniatures.py (Rico pose). Adresses stables, servies optimisées.
+APERCU_BASE = f"https://res.cloudinary.com/{CLOUDINARY_CLOUD_NAME}/image/upload/q_auto,f_auto,w_480"
+
+
 def gabarits() -> list:
-    return [{"id": g["id"], "layout": g["layout"], "textes": g["textes"], "police": POLICE_DEFAUT.get(g["id"], "impact")} for g in GABARITS]
+    return [{"id": g["id"], "layout": g["layout"], "textes": g["textes"], "police": POLICE_DEFAUT.get(g["id"], "impact"),
+             "apercu": f"{APERCU_BASE}/miniatures/_gabarits/{g['id']}.png"} for g in GABARITS]
 
 
 def polices() -> list:
@@ -99,7 +105,7 @@ def polices() -> list:
 
 
 def styles() -> list:
-    return list(STYLES.keys())
+    return [{"id": k, "apercu": f"{APERCU_BASE}/miniatures/_styles/{k}.png"} for k in STYLES]
 
 
 # ------------------------------------------------------------------ textes proposés
