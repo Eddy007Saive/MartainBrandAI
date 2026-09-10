@@ -43,6 +43,10 @@ export const contenuService = {
     return api.post('/reels/banque', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 }).then(r => r.data);
   },
   reelBanqueSupprimer: (assetId) => api.delete(`/reels/banque/${assetId}`).then(r => r.data),
+  // Miniature (couverture) d'un reel : gabarits, textes proposés (gratuit), génération
+  miniatureGabarits: () => api.get('/reels/miniature/gabarits').then(r => r.data),
+  miniatureTextes: (id) => api.post(`/reels/${id}/miniature/textes`).then(r => r.data),
+  miniatureGenerer: (id, payload) => api.post(`/reels/${id}/miniature`, payload, { timeout: 240000 }).then(r => r.data),
   // Image générée par l'IA pour un reel (entre dans la banque) ; l'idée d'image est gratuite.
   reelImagePrompt: (brief) => api.post('/reels/image/prompt', { brief }).then(r => r.data),
   reelImageGenerer: (prompt, modele = 'nano2') =>

@@ -35,6 +35,9 @@ def _couverture(contenu: dict) -> str | None:
     """Image de couverture d'une vidéo. On préfère la vignette déjà calculée (`lien_visuel`
     ou `video_preview_url`) ; à défaut on dérive une frame de la vidéo Cloudinary.
     3 s et non 1 s : les reels Remotion n'ont pas fini leur animation d'entrée avant."""
+    mini = ((contenu.get("reel_data") or {}).get("miniature") or {}).get("url")
+    if mini:
+        return mini                            # miniature composée par le client (miniature_service)
     for cle in ("lien_visuel", "video_preview_url"):
         u = contenu.get(cle)
         if u and "res.cloudinary.com" in u and "/image/upload/" in u:

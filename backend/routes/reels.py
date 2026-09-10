@@ -1,8 +1,9 @@
+import asyncio
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 from dependencies import verify_token
 from config import supabase
-from services import reel_service, banque_service, music_library, quota_service, image_service, demarrage_service
+from services import reel_service, banque_service, music_library, quota_service, image_service, demarrage_service, miniature_service
 from config import logger
 
 router = APIRouter(prefix="/reels", tags=["reels"])
@@ -368,6 +369,76 @@ async def image_generer(body: ReelImageGen, payload: dict = Depends(verify_token
         # L'image existe (Cloudinary) mais n'a pu entrer dans la banque : on la rend quand même.
         return {"url": res["lien_visuel"], "description": prompt, "type": "image", "hors_banque": True}
     return asset
+
+
+# ---------------------------------------------------------------- miniature (couverture)
+class MiniatureRequest(BaseModel):
+    gabarit: str = "affiche"
+    textes: dict = {}                 # kicker, titre, sous, objet
+    ratio: str = "9:16"               # 9:16 (Reels, TikTok) ou 16:9 (YouTube)
+    modele: str = "nano2"             # nano2 standard, nano3 pro
+    reutiliser_fond: bool = False     # recomposer le texte sur le fond existant (gratuit)
+
+
+@router.get("/miniature/gabarits")
+def miniature_gabarits(payload: dict = Depends(verify_token)):
+    return {"gabarits": miniature_service.gabarits()}
+
+
+@router.post("/{contenu_id}/miniature/textes")
+def miniature_textes(contenu_id: str, payload: dict = Depends(verify_token)):
+    """Kicker / titre / sous-titre / objet proposés par l'IA à partir du reel (gratuit)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        c = miniature_service._contenu(telegram_id, contenu_id)
+        return miniature_service.proposer_textes(telegram_id, c)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"miniature textes: {e}")
+        raise HTTPException(status_code=500, detail="Impossible de proposer les textes.")
+
+
+@router.post("/{contenu_id}/miniature")
+async def miniature_generer(contenu_id: str, body: MiniatureRequest, payload: dict = Depends(verify_token)):
+    """Fabrique la miniature : fond IA (une image du quota) + texte composé par nous, puis
+    en fait la couverture du reel. `reutiliser_fond` : ne change que le texte, sans quota."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        c = miniature_service._contenu(telegram_id, contenu_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    textes = {k: str(body.textes.get(k) or "").strip()[:60] for k in ("kicker", "titre", "sous", "objet")}
+    ratio = body.ratio if body.ratio in miniature_service.RATIOS else "9:16"
+    gabarit = body.gabarit if body.gabarit in miniature_service._PAR_ID else "affiche"
+    ancienne = ((c.get("reel_data") or {}).get("miniature") or {})
+    if body.reutiliser_fond and ancienne.get("fond"):
+        try:
+            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, ancienne["fond"], gabarit, textes, ratio)
+        except Exception as e:
+            logger.error(f"miniature recomposer: {e}")
+            raise HTTPException(status_code=500, detail="Échec de la composition de la miniature.")
+        return {"miniature": mini}
+    demarrage_service.exiger_profil(telegram_id)
+    quota_service.exiger_abonnement(telegram_id)
+    modele = body.modele if body.modele in image_service.IMAGE_MODELS else "nano2"
+    q = quota_service.consume(telegram_id, quota_service.image_action(modele))
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail={"raison": q.get("reason") or "quota",
+                                                     "message": q.get("message") or "Génération indisponible."})
+    try:
+        fond = await miniature_service.generer_fond(telegram_id, c, gabarit, textes, ratio, modele=modele)
+        mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, fond, gabarit, textes, ratio)
+    except Exception as e:
+        quota_service.refund(q)
+        logger.error(f"miniature generer: {e}")
+        raise HTTPException(status_code=502, detail="Échec de la génération de la miniature. Réessaie.")
+    quota_service.confirm(q)
+    return {"miniature": mini}
 
 
 @router.delete("/banque/{asset_id}")

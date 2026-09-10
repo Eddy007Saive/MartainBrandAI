@@ -8,6 +8,7 @@ import { Switch } from '../components/ui/switch';
 import { SocialIcon } from '../components/SocialIcon';
 import PostManuelDialog from '../components/PostManuelDialog';
 import StoryDialog from '../components/StoryDialog';
+import MiniatureDialog from '../components/MiniatureDialog';
 import {
   Dialog,
   DialogContent,
@@ -140,7 +141,7 @@ function CardAction({ title, onClick, children, className = '' }) {
   );
 }
 
-function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, dejaDecline, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading }) {
+function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, dejaDecline, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading, onMiniature }) {
   const { t } = useTranslation();
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
@@ -266,6 +267,11 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                 {!isCarrousel && !isVideo && contenu.type !== 'Story' && (
                   <DropdownMenuItem onClick={() => onReel(contenu)} className="gap-2.5 focus:bg-white/[0.07]">
                     <Clapperboard className="w-4 h-4 opacity-70" />{t('contenus.reel.generer')}
+                  </DropdownMenuItem>
+                )}
+                {contenu.type === 'Reel' && contenu.video_status === 'ready' && onMiniature && (
+                  <DropdownMenuItem onClick={() => onMiniature(contenu)} data-testid={`contenu-miniature-${contenu.id}`} className="gap-2.5 focus:bg-white/[0.07]">
+                    <ImageIcon className="w-4 h-4 opacity-70" />{t('contenus.miniature.action')}
                   </DropdownMenuItem>
                 )}
                 {/* Un seul bouton : le format suit le contenu (post -> story unique,
@@ -440,6 +446,7 @@ export default function ContenusPage() {
   const [imageContenu, setImageContenu] = useState(null);
   const [postManuelOpen, setPostManuelOpen] = useState(false);  // post écrit à la main (sans IA)
   const [storyFor, setStoryFor] = useState(null);  // post en cours de déclinaison en story
+  const [miniatureFor, setMiniatureFor] = useState(null);  // reel dont on fabrique la couverture
 
   // Recyclage : republier un post sur d'autres réseaux (une copie par réseau)
   const [recycleFor, setRecycleFor] = useState(null);   // contenu source
@@ -1377,6 +1384,7 @@ export default function ContenusPage() {
                     onRenderSlides={rendreSlidesEnImages}
                     renderLoading={renderSlidesLoading}
                     onReel={(c) => { setReelFor(c); setReelReco(null); contenuService.reelRecommander(c.id).then(setReelReco).catch(() => {}); }}
+                    onMiniature={setMiniatureFor}
                     reelLoading={reelLoading}
                     actionLoading={actionLoading}
                   />
@@ -2315,6 +2323,9 @@ export default function ContenusPage() {
 
       {storyFor && (
         <StoryDialog contenu={storyFor} onClose={() => setStoryFor(null)} onCreated={fetchContenus} />
+      )}
+      {miniatureFor && (
+        <MiniatureDialog contenu={miniatureFor} onClose={() => setMiniatureFor(null)} onDone={() => fetchContenus({ silencieux: true })} />
       )}
     </div>
   );
