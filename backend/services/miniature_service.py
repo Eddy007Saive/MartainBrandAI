@@ -210,15 +210,32 @@ def composer(fond_url: str, layout: str, textes: dict, brand: dict, ratio: str =
         except Exception:
             pass
         page.wait_for_timeout(250)
-        # le texte ne doit jamais déborder : on rétrécit jusqu'à tenir dans 92 % de la largeur
+        # Le titre remplit la largeur : on part grand et on descend jusqu'à tenir sur deux
+        # lignes au plus (trois si le titre est long), sans mot coupé. Une police condensée
+        # (Bebas) monte donc plus haut qu'une large (Playfair) : c'est ce qu'on veut.
         page.evaluate("""() => {
           const box = document.querySelector('.txt'); if (!box) return;
+          const titre = box.querySelector('.titre');
+          if (titre) {
+            const mots = titre.textContent.trim().split(/\\s+/).length;
+            const lignesMax = mots >= 5 ? 3 : 2;
+            const W = titre.clientWidth;
+            let s = window.innerWidth * (lignesMax === 3 ? 0.26 : 0.30);
+            for (let i = 0; i < 60; i++) {
+              titre.style.fontSize = s + 'px';
+              const lh = parseFloat(getComputedStyle(titre).lineHeight) || s;
+              const lignes = Math.round(titre.scrollHeight / lh);
+              if (lignes <= lignesMax && titre.scrollWidth <= W + 1) break;
+              s *= 0.95;
+            }
+          }
+          // et rien ne déborde : on rétrécit l'ensemble jusqu'à tenir dans 92 % / 55 %
           const maxW = window.innerWidth * 0.92, maxH = window.innerHeight * 0.55;
           for (let i = 0; i < 40; i++) {
             const r = box.getBoundingClientRect();
             const large = Array.from(box.children).some(c => c.scrollWidth > maxW) || r.height > maxH;
             if (!large) break;
-            box.querySelectorAll('.titre,.sous,.kicker').forEach(el => { const s = parseFloat(getComputedStyle(el).fontSize); el.style.fontSize = (s * 0.94) + 'px'; });
+            box.querySelectorAll('.titre,.sous,.kicker').forEach(el => { const f = parseFloat(getComputedStyle(el).fontSize); el.style.fontSize = (f * 0.94) + 'px'; });
           }
         }""")
         page.wait_for_timeout(60)
