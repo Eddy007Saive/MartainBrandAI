@@ -33,7 +33,7 @@ const STATUT_LABEL = {
   annulee: 'affiliation.statut.annulee',
 };
 
-export default function Affiliation() {
+export default function Affiliation({ enSection = false }) {
   const { t } = useTranslation();
   const { user } = useUser();
   const [data, setData] = useState(null);
@@ -79,7 +79,7 @@ export default function Affiliation() {
   if (!a) {
     return (
       <div className="max-w-2xl">
-        <PageHeader icon={Handshake} title={t('affiliation.titre')} subtitle={t('affiliation.sousTitre')} />
+        {!enSection && <PageHeader icon={Handshake} title={t('affiliation.titre')} subtitle={t('affiliation.sousTitre')} />}
         <Carte className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-slate-950/50 border border-white/5 p-4">
@@ -112,7 +112,7 @@ export default function Affiliation() {
     const refuse = a.statut === 'refuse';
     return (
       <div className="max-w-2xl">
-        <PageHeader icon={Handshake} title={t('affiliation.titre')} />
+        {!enSection && <PageHeader icon={Handshake} title={t('affiliation.titre')} />}
         <Carte className="flex items-start gap-3">
           {refuse ? <XCircle className="w-5 h-5 text-red-400 mt-0.5" />
                   : <Clock className="w-5 h-5 text-amber-400 mt-0.5" />}
@@ -130,7 +130,7 @@ export default function Affiliation() {
   // --- affilié actif
   return (
     <div className="max-w-4xl">
-      <PageHeader icon={Handshake} title={t('affiliation.titre')} subtitle={t('affiliation.sousTitreActif')} />
+      {!enSection && <PageHeader icon={Handshake} title={t('affiliation.titre')} subtitle={t('affiliation.sousTitreActif')} />}
 
       <Carte className="mb-4">
         <label className="block text-[12px] text-slate-500 font-inter mb-1.5">{t('affiliation.tonLien')}</label>

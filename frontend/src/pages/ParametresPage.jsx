@@ -5,7 +5,7 @@ import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
   CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings, CreditCard, Sparkles,
-  Plus, Image as ImageIcon, X, Repeat, Lock, Package, Pencil } from 'lucide-react';
+  Plus, Image as ImageIcon, X, Repeat, Lock, Package, Pencil, Handshake } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ChampMarque, ChampListe } from '../components/ChampsMarque';
 import { Input } from '../components/ui/input';
@@ -40,6 +40,7 @@ import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { DAYS, DEFAULT_SCHEDULE } from '../constants/schedules';
 import QuotaGauge from '../components/QuotaGauge';
+import Affiliation from './Affiliation';
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
@@ -58,6 +59,7 @@ const SETTINGS_SECTIONS = [
   { id: 'connections', titleKey: 'nav.socials', icon: Plug },
   { id: 'schedules', titleKey: 'nav.planning', icon: Calendar },
   { id: 'abonnement', titleKey: 'nav.subscription', icon: CreditCard },
+  { id: 'parrainage', titleKey: 'nav.affiliation', icon: Handshake },
   { id: 'style', titleKey: 'nav.style', icon: Palette },
   { id: 'banque', titleKey: 'nav.banque', icon: ImageIcon },
   { id: 'avatar', titleKey: 'nav.avatar', icon: Video, soon: true },
@@ -1835,6 +1837,7 @@ export default function ParametresPage() {
     connections: renderConnections,
     schedules: renderSchedules,
     abonnement: renderAbonnement,
+    parrainage: () => <Affiliation enSection />,
     style: renderStyle,
     banque: renderBanque,
     avatar: renderAvatar,

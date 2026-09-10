@@ -41,7 +41,6 @@ const CommentairesPage = lazy(() => import("./pages/CommentairesPage"));
 const Performance = lazy(() => import("./pages/Performance"));
 const PlanificationPage = lazy(() => import("./pages/PlanificationPage"));
 const CarrouselsPage = lazy(() => import("./pages/CarrouselsPage"));
-const Affiliation = lazy(() => import("./pages/Affiliation"));
 const ParametresPage = lazy(() => import("./pages/ParametresPage"));
 const Admin = lazy(() => import("./pages/Admin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -125,7 +124,8 @@ function App() {
               <Route path="performance" element={<Performance />} />
               <Route path="planification" element={<PlanificationPage />} />
               <Route path="carrousels" element={<CarrouselsPage />} />
-              <Route path="affiliation" element={<Affiliation />} />
+              {/* L'affiliation vit dans Paramètres > Parrainage ; l'ancienne adresse suit. */}
+              <Route path="affiliation" element={<Navigate to="/dashboard/parametres?s=parrainage" replace />} />
               <Route path="parametres" element={<ParametresPage />} />
             </Route>
 

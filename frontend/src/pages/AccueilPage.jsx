@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '../context/UserContext';
-import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { Eye, Heart, MessageCircle, Share2, TrendingUp, FileText, Loader2, Sparkles, ArrowRight, Handshake } from 'lucide-react';
 import { analyticsService } from '../services/analyticsService';
 import PerformanceCurve from '../components/PerformanceCurve';
 import TopPosts from '../components/TopPosts';
@@ -98,6 +98,21 @@ export default function AccueilPage() {
 
           {/* Courbe d'évolution (style Search Console) */}
           <PerformanceCurve />
+
+          {/* Parrainage : l'entrée vit dans Paramètres, ce rappel évite qu'on l'oublie */}
+          <Link to="/dashboard/parametres?s=parrainage" data-testid="accueil-parrainage"
+            className="flex items-center gap-4 rounded-xl border border-white/5 bg-slate-900/40 px-5 py-4 hover:border-[#3AFFA3]/30 transition-all group">
+            <div className="w-10 h-10 rounded-lg bg-[#3AFFA3]/10 flex items-center justify-center flex-shrink-0">
+              <Handshake className="w-5 h-5 text-[#3AFFA3]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-white font-semibold font-sora text-[15px]">{t('accueil.parrainageTitre')}</p>
+              <p className="text-slate-400 text-sm font-inter">{t('accueil.parrainageSous')}</p>
+            </div>
+            <span className="ml-auto hidden sm:flex items-center gap-1.5 text-[#3AFFA3] text-sm font-inter font-medium group-hover:gap-2.5 transition-all flex-shrink-0">
+              {t('accueil.parrainageOuvrir')} <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
 
           {/* Status Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
