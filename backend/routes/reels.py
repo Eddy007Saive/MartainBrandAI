@@ -1,8 +1,9 @@
+import asyncio
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 from dependencies import verify_token
 from config import supabase
-from services import reel_service, banque_service, music_library, quota_service
+from services import reel_service, banque_service, music_library, quota_service, image_service, miniature_service
 from config import logger
 
 router = APIRouter(prefix="/reels", tags=["reels"])
@@ -298,6 +299,144 @@ async def banque_ajouter(file: UploadFile = File(...), payload: dict = Depends(v
     if res.get("error"):
         raise HTTPException(status_code=400, detail=res["error"])
     return res
+
+
+class ReelImageGen(BaseModel):
+    prompt: str                 # ce que le client veut voir (sa description, ou celle proposée par l'IA)
+    modele: str = "nano2"       # nano2 = image standard, nano3 = image pro (quotas distincts)
+
+
+class ReelImagePrompt(BaseModel):
+    brief: str                  # le sujet du reel : l'IA en tire une idée d'image
+
+
+@router.post("/image/prompt")
+def image_prompt(body: ReelImagePrompt, payload: dict = Depends(verify_token)):
+    """Une idée d'image écrite par l'IA à partir du sujet du reel (gratuit, modifiable ensuite)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    brief = (body.brief or "").strip()
+    if not brief:
+        raise HTTPException(status_code=400, detail="Décris d'abord ton reel.")
+    try:
+        res = image_service.generer_prompt(telegram_id, brief, reseau="instagram")
+    except Exception as e:
+        logger.error(f"reel image prompt: {e}")
+        raise HTTPException(status_code=500, detail="Impossible de proposer une idée d'image.")
+    if res.get("error"):
+        raise HTTPException(status_code=500, detail="Impossible de proposer une idée d'image.")
+    return {"prompt": res["prompt"]}
+
+
+@router.post("/image")
+async def image_generer(body: ReelImageGen, payload: dict = Depends(verify_token)):
+    """Génère une image (nano-banana, format vertical 9:16) pour un reel et la range dans la
+    banque du client : elle est aussitôt sélectionnable, et réutilisable pour d'autres reels.
+    Même quota que les images du Studio IA (image_standard / image_pro)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    prompt = (body.prompt or "").strip()
+    if len(prompt) < 8:
+        raise HTTPException(status_code=400, detail="Décris l'image en quelques mots.")
+    quota_service.exiger_abonnement(telegram_id)
+    modele = body.modele if body.modele in image_service.IMAGE_MODELS else "nano2"
+    q = quota_service.consume(telegram_id, quota_service.image_action(modele))
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail={"raison": q.get("reason") or "quota",
+                                                     "message": q.get("message") or "Génération indisponible."})
+    import uuid
+    public_id = f"banque/{telegram_id}/ia-{uuid.uuid4().hex[:10]}"
+    try:
+        res = await image_service.generer_image(telegram_id, prompt, False, image_service.IMAGE_MODELS[modele],
+                                                None, ratio="9:16", public_id=public_id)
+    except Exception as e:
+        quota_service.refund(q)
+        logger.error(f"reel image: {e}")
+        raise HTTPException(status_code=500, detail="Échec de la génération d'image.")
+    if res.get("error"):
+        quota_service.refund(q)
+        raise HTTPException(status_code=502, detail="Le générateur n'a pas renvoyé d'image. Réessaie, ou simplifie la description.")
+    try:
+        asset = banque_service.ajouter_url(telegram_id, res["lien_visuel"], prompt, tags=["ia"])
+    except Exception as e:
+        logger.error(f"reel image banque: {e}")
+        asset = {"error": str(e)}
+    quota_service.confirm(q)
+    if asset.get("error"):
+        # L'image existe (Cloudinary) mais n'a pu entrer dans la banque : on la rend quand même.
+        return {"url": res["lien_visuel"], "description": prompt, "type": "image", "hors_banque": True}
+    return asset
+
+
+# ---------------------------------------------------------------- miniature (couverture)
+class MiniatureRequest(BaseModel):
+    gabarit: str = "affiche"
+    textes: dict = {}                 # kicker, titre, sous, objet
+    ratio: str = "9:16"               # 9:16 (Reels, TikTok) ou 16:9 (YouTube)
+    modele: str = "nano2"             # nano2 standard, nano3 pro
+    reutiliser_fond: bool = False     # recomposer le texte sur le fond existant (gratuit)
+
+
+@router.get("/miniature/gabarits")
+def miniature_gabarits(payload: dict = Depends(verify_token)):
+    return {"gabarits": miniature_service.gabarits()}
+
+
+@router.post("/{contenu_id}/miniature/textes")
+def miniature_textes(contenu_id: str, payload: dict = Depends(verify_token)):
+    """Kicker / titre / sous-titre / objet proposés par l'IA à partir du reel (gratuit)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        c = miniature_service._contenu(telegram_id, contenu_id)
+        return miniature_service.proposer_textes(telegram_id, c)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"miniature textes: {e}")
+        raise HTTPException(status_code=500, detail="Impossible de proposer les textes.")
+
+
+@router.post("/{contenu_id}/miniature")
+async def miniature_generer(contenu_id: str, body: MiniatureRequest, payload: dict = Depends(verify_token)):
+    """Fabrique la miniature : fond IA (une image du quota) + texte composé par nous, puis
+    en fait la couverture du reel. `reutiliser_fond` : ne change que le texte, sans quota."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        c = miniature_service._contenu(telegram_id, contenu_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    textes = {k: str(body.textes.get(k) or "").strip()[:60] for k in ("kicker", "titre", "sous", "objet")}
+    ratio = body.ratio if body.ratio in miniature_service.RATIOS else "9:16"
+    gabarit = body.gabarit if body.gabarit in miniature_service._PAR_ID else "affiche"
+    ancienne = ((c.get("reel_data") or {}).get("miniature") or {})
+    if body.reutiliser_fond and ancienne.get("fond"):
+        try:
+            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, ancienne["fond"], gabarit, textes, ratio)
+        except Exception as e:
+            logger.error(f"miniature recomposer: {e}")
+            raise HTTPException(status_code=500, detail="Échec de la composition de la miniature.")
+        return {"miniature": mini}
+    quota_service.exiger_abonnement(telegram_id)
+    modele = body.modele if body.modele in image_service.IMAGE_MODELS else "nano2"
+    q = quota_service.consume(telegram_id, quota_service.image_action(modele))
+    if not q.get("ok"):
+        raise HTTPException(status_code=402, detail={"raison": q.get("reason") or "quota",
+                                                     "message": q.get("message") or "Génération indisponible."})
+    try:
+        fond = await miniature_service.generer_fond(telegram_id, c, gabarit, textes, ratio, modele=modele)
+        mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, fond, gabarit, textes, ratio)
+    except Exception as e:
+        quota_service.refund(q)
+        logger.error(f"miniature generer: {e}")
+        raise HTTPException(status_code=502, detail="Échec de la génération de la miniature. Réessaie.")
+    quota_service.confirm(q)
+    return {"miniature": mini}
 
 
 @router.delete("/banque/{asset_id}")
