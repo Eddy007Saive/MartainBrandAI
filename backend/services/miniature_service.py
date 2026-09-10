@@ -282,6 +282,7 @@ async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes:
     # (template_mode, sans référence, ne fait rien d'autre).
     res = await image_service.generer_image(telegram_id, prompt, avec_photo, image_service.IMAGE_MODELS.get(modele, image_service.IMAGE_MODELS["nano2"]),
                                             None, refs=[], ratio=("16:9" if ratio == "16:9" else "9:16"), template_mode=not st["photo"],
+                                            identite_stylisee=not st["photo"],
                                             public_id=f"miniatures/{telegram_id}/{contenu['id']}-fond-{int(datetime.now(timezone.utc).timestamp())}")
     if res.get("error"):
         raise RuntimeError(res["error"])
