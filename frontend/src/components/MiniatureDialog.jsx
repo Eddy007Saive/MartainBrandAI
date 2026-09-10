@@ -54,9 +54,11 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
     let vivant = true;
     setChargement(true);
     const existante = contenu.reel_data?.miniature;
+    // Textes déjà connus (miniature faite, ou proposition mémorisée sur le reel) : pas d'appel IA.
+    const memo = existante?.textes || contenu.reel_data?.miniature_textes;
     Promise.all([
       contenuService.miniatureGabarits(),
-      existante?.textes ? Promise.resolve(existante.textes) : contenuService.miniatureTextes(contenu.id),
+      memo?.titre ? Promise.resolve(memo) : contenuService.miniatureTextes(contenu.id),
     ]).then(([g, tx]) => {
       if (!vivant) return;
       setGabarits(g.gabarits || []);

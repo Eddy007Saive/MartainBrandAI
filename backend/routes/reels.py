@@ -395,7 +395,16 @@ def miniature_textes(contenu_id: str, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="Invalid token")
     try:
         c = miniature_service._contenu(telegram_id, contenu_id)
-        return miniature_service.proposer_textes(telegram_id, c)
+        # Proposés UNE fois puis mémorisés sur le reel : rouvrir le dialogue ne rappelle pas
+        # l'IA (le client retrouve ses textes, éventuellement déjà retouchés).
+        rd = dict(c.get("reel_data") or {})
+        memo = (rd.get("miniature") or {}).get("textes") or rd.get("miniature_textes")
+        if memo and memo.get("titre"):
+            return memo
+        textes = miniature_service.proposer_textes(telegram_id, c)
+        rd["miniature_textes"] = textes
+        supabase.table("contenu").update({"reel_data": rd}).eq("id", contenu_id).execute()
+        return textes
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
