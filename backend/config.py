@@ -83,6 +83,10 @@ SUBMAGIC_BASE = os.environ.get('SUBMAGIC_BASE', 'https://api.submagic.co/v1')
 SUBMAGIC_DEFAULT_THEME_ID = os.environ.get('SUBMAGIC_DEFAULT_THEME_ID', '')
 SUBMAGIC_DEFAULT_THEME_LABEL = os.environ.get('SUBMAGIC_DEFAULT_THEME_LABEL', 'Thème de marque')
 
+# Studio Montage (submagic-poc) : service Railway séparé, self-hosted, remplace Submagic.
+MONTAGE_POC_URL = os.environ.get('MONTAGE_POC_URL', '').rstrip('/')
+MONTAGE_POC_INTERNAL_KEY = os.environ.get('MONTAGE_POC_INTERNAL_KEY', '')
+
 # Cloudflare Turnstile (anti-bot sur le formulaire public d'audit)
 # Clés de TEST par défaut (passent toujours) — à remplacer par les vraies en prod.
 TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '1x0000000000000000000000000000000AA')
@@ -109,6 +113,12 @@ LATE_API_KEY = os.environ.get('LATE_API_KEY') or os.environ.get('api_late', '')
 LATE_API_BASE = (os.environ.get('LATE_API_BASE', 'https://getlate.dev/api/v1')).rstrip('/')
 LATE_WEBHOOK_SECRET = os.environ.get('LATE_WEBHOOK_SECRET', '')  # vérif signature HMAC des webhooks
 
+# Newsletter hebdo : NEWSLETTER_CRON_ACTIVE=0 sur le backend dev (sinon dev et prod préparent
+# chacun une lettre le mardi : deux brouillons pour la même semaine, vu le 2026-09-01).
+NEWSLETTER_CRON_ACTIVE = os.environ.get('NEWSLETTER_CRON_ACTIVE', '1') != '0'
+# Veille : en plus de la recherche web de Claude, une passe Perplexity (via OpenRouter) qui
+# lit le web en direct et cite ses sources. Vide = passe désactivée.
+NEWSLETTER_PERPLEXITY_MODEL = os.environ.get('NEWSLETTER_PERPLEXITY_MODEL', 'perplexity/sonar-pro')
 # Cron analytics : rafraîchit le cache toutes les N heures (0 = désactivé)
 ANALYTICS_CRON_HOURS = float(os.environ.get('ANALYTICS_CRON_HOURS', '1'))
 

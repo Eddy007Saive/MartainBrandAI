@@ -151,6 +151,10 @@ async def _newsletter_cron():
     tz = ZoneInfo(os.environ.get("NEWSLETTER_TZ", "Europe/Paris"))
     jour = int(os.environ.get("NEWSLETTER_JOUR", "1"))
     heure = int(os.environ.get("NEWSLETTER_HEURE", "9"))
+    from config import NEWSLETTER_CRON_ACTIVE
+    if not NEWSLETTER_CRON_ACTIVE:
+        logger.info("Cron newsletter désactivé sur cette instance (NEWSLETTER_CRON_ACTIVE=0)")
+        return
     await asyncio.sleep(120)
     while True:
         try:
@@ -161,6 +165,9 @@ async def _newsletter_cron():
                     logger.info("Newsletter hebdo : préparation de l'édition…")
                     res = await newsletter_service.preparer()
                     logger.info(f"Newsletter hebdo : {res}")
+            # Une lettre préparée mais jamais validée depuis 20 h : on rappelle Martin (une fois).
+            for nl in newsletter_service.brouillons_en_attente(heures=20):
+                await newsletter_service.rappeler(nl)
         except Exception as e:
             logger.error(f"newsletter cron loop: {e}")
         await asyncio.sleep(1800)   # vérification toutes les 30 min

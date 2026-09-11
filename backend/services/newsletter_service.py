@@ -57,8 +57,61 @@ _ROLE_VEILLE = (
 )
 
 
+# Perplexity prend « faire la veille » au sens « outils de veille » : on lui dit
+# précisément quoi chercher (des ACTUALITÉS datées) et où.
+_QUESTION_PERPLEXITY = (
+    "{question}\n\n"
+    "Cherche UNIQUEMENT des actualités DATÉES de cette semaine : nouvelles fonctionnalités, "
+    "changements d'algorithme ou de règles, nouveaux formats, chiffres officiels, annonces, sur "
+    "LinkedIn, Instagram, Facebook, TikTok, YouTube et X. Sources à privilégier : newsrooms officielles "
+    "(Meta, TikTok, LinkedIn, YouTube), Social Media Today, Blog du Modérateur, Later, Hootsuite, "
+    "Buffer, Search Engine Journal, TechCrunch, The Verge. Ignore les guides généraux, les listes "
+    "d'outils et les articles non datés. Pour chaque actualité : réseau, date, ce qui change, ce que "
+    "ça implique concrètement pour un dirigeant de PME qui publie lui-même, et l'URL de la source."
+)
+
+
+def _veille_perplexity(question: str) -> dict:
+    """Seconde source de veille : Perplexity (sonar-pro, via OpenRouter) lit le web en direct
+    et renvoie ses citations. Complète la recherche de Claude : deux moteurs, deux index,
+    moins de trous. Coût ≈ 3 à 5 centimes par appel. Ne lève jamais : {texte:"", sources:[]}."""
+    from config import OPENROUTER_API_KEY, NEWSLETTER_PERPLEXITY_MODEL
+    if not OPENROUTER_API_KEY or not NEWSLETTER_PERPLEXITY_MODEL:
+        return {"texte": "", "sources": []}
+    try:
+        import httpx
+        r = httpx.post("https://openrouter.ai/api/v1/chat/completions",
+                       headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json",
+                                "HTTP-Referer": "https://postorico.com", "X-Title": "Postorico newsletter"},
+                       json={"model": NEWSLETTER_PERPLEXITY_MODEL, "temperature": 0.2, "max_tokens": 2500,
+                             # Perplexity : ne lire que la semaine écoulée, avec un contexte de recherche large.
+                             "search_recency_filter": "week",
+                             "web_search_options": {"search_context_size": "high"},
+                             "messages": [{"role": "system", "content": _ROLE_VEILLE},
+                                          {"role": "user", "content": _QUESTION_PERPLEXITY.format(question=question)}]},
+                       timeout=180)
+        j = r.json()
+        if r.status_code != 200 or "error" in j:
+            logger.warning(f"veille perplexity {r.status_code}: {str(j)[:200]}")
+            return {"texte": "", "sources": []}
+        texte = (j["choices"][0]["message"].get("content") or "").strip()
+        urls = list(j.get("citations") or [])
+        # les annotations url_citation (format OpenAI) portent parfois le titre
+        for a in (j["choices"][0]["message"].get("annotations") or []):
+            uc = a.get("url_citation") or {}
+            if uc.get("url") and uc["url"] not in urls:
+                urls.append(uc["url"])
+        sources = [{"url": u, "titre": ""} for u in urls if isinstance(u, str) and u.startswith("http")]
+        usage = j.get("usage") or {}
+        logger.info(f"veille perplexity : {len(sources)} sources, coût {usage.get('cost')} $")
+        return {"texte": texte, "sources": sources}
+    except Exception as e:
+        logger.warning(f"veille perplexity: {e}")
+        return {"texte": "", "sources": []}
+
+
 def _veille() -> dict:
-    """Recherche web via l'outil natif de l'API. Retourne {texte, sources}."""
+    """Recherche web via l'outil natif de l'API, puis une passe Perplexity. Retourne {texte, sources}."""
     aujourdhui = datetime.now(timezone.utc)
     debut = aujourdhui - timedelta(days=7)
     question = (
@@ -92,7 +145,15 @@ def _veille() -> dict:
         if resp.stop_reason != "pause_turn":
             break
         messages = messages + [{"role": "assistant", "content": resp.content}]
-    return {"texte": "\n\n".join(textes).strip(), "sources": sources[:14]}
+    texte = "\n\n".join(textes).strip()
+    # Perplexity en complément : son texte est ajouté sous un intertitre, ses sources dédoublonnées.
+    px = _veille_perplexity(question)
+    if px["texte"]:
+        texte = (texte + "\n\n### Veille complémentaire (Perplexity)\n\n" + px["texte"]).strip()
+        for src in px["sources"]:
+            if src["url"] not in vus:
+                vus.add(src["url"]); sources.append(src)
+    return {"texte": texte, "sources": sources[:20]}
 
 
 # -------------------------------------------------------------- 2. Redaction
@@ -407,6 +468,41 @@ def derniere_du_cycle(jours: int = 5) -> dict | None:
     except Exception as e:
         logger.error(f"newsletter derniere: {e}")
         return None
+
+
+def brouillons_en_attente(heures: int = 20) -> list:
+    """Lettres préparées depuis plus de N heures, toujours en brouillon et jamais rappelées."""
+    limite = (datetime.now(timezone.utc) - timedelta(hours=heures)).isoformat()
+    # Pas de rappel pour une lettre de plus d'une semaine : son cycle est passé.
+    plancher = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    try:
+        r = (supabase.table("newsletters").select("*").eq("statut", "brouillon")
+             .lte("created_at", limite).gte("created_at", plancher).order("created_at", desc=True).limit(3).execute())
+        return [nl for nl in (r.data or []) if not (nl.get("data") or {}).get("_rappel_le")]
+    except Exception as e:
+        logger.error(f"newsletter brouillons: {e}")
+        return []
+
+
+async def rappeler(nl: dict) -> None:
+    """Renvoie l'email de validation d'une lettre restée en brouillon (une seule fois).
+    Le mardi, un email de validation se perd facilement : sans clic, rien ne part,
+    et la semaine passe (lettres n°3 et n°4, septembre 2026)."""
+    data = dict(nl.get("data") or {})
+    nid, token = nl["id"], nl["token"]
+    base = f"{BACKEND_URL}/api/newsletter"
+    corps = rendu_html(data, unsub_url=f"{base}/desinscription?token=apercu", apercu_url=f"{base}/apercu/{nid}?token={token}")
+    total = len(abonnes_actifs())
+    html = _html_validation(data, nid, token, total, 0, len(nl.get("sources") or []), corps)
+    html = html.replace("En attente de ta validation", "Rappel : lettre toujours en attente de ta validation", 1)
+    try:
+        await mail_service.send_email(ADMIN_NOTIF_EMAIL, f"Rappel — à valider : {data.get('sujet')}", html)
+    except Exception as e:
+        logger.error(f"newsletter rappel {nid}: {e}")
+        return
+    data["_rappel_le"] = datetime.now(timezone.utc).isoformat()
+    supabase.table("newsletters").update({"data": data}).eq("id", nid).execute()
+    logger.info(f"newsletter n°{nl.get('numero')} : rappel de validation envoyé")
 
 
 async def preparer() -> dict:
