@@ -176,7 +176,10 @@ _ROLE_RICO = (
     "Tu ne vends jamais Postorico frontalement : tu aides, et l'outil se devine.\n"
     "TYPOGRAPHIE — non négociable : français impeccable, tous les accents (é, è, ê, à, ç, ô, û), "
     "majuscules accentuées comprises, apostrophes courbes ’, espaces insécables avant : ; ! ?, "
-    "guillemets français « ». Un texte sans accents est un texte fautif : relis-toi avant de rendre."
+    "guillemets français « ». Un texte sans accents est un texte fautif : relis-toi avant de rendre.\n"
+    "PONCTUATION : jamais de tiret cadratin (—) ni de demi-cadratin (–), ni comme séparateur ni comme "
+    "incise. Utilise la virgule, le deux-points, le point ou les parenthèses. Le trait d'union (-) reste "
+    "réservé aux mots composés."
 )
 
 _SCHEMA_LETTRE = {
@@ -258,6 +261,21 @@ def _source_par_titre(actu: dict, sources: list) -> str:
     return meilleur if score >= 2 else ""
 
 
+def _sans_tirets(valeur):
+    """Remplace les tirets longs dans tout texte généré : « A — B » devient « A, B », « — » en
+    tête de phrase disparaît. Le modèle a la consigne, mais une lettre qui part est définitive."""
+    if isinstance(valeur, str):
+        v = re.sub(r"\s*[—–]\s*", ", ", valeur)
+        v = re.sub(r"^, ", "", v)                            # pas de virgule en tête de texte
+        v = re.sub(r"([.!?»]) *, ", r"\1 ", v)                # ni en début de phrase
+        return re.sub(r",\s*,", ",", v).replace(" ,", ",")
+    if isinstance(valeur, list):
+        return [_sans_tirets(x) for x in valeur]
+    if isinstance(valeur, dict):
+        return {k: _sans_tirets(x) for k, x in valeur.items()}
+    return valeur
+
+
 def _verifier_lettre(data: dict, veille: dict) -> dict:
     """Garde-fous après rédaction : on n'invente rien. Une actu est gardée si la veille en
     parle (les mots de son titre et de son résumé apparaissent dans le texte de veille) ;
@@ -320,6 +338,7 @@ def _rediger(veille: dict, numero: int) -> dict:
         raise RuntimeError("redaction refusee par le modele")
     brut = next((b.text for b in resp.content if b.type == "text"), "")
     data = json.loads(brut)
+    data = _sans_tirets(data)
     data = _verifier_lettre(data, veille)
     data["numero"] = numero
     data["date"] = _date_fr(datetime.now(timezone.utc))
@@ -346,6 +365,7 @@ def _lien_desinscription(token: str) -> str:
 
 
 def rendu_html(data: dict, unsub_url: str = "#", apercu_url: str = "") -> str:
+    data = _sans_tirets(data)
     """La lettre en HTML email (tables + styles inline : compatible tous clients)."""
     sections = "".join(f"""
       <tr><td style="padding:0 34px 26px;">
@@ -442,7 +462,7 @@ def rendu_html(data: dict, unsub_url: str = "#", apercu_url: str = "") -> str:
         <tr><td style="padding:0 34px 30px;">
           <p style="margin:0 0 6px;color:#c3ccdb;font-size:15px;line-height:1.65;">{_e(data.get('signature'))}</p>
           <p style="margin:0;color:#ffffff;font-size:15px;font-weight:bold;">Rico</p>
-          <p style="margin:2px 0 0;color:#64748b;font-size:12.5px;">Postorico — ta présence sociale, pilotée par l'IA</p>
+          <p style="margin:2px 0 0;color:#64748b;font-size:12.5px;">Postorico, ta présence sociale pilotée par l'IA</p>
         </td></tr>
 
         <!-- Pied -->
@@ -576,7 +596,7 @@ async def rappeler(nl: dict) -> None:
     html = _html_validation(data, nid, token, total, 0, len(nl.get("sources") or []), corps)
     html = html.replace("En attente de ta validation", "Rappel : lettre toujours en attente de ta validation", 1)
     try:
-        await mail_service.send_email(ADMIN_NOTIF_EMAIL, f"Rappel — à valider : {data.get('sujet')}", html)
+        await mail_service.send_email(ADMIN_NOTIF_EMAIL, f"Rappel, à valider : {data.get('sujet')}", html)
     except Exception as e:
         logger.error(f"newsletter rappel {nid}: {e}")
         return
@@ -593,7 +613,7 @@ async def preparer() -> dict:
     # d'événements, sinon toute l'API se fige pendant la préparation.
     veille = await asyncio.to_thread(_veille)
     if len(veille["texte"]) < 200:
-        return {"error": "Veille trop pauvre cette semaine — rien à publier."}
+        return {"error": "Veille trop pauvre cette semaine : rien à publier."}
     logger.info(f"newsletter n°{numero} : rédaction ({len(veille['sources'])} sources)")
     data = await asyncio.to_thread(_rediger, veille, numero)
 
@@ -613,7 +633,7 @@ async def preparer() -> dict:
     try:
         await mail_service.send_email(
             ADMIN_NOTIF_EMAIL,
-            f"À valider — {data.get('sujet')}",
+            f"À valider : {data.get('sujet')}",
             _html_validation(data, nid, token, total, nb, len(veille["sources"]), corps),
         )
     except Exception as e:
@@ -634,7 +654,7 @@ def _html_validation(data: dict, nid: str, token: str, total: int, nouveaux: int
          style="background:#0b1322;border:1px solid rgba(255,255,255,0.09);border-radius:14px;">
     <tr><td style="padding:22px 24px;">
       <div style="color:#fbbf24;font-size:11px;font-weight:bold;letter-spacing:.16em;text-transform:uppercase;">En attente de ta validation</div>
-      <div style="color:#ffffff;font-size:19px;font-weight:bold;margin:8px 0 4px;">Lettre n°{_e(data.get('numero'))} — {_e(data.get('sujet'))}</div>
+      <div style="color:#ffffff;font-size:19px;font-weight:bold;margin:8px 0 4px;">Lettre n°{_e(data.get('numero'))} : {_e(data.get('sujet'))}</div>
       <div style="color:#94a3b8;font-size:13px;line-height:1.6;">
         {total} abonné(s) actifs{f' · {nouveaux} nouveau(x) cette semaine' if nouveaux else ''} · {nb_sources} sources de veille<br>
         Rien ne part tant que tu n'as pas cliqué. Aperçu complet ci-dessous.
@@ -749,7 +769,7 @@ async def _envoyer(nid: str):
         logger.info(f"newsletter {nid} envoyée : {ok} ok / {ko} erreurs")
         try:
             await mail_service.send_email(
-                ADMIN_NOTIF_EMAIL, f"Envoyée — {sujet}",
+                ADMIN_NOTIF_EMAIL, f"Envoyée : {sujet}",
                 mail_service._shell(f"""<tr><td style="padding:8px 32px 26px;">
                   <h1 style="margin:0 0 10px;color:#fff;font-size:20px;">Lettre n°{nl.get('numero')} envoyée</h1>
                   <p style="margin:0;color:#94a3b8;font-size:14px;line-height:1.7;">

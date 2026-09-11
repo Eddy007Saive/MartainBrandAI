@@ -81,7 +81,7 @@ async def submit_audit(body: dict, request: Request):
     try:
         admin_url = f"{FRONTEND_URL}/admin"
         html = mail_service.audit_notification_html(marque, email, recap, admin_url)
-        await mail_service.send_email(ADMIN_NOTIF_EMAIL, f"Nouvel audit de marque — {marque or 'Sans nom'}", html)
+        await mail_service.send_email(ADMIN_NOTIF_EMAIL, f"Nouvel audit de marque : {marque or 'Sans nom'}", html)
     except Exception as e:
         logger.error(f"Audit notification email failed: {e}")
 
@@ -112,7 +112,7 @@ async def reply_audit(audit_id: str, body: dict, payload: dict = Depends(verify_
     to = (audit.get("email") or "").strip()
     if not to:
         raise HTTPException(status_code=400, detail="Ce lead n'a pas d'email.")
-    subject = (body.get("subject") or "").strip() or f"Réponse à ton audit de marque — Postorico"
+    subject = (body.get("subject") or "").strip() or "Réponse à ton audit de marque (Postorico)"
     message = (body.get("message") or "").strip()
     if not message:
         raise HTTPException(status_code=400, detail="Le message est vide.")

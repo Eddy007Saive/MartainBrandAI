@@ -475,7 +475,7 @@ def _handle_account_event(event: str, payload: dict) -> dict:
                             (u.data[0].get("nom") or ""), p,
                             f"{FRONTEND_URL}/dashboard/parametres?s=connections")
                         asyncio.get_running_loop().create_task(mail_service.send_email(
-                            email, f"⚠️ Ton compte {p.capitalize()} est déconnecté — reconnecte-le", html))
+                            email, f"⚠️ Ton compte {p.capitalize()} est déconnecté, reconnecte-le", html))
                 except Exception as e:
                     logger.warning(f"email compte déconnecté {tg}/{p}: {e}")
                 logger.info(f"account.disconnected: {tg} / {p} -> colonne vidée")

@@ -331,6 +331,6 @@ async def _alerte_admin(titre: str, telegram_id: str, detail: str) -> None:
     try:
         sujet, html = mail_service.admin_payment_html("payment_failed", c.get("nom"), c.get("email"),
                                                       f"{titre} : {detail}")
-        await mail_service.send_email(ADMIN_NOTIF_EMAIL, f"🚨 {titre} — {c.get('nom') or telegram_id}", html)
+        await mail_service.send_email(ADMIN_NOTIF_EMAIL, f"🚨 {titre} : {c.get('nom') or telegram_id}", html)
     except Exception as e:
         logger.error(f"alerte admin impayés: {e}")

@@ -185,7 +185,7 @@ def _footer(internal: bool = False) -> str:
     """Pied de page. `internal=True` -> notification admin, pas de désinscription."""
     if internal:
         return """<tr><td style="padding:18px 32px;border-top:1px solid #e9ecf4;color:#6b7688;font-size:11px;">
-          © 2026 Postorico — notification interne automatique
+          © 2026 Postorico, notification interne automatique
         </td></tr>"""
     return f"""<tr><td style="padding:20px 32px;border-top:1px solid #e9ecf4;">
       <p style="margin:0;color:#6b7688;font-size:11px;line-height:1.7;">
@@ -295,9 +295,9 @@ def admin_payment_html(kind: str, nom: str, email: str, detail: str = "") -> tup
     note = notes.get(kind, "Un événement de facturation vient d'être enregistré sur ce compte.")
     plein, _ = _TEINTES[teinte]
     who = _html.escape(nom or "Client")
-    mail = _html.escape(email or "—")
+    mail = _html.escape(email or "(sans email)")
     extra = f'<p style="margin:10px 0 0;color:#1f2937;font-size:14px;line-height:1.6;">{_html.escape(detail)}</p>' if detail else ""
-    subject = f"{emoji_subj} — {who}"
+    subject = f"{emoji_subj} : {who}"
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
       <div style="border-left:3px solid {plein};padding:2px 0 2px 16px;">
         <h1 class="titre" style="margin:0 0 8px;font-size:19px;color:#0f172a;font-weight:bold;">{titre}</h1>
@@ -306,7 +306,7 @@ def admin_payment_html(kind: str, nom: str, email: str, detail: str = "") -> tup
       </div>
       <p style="margin:18px 0 0;color:#5b6a82;font-size:13.5px;line-height:1.7;">{note}</p>
       <p style="margin:14px 0 0;color:#6b7688;font-size:12.5px;line-height:1.6;">
-        Le détail complet — montant, dates, historique des paiements — est dans le tableau de bord administrateur, section Facturation.
+        Le détail complet (montant, dates, historique des paiements) est dans le tableau de bord administrateur, section Facturation.
       </p>
     </td></tr>"""
     return subject, _shell(inner, width=520, internal=True,
@@ -360,7 +360,7 @@ def facture_html(nom: str, montant: float, devise: str, libelle: str,
     devise_sym = "€" if devise == "EUR" else devise
     montant_txt = f"{montant:.2f}".replace(".", ",").removesuffix(",00")
     num = f" n°{_html.escape(numero)}" if numero else ""
-    sujet = f"Ta facture Postorico{num} — {montant_txt} {devise_sym}"
+    sujet = f"Ta facture Postorico{num} : {montant_txt} {devise_sym}"
     bouton = _bouton(url, "Voir ma facture") if url else ""
     lien_pdf = (f"""<p style="margin:0 0 22px;"><a href="{pdf}" target="_blank" style="color:#6d4fe0;font-size:13px;">Télécharger le PDF</a></p>"""
                 if pdf else "")
@@ -410,7 +410,7 @@ def account_disconnected_html(nom: str, reseau: str, link: str) -> str:
 def audit_notification_html(marque: str, email: str, recap: str, admin_url: str) -> str:
     """Notification interne : un nouvel audit de marque vient d'arriver."""
     marque_txt = _html.escape(marque or "Sans nom")
-    email_txt = _html.escape(email or "—")
+    email_txt = _html.escape(email or "(sans email)")
     recap_html = _nl2br(recap)
     inner = f"""<tr><td class="marge" style="padding:12px 32px 26px;">
       <span style="display:inline-block;background:#e7faf1;color:#0b7a53;font-size:11px;font-weight:bold;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:99px;">Nouveau lead</span>
@@ -425,7 +425,7 @@ def audit_notification_html(marque: str, email: str, recap: str, admin_url: str)
       </div>
     </td></tr>"""
     return _shell(inner, width=600, internal=True, teinte="succes",
-                  apercu=f"{marque_txt} — {email_txt}")
+                  apercu=f"{marque_txt}, {email_txt}")
 
 
 def audit_reply_html(marque: str, message: str) -> str:
@@ -519,13 +519,13 @@ def resiliation_html(nom: str, fin: str, lien: str) -> tuple:
         except Exception:
             jour = str(fin)[:10]
     quand = f"jusqu'au <strong>{jour}</strong>" if jour else "jusqu'à la fin de ta période en cours"
-    suffixe = f" — accès jusqu'au {jour}" if jour else ""
+    suffixe = f", accès jusqu'au {jour}" if jour else ""
     sujet = f"Ta résiliation est enregistrée{suffixe}"
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
       <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">C'est fait</h1>
       <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
       <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 22px;">
-        Ton abonnement ne se renouvellera pas. Tu gardes l'accès complet {quand} —
+        Ton abonnement ne se renouvellera pas. Tu gardes l'accès complet {quand} :
         la période est déjà réglée, elle est à toi.
       </p>
       {_encadre("Fin de l'accès", jour or "fin de la période en cours")}
@@ -537,7 +537,7 @@ def resiliation_html(nom: str, fin: str, lien: str) -> tuple:
       {_bouton(lien, "Réactiver mon abonnement")}
       <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
         Merci d'avoir essayé Postorico. Si quelque chose n'a pas marché, réponds à
-        cet email — on lit tout.
+        cet email, on lit tout.
       </p>
       {_signature()}
     </td></tr>"""
@@ -553,7 +553,7 @@ def releve_affilie_html(nom: str, periode: str, montant: float, devise: str, nb:
     devise_sym = "€" if (devise or "EUR").upper() == "EUR" else devise
     montant_txt = f"{montant:.2f}".replace(".", ",").removesuffix(",00")
     mois = _html.escape(periode)
-    sujet = f"Ton relevé d'affiliation {mois} — {montant_txt} {devise_sym}"
+    sujet = f"Ton relevé d'affiliation {mois} : {montant_txt} {devise_sym}"
     ventes = "1 vente commissionnée" if nb == 1 else f"{nb} ventes commissionnées"
     inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
       <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Ton relevé du mois</h1>
