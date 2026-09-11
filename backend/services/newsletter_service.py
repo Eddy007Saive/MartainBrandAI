@@ -153,7 +153,14 @@ def _veille() -> dict:
         for src in px["sources"]:
             if src["url"] not in vus:
                 vus.add(src["url"]); sources.append(src)
-    return {"texte": texte, "sources": sources[:20]}
+    sources = sources[:40]
+    # La liste des adresses, en clair, à la fin : le rédacteur doit recopier l'URL exacte
+    # d'une source pour chaque actu, il faut donc qu'il les voie (le compte rendu de Claude
+    # cite des titres, celui de Perplexity des numéros [n]).
+    if sources:
+        texte += "\n\n### SOURCES (recopier l'URL exacte dans le champ source de chaque actu)\n" + "\n".join(
+            f"- {s['url']}" + (f" — {s['titre']}" if s.get("titre") else "") for s in sources)
+    return {"texte": texte, "sources": sources}
 
 
 # -------------------------------------------------------------- 2. Redaction
@@ -238,6 +245,19 @@ def _mots_cles(texte: str) -> list:
     return [m for m in re.findall(r"[a-zà-ü0-9]{5,}", (texte or "").lower()) if m not in vides]
 
 
+def _source_par_titre(actu: dict, sources: list) -> str:
+    """La source de veille dont le titre ou l'adresse partage le plus de mots avec l'actu
+    (réseau compris) ; vide si rien ne colle vraiment."""
+    mots = set(_mots_cles(f"{actu.get('reseau', '')} {actu.get('titre', '')} {actu.get('resume', '')}"))
+    meilleur, score = "", 0
+    for s in sources:
+        cible = f"{s.get('titre', '')} {s.get('url', '')}".lower()
+        n = sum(1 for m in mots if m in cible)
+        if n > score:
+            meilleur, score = s.get("url") or "", n
+    return meilleur if score >= 2 else ""
+
+
 def _verifier_lettre(data: dict, veille: dict) -> dict:
     """Garde-fous après rédaction : on n'invente rien. Une actu est gardée si la veille en
     parle (les mots de son titre et de son résumé apparaissent dans le texte de veille) ;
@@ -256,12 +276,13 @@ def _verifier_lettre(data: dict, veille: dict) -> dict:
             continue
         src = (a.get("source") or "").strip()
         if not (src.startswith("http") and any(src.rstrip("/") in u or u.rstrip("/") in src for u in urls)):
-            # URL absente de la veille (générique ou inventée) : la plus proche du passage concerné.
+            # URL absente de la veille (générique ou inventée) : la plus proche du passage concerné,
+            # sinon une source de la veille dont le titre parle du même sujet.
             pos = min((bas.find(m) for m in presents if bas.find(m) >= 0), default=-1)
             src = ""
             if pos >= 0 and urls_texte:
                 src = min(urls_texte, key=lambda t: abs(t[0] - pos))[1]
-            a["source"] = src
+            a["source"] = src or _source_par_titre(a, veille.get("sources") or [])
         actus.append(a)
     data["actus"] = actus[:4] if len(actus) >= 2 else []
     return data
@@ -272,7 +293,7 @@ def _rediger(veille: dict, numero: int) -> dict:
     consigne = (
         f"Voici la veille des réseaux sociaux de la semaine (numéro {numero} de la lettre, "
         f"nous sommes le {_date_fr(datetime.now(timezone.utc))}) :\n\n"
-        f"{veille['texte'][:14000]}\n\n"
+        f"{veille['texte'][:40000]}\n\n"
         "Écris la lettre de cette semaine. Contraintes :\n"
         "- 2 à 3 sections de fond (bonnes pratiques, stratégie, formats par réseau)\n"
         "- 2 à 4 actus tirées STRICTEMENT de la veille ci-dessus (n'invente aucune information, "
