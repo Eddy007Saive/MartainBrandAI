@@ -1413,6 +1413,35 @@
       "montage": "Edición IA",
       "direct": "Vídeo ya listo"
     },
+    "hook": {
+      "label": "Gancho de apertura",
+      "auto": "Gancho automático por IA",
+      "autoSub": "La IA elige el gancho durante el montaje",
+      "autoPreview": "(la IA elegirá el gancho)",
+      "placeholder": "Frase de impacto de los primeros 3 segundos (opcional)",
+      "suggest": "Sugerir con IA",
+      "transcribing": "Analizando el vídeo…",
+      "choose": "Elige o edita:",
+      "none": "No se encontraron sugerencias.",
+      "error": "Sugerencia no disponible.",
+      "size": "Tamaño del gancho",
+      "position": "Ubicación",
+      "posTop": "Arriba",
+      "posCenter": "Centro",
+      "posBottom": "Abajo"
+    },
+    "emojis": {
+      "title": "Emojis de reacción (IA)",
+      "sub": "La IA coloca algunos emojis en los momentos clave."
+    },
+    "style": {
+      "label": "Estilo avanzado",
+      "font": "Fuente",
+      "color": "Color de la palabra activa",
+      "size": "Tamaño del texto",
+      "position": "Posición vertical",
+      "uppercase": "MAYÚSCULAS"
+    },
     "tpl": {
       "label": "Estilo de subtítulos",
       "custom": "Personalizado",

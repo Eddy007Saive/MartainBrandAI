@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, Film, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors } from 'lucide-react';
+import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, Film, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors, Type, Smile } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
@@ -35,30 +35,37 @@ const FONT_CSS = {
   Bahnschrift: { css: 'Bahnschrift, sans-serif', w: 700 },
 };
 const CAP_OUTLINE = '-2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000, -1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000';
-const tok = (t) => (t === 'hl' ? HL : t === 'white' ? '#fff' : '#000');
-function presetPreviewStyle(tp) {
-  const f = FONT_CSS[tp.font] || FONT_CSS['Arial Black'];
-  const style = { fontFamily: f.css, fontWeight: f.w, color: tok(tp.primary), fontStyle: tp.italic ? 'italic' : 'normal', textShadow: 'none' };
-  if (tp.glow) { const g = tok(tp.glow); style.textShadow = `0 0 6px ${g}, 0 0 14px ${g}, 0 0 26px ${g}`; }
+const SUB_COLORS = ['#3AFFA3', '#FFD84D', '#FF5C8A', '#00D1FF', '#B18CFF', '#FF8A00'];
+const rangePct = (v, min, max) => `${((v - min) / (max - min)) * 100}%`;
+const tok = (t, hl) => (t === 'hl' ? (hl || HL) : t === 'white' ? '#fff' : '#000');
+// overrides : { font, hl } — utilisé pour l'aperçu en direct sur la vidéo (police/couleur
+// choisies dans "Style avancé"), sinon la police/couleur par défaut du preset.
+function presetPreviewStyle(tp, overrides = {}) {
+  const f = FONT_CSS[overrides.font || tp.font] || FONT_CSS['Arial Black'];
+  const style = { fontFamily: f.css, fontWeight: f.w, color: tok(tp.primary, overrides.hl), fontStyle: tp.italic ? 'italic' : 'normal', textShadow: 'none' };
+  if (tp.glow) { const g = tok(tp.glow, overrides.hl); style.textShadow = `0 0 6px ${g}, 0 0 14px ${g}, 0 0 26px ${g}`; }
   else if (tp.shad) style.textShadow = `${CAP_OUTLINE}, 4px 4px 0 #000`;
   else if (!tp.box) style.textShadow = CAP_OUTLINE;
-  if (tp.box) { style.background = tok(tp.box); style.padding = '2px 7px'; style.borderRadius = '5px'; style.display = 'inline-block'; }
+  if (tp.box) { style.background = tok(tp.box, overrides.hl); style.padding = '2px 7px'; style.borderRadius = '5px'; style.display = 'inline-block'; }
   return style;
 }
+// `active` : comportement du mot en cours de lecture (aperçu karaoké) — hl = couleur
+// d'accent, white = blanc, scale/pop = agrandi. Miroir de submagic-poc/index.html PRESETS.
 const TEMPLATES = [
-  { name: 'classic', label: 'Classic', font: 'Arial Black', primary: 'white', box: null, glow: null, shad: 0, italic: 0, html: 'ton message' },
-  { name: 'hormozi', label: 'Hormozi', font: 'Segoe UI Black', primary: 'white', box: null, glow: 'black', shad: 0, italic: 0, html: 'PLUS DE <span class="cap-hl">MARGE</span>' },
-  { name: 'neon', label: 'Néon', font: 'Segoe UI Black', primary: 'white', box: null, glow: 'hl', shad: 0, italic: 0, html: 'IMPACT' },
-  { name: 'leon', label: 'Leon', font: 'Arial Black', primary: 'white', box: 'hl', glow: null, shad: 0, italic: 0, html: 'le secret' },
-  { name: 'molly', label: 'Molly', font: 'Verdana', primary: 'black', box: 'white', glow: null, shad: 0, italic: 0, html: 'douceur' },
-  { name: 'caleb', label: 'Caleb', font: 'Arial Black', primary: 'white', box: 'black', glow: null, shad: 0, italic: 0, html: 'clair, net' },
-  { name: 'william', label: 'William', font: 'Arial Black', primary: 'hl', box: null, glow: null, shad: 0, italic: 0, html: 'ton style' },
-  { name: 'beast', label: 'Beast', font: 'Impact', primary: 'white', box: null, glow: null, shad: 1, italic: 0, html: 'INCROYABLE' },
-  { name: 'duo', label: 'Duo', font: 'Trebuchet MS', primary: 'white', box: null, glow: null, shad: 0, italic: 0, html: 'énergie' },
-  { name: 'noah', label: 'Noah', font: 'Segoe UI Black', primary: 'white', box: null, glow: null, shad: 0, italic: 1, html: 'authentique' },
-  { name: 'brandin', label: 'Brandin', font: 'Georgia', primary: 'white', box: null, glow: null, shad: 0, italic: 0, html: 'élégance' },
-  { name: 'bahn', label: 'Bahn', font: 'Bahnschrift', primary: 'white', box: null, glow: null, shad: 1, italic: 0, html: 'moderne' },
+  { name: 'classic', label: 'Classic', font: 'Arial Black', primary: 'white', box: null, glow: null, shad: 0, italic: 0, active: 'hl', html: 'ton message' },
+  { name: 'hormozi', label: 'Hormozi', font: 'Segoe UI Black', primary: 'white', box: null, glow: 'black', shad: 0, italic: 0, active: 'hl', html: 'PLUS DE <span class="cap-hl">MARGE</span>' },
+  { name: 'neon', label: 'Néon', font: 'Segoe UI Black', primary: 'white', box: null, glow: 'hl', shad: 0, italic: 0, active: 'white', html: 'IMPACT' },
+  { name: 'leon', label: 'Leon', font: 'Arial Black', primary: 'white', box: 'hl', glow: null, shad: 0, italic: 0, active: 'scale', html: 'le secret' },
+  { name: 'molly', label: 'Molly', font: 'Verdana', primary: 'black', box: 'white', glow: null, shad: 0, italic: 0, active: 'hl', html: 'douceur' },
+  { name: 'caleb', label: 'Caleb', font: 'Arial Black', primary: 'white', box: 'black', glow: null, shad: 0, italic: 0, active: 'hl', html: 'clair, net' },
+  { name: 'william', label: 'William', font: 'Arial Black', primary: 'hl', box: null, glow: null, shad: 0, italic: 0, active: 'white', html: 'ton style' },
+  { name: 'beast', label: 'Beast', font: 'Impact', primary: 'white', box: null, glow: null, shad: 1, italic: 0, active: 'hl', html: 'INCROYABLE' },
+  { name: 'duo', label: 'Duo', font: 'Trebuchet MS', primary: 'white', box: null, glow: null, shad: 0, italic: 0, active: 'pop', html: 'énergie' },
+  { name: 'noah', label: 'Noah', font: 'Segoe UI Black', primary: 'white', box: null, glow: null, shad: 0, italic: 1, active: 'hl', html: 'authentique' },
+  { name: 'brandin', label: 'Brandin', font: 'Georgia', primary: 'white', box: null, glow: null, shad: 0, italic: 0, active: 'hl', html: 'élégance' },
+  { name: 'bahn', label: 'Bahn', font: 'Bahnschrift', primary: 'white', box: null, glow: null, shad: 1, italic: 0, active: 'hl', html: 'moderne' },
 ];
+const CAPTION_WORDS = ['PRÊT', 'À', 'TOUT', 'CHANGER', '?'];
 
 export default function StudioVideo() {
   const [params] = useSearchParams();
@@ -80,6 +87,21 @@ export default function StudioVideo() {
   const [cleanAudio, setCleanAudio] = useState(false);
   const [volume, setVolume] = useState(25);
   const [customId, setCustomId] = useState(null);  // thème/preset perso sélectionné
+  // Hook d'ouverture (le hook reprend toujours le style des sous-titres, cf. montage_poc_service.py)
+  const [hookAuto, setHookAuto] = useState(false);
+  const [hookText, setHookText] = useState('');
+  const [hookPosition, setHookPosition] = useState('top');
+  const [hookSize, setHookSize] = useState(100);
+  const [hookSuggestions, setHookSuggestions] = useState([]);
+  const [hookLoading, setHookLoading] = useState(false);
+  const [hookStatus, setHookStatus] = useState('');
+  const [emojis, setEmojis] = useState(false);
+  // Style avancé des sous-titres (au-delà du preset)
+  const [subFont, setSubFont] = useState('Arial Black');
+  const [subColor, setSubColor] = useState(HL);
+  const [subSize, setSubSize] = useState(100);
+  const [subPosition, setSubPosition] = useState(30);
+  const [subUppercase, setSubUppercase] = useState(true);
   const [mode, setMode] = useState('montage');     // 'montage' (Submagic) | 'direct' (import tel quel)
   const [reseaux, setReseaux] = useState(['instagram']);  // multi-réseaux → 1 carte contenu par réseau
   const [asStory, setAsStory] = useState(false);          // story 24h (Instagram/Facebook) au lieu de Reel
@@ -89,6 +111,13 @@ export default function StudioVideo() {
   const [stage, setStage] = useState(null);        // étape Submagic (processing|transcribing|exporting)
   const pollRef = useRef(null);
   const audioRef = useRef(null);
+  const [activeWord, setActiveWord] = useState(0);  // aperçu karaoké en direct
+  const currentTemplate = TEMPLATES.find((tp) => tp.name === form.template) || TEMPLATES[0];
+
+  useEffect(() => {
+    const id = setInterval(() => setActiveWord((i) => (i + 1) % CAPTION_WORDS.length), 550);
+    return () => clearInterval(id);
+  }, []);
 
   const togglePlay = (m) => {
     const a = audioRef.current;
@@ -127,6 +156,7 @@ export default function StudioVideo() {
     setFile(f);
     setLocalUrl(URL.createObjectURL(f));   // aperçu LOCAL : rien n'est envoyé tant qu'on ne monte pas
     setStep('ready');
+    setHookSuggestions([]); setHookStatus('');  // suggestions de la vidéo précédente, plus valables
   };
 
   const startPolling = (cid) => {
@@ -150,6 +180,20 @@ export default function StudioVideo() {
       exporting: { pct: 88, label: t('video.progress.exporting') },
     };
     return map[stage] || { pct: 25, label: t('video.progress.preparing') };
+  };
+
+  const suggestHooks = async () => {
+    if (!file) return;
+    setHookLoading(true); setHookStatus(t('video.hook.transcribing'));
+    try {
+      const { hooks } = await videoService.suggestHooks(file);
+      setHookSuggestions(hooks || []);
+      setHookStatus(hooks?.length ? t('video.hook.choose') : t('video.hook.none'));
+    } catch (e) {
+      setHookStatus(e?.response?.data?.detail || t('video.hook.error'));
+    } finally {
+      setHookLoading(false);
+    }
   };
 
   const lancer = async () => {
@@ -179,6 +223,16 @@ export default function StudioVideo() {
         silence_pace: silencePace === 'off' ? undefined : silencePace,
         clean_audio: cleanAudio,
         music: form.music, music_volume: volume,
+        hook: hookAuto ? '' : hookText.trim(),
+        hook_auto: hookAuto,
+        hook_position: hookPosition,
+        hook_fontscale: hookSize / 100,
+        emojis,
+        font: subFont,
+        hl_color: subColor,
+        fontscale: subSize / 100,
+        position: subPosition / 100,
+        uppercase: subUppercase,
       });
       startPolling(d.contenu_id);
     } catch (e) {
@@ -263,7 +317,38 @@ export default function StudioVideo() {
               </label>
             ) : (
               <div className="space-y-3">
-                <video src={localUrl} controls className="w-full max-h-[420px] rounded-xl bg-black object-contain" />
+                <div className="relative rounded-xl overflow-hidden bg-black">
+                  <video src={localUrl} controls className="w-full max-h-[420px] object-contain" />
+                  {/* Aperçu en direct du style choisi (hook + sous-titres karaoké) — rien
+                      n'est envoyé, c'est juste un rendu CSS approximatif du résultat. */}
+                  {mode === 'montage' && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute left-[8%] right-[8%] text-center font-extrabold leading-tight"
+                        style={{
+                          ...presetPreviewStyle(currentTemplate, { hl: subColor }),
+                          top: hookPosition === 'top' ? '8%' : hookPosition === 'center' ? '50%' : 'auto',
+                          bottom: hookPosition === 'bottom' ? '16%' : 'auto',
+                          transform: hookPosition === 'center' ? 'translateY(-50%)' : 'none',
+                          fontSize: `${22 * (hookSize / 100)}px`,
+                          opacity: hookAuto || hookText.trim() ? 1 : 0.4,
+                        }}>
+                        {(hookAuto ? t('video.hook.autoPreview') : (hookText.trim() || t('video.hook.placeholder')))}
+                      </div>
+                      <div className="absolute left-[8%] right-[8%] text-center" style={{ bottom: `${subPosition}%`, fontSize: `${16 * (subSize / 100)}px` }}>
+                        {CAPTION_WORDS.map((w, i) => {
+                          const isActive = i === activeWord;
+                          const wordStyle = { ...presetPreviewStyle(currentTemplate, { font: subFont, hl: subColor }), margin: '0 0.15em', display: 'inline-block', transition: 'transform .12s ease, color .12s ease' };
+                          if (isActive) {
+                            if (currentTemplate.active === 'hl') wordStyle.color = subColor;
+                            if (currentTemplate.active === 'white') wordStyle.color = '#fff';
+                            if (currentTemplate.active === 'scale' || currentTemplate.active === 'pop') wordStyle.transform = 'scale(1.12)';
+                          }
+                          return <span key={i} style={wordStyle}>{subUppercase ? w : w.toLowerCase()}</span>;
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 {step === 'processing' && uploadPct > 0 && uploadPct < 100 && (
                   <div className="flex items-center gap-2 text-xs text-slate-400 font-inter">
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-[#5B6CFF]" /> {t('video.progress.sending', { pct: uploadPct })}
@@ -323,6 +408,49 @@ export default function StudioVideo() {
             </div>
 
             {mode === 'montage' ? (<>
+            {/* Hook d'ouverture */}
+            <div className="sv-sec">
+              <div className="sv-lab"><Sparkles className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.hook.label')}</div>
+              <div className="sv-trow">
+                <div className="flex-1"><div className="sv-t">{t('video.hook.auto')}</div><div className="sv-s">{t('video.hook.autoSub')}</div></div>
+                <Switch on={hookAuto} onClick={() => setHookAuto((v) => !v)} />
+              </div>
+              {!hookAuto && (
+                <div className="mt-3.5 space-y-2.5">
+                  <input type="text" maxLength={80} value={hookText} onChange={(e) => setHookText(e.target.value)}
+                    placeholder={t('video.hook.placeholder')}
+                    className="w-full bg-[#0c111f] border border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] text-white font-inter outline-none focus:border-[#8A6CFF]/50" />
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <button type="button" onClick={suggestHooks} disabled={!file || hookLoading}
+                      className="sv-chip flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                      {hookLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      {t('video.hook.suggest')}
+                    </button>
+                    {hookStatus && <span className="text-[11.5px] text-slate-500 font-inter">{hookStatus}</span>}
+                  </div>
+                  {hookSuggestions.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {hookSuggestions.map((h, i) => (
+                        <button key={i} type="button" onClick={() => setHookText(h)} className="sv-chip">{h}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              <div className="mt-3.5">
+                <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">{t('video.hook.size')}</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{hookSize} %</span></div>
+                <input type="range" min="50" max="160" value={hookSize} onChange={(e) => setHookSize(+e.target.value)} style={{ '--pct': rangePct(hookSize, 50, 160) }} />
+              </div>
+              <div className="mt-3.5">
+                <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">{t('video.hook.position')}</p>
+                <div className="flex gap-2">
+                  {[{ id: 'top', labelKey: 'video.hook.posTop' }, { id: 'center', labelKey: 'video.hook.posCenter' }, { id: 'bottom', labelKey: 'video.hook.posBottom' }].map((p) => (
+                    <button key={p.id} type="button" onClick={() => setHookPosition(p.id)} className={`sv-chip flex-1 justify-center ${hookPosition === p.id ? 'on' : ''}`}>{t(p.labelKey)}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Templates */}
             <div className="sv-sec">
               <div className="sv-lab"><Wand2 className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.tpl.label')}<span className="ml-auto text-[12px] font-semibold text-[#3AFFA3] font-sora">{customId ? (options.custom?.find((c) => c.id === customId)?.label || t('video.tpl.custom')) : form.template}</span></div>
@@ -353,6 +481,40 @@ export default function StudioVideo() {
               </div>
             </div>
 
+            {/* Style avancé des sous-titres (au-delà du preset) */}
+            <div className="sv-sec">
+              <div className="sv-lab"><Type className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.style.label')}</div>
+              <div className="sv-trow">
+                <div className="flex-1"><div className="sv-t">{t('video.style.font')}</div></div>
+                <select value={subFont} onChange={(e) => setSubFont(e.target.value)}
+                  className="bg-[#0c111f] border border-white/10 rounded-lg px-2.5 py-1.5 text-[12.5px] text-white font-inter outline-none">
+                  {Object.keys(FONT_CSS).map((f) => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
+              <div className="sv-trow mt-3">
+                <div className="flex-1"><div className="sv-t">{t('video.style.color')}</div></div>
+                <div className="flex gap-1.5">
+                  {SUB_COLORS.map((c) => (
+                    <button key={c} type="button" onClick={() => setSubColor(c)} aria-label={c}
+                      className="w-6 h-6 rounded-full transition-transform"
+                      style={{ background: c, border: `2px solid ${subColor === c ? '#fff' : 'transparent'}`, transform: subColor === c ? 'scale(1.15)' : 'scale(1)' }} />
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3.5">
+                <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">{t('video.style.size')}</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{subSize} %</span></div>
+                <input type="range" min="70" max="140" value={subSize} onChange={(e) => setSubSize(+e.target.value)} style={{ '--pct': rangePct(subSize, 70, 140) }} />
+              </div>
+              <div className="mt-3.5">
+                <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">{t('video.style.position')}</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{subPosition} %</span></div>
+                <input type="range" min="10" max="45" value={subPosition} onChange={(e) => setSubPosition(+e.target.value)} style={{ '--pct': rangePct(subPosition, 10, 45) }} />
+              </div>
+              <div className="sv-trow mt-3.5">
+                <div className="flex-1"><div className="sv-t">{t('video.style.uppercase')}</div></div>
+                <Switch on={subUppercase} onClick={() => setSubUppercase((v) => !v)} />
+              </div>
+            </div>
+
             {/* B-roll */}
             <div className="sv-sec">
               <div className="sv-trow">
@@ -373,6 +535,14 @@ export default function StudioVideo() {
               <div className="sv-trow">
                 <div className="flex-1"><div className="sv-t">{t('video.zooms.title')}</div><div className="sv-s">{t('video.zooms.sub')}</div></div>
                 <Switch on={form.zooms} onClick={() => set('zooms', !form.zooms)} />
+              </div>
+            </div>
+
+            {/* Emojis */}
+            <div className="sv-sec">
+              <div className="sv-trow">
+                <div className="flex-1"><div className="sv-t flex items-center gap-1.5"><Smile className="w-3.5 h-3.5 text-slate-400" />{t('video.emojis.title')}</div><div className="sv-s">{t('video.emojis.sub')}</div></div>
+                <Switch on={emojis} onClick={() => setEmojis((v) => !v)} />
               </div>
             </div>
 

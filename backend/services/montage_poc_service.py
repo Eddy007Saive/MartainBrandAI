@@ -8,7 +8,9 @@ le job passe à "done".
 Interface volontairement MIROIR de submagic_service.py (mêmes noms de fonctions/kwargs,
 mêmes constantes DONE/FAILED) pour que routes/video.py n'ait presque rien à changer.
 """
+import asyncio
 import json
+import time
 
 import httpx
 from config import MONTAGE_POC_URL, MONTAGE_POC_INTERNAL_KEY, logger
@@ -75,6 +77,16 @@ async def create_project(
     music_id: str | None = "none",
     music_volume: int = 25,
     webhook_url: str | None = None,                 # submagic-poc n'a pas de webhook -> ignoré, polling only
+    hook: str = "",
+    hook_auto: bool = False,
+    hook_position: str = "top",
+    hook_fontscale: float = 1.0,
+    emojis: bool = False,
+    font: str | None = None,
+    hl_color: str | None = None,
+    fontscale: float = 1.0,
+    position: float = 0.30,
+    uppercase: bool = True,
 ) -> dict:
     """Démarre un montage. Retourne {ok, id, status} ou {ok:False, error}."""
     if not enabled():
@@ -90,8 +102,24 @@ async def create_project(
         "cuts_pace": remove_silence_pace if remove_silence_pace in
                      ("natural", "fast", "extra-fast") else "natural",
         "audio_clean": bool(clean_audio),
-        "hook_auto": False,
+        # hook_preset volontairement absent (None côté poc) : le hook reprend
+        # toujours le style des sous-titres -> une seule grille de presets à
+        # gérer côté UI plutôt que deux.
+        "hook": (hook or "").strip()[:80],
+        "hook_auto": bool(hook_auto),
+        "hook_position": hook_position if hook_position in ("top", "center", "bottom") else "top",
+        "hook_fontscale": max(0.5, min(1.6, hook_fontscale or 1.0)),
+        "emojis": bool(emojis),
+        "fontscale": max(0.7, min(1.4, fontscale or 1.0)),
+        "position": max(0.1, min(0.45, position if position is not None else 0.30)),
+        "uppercase": bool(uppercase) if uppercase is not None else True,
     }
+    # font/hl_color : seulement si fournis -> sinon on laisse les DEFAULTS du poc
+    # s'appliquer (envoyer explicitement `null` écraserait "Arial Black"/"#3AFFA3").
+    if font:
+        options["font"] = font
+    if hl_color:
+        options["hl_color"] = hl_color
     try:
         async with httpx.AsyncClient(timeout=CREATE_TIMEOUT) as c:
             r = await c.post(f"{MONTAGE_POC_URL}/process",
@@ -130,3 +158,36 @@ async def get_project(job_id: str) -> dict:
         "preview_url": None,  # pas d'équivalent "previewUrl" éditeur chez le poc
         "meta": {"error": d.get("error"), "warnings": d.get("warnings"), "thumb_url": d.get("thumb_url")},
     }
+
+
+async def suggest_hooks(file_bytes: bytes, filename: str, content_type: str | None) -> dict:
+    """Transcrit la vidéo (upload direct, pas encore sur Cloudinary à ce stade du
+    flux StudioVideo.jsx) et propose 3 accroches. Retourne {ok, hooks} ou
+    {ok:False, error}."""
+    if not enabled():
+        return {"ok": False, "error": "Service de montage indisponible."}
+    try:
+        async with httpx.AsyncClient(timeout=CREATE_TIMEOUT) as c:
+            r = await c.post(
+                f"{MONTAGE_POC_URL}/suggest_hooks",
+                files={"video": (filename, file_bytes, content_type or "video/mp4")},
+                headers=_headers(),
+            )
+        if r.status_code >= 300:
+            logger.error(f"montage-poc suggest_hooks error {r.status_code}: {r.text[:200]}")
+            return {"ok": False, "error": "Suggestion indisponible."}
+        job_id = r.json().get("job_id")
+        deadline = time.monotonic() + 90
+        async with httpx.AsyncClient(timeout=POLL_TIMEOUT) as c:
+            while time.monotonic() < deadline:
+                await asyncio.sleep(2)
+                jr = await c.get(f"{MONTAGE_POC_URL}/jobs/{job_id}", headers=_headers())
+                jd = jr.json()
+                if jd.get("status") == "done":
+                    return {"ok": True, "hooks": jd.get("hooks") or []}
+                if jd.get("status") == "error":
+                    return {"ok": False, "error": jd.get("error") or "Échec de la transcription."}
+        return {"ok": False, "error": "Délai dépassé, réessaie."}
+    except Exception as e:
+        logger.error(f"montage-poc suggest_hooks exception: {type(e).__name__}: {e}")
+        return {"ok": False, "error": "Service de montage injoignable, réessaie."}

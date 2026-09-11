@@ -89,6 +89,21 @@ async def upload_raw(file: UploadFile = File(...), payload: dict = Depends(verif
         raise HTTPException(status_code=500, detail="Échec de l'upload de la vidéo.")
 
 
+@router.post("/suggest_hooks")
+async def suggest_hooks(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
+    """Transcrit la vidéo (envoyée directement, avant tout upload Cloudinary) et
+    propose 3 accroches d'ouverture. Gratuit, pas de quota."""
+    if not file.content_type or not file.content_type.startswith("video/"):
+        raise HTTPException(status_code=400, detail="Le fichier doit être une vidéo (mp4, mov…)")
+    data = await file.read()
+    if len(data) > MAX_VIDEO_BYTES:
+        raise HTTPException(status_code=400, detail="Vidéo trop lourde (300 Mo max).")
+    res = await submagic_service.suggest_hooks(data, file.filename or "video.mp4", file.content_type)
+    if not res.get("ok"):
+        raise HTTPException(status_code=502, detail=res.get("error") or "Suggestion indisponible.")
+    return {"hooks": res.get("hooks", [])}
+
+
 @router.post("/draft")
 def draft(body: dict, payload: dict = Depends(verify_token)):
     """Crée un contenu-script (statut « À tourner ») depuis un script — apparaît dans Contenus.
@@ -143,6 +158,16 @@ async def create(body: dict, payload: dict = Depends(verify_token)):
         clean_audio=bool(body.get("clean_audio", False)),
         music_id=body.get("music", "none"),
         music_volume=int(body.get("music_volume", 25)),
+        hook=body.get("hook", ""),
+        hook_auto=bool(body.get("hook_auto")),
+        hook_position=body.get("hook_position", "top"),
+        hook_fontscale=float(body.get("hook_fontscale", 1.0)),
+        emojis=bool(body.get("emojis")),
+        font=body.get("font") or None,
+        hl_color=body.get("hl_color") or None,
+        fontscale=float(body.get("fontscale", 1.0)),
+        position=float(body.get("position", 0.30)),
+        uppercase=bool(body.get("uppercase", True)),
     )
     if not res.get("ok"):
         quota_service.refund(q)

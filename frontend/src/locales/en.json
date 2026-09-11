@@ -1413,6 +1413,35 @@
       "montage": "AI editing",
       "direct": "Video already done"
     },
+    "hook": {
+      "label": "Opening hook",
+      "auto": "Automatic AI hook",
+      "autoSub": "The AI picks the hook during editing",
+      "autoPreview": "(the AI will pick the hook)",
+      "placeholder": "Attention-grabbing line for the first 3 seconds (optional)",
+      "suggest": "Suggest with AI",
+      "transcribing": "Analyzing the video…",
+      "choose": "Pick or edit one:",
+      "none": "No suggestions found.",
+      "error": "Suggestion unavailable.",
+      "size": "Hook size",
+      "position": "Position",
+      "posTop": "Top",
+      "posCenter": "Center",
+      "posBottom": "Bottom"
+    },
+    "emojis": {
+      "title": "Reaction emojis (AI)",
+      "sub": "The AI places a few emojis on key moments."
+    },
+    "style": {
+      "label": "Advanced style",
+      "font": "Font",
+      "color": "Active word color",
+      "size": "Text size",
+      "position": "Vertical position",
+      "uppercase": "UPPERCASE"
+    },
     "tpl": {
       "label": "Caption style",
       "custom": "Custom",

@@ -1413,6 +1413,35 @@
       "montage": "Montage IA",
       "direct": "Vidéo déjà prête"
     },
+    "hook": {
+      "label": "Hook d'ouverture",
+      "auto": "Hook automatique par IA",
+      "autoSub": "L'IA choisit l'accroche pendant le montage",
+      "autoPreview": "(l'IA choisira l'accroche)",
+      "placeholder": "Phrase choc des 3 premières secondes (optionnel)",
+      "suggest": "Suggérer avec l'IA",
+      "transcribing": "Analyse de la vidéo…",
+      "choose": "Choisis ou édite :",
+      "none": "Aucune suggestion trouvée.",
+      "error": "Suggestion indisponible.",
+      "size": "Taille du hook",
+      "position": "Emplacement",
+      "posTop": "Haut",
+      "posCenter": "Centre",
+      "posBottom": "Bas"
+    },
+    "emojis": {
+      "title": "Emojis réaction (IA)",
+      "sub": "L'IA place quelques emojis sur les moments forts."
+    },
+    "style": {
+      "label": "Style avancé",
+      "font": "Police",
+      "color": "Couleur du mot actif",
+      "size": "Taille du texte",
+      "position": "Position verticale",
+      "uppercase": "MAJUSCULES"
+    },
     "tpl": {
       "label": "Style de sous-titres",
       "custom": "Perso",

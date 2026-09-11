@@ -16,6 +16,15 @@ export const videoService = {
     }).then((r) => r.data);
   },
 
+  // Transcrit la vidéo et propose 3 accroches -> { hooks: [...] }. Gratuit.
+  suggestHooks: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post('/video/suggest_hooks', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data);
+  },
+
   // Crée un contenu-script « À tourner » depuis un script -> { contenu_id }
   createDraft: (payload) => api.post('/video/draft', payload).then((r) => r.data),
 
