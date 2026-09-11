@@ -216,6 +216,57 @@ _SCHEMA_LETTRE = {
 }
 
 
+# Ce que Postorico sait faire AUJOURD'HUI. La lettre ne doit jamais recommander un geste
+# que l'outil ne permet pas en le laissant croire possible dans Postorico (n°4, septembre 2026 :
+# « réécris ton carrousel avec une légende par diapositive », option qu'aucun outil de
+# publication n'expose encore). Mettre à jour à chaque nouvelle fonctionnalité livrée en prod.
+CAPACITES_POSTORICO = (
+    "- Studio IA : sujets, posts (LinkedIn, Instagram, Facebook, TikTok, YouTube, Google Business), "
+    "visuels IA à la charte, carrousels (une image par slide, texte dessiné dans l'image, UNE légende "
+    "pour tout le post), stories, reels animés.\n"
+    "- Plan éditorial (rafale), calendrier, publication et programmation via Zernio, boîte de "
+    "commentaires unifiée, statistiques de performance, fiche Google Business.\n"
+    "- Pas encore : légende différente par slide de carrousel, publication de sondages, "
+    "messages vocaux, stickers ou fonctions natives d'une appli, modification d'un post déjà publié, "
+    "réponse automatique aux DM."
+)
+
+
+def _mots_cles(texte: str) -> list:
+    """Les mots porteurs d'un titre (5 lettres et plus, sans les mots-outils)."""
+    vides = {"cette", "votre", "notre", "leurs", "comme", "avant", "après", "toutes", "depuis", "chaque", "encore"}
+    return [m for m in re.findall(r"[a-zà-ü0-9]{5,}", (texte or "").lower()) if m not in vides]
+
+
+def _verifier_lettre(data: dict, veille: dict) -> dict:
+    """Garde-fous après rédaction : on n'invente rien. Une actu est gardée si la veille en
+    parle (les mots de son titre et de son résumé apparaissent dans le texte de veille) ;
+    sa source doit être une URL de la veille, sinon on prend l'URL la plus proche du passage
+    qui en parle, sinon vide. Une actu que la veille ne mentionne pas est retirée."""
+    texte = veille.get("texte") or ""
+    bas = texte.lower()
+    urls = [s.get("url") for s in (veille.get("sources") or []) if s.get("url")]
+    urls_texte = [(m.start(), m.group(0).rstrip(").,;")) for m in re.finditer(r"https?://[^\s)\]]+", texte)]
+    actus = []
+    for a in data.get("actus") or []:
+        mots = _mots_cles(f"{a.get('titre', '')} {a.get('resume', '')}")
+        presents = [m for m in mots if m in bas]
+        if len(mots) >= 3 and len(presents) < max(2, len(mots) // 3):
+            logger.info(f"newsletter : actu absente de la veille, retirée « {a.get('titre')} »")
+            continue
+        src = (a.get("source") or "").strip()
+        if not (src.startswith("http") and any(src.rstrip("/") in u or u.rstrip("/") in src for u in urls)):
+            # URL absente de la veille (générique ou inventée) : la plus proche du passage concerné.
+            pos = min((bas.find(m) for m in presents if bas.find(m) >= 0), default=-1)
+            src = ""
+            if pos >= 0 and urls_texte:
+                src = min(urls_texte, key=lambda t: abs(t[0] - pos))[1]
+            a["source"] = src
+        actus.append(a)
+    data["actus"] = actus[:4] if len(actus) >= 2 else []
+    return data
+
+
 def _rediger(veille: dict, numero: int) -> dict:
     """Claude ecrit la lettre a la voix de Rico. Sortie JSON validee par schema."""
     consigne = (
@@ -228,7 +279,14 @@ def _rediger(veille: dict, numero: int) -> dict:
         "aucune date, aucun chiffre) ; recopie l'URL source exacte quand elle existe\n"
         "- une seule action à faire cette semaine, réalisable en moins de 30 minutes\n"
         "- si la veille est pauvre sur un réseau, ne parle pas de ce réseau\n"
-        "- accentuation parfaite : aucun mot français ne doit perdre ses accents."
+        "- accentuation parfaite : aucun mot français ne doit perdre ses accents.\n\n"
+        "CE QUE POSTORICO PERMET (vérité produit, à respecter à la lettre) :\n"
+        f"{CAPACITES_POSTORICO}\n"
+        "RÈGLE : l'action de la semaine et les astuces ne recommandent que des gestes réalisables "
+        "dans Postorico avec les fonctions ci-dessus, ou des gestes de fond (répondre aux "
+        "commentaires, choisir un thème, régularité). Une nouveauté d'un réseau que Postorico ne "
+        "propose pas encore se RACONTE dans les actus, mais ne devient jamais l'action ni une "
+        "astuce, et on ne laisse jamais croire qu'elle se fait dans Postorico."
     )
     resp = _messages_create(
         model=_MODEL, max_tokens=8000,
@@ -241,6 +299,7 @@ def _rediger(veille: dict, numero: int) -> dict:
         raise RuntimeError("redaction refusee par le modele")
     brut = next((b.text for b in resp.content if b.type == "text"), "")
     data = json.loads(brut)
+    data = _verifier_lettre(data, veille)
     data["numero"] = numero
     data["date"] = _date_fr(datetime.now(timezone.utc))
     return data
