@@ -19,9 +19,10 @@ import shutil
 import threading
 import uuid
 
-from fastapi import FastAPI, Form, UploadFile
+from fastapi import Depends, FastAPI, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
+import envkeys
 import hooks
 import jobs_store
 import music
@@ -34,6 +35,21 @@ os.makedirs(JOBS_DIR, exist_ok=True)
 
 app = FastAPI()
 JOBS = {}
+
+
+def _require_internal_key(x_internal_key: str = Header(None)):
+    """Bloque /process, /suggest_hooks, /regenerate_thumbnail et la
+    suppression aux seuls appelants connaissant la cle partagee avec le
+    backend Postorico -- sans ca, n'importe qui avec l'URL Railway peut
+    declencher un rendu (donc consommer les credits Claude/Gemini/Pexels)
+    ou supprimer des jobs. Les routes de LECTURE restent ouvertes (job_id
+    est deja un token aleatoire, meme garantie que les projectId Submagic)."""
+    try:
+        expected = envkeys.get("MONTAGE_POC_INTERNAL_KEY")
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Service mal configure (cle interne absente)")
+    if not x_internal_key or x_internal_key != expected:
+        raise HTTPException(status_code=401, detail="Cle interne manquante ou invalide")
 
 
 def _sync(job_id):
@@ -59,6 +75,7 @@ DEFAULTS = {
     "position": 0.30,
     "uppercase": True,
     "cuts": True,
+    "cuts_pace": "natural",   # natural|fast|extra-fast -> seuils de coupe (voir CUTS_PACE, pipeline.py)
     "zoom": True,
     "zoom_max": 0.10,
     "vertical": True,
@@ -81,14 +98,45 @@ def music_list():
 
 
 @app.post("/process")
-async def process(video: UploadFile, options: str = Form("{}")):
+async def process(video: UploadFile = None, options: str = Form("{}"),
+                   video_url: str = Form(None), _auth=Depends(_require_internal_key)):
+    if not video and not video_url:
+        return JSONResponse({"status": "error", "error": "video ou video_url requis"},
+                            status_code=400)
     job_id = uuid.uuid4().hex[:10]
     job_dir = os.path.join(JOBS_DIR, job_id)
     os.makedirs(job_dir)
     src = os.path.join(job_dir, "in.mp4")
-    with open(src, "wb") as f:
-        while chunk := await video.read(1 << 20):
-            f.write(chunk)
+    if video:
+        with open(src, "wb") as f:
+            while chunk := await video.read(1 << 20):
+                f.write(chunk)
+    else:
+        # appelé par le backend Postorico avec une URL Cloudinary déjà
+        # publique (vidéo brute uploadée côté /video/upload) -> pas besoin
+        # de la faire transiter par un upload multipart, on la télécharge
+        # nous-mêmes ; streaming (pas .read()) pour ne pas charger toute
+        # la vidéo en RAM (cette machine a déjà eu des soucis mémoire).
+        # asyncio.to_thread : urllib.request.urlopen est BLOQUANT -> appelé
+        # tel quel dans une route async, il gèle toute la boucle asyncio
+        # (plus AUCUNE requête ne répond, même GET /) pendant tout le
+        # téléchargement, pas seulement celle-ci (testé : un simple curl
+        # timeout sur ce serveur pendant qu'un téléchargement traînait).
+        import asyncio
+        import urllib.request
+
+        def _download():
+            req = urllib.request.Request(video_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=120) as resp, open(src, "wb") as f:
+                shutil.copyfileobj(resp, f)
+
+        try:
+            await asyncio.to_thread(_download)
+        except Exception as e:
+            shutil.rmtree(job_dir, ignore_errors=True)
+            return JSONResponse(
+                {"status": "error", "error": f"téléchargement vidéo impossible : {e}"},
+                status_code=400)
     opts = {**DEFAULTS, **json.loads(options)}
     JOBS[job_id] = {"status": "processing", "step": "file d'attente"}
     _sync(job_id)
@@ -137,7 +185,8 @@ async def process(video: UploadFile, options: str = Form("{}")):
 
 
 @app.post("/regenerate_thumbnail/{job_id}")
-async def regenerate_thumbnail(job_id: str, options: str = Form("{}")):
+async def regenerate_thumbnail(job_id: str, options: str = Form("{}"),
+                                _auth=Depends(_require_internal_key)):
     job = JOBS.get(job_id)
     if not job or not job.get("video_path"):
         return JSONResponse({"status": "error", "error": "job introuvable ou vidéo absente"},
@@ -177,7 +226,7 @@ async def regenerate_thumbnail(job_id: str, options: str = Form("{}")):
 
 
 @app.post("/suggest_hooks")
-async def suggest_hooks(video: UploadFile):
+async def suggest_hooks(video: UploadFile, _auth=Depends(_require_internal_key)):
     job_id = uuid.uuid4().hex[:10]
     job_dir = os.path.join(JOBS_DIR, job_id)
     os.makedirs(job_dir)
@@ -220,7 +269,7 @@ def job_status(job_id: str):
 
 
 @app.delete("/jobs/{job_id}")
-def delete_job(job_id: str):
+def delete_job(job_id: str, _auth=Depends(_require_internal_key)):
     """Supprime le montage partout : Cloudinary (vidéo + miniature), la
     ligne Supabase, le dict mémoire et le dossier local s'il est encore là
     (dev local, ou juste après un rendu avant redéploiement)."""

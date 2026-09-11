@@ -1,24 +1,18 @@
-"""Studio Vidéo / Reels — montage via Submagic.
+"""Studio Vidéo / Reels — montage via Studio Montage (submagic-poc, self-hosted).
 
-Flux : upload vidéo brute (Cloudinary) → création d'un job Submagic (sous-titres + b-roll
-+ zooms + musique optionnelle) → Submagic rend en async → webhook (ou polling) → on
-rapatrie le MP4 monté sur Cloudinary et on l'attache au contenu.
+Flux : upload vidéo brute (Cloudinary) → démarrage d'un job Studio Montage (sous-titres +
+b-roll + zooms + musique optionnelle) → rendu async (polling, pas de webhook côté
+submagic-poc) → le MP4 est déjà sur Cloudinary (studio-montage/{job_id}/video) une fois
+`done`, on l'attache directement au contenu.
 """
-import asyncio
-import os
-import shutil
-import subprocess
-import tempfile
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
-import httpx
 import cloudinary
 import cloudinary.uploader
 from dependencies import verify_token
-from services import submagic_service, quota_service
+from services import montage_poc_service as submagic_service, quota_service
 from config import (
-    supabase, logger, BACKEND_URL,
+    supabase, logger,
     CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
-    SUBMAGIC_DEFAULT_THEME_ID, SUBMAGIC_DEFAULT_THEME_LABEL,
 )
 
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
@@ -29,16 +23,9 @@ MAX_VIDEO_BYTES = 300 * 1024 * 1024  # 300 Mo
 
 RESEAU_MAP = {"instagram": "Instagram", "tiktok": "TikTok", "youtube": "YouTube", "facebook": "Facebook", "linkedin": "LinkedIn", "googlebusiness": "GoogleBusiness"}
 
-# Bibliothèque de sons : PARTAGÉE avec les reels Remotion (services/music_library.py).
+# Bibliothèque de sons : PARTAGÉE avec les reels Remotion (services/music_library.py) ET
+# submagic-poc/music.py (mêmes `id` de piste des deux côtés).
 from services.music_library import MUSIC_CATEGORIES, MUSIC_LIBRARY
-
-# Thèmes / presets PERSO créés dans l'éditeur Submagic (pas d'API pour les lister → coller les IDs ici).
-#   type "theme"  -> userThemeId (ton positionnement/polices/couleurs)
-#   type "preset" -> presetId (config complète : template + b-roll + zooms + musique)
-CUSTOM_TEMPLATES = [
-    # {"id": "brand", "label": "Ma marque", "type": "theme", "value": "<userThemeId>"},
-    # {"id": "reel-pro", "label": "Reel Pro (preset)", "type": "preset", "value": "<presetId>"},
-]
 
 
 def _targets(body: dict) -> list:
@@ -54,20 +41,6 @@ def _targets(body: dict) -> list:
     return out
 
 
-def _music_media_id(music_id: str) -> str | None:
-    for m in MUSIC_LIBRARY:
-        if m["id"] == music_id:
-            return m["user_media_id"]
-    return None
-
-
-def _custom(cid: str) -> dict | None:
-    for t in CUSTOM_TEMPLATES:
-        if t["id"] == cid:
-            return t
-    return None
-
-
 def _poster(video_url: str | None) -> str | None:
     """Miniature d'une vidéo Cloudinary : une frame à ~1,5s (évite une 1ʳᵉ frame noire) + q_auto."""
     if not video_url or "/upload/" not in video_url:
@@ -78,40 +51,15 @@ def _poster(video_url: str | None) -> str | None:
 
 @router.get("/options")
 async def options(payload: dict = Depends(verify_token)):
-    """Templates (live) + thème de marque du compte + bibliothèque de sons."""
-    telegram_id = payload.get("telegram_id")
-    try:
-        tpls = await submagic_service.list_templates()
-        # L'API renvoie une liste de chaînes (noms) ; tolère aussi des objets {name}.
-        templates = [(t if isinstance(t, str) else t.get("name")) for t in tpls if t]
-        templates = [t for t in templates if t]
-    except Exception as e:
-        logger.error(f"video options templates: {e}")
-        templates = ["Matt", "Jess", "Nick", "Laura", "Kelly 2", "Michael"]
-
-    # Thème de marque : perso du compte (assigné par l'admin) sinon thème GLOBAL par défaut.
-    custom = []
-    theme_id, theme_label = None, None
-    try:
-        u = (supabase.table("users").select("submagic_theme_id, submagic_theme_label")
-             .eq("telegram_id", telegram_id).limit(1).execute().data or [])
-        if u and u[0].get("submagic_theme_id"):
-            theme_id, theme_label = u[0]["submagic_theme_id"], u[0].get("submagic_theme_label")
-    except Exception as e:
-        logger.warning(f"video options theme: {e}")
-    if not theme_id and SUBMAGIC_DEFAULT_THEME_ID:
-        theme_id, theme_label = SUBMAGIC_DEFAULT_THEME_ID, SUBMAGIC_DEFAULT_THEME_LABEL
-    if theme_id:
-        custom.append({"id": "brand", "label": theme_label or "Thème de ta marque", "type": "theme"})
-    custom += [{"id": t["id"], "label": t["label"], "type": t["type"]} for t in CUSTOM_TEMPLATES]
-
-    # Submagic ne sait mixer que les pistes pre-enregistrees chez lui (user_media_id) :
-    # on masque les autres ici — les reels Remotion, eux, utilisent toute la bibliotheque.
-    utilisables = [m for m in MUSIC_LIBRARY if m["id"] == "none" or m.get("user_media_id")]
+    """Presets de sous-titres (fixes, Studio Montage) + bibliothèque de sons."""
+    # 12 presets réels de submagic-poc, pas d'appel réseau (contrairement à
+    # l'ancienne liste "live" Submagic) ; pas de thème perso — sans équivalent
+    # côté Studio Montage.
+    utilisables = MUSIC_LIBRARY
     cats_ok = {m.get("category") for m in utilisables}
     return {
-        "templates": templates,
-        "custom": custom,
+        "templates": submagic_service.PRESETS,
+        "custom": [],
         "music_categories": [c for c in MUSIC_CATEGORIES if c["id"] in cats_ok],
         "music": [{"id": m["id"], "label": m["label"], "category": m.get("category"), "url": m.get("url")} for m in utilisables],
     }
@@ -162,7 +110,7 @@ def draft(body: dict, payload: dict = Depends(verify_token)):
 
 @router.post("/create")
 async def create(body: dict, payload: dict = Depends(verify_token)):
-    """Lance le montage Submagic sur une vidéo déjà uploadée. Consomme un quota 'video'.
+    """Lance le montage Studio Montage sur une vidéo déjà uploadée. Consomme un quota 'video'.
 
     Si `contenu_id` est fourni (script « À tourner »), on met à jour CE contenu au lieu d'en créer un.
     """
@@ -184,34 +132,17 @@ async def create(body: dict, payload: dict = Depends(verify_token)):
 
     title = (body.get("titre") or "Vidéo")[:120]
     targets = _targets(body) or ["Instagram"]
-    webhook = f"{BACKEND_URL}/api/video/webhook" if BACKEND_URL.startswith("https://") else None
-    # Template : thème de marque du compte (body.custom == "brand"), thème/preset global, ou un des 45.
-    custom = _custom(body.get("custom")) if body.get("custom") else None
-    user_theme_id = custom["value"] if custom and custom.get("type") == "theme" else None
-    preset_id = custom["value"] if custom and custom.get("type") == "preset" else None
-    if body.get("custom") == "brand" and not user_theme_id:
-        ur = (supabase.table("users").select("submagic_theme_id")
-              .eq("telegram_id", telegram_id).limit(1).execute().data or [])
-        if ur and ur[0].get("submagic_theme_id"):
-            user_theme_id = ur[0]["submagic_theme_id"]
-        elif SUBMAGIC_DEFAULT_THEME_ID:
-            user_theme_id = SUBMAGIC_DEFAULT_THEME_ID
     res = await submagic_service.create_project(
         title=title,
         video_url=video_url,
-        language=body.get("langue", "fr"),
-        template_name=body.get("template", "Matt"),
-        user_theme_id=user_theme_id,
-        preset_id=preset_id,
+        template_name=body.get("template", "classic"),
         magic_brolls=bool(body.get("brolls", True)),
         magic_brolls_percentage=int(body["broll_pct"]) if body.get("broll_pct") is not None else None,
         magic_zooms=bool(body.get("zooms", True)),
         remove_silence_pace=(body.get("silence_pace") or None),
-        remove_bad_takes=bool(body.get("bad_takes", False)),
         clean_audio=bool(body.get("clean_audio", False)),
-        music_media_id=_music_media_id(body.get("music", "none")),
+        music_id=body.get("music", "none"),
         music_volume=int(body.get("music_volume", 25)),
-        webhook_url=webhook,
     )
     if not res.get("ok"):
         quota_service.refund(q)
@@ -306,36 +237,9 @@ def import_video(body: dict, payload: dict = Depends(verify_token)):
     return {"contenu_id": contenu_id, "video_status": "pret", "video_url": video_url}
 
 
-def _compress(src_url: str) -> str | None:
-    """Télécharge la vidéo montée et la compresse avec ffmpeg. Retourne un chemin local, ou
-    None si ffmpeg est absent (ex. local) → le caller retombe sur le fetch Cloudinary direct.
-
-    H.264 CRF 26 + largeur plafonnée à 1080 (jamais d'upscale) + audio AAC 128k + faststart.
-    """
-    if not shutil.which("ffmpeg"):
-        return None
-    tmp = tempfile.mkdtemp(prefix="vid_")
-    inp, out = os.path.join(tmp, "in.mp4"), os.path.join(tmp, "out.mp4")
-    try:
-        with httpx.stream("GET", src_url, timeout=180, follow_redirects=True) as r:
-            r.raise_for_status()
-            with open(inp, "wb") as f:
-                for chunk in r.iter_bytes():
-                    f.write(chunk)
-        subprocess.run(
-            ["ffmpeg", "-y", "-i", inp, "-c:v", "libx264", "-crf", "26", "-preset", "veryfast",
-             "-vf", "scale='min(1080,iw)':-2", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", out],
-            check=True, capture_output=True, timeout=300,
-        )
-        return out
-    except Exception as e:
-        logger.error(f"ffmpeg compress error: {e}")
-        shutil.rmtree(tmp, ignore_errors=True)
-        return None
-
-
 async def _finalize(contenu: dict) -> dict:
-    """Si le montage Submagic est prêt : rapatrie le MP4 sur Cloudinary et met à jour le contenu.
+    """Si le montage Studio Montage est prêt : attache le MP4 (déjà sur Cloudinary,
+    studio-montage/{job_id}/video) au contenu.
 
     Idempotent : si déjà 'pret'/'echec', ne refait rien.
     """
@@ -343,7 +247,6 @@ async def _finalize(contenu: dict) -> dict:
         return {"video_status": contenu.get("video_status"), "video_url": contenu.get("video_url"),
                 "video_preview_url": contenu.get("video_preview_url")}
     pid = contenu.get("submagic_project_id")
-    cid = contenu.get("id")
     tid = contenu.get("telegram_id")
     if not pid:
         return {"video_status": "en_traitement"}
@@ -362,26 +265,11 @@ async def _finalize(contenu: dict) -> dict:
     if st != submagic_service.DONE:
         return {"video_status": "en_traitement", "stage": st}  # processing|transcribing|exporting
 
-    src = info.get("direct_url") or info.get("download_url")
-    if not src:
+    # submagic-poc a déjà uploadé le MP4 sur Cloudinary (même compte) -> on pointe
+    # directement dessus, pas de second passage ffmpeg ni de copie redondante.
+    video_url = info.get("direct_url") or info.get("download_url")
+    if not video_url:
         return {"video_status": "en_traitement"}
-    # Compression ffmpeg AVANT enregistrement (économie de stockage). Repli : fetch direct si ffmpeg absent.
-    local = await asyncio.to_thread(_compress, src)
-    try:
-        # nom d'asset déterministe par MONTAGE (pid) → une seule vidéo partagée par les jumeaux.
-        if local:
-            up = cloudinary.uploader.upload(local, resource_type="video", folder=f"videos/{tid}",
-                                            public_id=str(pid), overwrite=True)
-        else:
-            up = cloudinary.uploader.upload(src, resource_type="video", folder=f"videos/{tid}",
-                                            public_id=str(pid), overwrite=True)
-        video_url = up["secure_url"]
-    except Exception as e:
-        logger.error(f"finalize cloudinary upload {cid}: {e}")
-        return {"video_status": "en_traitement"}
-    finally:
-        if local:
-            shutil.rmtree(os.path.dirname(local), ignore_errors=True)
 
     patch = {
         "video_status": "pret",
@@ -407,7 +295,9 @@ async def _finalize(contenu: dict) -> dict:
 
 @router.post("/webhook")
 async def webhook(request: Request):
-    """Notification Submagic (traitement terminé). On re-fetch la vérité via l'API (payload non garanti)."""
+    """Notification Submagic (traitement terminé). Route héritée : submagic-poc n'a pas de
+    webhook (polling only via /status), donc jamais appelée dans le flux actuel — laissée en
+    place, inoffensive, au cas où Submagic serait un jour réactivé."""
     try:
         body = await request.json()
     except Exception:

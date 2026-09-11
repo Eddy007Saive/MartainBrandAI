@@ -17,6 +17,15 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 LOCK = threading.RLock()
 _model = None
 
+# Intensité de la coupe des silences (option "cuts_pace") : seuils passés à
+# base.keep_segments(gap_min, gap_keep) -> "natural" reprend les valeurs
+# d'origine (GAP_MIN/GAP_KEEP), les autres coupent plus tôt/plus court.
+CUTS_PACE = {
+    "natural": (base.GAP_MIN, base.GAP_KEEP),
+    "fast": (0.25, 0.15),
+    "extra-fast": (0.12, 0.08),
+}
+
 # Avertissements du rendu EN COURS — un seul rendu à la fois (protégé par
 # LOCK), donc une liste module-level suffit, pas besoin de thread-local.
 # Chaque repli silencieux (échec IA, téléchargement...) y ajoute un message
@@ -594,7 +603,8 @@ def process(video, out, o, progress=lambda s: None):
         base.ZOOM_MAX = o["zoom_max"]
         src_w, src_h, duration, fps = base.probe(video)
         cw = int(src_h * 9 / 16) // 2 * 2
-        segs = (base.keep_segments(words, duration) if o["cuts"]
+        gap_min, gap_keep = CUTS_PACE.get(o.get("cuts_pace"), (base.GAP_MIN, base.GAP_KEEP))
+        segs = (base.keep_segments(words, duration, gap_min, gap_keep) if o["cuts"]
                 else [(0.0, duration)])
         remap = base.remap_factory(segs)
         # suivi visage désactivé -> samples vides : crop et zoom centrés

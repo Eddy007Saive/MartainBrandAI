@@ -538,6 +538,20 @@
 </div>
 
 <script>
+// clé interne (MONTAGE_POC_INTERNAL_KEY) : demandée une fois au testeur
+// manuel, jamais servie par le serveur (sinon la protection ne servirait
+// à rien) — le backend Postorico, lui, l'envoie directement en variable
+// d'environnement, il ne passe pas par ce prompt.
+function internalKey() {
+  let k = localStorage.getItem("montage_admin_key");
+  if (!k) {
+    k = prompt("Clé interne (MONTAGE_POC_INTERNAL_KEY)") || "";
+    localStorage.setItem("montage_admin_key", k);
+  }
+  return k;
+}
+const AUTH_HEADERS = () => ({ "X-Internal-Key": internalKey() });
+
 const FONTS = [
   { ass: "Arial Black",    css: '"Arial Black", sans-serif',              w: 900 },
   { ass: "Impact",         css: 'Impact, sans-serif',                     w: 400 },
@@ -775,7 +789,7 @@ document.getElementById("aiHooks").onclick = async () => {
   btn.disabled = true; st.textContent = "Transcription…";
   const fd = new FormData(); fd.append("video", state.file);
   try {
-    const { job_id } = await (await fetch("/suggest_hooks", { method: "POST", body: fd })).json();
+    const { job_id } = await (await fetch("/suggest_hooks", { method: "POST", body: fd, headers: AUTH_HEADERS() })).json();
     const poll = setInterval(async () => {
       const j = await (await fetch("/jobs/" + job_id)).json();
       if (j.status === "processing") { st.textContent = friendlyStep(j.step); return; }
@@ -863,7 +877,7 @@ function renderGallery(jobs) {
       if (!confirm("Supprimer ce montage ? Cette action est définitive.")) return;
       btn.disabled = true;
       try {
-        await fetch("/jobs/" + jobId, { method: "DELETE" });
+        await fetch("/jobs/" + jobId, { method: "DELETE", headers: AUTH_HEADERS() });
         refreshGallery();
       } catch {
         btn.disabled = false;
@@ -1016,7 +1030,7 @@ go.onclick = async () => {
   fd.append("video", state.file);
   fd.append("options", JSON.stringify(optionsObj));
   try {
-    const { job_id } = await (await fetch("/process", { method: "POST", body: fd })).json();
+    const { job_id } = await (await fetch("/process", { method: "POST", body: fd, headers: AUTH_HEADERS() })).json();
     currentJobId = job_id;
     const fill = document.getElementById("progressFill"), pct = document.getElementById("progressPct");
     const poll = setInterval(async () => {
@@ -1081,7 +1095,7 @@ document.getElementById("thumbRegen").onclick = async () => {
   }));
   try {
     const { job_id } = await (await fetch("/regenerate_thumbnail/" + currentJobId,
-      { method: "POST", body: fd })).json();
+      { method: "POST", body: fd, headers: AUTH_HEADERS() })).json();
     const poll = setInterval(async () => {
       const j = await (await fetch("/jobs/" + job_id)).json();
       if (j.status === "processing") { st.textContent = friendlyStep(j.step); return; }

@@ -198,13 +198,13 @@ def crop_x_at(keys, static_px, t_rel):
     return keys[-1][1]
 
 
-def keep_segments(words, duration):
+def keep_segments(words, duration, gap_min=GAP_MIN, gap_keep=GAP_KEEP):
     segs = []
     cur = max(0.0, words[0]["start"] - 0.30)
     for a, b in zip(words, words[1:]):
-        if b["start"] - a["end"] > GAP_MIN:
-            segs.append((cur, a["end"] + GAP_KEEP / 2))
-            cur = b["start"] - GAP_KEEP / 2
+        if b["start"] - a["end"] > gap_min:
+            segs.append((cur, a["end"] + gap_keep / 2))
+            cur = b["start"] - gap_keep / 2
     segs.append((cur, min(duration, words[-1]["end"] + 0.6)))
     return segs
 

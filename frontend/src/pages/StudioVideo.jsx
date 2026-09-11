@@ -21,16 +21,43 @@ const RESEAUX = [
   { id: 'facebook', label: 'Facebook' },
 ];
 
-// Tuiles d'aperçu (noms RÉELS Submagic + style de caption approximatif)
+// Les 12 presets RÉELS de Studio Montage (miroir de PRESETS côté
+// submagic-poc/pipeline.py) — remplacent les 45 templates Submagic.
+// `name` = clé preset envoyée telle quelle à /video/create (`template`).
+const HL = '#3AFFA3';
+const FONT_CSS = {
+  'Arial Black': { css: '"Arial Black", sans-serif', w: 900 },
+  'Segoe UI Black': { css: '"Segoe UI Black", "Segoe UI", sans-serif', w: 900 },
+  Verdana: { css: 'Verdana, sans-serif', w: 700 },
+  Impact: { css: 'Impact, sans-serif', w: 400 },
+  'Trebuchet MS': { css: '"Trebuchet MS", sans-serif', w: 700 },
+  Georgia: { css: 'Georgia, serif', w: 700 },
+  Bahnschrift: { css: 'Bahnschrift, sans-serif', w: 700 },
+};
+const CAP_OUTLINE = '-2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000, -1px -1px 0 #000, 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000';
+const tok = (t) => (t === 'hl' ? HL : t === 'white' ? '#fff' : '#000');
+function presetPreviewStyle(tp) {
+  const f = FONT_CSS[tp.font] || FONT_CSS['Arial Black'];
+  const style = { fontFamily: f.css, fontWeight: f.w, color: tok(tp.primary), fontStyle: tp.italic ? 'italic' : 'normal', textShadow: 'none' };
+  if (tp.glow) { const g = tok(tp.glow); style.textShadow = `0 0 6px ${g}, 0 0 14px ${g}, 0 0 26px ${g}`; }
+  else if (tp.shad) style.textShadow = `${CAP_OUTLINE}, 4px 4px 0 #000`;
+  else if (!tp.box) style.textShadow = CAP_OUTLINE;
+  if (tp.box) { style.background = tok(tp.box); style.padding = '2px 7px'; style.borderRadius = '5px'; style.display = 'inline-block'; }
+  return style;
+}
 const TEMPLATES = [
-  { name: 'Hormozi 2', cls: 'c-hormozi', html: 'PLUS DE <b class="hl">MARGE</b>' },
-  { name: 'Beast', cls: 'c-beast', html: 'INCROYABLE' },
-  { name: 'Karl', cls: 'c-karl', html: 'le <b class="box">secret</b>' },
-  { name: 'Kelly 2', cls: 'c-kelly', html: 'SCALE X3' },
-  { name: 'Matt', cls: 'c-matt', html: 'ton message' },
-  { name: 'Jess', cls: 'c-jess', html: 'écoute <b class="em">ça</b>' },
-  { name: 'Nick', cls: 'c-nick', html: 'une erreur clé' },
-  { name: 'Laura', cls: 'c-laura', html: 'méthode' },
+  { name: 'classic', label: 'Classic', font: 'Arial Black', primary: 'white', box: null, glow: null, shad: 0, italic: 0, html: 'ton message' },
+  { name: 'hormozi', label: 'Hormozi', font: 'Segoe UI Black', primary: 'white', box: null, glow: 'black', shad: 0, italic: 0, html: 'PLUS DE <span class="cap-hl">MARGE</span>' },
+  { name: 'neon', label: 'Néon', font: 'Segoe UI Black', primary: 'white', box: null, glow: 'hl', shad: 0, italic: 0, html: 'IMPACT' },
+  { name: 'leon', label: 'Leon', font: 'Arial Black', primary: 'white', box: 'hl', glow: null, shad: 0, italic: 0, html: 'le secret' },
+  { name: 'molly', label: 'Molly', font: 'Verdana', primary: 'black', box: 'white', glow: null, shad: 0, italic: 0, html: 'douceur' },
+  { name: 'caleb', label: 'Caleb', font: 'Arial Black', primary: 'white', box: 'black', glow: null, shad: 0, italic: 0, html: 'clair, net' },
+  { name: 'william', label: 'William', font: 'Arial Black', primary: 'hl', box: null, glow: null, shad: 0, italic: 0, html: 'ton style' },
+  { name: 'beast', label: 'Beast', font: 'Impact', primary: 'white', box: null, glow: null, shad: 1, italic: 0, html: 'INCROYABLE' },
+  { name: 'duo', label: 'Duo', font: 'Trebuchet MS', primary: 'white', box: null, glow: null, shad: 0, italic: 0, html: 'énergie' },
+  { name: 'noah', label: 'Noah', font: 'Segoe UI Black', primary: 'white', box: null, glow: null, shad: 0, italic: 1, html: 'authentique' },
+  { name: 'brandin', label: 'Brandin', font: 'Georgia', primary: 'white', box: null, glow: null, shad: 0, italic: 0, html: 'élégance' },
+  { name: 'bahn', label: 'Bahn', font: 'Bahnschrift', primary: 'white', box: null, glow: null, shad: 1, italic: 0, html: 'moderne' },
 ];
 
 export default function StudioVideo() {
@@ -46,14 +73,12 @@ export default function StudioVideo() {
   const [localUrl, setLocalUrl] = useState(null);  // aperçu local (blob) — pas d'upload avant « Monter »
   const [uploadPct, setUploadPct] = useState(0);
   const [step, setStep] = useState('idle');        // idle|ready|processing|done|error
-  const [form, setForm] = useState({ template: 'Hormozi 2', langue: 'fr', zooms: true, music: 'none' });
+  const [form, setForm] = useState({ template: 'hormozi', langue: 'fr', zooms: true, music: 'none' });
   const [brolls, setBrolls] = useState(true);
   const [brollPct, setBrollPct] = useState(45);
   const [silencePace, setSilencePace] = useState('off'); // off | natural | fast | extra-fast
-  const [badTakes, setBadTakes] = useState(false);
   const [cleanAudio, setCleanAudio] = useState(false);
   const [volume, setVolume] = useState(25);
-  const [showAll, setShowAll] = useState(false);
   const [customId, setCustomId] = useState(null);  // thème/preset perso sélectionné
   const [mode, setMode] = useState('montage');     // 'montage' (Submagic) | 'direct' (import tel quel)
   const [reseaux, setReseaux] = useState(['instagram']);  // multi-réseaux → 1 carte contenu par réseau
@@ -152,7 +177,7 @@ export default function StudioVideo() {
         brolls, broll_pct: brolls ? brollPct : undefined,
         zooms: form.zooms,
         silence_pace: silencePace === 'off' ? undefined : silencePace,
-        bad_takes: badTakes, clean_audio: cleanAudio,
+        clean_audio: cleanAudio,
         music: form.music, music_volume: volume,
       });
       startPolling(d.contenu_id);
@@ -320,19 +345,12 @@ export default function StudioVideo() {
                   return (
                     <button key={tp.name} type="button" onClick={() => { set('template', tp.name); setCustomId(null); }} className={`sv-tpl ${on ? 'on' : ''}`}>
                       {on && <span className="sv-tick"><Check className="w-2.5 h-2.5 text-white" /></span>}
-                      <span className={`sv-prev ${tp.cls}`}><span className="sv-cap" dangerouslySetInnerHTML={{ __html: tp.html }} /></span>
-                      <span className="sv-name">{tp.name}</span>
+                      <span className="sv-prev"><span className="sv-cap" style={presetPreviewStyle(tp)} dangerouslySetInnerHTML={{ __html: tp.html }} /></span>
+                      <span className="sv-name">{tp.label}</span>
                     </button>
                   );
                 })}
               </div>
-              {!showAll ? (
-                <button onClick={() => setShowAll(true)} className="w-full text-center text-[12px] text-slate-500 hover:text-white py-2 font-inter">{t('video.tpl.seeAll')}</button>
-              ) : (
-                <select value={form.template} onChange={(e) => set('template', e.target.value)} className="sv-select mt-2">
-                  {options.templates.map((name) => <option key={name} value={name}>{name}</option>)}
-                </select>
-              )}
             </div>
 
             {/* B-roll */}
@@ -376,14 +394,6 @@ export default function StudioVideo() {
                   ))}
                 </div>
               )}
-
-              <div className="sv-trow mt-3.5">
-                <div className="flex-1">
-                  <div className="sv-t flex items-center gap-1.5">{t('video.pro.badTakes')} <InfoTip text={t('video.pro.badTakesTip')} /></div>
-                  <div className="sv-s">{t('video.pro.badTakesSub')}</div>
-                </div>
-                <Switch on={badTakes} onClick={() => setBadTakes((v) => !v)} />
-              </div>
 
               <div className="sv-trow mt-3.5">
                 <div className="flex-1">
@@ -557,22 +567,10 @@ const CSS = `
 .sv .sv-tpl.on{border-color:#8A6CFF;box-shadow:0 0 0 1px #8A6CFF,0 8px 22px rgba(138,108,255,.18)}
 .sv .sv-tick{position:absolute;top:7px;right:7px;width:17px;height:17px;border-radius:50%;background:linear-gradient(135deg,#5B6CFF,#8A6CFF);display:grid;place-items:center;z-index:3}
 .sv .sv-prev{aspect-ratio:9/13;border-radius:8px;overflow:hidden;position:relative;background:linear-gradient(165deg,#1a2233,#0c1220);display:grid;place-items:center}
-.sv .sv-cap{position:absolute;bottom:9px;left:5px;right:5px;text-align:center;line-height:1.02}
+.sv .sv-cap{position:absolute;bottom:9px;left:5px;right:5px;text-align:center;line-height:1.15;font-size:13px}
+.sv .cap-hl{color:#3AFFA3}
 .sv .sv-name{display:block;text-align:center;margin-top:6px;font-size:11px;color:#8593ae;font-family:'Sora',sans-serif;font-weight:600}
 .sv .sv-tpl.on .sv-name{color:#e8edf7}
-.sv .c-hormozi .sv-cap{font-family:'Anton',sans-serif;font-size:15px;color:#FFE24B;-webkit-text-stroke:2px #08111f;paint-order:stroke fill;text-transform:uppercase}
-.sv .c-hormozi .hl{color:#3AFFA3}
-.sv .c-beast .sv-cap{font-family:'Anton',sans-serif;font-size:14px;color:#fff;-webkit-text-stroke:2px #E5484D;paint-order:stroke fill;text-transform:uppercase}
-.sv .c-karl .sv-cap{font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;color:#fff}
-.sv .c-karl .box{background:#8A6CFF;border-radius:4px;padding:0 3px}
-.sv .c-kelly .sv-cap{font-family:'Anton',sans-serif;font-size:14px;text-transform:uppercase;background:linear-gradient(90deg,#5BE0FF,#8A6CFF);-webkit-background-clip:text;background-clip:text;color:transparent}
-.sv .c-matt .sv-cap{font-family:'Sora',sans-serif;font-weight:800;font-size:12px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.6)}
-.sv .c-jess .sv-cap{font-family:'Sora',sans-serif;font-weight:800;font-size:12px;color:#fff}
-.sv .c-jess .em{color:#FFE24B}
-.sv .c-nick{align-items:flex-end}
-.sv .c-nick .sv-cap{background:rgba(4,6,12,.66);border-radius:6px;padding:5px 4px;font-family:'Inter',sans-serif;font-weight:700;font-size:10.5px;color:#fff}
-.sv .c-laura .sv-cap{font-family:'Sora',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.14em;color:#fff;text-transform:uppercase}
-.sv .sv-select{width:100%;background:#0c111f;border:1px solid rgba(255,255,255,.1);color:#cbd5e1;font-size:13.5px;border-radius:10px;padding:10px 12px;outline:none}
 .sv .sv-chip{padding:8px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.07);background:#0c111f;cursor:pointer;font-size:12.5px;color:#8593ae;transition:.15s;font-family:inherit}
 .sv .sv-chip:hover{color:#e8edf7;border-color:rgba(255,255,255,.14)}
 .sv .sv-chip.on{border-color:#3AFFA3;color:#3AFFA3;background:rgba(58,255,163,.07)}

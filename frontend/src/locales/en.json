@@ -1417,8 +1417,7 @@
       "label": "Caption style",
       "custom": "Custom",
       "hint": "The animation style of the captions.",
-      "mine": "My templates",
-      "seeAll": "See all 45 styles →"
+      "mine": "My templates"
     },
     "broll": {
       "title": "Automatic b-roll",
@@ -1439,9 +1438,6 @@
       "paceLight": "Light",
       "paceFast": "Fast",
       "paceXFast": "Very fast",
-      "badTakes": "Remove bad takes",
-      "badTakesTip": "Detects and cuts hesitations, false starts and failed takes (the \"uhs\", repetitions).",
-      "badTakesSub": "Cleans up hesitations.",
       "cleanAudio": "Clean up audio",
       "cleanAudioTip": "Reduces background noise and improves voice clarity, for a more professional sound.",
       "cleanAudioSub": "Less noise, clearer voice."

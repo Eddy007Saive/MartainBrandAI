@@ -1417,8 +1417,7 @@
       "label": "Estilo de subtítulos",
       "custom": "Personalizado",
       "hint": "El estilo de animación de los subtítulos.",
-      "mine": "Mis plantillas",
-      "seeAll": "Ver los 45 estilos →"
+      "mine": "Mis plantillas"
     },
     "broll": {
       "title": "B-roll automáticos",
@@ -1439,9 +1438,6 @@
       "paceLight": "Ligero",
       "paceFast": "Rápido",
       "paceXFast": "Muy rápido",
-      "badTakes": "Quitar las tomas falsas",
-      "badTakesTip": "Detecta y corta las dudas, los falsos comienzos y las tomas fallidas (los «eh», repeticiones).",
-      "badTakesSub": "Limpia las vacilaciones.",
       "cleanAudio": "Limpiar el audio",
       "cleanAudioTip": "Reduce el ruido de fondo y mejora la claridad de la voz: un sonido más profesional.",
       "cleanAudioSub": "Menos ruido, voz más nítida."

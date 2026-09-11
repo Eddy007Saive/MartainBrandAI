@@ -1417,8 +1417,7 @@
       "label": "Style de sous-titres",
       "custom": "Perso",
       "hint": "Le style d'animation des captions.",
-      "mine": "Mes templates",
-      "seeAll": "Voir les 45 styles →"
+      "mine": "Mes templates"
     },
     "broll": {
       "title": "B-roll automatiques",
@@ -1439,9 +1438,6 @@
       "paceLight": "Léger",
       "paceFast": "Rapide",
       "paceXFast": "Très rapide",
-      "badTakes": "Enlever les ratés",
-      "badTakesTip": "Détecte et coupe les hésitations, faux départs et prises ratées (les « euh », répétitions).",
-      "badTakesSub": "Nettoie les hésitations.",
       "cleanAudio": "Nettoyer l'audio",
       "cleanAudioTip": "Réduit le bruit de fond et améliore la clarté de la voix, pour un son plus pro.",
       "cleanAudioSub": "Réduit le bruit, voix plus nette."
