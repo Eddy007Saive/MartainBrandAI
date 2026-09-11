@@ -66,6 +66,13 @@ const TEMPLATES = [
   { name: 'bahn', label: 'Bahn', font: 'Bahnschrift', primary: 'white', box: null, glow: null, shad: 1, italic: 0, active: 'hl', html: 'moderne' },
 ];
 const CAPTION_WORDS = ['PRÊT', 'À', 'TOUT', 'CHANGER', '?'];
+const TABS = [
+  { id: 'hook', labelKey: 'video.tabs.hook' },
+  { id: 'captions', labelKey: 'video.tabs.captions' },
+  { id: 'style', labelKey: 'video.tabs.style' },
+  { id: 'montage', labelKey: 'video.tabs.montage' },
+  { id: 'music', labelKey: 'video.tabs.music' },
+];
 
 export default function StudioVideo() {
   const [params] = useSearchParams();
@@ -102,6 +109,7 @@ export default function StudioVideo() {
   const [subSize, setSubSize] = useState(100);
   const [subPosition, setSubPosition] = useState(30);
   const [subUppercase, setSubUppercase] = useState(true);
+  const [tab, setTab] = useState('hook');           // hook|captions|style|montage|music — onglets des réglages
   const [mode, setMode] = useState('montage');     // 'montage' (Submagic) | 'direct' (import tel quel)
   const [reseaux, setReseaux] = useState(['instagram']);  // multi-réseaux → 1 carte contenu par réseau
   const [asStory, setAsStory] = useState(false);          // story 24h (Instagram/Facebook) au lieu de Reel
@@ -407,9 +415,18 @@ export default function StudioVideo() {
               ))}
             </div>
 
+            {mode === 'montage' && (
+              <div className="sv-tabs">
+                {TABS.map((tb) => (
+                  <button key={tb.id} type="button" onClick={() => setTab(tb.id)}
+                    className={`sv-tabbtn ${tab === tb.id ? 'on' : ''}`}>{t(tb.labelKey)}</button>
+                ))}
+              </div>
+            )}
+
             {mode === 'montage' ? (<>
             {/* Hook d'ouverture */}
-            <div className="sv-sec">
+            {tab === 'hook' && <div className="sv-sec">
               <div className="sv-lab"><Sparkles className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.hook.label')}</div>
               <div className="sv-trow">
                 <div className="flex-1"><div className="sv-t">{t('video.hook.auto')}</div><div className="sv-s">{t('video.hook.autoSub')}</div></div>
@@ -449,10 +466,10 @@ export default function StudioVideo() {
                   ))}
                 </div>
               </div>
-            </div>
+            </div>}
 
             {/* Templates */}
-            <div className="sv-sec">
+            {tab === 'captions' && <div className="sv-sec">
               <div className="sv-lab"><Wand2 className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.tpl.label')}<span className="ml-auto text-[12px] font-semibold text-[#3AFFA3] font-sora">{customId ? (options.custom?.find((c) => c.id === customId)?.label || t('video.tpl.custom')) : form.template}</span></div>
               <p className="sv-hint">{t('video.tpl.hint')}</p>
               {options.custom?.length > 0 && (
@@ -479,10 +496,10 @@ export default function StudioVideo() {
                   );
                 })}
               </div>
-            </div>
+            </div>}
 
             {/* Style avancé des sous-titres (au-delà du preset) */}
-            <div className="sv-sec">
+            {tab === 'style' && <div className="sv-sec">
               <div className="sv-lab"><Type className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.style.label')}</div>
               <div className="sv-trow">
                 <div className="flex-1"><div className="sv-t">{t('video.style.font')}</div></div>
@@ -513,9 +530,10 @@ export default function StudioVideo() {
                 <div className="flex-1"><div className="sv-t">{t('video.style.uppercase')}</div></div>
                 <Switch on={subUppercase} onClick={() => setSubUppercase((v) => !v)} />
               </div>
-            </div>
+            </div>}
 
-            {/* B-roll */}
+            {/* Montage : B-roll, zooms, emojis, coupes/audio */}
+            {tab === 'montage' && (<>
             <div className="sv-sec">
               <div className="sv-trow">
                 <div className="flex-1"><div className="sv-t">{t('video.broll.title')}</div><div className="sv-s">{t('video.broll.sub')}</div></div>
@@ -573,9 +591,10 @@ export default function StudioVideo() {
                 <Switch on={cleanAudio} onClick={() => setCleanAudio((v) => !v)} />
               </div>
             </div>
+            </>)}
 
             {/* Musique */}
-            <div className="sv-sec">
+            {tab === 'music' && <div className="sv-sec">
               <div className="sv-lab"><Music className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.music.label')}</div>
               <p className="sv-hint">{t('video.music.hint')}</p>
               {/* Niveau 1 : Aucune + catégories */}
@@ -618,7 +637,7 @@ export default function StudioVideo() {
                   <input type="range" min="0" max="100" value={volume} onChange={(e) => setVolume(+e.target.value)} style={{ '--pct': `${volume}%` }} />
                 </div>
               )}
-            </div>
+            </div>}
             </>) : (
               <div className="rounded-xl border border-dashed border-white/10 bg-[#0c111f] p-4 text-center mb-1">
                 <p className="text-sm text-white font-inter font-medium">{t('video.direct.title')}</p>
@@ -726,6 +745,11 @@ function InfoTip({ text }) {
 const CSS = `
 .sv .sv-sec{padding:16px 0;border-top:1px solid rgba(255,255,255,.07)}
 .sv .sv-sec:first-of-type{padding-top:2px;border-top:none}
+.sv .sv-tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;margin-bottom:10px;scrollbar-width:none}
+.sv .sv-tabs::-webkit-scrollbar{display:none}
+.sv .sv-tabbtn{flex:none;padding:8px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.07);background:#0c111f;color:#8593ae;font-size:12.5px;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer;white-space:nowrap;transition:.15s}
+.sv .sv-tabbtn:hover{color:#e8edf7;border-color:rgba(255,255,255,.14)}
+.sv .sv-tabbtn.on{border-color:transparent;background:linear-gradient(135deg,#5B6CFF,#8A6CFF);color:#fff}
 .sv .sv-lab{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:#e8edf7;margin-bottom:3px}
 .sv .sv-hint{margin:0 0 12px;color:#8593ae;font-size:12px}
 .sv .sv-t{font-size:13.5px;font-weight:600;color:#e8edf7}

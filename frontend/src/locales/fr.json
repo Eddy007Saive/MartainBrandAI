@@ -1386,6 +1386,13 @@
     "subtitle": "Ta vidéo brute → montage IA (sous-titres, b-roll, zooms, musique)",
     "yourVideo": "Ta vidéo",
     "settings": "Réglages",
+    "tabs": {
+      "hook": "Hook",
+      "captions": "Sous-titres",
+      "style": "Style",
+      "montage": "Montage",
+      "music": "Musique"
+    },
     "networks": "Réseaux",
     "multiPub": "1 montage → {{n}} publications (une carte par réseau dans Contenus).",
     "defaultTitle": "Vidéo",

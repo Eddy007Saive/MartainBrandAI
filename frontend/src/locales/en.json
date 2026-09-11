@@ -1386,6 +1386,13 @@
     "subtitle": "Your raw video → AI editing (captions, b-roll, zooms, music)",
     "yourVideo": "Your video",
     "settings": "Settings",
+    "tabs": {
+      "hook": "Hook",
+      "captions": "Captions",
+      "style": "Style",
+      "montage": "Editing",
+      "music": "Music"
+    },
     "networks": "Networks",
     "multiPub": "1 edit → {{n}} posts (one content card per network in Contents).",
     "defaultTitle": "Video",

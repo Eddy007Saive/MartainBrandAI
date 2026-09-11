@@ -1386,6 +1386,13 @@
     "subtitle": "Tu vídeo en bruto → edición con IA (subtítulos, b-roll, zooms, música)",
     "yourVideo": "Tu vídeo",
     "settings": "Ajustes",
+    "tabs": {
+      "hook": "Gancho",
+      "captions": "Subtítulos",
+      "style": "Estilo",
+      "montage": "Edición",
+      "music": "Música"
+    },
     "networks": "Redes",
     "multiPub": "1 edición → {{n}} publicaciones (una tarjeta por red en Contenidos).",
     "defaultTitle": "Vídeo",
