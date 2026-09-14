@@ -168,6 +168,7 @@ async def create(body: dict, payload: dict = Depends(verify_token)):
         fontscale=float(body.get("fontscale", 1.0)),
         position=float(body.get("position", 0.30)),
         uppercase=bool(body.get("uppercase", True)),
+        broll_urls=body.get("broll_urls") if isinstance(body.get("broll_urls"), list) else None,
     )
     if not res.get("ok"):
         quota_service.refund(q)

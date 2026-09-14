@@ -671,19 +671,25 @@ def process(video, out, o, progress=lambda s: None):
                                 "path": png, "input": next_input})
             next_input += 1
 
-        # résout les b-rolls choisis : recherche Pexels + téléchargement +
-        # index d'input ffmpeg dédié (à la suite des emojis)
+        # résout les b-rolls choisis : soit une recherche Pexels par mot-clé (IA),
+        # soit les clips que l'utilisateur a lui-même fournis (broll_urls) — Claude
+        # choisit QUAND placer un b-roll dans les deux cas, seule la SOURCE du
+        # clip change. Index d'input ffmpeg dédié (à la suite des emojis).
         broll_picks = []
         BROLL_DURATION = 1.8
+        custom_urls = [u for u in (o.get("broll_urls") or []) if u]
         if broll_raw:
             import broll
-        for i, query in broll_raw:
+        for idx, (i, query) in enumerate(broll_raw):
             try:
-                found = broll.search(query, out_w, out_h)
-                if not found:
-                    _warn(f"B-roll « {query} » : aucun clip trouvé, ignoré.")
-                    continue
-                clip_path = broll.local_path(found["id"], found["url"])
+                if custom_urls:
+                    clip_path = broll.local_path_from_url(custom_urls[idx % len(custom_urls)])
+                else:
+                    found = broll.search(query, out_w, out_h)
+                    if not found:
+                        _warn(f"B-roll « {query} » : aucun clip trouvé, ignoré.")
+                        continue
+                    clip_path = broll.local_path(found["id"], found["url"])
             except Exception as e:
                 _warn(f"B-roll « {query} » : téléchargement impossible, ignoré.",
                      detail=str(e))

@@ -69,6 +69,7 @@ DEFAULTS = {
     "emojis": False,
     "brolls": False,
     "brolls_count": 4,
+    "broll_urls": [],  # clips fournis par l'utilisateur -> remplacent la recherche Pexels si non vide
     "font": "Arial Black",
     "hl_color": "#3AFFA3",
     "fontscale": 1.0,

@@ -1,6 +1,7 @@
 # Recherche et cache de clips b-roll via Pexels — même principe que
 # music.py (téléchargement + cache local au 1er usage). Licence Pexels :
 # usage commercial libre, pas d'attribution requise.
+import hashlib
 import json
 import os
 import urllib.parse
@@ -43,6 +44,21 @@ def search(query, out_w=720, out_h=1280):
 def local_path(video_id, url):
     """Télécharge et met en cache le clip localement (une fois par id)."""
     dest = os.path.join(CACHE_DIR, f"{video_id}.mp4")
+    if not os.path.exists(dest):
+        tmp = dest + ".part"
+        req = urllib.request.Request(url, headers={"User-Agent": _UA})
+        with urllib.request.urlopen(req, timeout=60) as resp, open(tmp, "wb") as f:
+            f.write(resp.read())
+        os.replace(tmp, dest)
+    return dest
+
+
+def local_path_from_url(url):
+    """Télécharge et met en cache un clip B-ROLL FOURNI PAR L'UTILISATEUR (déjà
+    hébergé, ex. Cloudinary) — même principe que local_path() mais sans recherche
+    Pexels, l'URL est déjà connue. Clé de cache = hash de l'URL (pas d'id Pexels)."""
+    key = hashlib.md5(url.encode("utf-8")).hexdigest()[:20]
+    dest = os.path.join(CACHE_DIR, f"custom_{key}.mp4")
     if not os.path.exists(dest):
         tmp = dest + ".part"
         req = urllib.request.Request(url, headers={"User-Agent": _UA})

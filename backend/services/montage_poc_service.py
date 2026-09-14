@@ -87,6 +87,7 @@ async def create_project(
     fontscale: float = 1.0,
     position: float = 0.30,
     uppercase: bool = True,
+    broll_urls: list[str] | None = None,  # clips fournis par l'utilisateur (au lieu de la recherche Pexels)
 ) -> dict:
     """Démarre un montage. Retourne {ok, id, status} ou {ok:False, error}."""
     if not enabled():
@@ -120,6 +121,8 @@ async def create_project(
         options["font"] = font
     if hl_color:
         options["hl_color"] = hl_color
+    if broll_urls:
+        options["broll_urls"] = [u for u in broll_urls if u][:8]  # meme plafond que brolls_count (HARD_CAP)
     try:
         async with httpx.AsyncClient(timeout=CREATE_TIMEOUT) as c:
             r = await c.post(f"{MONTAGE_POC_URL}/process",

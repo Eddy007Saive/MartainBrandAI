@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, Film, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors, Type, Smile } from 'lucide-react';
+import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, Film, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors, Type, Smile, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
@@ -90,6 +90,8 @@ export default function StudioVideo() {
   const [form, setForm] = useState({ template: 'hormozi', langue: 'fr', zooms: true, music: 'none' });
   const [brolls, setBrolls] = useState(true);
   const [brollPct, setBrollPct] = useState(45);
+  const [brollMode, setBrollMode] = useState('ai');  // 'ai' (banque Pexels) | 'custom' (clips importés)
+  const [brollClips, setBrollClips] = useState([]);  // [{name, url, uploading, error}]
   const [silencePace, setSilencePace] = useState('off'); // off | natural | fast | extra-fast
   const [cleanAudio, setCleanAudio] = useState(false);
   const [volume, setVolume] = useState(25);
@@ -167,6 +169,22 @@ export default function StudioVideo() {
     setHookSuggestions([]); setHookStatus('');  // suggestions de la vidéo précédente, plus valables
   };
 
+  const MAX_BROLL_CLIPS = 8;  // même plafond que HARD_CAP côté submagic-poc
+  const onBrollFiles = (files) => {
+    const list = Array.from(files || []).filter((f) => f.type.startsWith('video/'));
+    const room = MAX_BROLL_CLIPS - brollClips.length;
+    list.slice(0, room).forEach((f) => {
+      const entry = { name: f.name, url: null, uploading: true, error: false };
+      setBrollClips((prev) => [...prev, entry]);
+      videoService.uploadRaw(f).then((up) => {
+        setBrollClips((prev) => prev.map((c) => (c === entry ? { ...c, url: up.video_url, uploading: false } : c)));
+      }).catch(() => {
+        setBrollClips((prev) => prev.map((c) => (c === entry ? { ...c, uploading: false, error: true } : c)));
+      });
+    });
+  };
+  const removeBrollClip = (idx) => setBrollClips((prev) => prev.filter((_, i) => i !== idx));
+
   const startPolling = (cid) => {
     if (pollRef.current) clearInterval(pollRef.current);
     pollRef.current = setInterval(async () => {
@@ -226,7 +244,9 @@ export default function StudioVideo() {
         custom: customId || undefined,
         template: customId ? undefined : form.template,
         langue: form.langue,
-        brolls, broll_pct: brolls ? brollPct : undefined,
+        brolls: brolls && (brollMode === 'ai' || brollClips.some((c) => c.url)),
+        broll_pct: brolls ? brollPct : undefined,
+        broll_urls: brolls && brollMode === 'custom' ? brollClips.filter((c) => c.url).map((c) => c.url) : undefined,
         zooms: form.zooms,
         silence_pace: silencePace === 'off' ? undefined : silencePace,
         clean_audio: cleanAudio,
@@ -541,6 +561,40 @@ export default function StudioVideo() {
               </div>
               {brolls && (
                 <div className="mt-3.5">
+                  <div className="flex gap-1 p-1 rounded-xl bg-[#0c111f] border border-white/[0.06] mb-3.5">
+                    {[{ id: 'ai', labelKey: 'video.broll.aiMode' }, { id: 'custom', labelKey: 'video.broll.customMode' }].map((m) => (
+                      <button key={m.id} type="button" onClick={() => setBrollMode(m.id)}
+                        className={`flex-1 py-1.5 rounded-lg text-[12.5px] font-sora font-semibold transition-all ${brollMode === m.id ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>
+                        {t(m.labelKey)}
+                      </button>
+                    ))}
+                  </div>
+                  {brollMode === 'custom' && (
+                    <div className="mb-3.5 space-y-2.5">
+                      {brollClips.length < MAX_BROLL_CLIPS && (
+                        <label className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-white/10 hover:border-[#5B6CFF]/40 cursor-pointer transition-colors text-[12.5px] text-slate-400 font-inter">
+                          <input type="file" accept="video/*" multiple className="hidden" onChange={(e) => { onBrollFiles(e.target.files); e.target.value = ''; }} />
+                          <Upload className="w-3.5 h-3.5" /> {t('video.broll.uploadCta')}
+                        </label>
+                      )}
+                      {brollClips.length > 0 && (
+                        <div className="space-y-1.5">
+                          {brollClips.map((c, i) => (
+                            <div key={i} className="flex items-center gap-2 bg-[#0c111f] border border-white/[0.07] rounded-lg px-2.5 py-1.5 text-[12px] font-inter">
+                              {c.uploading ? <Loader2 className="w-3 h-3 animate-spin text-[#5B6CFF] shrink-0" />
+                                : c.error ? <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
+                                : <Check className="w-3 h-3 text-[#3AFFA3] shrink-0" />}
+                              <span className="flex-1 truncate text-slate-300">{c.name}</span>
+                              <button type="button" onClick={() => removeBrollClip(i)} className="text-slate-500 hover:text-white shrink-0"><X className="w-3.5 h-3.5" /></button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {!brollClips.some((c) => c.url) && (
+                        <p className="text-[11px] text-slate-500 font-inter">{t('video.broll.customHint')}</p>
+                      )}
+                    </div>
+                  )}
                   <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">{t('video.broll.density')}</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{brollPct} %</span></div>
                   <input type="range" min="0" max="100" value={brollPct} onChange={(e) => setBrollPct(+e.target.value)} style={{ '--pct': `${brollPct}%` }} />
                   <div className="flex justify-between mt-1.5 text-[10.5px] text-[#5a6680]"><span>{t('video.broll.rare')}</span><span>{t('video.broll.dense')}</span></div>
