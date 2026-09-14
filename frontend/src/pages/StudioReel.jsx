@@ -41,6 +41,9 @@ export default function StudioReel() {
   const [images, setImages] = useState([]);          // {url, desc, src}
   const [musique, setMusique] = useState('none');
   const [voix, setVoix] = useState(null);          // voix off : id (victor|yann|adina|moi) ou null = muet
+  // Case « l'IA regarde mes vidéos » : cochée, Gemini lit les clips et choisit les moments ;
+  // décochée (défaut), chaque vidéo passe telle quelle, dans l'ordre numéroté, depuis son début.
+  const [montageIA, setMontageIA] = useState(false);
   const [mp3, setMp3] = useState(false);          // import d'un MP3 perso en cours
   const [playing, setPlaying] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -92,6 +95,7 @@ export default function StudioReel() {
         if (sc.style) setStyle(sc.style);
         setMusique(sc.musique || 'none');
         setVoix(sc.voix || null);
+        setMontageIA(!!sc.montage_ia);
       } else {
         const st = params.get('style');
         if (st) setStyle(st);
@@ -213,7 +217,7 @@ export default function StudioReel() {
       const payload = {
         brief: brief.trim() || null,
         images: images.map((i) => ({ url: i.url, desc: i.desc || null })),
-        style, musique, voix,
+        style, musique, voix, montage_ia: montageIA,
       };
       if (modification) {
         // Re-rendu sur place ; voix absente = on la retire explicitement (null = garder l'ancienne)
@@ -344,9 +348,18 @@ export default function StudioReel() {
             </label>
             <span className="ml-2 text-[11px] text-slate-500 font-inter">{images.length}/6</span>
             {images.some((i) => i.type === 'video' || /\/video\/upload\//.test(i.url || '')) && (
-              <p data-testid="studio-reel-montage-note" className="mt-2 text-[11.5px] leading-snug text-[#3AFFA3]/90 font-inter">
-                🎬 {t('contenus.reel.seq.montageNote')}
-              </p>
+              <div className="mt-3 rounded-[10px] border border-white/10 bg-white/[0.03] p-3">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input type="checkbox" checked={montageIA} onChange={(e) => setMontageIA(e.target.checked)}
+                    data-testid="studio-reel-montage-ia" className="mt-0.5 w-4 h-4 accent-[#3AFFA3]" />
+                  <span className="text-[12.5px] leading-snug font-inter text-slate-200">
+                    <span className="font-semibold">🎬 {t('contenus.reel.seq.montageIA')}</span>
+                    <span className="block mt-0.5 text-[11.5px] text-slate-400">
+                      {montageIA ? t('contenus.reel.seq.montageNote') : t('contenus.reel.seq.montageTelQuel')}
+                    </span>
+                  </span>
+                </label>
+              </div>
             )}
           </div>
 

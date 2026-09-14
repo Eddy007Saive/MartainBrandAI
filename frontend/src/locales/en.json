@@ -398,6 +398,8 @@
         "description": "Pick the images for your reel (upload or bank), add instructions if you want. The AI writes the texts and edits the video.",
         "importer": "Add images or videos",
         "montageNote": "You picked footage: the AI watches your clips in full and keeps the best moment for each shot, like an editor.",
+        "montageIA": "Let the AI watch my videos and pick the best moments",
+        "montageTelQuel": "Unchecked: each video is used as is, in its numbered order, from its start. The AI only writes the texts.",
         "banqueSupprimer": "Remove from bank",
         "banqueSupprimerTitre": "Remove this visual from your bank?",
         "banqueSupprimerConfirm": "The file will also be deleted from storage.",
@@ -1458,6 +1460,10 @@
     "broll": {
       "title": "Automatic b-roll",
       "sub": "The AI inserts illustrative images/clips.",
+      "aiMode": "AI (stock library)",
+      "customMode": "My clips",
+      "uploadCta": "Upload your clips",
+      "customHint": "Upload at least one clip, otherwise no b-roll will be added.",
       "density": "B-roll density",
       "rare": "Rare · subtle",
       "dense": "Dense · fast-paced"

@@ -398,6 +398,8 @@
         "description": "Choisis les images de ton reel (import ou banque), ajoute des consignes si tu veux : l'IA écrit les textes et monte la vidéo.",
         "importer": "Ajouter des images ou des vidéos",
         "montageNote": "Tu as choisi de la vidéo : l'IA regarde tes clips en entier et garde les meilleurs moments pour chaque plan, comme un monteur.",
+        "montageIA": "Laisser l'IA regarder mes vidéos et choisir les meilleurs moments",
+        "montageTelQuel": "Décoché : chaque vidéo est utilisée telle quelle, dans l'ordre de sa numérotation, depuis son début. L'IA écrit seulement les textes.",
         "banqueSupprimer": "Retirer de la banque",
         "banqueSupprimerTitre": "Retirer ce visuel de ta banque ?",
         "banqueSupprimerConfirm": "Le fichier sera aussi supprimé du stockage.",
@@ -1458,6 +1460,10 @@
     "broll": {
       "title": "B-roll automatiques",
       "sub": "L'IA insère des images/clips d'illustration.",
+      "aiMode": "IA (banque vidéo)",
+      "customMode": "Mes clips",
+      "uploadCta": "Importer tes clips",
+      "customHint": "Importe au moins un clip, sinon aucun b-roll ne sera ajouté.",
       "density": "Densité des b-roll",
       "rare": "Rare · sobre",
       "dense": "Dense · rythmé"

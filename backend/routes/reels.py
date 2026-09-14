@@ -23,6 +23,7 @@ class ReelRequest(BaseModel):
     style: str | None = None                # Sequence : habillage (signature/cinema/…)
     musique: str | None = None              # Sequence : piste de fond (bibliotheque partagee)
     voix: str | None = None                 # Sequence : voix off (victor|yann|adina|moi), None = muet
+    montage_ia: bool = False                # Sequence : l'IA regarde les clips et choisit les moments (case cochée)
 
 
 @router.get("/templates")
@@ -146,7 +147,8 @@ def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
     try:
         res = reel_service.generer_reel(telegram_id, body.contenu_id, template=template,
                                         images=images or None, brief=(body.brief or "").strip() or None,
-                                        style=body.style, musique=body.musique, voix=voix)
+                                        style=body.style, musique=body.musique, voix=voix,
+                                        montage_ia=body.montage_ia)
     except Exception as e:
         quota_service.refund(q); _rendre_voix(qv)
         logger.error(f"generer reel: {e}")
@@ -165,6 +167,7 @@ class ReelLibreRequest(BaseModel):
     style: str | None = None
     musique: str | None = None
     voix: str | None = None
+    montage_ia: bool = False
 
 
 @router.post("/creer")
@@ -185,7 +188,8 @@ def creer(body: ReelLibreRequest, payload: dict = Depends(verify_token)):
     try:
         res = reel_service.creer_reel_libre(telegram_id, body.brief,
                                             images=images or None, reseau=body.reseau or "Instagram",
-                                            style=body.style, musique=body.musique, voix=body.voix)
+                                            style=body.style, musique=body.musique, voix=body.voix,
+                                            montage_ia=body.montage_ia)
     except Exception as e:
         quota_service.refund(q); _rendre_voix(qv)
         logger.error(f"creer reel libre: {e}")
@@ -204,6 +208,7 @@ class ReelRegenRequest(BaseModel):
     style: str | None = None
     musique: str | None = None
     voix: str | None = None                 # None = garder celle du reel ; "none" = retirer
+    montage_ia: bool | None = None          # None = garder le choix précédent
 
 
 @router.post("/regenerer")
@@ -236,7 +241,8 @@ def regenerer(body: ReelRegenRequest, payload: dict = Depends(verify_token)):
         res = reel_service.regenerer_reel(telegram_id, body.reel_id,
                                           images=images or None, brief=(body.brief or "").strip() or None,
                                           style=body.style, musique=body.musique,
-                                          voix=(body.voix if body.voix is not None else voix) or "none")
+                                          voix=(body.voix if body.voix is not None else voix) or "none",
+                                          montage_ia=body.montage_ia)
     except Exception as e:
         quota_service.refund(q); _rendre_voix(qv)
         logger.error(f"regenerer reel: {e}")
