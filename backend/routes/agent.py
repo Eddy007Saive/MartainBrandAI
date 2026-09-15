@@ -795,7 +795,8 @@ def image_prompt(body: dict, payload: dict = Depends(verify_token)):
     texte = (body.get("texte") or "").strip()
     if not texte:
         raise HTTPException(status_code=400, detail="texte requis")
-    res = image_service.generer_prompt(telegram_id, texte, body.get("reseau", "linkedin"), avec_photo=bool(body.get("avec_photo")))
+    style = body.get("style") if body.get("style") in image_service.styles_image() else "photo"
+    res = image_service.generer_prompt(telegram_id, texte, body.get("reseau", "linkedin"), avec_photo=bool(body.get("avec_photo")), style=style)
     if res.get("error") == "no_api_key":
         raise HTTPException(status_code=500, detail="Clé API IA non configurée")
     # Sauvegarde immédiate du prompt sur le contenu -> on ne le régénère pas à la réouverture (anti-gaspillage)
@@ -857,6 +858,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     integrate_refs = body.get("integrate_refs") if isinstance(body.get("integrate_refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
+    style = body.get("style") if body.get("style") in image_service.styles_image() else "photo"
     # Story -> visuel vertical 9:16 (sinon 4:5 feed)
     ratio = "4:5"
     if contenu_id:
@@ -868,7 +870,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
             pass
     depart = time.monotonic()
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio, integrate_refs=integrate_refs)
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio, integrate_refs=integrate_refs, style=style)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent image error: {e}")
@@ -895,9 +897,13 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
 
     contenu_id = body.get("contenu_id")
     if contenu_id:
-        # En template on sauvegarde l'instruction BRUTE (pas le prompt combiné accroche+consignes),
-        # sinon elle se réinjecte dans le champ et s'empile à chaque régénération.
-        upd = {"lien_visuel": res["lien_visuel"], "prompt_image": (user_instr if template_mode else prompt)}
+        # prompt_image = la DESCRIPTION du mode IA, mémorisée. En template, on n'y écrit plus les
+        # instructions : elles se retrouvaient prérempli es dans la description (et l'inverse : la
+        # description IA partait comme consigne du gabarit, d'où un téléphone au « dashboard bizarre »).
+        # Les instructions du template sont gardées côté navigateur.
+        upd = {"lien_visuel": res["lien_visuel"]}
+        if not template_mode:
+            upd["prompt_image"] = prompt
         # Le visuel est prêt -> on fixe la date puis on POUSSE vers Zernio. Le statut ne passe
         # PLUS à "Planifie" ici : seul l'event webhook post.scheduled le confirme (source de
         # vérité = Zernio ; fini les posts "Planifié" qui n'existent nulle part).

@@ -43,6 +43,9 @@ import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
 
+// Styles de rendu de l'image IA (mêmes clés que les miniatures des reels, côté serveur aussi).
+const IMAGE_STYLES = ['photo', 'cinema', '3d', 'illustration', 'neon', 'pop'];
+const TPL_INSTR_KEY = (id) => `postorico_tpl_instr_${id}`;
 const IMAGE_MODELES = [
   { id: 'nano2', label: 'nano-banana 2.5', cout: 50 },
   { id: 'nano3', label: 'nano-banana 3 (Pro)', cout: 150 },
@@ -581,6 +584,8 @@ export default function ContenusPage() {
   };
   const [imgPrompt, setImgPrompt] = useState('');
   const [imgAvecPhoto, setImgAvecPhoto] = useState(false);
+  const [imgStyle, setImgStyle] = useState('photo');       // photo réaliste par défaut, ou illustration, 3D…
+  const [tplInstr, setTplInstr] = useState('');            // instructions du mode template, SÉPARÉES de la description IA
   const [imgModele, setImgModele] = useState('nano2');
   const [imgLoadingPrompt, setImgLoadingPrompt] = useState(false);
   const [imgGenerating, setImgGenerating] = useState(false);
@@ -766,6 +771,7 @@ export default function ContenusPage() {
         String(contenu.reseau_cible || 'linkedin').toLowerCase(),
         contenu.id,
         avecPhoto,
+        imgStyle,
       );
       setImgPrompt(data.prompt || '');
       // mémorise le prompt (sauvegardé en base) pour ne pas le régénérer à la réouverture
@@ -784,6 +790,11 @@ export default function ContenusPage() {
     setImgModele('nano2');
     setActiveTemplate(null); setStyleNote('');
     setImgMode('gabarit'); setSelectedGabarit(null); setTemplateBg(null); setPhotoDesc('');
+    setImgStyle('photo');
+    // Les instructions du template ne viennent JAMAIS de la description IA : mémorisées à part.
+    let memoTpl = '';
+    try { memoTpl = localStorage.getItem(TPL_INSTR_KEY(contenu.id)) || ''; } catch (e) { /* stockage indisponible */ }
+    setTplInstr(memoTpl);
     refreshUsage();
     // Charge la bibliothèque de références (inspirations) — rien sélectionné par défaut (opt-in)
     userService.listInspirations()
@@ -806,16 +817,22 @@ export default function ContenusPage() {
   const genererImage = async () => {
     if (!imageContenu) return;
     if (!imgPrompt.trim() && !activeTemplate) return; // template = l'IA écrit le texte côté serveur
+    // Template : seules les instructions tapées pour le gabarit partent (jamais la description IA).
+    const promptEnvoye = activeTemplate ? tplInstr : imgPrompt;
     setImgGenerating(true);
     try {
       // En template : l'image du GABARIT part TOUJOURS en 1re position, suivie des refs choisies.
       const tplImgs = activeTemplate ? ((templates.find((t) => t.id === activeTemplate)?.images) || []) : [];
       const refsToSend = activeTemplate ? [...tplImgs, ...selectedRefs.filter((u) => !tplImgs.includes(u))] : selectedRefs;
       const integrateToSend = selectedRefs.filter((u) => integrateUrls.includes(u));
-      const data = await agentService.image(imageContenu.id, imgPrompt, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate, null, integrateToSend);
+      const data = await agentService.image(imageContenu.id, promptEnvoye, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate, null, integrateToSend, activeTemplate ? null : imgStyle);
       if (data.credits != null) updateUser({ credits: data.credits });
-      setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : c)));
-      setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, prompt_image: imgPrompt } : prev));
+      if (activeTemplate) {
+        try { localStorage.setItem(TPL_INSTR_KEY(imageContenu.id), tplInstr); } catch (e) { /* stockage indisponible */ }
+      }
+      const memo = activeTemplate ? {} : { prompt_image: imgPrompt };
+      setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, ...memo } : c)));
+      setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, ...memo } : prev));
       track('image_generee', { mode: activeTemplate ? 'template' : 'ia', modele: imgModele });
       toast.success(t('contenus.toast.visuelGenere'));
       refreshUsage();
@@ -2072,7 +2089,7 @@ export default function ContenusPage() {
                         {activeTemplate && (
                           <div className="space-y-1.5 pt-1">
                             <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.instructionsOptionnel')}</label>
-                            <Textarea value={imgPrompt} onChange={(e) => setImgPrompt(e.target.value)} rows={2}
+                            <Textarea value={tplInstr} onChange={(e) => setTplInstr(e.target.value)} rows={2} data-testid="image-template-instructions"
                               placeholder={t('contenus.image.instructionsPlaceholder')}
                               className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
                             <p className="text-[11px] text-slate-600 font-inter">{t('contenus.image.laisseVide')}</p>
@@ -2133,6 +2150,21 @@ export default function ContenusPage() {
                             <Textarea value={imgPrompt} onChange={(e) => setImgPrompt(e.target.value)} rows={3}
                               className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50" />
                           )}
+                        </div>
+                        {/* Style de rendu : réaliste par défaut, ou illustration, 3D, néon… Le garde-fou
+                            « photo réaliste » ne s'applique qu'aux styles photo. */}
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.style')}</label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {IMAGE_STYLES.map((st) => (
+                              <button key={st} type="button" onClick={() => setImgStyle(st)} data-testid={`image-style-${st}`}
+                                title={t(`contenus.miniature.styles.${st}Desc`)}
+                                className={`px-2.5 py-1.5 rounded-lg text-[12.5px] font-inter font-semibold border transition-all ${imgStyle === st ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:border-white/25 hover:text-slate-200'}`}>
+                                {t(`contenus.miniature.styles.${st}`)}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-[11px] text-slate-600 font-inter">{t(`contenus.miniature.styles.${imgStyle}Desc`)}</p>
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-[#0a0f1c] border border-white/10">
                           <div>

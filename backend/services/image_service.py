@@ -74,13 +74,103 @@ ROLE_PROMPT = (
     "de la marque. Évite tout texte dans l'image. Réponds UNIQUEMENT avec le prompt, rien d'autre.\n\n"
 )
 
+# Même directeur artistique, mais pour un style NON photographique (3D, illustration, pop…) : pas
+# d'objectif ni de pellicule, la couche finale est le style demandé.
+ROLE_PROMPT_STYLE = (
+    "Tu es directeur artistique. À partir d'un post et de la charte de marque, tu écris UN prompt "
+    "d'image (en anglais, plus efficace pour le modèle) pour illustrer le post.\n\n"
+    "Structure le prompt en couches, dans cet ordre :\n"
+    "1. Cadrage et composition (ex. \"centered hero object\", \"isometric scene\", \"close-up\")\n"
+    "2. Sujet (personnage, objet ou scène) décrit précisément\n"
+    "3. Action / ce qui se passe dans le cadre\n"
+    "4. Environnement (décor, contexte)\n"
+    "5. Lumière et ambiance\n"
+    "6. Palette : celle de la marque, nommée en mots\n"
+    "7. Le STYLE, recopié tel quel depuis la consigne de style ci-dessous, en dernière couche.\n\n"
+    "Le visuel doit coller au message, rester professionnel, épuré et lisible. Aucun texte dans "
+    "l'image. Réponds UNIQUEMENT avec le prompt, rien d'autre.\n\n"
+)
 
-def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", avec_photo: bool = False) -> dict:
-    """Claude écrit le prompt d'image (modifiable ensuite par l'utilisateur)."""
+# Règle commune : le générateur ne sait PAS dessiner une interface qu'on lui décrit vaguement
+# (« un dashboard », « une appli ») : il invente des cadrans illisibles. Vu le 2026-09-15 sur un
+# post fiche Google : téléphone avec un tableau de bord fantaisiste.
+_REGLE_ECRANS = (
+    "ÉCRANS ET INTERFACES : ne décris JAMAIS un écran allumé montrant une interface générique, un "
+    "« dashboard », une appli ou des graphiques inventés (le modèle produit un faux tableau de bord "
+    "illisible). Pour un sujet numérique, préfère une métaphore physique ou un décor : devanture, "
+    "épingle de carte, loupe, fiche cartonnée avec des étoiles, icône 3D, objet symbolique. Si un "
+    "écran connu doit absolument apparaître, NOMME-le exactement et décris ses éléments visibles "
+    "(ex. « the public Google Business Profile card as shown in Google Maps: business name, 4.8 "
+    "stars, three photos, opening hours, Directions and Call buttons »), jamais « a dashboard ». "
+)
+
+
+def styles_image() -> dict:
+    """Styles proposés à la génération d'image : ceux des miniatures (une seule définition)."""
+    from services.miniature_service import STYLES
+    return STYLES
+
+
+def _nom_couleur(hexa: str) -> str:
+    """Nom approximatif (en anglais) d'une couleur hexadécimale : le générateur lit mieux
+    « deep violet » que « #5B6CFF »."""
+    try:
+        h = (hexa or "").strip().lstrip("#")
+        if len(h) == 3:
+            h = "".join(c * 2 for c in h)
+        r, g, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    except Exception:
+        return hexa or ""
+    mx, mn = max(r, g, b), min(r, g, b)
+    l = (mx + mn) / 2
+    d = mx - mn
+    if d < 0.08:
+        return "black" if l < 0.12 else "charcoal" if l < 0.3 else "grey" if l < 0.7 else "off-white" if l < 0.93 else "white"
+    if mx == r:
+        hue = (60 * ((g - b) / d) + 360) % 360
+    elif mx == g:
+        hue = 60 * ((b - r) / d) + 120
+    else:
+        hue = 60 * ((r - g) / d) + 240
+    noms = [(15, "red"), (38, "orange"), (52, "gold"), (66, "yellow"), (95, "lime green"), (170, "green"),
+            (186, "teal"), (205, "cyan"), (222, "azure blue"), (246, "blue"), (268, "indigo"), (292, "violet"),
+            (335, "magenta"), (361, "red")]
+    nom = next(n for lim, n in noms if hue < lim)
+    if nom == "green" and l > 0.5:
+        nom = "mint green"
+    if nom == "blue" and l < 0.2:
+        nom = "navy"
+    if l < 0.28:
+        nom = "deep " + nom
+    elif l > 0.72:
+        nom = "pale " + nom
+    return nom
+
+
+def _charte(u: dict) -> str:
+    """La charte de marque, injectée à CHAQUE génération libre (même si le client a réécrit la
+    description) : palette nommée + codes. Décision PO du 2026-09-15."""
+    parts = []
+    for cle, lib in (("couleur_principale", "primary"), ("couleur_secondaire", "secondary"), ("couleur_accent", "accent")):
+        v = (u.get(cle) or "").strip()
+        if v:
+            parts.append(f"{lib} {_nom_couleur(v)} ({v})")
+    if not parts:
+        return ""
+    return ("BRAND PALETTE, mandatory: " + ", ".join(parts) + ". These are the dominant colours of the "
+            "composition (backgrounds, key objects, lighting accents, wardrobe details); other colours stay "
+            "secondary and harmonious with them.")
+
+
+def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", avec_photo: bool = False,
+                   style: str = "photo") -> dict:
+    """Claude écrit le prompt d'image (modifiable ensuite par l'utilisateur).
+    style : photo (réaliste, défaut), cinema, 3d, illustration, neon, pop (styles_image())."""
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
-    contexte = (
+    st = styles_image().get(style) or styles_image()["photo"]
+    contexte = _REGLE_ECRANS + (
         f"Secteur : {u.get('secteur') or '—'}. "
         f"Style : {u.get('style_vestimentaire') or '—'}. "
         f"Palette de marque (à utiliser) : principale {u.get('couleur_principale')}, "
@@ -110,10 +200,17 @@ def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", 
             "de style au moment de la génération : décris surtout le SUJET et la SCÈNE, et reste "
             "cohérent avec ces références (le style visuel sera guidé par elles)."
         )
+    if st["photo"]:
+        role = ROLE_PROMPT
+        if style != "photo":
+            contexte += f" Ambiance photographique demandée : {st['texte']}"
+    else:
+        role = ROLE_PROMPT_STYLE
+        contexte += f" CONSIGNE DE STYLE (à recopier en dernière couche) : {st['texte']}"
     resp = _messages_create(
         model="claude-haiku-4-5",
         max_tokens=400,
-        system=ROLE_PROMPT + contexte,
+        system=role + contexte,
         messages=[{
             "role": "user",
             "content": f"Post à illustrer (réseau {reseau}) :\n\n{post_texte}\n\nDonne le prompt d'image.",
@@ -170,7 +267,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None, public_id: str = None, identite_stylisee: bool = False) -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None, public_id: str = None, identite_stylisee: bool = False, style: str = "photo") -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     `refs` : images de référence choisies à la génération (URLs). Si fourni (même vide), il a
@@ -198,8 +295,21 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     # référence est fournie) : l'utilisateur peut avoir édité le prompt de Claude et retiré la
     # consigne de réalisme d'origine (voir ROLE_PROMPT). Absent pour template_mode : là, on édite un
     # gabarit graphique existant, pas une photo — la fidélité au design prime sur le réalisme photo.
+    st = styles_image().get(style) or styles_image()["photo"]
     if not template_mode:
-        prompt = f"{prompt}\n\nRender with visible natural texture, no over-smoothing, no plastic/AI look. Photographic realism, no text."
+        if st["photo"]:
+            prompt = f"{prompt}\n\nRender with visible natural texture, no over-smoothing, no plastic/AI look. Photographic realism, no text."
+            if style != "photo":
+                prompt = f"{prompt}\nMood: {st['texte']}"
+        else:
+            # Style non photographique choisi par le client : le garde-fou réalisme ne s'applique pas,
+            # le style prime (et la personne de la photo, s'il y en a une, est stylisée, pas photographiée).
+            prompt = f"{prompt}\n\nSTYLE, mandatory: {st['texte']} No text in the image."
+            identite_stylisee = True
+        # La charte part TOUJOURS, quel que soit le texte de la description (le client a pu la réécrire).
+        charte = _charte(u)
+        if charte:
+            prompt = f"{prompt}\n\n{charte}"
 
     # Photo de l'utilisateur demandée -> PHOTO RÉALISTE (pas d'illustration)
     photo_refs = []

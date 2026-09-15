@@ -64,15 +64,15 @@ export const agentService = {
 
   // Claude écrit un prompt d'image à partir du texte du post (éditable) ; sauvegardé sur le contenu.
   // avec_photo : si false, la description ne doit décrire AUCUN humain (règle produit).
-  imagePrompt: (texte, reseau = 'linkedin', contenu_id = null, avecPhoto = false) =>
-    api.post('/agent/image-prompt', { texte, reseau, contenu_id, avec_photo: avecPhoto }).then((r) => r.data),
+  imagePrompt: (texte, reseau = 'linkedin', contenu_id = null, avecPhoto = false, style = 'photo') =>
+    api.post('/agent/image-prompt', { texte, reseau, contenu_id, avec_photo: avecPhoto, style }).then((r) => r.data),
 
   // Génère l'image (nano-banana) et l'attache au contenu.
   // refs : images de référence (URLs) ; integrateRefs : sous-ensemble de refs à intégrer
   // littéralement (ex. la mascotte), le reste reste une simple inspiration de style ;
   // style_note : directive de style (template).
-  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null, style_note = null, template_mode = false, bg_image = null, integrateRefs = null) =>
-    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}), ...(style_note ? { style_note } : {}), ...(template_mode ? { template_mode: true } : {}), ...(bg_image ? { bg_image } : {}), ...(integrateRefs && integrateRefs.length ? { integrate_refs: integrateRefs } : {}) }).then((r) => r.data),
+  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null, style_note = null, template_mode = false, bg_image = null, integrateRefs = null, style = null) =>
+    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}), ...(style_note ? { style_note } : {}), ...(template_mode ? { template_mode: true } : {}), ...(bg_image ? { bg_image } : {}), ...(integrateRefs && integrateRefs.length ? { integrate_refs: integrateRefs } : {}), ...(style ? { style } : {}) }).then((r) => r.data),
 
   // Gabarits de post (feed cohérent) : compose le texte du post puis rend le visuel
   gabarits: () => api.get('/agent/gabarits').then((r) => r.data),

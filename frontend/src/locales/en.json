@@ -672,6 +672,7 @@
       "ajoutePhotoProfil": "Add a profile photo in Settings → Identity to enable it.",
       "aucuneImageStyle": "No images. Add one to guide the style.",
       "qualite": "Quality",
+      "style": "Style",
       "imageHd": "HD image",
       "imageStandard": "Standard image",
       "warnStdA": "The ",
