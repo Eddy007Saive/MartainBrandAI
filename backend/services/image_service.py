@@ -102,7 +102,16 @@ _REGLE_ECRANS = (
     "écran connu doit absolument apparaître, NOMME-le exactement et décris ses éléments visibles "
     "(ex. « the public Google Business Profile card as shown in Google Maps: business name, 4.8 "
     "stars, three photos, opening hours, Directions and Call buttons »), jamais « a dashboard ». "
+    "COULEURS : nomme-les toujours en mots (deep navy, mint green…), JAMAIS de code hexadécimal dans "
+    "le prompt : le générateur les dessine comme du texte. "
 )
+
+_HEX_RE = re.compile(r"#?\b[0-9a-fA-F]{6}\b")
+
+
+def _sans_hex(texte: str) -> str:
+    """Remplace tout code couleur du prompt par son nom : les codes finissent écrits dans l'image."""
+    return _HEX_RE.sub(lambda m: _nom_couleur(m.group(0)), texte or "")
 
 
 def styles_image() -> dict:
@@ -159,7 +168,7 @@ def _charte(u: dict) -> str:
         return ""
     return ("BRAND PALETTE, mandatory: " + ", ".join(parts) + ". These are the dominant colours of the "
             "composition (backgrounds, key objects, lighting accents, wardrobe details); other colours stay "
-            "secondary and harmonious with them.")
+            "secondary and harmonious with them. The codes are for colour matching only: never draw or write them.")
 
 
 def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", avec_photo: bool = False,
@@ -297,6 +306,7 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     # gabarit graphique existant, pas une photo — la fidélité au design prime sur le réalisme photo.
     st = styles_image().get(style) or styles_image()["photo"]
     if not template_mode:
+        prompt = _sans_hex(prompt)
         if st["photo"]:
             prompt = f"{prompt}\n\nRender with visible natural texture, no over-smoothing, no plastic/AI look. Photographic realism, no text."
             if style != "photo":
@@ -304,7 +314,7 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
         else:
             # Style non photographique choisi par le client : le garde-fou réalisme ne s'applique pas,
             # le style prime (et la personne de la photo, s'il y en a une, est stylisée, pas photographiée).
-            prompt = f"{prompt}\n\nSTYLE, mandatory: {st['texte']} No text in the image."
+            prompt = f"{prompt}\n\nSTYLE, mandatory: {st['texte']} No words, letters or numbers anywhere in the image."
             identite_stylisee = True
         # La charte part TOUJOURS, quel que soit le texte de la description (le client a pu la réécrire).
         charte = _charte(u)
