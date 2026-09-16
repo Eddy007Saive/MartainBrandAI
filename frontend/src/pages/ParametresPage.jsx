@@ -5,7 +5,7 @@ import {
   User, Link, Key, Palette, Save, Loader2, Trash2, AlertTriangle, Info,
   Plug, Check, ExternalLink, Unplug, Calendar, Clock, Video, Upload,
   CheckCircle, XCircle, AlertCircle, ChevronRight, Megaphone, Settings, CreditCard, Sparkles,
-  Plus, Image as ImageIcon, X, Repeat, Lock, Package, Pencil, Handshake } from 'lucide-react';
+  Plus, Image as ImageIcon, X, Repeat, Lock, Package, Pencil, Handshake, Pin, Smartphone } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { ChampMarque, ChampListe } from '../components/ChampsMarque';
 import { Input } from '../components/ui/input';
@@ -20,7 +20,7 @@ import {
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Field } from '../components/Field';
-import { ColorField } from '../components/ColorField';
+import { ApercuStyle, ApercuPost, IMAGE_STYLES, contraste, paletteDe } from '../components/StyleMarque';
 import { track } from '../lib/analytics';
 import InvoicesList from '../components/InvoicesList';
 import { COMMON_TIMEZONES } from '../lib/tz';
@@ -41,9 +41,6 @@ import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { DAYS, DEFAULT_SCHEDULE } from '../constants/schedules';
 import QuotaGauge from '../components/QuotaGauge';
 import Affiliation from './Affiliation';
-
-// Styles des images IA (mêmes clés que côté serveur et que la fenêtre Image de Contenus)
-const IMAGE_STYLES = ['auto', 'photo', 'cinema', '3d', 'illustration', 'neon', 'pop'];
 
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
@@ -247,6 +244,9 @@ export default function ParametresPage() {
 
   // Inspirations visuelles
   const [inspirations, setInspirations] = useState([]);
+  // Rôles des références : épinglée (toujours intégrée) ou écran (capture reproduite dans les mockups).
+  const [rolesInsp, setRolesInsp] = useState({ integrate: [], ecran: [] });
+  const [filtreInsp, setFiltreInsp] = useState('all');
   const [inspiLoaded, setInspiLoaded] = useState(false);
   const [uploadingInspi, setUploadingInspi] = useState(false);
   const inspiInputRef = useRef(null);
@@ -336,7 +336,7 @@ export default function ParametresPage() {
   useEffect(() => {
     if (activeSection === 'style' && !inspiLoaded) {
       userService.listInspirations()
-        .then((d) => setInspirations(d.images || []))
+        .then((d) => { setInspirations(d.images || []); setRolesInsp({ integrate: d.integrate || [], ecran: d.ecran || [] }); })
         .catch(() => {})
         .finally(() => setInspiLoaded(true));
       templateService.list().then((d) => setTemplates(d || [])).catch(() => {});
@@ -385,6 +385,18 @@ export default function ParametresPage() {
       setUploadingInspi(false);
       if (inspiInputRef.current) inspiInputRef.current.value = '';
     }
+  };
+
+  // Rôle exclusif d'une référence ; re-cliquer le rôle actif repasse en simple style. Optimiste, annulé si échec.
+  const changerRoleInsp = (url, role) => {
+    const actuel = rolesInsp.integrate.includes(url) ? 'integrate' : rolesInsp.ecran.includes(url) ? 'ecran' : 'style';
+    const next = actuel === role ? 'style' : role;
+    const avant = rolesInsp;
+    setRolesInsp({
+      integrate: next === 'integrate' ? [...avant.integrate.filter((u) => u !== url), url] : avant.integrate.filter((u) => u !== url),
+      ecran: next === 'ecran' ? [...avant.ecran.filter((u) => u !== url), url] : avant.ecran.filter((u) => u !== url),
+    });
+    userService.setInspirationRole(url, next).catch(() => { setRolesInsp(avant); toast.error(t('params.commun.echecSuppression')); });
   };
 
   const handleInspiDelete = async (url) => {
@@ -1274,178 +1286,226 @@ export default function ParametresPage() {
     </div>
   );
 
-  const renderStyle = () => (
-    <div className="space-y-5">
-      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-4">{t('params.style.palette')}</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <ColorField label={t('params.style.couleurPrincipale')} name="couleur_principale" value={user?.couleur_principale} onChange={handleChange} />
-          <ColorField label={t('params.style.couleurSecondaire')} name="couleur_secondaire" value={user?.couleur_secondaire} onChange={handleChange} />
-          <ColorField label={t('params.style.couleurAccent')} name="couleur_accent" value={user?.couleur_accent} onChange={handleChange} />
+  // Section Style & Couleurs, piste « Studio » (validée le 2026-09-16) : les réglages en rangées à
+  // gauche, un aperçu de post aux couleurs du client à droite, qui bouge à chaque changement.
+  const renderStyle = () => {
+    const couleurs = paletteDe(user);
+    const styleActif = user?.style_image || 'photo';
+    const ct = contraste(couleurs.accent, couleurs.principale);
+    const roleDe = (url) => (rolesInsp.integrate.includes(url) ? 'integrate' : rolesInsp.ecran.includes(url) ? 'ecran' : 'style');
+    const visibles = inspirations.filter((u) => filtreInsp === 'all' || roleDe(u) === filtreInsp);
+    const libStyle = (st) => (st === 'auto' ? t('params.style.styleImageAuto') : t(`contenus.miniature.styles.${st}`));
+    const descStyle = (st) => (st === 'auto' ? t('params.style.styleImageAutoAide') : t(`contenus.miniature.styles.${st}Desc`));
+    const rang = (cle, { eyebrow, titre, aide, action, testid }, contenu) => (
+      <section key={cle} data-testid={testid} className="rounded-2xl border border-white/[0.07] bg-slate-950/40 px-[18px] py-4 grid gap-4 md:grid-cols-[150px_minmax(0,1fr)] items-start">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter m-0">{eyebrow}</p>
+          <h3 className="text-[15px] font-semibold text-white font-sora mt-1">{titre}</h3>
+          {aide && <p className="text-xs text-slate-500 font-inter mt-1 leading-relaxed">{aide}</p>}
+          {action && <div className="mt-2">{action}</div>}
         </div>
+        <div className="min-w-0">{contenu}</div>
       </section>
+    );
+    const hexOk = (v) => /^#[0-9A-Fa-f]{0,6}$/.test(v);
+    const nuancier = [
+      ['couleur_principale', t('params.style.courtPrincipale'), t('params.style.rolePrincipale'), couleurs.principale],
+      ['couleur_secondaire', t('params.style.courtSecondaire'), t('params.style.roleSecondaire'), couleurs.secondaire],
+      ['couleur_accent', t('params.style.courtAccent'), t('params.style.roleAccent'), couleurs.accent],
+    ];
+    const pointContraste = ct.niveau === 'bon' ? 'bg-[#3AFFA3]' : ct.niveau === 'moyen' ? 'bg-amber-400' : 'bg-[#F26B6B]';
 
-      {/* Style par défaut des images IA : repris à l'ouverture de la fenêtre Image, modifiable post par post */}
-      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5" data-testid="section-style-image">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-1">{t('params.style.styleImage')}</div>
-        <p className="text-xs text-slate-500 font-inter mb-4">{t('params.style.styleImageAide')}</p>
-        <div className="flex flex-wrap gap-2">
-          {IMAGE_STYLES.map((st) => {
-            const actif = (user?.style_image || 'photo') === st;
-            return (
-              <button key={st} type="button" onClick={() => handleChange('style_image', st)} data-testid={`style-image-${st}`}
-                title={st === 'auto' ? t('params.style.styleImageAutoAide') : t(`contenus.miniature.styles.${st}Desc`)}
-                className={`px-3 py-2 rounded-lg text-[13px] font-inter font-semibold border transition-all ${actif ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:border-white/25 hover:text-slate-200'}`}>
-                {st === 'auto' ? t('params.style.styleImageAuto') : t(`contenus.miniature.styles.${st}`)}
-              </button>
-            );
-          })}
-        </div>
-        <p className="text-[11px] text-slate-600 font-inter mt-3">
-          {(user?.style_image || 'photo') === 'auto' ? t('params.style.styleImageAutoAide') : t(`contenus.miniature.styles.${user?.style_image || 'photo'}Desc`)}
-        </p>
-      </section>
-      <div className="p-5 rounded-2xl border border-white/[0.07] bg-slate-950/40">
-        <h3 className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-3">{t('params.style.apercu')}</h3>
-        <div className="flex gap-3 items-center">
-          <div className="w-16 h-16 rounded-xl shadow-lg transition-all" style={{ backgroundColor: user?.couleur_principale || '#003D2E' }} data-testid="preview-principale" />
-          <div className="w-16 h-16 rounded-xl shadow-lg transition-all" style={{ backgroundColor: user?.couleur_secondaire || '#0077FF' }} data-testid="preview-secondaire" />
-          <div className="w-16 h-16 rounded-xl shadow-lg transition-all" style={{ backgroundColor: user?.couleur_accent || '#3AFFA3' }} data-testid="preview-accent" />
-        </div>
-        <div className="mt-3 p-3 rounded-lg" style={{ background: `linear-gradient(135deg, ${user?.couleur_principale || '#003D2E'}, ${user?.couleur_secondaire || '#0077FF'})` }}>
-          <p className="text-white font-sora font-semibold text-sm">{t('params.style.degrade')}</p>
-          <p className="text-xs mt-0.5" style={{ color: user?.couleur_accent || '#3AFFA3' }}>{t('params.style.texteAccent')}</p>
-        </div>
-      </div>
-
-      {/* Inspirations visuelles */}
-      <div className="p-5 rounded-2xl border border-white/[0.07] bg-slate-950/40 space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold text-white font-sora">{t('params.style.inspirationsTitre')}</h3>
-            <p className="text-xs text-slate-500 font-inter mt-0.5 leading-relaxed">
-              {t('params.style.inspirationsDesc')}
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              <Switch checked={user?.use_inspirations ?? true} onCheckedChange={(c) => handleChange('use_inspirations', c)} data-testid="toggle-use-inspirations" />
-              <span className="text-xs text-slate-400 font-inter">{t('params.style.utiliserInspirations')}</span>
-            </div>
-          </div>
-          <input ref={inspiInputRef} type="file" accept="image/*" multiple onChange={handleInspiUpload} className="hidden" data-testid="input-inspiration" />
-          <Button
-            type="button" size="sm" onClick={() => inspiInputRef.current?.click()} disabled={uploadingInspi}
-            className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter flex-shrink-0"
-          >
-            {uploadingInspi ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Upload className="w-4 h-4 mr-1.5" />}
-            {t('params.commun.ajouter')}
-          </Button>
-        </div>
-
-        {!inspiLoaded ? (
-          <div className="flex items-center justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-[#5B6CFF]" /></div>
-        ) : inspirations.length === 0 ? (
-          <p className="text-xs text-slate-600 font-inter py-4 text-center">{t('params.style.aucuneInspiration')}</p>
-        ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-            {inspirations.map((url) => (
-              <div key={url} className="relative group aspect-square rounded-lg overflow-hidden border border-white/10">
-                <img src={url} alt="" className="w-full h-full object-cover" />
-                <button
-                  onClick={() => handleInspiDelete(url)}
-                  className="absolute top-1 right-1 w-6 h-6 rounded-md bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-red-500/80"
-                  title={t('params.commun.supprimer')}
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+    return (
+      <div className="grid gap-4 items-start lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="grid gap-3.5 min-w-0">
+          {rang('palette', { eyebrow: t('params.style.palette'), titre: t('params.style.paletteTitre'), aide: t('params.style.paletteAide') }, (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {nuancier.map(([name, lib, role, val]) => (
+                  <div key={name} className="flex items-center gap-2.5 p-2 rounded-[14px] border border-white/[0.07] bg-[#0b1224]">
+                    <label className="relative w-11 h-11 rounded-xl border border-white/15 shrink-0 cursor-pointer overflow-hidden" style={{ background: val }} title={role}>
+                      <input type="color" value={val} onChange={(e) => handleChange(name, e.target.value)} data-testid={`color-picker-${name}`}
+                        className="absolute -inset-2 w-[200%] h-[200%] opacity-0 cursor-pointer" aria-label={lib} />
+                    </label>
+                    <div className="min-w-0 grid">
+                      <span className="text-[13px] font-semibold text-slate-100 font-inter truncate" title={role}>{lib}</span>
+                      <input type="text" value={val} data-testid={`color-hex-${name}`} aria-label={`${lib} hex`}
+                        onChange={(e) => { const v = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value; if (hexOk(v)) handleChange(name, v); }}
+                        className="bg-transparent border-0 p-0 text-[12px] font-mono text-slate-400 focus:text-slate-100 focus:outline-none w-[9ch]" />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <p className="mt-2.5 flex items-center gap-2 text-[12.5px] text-slate-400 font-inter" data-testid="contraste-accent">
+                <span className={`w-2 h-2 rounded-full ${pointContraste}`} />
+                {t('params.style.contraste', { ratio: ct.ratio, niveau: t(`params.style.contraste${ct.niveau[0].toUpperCase()}${ct.niveau.slice(1)}`) })}
+              </p>
+            </>
+          ))}
 
-      {/* Templates de marque */}
-      <div className="p-5 rounded-2xl border border-white/[0.07] bg-slate-950/40 space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold text-white font-sora">{t('params.style.templatesTitre')}</h3>
-            <p className="text-xs text-slate-500 font-inter mt-0.5 leading-relaxed">
-              {t('params.style.templatesDesc')}
-            </p>
-          </div>
-          <Button type="button" size="sm" onClick={() => setTplOpen((v) => !v)}
-            className="bg-[#3AFFA3]/15 text-[#3AFFA3] hover:bg-[#3AFFA3]/25 border border-[#3AFFA3]/30 font-inter flex-shrink-0">
-            <Plus className="w-4 h-4 mr-1.5" />{tplOpen ? t('params.commun.annuler') : t('params.style.nouveau')}
-          </Button>
-        </div>
-
-        {/* Formulaire de création */}
-        {tplOpen && (
-          <div className="rounded-lg border border-white/10 bg-slate-900/50 p-3 space-y-3">
-            <Input value={tplNom} onChange={(e) => setTplNom(e.target.value)} placeholder={t('params.style.tplNomPlaceholder')}
-              className="bg-slate-950/60 border-slate-800 text-slate-200 text-sm" maxLength={80} />
-            <Textarea value={tplNote} onChange={(e) => setTplNote(e.target.value)} rows={2}
-              placeholder={t('params.style.tplNotePlaceholder')}
-              className="bg-slate-950/60 border-slate-800 text-slate-200 text-sm" />
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <p className="text-xs text-slate-400 font-inter">{t('params.style.imagesRef', { count: tplImages.length })}</p>
-                <input ref={tplInputRef} type="file" accept="image/*" multiple onChange={handleTplUpload} className="hidden" />
-                <button type="button" onClick={() => tplInputRef.current?.click()} disabled={tplUploading}
-                  className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50 flex-shrink-0">
-                  {tplUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} {t('params.style.ajouterImage')}
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {inspirations.map((url) => {
-                  const on = tplImages.includes(url);
+          {rang('style', { eyebrow: t('params.style.styleImage'), titre: t('params.style.styleTitre'), aide: t('params.style.styleAide'), testid: 'section-style-image' }, (
+            <>
+              <div className="grid grid-cols-4 gap-1.5">
+                {IMAGE_STYLES.map((st) => {
+                  const actif = styleActif === st;
                   return (
-                    <button key={url} type="button" onClick={() => toggleTplImage(url)}
-                      className={`relative w-12 h-12 rounded-md overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      {on && <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[9px] font-bold">✓</span>}
+                    <button key={st} type="button" onClick={() => handleChange('style_image', st)} data-testid={`style-image-${st}`} title={descStyle(st)} aria-pressed={actif}
+                      className={`text-left grid gap-1.5 p-1.5 rounded-[12px] border bg-[#0b1224] transition-colors ${actif ? 'border-[#3AFFA3] shadow-[inset_0_0_0_1px_#3AFFA3]' : 'border-white/[0.07] hover:border-white/20'}`}>
+                      <ApercuStyle style={st} couleurs={couleurs} />
+                      <span className={`text-[12px] font-semibold font-inter truncate ${actif ? 'text-[#3AFFA3]' : 'text-slate-200'}`}>{libStyle(st)}</span>
                     </button>
                   );
                 })}
-                {inspirations.length === 0 && (
-                  <p className="text-xs text-slate-600 font-inter">{t('params.style.aucuneImage')}</p>
-                )}
               </div>
-            </div>
-            <Button onClick={handleCreateTemplate} disabled={tplSaving || !tplNom.trim()} size="sm"
-              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter">
-              {tplSaving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Check className="w-4 h-4 mr-1.5" />}{t('params.style.enregistrerTemplate')}
-            </Button>
-          </div>
-        )}
+              <p className="text-[11.5px] text-slate-500 font-inter mt-2">{descStyle(styleActif)}</p>
+            </>
+          ))}
 
-        {/* Liste des templates */}
-        {templates.length === 0 ? (
-          <p className="text-xs text-slate-600 font-inter py-3 text-center">{t('params.style.aucunTemplate')}</p>
-        ) : (
-          <div className="space-y-2">
-            {templates.map((tpl) => (
-              <div key={tpl.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-white/8 bg-slate-900/40">
-                <div className="flex -space-x-2 flex-shrink-0">
-                  {(tpl.images || []).slice(0, 3).map((u) => (
-                    <img key={u} src={u} alt="" className="w-9 h-9 rounded-md object-cover border border-slate-800" />
-                  ))}
-                  {(!tpl.images || tpl.images.length === 0) && <div className="w-9 h-9 rounded-md bg-slate-800 grid place-items-center"><ImageIcon className="w-4 h-4 text-slate-600" /></div>}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-slate-200 font-medium truncate">{tpl.nom}</div>
-                  {tpl.note && <div className="text-[11px] text-slate-500 truncate">{tpl.note}</div>}
-                </div>
-                <button onClick={() => handleDeleteTemplate(tpl.id)} title={t('params.commun.supprimer')}
-                  className="w-8 h-8 grid place-items-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0">
-                  <Trash2 className="w-4 h-4" />
+          {rang('refs', {
+            eyebrow: t('params.style.inspirationsTitre'),
+            titre: t('params.style.refsTitre', { count: inspirations.length }),
+            aide: t('params.style.refsAide', { e: rolesInsp.integrate.length, s: rolesInsp.ecran.length }),
+            action: (
+              <div className="grid gap-2">
+                <input ref={inspiInputRef} type="file" accept="image/*" multiple onChange={handleInspiUpload} className="hidden" data-testid="input-inspiration" />
+                <button type="button" onClick={() => inspiInputRef.current?.click()} disabled={uploadingInspi}
+                  className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#3AFFA3] hover:text-white font-inter disabled:opacity-50">
+                  {uploadingInspi ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}{t('params.commun.ajouter')}
                 </button>
+                <label className="flex items-center gap-2 text-xs text-slate-400 font-inter">
+                  <Switch checked={user?.use_inspirations ?? true} onCheckedChange={(c) => handleChange('use_inspirations', c)} data-testid="toggle-use-inspirations" />
+                  {t('params.style.utiliserInspirations')}
+                </label>
               </div>
-            ))}
-          </div>
-        )}
+            ),
+          }, (
+            <>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {[['all', t('params.style.filtreToutes')], ['integrate', t('params.style.filtreEpinglees')], ['ecran', t('params.style.filtreEcrans')]].map(([f, lib]) => (
+                  <button key={f} type="button" onClick={() => setFiltreInsp(f)} aria-pressed={filtreInsp === f} data-testid={`filtre-insp-${f}`}
+                    className={`px-2.5 py-1.5 rounded-full border text-[12.5px] font-semibold font-inter ${filtreInsp === f ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/[0.08]' : 'border-white/[0.07] text-slate-400 hover:border-white/20'}`}>
+                    {lib}
+                  </button>
+                ))}
+              </div>
+              {!inspiLoaded ? (
+                <div className="flex items-center justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-[#5B6CFF]" /></div>
+              ) : inspirations.length === 0 ? (
+                <p className="text-xs text-slate-600 font-inter py-4 text-center">{t('params.style.aucuneInspiration')}</p>
+              ) : visibles.length === 0 ? (
+                <p className="text-xs text-slate-600 font-inter py-4 text-center">{t('params.style.aucuneDansFiltre')}</p>
+              ) : (
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5">
+                  {visibles.map((url) => {
+                    const role = roleDe(url);
+                    return (
+                      <div key={url} className="relative group rounded-[10px] overflow-hidden border border-white/[0.07]" style={{ aspectRatio: '4 / 5' }}>
+                        <img src={url} alt="" className="w-full h-full object-cover" />
+                        {role !== 'style' && (
+                          <span className={`absolute left-1 bottom-1 text-[9px] font-bold tracking-[0.04em] uppercase px-1.5 py-0.5 rounded-md ${role === 'integrate' ? 'bg-[#5B6CFF] text-white' : 'bg-[#3AFFA3] text-[#0b1322]'}`}>
+                            {role === 'integrate' ? t('params.style.badgeEpinglee') : t('params.style.badgeEcran')}
+                          </span>
+                        )}
+                        <div className="absolute inset-x-1 top-1 flex justify-between opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                          <span className="flex gap-1">
+                            <button type="button" onClick={() => changerRoleInsp(url, 'integrate')} title={role === 'integrate' ? t('params.style.roleRetirer') : t('params.style.roleEpingler')} data-testid="insp-role-integrate"
+                              className={`w-5 h-5 rounded grid place-items-center ${role === 'integrate' ? 'bg-[#5B6CFF] text-white' : 'bg-black/70 text-white hover:bg-[#5B6CFF]'}`}><Pin className="w-3 h-3" fill={role === 'integrate' ? 'currentColor' : 'none'} /></button>
+                            <button type="button" onClick={() => changerRoleInsp(url, 'ecran')} title={role === 'ecran' ? t('params.style.roleRetirer') : t('params.style.roleEcran')} data-testid="insp-role-ecran"
+                              className={`w-5 h-5 rounded grid place-items-center ${role === 'ecran' ? 'bg-[#3AFFA3] text-[#0b1322]' : 'bg-black/70 text-white hover:bg-[#3AFFA3] hover:text-[#0b1322]'}`}><Smartphone className="w-3 h-3" /></button>
+                          </span>
+                          <button type="button" onClick={() => handleInspiDelete(url)} title={t('params.commun.supprimer')}
+                            className="w-5 h-5 rounded grid place-items-center bg-black/70 text-white hover:bg-red-500/80"><Trash2 className="w-3 h-3" /></button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ))}
+
+          {rang('templates', {
+            eyebrow: t('params.style.templatesTitre'),
+            titre: t('params.style.gabarits', { count: templates.length }),
+            aide: t('params.style.templatesAide'),
+            action: (
+              <button type="button" onClick={() => setTplOpen((v) => !v)} data-testid="btn-nouveau-template"
+                className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#3AFFA3] hover:text-white font-inter">
+                {tplOpen ? <X className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}{tplOpen ? t('params.commun.annuler') : t('params.style.nouveau')}
+              </button>
+            ),
+          }, (
+            <>
+              {tplOpen && (
+                <div className="rounded-xl border border-white/10 bg-slate-900/50 p-3 space-y-3 mb-3">
+                  <Input value={tplNom} onChange={(e) => setTplNom(e.target.value)} placeholder={t('params.style.tplNomPlaceholder')}
+                    className="bg-slate-950/60 border-slate-800 text-slate-200 text-sm" maxLength={80} />
+                  <Textarea value={tplNote} onChange={(e) => setTplNote(e.target.value)} rows={2}
+                    placeholder={t('params.style.tplNotePlaceholder')}
+                    className="bg-slate-950/60 border-slate-800 text-slate-200 text-sm" />
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <p className="text-xs text-slate-400 font-inter">{t('params.style.imagesRef', { count: tplImages.length })}</p>
+                      <input ref={tplInputRef} type="file" accept="image/*" multiple onChange={handleTplUpload} className="hidden" />
+                      <button type="button" onClick={() => tplInputRef.current?.click()} disabled={tplUploading}
+                        className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50 flex-shrink-0">
+                        {tplUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />} {t('params.style.ajouterImage')}
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {inspirations.map((url) => {
+                        const on = tplImages.includes(url);
+                        return (
+                          <button key={url} type="button" onClick={() => toggleTplImage(url)}
+                            className={`relative w-12 h-12 rounded-md overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
+                            <img src={url} alt="" className="w-full h-full object-cover" />
+                            {on && <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[9px] font-bold">✓</span>}
+                          </button>
+                        );
+                      })}
+                      {inspirations.length === 0 && <p className="text-xs text-slate-600 font-inter">{t('params.style.aucuneImage')}</p>}
+                    </div>
+                  </div>
+                  <Button onClick={handleCreateTemplate} disabled={tplSaving || !tplNom.trim()} size="sm"
+                    className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter">
+                    {tplSaving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Check className="w-4 h-4 mr-1.5" />}{t('params.style.enregistrerTemplate')}
+                  </Button>
+                </div>
+              )}
+              {templates.length === 0 ? (
+                <p className="text-xs text-slate-600 font-inter py-3 text-center">{t('params.style.aucunTemplate')}</p>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {templates.map((tpl) => (
+                    <figure key={tpl.id} className="relative group m-0 grid gap-1.5">
+                      {tpl.images?.[0]
+                        ? <img src={tpl.images[0]} alt="" className="w-full object-cover rounded-[10px] border border-white/[0.07]" style={{ aspectRatio: '4 / 5' }} />
+                        : <div className="w-full rounded-[10px] border border-white/[0.07] bg-slate-800 grid place-items-center" style={{ aspectRatio: '4 / 5' }}><ImageIcon className="w-5 h-5 text-slate-600" /></div>}
+                      <figcaption className="text-[11px] text-slate-300 font-medium font-inter text-center truncate" title={tpl.note || tpl.nom}>{tpl.nom}</figcaption>
+                      <button type="button" onClick={() => handleDeleteTemplate(tpl.id)} title={t('params.commun.supprimer')}
+                        className="absolute top-1 right-1 w-6 h-6 rounded-md bg-black/60 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity grid place-items-center hover:bg-red-500/80">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </figure>
+                  ))}
+                </div>
+              )}
+            </>
+          ))}
+        </div>
+
+        <aside className="order-first lg:order-none lg:sticky lg:top-[78px]">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter text-center mb-2.5">{t('params.style.apercuDirect')}</p>
+          <ApercuPost user={user} style={styleActif} textes={{
+            sous: t('params.style.apercuSous'), style: libStyle(styleActif),
+            titreAvant: t('params.style.apercuTitreAvant'), titreAccent: t('params.style.apercuTitreAccent'), titreApres: t('params.style.apercuTitreApres'),
+            legende: t('params.style.apercuLegende'), bouton: t('params.style.apercuBouton'),
+          }} />
+          <p className="text-[12px] text-slate-600 font-inter text-center mt-2.5">{t('params.style.apercuNote')}</p>
+        </aside>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderAvatar = () => {
     // Avatar vidéo IA (HeyGen) : mis en pause -> présenté comme fonctionnalité à venir.
