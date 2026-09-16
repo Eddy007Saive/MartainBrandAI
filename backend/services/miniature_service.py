@@ -72,7 +72,8 @@ STYLES = {
     "cinema":  {"photo": True,  "texte": "Cinematic film still: anamorphic look, colour grading built on the BRAND PALETTE (shadows and backgrounds in the primary colour, highlights and rim lights in the accent colour, no orange unless it belongs to the palette), volumetric light, subtle film grain, high contrast."},
     "3d":      {"photo": False, "texte": "Stylised 3D render like a modern animated feature film (Pixar-like): soft rounded shapes, expressive face, glossy materials, warm studio lighting. Keep the person recognisable as a 3D character."},
     "illustration": {"photo": False, "texte": "Bold flat vector illustration with clean shapes, thick outlines, limited vivid palette, subtle paper grain, editorial poster look. Keep the person recognisable in a simplified drawn style."},
-    "neon":    {"photo": True,  "texte": "Dark cyberpunk mood: deep blacks, magenta and cyan neon rim lights, wet reflections, haze, dramatic high contrast, futuristic."},
+    # Même règle que Cinéma : les néons prennent les couleurs de la marque, pas magenta et cyan d'office.
+    "neon":    {"photo": True,  "texte": "Dark cyberpunk mood: deep blacks, neon rim lights and glowing tubes in the BRAND PALETTE (accent colour as the main glow, secondary colour as the second light, no magenta or cyan unless they belong to the palette), wet reflections, haze, dramatic high contrast, futuristic."},
     "pop":     {"photo": False, "texte": "Pop-art comic style: halftone dots, bold black outlines, saturated primary colours, high energy, print texture. Keep the person recognisable."},
 }
 LANGUES = {"fr": "French", "en": "English", "es": "Spanish"}
