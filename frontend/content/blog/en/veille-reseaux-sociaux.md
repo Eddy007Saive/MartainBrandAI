@@ -145,6 +145,10 @@ The Postorico monitoring newsletter is weekly. It is written by AI based on a we
 
 ---
 
+## Further reading
+
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
+
 ## Useful sources
 
 - [Blog du Modérateur](https://www.blogdumoderateur.com/): social media news in French

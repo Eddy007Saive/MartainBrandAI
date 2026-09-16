@@ -255,7 +255,9 @@ Trois actions à impact immédiat : (1) soignez vos 3 premières lignes pour sto
 
 - [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
 - [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
-
+- [Créer une page entreprise LinkedIn : le guide pas-à-pas 2026](/blog/creer-page-entreprise-linkedin)
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+- [Miniature vidéo courte : comment en créer une qui fait cliquer (avec ou sans designer)](/blog/miniature-video-courte)
 ## Sources utiles
 
 - [Buffer - State of Social Media Engagement 2026 (52M posts)](https://buffer.com/resources/state-of-social-media-engagement-2026/)

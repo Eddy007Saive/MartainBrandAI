@@ -133,6 +133,11 @@ Canva es la solución más accesible: plantillas listas para usar, un editor dra
 
 ---
 
+## Para ir más lejos
+
+- [Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador](/es/blog/visuales-ia-redes-sociales-coherencia)
+- [Personal branding en Instagram: el método para un directivo o autónomo](/es/blog/personal-branding-instagram-dirigentes)
+
 ## Fuentes útiles
 
 - [YouTube: entender el porcentaje de clics (CTR)](https://support.google.com/youtube/answer/7628154?hl=fr): documentación oficial de YouTube sobre el CTR y su interpretación.

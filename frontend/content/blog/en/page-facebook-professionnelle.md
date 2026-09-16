@@ -198,6 +198,12 @@ Not necessarily at the start. Organic reach is low but real if you use the right
 
 ---
 
+## Further reading
+
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+
 ## Useful sources
 
 - [Meta Business Suite - official help](https://fr-fr.facebook.com/business/help/473994396650734)

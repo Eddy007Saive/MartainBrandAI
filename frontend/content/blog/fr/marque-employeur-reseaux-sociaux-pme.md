@@ -235,7 +235,9 @@ Trois indicateurs simples : le nombre de candidatures reçues par mois, la quali
 
 - [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
 - [TikTok pour entreprise : par où commencer sans y passer sa vie](/blog/tiktok-pour-entreprise)
-
+- [Créer une page entreprise LinkedIn : le guide pas-à-pas 2026](/blog/creer-page-entreprise-linkedin)
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+- [Personal branding sur Instagram : la méthode pour un dirigeant ou indépendant](/blog/personal-branding-instagram)
 ## Sources utiles
 
 - [Culture RH - Définition et stratégie de la marque employeur](https://culture-rh.com/definition-marque-employeur/)

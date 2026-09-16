@@ -148,6 +148,12 @@ Yes, with a few precautions. Remove the Instagram watermark before republishing 
 
 ---
 
+## Further reading
+
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
+- [Personal branding on Instagram: the method for business owners and freelancers](/en/blog/personal-branding-instagram-leaders-freelancers)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+
 ## Useful Sources
 
 - [Socialinsider: Instagram benchmarks 2026](https://www.socialinsider.io/fr/social-media-benchmarks/instagram)

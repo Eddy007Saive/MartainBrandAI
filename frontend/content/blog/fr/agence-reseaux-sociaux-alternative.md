@@ -190,6 +190,11 @@ Comptez 3 à 6 mois de publication régulière avant de tirer des conclusions. L
 
 ---
 
+## Pour aller plus loin
+
+- [Stratégie de contenu réseaux sociaux pour PME : les 5 décisions à prendre avant de publier](/blog/strategie-contenu-reseaux-sociaux-pme)
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+
 ## Sources utiles
 
 - [Baromètre France Num 2025 : présence numérique des TPE/PME](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le-0) : 66 % des TPE/PME françaises ont au moins un compte sur un réseau social.

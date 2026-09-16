@@ -167,6 +167,11 @@ Un post narrativo a la semana es suficiente para crear una presencia memorable. 
 
 ---
 
+## Para ir más lejos
+
+- [Personal branding en Instagram: el método para un directivo o autónomo](/es/blog/personal-branding-instagram-dirigentes)
+- [Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador](/es/blog/visuales-ia-redes-sociales-coherencia)
+
 ## Fuentes útiles
 
 - [HubSpot: La guía del storytelling de marketing](https://blog.hubspot.fr/marketing/storytelling): datos sobre la memorización y el compromiso de los relatos

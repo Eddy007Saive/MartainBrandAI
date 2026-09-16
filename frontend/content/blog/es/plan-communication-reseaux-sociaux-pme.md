@@ -186,6 +186,12 @@ Mira tu indicador principal a los 90 días. Si fijaste un objetivo de 10 mensaje
 
 ---
 
+## Para ir más lejos
+
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
+- [Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción](/es/blog/agencia-freelance-ia-redes-sociales-costes)
+
 ## Fuentes útiles
 
 - [Barómetro France Num 2025: presencia online de las microempresas y pymes](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le)

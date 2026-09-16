@@ -219,7 +219,9 @@ No. Start with a single network, stabilize your process, then expand. Each platf
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [AI voiceover: how to use it for professional videos (no studio, no voice actor)](/en/blog/ai-voiceover-videos-small-business)
 - [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
-
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+- [Social media monitoring: how to stay informed without spending hours on it](/en/blog/social-media-monitoring-small-business)
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
 ## Useful sources
 
 - [Les meilleurs outils pour automatiser vos posts sur les réseaux sociaux - Redacteur.com](https://www.redacteur.com/blog/automatiser-reseaux-sociaux/)

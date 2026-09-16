@@ -119,7 +119,8 @@ Oui, à condition de bien briefer. Partagez vos valeurs, votre ton, des exemples
 
 - [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
 - [Google Business Profile pour PME : le guide complet pour être visible localement](/blog/google-business-profile-pme)
-
+- [Agence réseaux sociaux, freelance ou IA : ce que chaque option coûte vraiment](/blog/agence-reseaux-sociaux-alternative)
+- [Stratégie de contenu réseaux sociaux pour PME : les 5 décisions à prendre avant de publier](/blog/strategie-contenu-reseaux-sociaux-pme)
 ## Sources
 
 - [France Num : La présence sur Internet des TPE et PME](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme)

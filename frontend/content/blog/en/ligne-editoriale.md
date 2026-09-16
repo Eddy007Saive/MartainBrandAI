@@ -97,3 +97,6 @@ If you work with a generation tool, those fifteen lines are exactly what it need
 
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)

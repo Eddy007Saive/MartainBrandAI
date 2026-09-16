@@ -176,6 +176,11 @@ Allow 6 to 8 weeks of consistent posting before you have usable data. Some video
 
 ---
 
+## Further reading
+
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+
 ## Useful Sources
 
 - [TikTok France statistics 2026: 18 key figures for a brand](https://slinkagence.com/ressources/statistiques-tiktok-france-2026) (Slink Agence)

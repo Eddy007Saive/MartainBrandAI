@@ -221,7 +221,9 @@ Non. Commencez par un seul réseau, stabilisez votre processus, puis étendez. C
 - [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
 - [Voix off IA : comment l'utiliser pour ses vidéos pros (sans studio ni comédien)](/blog/voix-off-ia)
 - [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
-
+- [Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer](/blog/visuels-ia-reseaux-sociaux)
+- [Veille réseaux sociaux : comment rester informé sans y passer des heures](/blog/veille-reseaux-sociaux)
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
 ## Sources utiles
 
 - [Les meilleurs outils pour automatiser vos posts sur les réseaux sociaux - Redacteur.com](https://www.redacteur.com/blog/automatiser-reseaux-sociaux/)

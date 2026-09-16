@@ -223,7 +223,9 @@ No. It is better to master a single channel than to be mediocre on five. For mos
 - [Instagram Reels for Business: How to Create Them Without a Videographer or Editor](/en/blog/instagram-reels-small-business)
 - [Professional TikTok: set up your account, understand the algorithm, and post without it taking over your life](/en/blog/tiktok-professional-account-setup-guide)
 - [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
-
+- [Personal branding on Instagram: the method for business owners and freelancers](/en/blog/personal-branding-instagram-leaders-freelancers)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
 ## Useful sources
 
 - [Freelance: développer son personal branding étape par étape - Hays.fr](https://www.hays.fr/conseils-carriere/article/content/freelance-developper-son-personal-branding-etape-par-etape)

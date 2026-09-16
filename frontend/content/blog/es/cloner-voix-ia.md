@@ -159,6 +159,11 @@ Sí. Las mejores herramientas de clonado, entre ellas ElevenLabs, permiten gener
 
 ---
 
+## Para ir más lejos
+
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+- [Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador](/es/blog/visuales-ia-redes-sociales-coherencia)
+
 ## Fuentes útiles
 
 - [ElevenLabs, clonado de voz IA](https://elevenlabs.io/fr/voice-cloning): documentación oficial sobre el clonado instantáneo y profesional

@@ -173,6 +173,11 @@ Pas directement. Les posts n'ont pas d'effet prouvé sur le classement dans le p
 
 ---
 
+## Pour aller plus loin
+
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
+
 ## Sources utiles
 
 - [Google : comment améliorer votre classement local sur Google](https://support.google.com/business/answer/7091?hl=fr)

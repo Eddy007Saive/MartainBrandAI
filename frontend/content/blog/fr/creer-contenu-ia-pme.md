@@ -137,6 +137,12 @@ Elle remplace les tâches de production répétitives : rédaction de posts, dé
 
 ---
 
+## Pour aller plus loin
+
+- [Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer](/blog/visuels-ia-reseaux-sociaux)
+- [Stratégie de contenu réseaux sociaux pour PME : les 5 décisions à prendre avant de publier](/blog/strategie-contenu-reseaux-sociaux-pme)
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+
 ## Sources utiles
 
 - [Baromètre France Num 2025 : le numérique et l'IA dans les TPE et PME](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le) - Direction générale des Entreprises, septembre 2025.

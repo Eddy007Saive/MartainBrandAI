@@ -159,6 +159,11 @@ Yes. The best cloning tools, including ElevenLabs, can generate audio in more th
 
 ---
 
+## Further reading
+
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+
 ## Useful sources
 
 - [ElevenLabs, AI voice cloning](https://elevenlabs.io/fr/voice-cloning): official documentation on instant and professional cloning

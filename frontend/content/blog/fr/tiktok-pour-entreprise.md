@@ -177,6 +177,11 @@ Comptez 6 à 8 semaines de publication régulière avant d'avoir des données ex
 
 ---
 
+## Pour aller plus loin
+
+- [Miniature vidéo courte : comment en créer une qui fait cliquer (avec ou sans designer)](/blog/miniature-video-courte)
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+
 ## Sources utiles
 
 - [Statistiques TikTok France 2026 : 18 chiffres clés pour une marque](https://slinkagence.com/ressources/statistiques-tiktok-france-2026) (Slink Agence)

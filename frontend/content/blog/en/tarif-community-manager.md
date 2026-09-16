@@ -147,7 +147,8 @@ Ask for a portfolio with quantified results: engagement rate, community growth, 
 
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Optimizing your Google My Business listing: the 8 points that actually make a difference](/en/blog/optimize-google-business-profile)
-
+- [Social media agency, freelance, or AI: what each option really costs](/en/blog/agency-freelance-ai-social-media-cost)
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
 ## Sources
 
 - [Malt: Rate barometer, community manager](https://www.malt.fr/t/barometre-tarifs/communication/community-manager)

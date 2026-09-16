@@ -235,7 +235,9 @@ Three simple indicators: the number of applications received per month, the perc
 
 - [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
 - [TikTok for Business: How to Get Started Without It Taking Over Your Life](/en/blog/tiktok-for-business-getting-started)
-
+- [Creating a LinkedIn Company Page: The Step-by-Step Guide 2026](/en/blog/create-linkedin-company-page-guide)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [Personal branding on Instagram: the method for business owners and freelancers](/en/blog/personal-branding-instagram-leaders-freelancers)
 ## Useful sources
 
 - [Culture RH - Definition and strategy of employer branding](https://culture-rh.com/definition-marque-employeur/)

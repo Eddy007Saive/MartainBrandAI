@@ -137,6 +137,11 @@ En appliquant votre charte de marque à chaque génération : palette de couleur
 
 ---
 
+## Pour aller plus loin
+
+- [Miniature vidéo courte : comment en créer une qui fait cliquer (avec ou sans designer)](/blog/miniature-video-courte)
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+
 ## Sources utiles
 
 - [Impact des visuels sur l'engagement réseaux sociaux (Swello)](https://swello.com/fr/blog/limpact-visuels-reseaux-sociaux/)

@@ -171,6 +171,11 @@ Creation takes less than 15 minutes. Full configuration (description, banner, CT
 
 ---
 
+## Further reading
+
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
+
 ## Useful resources
 
 - [LinkedIn Help Center: Create a LinkedIn Page](https://www.linkedin.com/help/linkedin/answer/a541782/creer-une-page-linkedin?lang=fr)

@@ -160,6 +160,11 @@ Oui. Les meilleurs outils de clonage, dont ElevenLabs, permettent de générer d
 
 ---
 
+## Pour aller plus loin
+
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+- [Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer](/blog/visuels-ia-reseaux-sociaux)
+
 ## Sources utiles
 
 - [ElevenLabs, clonage de voix IA](https://elevenlabs.io/fr/voice-cloning) : documentation officielle sur le clonage instantané et professionnel

@@ -138,6 +138,11 @@ Oui. Chaque adresse physique peut avoir sa propre fiche Google Business Profile.
 
 ---
 
+## Pour aller plus loin
+
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
+
 ## Sources utiles
 
 - [Google Business Profile - aide officielle](https://support.google.com/business)

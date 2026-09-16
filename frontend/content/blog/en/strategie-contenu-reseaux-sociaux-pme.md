@@ -173,6 +173,12 @@ Define one indicator per objective: reach for brand awareness, clicks for traffi
 
 ---
 
+## Further reading
+
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+
 ## Useful sources
 
 - [BtoB Content Barometer 2025, Infopro Digital](https://www.infopro-digital-media.fr/blog-post/barometre-contenus-btob-france-2025): data on content marketing adoption among French SMBs.

@@ -148,6 +148,11 @@ Allow 3 months of regular publishing before drawing conclusions. Organic reach o
 
 ---
 
+## Further reading
+
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
+
 ## Useful sources
 
 - [Socialinsider: Instagram benchmarks 2026](https://www.socialinsider.io/social-media-benchmarks/instagram)

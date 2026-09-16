@@ -185,7 +185,9 @@ Yes, as long as you keep control of what makes you unique: your point of view, y
 - [Google Business Profile for Small Businesses: the Complete Guide to Local Visibility](/en/blog/google-business-profile-small-business)
 - [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
 - [TikTok for Business: How to Get Started Without It Taking Over Your Life](/en/blog/tiktok-for-business-getting-started)
-
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
+- [Social media agency, freelance, or AI: what each option really costs](/en/blog/agency-freelance-ai-social-media-cost)
 ## Useful sources
 
 - [CCI Métropolitaine Aix-Marseille-Provence - The importance of social media for your business](https://www.cciamp.com/limportance-des-reseaux-sociaux-pour-votre-entreprise)

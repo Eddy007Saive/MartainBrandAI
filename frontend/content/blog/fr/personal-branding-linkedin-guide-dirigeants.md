@@ -207,7 +207,9 @@ Oui, mais c'est plus lent. Vous pouvez commencer uniquement par des commentaires
 
 - [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
 - [Cloner sa voix avec l'IA : comment ça marche et pourquoi c'est utile pour un dirigeant](/blog/cloner-voix-ia)
-
+- [Créer une page entreprise LinkedIn : le guide pas-à-pas 2026](/blog/creer-page-entreprise-linkedin)
+- [Personal branding sur Instagram : la méthode pour un dirigeant ou indépendant](/blog/personal-branding-instagram)
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
 ## Sources utiles
 
 - [Linker Agency - Personal branding LinkedIn 2025 : guide stratégique](https://www.linker-agency.com/blog/booster-personal-branding-linkedin)

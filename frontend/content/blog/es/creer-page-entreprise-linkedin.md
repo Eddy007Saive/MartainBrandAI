@@ -171,6 +171,11 @@ La creación lleva menos de 15 minutos. La configuración completa (descripción
 
 ---
 
+## Para ir más lejos
+
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
+
 ## Fuentes útiles
 
 - [LinkedIn Help Center: Crear una página de LinkedIn](https://www.linkedin.com/help/linkedin/answer/a541782/creer-une-page-linkedin?lang=fr)

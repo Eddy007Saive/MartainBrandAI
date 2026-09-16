@@ -187,7 +187,9 @@ Oui, à condition de garder la main sur ce qui vous rend unique : votre point de
 - [Google Business Profile pour PME : le guide complet pour être visible localement](/blog/google-business-profile-pme)
 - [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
 - [TikTok pour entreprise : par où commencer sans y passer sa vie](/blog/tiktok-pour-entreprise)
-
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+- [Stratégie de contenu réseaux sociaux pour PME : les 5 décisions à prendre avant de publier](/blog/strategie-contenu-reseaux-sociaux-pme)
+- [Agence réseaux sociaux, freelance ou IA : ce que chaque option coûte vraiment](/blog/agence-reseaux-sociaux-alternative)
 ## Sources utiles
 
 - [CCI Métropolitaine Aix-Marseille-Provence - L'importance des réseaux sociaux pour votre entreprise](https://www.cciamp.com/limportance-des-reseaux-sociaux-pour-votre-entreprise)

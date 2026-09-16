@@ -146,6 +146,11 @@ Yes, and that is actually one of TikTok's advantages over other platforms. The a
 
 ---
 
+## Further reading
+
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
+- [Personal branding on Instagram: the method for business owners and freelancers](/en/blog/personal-branding-instagram-leaders-freelancers)
+
 ## Useful sources
 
 - [TikTok Support: personal and business accounts](https://support.tiktok.com/fr/using-tiktok/growing-your-audience/personal-and-business-accounts-on-tiktok)

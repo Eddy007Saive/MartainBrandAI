@@ -136,6 +136,12 @@ It replaces repetitive production tasks: writing posts, adapting formats, schedu
 
 ---
 
+## Further reading
+
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+
 ## Useful Sources
 
 - [France Num 2025 Barometer: digital and AI in micro and small businesses](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le) - Directorate General for Enterprise, September 2025.

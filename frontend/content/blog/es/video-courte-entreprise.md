@@ -148,6 +148,12 @@ Fíjese en tres indicadores: la tasa de retención (cuántas personas ven el vid
 
 ---
 
+## Para ir más lejos
+
+- [Miniatura de vídeo corto: cómo crear una que genera clics (con o sin diseñador)](/es/blog/miniatura-video-corta-crear)
+- [Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador](/es/blog/visuales-ia-redes-sociales-coherencia)
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+
 ## Fuentes útiles
 
 - [Digital Report abril 2025, We Are Social vía gensdinternet.fr](https://gensdinternet.fr/2025/04/28/les-utilisateurs-consomment-davantage-les-videos-courtes-sur-les-reseaux-sociaux/)

@@ -198,7 +198,9 @@ Count on 30 days of testing on a single use case to get usable data. Most small 
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [AI voiceover: how to use it for professional videos (no studio, no voice actor)](/en/blog/ai-voiceover-videos-small-business)
 - [Cloning your voice with AI: how it works and why it matters for business owners](/en/blog/clone-voice-ai-business-owner)
-
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+- [Social media monitoring: how to stay informed without spending hours on it](/en/blog/social-media-monitoring-small-business)
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
 ## Useful sources
 
 - [FranceNum - How to improve your social media management with generative AI](https://www.francenum.gouv.fr/guides-et-conseils/intelligence-artificielle/generation-de-contenus-texte-image-son-video/comment)

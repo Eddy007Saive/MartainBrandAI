@@ -263,7 +263,9 @@ Sin IA: cuenta con 3 o 4 horas por semana para mantener una presencia eficaz (pu
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
 - [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
 - [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
-
+- [Crear una página de empresa en LinkedIn: la guía paso a paso 2026](/es/blog/crear-pagina-empresa-linkedin)
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
 ## Fuentes útiles
 
 - [Social selling LinkedIn: guide pour débutants - Senza Formations](https://senza-formations.com/nos-articles/social-selling-linkedin-guide-pour-debutants)

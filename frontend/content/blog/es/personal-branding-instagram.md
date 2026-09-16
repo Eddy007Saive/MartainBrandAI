@@ -148,6 +148,11 @@ Cuente con 3 meses de publicación regular antes de sacar conclusiones. El alcan
 
 ---
 
+## Para ir más lejos
+
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+- [Miniatura de vídeo corto: cómo crear una que genera clics (con o sin diseñador)](/es/blog/miniatura-video-corta-crear)
+
 ## Fuentes útiles
 
 - [Socialinsider: benchmarks de Instagram 2026](https://www.socialinsider.io/social-media-benchmarks/instagram)

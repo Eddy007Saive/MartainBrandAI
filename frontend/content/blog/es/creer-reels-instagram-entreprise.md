@@ -148,6 +148,12 @@ Sí, con algunas precauciones. Elimina la marca de agua de Instagram antes de re
 
 ---
 
+## Para ir más lejos
+
+- [Miniatura de vídeo corto: cómo crear una que genera clics (con o sin diseñador)](/es/blog/miniatura-video-corta-crear)
+- [Personal branding en Instagram: el método para un directivo o autónomo](/es/blog/personal-branding-instagram-dirigentes)
+- [Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador](/es/blog/visuales-ia-redes-sociales-coherencia)
+
 ## Fuentes útiles
 
 - [Socialinsider: benchmarks de Instagram 2026](https://www.socialinsider.io/fr/social-media-benchmarks/instagram)

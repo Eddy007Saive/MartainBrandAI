@@ -156,3 +156,5 @@ Les deux fonctionnent. Google Sheets est plus rapide à partager et à filtrer. 
 - [Modèle de calendrier réseaux sociaux, Buffer](https://buffer.com/fr/resources/modele-calendrier-reseaux-sociaux)
 - [Le calendrier éditorial : un outil de communication, France Num](https://www.francenum.gouv.fr/guides-et-conseils/communication-et-publicite/strategie-de-communication/le-calendrier-editorial-un)
 - [Template calendrier éditorial social media, Notion](https://www.notion.com/fr/templates/social-media-calendar)
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+- [Veille réseaux sociaux : comment rester informé sans y passer des heures](/blog/veille-reseaux-sociaux)

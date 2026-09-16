@@ -278,7 +278,9 @@ Avec Buffer ou Swello, vous êtes opérationnel en moins de 30 minutes. SocialPi
 - [Google Business Profile pour PME : le guide complet pour être visible localement](/blog/google-business-profile-pme)
 - [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
 - [Page Facebook professionnelle : comment la créer et l'animer en 2026](/blog/page-facebook-professionnelle)
-
+- [Agence réseaux sociaux, freelance ou IA : ce que chaque option coûte vraiment](/blog/agence-reseaux-sociaux-alternative)
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
+- [Veille réseaux sociaux : comment rester informé sans y passer des heures](/blog/veille-reseaux-sociaux)
 ## Sources utiles
 
 - [Blog du Modérateur - Comparatif outils gestion réseaux sociaux](https://www.blogdumoderateur.com/tools/social-media/gestion-reseaux-sociaux/)

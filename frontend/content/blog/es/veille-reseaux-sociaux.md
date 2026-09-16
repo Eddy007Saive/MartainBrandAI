@@ -145,6 +145,10 @@ La newsletter de seguimiento de Postorico es semanal. La redacta la IA a partir 
 
 ---
 
+## Para ir más lejos
+
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
+
 ## Fuentes útiles
 
 - [Blog du Modérateur](https://www.blogdumoderateur.com/): novedades de social media en francés

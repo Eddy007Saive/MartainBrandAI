@@ -172,6 +172,11 @@ Not directly. Posts have no proven effect on local pack rankings. However, they 
 
 ---
 
+## Further reading
+
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
+
 ## Useful sources
 
 - [Google: how to improve your local ranking on Google](https://support.google.com/business/answer/7091?hl=fr)

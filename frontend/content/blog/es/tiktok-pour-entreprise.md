@@ -176,6 +176,11 @@ Cuenta con 6 a 8 semanas de publicación regular antes de tener datos aprovechab
 
 ---
 
+## Para ir más lejos
+
+- [Miniatura de vídeo corto: cómo crear una que genera clics (con o sin diseñador)](/es/blog/miniatura-video-corta-crear)
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+
 ## Fuentes útiles
 
 - [Estadísticas de TikTok Francia 2026: 18 cifras clave para una marca](https://slinkagence.com/ressources/statistiques-tiktok-france-2026) (Slink Agence)

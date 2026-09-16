@@ -134,6 +134,11 @@ Canva est la solution la plus accessible : des gabarits prêts à l'emploi, un �
 
 ---
 
+## Pour aller plus loin
+
+- [Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer](/blog/visuels-ia-reseaux-sociaux)
+- [Personal branding sur Instagram : la méthode pour un dirigeant ou indépendant](/blog/personal-branding-instagram)
+
 ## Sources utiles
 
 - [YouTube : comprendre le taux de clics (CTR)](https://support.google.com/youtube/answer/7628154?hl=fr) : documentation officielle YouTube sur le CTR et son interprétation.

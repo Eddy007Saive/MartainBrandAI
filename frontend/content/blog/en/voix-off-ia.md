@@ -160,6 +160,11 @@ Cloning your own voice: yes, with no restrictions. Cloning another person's voic
 
 ---
 
+## Further reading
+
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+
 ## Useful sources
 
 - [ElevenLabs - AI voice cloning](https://elevenlabs.io/fr/voice-cloning)
