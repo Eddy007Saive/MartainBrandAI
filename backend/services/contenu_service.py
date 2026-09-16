@@ -132,7 +132,7 @@ async def recycler_contenu(telegram_id: str, contenu_id: str, reseaux: list) -> 
     if not targets:
         return {"error": "Aucun réseau cible valide (choisis un réseau différent de celui du post)."}
 
-    COPY = ("titre", "contenu", "type", "script", "prompt_image", "carrousel_data",
+    COPY = ("titre", "contenu", "type", "script", "prompt_image", "style_image", "carrousel_data",
             "video_url", "video_status", "video_preview_url", "lien_visuel")
     is_carrousel = cur.get("type") == "Carrousel" or bool(cur.get("slides_images"))
     created = []
