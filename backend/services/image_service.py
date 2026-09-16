@@ -57,7 +57,8 @@ IMAGE_MODELS = {
 
 ROLE_PROMPT = (
     "Tu es directeur artistique. À partir d'un post et de la charte de marque, tu écris UN prompt "
-    "d'image (en anglais, plus efficace pour le modèle) pour illustrer le post.\n\n"
+    "d'image pour illustrer le post, dans la LANGUE DU COMPTE indiquée plus bas (le client le lit et "
+    "le retouche : il doit le comprendre).\n\n"
     "Structure le prompt en couches, dans cet ordre, pour cibler précisément le modèle :\n"
     "1. Angle/cadrage caméra (ex. \"medium shot\", \"three-quarter angle\", \"overhead flat lay\")\n"
     "2. Sujet (personne, objet ou scène) décrit précisément\n"
@@ -68,17 +69,19 @@ ROLE_PROMPT = (
     "7. Un repère de pellicule photo pour ancrer le rendu (\"Kodak Portra 400\" pour un rendu lifestyle "
     "chaleureux, \"Kodak Ektar 100\" pour un produit saturé, \"Fujifilm Provia 100F\" pour un rendu "
     "neutre et documentaire)\n\n"
-    "Termine TOUJOURS le prompt par : \"visible natural texture, no over-smoothing, photographic "
-    "realism, no text\" — pour éviter un rendu plastique/IA. "
+    "Termine par une phrase, dans la même langue, demandant une texture naturelle, sans lissage "
+    "plastique, un réalisme photographique et aucun texte dans l'image. "
     "Le visuel doit coller au message, rester professionnel, épuré et lisible, et respecter la palette "
-    "de la marque. Évite tout texte dans l'image. Réponds UNIQUEMENT avec le prompt, rien d'autre.\n\n"
+    "de la marque. Les termes techniques (marque de pellicule, focale) restent tels quels. "
+    "Réponds UNIQUEMENT avec le prompt, rien d'autre.\n\n"
 )
 
 # Même directeur artistique, mais pour un style NON photographique (3D, illustration, pop…) : pas
 # d'objectif ni de pellicule, la couche finale est le style demandé.
 ROLE_PROMPT_STYLE = (
     "Tu es directeur artistique. À partir d'un post et de la charte de marque, tu écris UN prompt "
-    "d'image (en anglais, plus efficace pour le modèle) pour illustrer le post.\n\n"
+    "d'image pour illustrer le post, dans la LANGUE DU COMPTE indiquée plus bas (le client le lit et "
+    "le retouche : il doit le comprendre).\n\n"
     "Structure le prompt en couches, dans cet ordre :\n"
     "1. Cadrage et composition (ex. \"centered hero object\", \"isometric scene\", \"close-up\")\n"
     "2. Sujet (personnage, objet ou scène) décrit précisément\n"
@@ -86,7 +89,8 @@ ROLE_PROMPT_STYLE = (
     "4. Environnement (décor, contexte)\n"
     "5. Lumière et ambiance\n"
     "6. Palette : celle de la marque, nommée en mots\n"
-    "7. Le STYLE, recopié tel quel depuis la consigne de style ci-dessous, en dernière couche.\n\n"
+    "7. Une phrase de style, dans la même langue, qui résume la consigne de style ci-dessous "
+    "(ne la recopie pas en anglais : le serveur l'ajoute lui-même au moment de générer).\n\n"
     "Le visuel doit coller au message, rester professionnel, épuré et lisible. Aucun texte dans "
     "l'image. Réponds UNIQUEMENT avec le prompt, rien d'autre.\n\n"
 )
@@ -109,9 +113,9 @@ _REGLE_ECRANS = (
 _HEX_RE = re.compile(r"#?\b[0-9a-fA-F]{6}\b")
 
 
-def _sans_hex(texte: str) -> str:
+def _sans_hex(texte: str, langue: str = "en") -> str:
     """Remplace tout code couleur du prompt par son nom : les codes finissent écrits dans l'image."""
-    return _HEX_RE.sub(lambda m: _nom_couleur(m.group(0)), texte or "")
+    return _HEX_RE.sub(lambda m: _nom_couleur(m.group(0), langue), texte or "")
 
 
 def styles_image() -> dict:
@@ -120,9 +124,32 @@ def styles_image() -> dict:
     return STYLES
 
 
-def _nom_couleur(hexa: str) -> str:
-    """Nom approximatif (en anglais) d'une couleur hexadécimale : le générateur lit mieux
-    « deep violet » que « #5B6CFF »."""
+_COULEURS_FR = {"black": "noir", "charcoal": "anthracite", "grey": "gris", "off-white": "blanc cassé", "white": "blanc",
+                "red": "rouge", "orange": "orange", "gold": "doré", "yellow": "jaune", "lime green": "vert citron",
+                "green": "vert", "mint green": "vert menthe", "teal": "bleu canard", "cyan": "cyan", "azure blue": "bleu azur",
+                "blue": "bleu", "navy": "bleu marine", "indigo": "indigo", "violet": "violet", "magenta": "magenta",
+                "deep": "profond", "pale": "pâle"}
+_COULEURS_ES = {"black": "negro", "charcoal": "antracita", "grey": "gris", "off-white": "blanco roto", "white": "blanco",
+                "red": "rojo", "orange": "naranja", "gold": "dorado", "yellow": "amarillo", "lime green": "verde lima",
+                "green": "verde", "mint green": "verde menta", "teal": "azul petróleo", "cyan": "cian", "azure blue": "azul celeste",
+                "blue": "azul", "navy": "azul marino", "indigo": "índigo", "violet": "violeta", "magenta": "magenta",
+                "deep": "profundo", "pale": "pálido"}
+
+
+def _traduire_couleur(nom_en: str, langue: str) -> str:
+    """« deep navy » -> « bleu marine profond » / « azul marino profundo » ; l'anglais reste tel quel."""
+    table = _COULEURS_FR if langue == "fr" else _COULEURS_ES if langue == "es" else None
+    if not table:
+        return nom_en
+    mots = nom_en.split(" ", 1)
+    if mots[0] in ("deep", "pale") and len(mots) == 2:
+        return f"{table.get(mots[1], mots[1])} {table[mots[0]]}"
+    return table.get(nom_en, nom_en)
+
+
+def _nom_couleur(hexa: str, langue: str = "en") -> str:
+    """Nom approximatif d'une couleur hexadécimale : le générateur lit mieux « deep violet » que
+    « #5B6CFF ». En anglais par défaut (consignes serveur), traduit pour la description du client."""
     try:
         h = (hexa or "").strip().lstrip("#")
         if len(h) == 3:
@@ -153,7 +180,7 @@ def _nom_couleur(hexa: str) -> str:
         nom = "deep " + nom
     elif l > 0.72:
         nom = "pale " + nom
-    return nom
+    return _traduire_couleur(nom, langue)
 
 
 def _charte(u: dict) -> str:
@@ -211,7 +238,11 @@ def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", 
     if style == _STYLE_AUTO or style not in styles_image():
         style = choisir_style(post_texte) if style == _STYLE_AUTO else "photo"
     st = styles_image().get(style) or styles_image()["photo"]
-    contexte = _REGLE_ECRANS + (
+    from services.agent_service import LANGUES_CONTENU
+    langue = (u.get("langue") or "fr").lower()
+    contexte = (f"LANGUE DU COMPTE : {LANGUES_CONTENU.get(langue, 'français')}. Tout le prompt est écrit dans "
+                "cette langue, y compris les noms de couleurs. FORME : un seul paragraphe de prose, sans titre, "
+                "sans gras, sans préambule ni liste. ") + _REGLE_ECRANS + (
         f"Secteur : {u.get('secteur') or '—'}. "
         f"Style : {u.get('style_vestimentaire') or '—'}. "
         f"Palette de marque (à utiliser) : principale {u.get('couleur_principale')}, "
@@ -258,6 +289,10 @@ def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", 
         }],
     )
     prompt = "".join(b.text for b in resp.content if b.type == "text").strip()
+    # Nettoyage : titre en gras que le modèle ajoute parfois, et codes couleur (le client les lit,
+    # et le générateur les dessinerait).
+    prompt = re.sub(r"^\s*\*\*[^\n]{0,80}\*\*\s*:?\s*\n+", "", prompt).replace("**", "").strip()
+    prompt = _sans_hex(prompt, langue)
     return {"prompt": prompt, "style": style}
 
 
@@ -338,7 +373,7 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     # gabarit graphique existant, pas une photo — la fidélité au design prime sur le réalisme photo.
     st = styles_image().get(style) or styles_image()["photo"]
     if not template_mode:
-        prompt = _sans_hex(prompt)
+        prompt = _sans_hex(prompt, (u.get("langue") or "fr").lower())
         if st["photo"]:
             prompt = f"{prompt}\n\nRender with visible natural texture, no over-smoothing, no plastic/AI look. Photographic realism, no text."
             if style != "photo":
