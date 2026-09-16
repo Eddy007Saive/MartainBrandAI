@@ -30,6 +30,7 @@ class UserUpdate(BaseModel):
     couleur_principale: Optional[str] = None
     couleur_secondaire: Optional[str] = None
     couleur_accent: Optional[str] = None
+    style_image: Optional[str] = None            # style par défaut des images IA (photo, illustration, 3d, auto…)
     carrousel_couleur_principale: Optional[str] = None
     carrousel_couleur_secondaire: Optional[str] = None
     carrousel_couleur_accent: Optional[str] = None
@@ -64,6 +65,7 @@ class UserResponse(BaseModel):
     couleur_principale: Optional[str] = None
     couleur_secondaire: Optional[str] = None
     couleur_accent: Optional[str] = None
+    style_image: Optional[str] = None            # style par défaut des images IA (photo, illustration, 3d, auto…)
     carrousel_couleur_principale: Optional[str] = None
     carrousel_couleur_secondaire: Optional[str] = None
     carrousel_couleur_accent: Optional[str] = None

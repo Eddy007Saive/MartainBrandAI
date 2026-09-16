@@ -23,7 +23,7 @@ CHAMPS = (
     "couleur_principale", "couleur_secondaire", "couleur_accent", "logo_url",
     "carrousel_couleur_principale", "carrousel_couleur_secondaire", "carrousel_couleur_accent",
     "carrousel_font", "carrousel_font_corps", "carrousel_templates_exclusifs",
-    "use_inspirations",
+    "use_inspirations", "style_image",
 )
 
 _DEFAUTS = {
@@ -31,6 +31,7 @@ _DEFAUTS = {
     "couleur_secondaire": "#0077FF",
     "couleur_accent": "#3AFFA3",
     "use_inspirations": True,
+    "style_image": "photo",
 }
 
 

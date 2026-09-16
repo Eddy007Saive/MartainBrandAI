@@ -42,6 +42,9 @@ import { DAYS, DEFAULT_SCHEDULE } from '../constants/schedules';
 import QuotaGauge from '../components/QuotaGauge';
 import Affiliation from './Affiliation';
 
+// Styles des images IA (mêmes clés que côté serveur et que la fenêtre Image de Contenus)
+const IMAGE_STYLES = ['auto', 'photo', 'cinema', '3d', 'illustration', 'neon', 'pop'];
+
 const REQUIRED_FIELDS = {
   identity: ['nom', 'username', 'user_name', 'photo_url', 'sexe', 'style_vestimentaire'],
   marque: ['secteur', 'voix_marque'],
@@ -1280,6 +1283,27 @@ export default function ParametresPage() {
           <ColorField label={t('params.style.couleurSecondaire')} name="couleur_secondaire" value={user?.couleur_secondaire} onChange={handleChange} />
           <ColorField label={t('params.style.couleurAccent')} name="couleur_accent" value={user?.couleur_accent} onChange={handleChange} />
         </div>
+      </section>
+
+      {/* Style par défaut des images IA : repris à l'ouverture de la fenêtre Image, modifiable post par post */}
+      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5" data-testid="section-style-image">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-1">{t('params.style.styleImage')}</div>
+        <p className="text-xs text-slate-500 font-inter mb-4">{t('params.style.styleImageAide')}</p>
+        <div className="flex flex-wrap gap-2">
+          {IMAGE_STYLES.map((st) => {
+            const actif = (user?.style_image || 'photo') === st;
+            return (
+              <button key={st} type="button" onClick={() => handleChange('style_image', st)} data-testid={`style-image-${st}`}
+                title={st === 'auto' ? t('params.style.styleImageAutoAide') : t(`contenus.miniature.styles.${st}Desc`)}
+                className={`px-3 py-2 rounded-lg text-[13px] font-inter font-semibold border transition-all ${actif ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:border-white/25 hover:text-slate-200'}`}>
+                {st === 'auto' ? t('params.style.styleImageAuto') : t(`contenus.miniature.styles.${st}`)}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[11px] text-slate-600 font-inter mt-3">
+          {(user?.style_image || 'photo') === 'auto' ? t('params.style.styleImageAutoAide') : t(`contenus.miniature.styles.${user?.style_image || 'photo'}Desc`)}
+        </p>
       </section>
       <div className="p-5 rounded-2xl border border-white/[0.07] bg-slate-950/40">
         <h3 className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-3">{t('params.style.apercu')}</h3>

@@ -44,7 +44,7 @@ import { track } from '../lib/analytics';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
 
 // Styles de rendu de l'image IA (mêmes clés que les miniatures des reels, côté serveur aussi).
-const IMAGE_STYLES = ['photo', 'cinema', '3d', 'illustration', 'neon', 'pop'];
+const IMAGE_STYLES = ['auto', 'photo', 'cinema', '3d', 'illustration', 'neon', 'pop'];   // auto = l'IA choisit selon le post
 const TPL_INSTR_KEY = (id) => `postorico_tpl_instr_${id}`;
 const IMAGE_MODELES = [
   { id: 'nano2', label: 'nano-banana 2.5', cout: 50 },
@@ -762,8 +762,9 @@ export default function ContenusPage() {
   // false mais React n'a pas encore propagé cette valeur — on la passe explicitement pour éviter
   // de générer une description "avec humain" par erreur. Le bouton "Proposer une description"
   // (dialogue déjà ouvert) n'a pas ce problème et laisse lire l'état courant.
-  const chargerPrompt = async (contenu, avecPhotoOverride) => {
+  const chargerPrompt = async (contenu, avecPhotoOverride, styleOverride) => {
     const avecPhoto = avecPhotoOverride !== undefined ? avecPhotoOverride : imgAvecPhoto;
+    const style = styleOverride || imgStyle;
     setImgLoadingPrompt(true);
     try {
       const data = await agentService.imagePrompt(
@@ -771,9 +772,11 @@ export default function ContenusPage() {
         String(contenu.reseau_cible || 'linkedin').toLowerCase(),
         contenu.id,
         avecPhoto,
-        imgStyle,
+        style,
       );
       setImgPrompt(data.prompt || '');
+      // En Auto, le serveur renvoie le style qu'il a choisi : la pastille se cale dessus.
+      if (data.style && IMAGE_STYLES.includes(data.style)) setImgStyle(data.style);
       // mémorise le prompt (sauvegardé en base) pour ne pas le régénérer à la réouverture
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, prompt_image: data.prompt } : c)));
       setImageContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, prompt_image: data.prompt } : prev));
@@ -790,7 +793,9 @@ export default function ContenusPage() {
     setImgModele('nano2');
     setActiveTemplate(null); setStyleNote('');
     setImgMode('gabarit'); setSelectedGabarit(null); setTemplateBg(null); setPhotoDesc('');
-    setImgStyle('photo');
+    // Style : celui du post s'il en a déjà un, sinon le style par défaut de la marque, sinon photo.
+    const styleDepart = contenu.style_image || user?.style_image || 'photo';
+    setImgStyle(styleDepart);
     // Les instructions du template ne viennent JAMAIS de la description IA : mémorisées à part.
     let memoTpl = '';
     try { memoTpl = localStorage.getItem(TPL_INSTR_KEY(contenu.id)) || ''; } catch (e) { /* stockage indisponible */ }
@@ -810,7 +815,7 @@ export default function ContenusPage() {
       setImgPrompt(contenu.prompt_image);           // déjà généré → on réutilise (zéro régénération)
     } else {
       setImgPrompt('');
-      if (!contenu.lien_visuel) chargerPrompt(contenu, false); // 1ʳᵉ fois seulement → on prépare la description (photo toujours désactivée à l'ouverture)
+      if (!contenu.lien_visuel) chargerPrompt(contenu, false, styleDepart); // 1ʳᵉ fois seulement → on prépare la description (photo toujours désactivée à l'ouverture)
     }
   };
 
@@ -825,12 +830,13 @@ export default function ContenusPage() {
       const tplImgs = activeTemplate ? ((templates.find((t) => t.id === activeTemplate)?.images) || []) : [];
       const refsToSend = activeTemplate ? [...tplImgs, ...selectedRefs.filter((u) => !tplImgs.includes(u))] : selectedRefs;
       const integrateToSend = selectedRefs.filter((u) => integrateUrls.includes(u));
-      const data = await agentService.image(imageContenu.id, promptEnvoye, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate, null, integrateToSend, activeTemplate ? null : imgStyle);
+      const styleEnvoye = imgStyle === 'auto' ? 'photo' : imgStyle;   // auto non résolu (description jamais demandée) : photo
+      const data = await agentService.image(imageContenu.id, promptEnvoye, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate, null, integrateToSend, activeTemplate ? null : styleEnvoye);
       if (data.credits != null) updateUser({ credits: data.credits });
       if (activeTemplate) {
         try { localStorage.setItem(TPL_INSTR_KEY(imageContenu.id), tplInstr); } catch (e) { /* stockage indisponible */ }
       }
-      const memo = activeTemplate ? {} : { prompt_image: imgPrompt };
+      const memo = activeTemplate ? {} : { prompt_image: imgPrompt, style_image: styleEnvoye };
       setContenus((prev) => prev.map((c) => (c.id === imageContenu.id ? { ...c, lien_visuel: data.lien_visuel, ...memo } : c)));
       setImageContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel, ...memo } : prev));
       track('image_generee', { mode: activeTemplate ? 'template' : 'ia', modele: imgModele });
@@ -2157,14 +2163,15 @@ export default function ContenusPage() {
                           <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.style')}</label>
                           <div className="flex flex-wrap gap-1.5">
                             {IMAGE_STYLES.map((st) => (
-                              <button key={st} type="button" onClick={() => setImgStyle(st)} data-testid={`image-style-${st}`}
-                                title={t(`contenus.miniature.styles.${st}Desc`)}
+                              <button key={st} type="button" data-testid={`image-style-${st}`}
+                                onClick={() => { setImgStyle(st); if (st === 'auto' && imageContenu) chargerPrompt(imageContenu, undefined, 'auto'); }}
+                                title={st === 'auto' ? t('contenus.image.styleAutoDesc') : t(`contenus.miniature.styles.${st}Desc`)}
                                 className={`px-2.5 py-1.5 rounded-lg text-[12.5px] font-inter font-semibold border transition-all ${imgStyle === st ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:border-white/25 hover:text-slate-200'}`}>
-                                {t(`contenus.miniature.styles.${st}`)}
+                                {st === 'auto' ? t('contenus.image.styleAuto') : t(`contenus.miniature.styles.${st}`)}
                               </button>
                             ))}
                           </div>
-                          <p className="text-[11px] text-slate-600 font-inter">{t(`contenus.miniature.styles.${imgStyle}Desc`)}</p>
+                          <p className="text-[11px] text-slate-600 font-inter">{imgStyle === 'auto' ? t('contenus.image.styleAutoDesc') : t(`contenus.miniature.styles.${imgStyle}Desc`)}</p>
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-[#0a0f1c] border border-white/10">
                           <div>

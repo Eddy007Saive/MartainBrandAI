@@ -171,13 +171,45 @@ def _charte(u: dict) -> str:
             "secondary and harmonious with them. The codes are for colour matching only: never draw or write them.")
 
 
+_STYLE_AUTO = "auto"
+_GUIDE_CHOIX_STYLE = (
+    "photo : sujet concret, humain, produit, lieu, témoignage, coulisses ; "
+    "cinema : émotion forte, tension, avant/après, récit dramatique ; "
+    "3d : concept abstrait, outil numérique, process, chiffres, pédagogie ; "
+    "illustration : conseil, liste, méthode, comparaison, sujet éditorial ; "
+    "neon : nouveauté, lancement, tendance, tech, nuit, événement ; "
+    "pop : humour, provocation, coup de gueule, opinion tranchée."
+)
+
+
+def choisir_style(post_texte: str, langue_hint: str = "fr") -> str:
+    """Mode Auto : Claude choisit le style le plus adapté au post (un mot). Repli : photo."""
+    ids = [k for k in styles_image().keys()]
+    try:
+        resp = _messages_create(
+            model="claude-haiku-4-5", max_tokens=10,
+            system=("Tu es directeur artistique. Choisis le style d'image le plus adapté à un post de réseau "
+                    "social. Réponds par UN SEUL mot parmi : " + ", ".join(ids) + ". Repères : " + _GUIDE_CHOIX_STYLE),
+            messages=[{"role": "user", "content": f"Post :\n\n{(post_texte or '')[:2500]}\n\nStyle ?"}],
+        )
+        mot = "".join(b.text for b in resp.content if b.type == "text").strip().lower().strip(".«» \"'")
+        return mot if mot in styles_image() else "photo"
+    except Exception as e:
+        logger.warning(f"choisir_style: {e}")
+        return "photo"
+
+
 def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", avec_photo: bool = False,
                    style: str = "photo") -> dict:
     """Claude écrit le prompt d'image (modifiable ensuite par l'utilisateur).
-    style : photo (réaliste, défaut), cinema, 3d, illustration, neon, pop (styles_image())."""
+    style : photo (réaliste, défaut), cinema, 3d, illustration, neon, pop (styles_image()),
+    ou « auto » : le style est choisi d'abord, puis la description est écrite pour lui.
+    Retourne {prompt, style} avec le style effectivement utilisé."""
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
+    if style == _STYLE_AUTO or style not in styles_image():
+        style = choisir_style(post_texte) if style == _STYLE_AUTO else "photo"
     st = styles_image().get(style) or styles_image()["photo"]
     contexte = _REGLE_ECRANS + (
         f"Secteur : {u.get('secteur') or '—'}. "
@@ -226,7 +258,7 @@ def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", 
         }],
     )
     prompt = "".join(b.text for b in resp.content if b.type == "text").strip()
-    return {"prompt": prompt}
+    return {"prompt": prompt, "style": style}
 
 
 def inspiration_urls(telegram_id: str, limit: int = 20) -> list:

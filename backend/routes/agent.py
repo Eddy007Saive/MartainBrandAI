@@ -795,7 +795,7 @@ def image_prompt(body: dict, payload: dict = Depends(verify_token)):
     texte = (body.get("texte") or "").strip()
     if not texte:
         raise HTTPException(status_code=400, detail="texte requis")
-    style = body.get("style") if body.get("style") in image_service.styles_image() else "photo"
+    style = body.get("style") if body.get("style") in image_service.styles_image() or body.get("style") == "auto" else "photo"
     res = image_service.generer_prompt(telegram_id, texte, body.get("reseau", "linkedin"), avec_photo=bool(body.get("avec_photo")), style=style)
     if res.get("error") == "no_api_key":
         raise HTTPException(status_code=500, detail="Clé API IA non configurée")
@@ -803,7 +803,8 @@ def image_prompt(body: dict, payload: dict = Depends(verify_token)):
     contenu_id = body.get("contenu_id")
     if contenu_id and res.get("prompt"):
         try:
-            supabase.table("contenu").update({"prompt_image": res["prompt"]}).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+            # le style effectif (celui choisi en Auto compris) est mémorisé avec la description
+            supabase.table("contenu").update({"prompt_image": res["prompt"], "style_image": res.get("style")}).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
         except Exception as e:
             logger.warning(f"save prompt_image error: {e}")
     return res
@@ -904,6 +905,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         upd = {"lien_visuel": res["lien_visuel"]}
         if not template_mode:
             upd["prompt_image"] = prompt
+            upd["style_image"] = style          # le dernier style utilisé : repris à la prochaine ouverture
         # Le visuel est prêt -> on fixe la date puis on POUSSE vers Zernio. Le statut ne passe
         # PLUS à "Planifie" ici : seul l'event webhook post.scheduled le confirme (source de
         # vérité = Zernio ; fini les posts "Planifié" qui n'existent nulle part).
