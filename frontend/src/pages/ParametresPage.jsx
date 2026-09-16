@@ -1320,19 +1320,21 @@ export default function ParametresPage() {
         <div className="grid gap-3.5 min-w-0">
           {rang('palette', { eyebrow: t('params.style.palette'), titre: t('params.style.paletteTitre'), aide: t('params.style.paletteAide') }, (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {/* Une couleur par ligne : la colonne des Paramètres est trop étroite pour trois pastilles côte à côte sans tronquer. */}
+              <div className="grid gap-2">
                 {nuancier.map(([name, lib, role, val]) => (
-                  <div key={name} className="flex items-center gap-2.5 p-2 rounded-[14px] border border-white/[0.07] bg-[#0b1224]">
-                    <label className="relative w-11 h-11 rounded-xl border border-white/15 shrink-0 cursor-pointer overflow-hidden" style={{ background: val }} title={role}>
+                  <div key={name} className="flex items-center gap-3 px-2.5 py-2 rounded-[14px] border border-white/[0.07] bg-[#0b1224]">
+                    <label className="relative w-10 h-10 rounded-xl border border-white/15 shrink-0 cursor-pointer overflow-hidden" style={{ background: val }} title={role}>
                       <input type="color" value={val} onChange={(e) => handleChange(name, e.target.value)} data-testid={`color-picker-${name}`}
                         className="absolute -inset-2 w-[200%] h-[200%] opacity-0 cursor-pointer" aria-label={lib} />
                     </label>
-                    <div className="min-w-0 grid">
-                      <span className="text-[13px] font-semibold text-slate-100 font-inter truncate" title={role}>{lib}</span>
-                      <input type="text" value={val} data-testid={`color-hex-${name}`} aria-label={`${lib} hex`}
-                        onChange={(e) => { const v = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value; if (hexOk(v)) handleChange(name, v); }}
-                        className="bg-transparent border-0 p-0 text-[12px] font-mono text-slate-400 focus:text-slate-100 focus:outline-none w-[9ch]" />
+                    <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                      <span className="text-[13px] font-semibold text-slate-100 font-inter">{lib}</span>
+                      <span className="text-[11.5px] text-slate-500 font-inter truncate">{role}</span>
                     </div>
+                    <input type="text" value={val} data-testid={`color-hex-${name}`} aria-label={`${lib} hex`}
+                      onChange={(e) => { const v = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value; if (hexOk(v)) handleChange(name, v); }}
+                      className="bg-transparent border-0 p-0 text-[12px] font-mono text-slate-400 focus:text-slate-100 focus:outline-none w-[8ch] text-right shrink-0" />
                   </div>
                 ))}
               </div>
