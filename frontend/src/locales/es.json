@@ -662,6 +662,8 @@
       "nonUtilisee": "Sin usar",
       "toujoursIntegrer": "Usar siempre esta imagen (ej. tu mascota) en vez de solo el estilo",
       "toujoursIntegree": "Siempre usada, haz clic para volver a solo estilo",
+      "ecranReproduire": "Pantalla a reproducir: esta captura se mostrará tal cual en la pantalla del mockup (ficha Google, perfil, app…)",
+      "ecranReproduit": "Pantalla a reproducir, haz clic para volver a solo estilo",
       "agrandir": "Ampliar",
       "selectionneImageNote": "Selecciona una imagen y dile a la IA qué hacer con ella en «Instrucciones» (ej. «ponla en el círculo»).",
       "descriptionImage": "Descripción de la imagen",

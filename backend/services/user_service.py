@@ -110,30 +110,54 @@ def list_inspirations(telegram_id: str) -> list:
         return []
 
 
-def list_integrate_flags(telegram_id: str) -> list:
-    """URLs des inspirations marquées « à toujours intégrer littéralement » (ex. la mascotte),
-    par opposition aux inspirations de simple STYLE. Le marqueur vit dans le context Cloudinary
-    de l'asset (clé `integrate`), pas dans Supabase — pas de table dédiée pour un simple flag."""
+# Rôle d'une image de référence à la génération :
+#   style     : simple inspiration (composition, palette, ambiance) — défaut
+#   integrate : contenu à reproduire littéralement dans la scène (ex. la mascotte)
+#   ecran     : capture d'écran réelle à afficher DANS l'écran du mockup (fiche Google, profil…),
+#               au lieu d'une interface inventée (décision PO du 2026-09-16)
+ROLES_REFERENCE = ("style", "integrate", "ecran")
+
+
+def _flags(telegram_id: str, cle: str) -> list:
+    """URLs des inspirations dont le context Cloudinary porte `cle=1`. Le marqueur vit sur
+    l'asset, pas dans Supabase — pas de table dédiée pour un simple drapeau."""
     try:
         res = cloudinary.api.resources(
             type="upload", prefix=f"inspirations/{telegram_id}/", max_results=30, context=True,
         )
         return [
             r["secure_url"] for r in res.get("resources", [])
-            if r.get("secure_url") and (r.get("context", {}).get("custom", {}) or {}).get("integrate") == "1"
+            if r.get("secure_url") and (r.get("context", {}).get("custom", {}) or {}).get(cle) == "1"
         ]
     except Exception as e:
-        logger.warning(f"list_integrate_flags error: {e}")
+        logger.warning(f"flags {cle} error: {e}")
         return []
 
 
-def set_integration(telegram_id: str, url: str, integrate: bool) -> None:
-    """Marque (ou démarque) une inspiration comme « à toujours intégrer ». Vérifie que l'asset
-    appartient bien à ce compte avant de le modifier."""
+def list_integrate_flags(telegram_id: str) -> list:
+    """Inspirations « à toujours intégrer littéralement » (ex. la mascotte)."""
+    return _flags(telegram_id, "integrate")
+
+
+def list_ecran_flags(telegram_id: str) -> list:
+    """Inspirations « écran à reproduire » (captures d'écran réelles)."""
+    return _flags(telegram_id, "ecran")
+
+
+def set_role(telegram_id: str, url: str, role: str) -> None:
+    """Donne un rôle (exclusif) à une inspiration. Vérifie que l'asset appartient au compte."""
+    if role not in ROLES_REFERENCE:
+        raise ValueError("rôle invalide")
     pid = _public_id_from_cloudinary_url(url or "")
     if not pid or not pid.startswith(f"inspirations/{telegram_id}/"):
         raise ValueError("image invalide")
-    cloudinary.api.update(pid, resource_type="image", context=f"integrate={1 if integrate else 0}")
+    cloudinary.api.update(pid, resource_type="image",
+                          context=f"integrate={1 if role == 'integrate' else 0}|ecran={1 if role == 'ecran' else 0}")
+
+
+def set_integration(telegram_id: str, url: str, integrate: bool) -> None:
+    """Compat : marque (ou démarque) une inspiration comme « à toujours intégrer »."""
+    set_role(telegram_id, url, "integrate" if integrate else "style")
 
 
 def add_inspiration(telegram_id: str, file_bytes: bytes) -> list:

@@ -78,6 +78,9 @@ export const userService = {
   // Marque/démarque une inspiration comme "à toujours intégrer littéralement" (ex. la mascotte)
   setInspirationIntegration: (url, integrate) =>
     api.post('/users/me/inspirations/integrate', { url, integrate }).then(r => r.data),
+  // Rôle exclusif d'une référence : 'style' (défaut), 'integrate' (mascotte…), 'ecran' (capture à reproduire)
+  setInspirationRole: (url, role) =>
+    api.post('/users/me/inspirations/role', { url, role }).then(r => r.data),
 
   connectPlatform: (platform) =>
     api.post('/users/me/connect', { platform }).then(r => r.data),

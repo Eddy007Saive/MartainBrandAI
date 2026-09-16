@@ -205,7 +205,29 @@ def list_inspirations(payload: dict = Depends(verify_token)):
     return {
         "images": user_service.list_inspirations(telegram_id),
         "integrate": user_service.list_integrate_flags(telegram_id),
+        "ecran": user_service.list_ecran_flags(telegram_id),
     }
+
+
+@router.post("/me/inspirations/role")
+def set_inspiration_role(body: dict, payload: dict = Depends(verify_token)):
+    """Rôle d'une image de référence : style (défaut), integrate (mascotte…), ecran (capture
+    d'écran à reproduire dans le mockup). Exclusif."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    url = (body.get("url") or "").strip()
+    role = (body.get("role") or "style").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="url requise")
+    try:
+        user_service.set_role(telegram_id, url, role)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"set_role error: {e}")
+        raise HTTPException(status_code=500, detail="Échec de la mise à jour")
+    return {"success": True, "role": role}
 
 
 @router.post("/me/inspirations/integrate")

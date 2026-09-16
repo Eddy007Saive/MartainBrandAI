@@ -343,7 +343,7 @@ async def _prep_refs(urls: list) -> tuple:
     return ok, bad
 
 
-async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None, public_id: str = None, identite_stylisee: bool = False, style: str = "photo") -> dict:
+async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False, model: str = None, contenu_id: str = None, refs: list = None, style_note: str = None, template_mode: bool = False, ratio: str = "4:5", integrate_refs: list = None, public_id: str = None, identite_stylisee: bool = False, style: str = "photo", ecran_refs: list = None) -> dict:
     """Génère l'image via nano-banana (OpenRouter) → upload Cloudinary → URL.
 
     `refs` : images de référence choisies à la génération (URLs). Si fourni (même vide), il a
@@ -403,9 +403,34 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
 
     # Parmi les références choisies, celles marquées « à toujours intégrer » (ex. la mascotte)
     # sont téléchargées à part : elles reçoivent une consigne plus forte que le simple style.
-    integrate_set = set(integrate_refs or [])
+    # « Écran à reproduire » : captures d'écran réelles, affichées telles quelles dans l'écran du
+    # mockup (ou d'un appareil de la scène). Le générateur ne redessine plus l'interface de mémoire.
+    ecran_set = set(ecran_refs or [])
+    ecran_urls = [x for x in style_urls if x in ecran_set]
+    style_urls = [x for x in style_urls if x not in ecran_set]
+    integrate_set = set(integrate_refs or []) - ecran_set
     integrate_urls = [x for x in style_urls if x in integrate_set]
     style_only_urls = [x for x in style_urls if x not in integrate_set]
+
+    ecran_data = []
+    if ecran_urls:
+        ecran_data, _ = await _prep_refs(ecran_urls)
+    # Consignes du rôle écran : en template (l'écran est celui du gabarit) et en scène libre.
+    ecran_txt_gabarit = (
+        "\n\nCAPTURE(S) D'ÉCRAN : la ou les DERNIÈRES images reçues sont de vraies captures d'écran. Le gabarit "
+        "montre un appareil avec un écran (téléphone, ordinateur, tablette) : affiche la capture DANS cet "
+        "écran, ajustée exactement à ses bords (perspective et coins arrondis suivis, rien qui déborde), en "
+        "reproduisant FIDÈLEMENT sa mise en page, ses couleurs et ses textes, parfaitement lisibles. N'invente "
+        "aucun élément d'interface : ce qui est à l'écran vient de la capture et de rien d'autre. Si le gabarit "
+        "n'a pas d'écran, pose la capture comme une carte à l'endroit prévu pour la photo."
+    ) if ecran_data else ""
+    ecran_txt_libre = (
+        "\n\nCAPTURE(S) D'ÉCRAN : la ou les DERNIÈRES images reçues sont de vraies captures d'écran. Si la scène "
+        "décrite contient un appareil avec un écran (téléphone, ordinateur, tablette), affiche la capture DANS cet "
+        "écran, ajustée à ses bords, mise en page et textes reproduits FIDÈLEMENT et lisibles. Sinon, fais-la "
+        "apparaître comme un écran ou une carte flottante intégrée à la scène. N'invente aucune interface : ce qui "
+        "est à l'écran vient de la capture."
+    ) if ecran_data else ""
 
     integrate_data = []
     if integrate_urls:
@@ -425,9 +450,10 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
             "demandé ci-dessous (ce n'est pas une photo : suis le style à la lettre)." + tenue_txt
             + "\n\n" + prompt
         )
-        content = [{"type": "text", "text": texte},
+        content = [{"type": "text", "text": texte + ecran_txt_libre},
                    {"type": "image_url", "image_url": {"url": photo_refs[0]}}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in ecran_data]
     elif photo_refs:
         tenue = (u.get("style_vestimentaire") or "").strip()
         tenue_txt = f" La personne porte la tenue suivante : {tenue}." if tenue else ""
@@ -443,9 +469,10 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
             texte += ("\n\nInspire-toi du STYLE VISUEL (composition, palette de couleurs, ambiance, "
                       "éclairage) des images de style suivantes — sans copier leur contenu et SANS modifier "
                       "le visage de la personne de la première image.")
-        content = [{"type": "text", "text": texte},
+        content = [{"type": "text", "text": texte + ecran_txt_libre},
                    {"type": "image_url", "image_url": {"url": photo_refs[0]}}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in ecran_data]
     elif inspi_refs and template_mode:
         # Rôles explicites : 1re image = le GABARIT à reproduire ; images suivantes = RÉFÉRENCES de l'utilisateur.
         if len(inspi_refs) > 1:
@@ -465,7 +492,7 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                 "« Consignes de l'utilisateur » sont fournies, EXÉCUTE-les — ce sont des ORDRES, pas du texte à "
                 "afficher (ex. « remplace la phrase par X » = afficher UNIQUEMENT X). L'ancien texte du gabarit "
                 "DISPARAÎT : ne montre JAMAIS l'ancien et le nouveau en même temps. Garde les accents français "
-                "corrects (é, è, ê…). Texte parfaitement lisible, sans faute.\n\n" + prompt
+                "corrects (é, è, ê…). Texte parfaitement lisible, sans faute." + ecran_txt_gabarit + "\n\n" + prompt
             )
         else:
             texte = (
@@ -476,11 +503,13 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                 "le texte existant (même emplacement, même style) ; si des « Consignes de l'utilisateur » sont "
                 "fournies, EXÉCUTE-les — ce sont des ORDRES, pas du texte à afficher (ex. « remplace la phrase "
                 "par X » = afficher UNIQUEMENT X). L'ancien texte DISPARAÎT : ne montre JAMAIS l'ancien et le "
-                "nouveau en même temps. Parfaitement lisible, sans faute, accents français corrects.\n\n" + prompt
+                "nouveau en même temps. Parfaitement lisible, sans faute, accents français corrects."
+                + (" (Exception : l'écran de l'appareil, voir ci-dessous.)" if ecran_data else "") + ecran_txt_gabarit + "\n\n" + prompt
             )
         content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
-    elif integrate_data or inspi_refs:
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in ecran_data]
+    elif integrate_data or inspi_refs or ecran_data:
         # Pas de photo : deux familles de références.
         # - integrate_data (marquées « à toujours intégrer », ex. la mascotte) -> leur contenu EXACT
         #   doit apparaître dans le résultat, sans condition.
@@ -503,9 +532,10 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                 "la description. Sinon, contente-toi de t'INSPIRER de leur STYLE VISUEL (composition, "
                 "palette de couleurs, ambiance, éclairage, traitement) sans copier leur contenu."
             )
-        content = [{"type": "text", "text": texte}]
+        content = [{"type": "text", "text": texte + ecran_txt_libre}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in integrate_data]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]
+        content += [{"type": "image_url", "image_url": {"url": url}} for url in ecran_data]
     else:
         content = prompt
 

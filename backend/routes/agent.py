@@ -858,6 +858,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         raise _refus(q)
     refs = body.get("refs") if isinstance(body.get("refs"), list) else None
     integrate_refs = body.get("integrate_refs") if isinstance(body.get("integrate_refs"), list) else None
+    ecran_refs = body.get("ecran_refs") if isinstance(body.get("ecran_refs"), list) else None
     style_note = (body.get("style_note") or "").strip() or None
     style = body.get("style") if body.get("style") in image_service.styles_image() else "photo"
     # Story -> visuel vertical 9:16 (sinon 4:5 feed)
@@ -871,7 +872,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
             pass
     depart = time.monotonic()
     try:
-        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio, integrate_refs=integrate_refs, style=style)
+        res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio, integrate_refs=integrate_refs, style=style, ecran_refs=ecran_refs)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"Agent image error: {e}")

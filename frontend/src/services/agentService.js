@@ -71,8 +71,8 @@ export const agentService = {
   // refs : images de référence (URLs) ; integrateRefs : sous-ensemble de refs à intégrer
   // littéralement (ex. la mascotte), le reste reste une simple inspiration de style ;
   // style_note : directive de style (template).
-  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null, style_note = null, template_mode = false, bg_image = null, integrateRefs = null, style = null) =>
-    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}), ...(style_note ? { style_note } : {}), ...(template_mode ? { template_mode: true } : {}), ...(bg_image ? { bg_image } : {}), ...(integrateRefs && integrateRefs.length ? { integrate_refs: integrateRefs } : {}), ...(style ? { style } : {}) }).then((r) => r.data),
+  image: (contenu_id, prompt, avec_photo = false, modele = 'nano2', refs = null, style_note = null, template_mode = false, bg_image = null, integrateRefs = null, style = null, ecranRefs = null) =>
+    api.post('/agent/image', { contenu_id, prompt, avec_photo, modele, ...(refs ? { refs } : {}), ...(style_note ? { style_note } : {}), ...(template_mode ? { template_mode: true } : {}), ...(bg_image ? { bg_image } : {}), ...(integrateRefs && integrateRefs.length ? { integrate_refs: integrateRefs } : {}), ...(style ? { style } : {}), ...(ecranRefs && ecranRefs.length ? { ecran_refs: ecranRefs } : {}) }).then((r) => r.data),
 
   // Gabarits de post (feed cohérent) : compose le texte du post puis rend le visuel
   gabarits: () => api.get('/agent/gabarits').then((r) => r.data),

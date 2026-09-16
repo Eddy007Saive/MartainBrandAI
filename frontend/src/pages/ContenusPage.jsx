@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -596,6 +596,8 @@ export default function ContenusPage() {
   const [selectedRefs, setSelectedRefs] = useState([]);
   // Sous-ensemble des inspirations marquées "à toujours intégrer" (ex. la mascotte)
   const [integrateUrls, setIntegrateUrls] = useState([]);
+  // Sous-ensemble marqué "écran à reproduire" : captures d'écran affichées telles quelles dans le mockup
+  const [ecranUrls, setEcranUrls] = useState([]);
   const [refImporting, setRefImporting] = useState(false);
   const refInputRef = useRef(null);
   // Templates de marque
@@ -718,15 +720,20 @@ export default function ContenusPage() {
 
   // Marque/démarque une image comme "à toujours intégrer" (ex. la mascotte) plutôt que simple
   // inspiration de style. Mise à jour optimiste, annulée si l'appel échoue.
-  const toggleIntegrate = (url, e) => {
+  // Les deux rôles sont exclusifs : épingler retire « écran », et inversement. Re-cliquer = simple style.
+  const toggleRole = (url, role, e) => {
     e.stopPropagation();
-    const next = !integrateUrls.includes(url);
-    setIntegrateUrls((prev) => (next ? [...prev, url] : prev.filter((u) => u !== url)));
-    userService.setInspirationIntegration(url, next).catch(() => {
-      setIntegrateUrls((prev) => (next ? prev.filter((u) => u !== url) : [...prev, url]));
+    const avant = { integrate: integrateUrls, ecran: ecranUrls };
+    const actuel = integrateUrls.includes(url) ? 'integrate' : ecranUrls.includes(url) ? 'ecran' : 'style';
+    const next = actuel === role ? 'style' : role;
+    setIntegrateUrls((prev) => (next === 'integrate' ? [...prev.filter((u) => u !== url), url] : prev.filter((u) => u !== url)));
+    setEcranUrls((prev) => (next === 'ecran' ? [...prev.filter((u) => u !== url), url] : prev.filter((u) => u !== url)));
+    userService.setInspirationRole(url, next).catch(() => {
+      setIntegrateUrls(avant.integrate); setEcranUrls(avant.ecran);
       toast.error(t('contenus.toast.ajoutEchec'));
     });
   };
+  const toggleIntegrate = (url, e) => toggleRole(url, 'integrate', e);
 
   const appliquerTemplate = (t) => {
     if (activeTemplate === t.id) { // re-clic → on retire le template
@@ -807,9 +814,10 @@ export default function ContenusPage() {
         const arr = Array.isArray(d) ? d : (d?.images || []);
         setInspirations(arr);
         setIntegrateUrls(d?.integrate || []);
+        setEcranUrls(d?.ecran || []);
         setSelectedRefs([]);
       })
-      .catch(() => { setInspirations([]); setIntegrateUrls([]); setSelectedRefs([]); });
+      .catch(() => { setInspirations([]); setIntegrateUrls([]); setEcranUrls([]); setSelectedRefs([]); });
     templateService.list().then((d) => setTemplates(d || [])).catch(() => {});
     if (contenu.prompt_image) {
       setImgPrompt(contenu.prompt_image);           // déjà généré → on réutilise (zéro régénération)
@@ -829,9 +837,10 @@ export default function ContenusPage() {
       // En template : l'image du GABARIT part TOUJOURS en 1re position, suivie des refs choisies.
       const tplImgs = activeTemplate ? ((templates.find((t) => t.id === activeTemplate)?.images) || []) : [];
       const refsToSend = activeTemplate ? [...tplImgs, ...selectedRefs.filter((u) => !tplImgs.includes(u))] : selectedRefs;
-      const integrateToSend = selectedRefs.filter((u) => integrateUrls.includes(u));
+      const ecranToSend = selectedRefs.filter((u) => ecranUrls.includes(u));
+      const integrateToSend = selectedRefs.filter((u) => integrateUrls.includes(u) && !ecranUrls.includes(u));
       const styleEnvoye = imgStyle === 'auto' ? 'photo' : imgStyle;   // auto non résolu (description jamais demandée) : photo
-      const data = await agentService.image(imageContenu.id, promptEnvoye, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate, null, integrateToSend, activeTemplate ? null : styleEnvoye);
+      const data = await agentService.image(imageContenu.id, promptEnvoye, imgAvecPhoto, imgModele, refsToSend, styleNote || null, !!activeTemplate, null, integrateToSend, activeTemplate ? null : styleEnvoye, ecranToSend);
       if (data.credits != null) updateUser({ credits: data.credits });
       if (activeTemplate) {
         try { localStorage.setItem(TPL_INSTR_KEY(imageContenu.id), tplInstr); } catch (e) { /* stockage indisponible */ }
@@ -2209,6 +2218,7 @@ export default function ContenusPage() {
                               {inspirations.map((url) => {
                                 const on = selectedRefs.includes(url);
                                 const pinned = integrateUrls.includes(url);
+                                const ecran = ecranUrls.includes(url);
                                 return (
                                   <div key={url} onClick={() => toggleRef(url)} title={on ? t('contenus.image.utilisee') : t('contenus.image.nonUtilisee')}
                                     className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
@@ -2218,6 +2228,11 @@ export default function ContenusPage() {
                                       title={pinned ? t('contenus.image.toujoursIntegree') : t('contenus.image.toujoursIntegrer')}
                                       className={`absolute top-0.5 left-0.5 w-4 h-4 rounded grid place-items-center transition-opacity ${pinned ? 'bg-[#5B6CFF] text-white opacity-100' : 'bg-black/70 text-white opacity-0 group-hover:opacity-100'}`}>
                                       <Pin className="w-2.5 h-2.5" fill={pinned ? 'currentColor' : 'none'} />
+                                    </button>
+                                    <button type="button" onClick={(e) => toggleRole(url, 'ecran', e)} data-testid="ref-role-ecran"
+                                      title={ecran ? t('contenus.image.ecranReproduit') : t('contenus.image.ecranReproduire')}
+                                      className={`absolute top-0.5 left-5 w-4 h-4 rounded grid place-items-center transition-opacity ${ecran ? 'bg-[#3AFFA3] text-[#0b1322] opacity-100' : 'bg-black/70 text-white opacity-0 group-hover:opacity-100'}`}>
+                                      <Smartphone className="w-2.5 h-2.5" />
                                     </button>
                                     <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title={t('contenus.image.agrandir')}
                                       className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
