@@ -422,7 +422,10 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
         "écran, ajustée exactement à ses bords (perspective et coins arrondis suivis, rien qui déborde), en "
         "reproduisant FIDÈLEMENT sa mise en page, ses couleurs et ses textes, parfaitement lisibles. N'invente "
         "aucun élément d'interface : ce qui est à l'écran vient de la capture et de rien d'autre. Si le gabarit "
-        "n'a pas d'écran, pose la capture comme une carte à l'endroit prévu pour la photo."
+        "n'a pas d'écran, pose la capture comme une carte à l'endroit prévu pour la photo. CADRAGE : ne zoome "
+        "pas, ne recadre pas sur l'écran, ne pose pas la capture en carte flottante par-dessus : la composition "
+        "ENTIÈRE du gabarit (logo, titre, appareil complet, fond) reste visible exactement comme dans l'IMAGE 1, "
+        "seul le contenu de l'écran change."
     ) if ecran_data else ""
     ecran_txt_libre = (
         "\n\nCAPTURE(S) D'ÉCRAN : la ou les DERNIÈRES images reçues sont de vraies captures d'écran. Si la scène "
