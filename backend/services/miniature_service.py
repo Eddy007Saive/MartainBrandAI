@@ -67,7 +67,9 @@ RATIOS = {"9:16": (360, 640, 3), "16:9": (640, 360, 2)}   # viewport x échelle 
 # sans changer le visage). `photo` garde le garde-fou réalisme d'image_service, les autres non.
 STYLES = {
     "photo":   {"photo": True,  "texte": "Photorealistic, high detail, natural skin texture, thumbnail-grade contrast."},
-    "cinema":  {"photo": True,  "texte": "Cinematic film still: anamorphic look, teal and orange grading, volumetric light, subtle film grain, high contrast."},
+    # Étalonnage dans la palette de la marque, pas le « teal and orange » des films d'action : les
+    # deux consignes se battaient (épingle orange sur une charte sans orange, test du 15/09).
+    "cinema":  {"photo": True,  "texte": "Cinematic film still: anamorphic look, colour grading built on the BRAND PALETTE (shadows and backgrounds in the primary colour, highlights and rim lights in the accent colour, no orange unless it belongs to the palette), volumetric light, subtle film grain, high contrast."},
     "3d":      {"photo": False, "texte": "Stylised 3D render like a modern animated feature film (Pixar-like): soft rounded shapes, expressive face, glossy materials, warm studio lighting. Keep the person recognisable as a 3D character."},
     "illustration": {"photo": False, "texte": "Bold flat vector illustration with clean shapes, thick outlines, limited vivid palette, subtle paper grain, editorial poster look. Keep the person recognisable in a simplified drawn style."},
     "neon":    {"photo": True,  "texte": "Dark cyberpunk mood: deep blacks, magenta and cyan neon rim lights, wet reflections, haze, dramatic high contrast, futuristic."},
