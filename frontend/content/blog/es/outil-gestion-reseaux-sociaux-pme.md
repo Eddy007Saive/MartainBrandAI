@@ -278,7 +278,9 @@ Con Buffer o Swello, estás operativo en menos de 30 minutos. SocialPilot requie
 - [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
 - [Página Facebook profesional: cómo crearla y gestionarla en 2026](/es/blog/pagina-facebook-profesional)
-
+- [Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción](/es/blog/agencia-freelance-ia-redes-sociales-costes)
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
+- [Veille redes sociales: cómo mantenerse informado sin dedicarle horas](/es/blog/monitorizacion-redes-sociales-sin-perder-horas)
 ## Fuentes útiles
 
 - [Blog du Modérateur - Comparativa de herramientas de gestión de redes sociales](https://www.blogdumoderateur.com/tools/social-media/gestion-reseaux-sociaux/)

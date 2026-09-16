@@ -117,7 +117,8 @@ Sí, a condición de informar bien. Comparte tus valores, tu tono, ejemplos de c
 
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
 - [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
-
+- [Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción](/es/blog/agencia-freelance-ia-redes-sociales-costes)
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
 ## Fuentes
 
 - [France Num: La presencia en internet de las microempresas y pymes](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme)

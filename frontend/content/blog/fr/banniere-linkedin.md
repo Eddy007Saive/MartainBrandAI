@@ -291,7 +291,8 @@ Tous les 6 à 12 mois est une bonne cadence. Mettez-la à jour dès que votre po
 
 - [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
 - [Rédiger un post LinkedIn qui performe : méthode hook/corps/CTA](/blog/rediger-un-post-linkedin)
-
+- [Créer une page entreprise LinkedIn : le guide pas-à-pas 2026](/blog/creer-page-entreprise-linkedin)
+- [Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer](/blog/visuels-ia-reseaux-sociaux)
 ## Sources utiles
 
 - [LaGrowthMachine - Comment créer une bonne bannière LinkedIn](https://lagrowthmachine.com/fr/comment-creer-une-bonne-banniere-linkedin/)

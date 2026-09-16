@@ -186,6 +186,12 @@ Check your main metric at 90 days. If you set a goal of 10 inbound messages per 
 
 ---
 
+## Further reading
+
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
+- [Social media agency, freelance, or AI: what each option really costs](/en/blog/agency-freelance-ai-social-media-cost)
+
 ## Useful Sources
 
 - [France Num 2025 Barometer: online presence of micro and small businesses](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le)

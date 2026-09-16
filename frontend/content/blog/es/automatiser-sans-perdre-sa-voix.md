@@ -70,3 +70,5 @@ Es una elección asumida: una cadena totalmente automática publicaría más rá
 
 - [Clonar su voz con IA: cómo funciona y por qué es útil para un directivo](/es/blog/clonar-voz-ia-dirigente-pyme)
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+- [Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador](/es/blog/visuales-ia-redes-sociales-coherencia)

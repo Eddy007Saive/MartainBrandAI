@@ -291,7 +291,8 @@ Every 6 to 12 months is a good cadence. Update it whenever your positioning chan
 
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
-
+- [Creating a LinkedIn Company Page: The Step-by-Step Guide 2026](/en/blog/create-linkedin-company-page-guide)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
 ## Useful sources
 
 - [LaGrowthMachine - How to create a good LinkedIn banner](https://lagrowthmachine.com/fr/comment-creer-une-bonne-banniere-linkedin/)

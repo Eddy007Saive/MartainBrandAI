@@ -73,3 +73,5 @@ The right pace is the one that survives a hard week. Start below the recommended
 - [Instagram Reels for Business: How to Create Them Without a Videographer or Editor](/en/blog/instagram-reels-small-business)
 - [TikTok for Business: How to Get Started Without It Taking Over Your Life](/en/blog/tiktok-for-business-getting-started)
 - [Professional Facebook Page: How to Create and Manage It in 2026](/en/blog/professional-facebook-page)
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)

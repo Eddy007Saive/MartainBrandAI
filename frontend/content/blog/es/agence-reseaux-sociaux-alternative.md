@@ -189,6 +189,11 @@ Cuenta de 3 a 6 meses de publicación regular antes de sacar conclusiones. Las r
 
 ---
 
+## Para ir más lejos
+
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+
 ## Fuentes útiles
 
 - [Barómetro France Num 2025: presencia digital de las micropymes y pymes](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le-0): el 66 % de las micropymes y pymes francesas tienen al menos una cuenta en una red social.

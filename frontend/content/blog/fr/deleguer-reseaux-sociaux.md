@@ -315,7 +315,8 @@ Quand le contenu publié ne vous ressemble plus, quand les objectifs ne sont pas
 
 - [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
 - [Optimiser sa fiche Google My Business : les 8 points qui font vraiment la différence](/blog/optimiser-fiche-google-my-business)
-
+- [Agence réseaux sociaux, freelance ou IA : ce que chaque option coûte vraiment](/blog/agence-reseaux-sociaux-alternative)
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
 ## Sources utiles
 
 - [SocialSky - 5 raisons de déléguer ses réseaux sociaux à une agence](https://socialsky.eu/articles/deleguer-reseaux-sociaux)

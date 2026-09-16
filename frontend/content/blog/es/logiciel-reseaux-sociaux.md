@@ -143,7 +143,8 @@ Buffer: menos de una hora para lo básico. Metricool: media jornada para recorre
 
 - [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
-
+- [Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción](/es/blog/agencia-freelance-ia-redes-sociales-costes)
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
 ## Fuentes
 
 - [Buffer: Tarifas oficiales](https://buffer.com/pricing)

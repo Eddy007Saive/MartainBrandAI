@@ -136,6 +136,11 @@ Aplicando tu identidad de marca a cada generación: paleta de colores, estilo fi
 
 ---
 
+## Para ir más lejos
+
+- [Miniatura de vídeo corto: cómo crear una que genera clics (con o sin diseñador)](/es/blog/miniatura-video-corta-crear)
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+
 ## Fuentes útiles
 
 - [Impacto de los visuales en el engagement en redes sociales (Swello)](https://swello.com/fr/blog/limpact-visuels-reseaux-sociaux/)

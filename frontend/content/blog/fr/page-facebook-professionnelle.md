@@ -199,6 +199,12 @@ Pas nécessairement au départ. La portée organique est faible mais réelle si 
 
 ---
 
+## Pour aller plus loin
+
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
+- [Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer](/blog/visuels-ia-reseaux-sociaux)
+
 ## Sources utiles
 
 - [Meta Business Suite - aide officielle](https://fr-fr.facebook.com/business/help/473994396650734)

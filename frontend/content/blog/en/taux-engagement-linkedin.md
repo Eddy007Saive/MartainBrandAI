@@ -254,7 +254,9 @@ Three actions with immediate impact: (1) nail your first 3 lines to stop the scr
 - [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
-
+- [Creating a LinkedIn Company Page: The Step-by-Step Guide 2026](/en/blog/create-linkedin-company-page-guide)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
 ## Useful sources
 
 - [Buffer - State of Social Media Engagement 2026 (52M posts)](https://buffer.com/resources/state-of-social-media-engagement-2026/)

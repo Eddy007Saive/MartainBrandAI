@@ -133,6 +133,11 @@ Canva is the most accessible option: ready-to-use templates, a drag-and-drop edi
 
 ---
 
+## Further reading
+
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+- [Personal branding on Instagram: the method for business owners and freelancers](/en/blog/personal-branding-instagram-leaders-freelancers)
+
 ## Useful resources
 
 - [YouTube: understanding click-through rate (CTR)](https://support.google.com/youtube/answer/7628154?hl=fr): official YouTube documentation on CTR and how to interpret it.

@@ -97,3 +97,6 @@ Si trabajas con una herramienta de generación, esas quince líneas son exactame
 
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
 - [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)

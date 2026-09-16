@@ -147,6 +147,11 @@ Oui, c'est même l'un des avantages de TikTok par rapport aux autres réseaux. L
 
 ---
 
+## Pour aller plus loin
+
+- [Miniature vidéo courte : comment en créer une qui fait cliquer (avec ou sans designer)](/blog/miniature-video-courte)
+- [Personal branding sur Instagram : la méthode pour un dirigeant ou indépendant](/blog/personal-branding-instagram)
+
 ## Sources utiles
 
 - [Support TikTok : comptes personnels et entreprise](https://support.tiktok.com/fr/using-tiktok/growing-your-audience/personal-and-business-accounts-on-tiktok)

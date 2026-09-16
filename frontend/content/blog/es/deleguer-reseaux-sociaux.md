@@ -315,7 +315,8 @@ Cuando el contenido publicado ya no se te parece, cuando los objetivos no se alc
 
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
 - [Optimizar tu ficha de Google My Business: los 8 puntos que realmente marcan la diferencia](/es/blog/optimizar-ficha-google-my-business)
-
+- [Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción](/es/blog/agencia-freelance-ia-redes-sociales-costes)
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
 ## Fuentes útiles
 
 - [SocialSky - 5 razones para delegar tus redes sociales en una agencia](https://socialsky.eu/articles/deleguer-reseaux-sociaux)

@@ -137,6 +137,11 @@ Sí. Cada dirección física puede tener su propia ficha de Google Business Prof
 
 ---
 
+## Para ir más lejos
+
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
+
 ## Recursos útiles
 
 - [Google Business Profile - ayuda oficial](https://support.google.com/business)

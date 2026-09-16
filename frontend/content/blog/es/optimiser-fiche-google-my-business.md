@@ -172,6 +172,11 @@ No directamente. Las publicaciones no tienen un efecto probado sobre el posicion
 
 ---
 
+## Para ir más lejos
+
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
+
 ## Fuentes útiles
 
 - [Google: cómo mejorar tu posicionamiento local en Google](https://support.google.com/business/answer/7091?hl=fr)

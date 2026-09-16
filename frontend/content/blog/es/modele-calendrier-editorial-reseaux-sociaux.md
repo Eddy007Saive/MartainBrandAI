@@ -155,3 +155,5 @@ Los dos funcionan. Google Sheets es más rápido de compartir y filtrar. Notion 
 - [Plantilla de calendario para redes sociales, Buffer](https://buffer.com/fr/resources/modele-calendrier-reseaux-sociaux)
 - [El calendario editorial: una herramienta de comunicación, France Num](https://www.francenum.gouv.fr/guides-et-conseils/communication-et-publicite/strategie-de-communication/le-calendrier-editorial-un)
 - [Plantilla de calendario editorial social media, Notion](https://www.notion.com/fr/templates/social-media-calendar)
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+- [Veille redes sociales: cómo mantenerse informado sin dedicarle horas](/es/blog/monitorizacion-redes-sociales-sin-perder-horas)

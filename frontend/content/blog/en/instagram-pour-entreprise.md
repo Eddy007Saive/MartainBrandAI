@@ -231,7 +231,9 @@ Expect 3 to 6 months of regular posting before you observe significant growth. T
 - [Instagram Reels for Business: How to Create Them Without a Videographer or Editor](/en/blog/instagram-reels-small-business)
 - [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
 - [Professional Facebook Page: How to Create and Manage It in 2026](/en/blog/professional-facebook-page)
-
+- [Personal branding on Instagram: the method for business owners and freelancers](/en/blog/personal-branding-instagram-leaders-freelancers)
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
 ## Useful sources
 
 - [Instagram statistics 2025, Shopify France](https://www.shopify.com/fr/blog/statistiques-instagram)

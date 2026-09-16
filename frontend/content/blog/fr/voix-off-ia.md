@@ -161,6 +161,11 @@ Cloner sa propre voix : oui, sans restriction. Cloner la voix d'une autre person
 
 ---
 
+## Pour aller plus loin
+
+- [Miniature vidéo courte : comment en créer une qui fait cliquer (avec ou sans designer)](/blog/miniature-video-courte)
+- [Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer](/blog/visuels-ia-reseaux-sociaux)
+
 ## Sources utiles
 
 - [ElevenLabs - clonage de voix IA](https://elevenlabs.io/fr/voice-cloning)

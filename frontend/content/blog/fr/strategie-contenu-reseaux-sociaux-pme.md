@@ -174,6 +174,12 @@ Définissez un indicateur par objectif : portée pour la notoriété, clics pour
 
 ---
 
+## Pour aller plus loin
+
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+
 ## Sources utiles
 
 - [Baromètre des contenus BtoB 2025, Infopro Digital](https://www.infopro-digital-media.fr/blog-post/barometre-contenus-btob-france-2025) : données sur l'adoption du marketing de contenu par les PME françaises.

@@ -187,6 +187,12 @@ Regardez votre indicateur principal à 90 jours. Si vous avez fixé un objectif 
 
 ---
 
+## Pour aller plus loin
+
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
+- [Stratégie de contenu réseaux sociaux pour PME : les 5 décisions à prendre avant de publier](/blog/strategie-contenu-reseaux-sociaux-pme)
+- [Agence réseaux sociaux, freelance ou IA : ce que chaque option coûte vraiment](/blog/agence-reseaux-sociaux-alternative)
+
 ## Sources utiles
 
 - [Baromètre France Num 2025 : présence en ligne des TPE-PME](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le)

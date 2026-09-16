@@ -136,6 +136,11 @@ By applying your brand guidelines to every generation: colour palette, fixed sty
 
 ---
 
+## Further reading
+
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+
 ## Useful sources
 
 - [Impact of visuals on social media engagement (Swello)](https://swello.com/fr/blog/limpact-visuels-reseaux-sociaux/)

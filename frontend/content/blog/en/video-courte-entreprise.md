@@ -148,6 +148,12 @@ Look at three indicators: the retention rate (how many people watch to the end),
 
 ---
 
+## Further reading
+
+- [Short video thumbnail: how to create one that gets clicks (with or without a designer)](/en/blog/short-video-thumbnail-make-it-clickable)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+
 ## Useful sources
 
 - [Digital Report April 2025, We Are Social via gensdinternet.fr](https://gensdinternet.fr/2025/04/28/les-utilisateurs-consomment-davantage-les-videos-courtes-sur-les-reseaux-sociaux/)

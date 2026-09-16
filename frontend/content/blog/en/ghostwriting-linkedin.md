@@ -203,7 +203,8 @@ The human ghostwriter brings a strategic and relational dimension that AI does n
 - [Cloning your voice with AI: how it works and why it matters for business owners](/en/blog/clone-voice-ai-business-owner)
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
-
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [Creating a LinkedIn Company Page: The Step-by-Step Guide 2026](/en/blog/create-linkedin-company-page-guide)
 ## Useful sources
 
 - [LinkedIn Ghostwriter: Complete Guide, Rates & Choices (Produscale)](https://www.produscale.com/blog/ghostwriter-linkedin)

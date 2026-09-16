@@ -203,7 +203,8 @@ Le ghostwriter humain apporte une dimension stratégique et relationnelle que l'
 - [Cloner sa voix avec l'IA : comment ça marche et pourquoi c'est utile pour un dirigeant](/blog/cloner-voix-ia)
 - [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
 - [Rédiger un post LinkedIn qui performe : méthode hook/corps/CTA](/blog/rediger-un-post-linkedin)
-
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+- [Créer une page entreprise LinkedIn : le guide pas-à-pas 2026](/blog/creer-page-entreprise-linkedin)
 ## Sources utiles
 
 - [Ghostwriter LinkedIn : Guide Complet - Tarifs & Choix (Produscale)](https://www.produscale.com/blog/ghostwriter-linkedin)

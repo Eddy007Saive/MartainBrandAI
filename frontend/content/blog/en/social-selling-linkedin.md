@@ -263,7 +263,9 @@ Without AI: count on 3 to 4 hours a week to maintain an effective presence (publ
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Short video for business: why it is essential in 2026 and how to get started](/en/blog/short-video-small-business-2026)
 - [Writing a LinkedIn post that performs: the hook/body/CTA method](/en/blog/how-to-write-a-linkedin-post)
-
+- [Creating a LinkedIn Company Page: The Step-by-Step Guide 2026](/en/blog/create-linkedin-company-page-guide)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
 ## Useful sources
 
 - [Social selling LinkedIn: guide pour débutants - Senza Formations](https://senza-formations.com/nos-articles/social-selling-linkedin-guide-pour-debutants)

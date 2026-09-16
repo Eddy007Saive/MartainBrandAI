@@ -136,6 +136,12 @@ Reemplaza las tareas de producción repetitivas: redacción de posts, adaptació
 
 ---
 
+## Para ir más lejos
+
+- [Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador](/es/blog/visuales-ia-redes-sociales-coherencia)
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+
 ## Fuentes útiles
 
 - [Barómetro France Num 2025: lo digital y la IA en las micropymes y pymes](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le) - Direction générale des Entreprises, septiembre de 2025.

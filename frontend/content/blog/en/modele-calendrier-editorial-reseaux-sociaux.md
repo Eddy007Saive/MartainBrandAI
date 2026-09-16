@@ -155,3 +155,5 @@ Both work. Google Sheets is faster to share and filter. Notion offers more flexi
 - [Social media calendar template, Buffer](https://buffer.com/fr/resources/modele-calendrier-reseaux-sociaux)
 - [The editorial calendar: a communication tool, France Num](https://www.francenum.gouv.fr/guides-et-conseils/communication-et-publicite/strategie-de-communication/le-calendrier-editorial-un)
 - [Social media editorial calendar template, Notion](https://www.notion.com/fr/templates/social-media-calendar)
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+- [Social media monitoring: how to stay informed without spending hours on it](/en/blog/social-media-monitoring-small-business)

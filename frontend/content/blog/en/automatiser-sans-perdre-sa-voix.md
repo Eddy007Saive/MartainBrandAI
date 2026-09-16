@@ -70,3 +70,5 @@ It is a deliberate choice: a fully automatic pipeline would publish faster, and 
 
 - [Cloning your voice with AI: how it works and why it matters for business owners](/en/blog/clone-voice-ai-business-owner)
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
+- [Social Media Storytelling: 5 Narrative Structures for Small Businesses](/en/blog/social-media-storytelling-sme-structures)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)

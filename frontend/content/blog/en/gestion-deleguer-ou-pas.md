@@ -117,7 +117,8 @@ Yes, provided you brief well. Share your values, your tone, examples of content 
 
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Google Business Profile for Small Businesses: the Complete Guide to Local Visibility](/en/blog/google-business-profile-small-business)
-
+- [Social media agency, freelance, or AI: what each option really costs](/en/blog/agency-freelance-ai-social-media-cost)
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
 ## Sources
 
 - [France Num: The online presence of small and mid-sized businesses](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/la-presence-sur-internet-des-tpe-pme)

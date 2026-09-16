@@ -198,7 +198,9 @@ Cuenta con 30 días de prueba sobre un solo caso de uso para tener datos aprovec
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
 - [Voz en off IA: cómo usarla en tus videos profesionales (sin estudio ni locutor)](/es/blog/voz-en-off-ia-videos-profesionales-sin-estudio)
 - [Clonar su voz con IA: cómo funciona y por qué es útil para un directivo](/es/blog/clonar-voz-ia-dirigente-pyme)
-
+- [Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador](/es/blog/visuales-ia-redes-sociales-coherencia)
+- [Veille redes sociales: cómo mantenerse informado sin dedicarle horas](/es/blog/monitorizacion-redes-sociales-sin-perder-horas)
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
 ## Fuentes útiles
 
 - [FranceNum - Cómo mejorar la gestión de tus redes sociales con la IA generativa](https://www.francenum.gouv.fr/guides-et-conseils/intelligence-artificielle/generation-de-contenus-texte-image-son-video/comment)

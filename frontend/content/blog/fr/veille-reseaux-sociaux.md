@@ -146,6 +146,10 @@ La newsletter de veille de Postorico est hebdomadaire. Elle est rédigée par l'
 
 ---
 
+## Pour aller plus loin
+
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
+
 ## Sources utiles
 
 - [Blog du Modérateur](https://www.blogdumoderateur.com/) : actualités social media en français

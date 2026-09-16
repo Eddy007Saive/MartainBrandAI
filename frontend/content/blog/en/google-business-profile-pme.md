@@ -137,6 +137,11 @@ Yes. Each physical address can have its own Google Business Profile listing. Goo
 
 ---
 
+## Further reading
+
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
+
 ## Useful resources
 
 - [Google Business Profile - official help](https://support.google.com/business)

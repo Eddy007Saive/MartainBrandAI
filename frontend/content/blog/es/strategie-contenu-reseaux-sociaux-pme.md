@@ -173,6 +173,12 @@ Define un indicador por objetivo: alcance para la notoriedad, clics para el trá
 
 ---
 
+## Para ir más lejos
+
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
+
 ## Fuentes útiles
 
 - [Barómetro de contenidos BtoB 2025, Infopro Digital](https://www.infopro-digital-media.fr/blog-post/barometre-contenus-btob-france-2025): datos sobre la adopción del marketing de contenidos por las pymes francesas.

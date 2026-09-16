@@ -73,3 +73,5 @@ El buen ritmo es el que sobrevive a una semana difícil. Empieza por debajo de l
 - [Reels de Instagram para empresas: cómo crearlos sin videoasta ni montador](/es/blog/reels-instagram-para-empresas)
 - [TikTok para empresas: por dónde empezar sin dedicarle toda la vida](/es/blog/tiktok-para-empresas-por-donde-empezar)
 - [Página Facebook profesional: cómo crearla y gestionarla en 2026](/es/blog/pagina-facebook-profesional)
+- [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)

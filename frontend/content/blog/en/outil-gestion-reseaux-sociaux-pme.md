@@ -278,7 +278,9 @@ With Buffer or Swello, you are up and running in under 30 minutes. SocialPilot t
 - [Google Business Profile for Small Businesses: the Complete Guide to Local Visibility](/en/blog/google-business-profile-small-business)
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Professional Facebook Page: How to Create and Manage It in 2026](/en/blog/professional-facebook-page)
-
+- [Social media agency, freelance, or AI: what each option really costs](/en/blog/agency-freelance-ai-social-media-cost)
+- [Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes](/en/blog/social-media-editorial-calendar-template)
+- [Social media monitoring: how to stay informed without spending hours on it](/en/blog/social-media-monitoring-small-business)
 ## Useful sources
 
 - [Blog du Modérateur - Comparison of social media management tools](https://www.blogdumoderateur.com/tools/social-media/gestion-reseaux-sociaux/)

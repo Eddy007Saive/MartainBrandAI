@@ -214,7 +214,8 @@ Sí, y es incluso el mejor enfoque. Las publicaciones que hablan de los problema
 - [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
 - [Voz en off IA: cómo usarla en tus videos profesionales (sin estudio ni locutor)](/es/blog/voz-en-off-ia-videos-profesionales-sin-estudio)
 - [Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA](/es/blog/como-redactar-un-post-de-linkedin)
-
+- [Personal branding en Instagram: el método para un directivo o autónomo](/es/blog/personal-branding-instagram-dirigentes)
+- [Storytelling en redes sociales: 5 estructuras narrativas para una pyme](/es/blog/storytelling-redes-sociales-pymes)
 ## Fuentes útiles
 
 - [lucielebaz.com](https://www.lucielebaz.com/) - Experta en personal branding, modelo Revelar-Estructurar-Encarnar-Irradiar

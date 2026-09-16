@@ -189,6 +189,11 @@ Allow 3 to 6 months of consistent publishing before drawing conclusions. Social 
 
 ---
 
+## Further reading
+
+- [Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post](/en/blog/social-media-content-strategy-smb)
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
+
 ## Useful sources
 
 - [France Num 2025 Barometer: digital presence of very small and small businesses](https://www.francenum.gouv.fr/guides-et-conseils/strategie-numerique/comprendre-le-numerique/barometre-france-num-2025-le-0): 66% of French very small and small businesses have at least one social media account.

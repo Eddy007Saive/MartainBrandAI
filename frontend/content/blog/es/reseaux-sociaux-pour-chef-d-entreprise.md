@@ -185,7 +185,9 @@ Sí, a condición de mantener el control sobre lo que te hace único: tu punto d
 - [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
 - [Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar](/es/blog/video-corta-empresa-2026)
 - [TikTok para empresas: por dónde empezar sin dedicarle toda la vida](/es/blog/tiktok-para-empresas-por-donde-empezar)
-
+- [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+- [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
+- [Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción](/es/blog/agencia-freelance-ia-redes-sociales-costes)
 ## Fuentes útiles
 
 - [CCI Métropolitaine Aix-Marseille-Provence - La importancia de las redes sociales para tu empresa](https://www.cciamp.com/limportance-des-reseaux-sociaux-pour-votre-entreprise)

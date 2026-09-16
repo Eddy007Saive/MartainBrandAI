@@ -149,6 +149,11 @@ Comptez 3 mois de publication régulière avant de tirer des conclusions. La por
 
 ---
 
+## Pour aller plus loin
+
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+- [Miniature vidéo courte : comment en créer une qui fait cliquer (avec ou sans designer)](/blog/miniature-video-courte)
+
 ## Sources utiles
 
 - [Socialinsider : benchmarks Instagram 2026](https://www.socialinsider.io/social-media-benchmarks/instagram)

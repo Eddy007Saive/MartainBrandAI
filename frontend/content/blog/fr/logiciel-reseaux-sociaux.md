@@ -145,7 +145,8 @@ Buffer : moins d'une heure pour les bases. Metricool : une demi-journée pour en
 
 - [Google Business Profile pour PME : le guide complet pour être visible localement](/blog/google-business-profile-pme)
 - [Créer du contenu avec l'IA : ce que ça change vraiment pour une PME](/blog/creer-contenu-ia-pme)
-
+- [Agence réseaux sociaux, freelance ou IA : ce que chaque option coûte vraiment](/blog/agence-reseaux-sociaux-alternative)
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
 ## Sources
 
 - [Buffer : Tarifs officiels](https://buffer.com/pricing)

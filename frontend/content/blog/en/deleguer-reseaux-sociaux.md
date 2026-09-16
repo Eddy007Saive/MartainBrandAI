@@ -315,7 +315,8 @@ When the published content no longer sounds like you, when the objectives are no
 
 - [Creating Content with AI: What It Really Changes for a Small Business](/en/blog/ai-content-creation-small-business)
 - [Optimizing your Google My Business listing: the 8 points that actually make a difference](/en/blog/optimize-google-business-profile)
-
+- [Social media agency, freelance, or AI: what each option really costs](/en/blog/agency-freelance-ai-social-media-cost)
+- [Social Media Communication Plan for Small Businesses: Build Yours Without an Agency](/en/blog/social-media-plan-small-business)
 ## Useful sources
 
 - [SocialSky - 5 reasons to delegate your social media to an agency](https://socialsky.eu/articles/deleguer-reseaux-sociaux)

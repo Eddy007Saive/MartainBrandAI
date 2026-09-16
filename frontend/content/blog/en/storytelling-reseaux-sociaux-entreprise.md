@@ -167,6 +167,11 @@ One narrative post per week is enough to build a memorable presence. Other publi
 
 ---
 
+## Further reading
+
+- [Personal branding on Instagram: the method for business owners and freelancers](/en/blog/personal-branding-instagram-leaders-freelancers)
+- [AI Visuals for Social Media: How to Create Consistent Images Without a Designer](/en/blog/ai-visuals-social-media-consistency)
+
 ## Useful sources
 
 - [HubSpot: The Marketing Storytelling Guide](https://blog.hubspot.fr/marketing/storytelling): data on recall and engagement for narratives

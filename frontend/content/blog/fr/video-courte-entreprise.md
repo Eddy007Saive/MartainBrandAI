@@ -149,6 +149,12 @@ Regardez trois indicateurs : le taux de rétention (combien de personnes regarde
 
 ---
 
+## Pour aller plus loin
+
+- [Miniature vidéo courte : comment en créer une qui fait cliquer (avec ou sans designer)](/blog/miniature-video-courte)
+- [Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer](/blog/visuels-ia-reseaux-sociaux)
+- [Storytelling réseaux sociaux : 5 structures narratives pour une PME](/blog/storytelling-reseaux-sociaux-entreprise)
+
 ## Sources utiles
 
 - [Digital Report avril 2025, We Are Social via gensdinternet.fr](https://gensdinternet.fr/2025/04/28/les-utilisateurs-consomment-davantage-les-videos-courtes-sur-les-reseaux-sociaux/)

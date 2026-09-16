@@ -195,7 +195,9 @@ Oui, et c'est de plus en plus courant. Les outils IA peuvent générer des idée
 - [Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre](/blog/video-courte-entreprise)
 - [Page Facebook professionnelle : comment la créer et l'animer en 2026](/blog/page-facebook-professionnelle)
 - [Google Business Profile pour PME : le guide complet pour être visible localement](/blog/google-business-profile-pme)
-
+- [Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes](/blog/modele-calendrier-editorial-reseaux-sociaux)
+- [Plan de communication réseaux sociaux pour PME : construire le sien sans agence](/blog/plan-communication-reseaux-sociaux-pme)
+- [Stratégie de contenu réseaux sociaux pour PME : les 5 décisions à prendre avant de publier](/blog/strategie-contenu-reseaux-sociaux-pme)
 ## Sources utiles
 
 - [France Num - Le calendrier éditorial : un outil stratégique pour votre communication digitale](https://www.francenum.gouv.fr/guides-et-conseils/communication-et-publicite/strategie-de-communication/le-calendrier-editorial-un)
