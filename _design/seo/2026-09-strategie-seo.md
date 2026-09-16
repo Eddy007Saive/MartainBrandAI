@@ -117,4 +117,4 @@ Brouillons : `2026-09-16-articles/`. Articles 1 à 4 publiés sur main le 16 sep
 
 Attention : le nom de fichier `frequence-publication.md` a pour slug `frequence-publication-reseaux-sociaux`. Vérifier les liens par slug, jamais par nom de fichier.
 
-Reste après la série 2 : maillage des anciens articles vers les 10 nouveaux, title de la page calendrier avec « 2026 », carte auteur, nouveau point Search Console vers la mi-octobre.
+Maillage fait le 16 septembre (commit 0589c58 : 138 fichiers, 336 liens, bloc « Pour aller plus loin » complété dans les 46 articles × 3 langues). Le title de la page calendrier contient déjà 2026. Reste : carte auteur, nouveau point Search Console vers la mi-octobre.
