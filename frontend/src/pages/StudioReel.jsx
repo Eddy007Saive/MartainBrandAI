@@ -3,11 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus, Sparkles, Wand2 } from 'lucide-react';
+import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus, Sparkles, Wand2, Scissors } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
 import { OverlayFabrication } from '../components/Fabrication';
 import DecoupeMusique from '../components/DecoupeMusique';
 import VoixOff from '../components/VoixOff';
+import DecoupeClip from '../components/DecoupeClip';
 
 /**
  * Studio Reel — création LIBRE d'un reel Séquence en pleine page.
@@ -38,7 +39,10 @@ export default function StudioReel() {
   const [zoom, setZoom] = useState(null);            // index lightbox
   const [brief, setBrief] = useState('');
   const [reseau, setReseau] = useState('Instagram');
-  const [images, setImages] = useState([]);          // {url, desc, src}
+  const [images, setImages] = useState([]);          // {cle, url, desc, src, type, apercu_url, debut?, fin?}
+  const [decoupeCle, setDecoupeCle] = useState(null); // morceau en cours de découpe
+  const [dragCle, setDragCle] = useState(null);       // vignette en cours de déplacement
+  const nouvelleCle = () => Math.random().toString(36).slice(2, 9);
   const [musique, setMusique] = useState('none');
   const [voix, setVoix] = useState(null);          // voix off : id (victor|yann|adina|moi) ou null = muet
   // Case « l'IA regarde mes vidéos » : cochée, Gemini lit les clips et choisit les moments ;
@@ -79,14 +83,15 @@ export default function StudioReel() {
         const sc = c.reel_data || {};
         const imgs = [];
         (sc.segments || []).forEach((sg) => {
-          if (sg.image && !imgs.some((i) => i.url === sg.image)) imgs.push({ url: sg.image, desc: null, src: 'reel' });
+          if (sg.image && !imgs.some((i) => i.url === sg.image)) imgs.push({ cle: nouvelleCle(), url: sg.image, desc: null, src: 'reel', type: 'image' });
           if (sg.video) {
             // Un plan vidéo : on reprend le clip d'origine (sans la découpe so_/du_ du plan),
-            // et sa vignette Cloudinary (image fixe à la 2e seconde) pour la pastille.
+            // sa vignette Cloudinary (image fixe à la 2e seconde), et le morceau choisi s'il y en a un.
             const url = sg.video.replace(/\/upload\/(?!v\d+\/)[^/]+\//, '/upload/');
-            if (!imgs.some((i) => i.url === url)) {
-              const apercu = url.replace('/upload/', '/upload/so_2,w_800,q_auto/').replace(/\.[a-z0-9]+$/i, '.jpg');
-              imgs.push({ url, desc: null, src: 'reel', type: 'video', apercu_url: apercu });
+            const memeMorceau = (i) => i.url === url && (i.debut ?? null) === (sg.debut ?? null) && (i.fin ?? null) === (sg.fin ?? null);
+            if (!imgs.some(memeMorceau)) {
+              const apercu = url.replace('/upload/', `/upload/so_${sg.debut != null ? Math.max(0, sg.debut).toFixed(1) : 2},w_800,q_auto/`).replace(/\.[a-z0-9]+$/i, '.jpg');
+              imgs.push({ cle: nouvelleCle(), url, desc: null, src: 'reel', type: 'video', apercu_url: apercu, debut: sg.debut ?? null, fin: sg.fin ?? null });
             }
           }
         });
@@ -141,8 +146,25 @@ export default function StudioReel() {
   const toggleImage = (img) => {
     setImages((prev) => prev.some((i) => i.url === img.url)
       ? prev.filter((i) => i.url !== img.url)
-      : (prev.length >= 6 ? prev : [...prev, { url: img.url, desc: img.description || '', src: 'banque', apercu_url: img.apercu_url || null, type: img.type || 'image' }]));
+      : (prev.length >= 6 ? prev : [...prev, { cle: nouvelleCle(), url: img.url, desc: img.description || '', src: 'banque', apercu_url: img.apercu_url || null, type: img.type || 'image' }]));
   };
+  // Découpe : début/fin d'un morceau ; « ajouter un morceau » duplique le clip juste après, à découper ensuite.
+  const regler = (cle, debut, fin) => setImages((prev) => prev.map((i) => (i.cle === cle ? { ...i, debut, fin } : i)));
+  const ajouterMorceau = (cle) => setImages((prev) => {
+    if (prev.length >= 6) { toast.error(t('contenus.reel.seq.maxVisuels')); return prev; }
+    const i = prev.findIndex((x) => x.cle === cle); if (i < 0) return prev;
+    const src = prev[i]; const fin = src.fin ?? 0;
+    const nouveau = { ...src, cle: nouvelleCle(), debut: fin, fin: null };
+    setDecoupeCle(nouveau.cle);
+    return [...prev.slice(0, i + 1), nouveau, ...prev.slice(i + 1)];
+  });
+  // Ordre : glisser une vignette sur une autre l'insère à sa place.
+  const deposer = (cible) => setImages((prev) => {
+    if (!dragCle || dragCle === cible) return prev;
+    const de = prev.findIndex((x) => x.cle === dragCle); const a = prev.findIndex((x) => x.cle === cible);
+    if (de < 0 || a < 0) return prev;
+    const copie = [...prev]; const [item] = copie.splice(de, 1); copie.splice(a, 0, item); return copie;
+  });
   // Retirer un visuel de la banque : la ligne ET le fichier Cloudinary disparaissent (serveur).
   const executerSuppression = async (img) => {
     try {
@@ -174,7 +196,7 @@ export default function StudioReel() {
       for (const f of list) {
         const a = await contenuService.reelBanqueAjouter(f);   // entre dans la banque (conservée)
         setBanque((prev) => [a, ...(prev || [])]);
-        setImages((prev) => prev.length >= 6 ? prev : [...prev, { url: a.url, desc: a.description || '', src: 'banque', apercu_url: a.apercu_url || null, type: a.type || 'image' }]);
+        setImages((prev) => prev.length >= 6 ? prev : [...prev, { cle: nouvelleCle(), url: a.url, desc: a.description || '', src: 'banque', apercu_url: a.apercu_url || null, type: a.type || 'image' }]);
       }
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.reel.seq.uploadEchec'));
@@ -199,7 +221,7 @@ export default function StudioReel() {
       const a = await contenuService.reelImageGenerer(genPrompt.trim());
       if (!a.hors_banque) setBanque((prev) => [a, ...(prev || [])]);
       setImages((prev) => prev.length >= 6 || prev.some((i) => i.url === a.url) ? prev
-        : [...prev, { url: a.url, desc: a.description || genPrompt.trim(), src: 'ia', type: 'image' }]);
+        : [...prev, { cle: nouvelleCle(), url: a.url, desc: a.description || genPrompt.trim(), src: 'ia', type: 'image' }]);
       toast.success(t('contenus.reel.seq.genImageOk'));
       setGenPrompt('');
     } catch (e) {
@@ -216,7 +238,7 @@ export default function StudioReel() {
       // « Rendu en cours » prend le relais dans Contenus, puis une notification.
       const payload = {
         brief: brief.trim() || null,
-        images: images.map((i) => ({ url: i.url, desc: i.desc || null })),
+        images: images.map((i) => ({ url: i.url, desc: i.desc || null, debut: i.type === 'video' && i.debut != null && i.fin != null ? i.debut : null, fin: i.type === 'video' && i.debut != null && i.fin != null ? i.fin : null })),
         style, musique, voix, montage_ia: montageIA,
       };
       if (modification) {
@@ -327,16 +349,38 @@ export default function StudioReel() {
             <div>
               <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.reel.seq.choisis')}</div>
               <div className="flex flex-wrap gap-2">
-                {images.map((img, idx) => (
-                  <div key={img.url} className="relative w-14 h-14 rounded-lg overflow-hidden border border-[#3AFFA3]/40">
-                    <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover" />
-                              {img.type === 'video' && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
-                    <span className="absolute bottom-0.5 left-0.5 text-[10px] font-bold text-white bg-black/60 rounded px-1">{idx + 1}</span>
-                    <button type="button" onClick={() => setImages((p) => p.filter((i) => i.url !== img.url))}
-                      className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white text-[12px] leading-none">×</button>
-                  </div>
-                ))}
+                {images.map((img, idx) => {
+                  const estClip = img.type === 'video' || /\/video\/upload\//.test(img.url || '');
+                  const decoupe = estClip && img.debut != null && img.fin != null;
+                  return (
+                    <div key={img.cle} draggable onDragStart={() => setDragCle(img.cle)} onDragOver={(e) => e.preventDefault()} onDrop={() => { deposer(img.cle); setDragCle(null); }} onDragEnd={() => setDragCle(null)}
+                      data-testid={`studio-reel-visuel-${idx + 1}`}
+                      className={`relative w-16 h-16 rounded-lg overflow-hidden border cursor-grab active:cursor-grabbing ${decoupeCle === img.cle ? 'border-[#3AFFA3]' : 'border-[#3AFFA3]/40'} ${dragCle === img.cle ? 'opacity-40' : ''}`}>
+                      <img src={img.apercu_url || img.url} alt="" className="w-full h-full object-cover pointer-events-none" />
+                      {estClip && <span className="absolute top-1 left-1 z-[2] text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/75 text-white">▶</span>}
+                      <span className="absolute bottom-0.5 left-0.5 text-[10px] font-bold text-white bg-black/60 rounded px-1">{idx + 1}</span>
+                      {decoupe && <span className="absolute bottom-0.5 right-0.5 text-[9px] font-mono font-bold text-[#0b1322] bg-[#3AFFA3] rounded px-1">{(img.fin - img.debut).toFixed(1)}s</span>}
+                      {estClip && !montageIA && (
+                        <button type="button" onClick={() => setDecoupeCle(decoupeCle === img.cle ? null : img.cle)} title={t('contenus.reel.seq.decouper')} data-testid={`studio-reel-decouper-${idx + 1}`}
+                          className="absolute top-0.5 right-6 w-5 h-5 rounded-full bg-black/70 text-white grid place-items-center hover:bg-[#3AFFA3] hover:text-[#0b1322]"><Scissors className="w-3 h-3" /></button>
+                      )}
+                      <button type="button" onClick={() => { setImages((p) => p.filter((i) => i.cle !== img.cle)); if (decoupeCle === img.cle) setDecoupeCle(null); }}
+                        className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white text-[12px] leading-none">×</button>
+                    </div>
+                  );
+                })}
               </div>
+              {images.length > 1 && <p className="mt-1.5 text-[11px] text-slate-600 font-inter">{t('contenus.reel.seq.glisserOrdre')}</p>}
+              {decoupeCle && (() => {
+                const img = images.find((i) => i.cle === decoupeCle);
+                if (!img) return null;
+                return (
+                  <div className="mt-3">
+                    <DecoupeClip url={img.url} debut={img.debut} fin={img.fin} verrou={montageIA}
+                      onChange={(d, f) => regler(img.cle, d, f)} onSplit={() => ajouterMorceau(img.cle)} onClose={() => setDecoupeCle(null)} />
+                  </div>
+                );
+              })()}
             </div>
           )}
 

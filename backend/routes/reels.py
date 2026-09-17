@@ -12,6 +12,8 @@ router = APIRouter(prefix="/reels", tags=["reels"])
 class ReelImage(BaseModel):
     url: str
     desc: str | None = None     # description (fournie par la banque, sinon vision cote serveur)
+    debut: float | None = None  # clip vidéo : début du morceau choisi par le client (secondes)
+    fin: float | None = None    # clip vidéo : fin du morceau ; le même clip peut revenir en plusieurs morceaux
 
 
 class ReelRequest(BaseModel):
@@ -143,7 +145,7 @@ def generer_reel(body: ReelRequest, payload: dict = Depends(verify_token)):
         template = "long"
     voix = body.voix if template.startswith("sequence") else None
     qv = _consommer_voix(telegram_id, voix, q)
-    images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
+    images = [{"url": i.url, "desc": i.desc, "debut": i.debut, "fin": i.fin} for i in (body.images or [])][:8]
     try:
         res = reel_service.generer_reel(telegram_id, body.contenu_id, template=template,
                                         images=images or None, brief=(body.brief or "").strip() or None,
@@ -184,7 +186,7 @@ def creer(body: ReelLibreRequest, payload: dict = Depends(verify_token)):
             "message": q.get("message") or "Génération indisponible.",
         })
     qv = _consommer_voix(telegram_id, body.voix, q)
-    images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
+    images = [{"url": i.url, "desc": i.desc, "debut": i.debut, "fin": i.fin} for i in (body.images or [])][:8]
     try:
         res = reel_service.creer_reel_libre(telegram_id, body.brief,
                                             images=images or None, reseau=body.reseau or "Instagram",
@@ -236,7 +238,7 @@ def regenerer(body: ReelRegenRequest, payload: dict = Depends(verify_token)):
         except Exception:
             voix = None
     qv = _consommer_voix(telegram_id, voix, q)
-    images = [{"url": i.url, "desc": i.desc} for i in (body.images or [])][:8]
+    images = [{"url": i.url, "desc": i.desc, "debut": i.debut, "fin": i.fin} for i in (body.images or [])][:8]
     try:
         res = reel_service.regenerer_reel(telegram_id, body.reel_id,
                                           images=images or None, brief=(body.brief or "").strip() or None,

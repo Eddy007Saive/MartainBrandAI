@@ -378,6 +378,41 @@ def _clip_rendu(url: str, dur: float) -> str:
     return f"{base}/upload/so_0,du_{max(1, round(float(dur) + 0.5))},c_fill,ar_9:16,w_720,q_auto/{fin}"
 
 
+def _morceau(v: dict) -> tuple | None:
+    """(debut, fin) du morceau choisi par le client sur un clip, sinon None. Bornes : au moins
+    1 s, au plus 15 s (un plan de reel n'est pas un film)."""
+    try:
+        d, f = v.get("debut"), v.get("fin")
+        if d is None or f is None:
+            return None
+        d, f = max(0.0, float(d)), float(f)
+        if f - d < 1.0:
+            return None
+        return (round(d, 1), round(min(f, d + 15.0), 1))
+    except (TypeError, ValueError):
+        return None
+
+
+def _plan_video(seg: dict, v: dict) -> None:
+    """Pose la vidéo d'un plan depuis un visuel clip. Découpe manuelle : le plan dure le
+    morceau et démarre où le client l'a dit ; sinon depuis le début, à la durée du plan."""
+    m = _morceau(v)
+    if m:
+        from services.montage_service import clip_rendu
+        seg["dur"] = round(m[1] - m[0], 1)
+        seg["video"] = clip_rendu(v["url"], m[0], seg["dur"])
+        seg["debut"], seg["fin"] = m
+    else:
+        seg["video"] = _clip_rendu(v["url"], seg["dur"])
+
+
+def _pool_depuis_images(images: list) -> list:
+    """Visuels CHOISIS par le client -> pool numéroté (img_1, img_2…), avec la découpe éventuelle."""
+    return [{"id": f"img_{i+1}", "url": im["url"], "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200],
+             "debut": im.get("debut"), "fin": im.get("fin")}
+            for i, im in enumerate(images) if im.get("url")]
+
+
 def _est_image_source(url: str) -> bool:
     """Une vraie image : pas un mp4, pas un poster derive d'une video (/video/upload/)."""
     return bool(url) and not url.endswith(".mp4") and "/video/upload/" not in url
@@ -467,10 +502,14 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
     # Photo ou clip : on garde l'URL brute ici, la transformation dépend de la
     # durée du plan (décidée par le scénariste) et se fait donc à l'assemblage.
     sources = {p["id"]: p["url"] for p in pool}
+    par_id = {p["id"]: p for p in pool}
     # Le scénariste doit savoir lesquels bougent : on l'annonce dans la liste.
-    liste = "\n".join(
-        f"- {p['id']} : {'[VIDEO CLIP] ' if _est_clip(p['url']) else ''}{p['desc']}"
-        for p in pool) or "(no visual available)"
+    def _etiquette(p):
+        if not _est_clip(p["url"]):
+            return ""
+        m = _morceau(p)
+        return f"[VIDEO CLIP, client-trimmed excerpt of {m[1] - m[0]:.0f} s, used as is] " if m else "[VIDEO CLIP] "
+    liste = "\n".join(f"- {p['id']} : {_etiquette(p)}{p['desc']}" for p in pool) or "(no visual available)"
     # Langue de redaction : celle du compte, transmise explicitement (jamais deduite).
     langue = _LANGUES.get((marque.get("langue") or "fr").lower(), "French")
     role = (_ROLE_SEQUENCE
@@ -517,7 +556,7 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
                 if img_id in ids:
                     src = sources[img_id]
                     if _est_clip(src):
-                        seg["video"] = _clip_rendu(src, seg["dur"])
+                        _plan_video(seg, par_id[img_id])
                     else:
                         seg["image"] = _img_rendu(src)
                     seg["image_id"] = img_id
@@ -549,9 +588,9 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
             for k, sg in enumerate(plans_image):
                 v = pool[k % len(pool)]
                 sg["image_id"] = v["id"]
-                sg.pop("image", None); sg.pop("video", None)
+                sg.pop("image", None); sg.pop("video", None); sg.pop("debut", None); sg.pop("fin", None)
                 if _est_clip(v["url"]):
-                    sg["video"] = _clip_rendu(v["url"], sg["dur"])
+                    _plan_video(sg, v)
                 else:
                     sg["image"] = _img_rendu(v["url"])
         if len(segs) >= 4:
@@ -566,9 +605,12 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
         effets = ["zoomIn", "panRight", "zoomOut", "panLeft"]
         for i, v in enumerate(visuels[:5]):
             txt = (phrases[1 + i] if len(phrases) > 1 + i else "Regarde.")[:60]
-            segments.append({"type": "image", "dur": 3.0, "texte": txt, "accents": [],
-                             **({"video": _clip_rendu(v["url"], 3.0)} if _est_clip(v["url"]) else {"image": _img_rendu(v["url"])}),
-                             "image_id": v["id"], "effet": effets[i % 4], "tilt": [-3, 2, -2, 3][i % 4]})
+            seg = {"type": "image", "dur": 3.0, "texte": txt, "accents": [], "image_id": v["id"], "effet": effets[i % 4], "tilt": [-3, 2, -2, 3][i % 4]}
+            if _est_clip(v["url"]):
+                _plan_video(seg, v)
+            else:
+                seg["image"] = _img_rendu(v["url"])
+            segments.append(seg)
         if not visuels:
             for p in phrases[2:4]:
                 segments.append({"type": "typo", "dur": 2.8, "texte": p[:70], "accents": []})
@@ -692,13 +734,11 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
     if not (brief or "").strip():
         return {"error": "Decris ton reel : le brief est le sujet."}
     u = _charger_marque(telegram_id)
-    imgs = [{"url": im.get("url"), "desc": im.get("desc")}
+    imgs = [{"url": im.get("url"), "desc": im.get("desc"), "debut": im.get("debut"), "fin": im.get("fin")}
             for im in (images or []) if _est_visuel(im.get("url"))]
     st = style if style in _STYLES_SEQUENCE else "signature"
     if imgs:
-        pool = [{"id": f"img_{i+1}", "url": im["url"],
-                 "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
-                for i, im in enumerate(imgs)]
+        pool = _pool_depuis_images(imgs)
         scenario = _scenariser(brief, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix), montage_ia=montage_ia)
     else:
         scenario = _scenariser(brief, u, [], brief=brief, style=st, avec_voix=bool(voix))
@@ -783,18 +823,16 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         images, vus = [], set()
         for sg in old_sc.get("segments", []):
             if _est_image_source(sg.get("image")):
-                u_ = sg["image"]
+                u_, cle = sg["image"], (sg["image"], None, None)
             elif sg.get("video"):
-                u_ = url_brute(sg["video"])
+                u_ = url_brute(sg["video"]); cle = (u_, sg.get("debut"), sg.get("fin"))
             else:
                 continue
-            if u_ not in vus:
-                vus.add(u_); images.append({"url": u_, "desc": None})
+            if cle not in vus:      # le même clip peut revenir en plusieurs morceaux découpés
+                vus.add(cle); images.append({"url": u_, "desc": None, "debut": sg.get("debut"), "fin": sg.get("fin")})
     st = style if style in _STYLES_SEQUENCE else "signature"
     if images:
-        pool = [{"id": f"img_{i+1}", "url": im["url"],
-                 "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
-                for i, im in enumerate(images) if im.get("url")]
+        pool = _pool_depuis_images(images)
         scenario = _scenariser(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix), montage_ia=montage_ia)
     else:
         pool = _pool_visuels(telegram_id, cur)
@@ -839,9 +877,7 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
         st = style if style in _STYLES_SEQUENCE else "signature"
         # Visuels CHOISIS par le client (dialogue Sequence) > pool automatique du compte
         if images:
-            pool = [{"id": f"img_{i+1}", "url": im["url"],
-                     "desc": (im.get("desc") or f"Visuel fourni n°{i+1}")[:200]}
-                    for i, im in enumerate(images) if _est_visuel(im.get("url"))]
+            pool = _pool_depuis_images([im for im in images if _est_visuel(im.get("url"))])
             scenario = _scenariser(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix), montage_ia=montage_ia)
         else:
             pool = _pool_visuels(telegram_id, cur)
