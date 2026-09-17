@@ -222,7 +222,7 @@ export default function AuditMarque() {
     const lines = [];
     const sep = '═══════════════════════════════════════════';
     lines.push(sep);
-    lines.push('AUDIT DE MARQUE : ONBOARDING PRESENCE OS');
+    lines.push('AUDIT DE MARQUE : ONBOARDING POSTORICO');
     lines.push('Marque : ' + (val('marque') || '—'));
     lines.push('Date : ' + new Date().toLocaleDateString('fr-FR'));
     lines.push(sep);
@@ -401,7 +401,7 @@ export default function AuditMarque() {
 
       {/* Header / nav du site */}
       <nav className="topnav"><div className="wrap">
-        <a href="/" className="tn-brand"><img src="/logo.png" alt="Postorico" /><span>Presence&nbsp;OS</span></a>
+        <a href="/" className="tn-brand"><img src="/logo.png" alt="Postorico" /><span>Postorico</span></a>
         <div className="tn-links">
           <a href="/fonctionnalites">{t('lp.nav.features')}</a>
           <a href="/comment-ca-marche">{t('lp.nav.how')}</a>
@@ -425,7 +425,7 @@ export default function AuditMarque() {
         <div className="wrap">
           <div className="brandrow">
             <img src="/logo.png" alt="Postorico" className="glyph" />
-            <div><b>Presence&nbsp;OS</b><br /><span>{t('audit.ui.onboarding')}</span></div>
+            <div><b>Postorico</b><br /><span>{t('audit.ui.onboarding')}</span></div>
           </div>
           <h1>{t('audit.ui.h1a')}<br />{t('audit.ui.h1b')} <em>{t('audit.ui.h1em')}</em> {t('audit.ui.h1c')}</h1>
           <p className="lead">{t('audit.ui.lead')}</p>
