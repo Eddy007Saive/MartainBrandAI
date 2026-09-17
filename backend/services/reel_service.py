@@ -445,7 +445,97 @@ def _pool_visuels(telegram_id: str, cur: dict) -> list:
                 })
     except Exception as e:
         logger.warning(f"reel pool visuels: {e}")
-    return pool[:8]
+    # La banque de visuels du client (photos ET clips décrits par vision à l'import) : quand le
+    # client ne choisit rien, le scénariste pioche aussi dedans (décision PO du 2026-09-17).
+    pool.extend(_pool_banque(telegram_id, deja={p["url"] for p in pool}))
+    return pool[:14]
+
+
+def _pool_banque(telegram_id: str, deja: set = None, limite: int = 8) -> list:
+    """Les visuels de la banque sous la forme du pool ({id, url, desc}), les plus récents d'abord."""
+    from services import banque_service
+    deja = deja or set()
+    out = []
+    try:
+        for a in banque_service.lister(telegram_id):
+            url = a.get("url")
+            if not url or url in deja or not _est_visuel(url):
+                continue
+            desc = (a.get("description") or "").strip()
+            if not desc:
+                desc = "Extrait vidéo de la banque" if _est_clip(url) else "Visuel de la banque"
+            out.append({"id": f"bq_{str(a['id'])[:8]}", "url": url, "desc": desc, "asset": a})
+            if len(out) >= limite:
+                break
+    except Exception as e:
+        logger.warning(f"reel pool banque: {e}")
+    return out
+
+
+_ROLE_PROPOSER = (
+    "You cast visuals for a short vertical video (reel) made of 3 to 5 image shots. You receive the "
+    "reel's text and the client's visual bank (id + description). Pick the bank visuals that truly "
+    "illustrate the text (relevance first, at most {n}), then, if fewer than {n} shots are covered, "
+    "describe the missing shots as short scene ideas (8 to 20 words each, no faces, no invented UI or "
+    "dashboards, coherent with the client's sector). Never pick a visual just to fill: an empty pick "
+    "and a generated image is better than an off-topic photo. Answer with JSON only: "
+    '{{"banque": ["id", ...], "manquants": ["scene idea", ...]}} with len(banque)+len(manquants) <= {n}.'
+)
+
+
+def proposer_visuels(telegram_id: str, texte: str, brief: str = None, maximum: int = 3) -> dict:
+    """Casting de visuels pour un reel : d'abord la banque du client (par pertinence), puis des
+    prompts d'image prêts à générer pour les plans non couverts. Analyse seule : aucune image
+    n'est générée ici, le client voit le coût (1 image de quota par prompt) avant de lancer."""
+    texte = (texte or "").strip()
+    if not texte:
+        return {"error": "Ce reel n'a pas de texte."}
+    maximum = max(1, min(int(maximum or 3), 3))
+    pool = _pool_banque(telegram_id, limite=30)
+    par_id = {p["id"]: p for p in pool}
+    liste = "\n".join(f"- {p['id']} : {'[VIDEO CLIP] ' if _est_clip(p['url']) else ''}{p['desc']}" for p in pool) or "(empty bank)"
+    u = _charger_marque(telegram_id)
+    langue = _LANGUES.get((u.get("langue") or "fr").lower(), "French")
+    consigne = f"\n\nClient's instructions: {brief.strip()[:800]}" if brief and brief.strip() else ""
+    choisis, manquants = [], []
+    try:
+        resp = _messages_create(
+            model="claude-haiku-4-5",
+            max_tokens=500,
+            system=_ROLE_PROPOSER.format(n=maximum) + f" Write the scene ideas in {langue}. Sector: {u.get('secteur') or 'unknown'}.",
+            messages=[{"role": "user", "content": f"Reel text:\n\n{texte[:3000]}{consigne}\n\nVisual bank:\n{liste}\n\nReturn the JSON."}],
+        )
+        _journal_llm(telegram_id, "reel_casting", resp)
+        raw = "".join(b.text for b in resp.content if b.type == "text").strip()
+        m = re.search(r"\{.*\}", raw, re.S)
+        data = json.loads(m.group(0) if m else raw)
+        for i in (data.get("banque") or []):
+            if i in par_id and par_id[i] not in choisis:
+                choisis.append(par_id[i])
+        manquants = [str(x).strip() for x in (data.get("manquants") or []) if str(x).strip()]
+    except Exception as e:
+        logger.warning(f"reel proposer visuels : {e}")
+    choisis = choisis[:maximum]
+    manquants = manquants[:max(0, maximum - len(choisis))]
+    # Décision PO du 2026-09-17 : le prompt complet de chaque plan manquant n'est écrit qu'APRÈS la
+    # confirmation du client (cf. prompt_pour_idee, appelé par /reels/image) : un clic refusé ne
+    # coûte que l'analyse (≈ 0,002 $), pas trois prompts perdus.
+    return {
+        "banque": [{**p["asset"]} for p in choisis],
+        "a_generer": [{"idee": idee} for idee in manquants],
+        "banque_vide": not pool,
+    }
+
+
+def prompt_pour_idee(telegram_id: str, idee: str, texte: str = None) -> str | None:
+    """Le prompt d'image complet d'un plan proposé par le casting : même plume et même charte que
+    « Proposer une idée », dans le style d'image par défaut de la marque (« auto » = choisi d'après
+    le texte). Appelé au moment de générer, jamais avant."""
+    from services import image_service
+    u = _charger_marque(telegram_id)
+    sujet = f"{(texte or '')[:1200]}\n\nPlan à illustrer : {idee}".strip()
+    r = image_service.generer_prompt(telegram_id, sujet, reseau="instagram", style=u.get("style_image") or "auto")
+    return (r or {}).get("prompt") or None
 
 
 _REVEALS = ("carte", "lamelles", "portes", "stores", "iris")
@@ -490,9 +580,25 @@ _CONSIGNE_VOIX = (
     "the voice says the call to action plainly. Add \"voix\" to each object of segments."
 )
 
+# Décision PO du 2026-09-17 : quand le reel part d'un script « À tourner » (écrit pour être dit,
+# validé par le client), la voix off lit CE script, mot pour mot ; le scénariste ne fait que le
+# découper en plans et en tirer le texte à l'écran. Rien n'est réécrit, rien n'est inventé.
+_CONSIGNE_VOIX_SCRIPT = (
+    "\n\nVOICE-OVER FROM AN APPROVED SCRIPT. The text below is a SCRIPT the client already approved, "
+    "written to be spoken aloud. First drop what is not spoken: section tags like [HOOK], [CORPS], [CTA] "
+    "and stage directions between parentheses or asterisks (camera notes, gestures, tone). Then spread "
+    "the remaining spoken lines over the shots IN THEIR ORIGINAL ORDER: each shot gets a field \"voix\" "
+    "containing the script's OWN WORDS, verbatim. You may only cut a long passage into two shots; never "
+    "rephrase, summarize, add or skip a spoken line. Cover the WHOLE script, using as many shots as "
+    "needed (4 to 10; the last one is the cta and speaks the script's own call to action). The on-screen "
+    "\"texte\" of each shot is 2 to 6 key words taken from that shot's voice line. Add \"voix\" to each "
+    "object of segments."
+)
+
 
 def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, imposees: bool = False,
-                     style: str = None, avec_voix: bool = False, ordre_fixe: bool = False) -> dict:
+                     style: str = None, avec_voix: bool = False, ordre_fixe: bool = False,
+                     depuis_script: bool = False) -> dict:
     """Scenario de sequence ; validation stricte + repli heuristique.
     imposees=True : les visuels ont ete CHOISIS par le client -> tous utilises.
     ordre_fixe=True : dans l'ordre numérote par le client (1, 2, 3…), un clip tel quel
@@ -515,7 +621,7 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
     role = (_ROLE_SEQUENCE
             + f"\n\nCLIENT'S LANGUAGE — write every audience-facing word in {langue.upper()}."
             + (f"\n\n{_GUIDES_STYLE[style]}" if style in _GUIDES_STYLE else "")
-            + (_CONSIGNE_VOIX if avec_voix else ""))
+            + ((_CONSIGNE_VOIX_SCRIPT if depuis_script else _CONSIGNE_VOIX) if avec_voix else ""))
     consigne = ""
     if imposees and pool:
         consigne = ("\nIMPORTANT: the client picked these visuals himself. You MUST use them ALL, "
@@ -534,16 +640,16 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
     try:
         resp = _messages_create(
             model="claude-haiku-4-5",
-            max_tokens=1400 if avec_voix else 900,
+            max_tokens=(2200 if depuis_script else 1400) if avec_voix else 900,
             system=role,
-            messages=[{"role": "user", "content": f"{entete}Post:\n\n{texte[:4000]}\n\nAvailable visuals:\n{liste}{consigne}\n\nReturn the JSON."}],
+            messages=[{"role": "user", "content": f"{entete}{'Approved script' if depuis_script else 'Post'}:\n\n{texte[:4000]}\n\nAvailable visuals:\n{liste}{consigne}\n\nReturn the JSON."}],
         )
         _journal_llm(marque.get("telegram_id"), "reel_scenario", resp)
         raw = "".join(b.text for b in resp.content if b.type == "text").strip()
         m = re.search(r"\{.*\}", raw, re.S)
         data = json.loads(m.group(0) if m else raw)
         segs = []
-        for s in (data.get("segments") or [])[:7]:
+        for s in (data.get("segments") or [])[:10 if depuis_script else 7]:
             t = s.get("type") if s.get("type") in ("typo", "image", "cta") else "typo"
             img_id = s.get("image_id")
             seg = {
@@ -572,7 +678,7 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
                 seg["label"] = str(s["label"])[:40]
             if avec_voix:
                 # La phrase parlée ; à défaut, le texte affiché sera lu tel quel.
-                seg["voix_texte"] = str(s.get("voix") or seg["texte"])[:240].strip()
+                seg["voix_texte"] = str(s.get("voix") or seg["texte"])[:400 if depuis_script else 240].strip()
             if seg["texte"]:
                 segs.append(seg)
         # invariants : 4-7 plans, le dernier est un cta
@@ -621,7 +727,8 @@ def _script_sequence(texte: str, marque: dict, pool: list, brief: str = None, im
 
 
 def _scenariser(texte: str, marque: dict, pool: list, brief: str = None, imposees: bool = False,
-                style: str = None, avec_voix: bool = False, montage_ia: bool = False) -> dict:
+                style: str = None, avec_voix: bool = False, montage_ia: bool = False,
+                depuis_script: bool = False) -> dict:
     """Répartiteur. montage_ia=True (case cochée par le client) et au moins un clip dans le
     pool : le scénario est écrit par un modèle qui REGARDE les clips et choisit les moments
     (montage_service). Sinon, ou si le montage échoue, le scénariste texte (Haiku) écrit les
@@ -632,7 +739,8 @@ def _scenariser(texte: str, marque: dict, pool: list, brief: str = None, imposee
         try:
             from services import montage_service
             sc = montage_service.scenariser(texte, marque, pool, brief=brief, style=style,
-                                            avec_voix=avec_voix, telegram_id=marque.get("telegram_id"))
+                                            avec_voix=avec_voix, telegram_id=marque.get("telegram_id"),
+                                            consigne_voix=_CONSIGNE_VOIX_SCRIPT if depuis_script else None)
         except Exception as e:
             logger.warning(f"reel montage : {e}")
             sc = None
@@ -640,7 +748,7 @@ def _scenariser(texte: str, marque: dict, pool: list, brief: str = None, imposee
             sc["segments"] = _pimenter_reveals(sc["segments"], (brief or "") + (texte or "")[:120])
             return sc
     return _script_sequence(texte, marque, pool, brief=brief, imposees=imposees, style=style, avec_voix=avec_voix,
-                            ordre_fixe=imposees and not montage_ia)
+                            ordre_fixe=imposees and not montage_ia, depuis_script=depuis_script)
 
 
 def _script_depuis_post(texte: str, marque: dict, long: bool = False) -> dict:
@@ -801,7 +909,8 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
         return {"error": "Ce reel a deja ete valide : il ne peut plus etre modifie."}
     if cur.get("video_status") == "en_traitement":
         return {"error": "Un rendu de ce reel est deja en cours."}
-    texte = cur.get("contenu") or cur.get("titre") or ""
+    texte = cur.get("contenu") or cur.get("script") or cur.get("titre") or ""   # un script « À tourner » vit dans `script`
+    depuis_script = not (cur.get("contenu") or "").strip() and bool((cur.get("script") or "").strip())
     u = _charger_marque(telegram_id)
     old_sc = cur.get("reel_data") or {}
     if style is None:
@@ -833,10 +942,10 @@ def regenerer_reel(telegram_id: str, reel_id: str, images: list = None, brief: s
     st = style if style in _STYLES_SEQUENCE else "signature"
     if images:
         pool = _pool_depuis_images(images)
-        scenario = _scenariser(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix), montage_ia=montage_ia)
+        scenario = _scenariser(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix), montage_ia=montage_ia, depuis_script=depuis_script)
     else:
         pool = _pool_visuels(telegram_id, cur)
-        scenario = _scenariser(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix), montage_ia=montage_ia)
+        scenario = _scenariser(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix), montage_ia=montage_ia, depuis_script=depuis_script)
     scenario["style"] = st
     scenario["montage_ia"] = bool(montage_ia)
     scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None
@@ -865,7 +974,8 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
     if not res.data:
         return {"error": "Contenu introuvable."}
     cur = res.data[0]
-    texte = cur.get("contenu") or cur.get("titre") or ""
+    texte = cur.get("contenu") or cur.get("script") or cur.get("titre") or ""   # un script « À tourner » vit dans `script`
+    depuis_script = not (cur.get("contenu") or "").strip() and bool((cur.get("script") or "").strip())
     if not texte.strip():
         return {"error": "Ce contenu n'a pas de texte a transformer en reel."}
 
@@ -878,10 +988,10 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
         # Visuels CHOISIS par le client (dialogue Sequence) > pool automatique du compte
         if images:
             pool = _pool_depuis_images([im for im in images if _est_visuel(im.get("url"))])
-            scenario = _scenariser(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix), montage_ia=montage_ia)
+            scenario = _scenariser(texte, u, pool, brief=brief, imposees=True, style=st, avec_voix=bool(voix), montage_ia=montage_ia, depuis_script=depuis_script)
         else:
             pool = _pool_visuels(telegram_id, cur)
-            scenario = _scenariser(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix), montage_ia=montage_ia)
+            scenario = _scenariser(texte, u, pool, brief=brief, style=st, avec_voix=bool(voix), montage_ia=montage_ia, depuis_script=depuis_script)
         scenario["style"] = st
         scenario["montage_ia"] = bool(montage_ia)
         scenario["musique"] = musique if music_library.url_de(musique, telegram_id) else None

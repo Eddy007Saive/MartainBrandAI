@@ -49,8 +49,14 @@ export const contenuService = {
   miniatureGenerer: (id, payload) => api.post(`/reels/${id}/miniature`, payload, { timeout: 240000 }).then(r => r.data),
   // Image générée par l'IA pour un reel (entre dans la banque) ; l'idée d'image est gratuite.
   reelImagePrompt: (brief) => api.post('/reels/image/prompt', { brief }).then(r => r.data),
+  // Casting IA des visuels : banque par pertinence + prompts à générer (analyse seule, sans quota)
+  reelVisuelsProposer: (texte, brief, maximum = 3) =>
+    api.post('/reels/visuels/proposer', { texte, brief: brief || null, maximum }, { timeout: 90000 }).then(r => r.data),
   reelImageGenerer: (prompt, modele = 'nano2') =>
     api.post('/reels/image', { prompt, modele }, { timeout: 180000 }).then(r => r.data),
+  // Un plan proposé par le casting : le serveur écrit le prompt (après confirmation) puis génère
+  reelImageDepuisIdee: (idee, texte, modele = 'nano2') =>
+    api.post('/reels/image', { idee, texte, modele }, { timeout: 240000 }).then(r => r.data),
   // Musiques perso (MP3 importés par le client)
   reelMusiqueImporter: (file) => {
     const form = new FormData();

@@ -413,6 +413,7 @@
         "maxVisuels": "6 visuales máximo por reel",
         "fermer": "Cerrar",
         "montageTelQuel": "Sin marcar: cada vídeo se usa tal cual, en el orden de su numeración, desde su inicio. La IA solo escribe los textos.",
+        "montageSansClip": "Añade al menos un vídeo a tus visuales (importar o banco) para activar esta opción. Sin vídeo, la IA compone el reel con tus imágenes y textos.",
         "banqueSupprimer": "Quitar del banco",
         "banqueSupprimerTitre": "¿Quitar este visual de tu banco?",
         "banqueSupprimerConfirm": "El archivo también se eliminará del almacenamiento.",
@@ -462,7 +463,27 @@
         "ecouterExtrait": "Escuchar el fragmento",
         "garderExtrait": "Guardar este fragmento",
         "coupeOk": "Fragmento guardado: {{debut}} durante {{duree}} s",
-        "coupeEchec": "No se pudo recortar la música."
+        "coupeEchec": "No se pudo recortar la música.",
+        "casting": "Dejar que la IA proponga los visuales",
+        "castingEnCours": "La IA está eligiendo…",
+        "castingAide": "La IA lee el texto del reel, elige primero en tu banco y luego propone imágenes para generar en los planos que faltan (ves el coste antes).",
+        "castingNote": "La IA elige primero en tu banco y luego propone hasta {{max}} imágenes para generar (1 de tu cuota cada una, confirmas antes).",
+        "castingBanque_one": "{{count}} visual de tu banco añadido al reel",
+        "castingBanque_other": "{{count}} visuales de tu banco añadidos al reel",
+        "castingGenererTitre_one": "¿Generar 1 imagen para este reel?",
+        "castingGenererTitre_other": "¿Generar {{count}} imágenes para este reel?",
+        "castingGenererDesc_one": "{{banque}} visual(es) tomados de tu banco; falta 1 plano. Cuenta 1 imagen de tu cuota.",
+        "castingGenererDesc_other": "{{banque}} visual(es) tomados de tu banco; faltan {{count}} planos. Cuenta {{count}} imágenes de tu cuota.",
+        "castingGenererDescSeul_one": "Nada suficientemente cercano en tu banco. Cuenta 1 imagen de tu cuota.",
+        "castingGenererDescSeul_other": "Nada suficientemente cercano en tu banco. Cuenta {{count}} imágenes de tu cuota.",
+        "castingGenererBtn_one": "Generar 1 imagen",
+        "castingGenererBtn_other": "Generar {{count}} imágenes",
+        "castingGenereOk_one": "1 imagen generada, añadida al reel y a tu banco ✨",
+        "castingGenereOk_other": "{{count}} imágenes generadas, añadidas al reel y a tu banco ✨",
+        "castingRien": "Tu banco ya cubre el tema, nada que añadir.",
+        "castingBanqueVide": "Tu banco está vacío y la IA no propuso nada: describe una imagen abajo.",
+        "castingEchec": "La IA no pudo proponer visuales.",
+        "sansVisuelAide": "Sin visual elegido, la IA elige ella misma en tu banco y en los visuales del post al montar."
       },
       "recommande": "Recomendado",
       "fab": {
@@ -586,6 +607,7 @@
       "titre": "Detalle del contenido",
       "tonScript": "Tu guion",
       "monterVideo": "Montar el vídeo",
+      "modifierVideo": "Editar el vídeo",
       "montageVideoEnCours": "Montaje del vídeo en curso…",
       "slide": "diapositiva {{n}}",
       "agrandir": "Ampliar",
@@ -602,7 +624,6 @@
       "publication": "Publicación",
       "publicationEchecLabel": "Publicación fallida.",
       "imagesFinalesValidation": "Imágenes finales renderizadas al validar",
-      "modifierVideo": "Editar el vídeo",
       "attendsMontage": "Espera a que termine el montaje del vídeo antes de publicar",
       "montageEnCours": "Montaje en curso…",
       "envoyerFile": "Enviar a la cola de publicación",
@@ -1190,6 +1211,8 @@
     "reseauxBoucles": "redes completadas",
     "gardeFouMarque": "Indica tu <gras>sector</gras> en <lien>Ajustes → Voz de marca</lien> para generar.",
     "objectifsDuMois": "Objetivos del mes",
+    "storiesAPart_one": "+ {{count}} story este mes, fuera del objetivo",
+    "storiesAPart_other": "+ {{count}} stories este mes, fuera del objetivo",
     "depuisCadence": "según tu cadencia (Ajustes → Planificación)",
     "aucunReseauActif": "Ninguna red activa. Define tu cadencia en <lien>Ajustes → Planificación</lien> (frecuencia + formato por red).",
     "formatPostEcrit": "Post escrito",
@@ -1443,6 +1466,51 @@
     "draftsCount": "{{count}} borrador(es)"
   },
   "video": {
+    "choix": {
+      "titre": "¿Qué tienes para este guion?",
+      "aide": "Dos formas de convertirlo en vídeo. Elige, podrás volver.",
+      "faceCam": "Hablo a cámara",
+      "faceCamDesc": "Grabas este guion con tu móvil, Postorico subtitula, corta los silencios, añade zooms y música.",
+      "clips": "Tengo fotos o clips, o nada",
+      "clipsDesc": "La IA escribe los textos del reel y lo monta a partir de tus visuales, con voz en off si quieres."
+    },
+    "edition": {
+      "titre": "Modificar el vídeo",
+      "sur": "Estudio Vídeo",
+      "aide": "Haz doble clic en una palabra para corregirla, selecciona palabras (clic y Mayús + clic) para eliminar un pasaje, cambia el estilo o la música y vuelve a renderizar. El vídeo se reemplaza en su sitio.",
+      "retour": "Volver a contenidos",
+      "refaire": "Rehacer el montaje",
+      "enCours": "Renderizando ({{etape}})",
+      "chargement": "Cargando la transcripción…",
+      "aucun": "Ningún vídeo indicado.",
+      "nonEditable": "Este vídeo se montó antes de que existiera la edición: su transcripción no se conservó. Vuelve a montarlo desde el Estudio Vídeo para poder editarlo después.",
+      "transcription": "Transcripción",
+      "transcriptionAide": "Clic: ir a la palabra. Doble clic: corregir. Clic y Mayús + clic: seleccionar un pasaje.",
+      "supprimerPassage": "Eliminar el pasaje",
+      "restaurer": "Restaurar",
+      "toutRestaurer": "Restaurar todo",
+      "doubleClic": "doble clic para corregir",
+      "bilan": "{{n}} palabra(s) eliminada(s), {{s}} s de vídeo cortados.",
+      "reglages": "Ajustes del montaje",
+      "style": "Estilo de subtítulos",
+      "musique": "Música de fondo",
+      "aucuneMusique": "Sin música",
+      "accroche": "Gancho (0 a 3 s)",
+      "accrochePlaceholder": "Vacío para mantener el gancho actual",
+      "coupes": "Cortar silencios",
+      "zooms": "Zooms",
+      "emojis": "Emojis",
+      "brolls": "B-rolls",
+      "audio": "Limpieza de audio",
+      "cout": "Rehacer el montaje no consume cuota: la transcripción ya existe, solo se relanza el renderizado (1 a 3 minutos).",
+      "lance": "Montaje relanzado, la nueva versión llega en unos minutos.",
+      "pret": "Nueva versión lista ✨",
+      "echec": "El renderizado falló, se conserva la versión anterior.",
+      "echecLancement": "No se pudo relanzar el montaje.",
+      "echecChargement": "No se pudo cargar la transcripción.",
+      "nouvelleVersion": "Nueva versión en preparación…",
+      "noteCalage": "Los tiempos son los del vídeo original: con los cortes de silencios, la posición en el vídeo montado es aproximada."
+    },
     "title": "Estudio de Vídeo",
     "subtitle": "Tu vídeo en bruto → edición con IA (subtítulos, b-roll, zooms, música)",
     "yourVideo": "Tu vídeo",
@@ -2731,43 +2799,43 @@
     "resumeMoi": "Claude escribe una frase hablada por plano, tu voz la dice. Unos 3 s más.",
     "creerMaVoix": "Crear mi voz →",
     "voix": {
-        "victor": {
-          "nom": "Victor",
-          "desc": "Hombre, joven, directo. Habla como a un amigo."
-        },
-        "yann": {
-          "nom": "Yann",
-          "desc": "Hombre, sereno, narración dinámica."
-        },
-        "adina": {
-          "nom": "Adina",
-          "desc": "Mujer, joven, clara. Hecha para las redes."
-        },
-        "mark": {
-          "nom": "Mark",
-          "desc": "Hombre, joven, americano. Enérgico, hecho para las redes."
-        },
-        "drew": {
-          "nom": "Drew",
-          "desc": "Hombre, relajado, curioso. Tono de conversación."
-        },
-        "elise": {
-          "nom": "Elise",
-          "desc": "Mujer, joven, cálida. Natural y serena."
-        },
-        "sam": {
-          "nom": "Sam",
-          "desc": "Hombre, joven, acento latinoamericano. Atrapa desde el principio."
-        },
-        "ginyin": {
-          "nom": "Ginyin",
-          "desc": "Hombre, joven, castellano neutro. Enérgico y claro."
-        },
-        "sara": {
-          "nom": "Sara",
-          "desc": "Mujer, joven, castellano. Viva y natural."
-        }
+      "victor": {
+        "nom": "Victor",
+        "desc": "Hombre, joven, directo. Habla como a un amigo."
+      },
+      "yann": {
+        "nom": "Yann",
+        "desc": "Hombre, sereno, narración dinámica."
+      },
+      "adina": {
+        "nom": "Adina",
+        "desc": "Mujer, joven, clara. Hecha para las redes."
+      },
+      "mark": {
+        "nom": "Mark",
+        "desc": "Hombre, joven, americano. Enérgico, hecho para las redes."
+      },
+      "drew": {
+        "nom": "Drew",
+        "desc": "Hombre, relajado, curioso. Tono de conversación."
+      },
+      "elise": {
+        "nom": "Elise",
+        "desc": "Mujer, joven, cálida. Natural y serena."
+      },
+      "sam": {
+        "nom": "Sam",
+        "desc": "Hombre, joven, acento latinoamericano. Atrapa desde el principio."
+      },
+      "ginyin": {
+        "nom": "Ginyin",
+        "desc": "Hombre, joven, castellano neutro. Enérgico y claro."
+      },
+      "sara": {
+        "nom": "Sara",
+        "desc": "Mujer, joven, castellano. Viva y natural."
       }
+    }
   },
   "maVoix": {
     "titre": "Mi voz",

@@ -82,6 +82,9 @@ export default function StudioVideo() {
 
   const [options, setOptions] = useState({ templates: [], music: [], music_categories: [] });
   const [draft, setDraft] = useState(null);        // contenu-script chargé
+  // Depuis un script « À tourner » : première question « tu as quoi ? ». 'facecam' = ce studio
+  // (sous-titres, coupes) ; les photos/clips partent vers le Studio Reel (Séquence, Remotion).
+  const [choix, setChoix] = useState(null);
   const [scriptOpen, setScriptOpen] = useState(true);
   const [file, setFile] = useState(null);
   const [localUrl, setLocalUrl] = useState(null);  // aperçu local (blob) — pas d'upload avant « Monter »
@@ -325,7 +328,27 @@ export default function StudioVideo() {
         </div>
       )}
 
-      {(step === 'done' && result) ? (
+      {(draft?.script && !file && step === 'idle' && choix !== 'facecam') ? (
+        // Décision PO du 2026-09-17 : un script reel ne part plus d'office en face caméra, on demande.
+        <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5" data-testid="choix-montage">
+          <h2 className="text-[17px] font-bold font-sora text-white">{t('video.choix.titre')}</h2>
+          <p className="text-[13px] text-slate-500 font-inter mt-1">{t('video.choix.aide')}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            <button type="button" onClick={() => setChoix('facecam')} data-testid="choix-facecam"
+              className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#5B6CFF]/60 hover:bg-[#5B6CFF]/10 p-4 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center mb-3"><Video className="w-5 h-5 text-white" /></div>
+              <div className="font-sora font-semibold text-white text-[15px]">{t('video.choix.faceCam')}</div>
+              <p className="text-[12.5px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.choix.faceCamDesc')}</p>
+            </button>
+            <button type="button" onClick={() => navigate(`/dashboard/reel?contenu=${contenuId}`)} data-testid="choix-clips"
+              className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#3AFFA3]/60 hover:bg-[#3AFFA3]/[0.06] p-4 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-[#3AFFA3]/15 border border-[#3AFFA3]/30 grid place-items-center mb-3"><Film className="w-5 h-5 text-[#3AFFA3]" /></div>
+              <div className="font-sora font-semibold text-white text-[15px]">{t('video.choix.clips')}</div>
+              <p className="text-[12.5px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.choix.clipsDesc')}</p>
+            </button>
+          </div>
+        </div>
+      ) : (step === 'done' && result) ? (
         <ResultCard result={result} onReset={reset} navigate={navigate}
           reseaux={reseaux} setReseaux={setReseaux} onPublish={publishMontaged} publishing={publishing} />
       ) : (

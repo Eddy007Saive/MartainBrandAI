@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -479,6 +479,15 @@ export default function ContenusPage() {
   const openSequenceRegen = (reel) => {
     setSelectedContenu(null);
     navigate(`/dashboard/reel?reel=${reel.id}`);
+  };
+  // « Modifier la vidéo » mène au studio qui l'a fabriquée (bug vu le 2026-09-17 : tout partait vers
+  // l'import du Studio Vidéo) : un reel Remotion s'ouvre dans le Studio Reel, une vidéo montée par
+  // Studio Montage dans l'éditeur après rendu, une vidéo importée dans le Studio Vidéo.
+  const ouvrirModificationVideo = (c) => {
+    if (c.reel_data) { openSequenceRegen(c); return; }
+    setSelectedContenu(null);
+    if (c.submagic_project_id) navigate(`/dashboard/video/edition?contenu=${c.id}`);
+    else navigate(`/dashboard/video?contenu_id=${c.id}`);
   };
 
   const doReel = async (contenu, duree = 'affiche') => {
@@ -1491,6 +1500,14 @@ export default function ContenusPage() {
                     // Vidéo / Reel montée (Studio Vidéo)
                     <div className="space-y-2.5">
                       <video src={selectedContenu.video_url} controls className="w-full max-h-[70vh] rounded-xl bg-black object-contain" poster={selectedContenu.lien_visuel || undefined} />
+                      {/* Vidéo montée par le Studio Vidéo (Studio Montage) : modifiable après rendu, comme un projet Submagic */}
+                      {selectedContenu.submagic_project_id && ['A valider', 'Refuse', 'Refusé'].includes(selectedContenu.statut) && (
+                        <button type="button" onClick={() => navigate(`/dashboard/video/edition?contenu=${selectedContenu.id}`)} data-testid="video-modifier"
+                          disabled={selectedContenu.video_status === 'en_traitement'}
+                          className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white rounded-xl py-2.5 disabled:opacity-50">
+                          <Scissors className="w-4 h-4" />{t('contenus.detail.modifierVideo')}
+                        </button>
+                      )}
                       {selectedContenu.type === 'Reel' && selectedContenu.reel_data && selectedContenu.statut === 'A valider' && (
                         <button type="button" onClick={() => openSequenceRegen(selectedContenu)} data-testid="reel-modifier"
                           disabled={reelLoading === selectedContenu.id || selectedContenu.video_status === 'en_traitement'}
@@ -1717,7 +1734,7 @@ export default function ContenusPage() {
                   </span>
                   <div className="flex items-center gap-2 flex-wrap justify-end ml-auto">
                     {selectedContenu.video_url && selectedContenu.statut !== 'Publie' && (
-                      <Button size="sm" onClick={() => navigate(`/dashboard/video?contenu_id=${selectedContenu.id}`)}
+                      <Button size="sm" onClick={() => ouvrirModificationVideo(selectedContenu)} data-testid="video-modifier-footer"
                         className="bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 font-sora font-semibold rounded-[11px]">
                         <Video className="w-4 h-4 mr-1.5" />{t('contenus.detail.modifierVideo')}</Button>
                     )}

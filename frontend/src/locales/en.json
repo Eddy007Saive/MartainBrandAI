@@ -413,6 +413,7 @@
         "maxVisuels": "6 visuals max per reel",
         "fermer": "Close",
         "montageTelQuel": "Unchecked: each video is used as is, in its numbered order, from its start. The AI only writes the texts.",
+        "montageSansClip": "Add at least one video to your visuals (upload or bank) to enable this option. Without video, the AI builds the reel from your images and texts.",
         "banqueSupprimer": "Remove from bank",
         "banqueSupprimerTitre": "Remove this visual from your bank?",
         "banqueSupprimerConfirm": "The file will also be deleted from storage.",
@@ -462,7 +463,27 @@
         "ecouterExtrait": "Play the excerpt",
         "garderExtrait": "Keep this excerpt",
         "coupeOk": "Excerpt kept: {{debut}} for {{duree}}s",
-        "coupeEchec": "Could not trim the track."
+        "coupeEchec": "Could not trim the track.",
+        "casting": "Let the AI pick the visuals",
+        "castingEnCours": "The AI is choosing…",
+        "castingAide": "The AI reads the reel text, picks from your bank first, then suggests images to generate for the missing shots (you see the cost first).",
+        "castingNote": "The AI first picks from your bank, then offers up to {{max}} images to generate (1 from your quota each, you confirm first).",
+        "castingBanque_one": "{{count}} visual from your bank added to the reel",
+        "castingBanque_other": "{{count}} visuals from your bank added to the reel",
+        "castingGenererTitre_one": "Generate 1 image for this reel?",
+        "castingGenererTitre_other": "Generate {{count}} images for this reel?",
+        "castingGenererDesc_one": "{{banque}} visual(s) taken from your bank; 1 shot is missing. Counts as 1 image from your quota.",
+        "castingGenererDesc_other": "{{banque}} visual(s) taken from your bank; {{count}} shots are missing. Counts as {{count}} images from your quota.",
+        "castingGenererDescSeul_one": "Nothing close enough in your bank. Counts as 1 image from your quota.",
+        "castingGenererDescSeul_other": "Nothing close enough in your bank. Counts as {{count}} images from your quota.",
+        "castingGenererBtn_one": "Generate 1 image",
+        "castingGenererBtn_other": "Generate {{count}} images",
+        "castingGenereOk_one": "1 image generated, added to the reel and your bank ✨",
+        "castingGenereOk_other": "{{count}} images generated, added to the reel and your bank ✨",
+        "castingRien": "Your bank already covers the subject, nothing to add.",
+        "castingBanqueVide": "Your bank is empty and the AI had nothing to suggest: describe an image below.",
+        "castingEchec": "The AI could not suggest visuals.",
+        "sansVisuelAide": "With no visual chosen, the AI picks from your bank and the post's visuals itself when editing."
       },
       "recommande": "Recommended",
       "fab": {
@@ -586,6 +607,7 @@
       "titre": "Content details",
       "tonScript": "Your script",
       "monterVideo": "Assemble the video",
+      "modifierVideo": "Edit the video",
       "montageVideoEnCours": "Video editing in progress…",
       "slide": "slide {{n}}",
       "agrandir": "Enlarge",
@@ -602,7 +624,6 @@
       "publication": "Publication",
       "publicationEchecLabel": "Publishing failed.",
       "imagesFinalesValidation": "Final images rendered on approval",
-      "modifierVideo": "Edit the video",
       "attendsMontage": "Wait for the video edit to finish before publishing",
       "montageEnCours": "Editing in progress…",
       "envoyerFile": "Send to the publishing queue",
@@ -1190,6 +1211,8 @@
     "reseauxBoucles": "networks completed",
     "gardeFouMarque": "Fill in your <gras>industry</gras> in <lien>Settings → Brand voice</lien> to start generating.",
     "objectifsDuMois": "Monthly goals",
+    "storiesAPart_one": "+ {{count}} story this month, not counted in the goal",
+    "storiesAPart_other": "+ {{count}} stories this month, not counted in the goal",
     "depuisCadence": "based on your cadence (Settings → Scheduling)",
     "aucunReseauActif": "No active network. Set your cadence in <lien>Settings → Scheduling</lien> (frequency + format per network).",
     "formatPostEcrit": "Written post",
@@ -1443,6 +1466,51 @@
     "draftsCount": "{{count}} draft(s)"
   },
   "video": {
+    "choix": {
+      "titre": "What do you have for this script?",
+      "aide": "Two ways to turn it into a video. Pick one, you can come back.",
+      "faceCam": "I talk to the camera",
+      "faceCamDesc": "You film this script with your phone, Postorico adds captions, cuts silences, zooms and music.",
+      "clips": "I have photos or clips, or nothing",
+      "clipsDesc": "The AI writes the reel's texts and edits it from your visuals, with a voice-over if you want."
+    },
+    "edition": {
+      "titre": "Edit the video",
+      "sur": "Video Studio",
+      "aide": "Double-click a word to correct it, select words (click then Shift + click) to remove a passage, change the style or music, then re-render. The video is replaced in place.",
+      "retour": "Back to contents",
+      "refaire": "Re-render",
+      "enCours": "Rendering ({{etape}})",
+      "chargement": "Loading the transcript…",
+      "aucun": "No video given.",
+      "nonEditable": "This video was rendered before editing existed: its transcript was not kept. Render it again from the Video Studio to be able to edit it afterwards.",
+      "transcription": "Transcript",
+      "transcriptionAide": "Click: seek to the word. Double-click: correct. Click then Shift + click: select a passage.",
+      "supprimerPassage": "Remove passage",
+      "restaurer": "Restore",
+      "toutRestaurer": "Restore all",
+      "doubleClic": "double-click to correct",
+      "bilan": "{{n}} word(s) removed, {{s}} s of video cut.",
+      "reglages": "Edit settings",
+      "style": "Caption style",
+      "musique": "Background music",
+      "aucuneMusique": "No music",
+      "accroche": "Hook (0 to 3 s)",
+      "accrochePlaceholder": "Leave empty to keep the current hook",
+      "coupes": "Cut silences",
+      "zooms": "Zooms",
+      "emojis": "Emojis",
+      "brolls": "B-rolls",
+      "audio": "Audio cleanup",
+      "cout": "Re-rendering uses no quota: the transcript already exists, only the render runs again (1 to 3 minutes).",
+      "lance": "Render restarted, the new version arrives in a few minutes.",
+      "pret": "New version ready ✨",
+      "echec": "The render failed, the previous version is kept.",
+      "echecLancement": "Could not restart the render.",
+      "echecChargement": "Could not load the transcript.",
+      "nouvelleVersion": "New version in progress…",
+      "noteCalage": "Times are those of the original video: with silence cuts, seeking on the edited video is approximate."
+    },
     "title": "Video Studio",
     "subtitle": "Your raw video → AI editing (captions, b-roll, zooms, music)",
     "yourVideo": "Your video",
@@ -2731,43 +2799,43 @@
     "resumeMoi": "Claude writes one spoken line per shot, your voice says it. About 3 s longer.",
     "creerMaVoix": "Create my voice →",
     "voix": {
-        "victor": {
-          "nom": "Victor",
-          "desc": "Male, young, direct. Talks like a friend."
-        },
-        "yann": {
-          "nom": "Yann",
-          "desc": "Male, steady, dynamic narration."
-        },
-        "adina": {
-          "nom": "Adina",
-          "desc": "Female, young, clear. Made for social."
-        },
-        "mark": {
-          "nom": "Mark",
-          "desc": "Male, young, American. Energetic, made for social."
-        },
-        "drew": {
-          "nom": "Drew",
-          "desc": "Male, casual, curious. Conversational tone."
-        },
-        "elise": {
-          "nom": "Elise",
-          "desc": "Female, young, warm. Natural and grounded."
-        },
-        "sam": {
-          "nom": "Sam",
-          "desc": "Male, young, Latin American accent. Catchy."
-        },
-        "ginyin": {
-          "nom": "Ginyin",
-          "desc": "Male, young, neutral Castilian. Energetic and clear."
-        },
-        "sara": {
-          "nom": "Sara",
-          "desc": "Female, young, Castilian. Lively and natural."
-        }
+      "victor": {
+        "nom": "Victor",
+        "desc": "Male, young, direct. Talks like a friend."
+      },
+      "yann": {
+        "nom": "Yann",
+        "desc": "Male, steady, dynamic narration."
+      },
+      "adina": {
+        "nom": "Adina",
+        "desc": "Female, young, clear. Made for social."
+      },
+      "mark": {
+        "nom": "Mark",
+        "desc": "Male, young, American. Energetic, made for social."
+      },
+      "drew": {
+        "nom": "Drew",
+        "desc": "Male, casual, curious. Conversational tone."
+      },
+      "elise": {
+        "nom": "Elise",
+        "desc": "Female, young, warm. Natural and grounded."
+      },
+      "sam": {
+        "nom": "Sam",
+        "desc": "Male, young, Latin American accent. Catchy."
+      },
+      "ginyin": {
+        "nom": "Ginyin",
+        "desc": "Male, young, neutral Castilian. Energetic and clear."
+      },
+      "sara": {
+        "nom": "Sara",
+        "desc": "Female, young, Castilian. Lively and natural."
       }
+    }
   },
   "maVoix": {
     "titre": "My voice",

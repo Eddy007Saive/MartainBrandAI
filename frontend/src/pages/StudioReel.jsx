@@ -58,6 +58,7 @@ export default function StudioReel() {
   const [genPrompt, setGenPrompt] = useState('');
   const [genEnCours, setGenEnCours] = useState(false);
   const [ideeEnCours, setIdeeEnCours] = useState(false);
+  const [castingEnCours, setCastingEnCours] = useState(false); // « Laisser l'IA proposer les visuels »
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -107,6 +108,11 @@ export default function StudioReel() {
         // Le visuel du post est proposé d'office (pas une vidéo)
         const lv = c.lien_visuel;
         if (lv && !lv.endsWith('.mp4') && !lv.includes('/video/upload/')) setImages([{ url: lv, desc: '', src: 'post' }]);
+        // Un script « À tourner » est écrit pour être DIT : la voix off arrive allumée (voix par
+        // défaut du compte), le client peut l'éteindre. Décision PO du 2026-09-17.
+        if (c.script && !c.contenu) {
+          contenuService.reelVoix().then((cat) => { if (cat?.disponible) setVoix(cat.defaut || 'victor'); }).catch(() => {});
+        }
       }
     }).catch(() => {
       toast.error(t('contenus.reel.seq.sourceIntrouvable'));
@@ -203,8 +209,14 @@ export default function StudioReel() {
     } finally { setUploading(false); }
   };
 
+  // Le texte que l'IA illustre : le post (ou le script d'un contenu « À tourner »), complété par les
+  // consignes du client ; en création libre, le brief EST le sujet.
+  const texteSource = source ? (source.contenu || source.script || source.titre || '') : '';
+  const sujetImage = () => source
+    ? [texteSource, brief.trim() && `Consignes : ${brief.trim()}`].filter(Boolean).join('\n\n')
+    : brief.trim();
   const proposerIdee = async () => {
-    const sujet = brief.trim() || source?.contenu || source?.titre || '';
+    const sujet = sujetImage();
     if (!sujet) { toast.error(t('contenus.reel.seq.genImageBriefRequis')); return; }
     setIdeeEnCours(true);
     try {
@@ -225,6 +237,60 @@ export default function StudioReel() {
       toast.success(t('contenus.reel.seq.genImageOk'));
       setGenPrompt('');
     } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.detail || t('contenus.reel.seq.genImageEchec'));
+    } finally { setGenEnCours(false); }
+  };
+
+  // « Laisser l'IA proposer les visuels » : la banque d'abord (par pertinence), puis, pour les plans
+  // non couverts, des images à générer — jamais sans montrer le coût (1 image de quota chacune).
+  const proposerVisuels = async () => {
+    const texte = sujetImage();
+    if (!texte) { toast.error(t('contenus.reel.seq.genImageBriefRequis')); return; }
+    const place = 6 - images.length;
+    if (place <= 0) return;
+    setCastingEnCours(true);
+    try {
+      const r = await contenuService.reelVisuelsProposer(texte, source ? brief.trim() : '', Math.min(3, place));
+      const deja = new Set(images.map((i) => i.url));
+      const ajout = (r.banque || []).filter((a) => a.url && !deja.has(a.url)).map((a) => ({
+        cle: nouvelleCle(), url: a.url, desc: a.description || '', src: 'banque',
+        apercu_url: a.apercu_url || null, type: a.type === 'video' ? 'video' : 'image',
+      }));
+      if (ajout.length) setImages((prev) => [...prev, ...ajout].slice(0, 6));
+      const aGenerer = (r.a_generer || []).slice(0, Math.max(0, place - ajout.length));
+      if (aGenerer.length) {
+        toast(t('contenus.reel.seq.castingGenererTitre', { count: aGenerer.length }), {
+          id: 'casting-generer', duration: 20000,
+          description: t(ajout.length ? 'contenus.reel.seq.castingGenererDesc' : 'contenus.reel.seq.castingGenererDescSeul',
+            { count: aGenerer.length, banque: ajout.length }),
+          action: { label: t('contenus.reel.seq.castingGenererBtn', { count: aGenerer.length }), onClick: () => genererSerie(aGenerer) },
+        });
+      } else if (ajout.length) {
+        toast.success(t('contenus.reel.seq.castingBanque', { count: ajout.length }));
+      } else {
+        toast(t(r.banque_vide ? 'contenus.reel.seq.castingBanqueVide' : 'contenus.reel.seq.castingRien'));
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.reel.seq.castingEchec'));
+    } finally { setCastingEnCours(false); }
+  };
+  // Génère les images proposées l'une après l'autre (chacune passe par le quota image du compte).
+  const genererSerie = async (liste) => {
+    setGenEnCours(true);
+    let faites = 0;
+    const texte = sujetImage();
+    try {
+      for (const p of liste) {
+        // Le prompt complet n'existe pas encore : le serveur l'écrit maintenant que le client a confirmé.
+        const a = p.prompt ? await contenuService.reelImageGenerer(p.prompt) : await contenuService.reelImageDepuisIdee(p.idee, texte);
+        if (!a.hors_banque) setBanque((prev) => [a, ...(prev || [])]);
+        setImages((prev) => prev.length >= 6 ? prev
+          : [...prev, { cle: nouvelleCle(), url: a.url, desc: a.description || p.idee || '', src: 'ia', type: 'image' }]);
+        faites += 1;
+      }
+      toast.success(t('contenus.reel.seq.castingGenereOk', { count: faites }));
+    } catch (e) {
+      if (faites) toast.success(t('contenus.reel.seq.castingGenereOk', { count: faites }));
       if (!e.__handled) toast.error(e.response?.data?.detail || t('contenus.reel.seq.genImageEchec'));
     } finally { setGenEnCours(false); }
   };
@@ -324,7 +390,7 @@ export default function StudioReel() {
                 </button>
               </div>
               <p className="mt-1.5 text-[13px] font-semibold text-white font-inter line-clamp-2">{source.titre}</p>
-              {source.contenu && <p className="mt-1 text-[12px] text-slate-400 font-inter line-clamp-3 whitespace-pre-line">{source.contenu}</p>}
+              {(source.contenu || source.script) && <p className="mt-1 text-[12px] text-slate-400 font-inter line-clamp-3 whitespace-pre-line">{source.contenu || source.script}</p>}
             </div>
           )}
           <div>
@@ -385,12 +451,34 @@ export default function StudioReel() {
           )}
 
           <div>
-            <label className={`inline-flex items-center gap-2 text-[13px] font-inter font-semibold px-3.5 py-2 rounded-[10px] border border-dashed cursor-pointer transition-colors ${uploading || images.length >= 6 ? 'border-white/10 text-slate-600 cursor-not-allowed' : 'border-[#5B6CFF]/50 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
-              <input type="file" accept="image/*,video/mp4,video/quicktime,.mp4,.mov" multiple className="hidden" disabled={uploading || images.length >= 6}
-                onChange={(e) => { upload(e.target.files); e.target.value = ''; }} />
-              {uploading ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.importer')}
-            </label>
-            <span className="ml-2 text-[11px] text-slate-500 font-inter">{images.length}/6</span>
+            {/* Deux façons d'avoir des visuels, côte à côte et de même taille : importer, ou laisser l'IA
+                proposer (banque d'abord, puis images à générer). Le compteur n/6 reste à droite. */}
+            <div className="grid gap-2">
+              <label className={`flex items-center justify-center gap-2 h-10 text-[13px] font-inter font-semibold px-3.5 rounded-[10px] border border-dashed cursor-pointer transition-colors ${uploading || images.length >= 6 ? 'border-white/10 text-slate-600 cursor-not-allowed' : 'border-[#5B6CFF]/50 text-[#a5b0ff] hover:bg-[#5B6CFF]/10'}`}>
+                <input type="file" accept="image/*,video/mp4,video/quicktime,.mp4,.mov" multiple className="hidden" disabled={uploading || images.length >= 6}
+                  onChange={(e) => { upload(e.target.files); e.target.value = ''; }} />
+                <Plus className="w-4 h-4" />
+                {uploading ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.importer')}
+              </label>
+              {(source || brief.trim()) && (
+                <button type="button" onClick={proposerVisuels} disabled={castingEnCours || genEnCours || uploading || images.length >= 6}
+                  data-testid="studio-reel-proposer-visuels" title={t('contenus.reel.seq.castingAide')}
+                  className="flex items-center justify-center gap-2 h-10 text-[13px] font-inter font-semibold px-3.5 rounded-[10px] border border-[#8A6CFF]/50 bg-[#8A6CFF]/[0.08] text-[#c4b5fd] hover:bg-[#8A6CFF]/20 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  {castingEnCours ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  {castingEnCours ? t('contenus.reel.seq.castingEnCours') : t('contenus.reel.seq.casting')}
+                </button>
+              )}
+            </div>
+            <div className="mt-2 flex items-start justify-between gap-3">
+              {(source || brief.trim()) && images.length < 6
+                ? <p className="text-[11.5px] text-slate-500 font-inter leading-snug" data-testid="studio-reel-casting-note">{t('contenus.reel.seq.castingNote', { max: Math.min(3, 6 - images.length) })}</p>
+                : <span />}
+              <span className="shrink-0 text-[11px] text-slate-500 font-inter tabular-nums" data-testid="studio-reel-compteur">{images.length}/6</span>
+            </div>
+            {source && images.length === 0 && (
+              <p className="mt-1 text-[11.5px] text-slate-500 font-inter leading-snug" data-testid="studio-reel-sans-visuel">{t('contenus.reel.seq.sansVisuelAide')}</p>
+            )}
+            {/* Visible seulement quand une vidéo est dans les visuels choisis (décision PO du 2026-09-17). */}
             {images.some((i) => i.type === 'video' || /\/video\/upload\//.test(i.url || '')) && (
               <div className="mt-3 rounded-[10px] border border-white/10 bg-white/[0.03] p-3">
                 <label className="flex items-start gap-2.5 cursor-pointer">

@@ -310,12 +310,43 @@ async def banque_ajouter(file: UploadFile = File(...), payload: dict = Depends(v
 
 
 class ReelImageGen(BaseModel):
-    prompt: str                 # ce que le client veut voir (sa description, ou celle proposée par l'IA)
+    prompt: str | None = None   # ce que le client veut voir (sa description, ou celle proposée par l'IA)
+    idee: str | None = None     # OU un plan proposé par le casting : le prompt est écrit ici, après confirmation
+    texte: str | None = None    # le texte du reel qui accompagne l'idée
     modele: str = "nano2"       # nano2 = image standard, nano3 = image pro (quotas distincts)
 
 
 class ReelImagePrompt(BaseModel):
     brief: str                  # le sujet du reel : l'IA en tire une idée d'image
+
+
+class ReelVisuelsProposer(BaseModel):
+    texte: str                  # le texte du reel (post, script ou brief)
+    brief: str | None = None    # consignes du client
+    maximum: int = 3
+
+
+@router.post("/visuels/proposer")
+def visuels_proposer(body: ReelVisuelsProposer, payload: dict = Depends(verify_token)):
+    """« Laisser l'IA proposer les visuels » : les visuels de la banque qui collent au texte, puis
+    des prompts prêts à générer pour les plans non couverts. Aucune image n'est générée ici (pas de
+    quota) : le client voit combien d'images il va dépenser avant de lancer /reels/image."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    if not (body.texte or "").strip():
+        raise HTTPException(status_code=400, detail="Le reel n'a pas encore de texte.")
+    # Garde-fou anti-boucle : 20 analyses par heure et par compte (chacune ≈ 0,002 $), puis 10 min
+    # de pause. Personne n'y arrive à la main.
+    from services import rate_limit
+    cle = f"casting:{telegram_id}"
+    if rate_limit.locked_for(cle) > 0:
+        raise HTTPException(status_code=429, detail="Tu as beaucoup sollicité l'IA. Réessaie dans quelques minutes.")
+    rate_limit.fail(cle, 20, 3600, 600)
+    res = reel_service.proposer_visuels(telegram_id, body.texte, brief=body.brief, maximum=body.maximum)
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res
 
 
 @router.post("/image/prompt")
@@ -330,7 +361,7 @@ def image_prompt(body: ReelImagePrompt, payload: dict = Depends(verify_token)):
     try:
         res = image_service.generer_prompt(telegram_id, brief, reseau="instagram")
     except Exception as e:
-        logger.error(f"reel image prompt: {e}")
+        logger.error(f"reel image prompt: {e!r}")
         raise HTTPException(status_code=500, detail="Impossible de proposer une idée d'image.")
     if res.get("error"):
         raise HTTPException(status_code=500, detail="Impossible de proposer une idée d'image.")
@@ -346,10 +377,23 @@ async def image_generer(body: ReelImageGen, payload: dict = Depends(verify_token
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     prompt = (body.prompt or "").strip()
-    if len(prompt) < 8:
+    idee = (body.idee or "").strip()
+    if not prompt and not idee:
         raise HTTPException(status_code=400, detail="Décris l'image en quelques mots.")
     demarrage_service.exiger_profil(telegram_id)
     quota_service.exiger_abonnement(telegram_id)
+    if not prompt:
+        # Plan proposé par « Laisser l'IA proposer les visuels » : le prompt complet est écrit
+        # maintenant, une fois le client d'accord (coût suivi dans usage_log, action image_prompt).
+        try:
+            prompt = reel_service.prompt_pour_idee(telegram_id, idee, body.texte) or ""
+        except Exception as e:
+            logger.error(f"reel image prompt_pour_idee: {e!r}")
+            prompt = ""
+        if len(prompt) < 8:
+            raise HTTPException(status_code=500, detail="Impossible de préparer cette image, réessaie.")
+    if len(prompt) < 8:
+        raise HTTPException(status_code=400, detail="Décris l'image en quelques mots.")
     modele = body.modele if body.modele in image_service.IMAGE_MODELS else "nano2"
     q = quota_service.consume(telegram_id, quota_service.image_action(modele))
     if not q.get("ok"):
@@ -362,7 +406,7 @@ async def image_generer(body: ReelImageGen, payload: dict = Depends(verify_token
                                                 None, ratio="9:16", public_id=public_id)
     except Exception as e:
         quota_service.refund(q)
-        logger.error(f"reel image: {e}")
+        logger.error(f"reel image: {e!r}")
         raise HTTPException(status_code=500, detail="Échec de la génération d'image.")
     if res.get("error"):
         quota_service.refund(q)

@@ -875,7 +875,7 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
         res = await image_service.generer_image(telegram_id, prompt, bool(body.get("avec_photo")), model_id, contenu_id, refs=refs, style_note=style_note, template_mode=template_mode, ratio=ratio, integrate_refs=integrate_refs, style=style, ecran_refs=ecran_refs)
     except Exception as e:
         quota_service.refund(q)
-        logger.error(f"Agent image error: {e}")
+        logger.error(f"Agent image error: {e!r}")
         raise HTTPException(status_code=500, detail=str(e))
     duree = time.monotonic() - depart
     if res.get("error"):

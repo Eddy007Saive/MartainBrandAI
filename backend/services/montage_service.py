@@ -197,7 +197,7 @@ def _guide_style(style: str | None) -> str:
 # Point d'entrée
 # ----------------------------------------------------------------------------
 def scenariser(texte: str, marque: dict, pool: list, brief: str = None, style: str = None,
-               avec_voix: bool = False, telegram_id: str = None) -> dict | None:
+               avec_voix: bool = False, telegram_id: str = None, consigne_voix: str = None) -> dict | None:
     """Scénario Séquence écrit en REGARDANT les clips du pool. Retourne None si le
     montage n'a pas pu se faire (le scénariste texte prend le relais)."""
     if not OPENROUTER_API_KEY:
@@ -228,7 +228,7 @@ def scenariser(texte: str, marque: dict, pool: list, brief: str = None, style: s
     # 2. la demande
     langue = _LANGUES.get((marque.get("langue") or "fr").lower(), "French")
     role = _ROLE + f"\n\nCLIENT'S LANGUAGE — write every audience-facing word in {langue.upper()}." \
-        + _guide_style(style) + (_CONSIGNE_VOIX if avec_voix else "")
+        + _guide_style(style) + ((consigne_voix or _CONSIGNE_VOIX) if avec_voix else "")
     demande = ""
     if brief:
         demande += ("### CLIENT'S OWN INSTRUCTIONS — FOLLOW THEM TO THE LETTER\n"
@@ -294,7 +294,7 @@ def scenariser(texte: str, marque: dict, pool: list, brief: str = None, style: s
         if s.get("label"):
             seg["label"] = str(s["label"])[:40]
         if avec_voix:
-            seg["voix_texte"] = str(s.get("voix") or texte_s)[:200].strip()
+            seg["voix_texte"] = str(s.get("voix") or texte_s)[:400 if consigne_voix else 200].strip()
         segs.append(seg)
     if len(segs) < 4:
         logger.warning(f"montage : scénario trop court ({len(segs)} plans), repli texte")

@@ -561,10 +561,14 @@ const SegImage: React.FC<{
     </div>
   );
 
-  // Un CLIP occupe tout l'écran, le texte passe par-dessus : c'est la grammaire
-  // du reel, et une vidéo enfermée dans une vignette ne se voit pas. Une photo
-  // garde son cadre borné (le texte ne doit jamais la recouvrir).
-  const pleinEcran = !!seg.video;
+  // Un CLIP occupe toujours tout l'écran (une vidéo enfermée dans une vignette
+  // ne se voit pas). Une photo fait de même par défaut désormais : c'est la
+  // vignette bornée qui devient l'exception, réservée aux trois styles dont
+  // l'identité visuelle EST le cadre — polaroids scotchés (carnet), viseur
+  // caméra (vlog), carte en perspective 3D (odyssée). Partout ailleurs, le
+  // visuel du client mérite tout l'écran, comme une vidéo.
+  const CADRE_STYLES: SequenceStyle[] = ['carnet', 'vlog', 'odyssee'];
+  const pleinEcran = !!seg.video || !CADRE_STYLES.includes(mode ?? 'signature');
   // Le voile reprend le fond du style (papier crème en Carnet, nuit ailleurs)
   // pour que le raccord avec le plan suivant reste invisible.
   const fondStyle = mode === 'carnet' ? PAPER : mode === 'impact' ? '#05060a' : '#020617';

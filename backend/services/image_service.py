@@ -6,6 +6,7 @@ Agent Image :
   3. Upload Cloudinary → URL.
 """
 import os
+import asyncio
 import re
 import base64
 import httpx
@@ -288,6 +289,14 @@ def generer_prompt(telegram_id: str, post_texte: str, reseau: str = "linkedin", 
             "content": f"Post à illustrer (réseau {reseau}) :\n\n{post_texte}\n\nDonne le prompt d'image.",
         }],
     )
+    # Journal admin : chaque prompt d'image écrit par Claude a un coût (≈ 0,002 $), invisible avant
+    # le 2026-09-17. Même table que les scénarios de reels (usage_log).
+    try:
+        from services import usage_service
+        from services.agent_service import _usage
+        usage_service.log(telegram_id, "image_prompt", "claude-haiku-4-5", _usage(resp), 0)
+    except Exception as e:
+        logger.warning(f"journal image_prompt : {e}")
     prompt = "".join(b.text for b in resp.content if b.type == "text").strip()
     # Nettoyage : titre en gras que le modèle ajoute parfois, et codes couleur (le client les lit,
     # et le générateur les dessinerait).
@@ -547,12 +556,26 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
         "messages": [{"role": "user", "content": content}],
         "modalities": ["image", "text"],
     }
-    async with httpx.AsyncClient(timeout=IMAGE_TIMEOUT_S) as client:
-        r = await client.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json"},
-            json=body,
-        )
+    # Une coupure réseau (connexion réinitialisée, lecture interrompue) fait échouer l'appel sans
+    # réponse : vu le 2026-09-17 sur la 3e image d'une série (httpx.ReadError vide). On rejoue une
+    # fois, avec une connexion neuve, avant d'abandonner. Un timeout franc n'est pas rejoué.
+    r = None
+    for essai in (1, 2):
+        try:
+            async with httpx.AsyncClient(timeout=IMAGE_TIMEOUT_S) as client:
+                r = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json"},
+                    json=body,
+                )
+            break
+        except httpx.TimeoutException:
+            raise
+        except httpx.TransportError as e:
+            logger.warning(f"OpenRouter image : coupure réseau (essai {essai}) {e!r}")
+            if essai == 2:
+                raise
+            await asyncio.sleep(1.5)
     if r.status_code != 200:
         logger.error(f"OpenRouter image error {r.status_code}: {r.text[:400]}")
         return {"error": f"image_failed_{r.status_code}"}
