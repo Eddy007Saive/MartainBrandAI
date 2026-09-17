@@ -140,6 +140,37 @@ async def create_project(
     return {"ok": True, "id": d.get("job_id"), "status": "processing"}
 
 
+async def get_transcript(job_id: str) -> dict:
+    """Transcription mot à mot + réglages d'un montage terminé (édition après rendu)."""
+    async with httpx.AsyncClient(timeout=POLL_TIMEOUT) as c:
+        r = await c.get(f"{MONTAGE_POC_URL}/jobs/{job_id}/transcript", headers=_headers())
+    if r.status_code == 404:
+        return {"ok": False, "error": "Montage introuvable."}
+    r.raise_for_status()
+    d = r.json()
+    return {"ok": True, **d}
+
+
+async def rerender(job_id: str, options: dict | None = None, words: list | None = None, removed: list | None = None) -> dict:
+    """Re-rend la même vidéo, sur place : mots corrigés, passages supprimés, réglages modifiés.
+    Pas de nouvelle transcription côté Studio Montage : seulement la passe ffmpeg."""
+    data = {"options": json.dumps(options or {}), "removed": json.dumps(removed or [])}
+    if words is not None:
+        data["words"] = json.dumps(words)
+    try:
+        async with httpx.AsyncClient(timeout=CREATE_TIMEOUT) as c:
+            r = await c.post(f"{MONTAGE_POC_URL}/jobs/{job_id}/rerender", data=data, headers=_headers())
+    except httpx.HTTPError:
+        return {"ok": False, "error": "Service de montage injoignable, réessaie."}
+    if r.status_code != 200:
+        try:
+            msg = r.json().get("error")
+        except Exception:
+            msg = None
+        return {"ok": False, "error": msg or "Le re-rendu n'a pas pu démarrer."}
+    return {"ok": True, "id": r.json().get("job_id", job_id), "status": "processing"}
+
+
 async def get_project(job_id: str) -> dict:
     """État d'un job + URL de sortie quand `done` (déjà sur Cloudinary)."""
     async with httpx.AsyncClient(timeout=POLL_TIMEOUT) as c:

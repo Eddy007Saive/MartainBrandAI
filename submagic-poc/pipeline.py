@@ -559,13 +559,41 @@ def build_filtergraph(segs, crops, zxy, ass_path, cw, src_w, src_h, o, path,
     return final_video, final_audio
 
 
-def process(video, out, o, progress=lambda s: None):
+def soustraire_segments(segs, removed):
+    """Retire des passages [a, b] (secondes de la vidéo source) des segments gardés.
+    Sert à l'édition après rendu : les mots supprimés par le client deviennent des coupes."""
+    for a, b in sorted(removed or []):
+        suite = []
+        for s0, s1 in segs:
+            if b <= s0 or a >= s1:
+                suite.append((s0, s1))
+                continue
+            if s0 < a:
+                suite.append((s0, a))
+            if b < s1:
+                suite.append((b, s1))
+        segs = suite
+    return [(s0, s1) for s0, s1 in segs if s1 - s0 > 0.15]
+
+
+def process(video, out, o, progress=lambda s: None, words=None, language=None, removed=None):
+    """words/language : transcription déjà connue (édition après rendu, éventuellement corrigée
+    par le client) -> pas de nouvelle passe Whisper. removed : passages [a, b] à couper."""
     with LOCK:
         global WARNINGS
         WARNINGS = []
-        words_cache = transcribe(video, progress)
-        language = json.load(open(words_cache, encoding="utf-8")).get("language", "fr")
-        words = base.load_words(words_cache)
+        if words is None:
+            words_cache = transcribe(video, progress)
+            language = json.load(open(words_cache, encoding="utf-8")).get("language", "fr")
+            words = base.load_words(words_cache)
+        else:
+            language = language or "fr"
+            words = [dict(w) for w in words if (w.get("text") or "").strip()]
+        removed = [(float(a), float(b)) for a, b in (removed or []) if float(b) > float(a)]
+        if removed:
+            # un mot dont le milieu tombe dans un passage supprimé disparaît (sous-titre, zoom, emoji)
+            words = [w for w in words
+                     if not any(a <= (w["start"] + w["end"]) / 2 <= b for a, b in removed)]
         if not words:
             raise RuntimeError("Aucune parole détectée dans la vidéo")
 
@@ -606,6 +634,10 @@ def process(video, out, o, progress=lambda s: None):
         gap_min, gap_keep = CUTS_PACE.get(o.get("cuts_pace"), (base.GAP_MIN, base.GAP_KEEP))
         segs = (base.keep_segments(words, duration, gap_min, gap_keep) if o["cuts"]
                 else [(0.0, duration)])
+        if removed:
+            segs = soustraire_segments(segs, removed)
+            if not segs:
+                raise RuntimeError("Tout a été supprimé : il ne reste rien à monter")
         remap = base.remap_factory(segs)
         # suivi visage désactivé -> samples vides : crop et zoom centrés
         samples = base.detect_faces(video, cw / src_w) if o.get("face_track", True) else []
@@ -772,7 +804,8 @@ def process(video, out, o, progress=lambda s: None):
 
         progress("fini")
         return {"hook": (o.get("hook") or "").strip() or None,
-                "thumbnail": thumb_out is not None, "warnings": list(WARNINGS)}
+                "thumbnail": thumb_out is not None, "warnings": list(WARNINGS),
+                "words": words, "language": language}
 
 
 def regenerate_thumbnail(video, out_jpg, o, progress=lambda s: None):

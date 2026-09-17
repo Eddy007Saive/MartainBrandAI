@@ -149,6 +149,12 @@ async def process(video: UploadFile = None, options: str = Form("{}"),
     def run():
         try:
             out_mp4 = os.path.join(job_dir, "out.mp4")
+            # la source part sur Cloudinary AVANT le rendu : c'est elle qui permettra de
+            # re-rendre plus tard (corrections, coupes, autre style) sans re-téléverser
+            JOBS[job_id].update(step="sauvegarde de la source")
+            source_url = storage.upload_source(src, job_id)
+            if source_url:
+                JOBS[job_id].update(source_url=source_url)
             res = pipeline.process(src, out_mp4, opts, progress=on_progress)
             has_thumb = res.get("thumbnail", False)
             warnings = list(res.get("warnings", []))
@@ -175,7 +181,94 @@ async def process(video: UploadFile = None, options: str = Form("{}"),
                                 warnings=warnings,
                                 # gardés pour /regenerate_thumbnail (relancer
                                 # seulement la miniature, sans re-rendre la vidéo)
-                                video_path=src, options=opts)
+                                video_path=src, options=opts,
+                                # gardés pour l'édition après rendu (/jobs/{id}/rerender)
+                                words=res.get("words"), language=res.get("language"), removed=[])
+        except Exception as e:
+            JOBS[job_id].update(status="error", error=str(e)[:500])
+        finally:
+            _sync(job_id)
+
+    threading.Thread(target=run, daemon=True).start()
+    return {"job_id": job_id}
+
+
+def _source_locale(job_id, job):
+    """Chemin local de la vidéo source : le fichier du job s'il est encore là (dev, ou
+    serveur pas redémarré), sinon re-téléchargé depuis la copie Cloudinary."""
+    job_dir = os.path.join(JOBS_DIR, job_id)
+    src = os.path.join(job_dir, "in.mp4")
+    if os.path.exists(src):
+        return src
+    url = job.get("source_url")
+    if not url:
+        return None
+    os.makedirs(job_dir, exist_ok=True)
+    import urllib.request
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=180) as resp, open(src, "wb") as f:
+        shutil.copyfileobj(resp, f)
+    return src
+
+
+@app.get("/jobs/{job_id}/transcript")
+def job_transcript(job_id: str):
+    """Ce qu'il faut pour éditer après rendu : mots (texte + temps), langue, réglages,
+    passages déjà supprimés, adresses de la vidéo montée et de la source."""
+    job = JOBS.get(job_id) or jobs_store.get(job_id)
+    if not job:
+        return JSONResponse({"status": "unknown"}, status_code=404)
+    return JSONResponse({"status": job.get("status"), "words": job.get("words") or [],
+                         "language": job.get("language") or "fr", "options": job.get("options") or {},
+                         "removed": job.get("removed") or [], "video_url": job.get("video_url"),
+                         "thumb_url": job.get("thumb_url"), "editable": bool(job.get("words")) and bool(job.get("source_url") or os.path.exists(os.path.join(JOBS_DIR, job_id, "in.mp4")))})
+
+
+@app.post("/jobs/{job_id}/rerender")
+async def rerender(job_id: str, options: str = Form("{}"), words: str = Form(None), removed: str = Form("[]"),
+                   _auth=Depends(_require_internal_key)):
+    """Re-rend la même vidéo, sur place, avec : des mots corrigés (words = liste complète
+    {text,start,end}), des passages supprimés (removed = [[a,b],...], secondes de la source)
+    et des réglages modifiés (options = surcharge). Pas de nouvelle transcription : rapide."""
+    job = JOBS.get(job_id) or jobs_store.get(job_id)
+    if not job:
+        return JSONResponse({"status": "error", "error": "job introuvable"}, status_code=404)
+    if job.get("status") == "processing":
+        return JSONResponse({"status": "error", "error": "un rendu est déjà en cours"}, status_code=409)
+    mots = json.loads(words) if words else (job.get("words") or None)
+    if not mots:
+        return JSONResponse({"status": "error", "error": "transcription absente : cette vidéo a été montée avant l'édition après rendu, elle ne peut pas être modifiée"}, status_code=400)
+    try:
+        src = _source_locale(job_id, job)
+    except Exception as e:
+        return JSONResponse({"status": "error", "error": f"source introuvable : {e}"}, status_code=400)
+    if not src:
+        return JSONResponse({"status": "error", "error": "vidéo source absente : montage antérieur à l'édition après rendu"}, status_code=400)
+    opts = {**DEFAULTS, **(job.get("options") or {}), **(json.loads(options) if options else {})}
+    coupes = [[float(a), float(b)] for a, b in (json.loads(removed) if removed else [])]
+    langue = job.get("language") or "fr"
+    JOBS[job_id] = {**job, "status": "processing", "step": "file d'attente", "error": None}
+    _sync(job_id)
+
+    def on_progress(s_):
+        JOBS[job_id].update(step=s_)
+        _sync(job_id)
+
+    def run():
+        try:
+            out_mp4 = os.path.join(os.path.dirname(src), "out.mp4")
+            res = pipeline.process(src, out_mp4, opts, progress=on_progress,
+                                   words=mots, language=langue, removed=coupes)
+            warnings = list(res.get("warnings", []))
+            JOBS[job_id].update(step="stockage")
+            video_url = storage.upload_video(out_mp4, job_id)      # même public_id : nouvelle version
+            thumb_url = None
+            if res.get("thumbnail"):
+                thumb_url = storage.upload_image(os.path.join(os.path.dirname(src), "out.thumb.jpg"), job_id)
+            JOBS[job_id].update(status="done", hook=res.get("hook"), thumbnail=bool(thumb_url),
+                                video_url=video_url or job.get("video_url"), thumb_url=thumb_url or job.get("thumb_url"),
+                                warnings=warnings, video_path=src, options=opts,
+                                words=mots, language=langue, removed=coupes)
         except Exception as e:
             JOBS[job_id].update(status="error", error=str(e)[:500])
         finally:

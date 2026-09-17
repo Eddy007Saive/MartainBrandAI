@@ -36,4 +36,9 @@ export const videoService = {
 
   // Statut du montage (polling) -> { video_status, video_url?, video_preview_url? }
   status: (contenuId) => api.get(`/video/status/${contenuId}`).then((r) => r.data),
+
+  // Édition après rendu : transcription (mots + temps), réglages, passages supprimés
+  edition: (contenuId) => api.get(`/video/${contenuId}/edition`).then((r) => r.data),
+  // Re-rendu sur place avec mots corrigés / passages supprimés / réglages -> { video_status: 'en_traitement' }
+  rerender: (contenuId, payload) => api.post(`/video/${contenuId}/rerender`, payload).then((r) => r.data),
 };

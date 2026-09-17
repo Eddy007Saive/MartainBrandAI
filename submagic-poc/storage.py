@@ -41,6 +41,12 @@ def _upload(path, job_id, resource_type, name):
         return None
 
 
+def upload_source(path, job_id):
+    """La vidéo brute du client, gardée pour l'édition après rendu (le disque Railway
+    est éphémère et le backend efface sa propre copie une fois le montage prêt)."""
+    return _upload(path, job_id, "source", "video")
+
+
 def upload_video(path, job_id):
     return _upload(path, job_id, "video", "video")
 

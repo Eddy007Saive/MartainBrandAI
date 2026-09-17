@@ -296,6 +296,11 @@ async def _finalize(contenu: dict) -> dict:
     video_url = info.get("direct_url") or info.get("download_url")
     if not video_url:
         return {"video_status": "en_traitement"}
+    # Édition après rendu : Cloudinary garde le même public_id mais change la version dans l'URL ;
+    # si l'URL n'a pas bougé (cache), on force un paramètre pour rafraîchir les lecteurs.
+    if contenu.get("video_url") and video_url == contenu.get("video_url"):
+        sep = "&" if "?" in video_url else "?"
+        video_url = f"{video_url}{sep}v={int(__import__('time').time())}"
 
     patch = {
         "video_status": "pret",
@@ -335,6 +340,80 @@ async def webhook(request: Request):
     if r.data:
         await _finalize(r.data[0])
     return {"ok": True}
+
+
+def _contenu_du_client(contenu_id: str, telegram_id: str) -> dict:
+    r = supabase.table("contenu").select("*").eq("id", contenu_id).eq("telegram_id", telegram_id).limit(1).execute()
+    if not r.data:
+        raise HTTPException(status_code=404, detail="Contenu introuvable")
+    return r.data[0]
+
+
+@router.get("/{contenu_id}/edition")
+async def edition(contenu_id: str, payload: dict = Depends(verify_token)):
+    """Tout ce qu'il faut pour modifier une vidéo déjà montée (façon Submagic) : les mots
+    avec leurs temps, la langue, les réglages du montage, les passages déjà supprimés."""
+    c = _contenu_du_client(contenu_id, payload.get("telegram_id"))
+    pid = c.get("submagic_project_id")
+    if not pid:
+        raise HTTPException(status_code=400, detail="Cette vidéo n'a pas été montée par le Studio Vidéo.")
+    try:
+        d = await submagic_service.get_transcript(pid)
+    except Exception as e:
+        logger.error(f"edition transcript {pid}: {e}")
+        raise HTTPException(status_code=502, detail="Studio Montage injoignable.")
+    if not d.get("ok"):
+        raise HTTPException(status_code=404, detail=d.get("error") or "Montage introuvable.")
+    return {"contenu_id": contenu_id, "job_id": pid, "video_url": c.get("video_url") or d.get("video_url"),
+            "video_status": c.get("video_status"), "words": d.get("words") or [], "language": d.get("language") or "fr",
+            "options": d.get("options") or {}, "removed": d.get("removed") or [], "editable": bool(d.get("editable")),
+            "titre": c.get("titre"), "reseau": c.get("reseau_cible")}
+
+
+@router.post("/{contenu_id}/rerender")
+async def rerender_video(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
+    """Re-monte la vidéo sur place avec les corrections du client. Sans quota : la transcription
+    est déjà faite, seul le rendu ffmpeg est relancé. Le statut repasse « en traitement » et le
+    polling /status existant raccroche la nouvelle version quand elle est prête."""
+    telegram_id = payload.get("telegram_id")
+    c = _contenu_du_client(contenu_id, telegram_id)
+    pid = c.get("submagic_project_id")
+    if not pid:
+        raise HTTPException(status_code=400, detail="Cette vidéo n'a pas été montée par le Studio Vidéo.")
+    if c.get("video_status") == "en_traitement":
+        raise HTTPException(status_code=409, detail="Un rendu est déjà en cours pour cette vidéo.")
+    if c.get("statut") not in ("A valider", "Refuse", "Refusé"):
+        raise HTTPException(status_code=409, detail="Cette vidéo a déjà été validée : elle ne peut plus être modifiée.")
+    words = body.get("words") if isinstance(body.get("words"), list) else None
+    if words is not None:
+        propres = []
+        for w in words[:5000]:
+            try:
+                propres.append({"text": str(w.get("text") or "").strip()[:60], "start": float(w["start"]), "end": float(w["end"])})
+            except (KeyError, TypeError, ValueError):
+                continue
+        words = propres
+    removed = []
+    for r_ in (body.get("removed") or [])[:500]:
+        try:
+            a, b = float(r_[0]), float(r_[1])
+            if b > a:
+                removed.append([round(a, 3), round(b, 3)])
+        except (TypeError, ValueError, IndexError):
+            continue
+    options = body.get("options") if isinstance(body.get("options"), dict) else {}
+    # seuls les réglages connus du Studio Vidéo passent (pas de clé arbitraire vers le moteur)
+    AUTORISES = {"preset", "hook", "hook_auto", "hook_preset", "hook_position", "hook_fontscale", "music_id", "music_volume",
+                 "emojis", "brolls", "brolls_count", "font", "hl_color", "fontscale", "position", "uppercase",
+                 "cuts", "cuts_pace", "zoom", "audio_clean"}
+    options = {k: v for k, v in options.items() if k in AUTORISES}
+    res = await submagic_service.rerender(pid, options=options, words=words, removed=removed)
+    if not res.get("ok"):
+        raise HTTPException(status_code=502, detail=res.get("error") or "Le re-rendu n'a pas pu démarrer.")
+    # tous les contenus jumeaux de ce montage repassent en traitement ; l'ancienne vidéo reste
+    # visible jusqu'à ce que la nouvelle version soit prête (même URL Cloudinary, nouvelle version)
+    supabase.table("contenu").update({"video_status": "en_traitement"}).eq("submagic_project_id", pid).execute()
+    return {"contenu_id": contenu_id, "submagic_project_id": pid, "video_status": "en_traitement"}
 
 
 @router.get("/status/{contenu_id}")
