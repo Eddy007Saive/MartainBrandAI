@@ -290,6 +290,10 @@ export default function PlanEditorial() {
                       )}
                     </div>
                   </div>
+                  {/* Les stories ne comptent pas dans l'objectif (elles ne construisent pas le feed) : affichées à part */}
+                  {conn && p.stories > 0 && (
+                    <div className="text-[11px] text-slate-500 font-inter mb-1.5" data-testid={`plan-stories-${p.platform}`}>{t('plan.storiesAPart', { count: p.stories })}</div>
+                  )}
                   <div className="h-[7px] rounded-md bg-white/[0.06] overflow-hidden">
                     <div className={`h-full rounded-md transition-all duration-500 ${done ? 'bg-gradient-to-r from-emerald-500 to-[#3AFFA3]' : 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]'}`} style={{ width: `${conn ? pct : 0}%` }} />
                   </div>

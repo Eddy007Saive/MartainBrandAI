@@ -82,6 +82,20 @@ def _dates_occupees(telegram_id: str, reseau: str, start: date, end: date,
             and (famille is None or planning_service.famille_de(row.get("type"), mode) == famille)]
 
 
+def _contenus_du_mois(telegram_id: str, reseau: str, start: date, end: date) -> list:
+    """Contenus datés du réseau dans le mois, non refusés (type inclus, pour distinguer les stories)."""
+    try:
+        r = (supabase.table("contenu").select("date_publication, statut, type")
+             .eq("telegram_id", telegram_id).eq("reseau_cible", reseau)
+             .gte("date_publication", start.isoformat())
+             .lt("date_publication", (end + timedelta(days=1)).isoformat())
+             .not_.is_("date_publication", "null").execute())
+    except Exception as e:
+        logger.warning(f"plan _contenus_du_mois error: {e}")
+        return []
+    return [row for row in (r.data or []) if row.get("date_publication") and row.get("statut") not in ("Refuse", "Refusé")]
+
+
 def compute_plan(telegram_id: str, year: int, month: int) -> list:
     start, end = _month_bounds(year, month)
     out = []
@@ -94,7 +108,12 @@ def compute_plan(telegram_id: str, year: int, month: int) -> list:
         days = set(s.get("days_of_week") or [])
         cand = _candidate_days(start, end, days)
         needed = len(cand) if days else FREQ_PER_MONTH.get(s.get("frequency"), 4)
-        filled = len(_dates_occupees(telegram_id, reseau, start, end))
+        # Décision PO du 2026-09-17 : une story (24 h) ne compte pas dans l'objectif du mois,
+        # elle ne construit pas le feed. Posts, carrousels et reels comptent tous. Les stories
+        # sont renvoyées à part pour rester visibles sans fausser l'objectif.
+        rows = _contenus_du_mois(telegram_id, reseau, start, end)
+        stories = sum(1 for r in rows if (r.get("type") or "") == "Story")
+        filled = len(rows) - stories
         out.append({
             "platform": s.get("platform"),
             "reseau": reseau,
@@ -102,6 +121,7 @@ def compute_plan(telegram_id: str, year: int, month: int) -> list:
             "format": s.get("format") or "post",
             "needed": needed,
             "filled": filled,
+            "stories": stories,
             "remaining": max(0, needed - filled),
         })
     return out
