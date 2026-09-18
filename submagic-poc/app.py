@@ -347,6 +347,44 @@ async def suggest_hooks(video: UploadFile, _auth=Depends(_require_internal_key))
     return {"job_id": job_id}
 
 
+@app.post("/transcribe")
+async def transcribe_url(video_url: str = Form(...), _auth=Depends(_require_internal_key)):
+    """Transcription seule d'une vidéo déjà en ligne (éditeur vidéo manuel de Postorico :
+    « Générer les sous-titres » sur un plan). Même téléchargement en streaming que /process,
+    même Whisper ; le résultat (mots horodatés + langue) se lit sur GET /jobs/{id}."""
+    job_id = uuid.uuid4().hex[:10]
+    job_dir = os.path.join(JOBS_DIR, job_id)
+    os.makedirs(job_dir)
+    src = os.path.join(job_dir, "in.mp4")
+    import asyncio
+    import urllib.request
+
+    def _download():
+        req = urllib.request.Request(video_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=120) as resp, open(src, "wb") as f:
+            shutil.copyfileobj(resp, f)
+
+    try:
+        await asyncio.to_thread(_download)
+    except Exception as e:
+        shutil.rmtree(job_dir, ignore_errors=True)
+        return JSONResponse({"status": "error", "error": f"téléchargement vidéo impossible : {e}"}, status_code=400)
+    JOBS[job_id] = {"status": "processing", "step": "transcription"}
+
+    def run():
+        try:
+            cache = pipeline.transcribe(src, progress=lambda st: JOBS[job_id].update(step=st))
+            data = json.load(open(cache, encoding="utf-8"))
+            JOBS[job_id].update(status="done", words=data.get("words") or [], language=data.get("language"))
+        except Exception as e:
+            JOBS[job_id].update(status="error", error=str(e)[:500])
+        finally:
+            shutil.rmtree(job_dir, ignore_errors=True)
+
+    threading.Thread(target=run, daemon=True).start()
+    return {"job_id": job_id}
+
+
 @app.get("/jobs")
 def jobs_list():
     """Montages récents (pour la galerie d'accueil) — liste vide si

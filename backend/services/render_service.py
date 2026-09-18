@@ -102,14 +102,35 @@ def _rearmer_perimes() -> None:
         logger.warning(f"render worker rearmer: {e}")
 
 
+def _compositions_connues() -> list:
+    """Les ids de composition déclarés dans le projet Remotion de CETTE instance (Root.tsx).
+    La base est partagée entre le local et la prod : un worker ne doit réclamer que les jobs
+    qu'il sait rendre, sinon une composition nouvelle sur dev échoue en prod (vu le 2026-09-18,
+    « Could not find composition with ID Montage »)."""
+    try:
+        from services.remotion_service import REMOTION_DIR
+        import re
+        src = open(os.path.join(REMOTION_DIR, "src", "Root.tsx"), encoding="utf-8").read()
+        return sorted(set(re.findall(r'id="([A-Za-z0-9_-]+)"', src)))
+    except Exception as e:
+        logger.warning(f"render worker: compositions connues illisibles : {e}")
+        return []
+
+
+COMPOSITIONS_CONNUES = _compositions_connues()
+
+
 def _claim():
-    """Prend le plus ancien job libre. L'update conditionnel (render_started_at IS NULL)
-    garantit qu'un seul worker l'obtient, meme avec plusieurs instances."""
-    r = (supabase.table("contenu")
+    """Prend le plus ancien job libre (parmi les compositions que cette instance sait rendre).
+    L'update conditionnel (render_started_at IS NULL) garantit qu'un seul worker l'obtient,
+    meme avec plusieurs instances."""
+    q = (supabase.table("contenu")
          .select("id, telegram_id, reseau_cible, serie_id, render_job, titre")
          .eq("video_status", "en_traitement").not_.is_("render_job", "null")
-         .is_("render_started_at", "null")
-         .order("created_at").limit(1).execute())
+         .is_("render_started_at", "null"))
+    if COMPOSITIONS_CONNUES:
+        q = q.in_("render_job->>composition", COMPOSITIONS_CONNUES)
+    r = q.order("created_at").limit(1).execute()
     if not r.data:
         return None
     row = r.data[0]

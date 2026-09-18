@@ -133,6 +133,10 @@ def render_mp4(props: dict, composition: str, *, telegram_id: str = None,
                            encoding="utf-8", errors="replace", timeout=900)
         if r.returncode != 0 or not os.path.exists(out_path):
             tail = (r.stderr or r.stdout or "")[-800:]
+            # Le début de la sortie dit si le bundle vient du cache et depuis quel dossier :
+            # indispensable pour comprendre une composition « introuvable » (vu le 2026-09-18).
+            tete = (r.stdout or "")[:500].replace(chr(10), " | ")
+            logger.error(f"rendu remotion échec — cwd={REMOTION_DIR} cmd={' '.join(cmd[:5])} | stdout: {tete}")
             raise RuntimeError(f"rendu remotion (code {r.returncode}) : {tail}")
         ok = True
         return out_path

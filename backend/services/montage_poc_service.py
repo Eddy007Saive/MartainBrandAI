@@ -225,3 +225,30 @@ async def suggest_hooks(file_bytes: bytes, filename: str, content_type: str | No
     except Exception as e:
         logger.error(f"montage-poc suggest_hooks exception: {type(e).__name__}: {e}")
         return {"ok": False, "error": "Service de montage injoignable, réessaie."}
+
+
+async def transcrire_url(video_url: str, attente_s: int = 420) -> dict:
+    """Transcription seule d'une vidéo en ligne (éditeur manuel : sous-titres d'un plan).
+    Retourne {ok, words:[{text,start,end}], language} ou {ok:False, error}."""
+    if not enabled():
+        return {"ok": False, "error": "Service de montage indisponible."}
+    try:
+        async with httpx.AsyncClient(timeout=CREATE_TIMEOUT) as c:
+            r = await c.post(f"{MONTAGE_POC_URL}/transcribe", data={"video_url": video_url}, headers=_headers())
+        if r.status_code >= 300:
+            logger.error(f"montage-poc transcribe error {r.status_code}: {r.text[:200]}")
+            return {"ok": False, "error": "Transcription indisponible."}
+        job_id = r.json().get("job_id")
+        deadline = time.monotonic() + attente_s
+        async with httpx.AsyncClient(timeout=POLL_TIMEOUT) as c:
+            while time.monotonic() < deadline:
+                await asyncio.sleep(2)
+                jd = (await c.get(f"{MONTAGE_POC_URL}/jobs/{job_id}", headers=_headers())).json()
+                if jd.get("status") == "done":
+                    return {"ok": True, "words": jd.get("words") or [], "language": jd.get("language")}
+                if jd.get("status") == "error":
+                    return {"ok": False, "error": jd.get("error") or "Échec de la transcription."}
+        return {"ok": False, "error": "Délai dépassé, réessaie."}
+    except Exception as e:
+        logger.error(f"montage-poc transcribe exception: {type(e).__name__}: {e}")
+        return {"ok": False, "error": "Transcription indisponible."}

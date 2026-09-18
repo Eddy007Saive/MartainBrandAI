@@ -2529,6 +2529,13 @@
     redux-thunk "^3.1.0"
     reselect "^5.1.0"
 
+"@remotion/player@4.0.506":
+  version "4.0.506"
+  resolved "https://registry.yarnpkg.com/@remotion/player/-/player-4.0.506.tgz#36765f69cd8e047b9025d52cd22d8117af74f72a"
+  integrity sha512-ziGLfEFMaNa/w+GdrPqGyBSes2s/ePMD6c+dCcd1nYYmdr3H2a/8ujahnNLg0XZCi9DeDaPo6CQUL7/Q+qwmNg==
+  dependencies:
+    remotion "4.0.506"
+
 "@rollup/plugin-babel@^5.2.0":
   version "5.3.1"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-babel/-/plugin-babel-5.3.1.tgz#04bc0608f4aa4b2e4b1aebf284344d0f68fda283"
@@ -9877,6 +9884,11 @@ relateurl@^0.2.7:
   version "0.2.7"
   resolved "https://registry.yarnpkg.com/relateurl/-/relateurl-0.2.7.tgz#54dbf377e51440aca90a4cd274600d3ff2d888a9"
   integrity sha512-G08Dxvm4iDN3MLM0EsP62EDV9IuhXPR6blNz6Utcp7zyV3tr4HVNINt6MpaRWbxoOHT3Q7YN2P+jaHX8vUbgog==
+
+remotion@4.0.506:
+  version "4.0.506"
+  resolved "https://registry.yarnpkg.com/remotion/-/remotion-4.0.506.tgz#f2500944019cbc263206c8792dbb63e8f0b43167"
+  integrity sha512-oKmfOOeRclb9JBoN1//gHKOZDAEDOcSr8X/ApKBzJzskTXqEwo8nfnOQs4phHO343q56YbMcnXyLBFPAzcBB/w==
 
 renderkid@^3.0.0:
   version "3.0.0"

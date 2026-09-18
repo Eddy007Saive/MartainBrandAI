@@ -36,6 +36,7 @@ const ContenusPage = lazy(() => import("./pages/ContenusPage"));
 const StudioIA = lazy(() => import("./pages/StudioIA"));
 const StudioVideo = lazy(() => import("./pages/StudioVideo"));
 const EditionVideo = lazy(() => import("./pages/EditionVideo"));
+const EditeurVideo = lazy(() => import("./pages/EditeurVideo"));
 const StudioReel = lazy(() => import("./pages/StudioReel"));
 const PlanEditorial = lazy(() => import("./pages/PlanEditorial"));
 const CommentairesPage = lazy(() => import("./pages/CommentairesPage"));
@@ -119,6 +120,8 @@ function App() {
               <Route path="studio" element={<StudioIA />} />
               <Route path="video" element={<StudioVideo />} />
               <Route path="video/edition" element={<EditionVideo />} />
+              <Route path="editeur" element={<EditeurVideo />} />
+              <Route path="editeur/:id" element={<EditeurVideo />} />
               <Route path="reel" element={<StudioReel />} />
               <Route path="plan" element={<PlanEditorial />} />
               <Route path="contenus" element={<ContenusPage />} />

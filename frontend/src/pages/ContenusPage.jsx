@@ -30,6 +30,7 @@ import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { contenuService } from '../services/contenuService';
+import { editeurService } from '../services/editeurService';
 import { PillFabrication } from '../components/Fabrication';
 import { lienTelechargement } from '../lib/telechargement';
 import { agentService } from '../services/agentService';
@@ -488,6 +489,19 @@ export default function ContenusPage() {
     setSelectedContenu(null);
     if (c.submagic_project_id) navigate(`/dashboard/video/edition?contenu=${c.id}`);
     else navigate(`/dashboard/video?contenu_id=${c.id}`);
+  };
+  // « Ouvrir dans l'éditeur » : la vidéo (reel Remotion, vidéo montée ou importée) devient un
+  // projet de montage manuel, plan par plan ; le montage déjà ouvert pour ce contenu est réutilisé.
+  const [editeurEnCours, setEditeurEnCours] = useState(false);
+  const ouvrirEditeur = async (c) => {
+    setEditeurEnCours(true);
+    try {
+      const r = await editeurService.depuisContenu(c.id);
+      setSelectedContenu(null);
+      navigate(`/dashboard/editeur/${r.id}`);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('editeur.echecChargement'));
+    } finally { setEditeurEnCours(false); }
   };
 
   const doReel = async (contenu, duree = 'affiche') => {
@@ -1734,9 +1748,15 @@ export default function ContenusPage() {
                   </span>
                   <div className="flex items-center gap-2 flex-wrap justify-end ml-auto">
                     {selectedContenu.video_url && selectedContenu.statut !== 'Publie' && (
-                      <Button size="sm" onClick={() => ouvrirModificationVideo(selectedContenu)} data-testid="video-modifier-footer"
-                        className="bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 font-sora font-semibold rounded-[11px]">
-                        <Video className="w-4 h-4 mr-1.5" />{t('contenus.detail.modifierVideo')}</Button>
+                      <>
+                        <Button size="sm" onClick={() => ouvrirEditeur(selectedContenu)} disabled={editeurEnCours} data-testid="video-editeur"
+                          title={t('editeur.ouvrirAide')}
+                          className="bg-[#8A6CFF]/10 border border-[#8A6CFF]/40 text-[#c4b5fd] hover:bg-[#8A6CFF]/20 hover:text-white font-sora font-semibold rounded-[11px]">
+                          {editeurEnCours ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Clapperboard className="w-4 h-4 mr-1.5" />}{t('editeur.ouvrir')}</Button>
+                        <Button size="sm" onClick={() => ouvrirModificationVideo(selectedContenu)} data-testid="video-modifier-footer"
+                          className="bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10 font-sora font-semibold rounded-[11px]">
+                          <Video className="w-4 h-4 mr-1.5" />{t('contenus.detail.modifierVideo')}</Button>
+                      </>
                     )}
                     {selectedContenu.statut === 'A valider' && (
                       <>

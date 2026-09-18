@@ -6,6 +6,10 @@ import { ReelStat } from './ReelStat';
 import { ReelAffiche } from './ReelAffiche';
 import { ReelSequence, dureeScenario, SequenceSegment } from './ReelSequence';
 import { StoryAnime } from './StoryAnime';
+// @ts-ignore — JSX partagé avec le front (éditeur vidéo manuel), voir montage/schema.js
+import { Montage } from './montage/Montage.jsx';
+// @ts-ignore
+import { dureeEnFrames, projetVide } from './montage/schema.js';
 
 // Les props sont injectées par le backend (reel_service.py) via --props.
 export const Root: React.FC = () => (
@@ -133,6 +137,23 @@ export const Root: React.FC = () => (
         lecon: 'La régularité bat le talent quand le talent ne publie pas.',
         cta: 'postorico.com',
       }}
+    />
+    {/* Éditeur vidéo manuel : le projet JSON de l'éditeur est rendu tel quel (durée depuis les éléments) */}
+    <Composition
+      id="Montage"
+      // @ts-ignore
+      component={Montage}
+      durationInFrames={150}
+      fps={30}
+      width={1080}
+      height={1920}
+      calculateMetadata={({ props }: { props: any }) => ({
+        durationInFrames: dureeEnFrames(props),
+        fps: props.fps || 30,
+        width: props.largeur || 1080,
+        height: props.hauteur || 1920,
+      })}
+      defaultProps={projetVide() as any}
     />
   </>
 );
