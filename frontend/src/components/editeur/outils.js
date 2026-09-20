@@ -85,3 +85,30 @@ export function aimanter(valeur, cibles, tolerance) {
 }
 
 export { dureeProjet };
+
+/**
+ * Sépare l'audio d'un plan vidéo : le plan devient muet, un élément audio indépendant (mêmes
+ * bornes, même départ dans la source, même vitesse) est posé sur la piste Audio — ou sur une
+ * piste Audio supplémentaire si celle-là est déjà occupée à cet endroit (musique, voix off).
+ * Le client peut alors déplacer, couper ou supprimer le son sans toucher à l'image.
+ */
+export function separerAudio(projet, id, nouveauId, nouvellePisteId) {
+  const v = projet.elements.find((x) => x.id === id);
+  if (!v || v.type !== 'video') return { projet, nouveau: null };
+  const pistesAudio = projet.pistes.filter((p) => p.type === 'audio');
+  const occupee = (pisteId) => projet.elements.some((x) => x.piste === pisteId && v.debut < x.debut + x.duree && v.debut + v.duree > x.debut);
+  let pistes = projet.pistes;
+  let piste = pistesAudio.find((p) => !p.verrou && !occupee(p.id));
+  if (!piste) {
+    piste = { id: nouvellePisteId, type: 'audio', nom: 'Audio', muet: false, verrou: false };
+    pistes = [...pistes, piste];
+  }
+  const audio = {
+    id: nouveauId, piste: piste.id, type: 'audio', debut: v.debut, duree: v.duree, opacite: 1,
+    src: v.src, decalage: v.decalage || 0, vitesse: v.vitesse || 1, volume: v.volume ?? 1, fonduSortie: 0,
+  };
+  return {
+    projet: { ...projet, pistes, elements: [...projet.elements.map((x) => (x.id === id ? { ...x, volume: 0 } : x)), audio] },
+    nouveau: nouveauId,
+  };
+}

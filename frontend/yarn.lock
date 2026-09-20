@@ -2529,6 +2529,13 @@
     redux-thunk "^3.1.0"
     reselect "^5.1.0"
 
+"@remotion/google-fonts@4.0.506":
+  version "4.0.506"
+  resolved "https://registry.yarnpkg.com/@remotion/google-fonts/-/google-fonts-4.0.506.tgz#a55d797cbbc46b865cbf4089528cc4dde8b344a8"
+  integrity sha512-H+rRzh/WzGFAYAUuMajn5hXVjcAnCZgszXU7R19M9etx3GEh0HV+HvpcUdCASVmznL5YHjGMK9QFMntZwNj3bw==
+  dependencies:
+    remotion "4.0.506"
+
 "@remotion/player@4.0.506":
   version "4.0.506"
   resolved "https://registry.yarnpkg.com/@remotion/player/-/player-4.0.506.tgz#36765f69cd8e047b9025d52cd22d8117af74f72a"

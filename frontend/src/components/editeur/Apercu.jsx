@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Player } from '@remotion/player';
 import { Montage } from '../../generated/montage/Montage.jsx';
 import { dureeEnFrames, elementsA } from '../../generated/montage/schema.js';
@@ -14,6 +14,8 @@ export default function Apercu({ projet, tete, onTete, lecture, onLecture, selec
   const [taille, setTaille] = useState({ w: 270, h: 480 });
   const [glisser, setGlisser] = useState(null);
   const fps = projet.fps || 30;
+  // En pause, chaque élément est montré dans son état posé ; la lecture rejoue les animations.
+  const entree = useMemo(() => ({ ...projet, __statique: !lecture }), [projet, lecture]);
   const ratio = projet.largeur / projet.hauteur;
 
   // Ajuste l'aperçu à l'espace disponible en gardant le ratio du projet.
@@ -97,7 +99,7 @@ export default function Apercu({ projet, tete, onTete, lecture, onLecture, selec
         <Player
           ref={player}
           component={Montage}
-          inputProps={projet}
+          inputProps={entree}
           durationInFrames={dureeEnFrames(projet)}
           fps={fps}
           compositionWidth={projet.largeur}

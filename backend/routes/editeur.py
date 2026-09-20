@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from dependencies import verify_token
 from services import editeur_service, quota_service, demarrage_service
-from models.montage import MontageCreer, MontageModifier, MontageRendre, MontageTranscrire
+from models.montage import MontageCreer, MontageModifier, MontageRendre, MontageTranscrire, MontageVoixOff, MontageSilences
 
 router = APIRouter(prefix="/editeur", tags=["editeur"])
 
@@ -89,6 +89,37 @@ async def transcrire(montage_id: str, body: MontageTranscrire, payload: dict = D
         raise HTTPException(status_code=429, detail="Beaucoup de transcriptions d'un coup. Réessaie dans quelques minutes.")
     rate_limit.fail(cle, 10, 3600, 600)
     res = await editeur_service.transcrire(telegram_id, montage_id, body.element_id)
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res
+
+
+@router.post("/voix-off")
+async def voix_off(body: MontageVoixOff, payload: dict = Depends(verify_token)):
+    """Génère un clip de voix off à partir d'un texte (1 phrase, 1 quota « voix »).
+    Le client le pose ensuite lui-même sur la piste Audio."""
+    telegram_id = _tid(payload)
+    res = await editeur_service.generer_voix_off(telegram_id, body.texte, body.voix)
+    if res.get("error_quota"):
+        q = res["error_quota"]
+        raise HTTPException(status_code=402, detail={"raison": q.get("reason") or "quota",
+                                                     "message": q.get("message") or "Quota de voix off épuisé."})
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res
+
+
+@router.post("/montages/{montage_id}/silences")
+async def silences(montage_id: str, body: MontageSilences, payload: dict = Depends(verify_token)):
+    """Coupe les silences d'un plan vidéo en un clic : transcription Whisper, remplacement
+    par les sous-plans parlés. Gratuit, plafonné à 10 par heure et par compte."""
+    telegram_id = _tid(payload)
+    from services import rate_limit
+    cle = f"silences:{telegram_id}"
+    if rate_limit.locked_for(cle) > 0:
+        raise HTTPException(status_code=429, detail="Beaucoup de détections d'un coup. Réessaie dans quelques minutes.")
+    rate_limit.fail(cle, 10, 3600, 600)
+    res = await editeur_service.couper_silences(telegram_id, montage_id, body.element_id, body.intensite)
     if res.get("error"):
         raise HTTPException(status_code=400, detail=res["error"])
     return res

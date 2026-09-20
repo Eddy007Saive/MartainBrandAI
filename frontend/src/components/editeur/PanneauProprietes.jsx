@@ -1,4 +1,5 @@
-import { ANIMATIONS, STYLE_SOUSTITRES_DEFAUT } from '../../generated/montage/schema.js';
+import { useState } from 'react';
+import { ANIMATIONS, STYLE_SOUSTITRES_DEFAUT, TRANSITIONS, TRANSITION_DUREE_DEFAUT, MODES_SOUSTITRES, POLICES_LISTE, RECADRE_DEFAUT } from '../../generated/montage/schema.js';
 import { fmtTemps } from './outils';
 
 /**
@@ -11,7 +12,7 @@ const FORMATS = [
   { id: '1:1', l: 1080, h: 1080 },
   { id: '16:9', l: 1920, h: 1080 },
 ];
-const POLICES = ['Sora', 'Inter', 'Georgia', 'Mono'];
+const POLICES = POLICES_LISTE;
 
 const Champ = ({ label, children }) => (
   <label className="block">
@@ -43,9 +44,12 @@ const Bascule = ({ label, valeur, onChange }) => (
     className={`text-[11.5px] font-inter font-semibold px-2.5 py-1.5 rounded-lg border ${valeur ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:text-white'}`}>{label}</button>
 );
 
-export default function PanneauProprietes({ projet, element, onElement, onProjet, onTranscrire, transcription, t }) {
+export default function PanneauProprietes({ projet, element, onElement, onProjet, onTranscrire, transcription, onSilences, silences, onSeparerAudio, t }) {
   const majStyle = (k, v) => onElement((e) => ({ ...e, style: { ...(e.style || {}), [k]: v } }));
   const majCadre = (k, v) => onElement((e) => ({ ...e, cadre: { ...(e.cadre || { x: 0, y: 0, w: 100, h: 100 }), [k]: v } }));
+  // Préférence d'intensité pour « Couper les silences » : réglage de session, pas une
+  // propriété du plan (elle ne doit pas se retrouver enregistrée dans le projet).
+  const [intensiteSilence, setIntensiteSilence] = useState('naturel');
 
   if (!element) {
     const stS = { ...STYLE_SOUSTITRES_DEFAUT, ...(projet.soustitres?.style || {}) };
@@ -66,8 +70,23 @@ export default function PanneauProprietes({ projet, element, onElement, onProjet
         <div className="pt-2 border-t border-white/[0.06]">
           <h4 className="text-[12px] font-sora font-semibold text-slate-200 mb-2">{t('editeur.prop.soustitres')}</h4>
           <div className="space-y-2.5">
+            <Champ label={t('editeur.prop.modeSoustitres')}>
+              <div className="grid grid-cols-3 gap-1">
+                {MODES_SOUSTITRES.map((m) => (
+                  <button key={m} type="button" onClick={() => majS('mode', m)} data-testid={`prop-st-mode-${m}`}
+                    className={`text-[11px] font-inter py-1.5 rounded-lg border ${(stS.mode || 'surligne') === m ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:text-white'}`}>{t(`editeur.modeSt.${m}`)}</button>
+                ))}
+              </div>
+              <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1">{t('editeur.prop.modeSoustitresAide')}</p>
+            </Champ>
+            <Champ label={t('editeur.prop.police')}>
+              <select value={stS.police || 'Sora'} onChange={(ev) => majS('police', ev.target.value)} className={cls} data-testid="prop-st-police">
+                {POLICES.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </Champ>
             <Champ label={t('editeur.prop.taille')}><Nombre valeur={stS.taille} onChange={(v) => majS('taille', v)} min={20} max={160} pas={2} suffixe="px" /></Champ>
             <Champ label={t('editeur.prop.couleur')}><Couleur valeur={stS.couleur} onChange={(v) => majS('couleur', v)} /></Champ>
+            <Champ label={t('editeur.prop.couleurActive')}><Couleur valeur={stS.couleurActive} onChange={(v) => majS('couleurActive', v)} /></Champ>
             <Champ label={t('editeur.prop.fondTexte')}><Couleur valeur={stS.fond} onChange={(v) => majS('fond', v)} /></Champ>
             <Champ label={t('editeur.prop.position')}><Curseur valeur={stS.position} onChange={(v) => majS('position', v)} min={5} max={90} pas={1} /></Champ>
             <div className="flex gap-1.5"><Bascule label={t('editeur.prop.gras')} valeur={stS.gras} onChange={(v) => majS('gras', v)} /><Bascule label={t('editeur.prop.contour')} valeur={stS.contour} onChange={(v) => majS('contour', v)} /></div>
@@ -89,7 +108,20 @@ export default function PanneauProprietes({ projet, element, onElement, onProjet
 
       {(e.type === 'texte' || e.type === 'soustitre') && (
         <Champ label={t('editeur.prop.texte')}>
-          <textarea value={e.texte || ''} rows={3} maxLength={600} onChange={(ev) => onElement({ texte: ev.target.value })} className={`${cls} resize-none`} data-testid="prop-texte" />
+          <textarea value={e.texte || ''} rows={3} maxLength={600} className={`${cls} resize-none`} data-testid="prop-texte"
+            onChange={(ev) => {
+              const texte = ev.target.value;
+              // Sous-titre animé : on garde les temps des mots si le nombre de mots ne change pas
+              // (correction d'orthographe) ; sinon les mots horodatés tombent, la phrase reste.
+              if (e.type === 'soustitre' && Array.isArray(e.mots) && e.mots.length) {
+                const nouveaux = texte.trim().split(/\s+/).filter(Boolean);
+                if (nouveaux.length === e.mots.length) onElement({ texte, mots: e.mots.map((m, i) => ({ ...m, texte: nouveaux[i] })) });
+                else onElement({ texte, mots: null });
+              } else onElement({ texte });
+            }} />
+          {e.type === 'soustitre' && (
+            <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1">{Array.isArray(e.mots) && e.mots.length ? t('editeur.prop.motsOk', { count: e.mots.length }) : t('editeur.prop.motsAbsents')}</p>
+          )}
         </Champ>
       )}
 
@@ -114,6 +146,31 @@ export default function PanneauProprietes({ projet, element, onElement, onProjet
           <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1.5">{t('editeur.prop.transcrireAide')}</p>
         </div>
       )}
+      {e.type === 'video' && onSeparerAudio && (
+        <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-2.5">
+          <button type="button" onClick={() => onSeparerAudio(e.id)} disabled={(e.volume ?? 1) === 0} data-testid="prop-separer-audio"
+            className="w-full h-9 inline-flex items-center justify-center gap-2 rounded-lg text-[12.5px] font-inter font-semibold text-slate-200 border border-white/15 hover:bg-white/[0.06] disabled:opacity-40 disabled:cursor-not-allowed">
+            {t('editeur.prop.separerAudio')}
+          </button>
+          <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1.5">{(e.volume ?? 1) === 0 ? t('editeur.prop.separerAudioDeja') : t('editeur.prop.separerAudioAide')}</p>
+        </div>
+      )}
+      {e.type === 'video' && onSilences && (
+        <div className="rounded-lg border border-[#3AFFA3]/30 bg-[#3AFFA3]/[0.06] p-2.5" data-testid="prop-silences">
+          <div className="grid grid-cols-3 gap-1 mb-2">
+            {['naturel', 'rythme', 'serre'].map((i) => (
+              <button key={i} type="button" onClick={() => setIntensiteSilence(i)} data-testid={`prop-silences-intensite-${i}`}
+                className={`text-[11px] font-inter py-1 rounded-md border ${intensiteSilence === i ? 'border-[#3AFFA3] text-[#3AFFA3]' : 'border-white/10 text-slate-400'}`}>{t(`editeur.intensiteSilence.${i}`)}</button>
+            ))}
+          </div>
+          <button type="button" onClick={() => onSilences(e.id, intensiteSilence)} disabled={!!silences} data-testid="prop-silences-couper"
+            className="w-full h-9 inline-flex items-center justify-center gap-2 rounded-lg text-[12.5px] font-inter font-semibold text-[#3AFFA3] border border-[#3AFFA3]/50 hover:bg-[#3AFFA3]/15 disabled:opacity-60">
+            {silences === e.id ? <span className="w-3.5 h-3.5 rounded-full border-2 border-[#3AFFA3]/40 border-t-[#3AFFA3] animate-spin" /> : null}
+            {silences === e.id ? t('editeur.prop.silencesEnCours') : t('editeur.prop.silencesCouper')}
+          </button>
+          <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1.5">{t('editeur.prop.silencesAide')}</p>
+        </div>
+      )}
       {e.type === 'video' && (
         <Champ label={t('editeur.prop.vitesse')}>
           <div className="grid grid-cols-4 gap-1">
@@ -128,6 +185,44 @@ export default function PanneauProprietes({ projet, element, onElement, onProjet
         <Champ label={t('editeur.prop.fonduSortie')}><Nombre valeur={e.fonduSortie || 0} onChange={(v) => onElement({ fonduSortie: Math.max(0, v) })} min={0} max={10} pas={0.5} suffixe="s" /></Champ>
       )}
 
+      {(e.type === 'video' || e.type === 'image') && (
+        <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-2.5" data-testid="prop-transition">
+          <div className="text-[10.5px] uppercase tracking-wide text-slate-500 font-inter mb-1.5">{t('editeur.prop.transition')}</div>
+          <div className="grid grid-cols-3 gap-1">
+            {TRANSITIONS.map((tr) => {
+              const actif = (e.transition?.type || 'aucune') === tr;
+              return (
+                <button key={tr} type="button" data-testid={`prop-transition-${tr}`}
+                  onClick={() => onElement({ transition: tr === 'aucune' ? null : { type: tr, duree: e.transition?.duree || TRANSITION_DUREE_DEFAUT } })}
+                  className={`text-[11.5px] font-inter py-1.5 rounded-lg border ${actif ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:text-white'}`}>{t(`editeur.transition.${tr}`)}</button>
+              );
+            })}
+          </div>
+          {e.transition?.type && e.transition.type !== 'aucune' && (
+            <div className="mt-2">
+              <Champ label={`${t('editeur.prop.transitionDuree')} · ${(e.transition.duree || TRANSITION_DUREE_DEFAUT).toFixed(1)} s`}>
+                <Curseur valeur={e.transition.duree || TRANSITION_DUREE_DEFAUT} onChange={(v) => onElement({ transition: { ...e.transition, duree: v } })} min={0.2} max={1.5} pas={0.1} />
+              </Champ>
+            </div>
+          )}
+          <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1.5">{t('editeur.prop.transitionAide')}</p>
+        </div>
+      )}
+      {(e.type === 'video' || e.type === 'image') && (() => {
+        const rc = { ...RECADRE_DEFAUT, ...(e.recadre || {}) };
+        const majRc = (k, v) => onElement({ recadre: { ...rc, [k]: v } });
+        return (
+          <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-2.5 space-y-2" data-testid="prop-recadrage">
+            <div className="text-[10.5px] uppercase tracking-wide text-slate-500 font-inter">{t('editeur.prop.recadrage')}</div>
+            <Champ label={`${t('editeur.prop.recadrageZoom')} · ${Math.round(rc.zoom * 100)} %`}><Curseur valeur={rc.zoom} onChange={(v) => majRc('zoom', v)} min={1} max={4} pas={0.05} /></Champ>
+            <div className="grid grid-cols-2 gap-2">
+              <Champ label={t('editeur.prop.recadrageX')}><Curseur valeur={rc.x} onChange={(v) => majRc('x', v)} min={0} max={100} pas={1} /></Champ>
+              <Champ label={t('editeur.prop.recadrageY')}><Curseur valeur={rc.y} onChange={(v) => majRc('y', v)} min={0} max={100} pas={1} /></Champ>
+            </div>
+            <p className="text-[11px] text-slate-500 font-inter leading-snug">{t('editeur.prop.recadrageAide')}</p>
+          </div>
+        );
+      })()}
       {(e.type === 'video' || e.type === 'image') && (
         <>
           <Champ label={t('editeur.prop.ajustement')}>

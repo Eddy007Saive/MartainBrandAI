@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Upload, Play, Type, Music, Film, Image as ImageIcon, Video } from 'lucide-react';
+import { Loader2, Upload, Play, Pause, Type, Music, Film, Image as ImageIcon, Video, Mic, Sparkles } from 'lucide-react';
 import { contenuService } from '../../services/contenuService';
+import { editeurService } from '../../services/editeurService';
 import { STYLES_TEXTE } from '../../generated/montage/schema.js';
 import { dureeMedia, estClip } from './outils';
 
@@ -9,7 +10,7 @@ import { dureeMedia, estClip } from './outils';
  * Panneau de gauche : tout ce qu'on peut poser sur la timeline. Un clic ajoute l'élément à la
  * tête de lecture (la page se charge de la piste et du chevauchement).
  */
-const ONGLETS = ['medias', 'videos', 'musique', 'texte'];
+const ONGLETS = ['medias', 'videos', 'musique', 'texte', 'voix'];
 
 export default function PanneauMedias({ medias, setMedias, onAjouter, t }) {
   const [onglet, setOnglet] = useState('medias');
@@ -17,6 +18,39 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, t }) {
   const [occupe, setOccupe] = useState(null);
   const [categorie, setCategorie] = useState('');
   const fichier = useRef(null);
+
+  // ---- Voix off : catalogue de voix, phrase à dire, génération ----
+  const [catVoix, setCatVoix] = useState(null);
+  const [voixChoisie, setVoixChoisie] = useState(null);
+  const [phraseVoix, setPhraseVoix] = useState('');
+  const [voixEnCours, setVoixEnCours] = useState(false);
+  const [ecoute, setEcoute] = useState(null);
+  const audioApercu = useRef(null);
+  useEffect(() => {
+    contenuService.reelVoix().then((c) => {
+      setCatVoix(c);
+      if (c?.disponible) setVoixChoisie(c.defaut || c.voix?.[0]?.id || null);
+    }).catch(() => setCatVoix({ disponible: false }));
+    return () => { if (audioApercu.current) { audioApercu.current.pause(); audioApercu.current = null; } };
+  }, []);
+  const ecouterApercu = (v) => {
+    if (audioApercu.current) { audioApercu.current.pause(); audioApercu.current = null; }
+    if (ecoute === v.id) { setEcoute(null); return; }
+    const a = new Audio(v.apercu); audioApercu.current = a; setEcoute(v.id);
+    a.play().catch(() => {}); a.onended = () => setEcoute(null);
+  };
+  const genererVoixOff = async () => {
+    if (!phraseVoix.trim() || !voixChoisie) return;
+    setVoixEnCours(true);
+    try {
+      const r = await editeurService.genererVoixOff(phraseVoix.trim(), voixChoisie);
+      onAjouter('audio', { src: r.url, duree: r.duree, volume: 1, fonduSortie: 0, nom: t('editeur.medias.voixOffNom') });
+      toast.success(t('editeur.medias.voixOffOk'));
+      setPhraseVoix('');
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.detail?.message || e.response?.data?.detail || t('editeur.medias.voixOffEchec'));
+    } finally { setVoixEnCours(false); }
+  };
 
   const ajouterVisuel = async (url, apercu, type) => {
     setOccupe(url);
@@ -155,6 +189,40 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, t }) {
               {musiques.length === 0 && <p className="text-[12px] text-slate-500 font-inter">{t('editeur.medias.musiqueVide')}</p>}
             </div>
           </>
+        )}
+
+        {onglet === 'voix' && (
+          <div className="space-y-3">
+            <p className="text-[11.5px] text-slate-500 font-inter leading-snug">{t('editeur.medias.voixOffAide')}</p>
+            <textarea value={phraseVoix} onChange={(e) => setPhraseVoix(e.target.value)} rows={3} maxLength={500}
+              placeholder={t('editeur.medias.voixOffPh')} data-testid="voix-off-texte"
+              className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 resize-none" />
+            {!catVoix ? (
+              <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+            ) : !catVoix.disponible ? (
+              <p className="text-[12px] text-amber-400 font-inter">{t('editeur.medias.voixIndisponible')}</p>
+            ) : (
+              <div className="space-y-1">
+                {(catVoix.voix || []).map((v) => (
+                  <button key={v.id} type="button" onClick={() => setVoixChoisie(v.id)} data-testid={`voix-off-choix-${v.id}`}
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg border text-left ${voixChoisie === v.id ? 'border-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/[0.06] hover:border-white/20'}`}>
+                    <span onClick={(e) => { e.stopPropagation(); ecouterApercu(v); }}
+                      className="w-6 h-6 shrink-0 rounded-full bg-white/10 grid place-items-center hover:bg-white/20">
+                      {ecoute === v.id ? <Pause className="w-3 h-3 text-white" /> : <Play className="w-3 h-3 text-white" />}
+                    </span>
+                    <span className="text-[12.5px] text-slate-200 font-inter capitalize flex-1">{t(`voixOff.voix.${v.id}.nom`, v.id)}</span>
+                    {voixChoisie === v.id && <span className="w-2 h-2 rounded-full bg-[#3AFFA3]" />}
+                  </button>
+                ))}
+              </div>
+            )}
+            <button type="button" onClick={genererVoixOff} disabled={voixEnCours || !phraseVoix.trim() || !voixChoisie || !catVoix?.disponible}
+              data-testid="voix-off-generer"
+              className="w-full h-10 inline-flex items-center justify-center gap-2 rounded-[10px] text-[13px] font-inter font-semibold text-white bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 disabled:opacity-50">
+              {voixEnCours ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mic className="w-4 h-4" />}
+              {voixEnCours ? t('editeur.medias.voixOffEnCours') : t('editeur.medias.voixOffGenerer')}
+            </button>
+          </div>
         )}
 
         {onglet === 'texte' && (

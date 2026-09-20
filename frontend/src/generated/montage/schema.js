@@ -25,12 +25,40 @@ export const STYLES_TEXTE = {
   discret:  { police: 'Inter', taille: 38, couleur: '#E2E8F0', fond: 'transparent', gras: false, italique: true, align: 'left', ombre: true, contour: false, rayon: 0, marge: 0, animation: 'fondu' },
 };
 
+/** mode : 'phrase' (bloc fixe), 'surligne' (phrase entière, mot en cours en couleur active),
+ *  'apparition' (les mots apparaissent au fil de la voix, façon Submagic). Les deux modes animés
+ *  demandent des mots horodatés sur l'élément : `mots: [{t, d, texte}]`, t et d relatifs au début
+ *  du sous-titre ; sans eux, le sous-titre se comporte en 'phrase'. */
 export const STYLE_SOUSTITRES_DEFAUT = {
   police: 'Sora', taille: 58, couleur: '#FFFFFF', couleurActive: '#3AFFA3', fond: 'rgba(2,6,23,0.55)',
   gras: true, contour: true, rayon: 16, marge: 20, position: 74,  // position = % du haut
+  mode: 'surligne',
 };
+export const MODES_SOUSTITRES = ['phrase', 'surligne', 'apparition'];
 
 export const ANIMATIONS = ['aucune', 'fondu', 'monter', 'pop'];
+
+/** Polices proposées (Google Fonts, chargées par la composition via @remotion/google-fonts :
+ *  même fichier de police à l'aperçu et au rendu serveur). Georgia et Mono restent des polices
+ *  système, sans chargement. */
+export const POLICES_LISTE = ['Sora', 'Inter', 'Montserrat', 'Poppins', 'Bebas Neue', 'Anton', 'Playfair Display', 'Caveat', 'Georgia', 'Mono'];
+
+/** Recadrage d'un plan image ou vidéo : zoom (1 à 5) vers un point d'intérêt x, y en % du média. */
+export const RECADRE_DEFAUT = { zoom: 1, x: 50, y: 50 };
+
+/** Transitions d'ENTRÉE d'un plan image ou vidéo : le plan précédent de la même piste reste
+ *  affiché dessous pendant la transition (il est prolongé d'autant par la composition). */
+export const TRANSITIONS = ['aucune', 'fondu', 'glisser', 'zoom', 'volet', 'noir'];
+export const TRANSITION_DUREE_DEFAUT = 0.5;
+
+/** Prolongation d'un plan : la durée de la transition du plan qui le suit sur la même piste,
+ *  s'ils se touchent (à 0,1 s près). Partagé aperçu / rendu. */
+export function prolongation(projet, e) {
+  const fin = (e.debut || 0) + (e.duree || 0);
+  const suivant = (projet.elements || []).find((x) => x.id !== e.id && x.piste === e.piste
+    && x.transition && x.transition.type && x.transition.type !== 'aucune' && Math.abs((x.debut || 0) - fin) <= 0.1);
+  return suivant ? Math.min(2, Math.max(0.1, suivant.transition.duree || TRANSITION_DUREE_DEFAUT)) : 0;
+}
 
 export function nouvelId() {
   return Math.random().toString(36).slice(2, 10);

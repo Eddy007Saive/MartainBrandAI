@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Play, Pause, Scissors, Copy, Trash2, Undo2, Redo2, Loader2, Download, Check, ZoomIn, ZoomOut, Monitor,
+  ArrowLeft, Play, Pause, Scissors, Copy, Trash2, Undo2, Redo2, Loader2, Download, Check, ZoomIn, ZoomOut, Monitor, Image as ImageIcon,
 } from 'lucide-react';
 import { editeurService } from '../services/editeurService';
 import useProjet from '../components/editeur/useProjet';
@@ -12,7 +12,7 @@ import Apercu from '../components/editeur/Apercu';
 import PanneauMedias from '../components/editeur/PanneauMedias';
 import PanneauProprietes from '../components/editeur/PanneauProprietes';
 import {
-  fmtTemps, placerElement, nouvelElement, nouvelId, majElement, supprimerElement, couperElement, dupliquerElement, dureeProjet, dureeMedia,
+  fmtTemps, placerElement, nouvelElement, nouvelId, majElement, supprimerElement, couperElement, dupliquerElement, separerAudio, dureeProjet, dureeMedia,
 } from '../components/editeur/outils';
 
 /**
@@ -31,7 +31,12 @@ export default function EditeurVideo() {
   const [montage, setMontage] = useState(null);
   const [titre, setTitre] = useState('');
   const [medias, setMedias] = useState(null);
-  const [selection, setSelection] = useState(null);
+  // Sélection multiple : `selection` est l'élément principal (le dernier), `selectionIds` le groupe.
+  const [selectionIds, setSelectionIds] = useState([]);
+  const selection = selectionIds.length ? selectionIds[selectionIds.length - 1] : null;
+  const setSelection = useCallback((id) => setSelectionIds(id ? [id] : []), []);
+  const basculerSelection = useCallback((id) => setSelectionIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])), []);
+  const presse = useRef([]);   // presse-papiers de l'éditeur (éléments copiés)
   const [tete, setTete] = useState(0);
   const [lecture, setLecture] = useState(false);
   const [zoom, setZoom] = useState(60);        // px par seconde
@@ -41,6 +46,7 @@ export default function EditeurVideo() {
   const [exportEnCours, setExportEnCours] = useState(false);
   const [erreur, setErreur] = useState(null);
   const [transcription, setTranscription] = useState(null); // id du plan en cours de transcription
+  const [silences, setSilences] = useState(null); // id du plan en cours de nettoyage des silences
   const premierChargement = useRef(true);
   const minuterie = useRef(null);
   const petitEcran = typeof window !== 'undefined' && window.innerWidth < 900;
@@ -129,15 +135,49 @@ export default function EditeurVideo() {
     setTimeout(() => { if (fait) setSelection(id); }, 0);
   }, [selection, tete, setProjet]);
   const dupliquer = useCallback(() => {
-    if (!selection) return;
-    const id = nouvelId();
-    setProjet((p) => dupliquerElement(p, selection, id).projet);
-    setSelection(id);
-  }, [selection, setProjet]);
+    if (!selectionIds.length) return;
+    const nouveaux = Object.fromEntries(selectionIds.map((sid) => [sid, nouvelId()]));
+    setProjet((p) => selectionIds.reduce((acc, sid) => dupliquerElement(acc, sid, nouveaux[sid]).projet, p));
+    setSelectionIds(Object.values(nouveaux));
+  }, [selectionIds, setProjet]);
+  // « Séparer l'audio » : plan muet + élément audio indépendant, sélectionné aussitôt.
+  const separerLAudio = useCallback((elementId) => {
+    const nid = nouvelId();
+    setProjet((p) => separerAudio(p, elementId, nid, `p-audio-${nid}`).projet);
+    setSelection(nid);
+    toast.success(t('editeur.prop.separerAudioOk'));
+  }, [setProjet, t]);
+  // « Couverture ici » : l'instant de la tête de lecture devient la miniature de la vidéo exportée.
+  const definirCouverture = useCallback(() => {
+    const instant = Math.round(tete * 10) / 10;
+    setProjet((p) => ({ ...p, couverture: instant }));
+    toast.success(t('editeur.couvertureOk', { t: instant.toFixed(1) }));
+  }, [tete, setProjet, t]);
   const supprimer = useCallback(() => {
-    if (!selection) return;
-    setProjet((p) => supprimerElement(p, selection)); setSelection(null);
-  }, [selection, setProjet]);
+    if (!selectionIds.length) return;
+    setProjet((p) => selectionIds.reduce((acc, sid) => supprimerElement(acc, sid), p)); setSelection(null);
+  }, [selectionIds, setProjet, setSelection]);
+
+  // Copier / couper / coller : le collage se fait à la tête de lecture, en gardant l'écart entre les éléments.
+  const copier = useCallback(() => {
+    if (!projet || !selectionIds.length) return false;
+    presse.current = projet.elements.filter((e) => selectionIds.includes(e.id)).map((e) => JSON.parse(JSON.stringify(e)));
+    return presse.current.length > 0;
+  }, [projet, selectionIds]);
+  const couperPresse = useCallback(() => { if (copier()) supprimer(); }, [copier, supprimer]);
+  const coller = useCallback(() => {
+    if (!presse.current.length) return;
+    const base = Math.min(...presse.current.map((e) => e.debut));
+    const copies = presse.current.map((e) => ({ ...JSON.parse(JSON.stringify(e)), id: nouvelId(), debut: Math.max(0, Math.round((tete + (e.debut - base)) * 1000) / 1000) }));
+    setProjet((p) => ({ ...p, elements: [...p.elements, ...copies.filter((c) => p.pistes.some((x) => x.id === c.piste))] }));
+    setSelectionIds(copies.map((c) => c.id));
+  }, [tete, setProjet]);
+  const toutSelectionner = useCallback(() => {
+    if (!projet) return;
+    const verrouilles = new Set(projet.pistes.filter((p) => p.verrou).map((p) => p.id));
+    setSelectionIds(projet.elements.filter((e) => !verrouilles.has(e.piste)).map((e) => e.id));
+  }, [projet]);
+  const changerZoom = useCallback((facteur) => setZoom((z) => Math.min(240, Math.max(15, Math.round(z * facteur)))), []);
 
   // Raccourcis : espace lecture, S couper, D dupliquer, Suppr, Ctrl+Z / Ctrl+Y, flèches
   useEffect(() => {
@@ -145,6 +185,15 @@ export default function EditeurVideo() {
       const cible = e.target;
       if (cible && (cible.tagName === 'INPUT' || cible.tagName === 'TEXTAREA' || cible.tagName === 'SELECT')) return;
       if (e.code === 'Space') { e.preventDefault(); setLecture((l) => !l); }
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') { e.preventDefault(); copier(); }
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') { e.preventDefault(); couperPresse(); }
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') { e.preventDefault(); coller(); }
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); toutSelectionner(); }
+      else if (e.key === 'Escape') { setSelection(null); }
+      else if (e.key === 'Home') { e.preventDefault(); setTete(0); }
+      else if (e.key === 'End') { e.preventDefault(); setTete(dureeProjet(projet)); }
+      else if (e.key === '+' || e.key === '=') { e.preventDefault(); changerZoom(1.25); }
+      else if (e.key === '-') { e.preventDefault(); changerZoom(0.8); }
       else if (e.key.toLowerCase() === 's' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); couper(); }
       else if (e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); dupliquer(); }
       else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); supprimer(); }
@@ -155,7 +204,7 @@ export default function EditeurVideo() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [couper, dupliquer, supprimer, annuler, retablir]);
+  }, [couper, dupliquer, supprimer, annuler, retablir, copier, couperPresse, coller, toutSelectionner, changerZoom, projet, setSelection]);
 
   // « Générer les sous-titres » : le serveur transcrit le plan et renvoie le projet complété ;
   // il remplace le projet local (une entrée d'annulation), la sauvegarde auto suit.
@@ -168,6 +217,19 @@ export default function EditeurVideo() {
     } catch (e) {
       toast.error(e.response?.data?.detail || t('editeur.prop.transcrireEchec'));
     } finally { setTranscription(null); }
+  };
+
+  // « Couper les silences » : remplace le plan par ses sous-plans parlés, sélectionne le dernier.
+  const couperSilences = async (elementId, intensite) => {
+    setSilences(elementId);
+    try {
+      const r = await editeurService.couperSilences(id, elementId, intensite);
+      if (r.projet) setProjet(r.projet);
+      if (r.dernier_id) setSelection(r.dernier_id);
+      toast.success(t('editeur.prop.silencesOk', { count: r.nb, gagne: r.gagne }));
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('editeur.prop.silencesEchec'));
+    } finally { setSilences(null); }
   };
 
   const exporter = async () => {
@@ -211,7 +273,7 @@ export default function EditeurVideo() {
     <div className="fixed inset-y-0 right-0 left-0 md:left-64 z-30 flex flex-col bg-[#020617] text-slate-200" data-testid="editeur-video">
       {/* Barre du haut */}
       <header className="h-14 shrink-0 flex items-center gap-3 px-4 border-b border-white/[0.08] bg-[#0a0f1c]">
-        <button type="button" onClick={() => navigate('/dashboard/contenus')} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white" title={t('editeur.retour')} data-testid="editeur-retour">
+        <button type="button" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/dashboard/editeur'))} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white" title={t('editeur.retour')} data-testid="editeur-retour">
           <ArrowLeft className="w-4.5 h-4.5" />
         </button>
         <input value={titre} onChange={(e) => setTitre(e.target.value)} maxLength={120} data-testid="editeur-titre"
@@ -249,7 +311,8 @@ export default function EditeurVideo() {
           <PanneauProprietes projet={projet} element={element} t={t}
             onElement={(maj) => setProjet((p) => majElement(p, selection, maj))}
             onProjet={(maj) => setProjet(maj)}
-            onTranscrire={transcrire} transcription={transcription} />
+            onTranscrire={transcrire} transcription={transcription}
+            onSilences={couperSilences} silences={silences} onSeparerAudio={separerLAudio} />
         </aside>
       </div>
 
@@ -263,6 +326,9 @@ export default function EditeurVideo() {
         <Outil onClick={couper} disabled={!selection} icone={Scissors} label={t('editeur.couper')} testid="editeur-couper" />
         <Outil onClick={dupliquer} disabled={!selection} icone={Copy} label={t('editeur.dupliquer')} testid="editeur-dupliquer" />
         <Outil onClick={supprimer} disabled={!selection} icone={Trash2} label={t('editeur.supprimer')} testid="editeur-supprimer" danger />
+        {selectionIds.length > 1 && <span className="text-[11px] text-[#3AFFA3] font-inter ml-1" data-testid="editeur-n-selection">{t('editeur.nSelection', { count: selectionIds.length })}</span>}
+        <div className="w-px h-6 bg-white/10 mx-1" />
+        <Outil onClick={definirCouverture} icone={ImageIcon} label={projet.couverture != null ? t('editeur.couvertureActuelle', { t: projet.couverture.toFixed(1) }) : t('editeur.couverture')} testid="editeur-couverture" />
         <div className="ml-auto flex items-center gap-1.5 text-slate-500">
           <ZoomOut className="w-3.5 h-3.5" />
           <input type="range" min={15} max={240} step={5} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-28 accent-[#3AFFA3]" data-testid="editeur-zoom" />
@@ -271,7 +337,8 @@ export default function EditeurVideo() {
       </div>
       <div className="h-[min(300px,34vh)] shrink-0 min-h-0">
         <Timeline projet={projet} tete={tete} onTete={(v) => { setLecture(false); setTete(v); }} selection={selection} onSelection={setSelection}
-          onChange={setProjet} onFiger={figer} onDeposer={deposer} zoom={zoom} t={t} />
+          onChange={setProjet} onFiger={figer} onDeposer={deposer} zoom={zoom} t={t}
+          selectionIds={selectionIds} onBasculerSelection={basculerSelection} onZoom={changerZoom} />
       </div>
 
       {/* Export */}

@@ -67,7 +67,10 @@ def _whisper():
                                        cpu_threads=2, num_workers=1)
                 WHISPER_SIZE = size
                 break
-            except RuntimeError as e:
+            except (RuntimeError, MemoryError) as e:
+                # MemoryError n'est PAS un RuntimeError et son message est vide : sans le
+                # rattraper ici, une machine à court de RAM échouait sans repli et sans
+                # explication (vu le 2026-09-18, 0,8 Go libres pour un modèle « medium »).
                 if size == WHISPER_TIERS[-1]:
                     raise
                 _warn("Transcription : qualité légèrement réduite (mémoire serveur "

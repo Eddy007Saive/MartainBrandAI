@@ -83,6 +83,10 @@ def _upload_video(mp4: str, upload: dict) -> dict:
     try:
         up = cloudinary.uploader.upload(mp4, **params)
         url = up["secure_url"]
+        t = upload.get("couverture_s")
+        if t is not None and "/upload/" in url:
+            # Miniature = l'image de la vidéo à l'instant choisi (transformation Cloudinary so_<s>)
+            return {"video_url": url, "video_preview_url": url.replace("/upload/", f"/upload/so_{float(t):.2f}/", 1).rsplit(".", 1)[0] + ".jpg"}
         return {"video_url": url, "video_preview_url": url.rsplit(".", 1)[0] + ".jpg"}
     finally:
         try:

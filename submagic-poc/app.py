@@ -377,7 +377,8 @@ async def transcribe_url(video_url: str = Form(...), _auth=Depends(_require_inte
             data = json.load(open(cache, encoding="utf-8"))
             JOBS[job_id].update(status="done", words=data.get("words") or [], language=data.get("language"))
         except Exception as e:
-            JOBS[job_id].update(status="error", error=str(e)[:500])
+            # str(e) est vide pour certaines exceptions (MemoryError…) : on garde au moins le type.
+            JOBS[job_id].update(status="error", error=(str(e) or type(e).__name__)[:500])
         finally:
             shutil.rmtree(job_dir, ignore_errors=True)
 

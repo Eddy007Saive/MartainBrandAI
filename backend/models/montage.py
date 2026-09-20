@@ -32,3 +32,13 @@ class MontageResume(BaseModel):
 
 class MontageTranscrire(BaseModel):
     element_id: str                              # le plan vidéo à sous-titrer
+
+
+class MontageVoixOff(BaseModel):
+    texte: str
+    voix: str                                     # id du catalogue (victor|yann|adina|…) ou "moi"
+
+
+class MontageSilences(BaseModel):
+    element_id: str
+    intensite: str = "naturel"                    # naturel | rythme | serre

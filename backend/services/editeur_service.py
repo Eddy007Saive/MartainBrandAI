@@ -69,6 +69,9 @@ def normaliser(projet: dict) -> dict:
         "pistes": [], "elements": [],
         "soustitres": {"style": dict((p.get("soustitres") or {}).get("style") or {})},
     }
+    cv = p.get("couverture")
+    if isinstance(cv, (int, float)) and not isinstance(cv, bool) and cv >= 0:
+        out["couverture"] = round(min(float(cv), MAX_DUREE_S), 2)      # instant choisi pour la miniature
     pistes = [x for x in (p.get("pistes") or []) if isinstance(x, dict) and x.get("type") in TYPES_PISTE and x.get("id")]
     out["pistes"] = [{"id": str(x["id"])[:40], "type": x["type"], "nom": str(x.get("nom") or x["type"])[:40],
                       "muet": bool(x.get("muet")), "verrou": bool(x.get("verrou"))} for x in pistes] or base["pistes"]
@@ -99,7 +102,7 @@ def normaliser(projet: dict) -> dict:
         if t in ("video", "audio"):
             el["decalage"] = round(_nombre(e.get("decalage"), 0, 0, MAX_DUREE_S), 3)
             el["volume"] = _nombre(e.get("volume"), 1, 0, 1)
-        if t == "video":
+        if t in ("video", "audio"):
             el["vitesse"] = _nombre(e.get("vitesse"), 1, 0.25, 4)
         if t == "audio":
             el["fonduSortie"] = _nombre(e.get("fonduSortie"), 0, 0, 10)
@@ -113,8 +116,26 @@ def normaliser(projet: dict) -> dict:
                 el["rayon"] = _nombre(e.get("rayon"), 0, 0, 400)
         if t == "image":
             el["animation"] = str(e.get("animation") or "aucune")[:16]
+        if t in ("video", "image") and isinstance(e.get("recadre"), dict):
+            rc = e["recadre"]
+            zoom, rx, ry = _nombre(rc.get("zoom"), 1, 1, 5), _nombre(rc.get("x"), 50, 0, 100), _nombre(rc.get("y"), 50, 0, 100)
+            if zoom != 1 or rx != 50 or ry != 50:
+                el["recadre"] = {"zoom": round(zoom, 3), "x": round(rx, 1), "y": round(ry, 1)}
+        if t in ("video", "image") and isinstance(e.get("transition"), dict):
+            tr = e["transition"]
+            if tr.get("type") in ("fondu", "glisser", "zoom", "volet", "noir"):
+                el["transition"] = {"type": tr["type"], "duree": _nombre(tr.get("duree"), 0.5, 0.1, 2)}
         if t in ("texte", "soustitre"):
             el["texte"] = str(e.get("texte") or "")[:600]
+        if t == "soustitre" and isinstance(e.get("mots"), list):
+            mots = []
+            for m in e["mots"][:40]:
+                if isinstance(m, dict) and str(m.get("texte") or "").strip():
+                    mots.append({"t": round(_nombre(m.get("t"), 0, 0, MAX_DUREE_S), 3),
+                                 "d": round(_nombre(m.get("d"), 0.3, 0.05, 30), 3),
+                                 "texte": str(m["texte"]).strip()[:60]})
+            if mots:
+                el["mots"] = mots
         if t == "texte":
             el["style"] = {k: (v if isinstance(v, (str, int, float, bool)) else str(v))
                            for k, v in dict(e.get("style") or {}).items() if isinstance(k, str)}
@@ -128,8 +149,22 @@ def duree_s(projet: dict) -> float:
 
 
 # ------------------------------------------------------------------ CRUD
+def _vignette(projet: dict) -> str | None:
+    """Petite image de reconnaissance d'un montage : le premier plan image ou vidéo (Cloudinary)."""
+    els = sorted([e for e in (projet or {}).get("elements", []) if e.get("type") in ("image", "video") and e.get("src")],
+                 key=lambda e: e.get("debut") or 0)
+    if not els:
+        return None
+    src = els[0]["src"]
+    if "/video/upload/" in src:
+        return src.replace("/upload/", "/upload/so_1,w_240,h_426,c_fill,q_auto/", 1).rsplit(".", 1)[0] + ".jpg"
+    if "/image/upload/" in src:
+        return src.replace("/upload/", "/upload/w_240,h_426,c_fill,q_auto/", 1)
+    return None
+
+
 def _resume(row: dict) -> dict:
-    return {"id": row["id"], "titre": row.get("titre") or "Montage", "statut": row.get("statut") or "brouillon",
+    return {"id": row["id"], "apercu": _vignette(row.get("projet")), "titre": row.get("titre") or "Montage", "statut": row.get("statut") or "brouillon",
             "duree_s": duree_s(row.get("projet") or {}), "video_url": row.get("video_url"),
             "contenu_id": row.get("contenu_id"), "source_contenu_id": row.get("source_contenu_id"),
             "updated_at": row.get("updated_at"), "created_at": row.get("created_at")}
@@ -246,6 +281,11 @@ def rendre(telegram_id: str, montage_id: str, reseau: str = "Instagram", titre: 
     if not q.get("ok"):
         return {"error_quota": q}
     titre_c = (titre or m.get("titre") or "Montage").strip()[:120]
+    # Miniature : l'instant choisi par le client, sinon ~1 s (la toute première image est souvent
+    # noire ou vide quand un texte ou une transition entre en fondu).
+    d_projet = duree_s(projet)
+    cv = projet.get("couverture")
+    couv = round(min(cv, max(0.0, d_projet - 0.2)), 2) if cv is not None else round(min(1.0, d_projet * 0.3), 2)
     restaurer, extra = None, {}
     contenu_id = m.get("contenu_id")
     cur = None
@@ -263,7 +303,7 @@ def rendre(telegram_id: str, montage_id: str, reseau: str = "Instagram", titre: 
             ins = supabase.table("contenu").insert(row).execute()
             contenu_id = ins.data[0]["id"]
         render_service.enqueue(contenu_id, telegram_id, composition="Montage", props=projet, prefix="montage",
-                               etiquette="montage", upload={"public_id": f"montages/{telegram_id}/{montage_id}"},
+                               etiquette="montage", upload={"public_id": f"montages/{telegram_id}/{montage_id}", "couverture_s": couv},
                                action_type="reel", notif="reel", restaurer=restaurer, extra=extra or None)
     except Exception as e:
         quota_service.refund(q)
@@ -363,9 +403,13 @@ def _projet_depuis_video(telegram_id: str, c: dict) -> dict:
 def _soustitre(groupe: list, i) -> dict:
     debut = float(groupe[0].get("start") or 0)
     fin = float(groupe[-1].get("end") or debut + 1)
+    mots = [{"t": round(max(0.0, float(w.get("start") or 0) - debut), 3),
+             "d": round(max(0.08, float(w.get("end") or 0) - float(w.get("start") or 0)), 3),
+             "texte": str(w.get("text") or w.get("word") or "").strip()} for w in groupe]
     return {"id": f"s{i}" if isinstance(i, int) else str(i), "piste": "p-soustitres", "type": "soustitre", "debut": round(debut, 3),
             "duree": round(max(0.4, fin - debut), 3),
-            "texte": " ".join(str(w.get("text") or w.get("word") or "").strip() for w in groupe).strip()}
+            "texte": " ".join(m["texte"] for m in mots if m["texte"]).strip(),
+            "mots": [m for m in mots if m["texte"]]}
 
 
 # ------------------------------------------------------------------ sous-titres
@@ -413,3 +457,102 @@ async def transcrire(telegram_id: str, montage_id: str, element_id: str) -> dict
     projet["elements"] = reste + nouveaux
     m2 = _maj(montage_id, {"projet": projet})
     return {"projet": m2.get("projet") or projet, "nb": len(nouveaux), "langue": res.get("language")}
+
+
+# ------------------------------------------------------------------ voix off
+async def generer_voix_off(telegram_id: str, texte: str, voix: str) -> dict:
+    """Fait dire UNE phrase par une voix du catalogue (ou le clone du client) et rend un
+    clip audio prêt à poser sur la piste Audio. 1 « voix » de quota, comme la voix off d'un
+    reel. La synthèse elle-même est rapide (une phrase) : on peut la faire dans la requête,
+    contrairement au rendu vidéo qui passe toujours par le worker."""
+    import asyncio
+    import uuid
+    import cloudinary.uploader
+    from services import voix_service, quota_service
+
+    texte = (texte or "").strip()[:500]
+    if not texte:
+        return {"error": "Écris d'abord la phrase à faire dire."}
+    try:
+        voix_service.valider_choix(telegram_id, voix)
+    except ValueError as e:
+        return {"error": str(e)}
+    q = quota_service.consume(telegram_id, "voix")
+    if not q.get("ok"):
+        return {"error_quota": q}
+    try:
+        voice_id = voix_service.resoudre(telegram_id, voix)
+        langue = voix_service.langue_du_compte(telegram_id)
+        data = await asyncio.to_thread(voix_service.synthese, texte, voice_id, voix_service.MODELE, langue)
+        duree = await asyncio.to_thread(voix_service.duree_audio, data)
+        up = await asyncio.to_thread(
+            cloudinary.uploader.upload, data, resource_type="video",
+            folder=f"voix/{telegram_id}", public_id=uuid.uuid4().hex[:12])
+    except Exception as e:
+        quota_service.refund(q)
+        logger.error(f"editeur voix off: {e!r}")
+        return {"error": "Échec de la génération de la voix."}
+    quota_service.confirm(q)
+    return {"url": up["secure_url"], "duree": round(max(0.3, duree), 2)}
+
+
+# ------------------------------------------------------------------ silences
+# Mêmes seuils que le Studio Vidéo (submagic-poc/pipeline.py CUTS_PACE) : un silence de
+# plus de `gap_min` est coupé, en gardant `gap_keep` de respiration de part et d'autre.
+INTENSITES_SILENCE = {"naturel": (0.40, 0.22), "rythme": (0.25, 0.15), "serre": (0.12, 0.08)}
+
+
+async def couper_silences(telegram_id: str, montage_id: str, element_id: str, intensite: str = "naturel") -> dict:
+    """Retire les silences d'un plan vidéo : transcrit (Whisper), calcule les passages
+    parlés, remplace le plan par la suite de ses sous-plans collés bout à bout — comme une
+    série de « Couper » automatiques. Les autres éléments ne bougent pas (comme un Couper
+    normal) : un trou peut rester sur la piste, à refermer en glissant si besoin."""
+    from services import montage_poc_service
+    m = lire(telegram_id, montage_id)
+    if not m:
+        return {"error": "Montage introuvable."}
+    projet = normaliser(m.get("projet") or {})
+    el = next((e for e in projet["elements"] if e["id"] == element_id), None)
+    if not el or el["type"] != "video":
+        return {"error": "Choisis un plan vidéo à nettoyer."}
+    res = await montage_poc_service.transcrire_url(el["src"])
+    if not res.get("ok"):
+        return {"error": res.get("error") or "Transcription impossible."}
+    mots = res.get("words") or []
+    if not mots:
+        return {"error": "Aucune parole détectée dans ce plan."}
+    debut, duree = el["debut"], el["duree"]
+    dec, vit = el.get("decalage", 0.0), el.get("vitesse", 1.0) or 1.0
+    fin_source = dec + duree * vit
+    fenetre = [w for w in mots if float(w.get("end") or 0) > dec and float(w.get("start") or 0) < fin_source]
+    if not fenetre:
+        return {"error": "Aucune parole dans la partie du clip utilisée."}
+    gap_min, gap_keep = INTENSITES_SILENCE.get(intensite, INTENSITES_SILENCE["naturel"])
+    segs = []
+    cur = max(dec, float(fenetre[0]["start"]) - 0.30)
+    for a, b in zip(fenetre, fenetre[1:]):
+        gap = float(b.get("start") or 0) - float(a.get("end") or 0)
+        if gap > gap_min:
+            segs.append((cur, min(fin_source, float(a["end"]) + gap_keep / 2)))
+            cur = max(dec, float(b["start"]) - gap_keep / 2)
+    segs.append((cur, min(fin_source, float(fenetre[-1]["end"]) + 0.6)))
+    segs = [(a, b) for a, b in segs if b - a > 0.15]  # une miette de silence mal détectée n'y suffit pas
+    if not segs:
+        return {"error": "Rien à couper : ce plan est déjà sans silence notable."}
+    nouveaux = []
+    t = debut
+    for i, (a, b) in enumerate(segs):
+        dtl = (b - a) / vit
+        piece = {**el, "id": (element_id if i == 0 else f"{element_id[:34]}s{i}")[:40],
+                 "debut": round(t, 3), "duree": round(dtl, 3), "decalage": round(a, 3)}
+        if i > 0:
+            piece.pop("transition", None)   # la transition d'entrée ne vaut que pour le tout premier morceau
+        nouveaux.append(piece)
+        t += dtl
+    gagne = round(duree - (t - debut), 2)
+    if len(segs) == 1 and gagne < 0.3:
+        return {"error": "Rien à couper : ce plan est déjà sans silence notable."}
+    projet["elements"] = [x for x in projet["elements"] if x["id"] != element_id] + nouveaux
+    m2 = _maj(montage_id, {"projet": projet})
+    return {"projet": m2.get("projet") or projet, "nb": len(nouveaux), "gagne": gagne,
+            "premier_id": nouveaux[0]["id"], "dernier_id": nouveaux[-1]["id"]}

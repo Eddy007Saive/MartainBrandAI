@@ -22,9 +22,10 @@ const COULEURS = {
   audio: 'from-[#3AFFA3]/50 to-[#10b981]/50 border-[#3AFFA3]/60',
 };
 
-export default function Timeline({ projet, tete, onTete, selection, onSelection, onChange, onFiger, onDeposer, zoom, t }) {
+export default function Timeline({ projet, tete, onTete, selection, selectionIds = [], onSelection, onBasculerSelection, onChange, onFiger, onDeposer, onZoom, zoom, t }) {
   const zone = useRef(null);
   const [glisser, setGlisser] = useState(null); // {mode, id, x0, orig}
+  const aBouge = useRef(false);                 // un simple clic (sans glisser) referme une sélection multiple sur l'élément cliqué
   const duree = dureeProjet(projet);
   const largeur = Math.max((duree + 6) * zoom, 800);
 
@@ -47,8 +48,15 @@ export default function Timeline({ projet, tete, onTete, selection, onSelection,
     const piste = projet.pistes.find((p) => p.id === el.piste);
     if (piste?.verrou) return;
     e.stopPropagation(); e.preventDefault();
-    onSelection(el.id);
-    setGlisser({ mode, id: el.id, x0: e.clientX, orig: { ...el } });
+    // Maj / Ctrl + clic : ajoute ou retire l'élément de la sélection, sans glisser.
+    if ((e.shiftKey || e.ctrlKey || e.metaKey) && mode === 'deplacer' && onBasculerSelection) { onBasculerSelection(el.id); return; }
+    const dansSelection = selectionIds.includes(el.id);
+    if (!dansSelection) onSelection(el.id);
+    // Déplacer un élément de la sélection déplace tout le groupe du même écart.
+    const groupe = mode === 'deplacer' && dansSelection ? selectionIds : [el.id];
+    const origs = Object.fromEntries(projet.elements.filter((x) => groupe.includes(x.id)).map((x) => [x.id, x.debut]));
+    aBouge.current = false;
+    setGlisser({ mode, id: el.id, x0: e.clientX, orig: { ...el }, groupe, origs });
   };
 
   useEffect(() => {
@@ -56,19 +64,25 @@ export default function Timeline({ projet, tete, onTete, selection, onSelection,
     const tol = TOLERANCE_PX / zoom;
     const cibles = aimants(projet, glisser.id, tete);
     const bouger = (e) => {
+      if (Math.abs(e.clientX - glisser.x0) > 3) aBouge.current = true;
       const dt = (e.clientX - glisser.x0) / zoom;
       const o = glisser.orig;
+      // Écart du groupe : celui de l'élément saisi (aimanté), borné pour qu'aucun élément ne passe sous 0.
+      let deltaGroupe = 0;
+      if (glisser.mode === 'deplacer') {
+        let debut = Math.max(0, o.debut + dt);
+        const finAimantee = aimanter(debut + o.duree, cibles, tol);
+        debut = aimanter(debut, cibles, tol);
+        if (debut === Math.max(0, o.debut + dt)) debut = Math.max(0, finAimantee - o.duree);
+        deltaGroupe = Math.max(-Math.min(...Object.values(glisser.origs)), debut - o.debut);
+      }
       onChange((p) => ({
         ...p,
         elements: p.elements.map((x) => {
-          if (x.id !== glisser.id) return x;
-          if (glisser.mode === 'deplacer') {
-            let debut = Math.max(0, o.debut + dt);
-            const finAimantee = aimanter(debut + o.duree, cibles, tol);
-            debut = aimanter(debut, cibles, tol);
-            if (debut === Math.max(0, o.debut + dt)) debut = Math.max(0, finAimantee - o.duree);
-            return { ...x, debut: arrondi(debut, 0.001) };
+          if (glisser.mode === 'deplacer' && glisser.groupe.includes(x.id)) {
+            return { ...x, debut: arrondi(glisser.origs[x.id] + deltaGroupe, 0.001) };
           }
+          if (x.id !== glisser.id) return x;
           if (glisser.mode === 'gauche') {
             let debut = aimanter(o.debut + dt, cibles, tol);
             debut = Math.min(Math.max(0, debut), o.debut + o.duree - 0.1);
@@ -88,12 +102,24 @@ export default function Timeline({ projet, tete, onTete, selection, onSelection,
         }),
       }), { historique: false });
     };
-    const lacher = () => { setGlisser(null); onFiger(); };
+    const lacher = () => {
+      if (!aBouge.current && glisser.mode === 'deplacer' && glisser.groupe.length > 1) onSelection(glisser.id);
+      setGlisser(null); onFiger();
+    };
     window.addEventListener('pointermove', bouger);
     window.addEventListener('pointerup', lacher, { once: true });
     return () => { window.removeEventListener('pointermove', bouger); window.removeEventListener('pointerup', lacher); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [glisser, zoom]);
+
+  // Ctrl + molette : zoom de la timeline (écouteur natif, la molette React est passive).
+  useEffect(() => {
+    const z = zone.current;
+    if (!z || !onZoom) return undefined;
+    const molette = (e) => { if (!(e.ctrlKey || e.metaKey)) return; e.preventDefault(); onZoom(e.deltaY < 0 ? 1.15 : 1 / 1.15); };
+    z.addEventListener('wheel', molette, { passive: false });
+    return () => z.removeEventListener('wheel', molette);
+  }, [onZoom]);
 
   const basculer = (pisteId, champ) => onChange((p) => ({
     ...p, pistes: p.pistes.map((x) => (x.id === pisteId ? { ...x, [champ]: !x[champ] } : x)),
@@ -158,17 +184,27 @@ export default function Timeline({ projet, tete, onTete, selection, onSelection,
             })}
           </div>
 
+          {/* Repère de couverture : l'instant choisi pour la miniature */}
+          {projet.couverture != null && (
+            <div className="absolute z-[5] pointer-events-none" style={{ left: projet.couverture * zoom, top: 2 }} data-testid="editeur-repere-couverture" title={t('editeur.couverture')}>
+              <div className="-translate-x-1/2 px-1 py-0.5 rounded bg-[#8A6CFF] text-white text-[9px] font-bold leading-none">▣</div>
+            </div>
+          )}
+
           {/* Pistes */}
           {projet.pistes.map((p) => (
             <div key={p.id} style={{ height: H_PISTE }} className={`relative border-b border-white/[0.05] ${p.verrou ? 'opacity-60' : ''}`}
               onPointerDown={(e) => { if (e.target === e.currentTarget) { onSelection(null); scrub(e); } }}>
               {projet.elements.filter((el) => el.piste === p.id).map((el) => {
-                const sel = el.id === selection;
+                const sel = el.id === selection || selectionIds.includes(el.id);
                 return (
                   <div key={el.id} data-testid={`element-${el.id}`}
                     onPointerDown={(e) => commencer(e, el, 'deplacer')}
                     className={`absolute top-1.5 bottom-1.5 rounded-md border bg-gradient-to-r ${COULEURS[el.type] || COULEURS.video} ${sel ? 'ring-2 ring-white shadow-[0_0_0_2px_rgba(58,255,163,.35)]' : 'hover:brightness-110'} cursor-grab active:cursor-grabbing overflow-hidden`}
                     style={{ left: el.debut * zoom, width: Math.max(6, el.duree * zoom) }}>
+                    {el.transition?.type && el.transition.type !== 'aucune' && (
+                      <div className="absolute inset-y-0 left-0 bg-[repeating-linear-gradient(135deg,rgba(255,255,255,.35)_0_3px,transparent_3px_6px)] pointer-events-none" style={{ width: Math.max(4, (el.transition.duree || 0.5) * zoom) }} title={t(`editeur.transition.${el.transition.type}`)} />
+                    )}
                     <div className="px-2 h-full flex items-center text-[11px] text-white/95 font-inter truncate">{etiquette(el)}</div>
                     {!p.verrou && (
                       <>
