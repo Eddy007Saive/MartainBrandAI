@@ -6,6 +6,7 @@ Côté client : jauge de RÉSULTATS (jamais d'euros ni de crédits).
 """
 from datetime import datetime, timezone, timedelta
 from config import supabase, logger
+from services.horodatage import lire_iso
 
 TRIAL_DAYS = 14
 
@@ -30,7 +31,7 @@ def image_action(modele: str) -> str:
 
 def _parse(ts) -> datetime:
     try:
-        return datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        return lire_iso(ts)
     except Exception:
         return datetime.now(timezone.utc)
 

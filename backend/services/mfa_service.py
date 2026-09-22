@@ -19,6 +19,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 
 from config import supabase, logger, JWT_SECRET
+from services.horodatage import lire_iso
 
 VALIDITE_CODE_MIN = 10
 ESSAIS_MAX = 5
@@ -35,7 +36,7 @@ def _hash(valeur: str) -> str:
 
 
 def _parse(ts) -> datetime:
-    return datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+    return lire_iso(ts)
 
 
 def masquer_email(email: str) -> str:
