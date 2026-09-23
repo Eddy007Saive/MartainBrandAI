@@ -9,6 +9,7 @@ telegram_id. La voix de marque est mise en cache (prompt caching) → coût réd
 """
 
 import json
+import re
 import time
 import unicodedata
 import anthropic
@@ -482,7 +483,11 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
     demande = nombre + 4
     resp = _messages_create(
         model=SUJETS_MODEL,
-        max_tokens=1600,
+        # 16 sujets (nombre=12 max côté front, +4 de rab) tenaient à 1534/1600 tokens en test
+        # (2026-09-23) : à la moindre variation le modèle est coupé en plein JSON, et le repli
+        # d'alors (une carte par LIGNE de texte) affichait le JSON brut morceau par morceau —
+        # exactement le bug remonté par un client. Budget large pour que ça n'arrive plus.
+        max_tokens=2600,
         system=ROLE_SUJETS + contexte,
         messages=[{
             "role": "user",
@@ -501,8 +506,20 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
     try:
         brut = json.loads(texte[texte.index("["):texte.rindex("]") + 1])
     except Exception as e:
-        logger.warning(f"sujets JSON illisible ({e}) — repli liste plate")
-        brut = [{"sujet": l.strip(" -•\t0123456789.").strip()} for l in texte.splitlines() if l.strip()]
+        # Le tableau entier est illisible (souvent : coupé par max_tokens en plein milieu d'un
+        # objet). Plutôt que d'afficher le JSON brut ligne par ligne au client (le bug remonté),
+        # on récupère un par un les objets COMPLETS qu'on trouve — le dernier objet tronqué est
+        # perdu, les précédents restent utilisables.
+        logger.warning(f"sujets JSON illisible ({e}, stop_reason={resp.stop_reason}) — récupération objet par objet")
+        brut = []
+        for m in re.finditer(r"\{[^{}]*\}", texte):
+            try:
+                brut.append(json.loads(m.group(0)))
+            except Exception:
+                continue
+        if not brut:
+            logger.warning("sujets : aucun objet récupérable — repli liste plate")
+            brut = [{"sujet": l.strip(" -•\t0123456789.").strip()} for l in texte.splitlines() if l.strip()]
 
     # Filtre anti-doublon : vs l'historique ET entre eux (sécurité si le modèle répète)
     existants = {_norm(t) for t in historique}
