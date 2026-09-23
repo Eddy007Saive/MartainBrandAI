@@ -47,6 +47,12 @@ const REQUIRED_FIELDS = {
   marque: ['secteur', 'voix_marque'],
   style: ['couleur_principale', 'couleur_secondaire', 'couleur_accent'],
 };
+// Champs liés à la photo du client (visuels "avec photo") : n'ont de sens que s'il a
+// activé use_photo. Sans ça, le bandeau "profil incomplet" s'affichait à tort pour un
+// client qui a rempli sa fiche de marque mais n'a jamais voulu ajouter de photo
+// (ex. client Pelerin, 2026-09-23 : secteur/voix/audience/piliers remplis à 100 %,
+// seule la photo optionnelle manquait).
+const CHAMPS_PHOTO = ['photo_url', 'sexe', 'style_vestimentaire'];
 
 // Avatar vidéo IA (HeyGen) désactivé pour l'instant -> affiché « à venir ».
 // Passer à true pour réactiver toute la section.
@@ -660,7 +666,13 @@ export default function ParametresPage() {
   const incompleteSections = useMemo(() => {
     if (!user) return [];
     return Object.entries(REQUIRED_FIELDS)
-      .filter(([, fields]) => fields.some(f => !user[f]))
+      .filter(([section, fields]) => {
+        // La photo est optionnelle : ses champs ne comptent que si le client a activé use_photo.
+        const champs = section === 'identity' && !user.use_photo
+          ? fields.filter((f) => !CHAMPS_PHOTO.includes(f))
+          : fields;
+        return champs.some(f => !user[f]);
+      })
       .map(([section]) => section);
   }, [user]);
 
