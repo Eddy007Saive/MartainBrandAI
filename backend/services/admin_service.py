@@ -492,10 +492,15 @@ def get_global_stats() -> dict:
     total_commentaires = len(commentaires.data)
     commentaires_nouveaux = len([c for c in commentaires.data if c.get("statut") == "Nouveau"])
 
-    analytics = supabase.table("analytics_performance").select("vues, likes, partages").execute()
-    total_vues = sum(float(a.get("vues", 0) or 0) for a in analytics.data)
-    total_likes = sum(float(a.get("likes", 0) or 0) for a in analytics.data)
-    total_partages = sum(float(a.get("partages", 0) or 0) for a in analytics.data)
+    # analytics_performance n'est plus alimentée (cf. analytics_service.get_stats) : les
+    # vrais chiffres vivent dans le cache des insights Zernio, rafraîchi par le cron horaire.
+    caches = supabase.table("analytics_cache").select("data").execute()
+    total_vues = total_likes = total_partages = 0.0
+    for row in (caches.data or []):
+        kpis = ((row.get("data") or {}).get("kpis")) or {}
+        total_vues += float(kpis.get("impressions") or 0)
+        total_likes += float(kpis.get("likes") or 0)
+        total_partages += float(kpis.get("shares") or 0)
 
     return {
         "users": {
