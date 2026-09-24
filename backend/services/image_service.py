@@ -322,6 +322,11 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
     else:
         content = prompt
 
+    return await _appeler_et_uploader(content, model, telegram_id, contenu_id, public_id, ratio)
+
+
+async def _appeler_et_uploader(content, model: str, telegram_id: str, contenu_id: str, public_id: str, ratio: str) -> dict:
+    """Appel OpenRouter (nano-banana) + upload Cloudinary, partagé par `generer_image` et `editer_image`."""
     body = {
         "model": model or OPENROUTER_IMAGE_MODEL,
         "messages": [{"role": "user", "content": content}],
@@ -366,3 +371,25 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                                         public_id=f"contenus/{telegram_id}/draft-photo",
                                         overwrite=True, invalidate=True, transformation=fmt)
     return {"lien_visuel": up["secure_url"]}
+
+
+async def editer_image(telegram_id: str, image_url: str, instruction: str, model: str = None,
+                       contenu_id: str = None, public_id: str = None, ratio: str = "4:5") -> dict:
+    """Retouche libre d'une image DÉJÀ générée : renvoie l'image existante au modèle avec une
+    instruction en langage naturel (ex. « enlève le carton »), en lui demandant de garder tout
+    le reste identique. Même modèle et même pipeline d'upload que `generer_image`, mais sans
+    passer par la marque/les références/le style — seule l'instruction pilote le résultat."""
+    if not OPENROUTER_API_KEY:
+        return {"error": "no_openrouter_key"}
+    if not image_url or not (instruction or "").strip():
+        return {"error": "parametres_manquants"}
+    content = [
+        {"type": "text", "text": (
+            "ÉDITE cette image selon l'instruction ci-dessous. Garde TOUT LE RESTE strictement "
+            "identique : cadrage, personnes, couleurs, texte, mise en page, éléments graphiques. "
+            "Ne change QUE ce que l'instruction demande, sans rien redessiner d'autre.\n\n"
+            f"Instruction : {instruction.strip()}"
+        )},
+        {"type": "image_url", "image_url": {"url": image_url}},
+    ]
+    return await _appeler_et_uploader(content, model, telegram_id, contenu_id, public_id, ratio)

@@ -912,6 +912,54 @@ async def image(body: dict, payload: dict = Depends(verify_token)):
     return res
 
 
+@router.post("/image/editer")
+async def image_editer(body: dict, payload: dict = Depends(verify_token)):
+    """Retouche une image DÉJÀ générée avec une instruction libre (« enlève le carton »).
+    Consomme un quota image (vrai appel au modèle), comme une génération."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    image_url = (body.get("image_url") or "").strip()
+    instruction = (body.get("instruction") or "").strip()
+    if not image_url:
+        raise HTTPException(status_code=400, detail="image_url requis")
+    if len(instruction) < 3:
+        raise HTTPException(status_code=400, detail="Décris la modification en quelques mots.")
+    contenu_id = body.get("contenu_id")
+    modele = body.get("modele", "nano2")
+    model_id = image_service.IMAGE_MODELS.get(modele, OPENROUTER_IMAGE_MODEL)
+    action_type = quota_service.image_action(modele)
+    ratio = "4:5"
+    if contenu_id:
+        try:
+            t = supabase.table("contenu").select("type").eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+            if t.data and t.data[0].get("type") == "Story":
+                ratio = "9:16"
+        except Exception:
+            pass
+    demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
+    q = quota_service.consume(telegram_id, action_type)
+    if not q.get("ok"):
+        raise _refus(q)
+    depart = time.monotonic()
+    try:
+        res = await image_service.editer_image(telegram_id, image_url, instruction, model_id, contenu_id, ratio=ratio)
+    except Exception as e:
+        quota_service.refund(q)
+        logger.error(f"Agent image editer error: {e!r}")
+        raise HTTPException(status_code=500, detail=str(e))
+    duree = time.monotonic() - depart
+    if res.get("error"):
+        quota_service.refund(q)
+        raise HTTPException(status_code=502, detail="Échec de la retouche. Réessaie, ou reformule l'instruction.")
+    quota_service.confirm(q)
+    if contenu_id:
+        supabase.table("contenu").update({"lien_visuel": res["lien_visuel"]}).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+    usage_service.log(telegram_id, "image_edit", model_id, {}, q.get("unit_cost", 0), cost_override=usage_service.IMAGE_PRICES.get(modele, 0.04), duree_s=duree)
+    res["quota"] = {"action": action_type, "used": q.get("used"), "limit": q.get("limit")}
+    return res
+
+
 @router.post("/photo")
 async def generate_photo(body: dict, payload: dict = Depends(verify_token)):
     """Génère une PHOTO à partir d'une description (Nano Banana) et renvoie son URL —

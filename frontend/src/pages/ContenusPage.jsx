@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Scissors, Upload } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -411,6 +411,7 @@ export default function ContenusPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedContenu, setSelectedContenu] = useState(null);
+  useEffect(() => { setRetoucheOuverte(false); setRetoucheInstr(''); }, [selectedContenu?.id]);
   const [czR, setCzR] = useState(null);     // retouche couleurs/police d'un carrousel (aperçu live)
   const [czRBusy, setCzRBusy] = useState(false);
   const [czSlide, setCzSlide] = useState(0); // slide affichée dans l'aperçu
@@ -584,6 +585,10 @@ export default function ContenusPage() {
   const [imgLoadingPrompt, setImgLoadingPrompt] = useState(false);
   const [imgGenerating, setImgGenerating] = useState(false);
   const [imgImporting, setImgImporting] = useState(false);
+  // Retouche libre d'un visuel déjà généré (« enlève le carton ») : instruction + statut d'ouverture
+  const [retoucheInstr, setRetoucheInstr] = useState('');
+  const [retoucheOuverte, setRetoucheOuverte] = useState(false);
+  const [retoucheLoading, setRetoucheLoading] = useState(false);
   const imgImportRef = useRef(null);
   // Images de référence (style) choisies à la génération
   const [inspirations, setInspirations] = useState([]);
@@ -822,6 +827,27 @@ export default function ContenusPage() {
       toast.error(e.response?.data?.detail || t('contenus.toast.imageEchec'));
     } finally {
       setImgGenerating(false);
+    }
+  };
+
+  // Retouche libre d'un visuel déjà généré (« enlève le carton », « corrige la bande grise en bas »…) :
+  // renvoie l'image existante au modèle avec l'instruction, sans repasser par tout le flux de génération.
+  const retoucherImage = async () => {
+    if (!selectedContenu || !selectedContenu.lien_visuel || !retoucheInstr.trim()) return;
+    setRetoucheLoading(true);
+    try {
+      const data = await agentService.imageEditer(selectedContenu.lien_visuel, retoucheInstr.trim(), selectedContenu.id);
+      setContenus((prev) => prev.map((c) => (c.id === selectedContenu.id ? { ...c, lien_visuel: data.lien_visuel } : c)));
+      setSelectedContenu((prev) => (prev ? { ...prev, lien_visuel: data.lien_visuel } : prev));
+      setRetoucheInstr('');
+      setRetoucheOuverte(false);
+      track('image_retouchee', {});
+      toast.success(t('contenus.toast.visuelGenere'));
+      refreshUsage();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.toast.imageEchec'));
+    } finally {
+      setRetoucheLoading(false);
     }
   };
 
@@ -1542,6 +1568,41 @@ export default function ContenusPage() {
                     </div>
                   )}
 
+                  {/* Retouche libre du visuel déjà généré (édition, pas régénération) */}
+                  {selectedContenu.lien_visuel
+                    && !(Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length)
+                    && !selectedContenu.carrousel_pdf && !selectedContenu.video_url
+                    && selectedContenu.type !== 'Reel' && selectedContenu.type !== 'Video' && (
+                    retoucheOuverte ? (
+                      <div className="rounded-xl border border-white/10 bg-slate-950/40 p-3 space-y-2">
+                        <textarea
+                          value={retoucheInstr}
+                          onChange={(e) => setRetoucheInstr(e.target.value)}
+                          placeholder={t('contenus.detail.retoucherPlaceholder')}
+                          rows={2}
+                          autoFocus
+                          className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 resize-none"
+                        />
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="ghost" onClick={() => { setRetoucheOuverte(false); setRetoucheInstr(''); }}
+                            className="text-slate-400 hover:text-slate-200">
+                            {t('contenus.detail.retoucherAnnuler')}
+                          </Button>
+                          <Button size="sm" disabled={!retoucheInstr.trim() || retoucheLoading} onClick={retoucherImage}
+                            className="flex-1 bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px]">
+                            {retoucheLoading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Scissors className="w-4 h-4 mr-1.5" />}
+                            {t('contenus.detail.retoucherAppliquer')}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => setRetoucheOuverte(true)}
+                        className="w-full border-white/10 text-slate-300 hover:text-white hover:border-[#5B6CFF]/50 rounded-[11px]">
+                        <Scissors className="w-4 h-4 mr-1.5" />{t('contenus.detail.retoucher')}
+                      </Button>
+                    )
+                  )}
+
                   {/* Générer / changer le visuel — posts image (pas carrousel, pas vidéo) */}
                   {!(Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length)
                     && !selectedContenu.carrousel_pdf && !selectedContenu.video_url
@@ -1962,8 +2023,8 @@ export default function ContenusPage() {
 
                   <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
                     {/* Toggle de mode */}
-                    <div className="grid grid-cols-3 gap-1 p-1 bg-[#0a0f1c] border border-white/10 rounded-xl">
-                      {[['gabarit', t('contenus.image.modeGabarit'), LayoutGrid], ['template', t('contenus.image.modeTemplate'), ScrollText], ['ia', t('contenus.image.modeIa'), Wand2]].map(([m, lbl, Icon]) => (
+                    <div className="grid grid-cols-4 gap-1 p-1 bg-[#0a0f1c] border border-white/10 rounded-xl">
+                      {[['gabarit', t('contenus.image.modeGabarit'), LayoutGrid], ['template', t('contenus.image.modeTemplate'), ScrollText], ['ia', t('contenus.image.modeIa'), Wand2], ['importer', t('contenus.image.modeImporter'), Upload]].map(([m, lbl, Icon]) => (
                         <button key={m} onClick={() => setMode(m)}
                           className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-[13px] font-medium font-inter transition-all ${imgMode === m ? 'bg-[#5B6CFF]/15 text-white border border-[#5B6CFF]/40' : 'text-slate-400 border border-transparent hover:text-white'}`}>
                           <Icon className="w-3.5 h-3.5" />{lbl}
@@ -2192,9 +2253,25 @@ export default function ContenusPage() {
                       </>
                     )}
 
+                    {/* MODE IMPORTER : dépose directement un fichier, aucun appel IA, gratuit */}
+                    {imgMode === 'importer' && (
+                      <div className="flex flex-col items-center justify-center gap-3 py-10 px-6 rounded-xl border-2 border-dashed border-white/10 text-center">
+                        <Upload className="w-8 h-8 text-slate-500" />
+                        <div>
+                          <p className="text-[13.5px] text-slate-200 font-inter font-medium">{t('contenus.image.importerTitre')}</p>
+                          <p className="text-[12px] text-slate-500 font-inter mt-1 max-w-xs">{t('contenus.image.importerTexte')}</p>
+                        </div>
+                        <Button size="sm" onClick={() => imgImportRef.current?.click()} disabled={imgImporting}
+                          className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px]">
+                          {imgImporting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Upload className="w-4 h-4 mr-1.5" />}
+                          {t('contenus.image.importerChoisir')}
+                        </Button>
+                      </div>
+                    )}
+
                     {/* Qualité (modèle) — Image IA : choix libre */}
                     {/* Qualité (modèle) — Image IA ET Template : choix HD / standard */}
-                    {imgMode !== 'gabarit' && (
+                    {imgMode !== 'gabarit' && imgMode !== 'importer' && (
                       <div className="space-y-2">
                         <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.qualite')}</p>
                         <div className="grid grid-cols-2 gap-2">
@@ -2219,23 +2296,20 @@ export default function ContenusPage() {
                   {/* ---- FOOTER ---- */}
                   <div className="border-t border-white/10 px-5 py-3 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2 text-[12px] text-slate-400 min-w-0">
-                      {quotaInfo() ? (
+                      {imgMode !== 'importer' && quotaInfo() ? (
                         <><span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3] shadow-[0_0_8px_#3AFFA3] shrink-0" /><span className="truncate"><b className="text-slate-200 font-semibold">{quotaInfo().remaining}</b> {quotaInfo().label} {t('contenus.image.restantes')}</span></>
                       ) : null}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <input ref={imgImportRef} type="file" accept="image/*" onChange={importerImage} className="hidden" data-testid="input-import-image" />
-                      {imgMode === 'ia' && (
-                        <Button variant="ghost" size="sm" onClick={() => imgImportRef.current?.click()} disabled={imgImporting} className="text-slate-400 hover:text-white font-inter">
-                          {imgImporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                      <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">{t('contenus.actions.fermer')}</Button>
+                      {imgMode !== 'importer' && (
+                        <Button onClick={onGenerate} disabled={genDisabled}
+                          className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter shadow-lg shadow-[#5B6CFF]/30">
+                          {genBusy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
+                          {imageContenu.lien_visuel ? t('contenus.actions.regenerer') : t('contenus.carte.genererVisuel')}
                         </Button>
                       )}
-                      <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">{t('contenus.actions.fermer')}</Button>
-                      <Button onClick={onGenerate} disabled={genDisabled}
-                        className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter shadow-lg shadow-[#5B6CFF]/30">
-                        {genBusy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
-                        {imageContenu.lien_visuel ? t('contenus.actions.regenerer') : t('contenus.carte.genererVisuel')}
-                      </Button>
                     </div>
                   </div>
                 </div>
