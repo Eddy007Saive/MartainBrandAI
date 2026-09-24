@@ -80,6 +80,10 @@ export const agentService = {
   gabaritPreviews: () => api.get('/agent/gabarit/previews').then((r) => r.data),
   // Génère une photo depuis une description (Nano Banana) -> URL (pour la zone photo d'un gabarit)
   generatePhoto: (description, modele = 'nano2') => api.post('/agent/photo', { description, modele }).then((r) => r.data),
+  // Retouche libre d'une image déjà générée (« enlève le carton ») : renvoie l'image au modèle
+  // avec l'instruction, garde tout le reste identique. Consomme un quota image.
+  imageEditer: (imageUrl, instruction, contenu_id = null, modele = 'nano2') =>
+    api.post('/agent/image/editer', { image_url: imageUrl, instruction, contenu_id, modele }, { timeout: 180000 }).then((r) => r.data),
   // Retouche les couleurs/police d'un carrousel (re-render depuis les slides stockées, texte inchangé)
   recolorCarrousel: (contenu_id, colors, font, fontCorps, template) => api.post('/agent/carrousel/recolor', { contenu_id, colors, ...(font !== undefined ? { font } : {}), ...(fontCorps !== undefined ? { font_corps: fontCorps } : {}), ...(template ? { template } : {}) }).then((r) => r.data),
   // Jauge de résultats (quotas par type + état de l'abonnement)
