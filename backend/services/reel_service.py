@@ -859,7 +859,7 @@ def creer_reel_libre(telegram_id: str, brief: str, images: list = None, reseau: 
     hook = (scenario["segments"][0]["texte"] if scenario["segments"] else brief)[:60]
     row = {
         "telegram_id": telegram_id,
-        "titre": f"Reel — {hook}",
+        "titre": hook,
         "contenu": brief.strip(),
         "type": "Reel",
         "reseau_cible": reseau or "Instagram",
@@ -1020,7 +1020,7 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
     # uploade (public_id reels/{tid}/{id}, stable) et notifie en arriere-plan.
     row = {
         "telegram_id": telegram_id,
-        "titre": f"Reel — {cur.get('titre') or (script.get('hook') or script.get('headline') or '')[:60]}",
+        "titre": cur.get('titre') or (script.get('hook') or script.get('headline') or '')[:60],
         "contenu": cur.get("contenu"),
         "type": "Reel",
         "reseau_cible": cur.get("reseau_cible"),
