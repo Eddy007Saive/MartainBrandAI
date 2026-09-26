@@ -273,12 +273,16 @@ def _brand(u: dict) -> dict:
     return {"principale": u.get("couleur_principale") or "#5B6CFF", "accent": u.get("couleur_accent") or "#3AFFA3"}
 
 
-async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes: dict, ratio: str, modele: str = "nano2", style: str = "photo") -> str:
-    """L'image de fond (nano-banana), avec la photo du client si elle existe. Retourne l'URL."""
+async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes: dict, ratio: str, modele: str = "nano2", style: str = "photo", ref_url: str = None) -> str:
+    """L'image de fond (nano-banana), avec la photo du client si elle existe. Retourne l'URL.
+
+    `ref_url` : image de la banque choisie par le client pour remplacer sa propre photo comme
+    sujet (ex. la mascotte de sa marque) — sinon repli sur `photo_url` (comportement historique)."""
     from services import image_service
     g = _PAR_ID.get(gabarit_id) or GABARITS[0]
     u = _charger_marque(telegram_id)
-    avec_photo = bool(u.get("photo_url"))
+    sujet_photo = ref_url or u.get("photo_url")
+    avec_photo = bool(sujet_photo)
     scene = (g["scene"] if avec_photo else g["scene_sans_photo"]).replace("{objet}", textes.get("objet") or "a glowing object")
     sujet = (contenu.get("contenu") or contenu.get("titre") or "")[:400].replace("\n", " ")
     orient = ("Vertical 9:16 composition" if ratio != "16:9" else "Horizontal 16:9 composition") + ", the image fills the whole frame edge to edge: NO border, NO frame, NO margin, NO paper edge, NO letterbox."
@@ -287,16 +291,21 @@ async def generer_fond(telegram_id: str, contenu: dict, gabarit_id: str, textes:
               f"{orient} STYLE: {st['texte']} ABSOLUTELY NO TEXT, NO LETTERS, NO LOGOS, NO WATERMARK anywhere in the image.")
     # Styles non photographiques : on coupe le garde-fou « réalisme photo » d'image_service
     # (template_mode, sans référence, ne fait rien d'autre).
-    res = await image_service.generer_image(telegram_id, prompt, avec_photo, image_service.IMAGE_MODELS.get(modele, image_service.IMAGE_MODELS["nano2"]),
-                                            None, refs=[], ratio=("16:9" if ratio == "16:9" else "9:16"), template_mode=not st["photo"],
-                                            identite_stylisee=not st["photo"],
-                                            public_id=f"miniatures/{telegram_id}/{contenu['id']}-fond-{int(datetime.now(timezone.utc).timestamp())}")
+    # Référence de la banque (ref_url) : on la fait INTÉGRER LITTÉRALEMENT (personnage/objet/logo,
+    # cf. le prompt "à intégrer" d'image_service) plutôt que passer par avec_photo, qui ne sait lire
+    # que u["photo_url"] et suppose un visage à préserver — inadapté à une mascotte par exemple.
+    res = await image_service.generer_image(
+        telegram_id, prompt, bool(not ref_url and avec_photo), image_service.IMAGE_MODELS.get(modele, image_service.IMAGE_MODELS["nano2"]),
+        None, refs=[ref_url] if ref_url else [], integrate_refs=[ref_url] if ref_url else None,
+        ratio=("16:9" if ratio == "16:9" else "9:16"), template_mode=not st["photo"],
+        identite_stylisee=not st["photo"],
+        public_id=f"miniatures/{telegram_id}/{contenu['id']}-fond-{int(datetime.now(timezone.utc).timestamp())}")
     if res.get("error"):
         raise RuntimeError(res["error"])
     return res["lien_visuel"]
 
 
-def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, textes: dict, ratio: str, style: str = "photo", police: str = None) -> dict:
+def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, textes: dict, ratio: str, style: str = "photo", police: str = None, ref: str = None) -> dict:
     """Compose le texte, dépose la miniature, en fait la couverture du reel."""
     g = _PAR_ID.get(gabarit_id) or GABARITS[0]
     u = _charger_marque(telegram_id)
@@ -318,7 +327,7 @@ def finaliser(telegram_id: str, contenu: dict, fond_url: str, gabarit_id: str, t
             except Exception as e:
                 logger.warning(f"miniature: ancien fond non supprimé: {e}")
     mini = {"url": url, "fond": fond_url, "gabarit": g["id"], "textes": textes, "ratio": ratio, "style": style if style in STYLES else "photo", "police": police,
-            "date": datetime.now(timezone.utc).isoformat()}
+            "ref": ref, "date": datetime.now(timezone.utc).isoformat()}
     rd = dict(contenu.get("reel_data") or {}); rd["miniature"] = mini
     supabase.table("contenu").update({"reel_data": rd, "lien_visuel": url, "video_preview_url": url}).eq("id", contenu["id"]).execute()
     return mini

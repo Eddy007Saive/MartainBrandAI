@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { X, Loader2, Sparkles, Check, Type } from 'lucide-react';
+import { X, Loader2, Sparkles, Check, Type, User } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
+import { userService } from '../services/userService';
 
 /**
  * Miniature (couverture) d'un reel : un gabarit, trois textes, une image IA en fond
@@ -45,6 +46,8 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
   const [styleImg, setStyleImg] = useState('photo');
   const [polices, setPolices] = useState([]);
   const [police, setPolice] = useState(null);   // null = celle du gabarit
+  const [inspirations, setInspirations] = useState([]);
+  const [refUrl, setRefUrl] = useState(null);   // null = la photo du compte (Paramètres) ; sinon une image de la banque
   const [chargement, setChargement] = useState(true);
   const [generation, setGeneration] = useState(null);   // 'fond' | 'texte' | null
   const [mini, setMini] = useState(contenu?.reel_data?.miniature || null);
@@ -59,7 +62,8 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
     Promise.all([
       contenuService.miniatureGabarits(),
       memo?.titre ? Promise.resolve(memo) : contenuService.miniatureTextes(contenu.id),
-    ]).then(([g, tx]) => {
+      userService.listInspirations().catch(() => []),
+    ]).then(([g, tx, insp]) => {
       if (!vivant) return;
       setGabarits(g.gabarits || []);
       if (g.styles?.length) setStyles(g.styles.map((x) => (typeof x === 'string' ? { id: x } : x)));
@@ -72,8 +76,12 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
           document.head.appendChild(l);
         }
       }
+      setInspirations(Array.isArray(insp) ? insp : (insp?.images || []));
       setTextes({ kicker: '', titre: '', sous: '', objet: '', ...(tx || {}) });
-      if (existante) { setGabarit(existante.gabarit); setRatio(existante.ratio || '9:16'); setStyleImg(existante.style || 'photo'); setPolice(existante.police || null); }
+      if (existante) {
+        setGabarit(existante.gabarit); setRatio(existante.ratio || '9:16'); setStyleImg(existante.style || 'photo');
+        setPolice(existante.police || null); setRefUrl(existante.ref || null);
+      }
     }).catch(() => { if (vivant) toast.error(t('contenus.miniature.echecTextes')); })
       .finally(() => { if (vivant) setChargement(false); });
     return () => { vivant = false; };
@@ -83,13 +91,13 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
   const g = gabarits.find((x) => x.id === gabarit) || { id: gabarit, layout: 'titre-bas', textes: ['kicker', 'titre', 'sous'] };
   const champs = g.textes || [];
   const policeEffective = police || g.police || 'impact';
-  const peutRecomposer = !!mini?.fond && mini.gabarit === gabarit && mini.ratio === ratio && (mini.style || 'photo') === styleImg;
+  const peutRecomposer = !!mini?.fond && mini.gabarit === gabarit && mini.ratio === ratio && (mini.style || 'photo') === styleImg && (mini.ref || null) === (refUrl || null);
 
   const lancer = async (mode) => {
     if (champs.includes('titre') && !textes.titre.trim() && g.layout !== 'aucun') { toast.error(t('contenus.miniature.titreRequis')); return; }
     setGeneration(mode);
     try {
-      const r = await contenuService.miniatureGenerer(contenu.id, { gabarit, textes, ratio, style: styleImg, police: policeEffective, reutiliser_fond: mode === 'texte' });
+      const r = await contenuService.miniatureGenerer(contenu.id, { gabarit, textes, ratio, style: styleImg, police: policeEffective, ref: refUrl, reutiliser_fond: mode === 'texte' });
       setMini(r.miniature);
       toast.success(t(mode === 'texte' ? 'contenus.miniature.texteOk' : 'contenus.miniature.ok'));
     } catch (e) {
@@ -169,6 +177,36 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
                   })}
                 </div>
               </div>
+              {/* Le sujet : la photo du compte par défaut, ou une image de la banque (ex. la
+                  mascotte de la marque) à intégrer littéralement à la place. */}
+              {inspirations.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.miniature.sujet')}</div>
+                  <div className="flex gap-2.5 overflow-x-auto pb-1">
+                    <button type="button" onClick={() => setRefUrl(null)} data-testid="miniature-sujet-photo"
+                      className="group text-center shrink-0">
+                      <div className={`relative w-14 aspect-[9/16] rounded-lg overflow-hidden border-[1.5px] bg-[#060b18] grid place-items-center ${!refUrl ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}>
+                        <User className="w-5 h-5 text-slate-500" />
+                        {!refUrl && <span className="absolute right-1 bottom-1 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[9px] font-extrabold">✓</span>}
+                      </div>
+                      <div className={`mt-1 text-[10.5px] font-sora font-bold truncate w-14 ${!refUrl ? 'text-[#3AFFA3]' : 'text-slate-300'}`}>{t('contenus.miniature.sujetPhoto')}</div>
+                    </button>
+                    {inspirations.map((url) => {
+                      const on = refUrl === url;
+                      return (
+                        <button key={url} type="button" onClick={() => setRefUrl(url)} data-testid="miniature-sujet-ref"
+                          className="group text-center shrink-0">
+                          <div className={`relative w-14 aspect-[9/16] rounded-lg overflow-hidden border-[1.5px] ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}>
+                            <img src={url} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                            {on && <span className="absolute right-1 bottom-1 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[9px] font-extrabold">✓</span>}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-slate-600 font-inter mt-1.5">{t('contenus.miniature.sujetAide')}</p>
+                </div>
+              )}
               {/* La police du titre : chaque gabarit a la sienne, le client peut en changer */}
               {polices.length > 0 && (
                 <div className="mt-4">

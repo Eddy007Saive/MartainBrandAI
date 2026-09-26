@@ -379,6 +379,7 @@ class MiniatureRequest(BaseModel):
     reutiliser_fond: bool = False     # recomposer le texte sur le fond existant (gratuit)
     style: str = "photo"              # photo, cinema, 3d, illustration, neon, pop
     police: str | None = None         # police du titre (miniature_service.POLICES), défaut selon le gabarit
+    ref: str | None = None            # image de la banque à intégrer comme sujet (remplace la photo du client)
 
 
 @router.get("/miniature/gabarits")
@@ -430,7 +431,7 @@ async def miniature_generer(contenu_id: str, body: MiniatureRequest, payload: di
     ancienne = ((c.get("reel_data") or {}).get("miniature") or {})
     if body.reutiliser_fond and ancienne.get("fond"):
         try:
-            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, ancienne["fond"], gabarit, textes, ratio, ancienne.get("style") or "photo", police)
+            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, ancienne["fond"], gabarit, textes, ratio, ancienne.get("style") or "photo", police, ancienne.get("ref"))
         except Exception as e:
             logger.error(f"miniature recomposer: {e}")
             raise HTTPException(status_code=500, detail="Échec de la composition de la miniature.")
@@ -442,7 +443,7 @@ async def miniature_generer(contenu_id: str, body: MiniatureRequest, payload: di
         raise HTTPException(status_code=402, detail={"raison": q.get("reason") or "quota",
                                                      "message": q.get("message") or "Génération indisponible."})
     try:
-        fond = await miniature_service.generer_fond(telegram_id, c, gabarit, textes, ratio, modele=modele, style=style)
+        fond = await miniature_service.generer_fond(telegram_id, c, gabarit, textes, ratio, modele=modele, style=style, ref_url=(body.ref or None))
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"miniature generer (fond): {e}")
@@ -451,7 +452,7 @@ async def miniature_generer(contenu_id: str, body: MiniatureRequest, payload: di
     mini, derniere = None, None
     for essai in range(2):
         try:
-            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, fond, gabarit, textes, ratio, style, police)
+            mini = await asyncio.to_thread(miniature_service.finaliser, telegram_id, c, fond, gabarit, textes, ratio, style, police, (body.ref or None))
             break
         except Exception as e:
             derniere = e
