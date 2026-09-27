@@ -1466,7 +1466,7 @@ export default function ContenusPage() {
                 {/* BODY 2 panneaux */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 min-h-0 overflow-hidden">
                   {/* GAUCHE : aperçu + retouche */}
-                  <div className="p-4 border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto space-y-3"
+                  <div className="p-4 border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto min-h-0 space-y-3"
                     style={{ background: 'radial-gradient(120% 70% at 20% 0%, rgba(91,108,255,.05), transparent 55%)' }}>
                   {selectedContenu.statut === 'A tourner' ? (
                     // Script prêt : à filmer + monter → Studio Vidéo
@@ -1550,12 +1550,19 @@ export default function ContenusPage() {
                     </div>
                   ) : selectedContenu.lien_visuel ? (
                     <div className="group relative">
-                      <img
-                        src={selectedContenu.lien_visuel}
-                        alt=""
-                        className="w-full rounded-xl object-cover ring-1 ring-white/10"
-                      />
+                      <button type="button" onClick={() => setLightbox({ images: [selectedContenu.lien_visuel], index: 0 })}
+                        className="block w-full cursor-zoom-in" title={t('contenus.image.agrandir')}>
+                        <img
+                          src={selectedContenu.lien_visuel}
+                          alt=""
+                          className="w-full max-h-[360px] rounded-xl object-contain bg-slate-950/40 ring-1 ring-white/10 mx-auto"
+                        />
+                        <span className="absolute inset-0 flex items-center justify-center bg-slate-950/0 group-hover:bg-slate-950/40 transition-colors rounded-xl">
+                          <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </span>
+                      </button>
                       <a href={lienTelechargement(selectedContenu.lien_visuel, selectedContenu.titre)}
+                        onClick={(e) => e.stopPropagation()}
                         className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-black/70 border border-white/20 grid place-items-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
                         title={t('contenus.image.telecharger')} aria-label={t('contenus.image.telecharger')}>
                         <Download className="w-4 h-4" />
