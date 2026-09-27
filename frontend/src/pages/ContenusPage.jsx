@@ -161,7 +161,10 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
       {/* Visuel */}
       <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden">
         {contenu.lien_visuel ? (
-          <img src={contenu.lien_visuel} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+          // Les miniatures de reel sont composées en 9:16 (titre, kicker...) : les recadrer en
+          // 16:10 (object-cover) tranche le texte n'importe où. object-contain garde la
+          // composition intacte, letterboxée sur le fond de la carte.
+          <img src={contenu.lien_visuel} alt="" className={`w-full h-full ${isVideo ? 'object-contain' : 'object-cover'}`} onError={(e) => { e.target.style.display = 'none'; }} />
         ) : isVideo ? (
           <div className="absolute inset-0 grid place-items-center text-slate-700"><Video className="w-8 h-8" /></div>
         ) : (
