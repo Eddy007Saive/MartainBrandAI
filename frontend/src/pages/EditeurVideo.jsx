@@ -113,7 +113,7 @@ export default function EditeurVideo() {
     const e = nouvelElement(projet, type, extra);
     setProjet((p) => placerElement(p, e, tete));
     setSelection(e.id);
-  }, [projet, setProjet, tete]);
+  }, [projet, setProjet, tete, setSelection]);
 
   // Dépôt depuis le panneau médias : la durée du média est lue, puis l'élément est posé à l'instant lâché.
   const deposer = useCallback(async (d, temps) => {
@@ -125,7 +125,7 @@ export default function EditeurVideo() {
     const e = nouvelElement(projet, d.type, extra);
     setProjet((p) => placerElement(p, e, temps));
     setSelection(e.id);
-  }, [projet, setProjet]);
+  }, [projet, setProjet, setSelection]);
 
   const couper = useCallback(() => {
     if (!selection) return;
@@ -133,7 +133,7 @@ export default function EditeurVideo() {
     let fait = false;
     setProjet((p) => { const r = couperElement(p, selection, tete, id); fait = !!r.nouveau; return r.projet; });
     setTimeout(() => { if (fait) setSelection(id); }, 0);
-  }, [selection, tete, setProjet]);
+  }, [selection, tete, setProjet, setSelection]);
   const dupliquer = useCallback(() => {
     if (!selectionIds.length) return;
     const nouveaux = Object.fromEntries(selectionIds.map((sid) => [sid, nouvelId()]));
@@ -146,7 +146,7 @@ export default function EditeurVideo() {
     setProjet((p) => separerAudio(p, elementId, nid, `p-audio-${nid}`).projet);
     setSelection(nid);
     toast.success(t('editeur.prop.separerAudioOk'));
-  }, [setProjet, t]);
+  }, [setProjet, t, setSelection]);
   // « Couverture ici » : l'instant de la tête de lecture devient la miniature de la vidéo exportée.
   const definirCouverture = useCallback(() => {
     const instant = Math.round(tete * 10) / 10;
