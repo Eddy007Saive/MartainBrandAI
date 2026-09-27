@@ -161,20 +161,25 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
       {/* Visuel */}
       <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden">
         {contenu.lien_visuel ? (
-          isVideo ? (
-            // Miniatures de reel composées en 9:16 : un simple object-contain laisse de
-            // grandes bandes vides de chaque côté dans le cadre 16:10 de la carte. Backdrop
-            // flou (même image, floutée en fond plein cadre) + composition nette au premier
-            // plan, jamais rognée — même technique que Spotify/YouTube pour de la pochette
-            // portrait dans une tuile large.
+          isVideo || isCarrousel ? (
+            // Miniatures de reel (9:16) et couvertures de carrousel (4:5) sont des
+            // compositions typographiques précises : un simple object-cover dans le cadre
+            // 16:10 de la carte tranche le titre n'importe où (vu sur des carrousels dont le
+            // titre déborde du tiers haut de la slide une fois recadré). Backdrop flou (même
+            // image, floutée en fond plein cadre) + composition nette au premier plan, jamais
+            // rognée — même technique que Spotify/YouTube pour de la pochette portrait.
             <>
               <img src={contenu.lien_visuel} alt="" aria-hidden="true"
                 className="absolute inset-0 w-full h-full object-cover scale-[1.35] blur-[28px] saturate-[1.15]"
                 onError={(e) => { e.target.style.display = 'none'; }} />
               <div className="absolute inset-0 bg-slate-950/45" />
-              <img src={contenu.lien_visuel} alt=""
-                className="absolute top-[4%] bottom-[4%] left-1/2 -translate-x-1/2 aspect-[9/16] rounded-lg object-contain shadow-[0_14px_34px_rgba(0,0,0,0.55)]"
-                onError={(e) => { e.target.style.display = 'none'; }} />
+              {/* aspect-ratio sur un <img> en position absolute (top+bottom) ne se calcule pas
+                  de façon fiable dans Chromium — l'image garde sa taille native. Le ratio va
+                  sur ce conteneur, l'image dedans est un simple object-contain w-full h-full. */}
+              <div className={`absolute top-[4%] bottom-[4%] left-1/2 -translate-x-1/2 ${isVideo ? 'aspect-[9/16]' : 'aspect-[4/5]'} rounded-lg overflow-hidden shadow-[0_14px_34px_rgba(0,0,0,0.55)]`}>
+                <img src={contenu.lien_visuel} alt="" className="w-full h-full object-contain"
+                  onError={(e) => { e.target.style.display = 'none'; }} />
+              </div>
             </>
           ) : (
             <img src={contenu.lien_visuel} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
