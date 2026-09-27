@@ -161,10 +161,24 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
       {/* Visuel */}
       <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden">
         {contenu.lien_visuel ? (
-          // Les miniatures de reel sont composées en 9:16 (titre, kicker...) : les recadrer en
-          // 16:10 (object-cover) tranche le texte n'importe où. object-contain garde la
-          // composition intacte, letterboxée sur le fond de la carte.
-          <img src={contenu.lien_visuel} alt="" className={`w-full h-full ${isVideo ? 'object-contain' : 'object-cover'}`} onError={(e) => { e.target.style.display = 'none'; }} />
+          isVideo ? (
+            // Miniatures de reel composées en 9:16 : un simple object-contain laisse de
+            // grandes bandes vides de chaque côté dans le cadre 16:10 de la carte. Backdrop
+            // flou (même image, floutée en fond plein cadre) + composition nette au premier
+            // plan, jamais rognée — même technique que Spotify/YouTube pour de la pochette
+            // portrait dans une tuile large.
+            <>
+              <img src={contenu.lien_visuel} alt="" aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover scale-[1.35] blur-[28px] saturate-[1.15]"
+                onError={(e) => { e.target.style.display = 'none'; }} />
+              <div className="absolute inset-0 bg-slate-950/45" />
+              <img src={contenu.lien_visuel} alt=""
+                className="absolute top-[4%] bottom-[4%] left-1/2 -translate-x-1/2 aspect-[9/16] rounded-lg object-contain shadow-[0_14px_34px_rgba(0,0,0,0.55)]"
+                onError={(e) => { e.target.style.display = 'none'; }} />
+            </>
+          ) : (
+            <img src={contenu.lien_visuel} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+          )
         ) : isVideo ? (
           <div className="absolute inset-0 grid place-items-center text-slate-700"><Video className="w-8 h-8" /></div>
         ) : (
