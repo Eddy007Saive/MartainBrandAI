@@ -36,8 +36,11 @@ const BLOC_CLS = {
   g2: 'text-[16px] font-black uppercase text-white font-sora leading-none',
 };
 
+const ONGLETS = ['gabarits', 'style', 'sujet', 'police'];
+
 export default function MiniatureDialog({ contenu, onClose, onDone }) {
   const { t } = useTranslation();
+  const [onglet, setOnglet] = useState('gabarits');
   const [gabarits, setGabarits] = useState([]);
   const [gabarit, setGabarit] = useState('affiche');
   const [textes, setTextes] = useState({ kicker: '', titre: '', sous: '', objet: '' });
@@ -106,62 +109,76 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
   };
   const terminer = () => { onDone?.(mini); onClose(); };
 
-  return createPortal(
-    <div className="fixed inset-0 z-[110] bg-[#020617]/85 backdrop-blur-md overflow-y-auto" onClick={onClose} data-testid="miniature-dialog">
-      <div className="min-h-full grid place-items-center p-3 sm:p-6">
-        <div className="w-full max-w-[1040px] rounded-2xl border border-white/10 bg-[#0f172a] shadow-2xl" onClick={(e) => e.stopPropagation()}>
-          {/* En-tête */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06]">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#5B6CFF]/20 to-[#8A6CFF]/20 border border-[#5B6CFF]/20 grid place-items-center">
-              <Sparkles className="w-4 h-4 text-[#8A6CFF]" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-sora font-bold text-white text-[17px] leading-tight">{t('contenus.miniature.titre')}</h2>
-              <p className="text-[12.5px] text-slate-400 font-inter truncate">{contenu.titre}</p>
-            </div>
-            <button type="button" onClick={onClose} aria-label={t('contenus.actions.annuler')} data-testid="miniature-fermer"
-              className="ml-auto w-9 h-9 rounded-lg border border-white/10 grid place-items-center text-slate-400 hover:text-white hover:border-white/25">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+  const onglets = ONGLETS.filter((o) => o !== 'police' || polices.length > 0);
 
+  return createPortal(
+    <div className="fixed inset-0 z-[110] bg-[#020617]/85 backdrop-blur-md grid place-items-center p-3 sm:p-6" onClick={onClose} data-testid="miniature-dialog">
+      <div className="w-full max-w-[1040px] max-h-[92vh] flex flex-col rounded-2xl border border-white/10 bg-[#0f172a] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        {/* En-tête — fixe */}
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06] shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#5B6CFF]/20 to-[#8A6CFF]/20 border border-[#5B6CFF]/20 grid place-items-center">
+            <Sparkles className="w-4 h-4 text-[#8A6CFF]" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="font-sora font-bold text-white text-[17px] leading-tight">{t('contenus.miniature.titre')}</h2>
+            <p className="text-[12.5px] text-slate-400 font-inter truncate">{contenu.titre}</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label={t('contenus.actions.annuler')} data-testid="miniature-fermer"
+            className="ml-auto w-9 h-9 rounded-lg border border-white/10 grid place-items-center text-slate-400 hover:text-white hover:border-white/25">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Corps — des onglets remplacent l'empilement vertical (Gabarits/Style/Sujet/Police
+            tenaient les uns sous les autres et forçaient un scroll de toute la page, qui cachait
+            le bouton "Générer"). overflow-y-auto reste en filet de sécurité, pas le mécanisme
+            principal : chaque onglet est dimensionné pour tenir sans scroller. */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6 p-5">
-            {/* Gabarits */}
-            <div>
-              <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2.5">{t('contenus.miniature.gabarits')}</div>
-              <div className="grid grid-cols-4 gap-3">
-                {(gabarits.length ? gabarits : Object.keys(APERCUS).map((l) => ({ id: l, layout: l }))).map((x) => {
-                  const a = APERCUS[x.layout] || APERCUS['titre-bas'];
-                  const on = gabarit === x.id;
-                  return (
-                    <button key={x.id} type="button" onClick={() => setGabarit(x.id)} data-testid={`miniature-gabarit-${x.id}`}
-                      className={`group text-left transition-transform hover:-translate-y-0.5 ${on ? '' : 'opacity-90'}`}>
-                      <div className={`relative aspect-[9/16] rounded-xl overflow-hidden border-[1.5px] ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}
-                        style={{ background: a.fond }}>
-                        {/* L'image d'exemple (Rico pose) ; si elle manque, la maquette CSS prend le relais */}
-                        {x.apercu && (
-                          <img src={x.apercu} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover z-[1]"
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                        )}
-                        <div className="absolute inset-x-[18%] bottom-0 top-[35%] rounded-t-full bg-black/35" />
-                        {a.blocs.map(([k, pos]) => (
-                          <div key={k} className={`absolute inset-x-0 ${pos} ${a.align} ${BLOC_CLS[k]}`}>
-                            {k === 'k' ? 'KICKER' : k === 's' ? 'SOUS-TITRE' : k === 'c' ? 'accroche' : 'TITRE'}
-                          </div>
-                        ))}
-                        {on && <span className="absolute right-1.5 bottom-1.5 w-5 h-5 rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[10px] font-extrabold">✓</span>}
-                      </div>
-                      <div className={`mt-1.5 text-center text-[11.5px] font-sora font-bold truncate ${on ? 'text-[#3AFFA3]' : 'text-slate-300'}`}>
-                        {t(`contenus.miniature.gab.${x.id}`)}
-                      </div>
-                    </button>
-                  );
-                })}
+            <div className="min-w-0">
+              <div className="grid gap-1 p-1 bg-[#0a0f1c] border border-white/10 rounded-xl mb-4" style={{ gridTemplateColumns: `repeat(${onglets.length},1fr)` }}>
+                {onglets.map((o) => (
+                  <button key={o} type="button" onClick={() => setOnglet(o)} data-testid={`miniature-onglet-${o}`}
+                    className={`py-2 rounded-lg text-[13px] font-sora font-semibold transition-colors ${onglet === o ? 'bg-[#5B6CFF]/15 text-white border border-[#5B6CFF]/40' : 'text-slate-400 border border-transparent hover:text-white'}`}>
+                    {t(`contenus.miniature.onglet.${o}`)}
+                  </button>
+                ))}
               </div>
-              {/* Le style de l'image : le gabarit dit quoi montrer, le style dit comment */}
-              <div className="mt-4">
-                <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.miniature.styleImage')}</div>
-                <div className="grid grid-cols-6 gap-2.5">
+
+              {onglet === 'gabarits' && (
+                <div className="grid grid-cols-4 gap-3">
+                  {(gabarits.length ? gabarits : Object.keys(APERCUS).map((l) => ({ id: l, layout: l }))).map((x) => {
+                    const a = APERCUS[x.layout] || APERCUS['titre-bas'];
+                    const on = gabarit === x.id;
+                    return (
+                      <button key={x.id} type="button" onClick={() => setGabarit(x.id)} data-testid={`miniature-gabarit-${x.id}`}
+                        className={`group text-left transition-transform hover:-translate-y-0.5 ${on ? '' : 'opacity-90'}`}>
+                        <div className={`relative aspect-[9/16] rounded-xl overflow-hidden border-[1.5px] ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}
+                          style={{ background: a.fond }}>
+                          {/* L'image d'exemple (Rico pose) ; si elle manque, la maquette CSS prend le relais */}
+                          {x.apercu && (
+                            <img src={x.apercu} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover z-[1]"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                          )}
+                          <div className="absolute inset-x-[18%] bottom-0 top-[35%] rounded-t-full bg-black/35" />
+                          {a.blocs.map(([k, pos]) => (
+                            <div key={k} className={`absolute inset-x-0 ${pos} ${a.align} ${BLOC_CLS[k]}`}>
+                              {k === 'k' ? 'KICKER' : k === 's' ? 'SOUS-TITRE' : k === 'c' ? 'accroche' : 'TITRE'}
+                            </div>
+                          ))}
+                          {on && <span className="absolute right-1.5 bottom-1.5 w-5 h-5 rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[10px] font-extrabold">✓</span>}
+                        </div>
+                        <div className={`mt-1.5 text-center text-[11.5px] font-sora font-bold truncate ${on ? 'text-[#3AFFA3]' : 'text-slate-300'}`}>
+                          {t(`contenus.miniature.gab.${x.id}`)}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {onglet === 'style' && (
+                <div className="grid grid-cols-4 gap-3">
                   {styles.map((st) => {
                     const on = styleImg === st.id;
                     return (
@@ -176,56 +193,62 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
                     );
                   })}
                 </div>
-              </div>
+              )}
+
               {/* Le sujet : la photo du compte par défaut, ou une image de la banque (ex. la
-                  mascotte de la marque) à intégrer littéralement à la place. */}
-              {inspirations.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.miniature.sujet')}</div>
-                  <div className="flex gap-2.5 overflow-x-auto pb-1">
-                    <button type="button" onClick={() => setRefUrl(null)} data-testid="miniature-sujet-photo"
-                      className="group text-center shrink-0">
-                      <div className={`relative w-14 aspect-[9/16] rounded-lg overflow-hidden border-[1.5px] bg-[#060b18] grid place-items-center ${!refUrl ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}>
+                  mascotte de la marque) à intégrer littéralement à la place. Onglet à part entière
+                  (plus jamais masqué quand la banque est vide) : état vide explicite ci-dessous. */}
+              {onglet === 'sujet' && (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[13px] text-slate-300 font-inter">{t('contenus.miniature.sujetQuestion')}</p>
+                    <span className="text-[10.5px] text-slate-600 font-inter italic">
+                      {inspirations.length > 0 ? t('contenus.miniature.sujetCompte', { n: inspirations.length }) : t('contenus.miniature.sujetVide')}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-6 gap-3 max-w-[560px]">
+                    <button type="button" onClick={() => setRefUrl(null)} data-testid="miniature-sujet-photo" className="group text-center">
+                      <div className={`relative aspect-[9/16] rounded-lg overflow-hidden border-[1.5px] bg-[#060b18] grid place-items-center ${!refUrl ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}>
                         <User className="w-5 h-5 text-slate-500" />
                         {!refUrl && <span className="absolute right-1 bottom-1 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[9px] font-extrabold">✓</span>}
                       </div>
-                      <div className={`mt-1 text-[10.5px] font-sora font-bold truncate w-14 ${!refUrl ? 'text-[#3AFFA3]' : 'text-slate-300'}`}>{t('contenus.miniature.sujetPhoto')}</div>
+                      <div className={`mt-1.5 text-[10.5px] font-sora font-bold truncate ${!refUrl ? 'text-[#3AFFA3]' : 'text-slate-300'}`}>{t('contenus.miniature.sujetPhoto')}</div>
                     </button>
                     {inspirations.map((url) => {
                       const on = refUrl === url;
                       return (
-                        <button key={url} type="button" onClick={() => setRefUrl(url)} data-testid="miniature-sujet-ref"
-                          className="group text-center shrink-0">
-                          <div className={`relative w-14 aspect-[9/16] rounded-lg overflow-hidden border-[1.5px] ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}>
+                        <button key={url} type="button" onClick={() => setRefUrl(url)} data-testid="miniature-sujet-ref" className="group text-center">
+                          <div className={`relative aspect-[9/16] rounded-lg overflow-hidden border-[1.5px] ${on ? 'border-[#3AFFA3] shadow-[0_0_0_1.5px_#3AFFA3]' : 'border-white/10 group-hover:border-[#8A6CFF]/60'}`}>
                             <img src={url} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                             {on && <span className="absolute right-1 bottom-1 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#05261a] grid place-items-center text-[9px] font-extrabold">✓</span>}
                           </div>
                         </button>
                       );
                     })}
+                    {/* Pas d'upload direct ici : on renvoie vers la banque (Studio Reel/Paramètres),
+                        source unique déjà utilisée ailleurs — éviter deux façons d'alimenter la même liste. */}
                   </div>
-                  <p className="text-[11px] text-slate-600 font-inter mt-1.5">{t('contenus.miniature.sujetAide')}</p>
+                  <p className="text-[11.5px] text-slate-500 font-inter mt-4 max-w-[480px] leading-relaxed">
+                    {inspirations.length > 0 ? t('contenus.miniature.sujetAide') : t('contenus.miniature.sujetAideVide')}
+                  </p>
                 </div>
               )}
+
               {/* La police du titre : chaque gabarit a la sienne, le client peut en changer */}
-              {polices.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase mb-2">{t('contenus.miniature.police')}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {polices.map((po) => {
-                      const on = policeEffective === po.id;
-                      return (
-                        <button key={po.id} type="button" onClick={() => setPolice(po.id === (g.police || 'impact') ? null : po.id)} data-testid={`miniature-police-${po.id}`}
-                          style={{ fontFamily: `'${po.famille}', sans-serif` }}
-                          className={`px-3 py-1.5 rounded-lg text-[15px] leading-none border ${on ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-200 hover:border-white/25'}`}>
-                          {t(`contenus.miniature.polices.${po.id}`)}
-                        </button>
-                      );
-                    })}
-                  </div>
+              {onglet === 'police' && (
+                <div className="flex flex-wrap gap-2.5">
+                  {polices.map((po) => {
+                    const on = policeEffective === po.id;
+                    return (
+                      <button key={po.id} type="button" onClick={() => setPolice(po.id === (g.police || 'impact') ? null : po.id)} data-testid={`miniature-police-${po.id}`}
+                        style={{ fontFamily: `'${po.famille}', sans-serif` }}
+                        className={`px-3.5 py-2 rounded-lg text-[15px] leading-none border ${on ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-200 hover:border-white/25'}`}>
+                        {t(`contenus.miniature.polices.${po.id}`)}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
-              <p className="text-[11.5px] text-slate-500 font-inter mt-3 leading-snug">{t('contenus.miniature.aide')}</p>
             </div>
 
             {/* Réglages + résultat */}
@@ -266,32 +289,36 @@ export default function MiniatureDialog({ contenu, onClose, onDone }) {
 
               {mini?.url && (
                 <div className="rounded-xl border border-white/10 overflow-hidden bg-black/40" data-testid="miniature-apercu">
-                  <img src={mini.url} alt="" className={`w-full ${mini.ratio === '16:9' ? 'aspect-video' : 'aspect-[9/16] max-h-[420px]'} object-contain mx-auto`} />
+                  <img src={mini.url} alt="" className={`w-full ${mini.ratio === '16:9' ? 'aspect-video' : 'aspect-[9/16] max-h-[220px]'} object-contain mx-auto`} />
                 </div>
               )}
-
-              <div className="flex flex-col gap-2">
-                <button type="button" onClick={() => lancer('fond')} disabled={!!generation || chargement} data-testid="miniature-generer"
-                  className="w-full inline-flex items-center justify-center gap-2 text-[13.5px] font-semibold font-inter text-white px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 disabled:opacity-50">
-                  {generation === 'fond' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {generation === 'fond' ? t('contenus.miniature.enCours') : mini ? t('contenus.miniature.regenerer') : t('contenus.miniature.generer')}
-                </button>
-                {peutRecomposer && (
-                  <button type="button" onClick={() => lancer('texte')} disabled={!!generation} data-testid="miniature-texte"
-                    className="w-full inline-flex items-center justify-center gap-2 text-[12.5px] font-semibold font-inter text-slate-200 px-4 py-2 rounded-xl border border-white/10 hover:border-white/25 disabled:opacity-50">
-                    {generation === 'texte' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Type className="w-4 h-4" />}
-                    {t('contenus.miniature.changerTexte')}
-                  </button>
-                )}
-                {mini?.url && (
-                  <button type="button" onClick={terminer} data-testid="miniature-terminer"
-                    className="w-full inline-flex items-center justify-center gap-2 text-[12.5px] font-semibold font-inter text-[#3AFFA3] px-4 py-2 rounded-xl border border-[#3AFFA3]/40 hover:bg-[#3AFFA3]/10">
-                    <Check className="w-4 h-4" />{t('contenus.miniature.terminer')}
-                  </button>
-                )}
-                <p className="text-[11px] text-slate-500 font-inter text-center">{t('contenus.miniature.cout')}</p>
-              </div>
             </div>
+          </div>
+        </div>
+
+        {/* Pied — hors du scroll, toujours visible : c'est ici que vivent les actions
+            (avant : dans la colonne de droite, poussées hors champ par la colonne de gauche). */}
+        <div className="shrink-0 border-t border-white/10 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[11px] text-slate-500 font-inter">{t('contenus.miniature.cout')}</p>
+          <div className="flex items-center gap-2">
+            {mini?.url && (
+              <button type="button" onClick={terminer} data-testid="miniature-terminer"
+                className="inline-flex items-center justify-center gap-2 text-[12.5px] font-semibold font-inter text-[#3AFFA3] px-4 py-2 rounded-xl border border-[#3AFFA3]/40 hover:bg-[#3AFFA3]/10">
+                <Check className="w-4 h-4" />{t('contenus.miniature.terminer')}
+              </button>
+            )}
+            {peutRecomposer && (
+              <button type="button" onClick={() => lancer('texte')} disabled={!!generation} data-testid="miniature-texte"
+                className="inline-flex items-center justify-center gap-2 text-[12.5px] font-semibold font-inter text-slate-200 px-4 py-2 rounded-xl border border-white/10 hover:border-white/25 disabled:opacity-50">
+                {generation === 'texte' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Type className="w-4 h-4" />}
+                {t('contenus.miniature.changerTexte')}
+              </button>
+            )}
+            <button type="button" onClick={() => lancer('fond')} disabled={!!generation || chargement} data-testid="miniature-generer"
+              className="inline-flex items-center justify-center gap-2 text-[13.5px] font-semibold font-inter text-white px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 disabled:opacity-50">
+              {generation === 'fond' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {generation === 'fond' ? t('contenus.miniature.enCours') : mini ? t('contenus.miniature.regenerer') : t('contenus.miniature.generer')}
+            </button>
           </div>
         </div>
       </div>
