@@ -124,12 +124,13 @@
 .cine .btn.apk{border:1px solid rgba(58,255,163,.35);color:var(--mint);background:rgba(11,19,34,.4);backdrop-filter:blur(6px)}
 @media(hover:hover){.cine .btn.apk:hover{background:rgba(58,255,163,.08)}}
 .cine .hero-note{color:var(--dim);font-size:12px;margin-top:13px}
-.cine .hstats{display:flex;gap:0;margin-top:34px;border:1px solid var(--line);border-radius:14px;overflow:hidden;
-        background:rgba(11,19,34,.55);backdrop-filter:blur(10px)}
-.cine .hstat{padding:14px 22px;text-align:left}
-.cine .hstat+.hstat{border-left:1px solid var(--line)}
-.cine .hstat b{display:block;font-family:Sora;font-weight:800;font-size:20px;color:var(--mint)}
-.cine .hstat span{font-size:11px;color:var(--mut)}
+/* Une ligne de faits, pas une carte de dashboard IA : chiffres au naturel (pas de vert néon),
+   pas de boîte ni de fond flouté — juste un fin séparateur au-dessus. */
+.cine .hstats{display:flex;gap:0;margin-top:34px;padding-top:18px;border-top:1px solid var(--line)}
+.cine .hstat{padding:0 22px;text-align:left}
+.cine .hstat+.hstat{border-left:1px solid var(--line);padding-left:22px}
+.cine .hstat b{display:block;font-family:Sora;font-weight:700;font-size:19px;color:var(--ink)}
+.cine .hstat span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
 .cine .scroll-cue{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:var(--dim);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
             animation:cineCue 2.2s var(--ease) infinite}
 @keyframes cineCue{0%,100%{transform:translate(-50%,0);opacity:.7}50%{transform:translate(-50%,7px);opacity:1}}
