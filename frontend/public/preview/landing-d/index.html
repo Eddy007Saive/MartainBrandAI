@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="fr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Postorico — Direction D : Studio conversationnel</title>
+<meta name="description" content="Direction D — inspirée de motion.so : noir profond, serif italique en accent, hero construit comme un vrai champ de saisie IA, motion soigné.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=Newsreader:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07080c; --card:#101320; --card-hi:#161a2c; --border:rgba(255,255,255,.09); --border-hi:rgba(255,255,255,.18);
+    --ink:#eef0f5; --ink-dim:#8b91a3; --ink-mute:#565c70;
+    --g1:#5B6CFF; --g2:#7C5CFF; --g3:#8A6CFF; --mint:#3AFFA3;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{background:var(--bg);}
+  body{background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; text-wrap:pretty; overflow-x:hidden;}
+  h1,h2{font-family:'Sora',sans-serif; letter-spacing:-0.015em;}
+  em{font-family:'Newsreader',serif; font-style:italic; font-weight:500;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 32px; position:relative; z-index:2;}
+
+  /* Animations are driven by Motion (the framer-motion engine, framework-agnostic build) in the
+     script at the bottom, not CSS — this is the same spring/easing engine motion/react uses. These
+     elements start invisible and Motion reveals them ; if JS fails to load, .no-js undoes that so
+     the page still renders instead of staying blank. */
+  .r1,.r2,.r3,.r4,.r5,.reveal{opacity:0;}
+  .no-js .r1,.no-js .r2,.no-js .r3,.no-js .r4,.no-js .r5,.no-js .reveal{opacity:1;}
+  /* .reveal-stagger : the container itself is visible, its direct children (the cards) are what
+     fade/rise in, one after another, instead of the whole grid popping in as one flat block. */
+  .reveal-stagger > *{opacity:0;}
+  .no-js .reveal-stagger > *{opacity:1;}
+
+  /* halo derrière la boîte de saisie : un conteneur centré (glow-wrap, suit la souris — JS) qui
+     enveloppe le halo qui respire (glow, animé en boucle par Motion) — deux calques séparés parce
+     que Motion écrit `transform` en ligne pour la respiration, ce qui écraserait un décalage souris
+     posé sur le même élément. */
+  .glow-wrap{position:absolute; top:50%; left:50%; width:640px; height:360px; margin:-180px 0 0 -320px;
+        pointer-events:none; z-index:0; transition:transform .5s cubic-bezier(.16,1,.3,1);}
+  .glow{width:100%; height:100%; background:radial-gradient(ellipse, rgba(124,92,255,.28), transparent 68%); filter:blur(30px);}
+
+  /* ===== aurore : fond ambiant, fixe, qui dérive en continu derrière toute la page — c'est ce qui
+     évite que le site ait l'air éteint entre deux révélations au scroll ===== */
+  .bg-rico{position:fixed; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; object-position:65% 32%;
+       opacity:0; transition:opacity .8s ease; pointer-events:none;}
+  .bg-rico.active{opacity:1;}
+  .bg-tint{position:fixed; inset:0; z-index:0; pointer-events:none; transition:background 1s ease;
+       background:linear-gradient(180deg, rgba(7,8,12,.52) 0%, rgba(7,8,12,.74) 55%, var(--bg) 95%);}
+  .bg-tint.blackout{background:var(--bg);}
+  @media (hover:none), (max-width:900px){ .bg-rico{display:none;} .bg-tint{background:var(--bg);} }
+
+  .aurora{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;}
+  .ablob{position:absolute; border-radius:50%; filter:blur(90px); will-change:transform;}
+  .ablob.a1{width:640px; height:640px; top:-12%; left:-8%; background:radial-gradient(circle, rgba(91,108,255,.22), transparent 70%);}
+  .ablob.a2{width:560px; height:560px; bottom:-14%; right:-6%; background:radial-gradient(circle, rgba(58,255,163,.14), transparent 70%);}
+  .ablob.a3{width:520px; height:520px; top:38%; left:60%; background:radial-gradient(circle, rgba(138,108,255,.16), transparent 70%);}
+
+  /* ===== texte qui se matérialise mot à mot (statements) — plus théâtral qu'un simple fondu ===== */
+  .word-reveal .word{display:inline-block; opacity:0; filter:blur(6px); transform:translateY(10px);}
+  .no-js .word-reveal .word{opacity:1; filter:none; transform:none;}
+
+  /* boutons magnétiques (CTA principaux) : le survol tire légèrement le bouton vers le curseur */
+  .btn-grad{will-change:transform;}
+
+  nav{position:relative; z-index:3; border-bottom:1px solid var(--border);}
+  .navrow{display:flex; align-items:center; justify-content:space-between; height:74px;}
+  .brand{display:flex; align-items:center; gap:9px; font-family:'Sora'; font-weight:600; font-size:14.5px; color:var(--ink-dim);}
+  .brand img{width:22px; height:22px;}
+  .navlinks{display:flex; gap:30px; font-size:13.5px; color:var(--ink-dim);}
+  .navlinks a:hover{color:var(--ink);}
+  .navcta{display:flex; align-items:center; gap:14px;}
+  .btn{display:inline-flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; padding:10px 18px; border-radius:9px; transition:all .2s;}
+  .btn-grad{background:linear-gradient(90deg,var(--g1),var(--g2),var(--g3)); color:#fff;}
+  .btn-grad:hover{box-shadow:0 0 24px rgba(124,92,255,.4); transform:translateY(-1px);}
+  .btn-ghost{color:var(--ink-dim); border:1px solid var(--border);}
+  .btn-ghost:hover{color:var(--ink); border-color:var(--border-hi);}
+
+  .hero{text-align:center; padding:100px 0 40px; position:relative;}
+  .kicker{display:block; font-size:13px; color:var(--ink-mute); margin-bottom:26px; letter-spacing:.02em;}
+  .kicker .dot{display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--mint); margin-right:8px; box-shadow:0 0 8px var(--mint);}
+  h1{font-size:clamp(32px,4.6vw,52px); font-weight:600; line-height:1.18; margin-bottom:44px;}
+  h1 em{color:var(--ink); font-weight:500;}
+
+  /* the hero centerpiece : a real-looking prompt field, because that's literally how you use the product */
+  .promptbox{
+    position:relative; z-index:1; max-width:640px; margin:0 auto; text-align:left;
+    background:var(--card); border:1px solid var(--border-hi); border-radius:16px; padding:6px;
+    box-shadow:0 30px 80px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02);
+  }
+  .promptbox-inner{padding:18px 18px 14px;}
+  .ph-line{font-size:15.5px; color:var(--ink-dim); min-height:24px; font-family:'Inter';}
+  .caret{display:inline-block; width:1.5px; height:16px; background:var(--mint); margin-left:2px; vertical-align:-3px;}
+  .promptbox-bar{display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-top:1px solid var(--border);}
+  .pb-left{display:flex; gap:10px; color:var(--ink-mute);}
+  .pb-send{width:30px; height:30px; border-radius:8px; background:linear-gradient(90deg,var(--g1),var(--g3)); display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; cursor:pointer;}
+
+  .pills{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:22px;}
+  .pill{
+    font-size:12.5px; color:var(--ink-dim); border:1px solid var(--border); padding:8px 15px; border-radius:99px;
+    display:inline-flex; align-items:center; gap:6px; cursor:default; will-change:transform;
+  }
+  .pill.active{color:var(--mint); border-color:rgba(58,255,163,.3); background:rgba(58,255,163,.06);}
+
+  .subline{font-size:14.5px; color:var(--ink-mute); margin-top:40px;}
+
+  /* une ligne de faits, pas une carte de dashboard IA — chiffres au naturel, pas de néon ni de boîte */
+  .hstats{display:inline-flex; gap:0; margin-top:36px; padding-top:20px; border-top:1px solid var(--border);}
+  .hstat{padding:0 24px; text-align:left;}
+  .hstat+.hstat{border-left:1px solid var(--border);}
+  .hstat b{display:block; font-family:'Sora'; font-weight:600; font-size:19px; color:var(--ink); font-variant-numeric:tabular-nums;}
+  .hstat span{font-size:11px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:.04em;}
+  @media(max-width:640px){ .hstats{flex-wrap:wrap; display:flex;} .hstat{flex:1 1 40%; padding:0 20px 12px;} }
+
+  /* réseaux : slow continuous drift — the one piece of ambient, purposeless-but-alive motion allowed */
+  .nets{overflow:hidden; margin-top:56px; -webkit-mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent); mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent);}
+  .nets-track{display:flex; gap:56px; width:max-content; font-family:'Sora'; font-weight:600; font-size:13.5px; color:var(--ink-mute);}
+
+  /* statement section : Motion's "Words, to videos." pattern, adapted */
+  .statement{padding:120px 0 90px; text-align:center; border-top:1px solid var(--border); position:relative;}
+  .statement .eyebrow{font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-mute); margin-bottom:22px;}
+  .statement h2{font-size:clamp(30px,5vw,58px); font-weight:500; line-height:1.15;}
+  .statement h2 em{color:var(--mint);}
+
+  .proof{padding:30px 0 110px;}
+  .proof-stage{position:relative; max-width:900px; margin:0 auto; perspective:1600px;}
+  .proof-glow{position:absolute; inset:-70px; z-index:0; pointer-events:none; filter:blur(55px);
+        background:radial-gradient(ellipse at center, rgba(124,92,255,.26), transparent 65%);}
+  .frame{position:relative; z-index:1; border-radius:16px; overflow:hidden; border:1px solid var(--border-hi);
+       box-shadow:0 40px 100px -30px rgba(0,0,0,.75); background:var(--card); transform-style:preserve-3d; will-change:transform;}
+  .frame-bar{display:flex; align-items:center; gap:7px; padding:12px 16px; border-bottom:1px solid var(--border);
+       font-family:'Sora'; font-weight:500; font-size:12px; color:var(--ink-mute);}
+  .frame-bar span{width:8px; height:8px; border-radius:50%; background:var(--border-hi);}
+  .frame-bar b{margin-left:4px; font-weight:500;}
+  .frame img{display:block; width:100%; height:auto;}
+  .proof-badge{position:absolute; z-index:2; bottom:-22px; right:5%; max-width:230px; text-align:left;
+        background:var(--card-hi); border:1px solid var(--border-hi); border-radius:14px; padding:15px 18px;
+        box-shadow:0 20px 50px -15px rgba(0,0,0,.65);}
+  .proof-badge b{display:block; font-size:13px; margin-bottom:4px;}
+  .proof-badge span{font-size:12px; color:var(--ink-dim); line-height:1.5;}
+  @media(max-width:720px){ .proof-badge{display:none;} }
+
+  /* ===== common section scaffolding ===== */
+  .section{padding:110px 0; border-top:1px solid var(--border);}
+  .shead{text-align:center; max-width:620px; margin:0 auto 56px;}
+  .eyebrow{font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-mute); margin-bottom:16px;}
+  .shead h2{font-size:clamp(26px,3.6vw,38px); font-weight:600; line-height:1.28;}
+  .shead h2 em{color:var(--mint);}
+  .lead{color:var(--ink-dim); font-size:15.5px; line-height:1.7; margin-top:16px;}
+
+  /* ===== problème / solution ===== */
+  .ps-grid{display:grid; grid-template-columns:1fr auto 1fr; gap:28px; align-items:start; max-width:980px; margin:0 auto;}
+  .ps-col{border:1px solid var(--border); border-radius:16px; padding:30px; text-align:left;}
+  .ps-col.bad{color:var(--ink-dim);}
+  .ps-col.good{border-color:rgba(58,255,163,.28); background:rgba(58,255,163,.035); position:relative;}
+  .ps-badge{position:absolute; top:-13px; left:26px; background:var(--mint); color:#04150c; font-size:11px; font-weight:700; padding:4px 12px; border-radius:99px;}
+  .ps-head{display:flex; align-items:center; gap:10px; margin-bottom:20px; font-family:'Sora'; font-weight:600; font-size:15.5px; color:var(--ink);}
+  .ps-ic{width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px; flex:none;}
+  .ps-col.bad .ps-ic{background:rgba(255,255,255,.06); color:var(--ink-mute);}
+  .ps-col.good .ps-ic{background:rgba(58,255,163,.15); color:var(--mint);}
+  .ps-arrow{align-self:center; color:var(--ink-mute); font-size:20px; padding-top:40px;}
+  .ps-col ul{display:flex; flex-direction:column; gap:13px; list-style:none;}
+  .ps-col li{display:flex; gap:10px; font-size:13.5px; line-height:1.55;}
+  .ps-col.bad li{color:var(--ink-mute);}
+  .ps-col.good li{color:var(--ink-dim);}
+  .mk{flex:none; font-size:12px; margin-top:2px;}
+  .ps-col.bad .mk{color:#5b6070;}
+  .ps-col.good .mk{color:var(--mint);}
+  @media(max-width:820px){ .ps-grid{grid-template-columns:1fr;} .ps-arrow{transform:rotate(90deg); padding:0;} }
+
+  /* reflet façon carte à jouer (comme .frame ci-dessus), positionné par --mx/--my posées en JS */
+  .gcard-sheen{position:absolute; inset:0; z-index:2; pointer-events:none; opacity:0; transition:opacity .3s ease;
+       background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.20), transparent 55%);}
+  .frame:hover .gcard-sheen{opacity:1;}
+
+  /* vitrine du studio : un seul cadre qui défile automatiquement entre les 6 écrans du produit,
+     pause au survol — les points en bas permettent de choisir directement une scène */
+  .proof-dots{display:flex; justify-content:center; gap:9px; margin-top:26px;}
+  .pdot{width:7px; height:7px; border-radius:50%; background:var(--border-hi); border:none; padding:0; cursor:pointer; transition:background .2s, transform .2s;}
+  .pdot:hover{background:var(--ink-dim);}
+  .pdot.on{background:var(--mint); transform:scale(1.35);}
+
+  /* ===== comparatif ===== */
+  .cmp-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:16px; overflow:hidden; max-width:1080px; margin:0 auto;}
+  .cmp-col{background:var(--bg); padding:26px 20px; text-align:left;}
+  .cmp-col.win{background:rgba(58,255,163,.045);}
+  .cmp-badge{color:var(--mint); font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin-bottom:8px; display:block;}
+  .cmp-col h4{font-family:'Sora'; font-size:15px; font-weight:600; margin-bottom:18px; min-height:19px;}
+  .cmp-row{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-top:1px solid var(--border); font-size:12.5px;}
+  .cmp-row:first-of-type{border-top:none;}
+  .cmp-row .k{color:var(--ink-mute); flex:none;}
+  .cmp-row .v{color:var(--ink-dim); text-align:right;}
+  .cmp-col.win .cmp-row .v{color:var(--ink); font-weight:500;}
+  @media(max-width:900px){ .cmp-grid{grid-template-columns:1fr 1fr;} }
+  @media(max-width:560px){ .cmp-grid{grid-template-columns:1fr;} }
+
+  /* ===== réseaux : diagramme en orbite (façon motion.so « Connectors ») =====
+     Fond plein exprès : Rico (vidéo fixe) passerait derrière sinon et brouillerait le diagramme —
+     comme .testi plus bas, ce moment a besoin d'un fond propre, pas du décor cinématique. */
+  .sec-nets{background:var(--bg); position:relative; z-index:1;}
+  .nets-orbit-layout{display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center; max-width:1080px; margin:0 auto;}
+  .nets-copy h2{font-size:clamp(26px,3.6vw,38px); font-weight:600; line-height:1.28; margin-top:14px;}
+  .nets-copy .lead{margin-top:16px; max-width:42ch;}
+  .orbit{position:relative; width:400px; height:400px; margin:0 auto;}
+  .orbit-glow{position:absolute; top:50%; left:50%; width:220px; height:220px; margin:-110px 0 0 -110px;
+        background:radial-gradient(circle, rgba(124,92,255,.30), transparent 70%); filter:blur(40px); pointer-events:none;}
+  .orbit-ring{position:absolute; inset:0; border:1px solid var(--border-hi); border-radius:50%;}
+  .orbit-ring--dash{inset:64px; border:1px dashed var(--border);}
+  .orbit-hub{position:absolute; top:50%; left:50%; width:62px; height:62px; margin:-31px; border-radius:16px;
+        background:var(--card); border:1px solid var(--border-hi); display:flex; align-items:center; justify-content:center;
+        box-shadow:0 20px 50px -15px rgba(0,0,0,.65);}
+  .orbit-hub img{width:30px; height:30px;}
+  /* .orbit-node ne fait QUE positionner sur le cercle (transform CSS, jamais touché par Motion) ;
+     .orbit-node-badge est ce que Motion anime (scale/couleur) — sinon animer le même élément que
+     celui qui porte le rotate/translate de positionnement écraserait ce positionnement (déjà vu
+     avec .glow plus haut). */
+  .orbit-node{position:absolute; top:50%; left:50%; width:0; height:0;
+        transform:rotate(var(--ang)) translate(178px) rotate(calc(-1 * var(--ang)));}
+  .orbit-node-badge{position:absolute; top:0; left:0; width:46px; height:46px; margin:-23px; border-radius:50%;
+        background:#0c0e16; border:1px solid var(--border-hi); display:flex; align-items:center; justify-content:center;
+        box-shadow:0 12px 26px -10px rgba(0,0,0,.55); cursor:default; will-change:transform;}
+  .orbit-node svg{width:20px; height:20px; fill:var(--nc);}
+  @media(max-width:900px){
+    .nets-orbit-layout{grid-template-columns:1fr; text-align:center;}
+    .nets-copy .lead{margin-left:auto; margin-right:auto;}
+    .nets-copy .cta-row{justify-content:center !important;}
+    .orbit{width:300px; height:300px;}
+    .orbit-ring--dash{inset:44px;}
+    .orbit-node{transform:rotate(var(--ang)) translate(128px) rotate(calc(-1 * var(--ang)));}
+  }
+
+  /* ===== pour qui ===== */
+  .aud-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; max-width:1080px; margin:0 auto;}
+  .aud-card{border:1px solid var(--border); border-radius:14px; padding:28px; text-align:left;}
+  .aud-card h3{font-family:'Newsreader'; font-style:italic; font-weight:500; font-size:19px; margin-bottom:12px; color:var(--ink); line-height:1.3;}
+  .aud-card p{font-size:13.5px; color:var(--ink-dim); line-height:1.65;}
+  @media(max-width:820px){ .aud-grid{grid-template-columns:1fr;} }
+
+  /* ===== accompagnement ===== */
+  .flow-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:26px; max-width:1080px; margin:0 auto;}
+  .fstep{text-align:left;}
+  .fstep .n{width:32px; height:32px; border-radius:9px; background:var(--card); border:1px solid var(--border-hi);
+       display:flex; align-items:center; justify-content:center; font-family:'Sora'; font-weight:700; font-size:13px; color:var(--mint); margin-bottom:16px;}
+  .fstep h3{font-size:15.5px; font-weight:600; margin-bottom:8px;}
+  .fstep p{font-size:13.5px; color:var(--ink-dim); line-height:1.65;}
+  .roles{max-width:680px; margin:56px auto 0; text-align:center; border-top:1px solid var(--border); padding-top:40px;}
+  .roles b.roles-title{display:block; font-family:'Sora'; font-size:15.5px; margin-bottom:12px;}
+  .roles p{font-size:13.5px; color:var(--ink-dim); line-height:1.75;}
+  .roles p b{color:var(--ink); font-weight:600;}
+  @media(max-width:820px){ .flow-grid{grid-template-columns:1fr; gap:32px;} }
+
+  /* ===== témoignage : honest placeholder (pas de vidéo réelle dans ce prototype) ===== */
+  .testi-frame{max-width:640px; margin:0 auto; border:1px dashed var(--border-hi); border-radius:16px; padding:64px 28px; text-align:center; color:var(--ink-mute);}
+  .testi-frame .play{width:52px; height:52px; border-radius:50%; border:1px solid var(--border-hi); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:16px;}
+  .testi-frame b{display:block; color:var(--ink-dim); font-size:13.5px; margin-bottom:6px;}
+  .testi-frame span{font-size:12px;}
+
+  /* ===== avis ===== */
+  .avis-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; max-width:1080px; margin:0 auto;}
+  .avis-card{border:1px solid var(--border); border-radius:14px; padding:26px; text-align:left;}
+  .stars{color:var(--mint); font-size:13px; margin-bottom:14px; letter-spacing:2px;}
+  .avis-card blockquote{font-size:13.5px; color:var(--ink-dim); line-height:1.7;}
+  .avis-foot{display:flex; align-items:center; gap:10px; margin-top:20px;}
+  .avis-av{width:32px; height:32px; border-radius:50%; background:var(--card); border:1px solid var(--border-hi);
+      display:flex; align-items:center; justify-content:center; font-family:'Sora'; font-weight:700; font-size:12.5px; flex:none;}
+  .avis-foot b{display:block; font-size:12.5px; font-weight:600;}
+  .avis-foot span{font-size:11.5px; color:var(--ink-mute);}
+  @media(max-width:820px){ .avis-grid{grid-template-columns:1fr;} }
+
+  /* ===== CTA final ===== */
+  .final-sec{padding:130px 0; text-align:center; border-top:1px solid var(--border);}
+  .final-sec h2{font-size:clamp(28px,4.4vw,44px); font-weight:600; margin-bottom:16px;}
+  .final-sec p{color:var(--ink-dim); font-size:15px; margin-bottom:34px;}
+  .final-sec .cta-row2{display:flex; justify-content:center; gap:12px; flex-wrap:wrap;}
+
+  /* ===== footer ===== */
+  footer{border-top:1px solid var(--border); padding:60px 0 32px;}
+  .f-grid{display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:32px; max-width:1080px; margin:0 auto; text-align:left;}
+  .f-brand{display:flex; align-items:center; gap:9px; font-family:'Sora'; font-weight:600; font-size:14.5px; margin-bottom:12px;}
+  .f-brand img{width:22px; height:22px;}
+  .f-col p{font-size:13px; color:var(--ink-dim); line-height:1.65; max-width:32ch;}
+  .f-col h4{font-size:11.5px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:.06em; margin-bottom:16px;}
+  .f-col a{display:block; font-size:13.5px; color:var(--ink-dim); margin-bottom:11px;}
+  .f-col a:hover{color:var(--ink);}
+  .f-bottom{max-width:1080px; margin:44px auto 0; padding:24px 32px 0; border-top:1px solid var(--border);
+       display:flex; justify-content:space-between; font-size:12px; color:var(--ink-mute); flex-wrap:wrap; gap:10px;}
+  @media(max-width:820px){ .f-grid{grid-template-columns:1fr 1fr; padding:0 32px;} }
+
+  @media (max-width:720px){
+    .hero{padding:70px 0 30px;}
+    .navlinks{display:none;}
+    .section{padding:80px 0;}
+  }
+</style>
+</head>
+<body>
+<!-- Rico, en fond : un clip par chapitre, fondu enchaîné au scroll (repris tel quel du site
+     actuel — mêmes fichiers, même logique). Masqué sur mobile/tactile (poids + cadrage pensé
+     desktop), l'aurore + le fond uni prennent le relais comme sur la page publique actuelle. -->
+<video class="bg-rico active" id="vid0" autoplay muted loop playsinline aria-hidden="true"><source src="videos/hero-bg.mp4" type="video/mp4"></video>
+<video class="bg-rico" id="vid1" muted loop playsinline aria-hidden="true"><source src="videos/bg-idle-wink.mp4" type="video/mp4"></video>
+<video class="bg-rico" id="vid2" muted loop playsinline aria-hidden="true"><source src="videos/bg-point.mp4" type="video/mp4"></video>
+<video class="bg-rico" id="vid3" muted loop playsinline aria-hidden="true"><source src="videos/bg-work.mp4" type="video/mp4"></video>
+<div class="bg-tint" id="bgTint" aria-hidden="true"></div>
+<div class="aurora" aria-hidden="true"><span class="ablob a1"></span><span class="ablob a2"></span><span class="ablob a3"></span></div>
+<nav><div class="wrap navrow">
+  <a class="brand" href="#"><img src="assets/logo.png" alt="Postorico"> Postorico</a>
+  <div class="navlinks"><a href="#">Fonctionnalités</a><a href="#">Comment ça marche</a><a href="#">Tarifs</a><a href="#">FAQ</a></div>
+  <div class="navcta"><a class="btn btn-ghost" href="#">Se connecter</a><a class="btn btn-grad" href="#">Commencer</a></div>
+</div></nav>
+
+<section class="hero"><div class="wrap">
+  <span class="kicker r1"><span class="dot"></span>Installé par des experts · Piloté par toi</span>
+  <h1 class="r2">On installe ton système marketing.<br>Tu le pilotes en <em>2 heures par mois</em>.</h1>
+
+  <div style="position:relative;" id="heroStage">
+    <div class="glow-wrap" id="glowWrap" aria-hidden="true"><div class="glow"></div></div>
+    <div class="promptbox r3">
+      <div class="promptbox-inner">
+        <div class="ph-line"><span id="typer-text"></span><span class="caret" id="caret"></span></div>
+      </div>
+      <div class="promptbox-bar">
+        <div class="pb-left">＋ ⚡</div>
+        <div class="pb-send" id="send">↑</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pills r4">
+    <span class="pill active">✎ Post LinkedIn</span>
+    <span class="pill">▦ Carrousel</span>
+    <span class="pill">▢ Story</span>
+    <span class="pill">▶ Reel</span>
+    <span class="pill">✺ Visuel IA</span>
+  </div>
+
+  <div class="subline r5">Gratuit à essayer · Aucune carte requise pour l'échange de démarrage</div>
+
+  <div class="hstats r5">
+    <div class="hstat"><b data-count="2" data-suffix=" h">0 h</b><span>par mois</span></div>
+    <div class="hstat"><b data-count="30" data-prefix="&lt; " data-suffix=" s">&lt; 0 s</b><span>par post</span></div>
+    <div class="hstat"><b data-count="6">0</b><span>réseaux</span></div>
+    <div class="hstat"><b>0 €</b><span>pour démarrer</span></div>
+  </div>
+
+  <div class="nets r5">
+    <div class="nets-track">
+      <span>LinkedIn</span><span>Instagram</span><span>Facebook</span><span>TikTok</span><span>YouTube</span><span>Google Business</span>
+      <span>LinkedIn</span><span>Instagram</span><span>Facebook</span><span>TikTok</span><span>YouTube</span><span>Google Business</span>
+    </div>
+  </div>
+</div></section>
+
+<section class="statement"><div class="wrap reveal">
+  <div class="eyebrow">Studio de contenu IA</div>
+  <h2 class="word-reveal"><span class="word">De</span> <span class="word">l'idée.</span> <em><span class="word">Au</span> <span class="word">post</span> <span class="word">publié.</span></em></h2>
+</div></section>
+
+<section class="proof"><div class="wrap">
+  <div class="shead reveal">
+    <div class="eyebrow">Le studio, écran par écran</div>
+    <h2>Tout au même endroit, <em>du sujet à la publication.</em></h2>
+  </div>
+</div>
+  <div class="proof-stage reveal">
+    <div class="proof-glow" aria-hidden="true"></div>
+    <div class="frame tilt" id="proofFrame">
+      <div class="frame-bar"><span></span><span></span><span></span><b id="proofUrl">studio.postorico.app</b></div>
+      <img id="proofImg" src="assets/studio.jpg" alt="Studio IA Postorico">
+      <span class="gcard-sheen" aria-hidden="true"></span>
+    </div>
+    <div class="proof-badge" id="proofBadge"><b>✓ ta voix, pas du générique</b><span>L'IA rédige dans ton ton, tu valides en un clic.</span></div>
+    <div class="proof-dots" id="proofDots" aria-hidden="true"></div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="section" style="padding-top:70px"><div class="wrap reveal" style="text-align:center">
+  <h2 class="word-reveal" style="font-size:clamp(24px,3.4vw,34px); font-weight:500;">
+    <span class="word">Tu</span> <span class="word">diriges</span> <span class="word">une</span> <span class="word">boîte,</span>
+    <em><span class="word">pas</span> <span class="word">une</span> <span class="word">rédaction.</span></em>
+  </h2>
+</div></section>
+
+<!-- PROBLÈME → SOLUTION -->
+<section class="section"><div class="wrap">
+  <div class="shead reveal">
+    <div class="eyebrow">Le constat</div>
+    <h2>Être présent sur les réseaux quand on dirige une boîte</h2>
+    <p class="lead">Entre le manque de temps, l'irrégularité et les outils éparpillés, on lâche vite. Postorico change la donne.</p>
+  </div>
+  <div class="ps-grid reveal-stagger">
+    <div class="ps-col bad">
+      <div class="ps-head"><span class="ps-ic">✗</span>Sans Postorico</div>
+      <ul>
+        <li><span class="mk">✗</span>Tu sais qu'il faut publier… mais tu diriges une boîte, pas une rédaction.</li>
+        <li><span class="mk">✗</span>Soit tes réseaux sont morts, soit tu pries pour que ton stagiaire s'en sorte.</li>
+        <li><span class="mk">✗</span>Tu jongles entre 5 apps et 10 onglets, ou tu paies une agence en aveugle.</li>
+        <li><span class="mk">✗</span>Tu ne sais pas vraiment ce qui fonctionne (ni pourquoi).</li>
+      </ul>
+    </div>
+    <div class="ps-arrow">→</div>
+    <div class="ps-col good">
+      <span class="ps-badge">La bascule</span>
+      <div class="ps-head"><span class="ps-ic">✓</span>Avec Postorico</div>
+      <ul>
+        <li><span class="mk">✓</span>L'IA génère des sujets et des posts calibrés sur ta marque.</li>
+        <li><span class="mk">✓</span>Tu valides en un clic, rien ne se publie sans ton feu vert.</li>
+        <li><span class="mk">✓</span>Une fois validés, la programmation est automatique : la régularité sans y penser.</li>
+        <li><span class="mk">✓</span>Tes vraies stats sous les yeux, tu sais enfin ce qui marche.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<!-- RÉSEAUX -->
+<section class="section sec-nets"><div class="wrap">
+  <div class="nets-orbit-layout">
+    <div class="nets-copy reveal">
+      <div class="eyebrow">Réseaux</div>
+      <h2>Connecte tes comptes. <em>Publie partout, en un clic.</em></h2>
+      <p class="lead">Une connexion par réseau, une seule fois. Ensuite Postorico adapte chaque post au bon format, sur le bon réseau, automatiquement.</p>
+      <div class="cta-row" style="margin-top:28px;">
+        <a class="btn btn-grad" href="#">Réserve ton call de setup →</a>
+        <a class="btn btn-ghost" href="#">Créer mon compte</a>
+      </div>
+    </div>
+    <div class="orbit reveal">
+      <div class="orbit-glow" aria-hidden="true"></div>
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring orbit-ring--dash"></div>
+      <div class="orbit-hub"><img src="assets/logo.png" alt="Postorico"></div>
+      <div class="orbit-node" style="--ang:0deg"><div class="orbit-node-badge tilt-pop" style="--nc:#0A66C2" title="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45z"/></svg></div></div>
+      <div class="orbit-node" style="--ang:60deg"><div class="orbit-node-badge tilt-pop" style="--nc:#E4405F" title="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16zm0 3.68a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z"/></svg></div></div>
+      <div class="orbit-node" style="--ang:120deg"><div class="orbit-node-badge tilt-pop" style="--nc:#1877F2" title="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07z"/></svg></div></div>
+      <div class="orbit-node" style="--ang:180deg"><div class="orbit-node-badge tilt-pop" style="--nc:#EEF0F5" title="TikTok"><svg viewBox="0 0 24 24"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></div></div>
+      <div class="orbit-node" style="--ang:240deg"><div class="orbit-node-badge tilt-pop" style="--nc:#FF0000" title="YouTube"><svg viewBox="0 0 24 24"><path d="M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.88.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z"/></svg></div></div>
+      <div class="orbit-node" style="--ang:300deg"><div class="orbit-node-badge tilt-pop" style="--nc:#4285F4" title="Google Business"><svg viewBox="0 0 24 24"><path d="M21.6 9.22H12.2v3.72h5.41c-.5 2.47-2.6 3.89-5.41 3.89a5.96 5.96 0 0 1 0-11.92c1.52 0 2.9.56 3.98 1.47l2.8-2.8A9.93 9.93 0 0 0 12.2 1.2C6.71 1.2 2.28 5.63 2.28 11.12s4.43 9.92 9.92 9.92c4.96 0 9.47-3.6 9.47-9.92 0-.65-.03-1.28-.07-1.9z"/></svg></div></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- PLUTÔT QUE… -->
+<section class="section" id="sec-cmp"><div class="wrap">
+  <div class="shead reveal">
+    <div class="eyebrow">Plutôt que…</div>
+    <h2>Tu connais déjà tes options. <em>Voilà pourquoi Postorico gagne.</em></h2>
+  </div>
+  <div class="cmp-grid reveal-stagger">
+    <div class="cmp-col">
+      <h4>Ne rien faire</h4>
+      <div class="cmp-row"><span class="k">Coût</span><span class="v">0 € (réseaux morts)</span></div>
+      <div class="cmp-row"><span class="k">Volume</span><span class="v">Nul</span></div>
+      <div class="cmp-row"><span class="k">Ta voix</span><span class="v">—</span></div>
+      <div class="cmp-row"><span class="k">Régularité</span><span class="v">Nulle</span></div>
+      <div class="cmp-row"><span class="k">Contrôle</span><span class="v">—</span></div>
+      <div class="cmp-row"><span class="k">Mise en route</span><span class="v">—</span></div>
+    </div>
+    <div class="cmp-col">
+      <h4>Un stagiaire / alternant</h4>
+      <div class="cmp-row"><span class="k">Coût</span><span class="v">Un salaire</span></div>
+      <div class="cmp-row"><span class="k">Volume</span><span class="v">Quelques posts</span></div>
+      <div class="cmp-row"><span class="k">Ta voix</span><span class="v">Il l'apprend (ou pas)</span></div>
+      <div class="cmp-row"><span class="k">Régularité</span><span class="v">Variable</span></div>
+      <div class="cmp-row"><span class="k">Contrôle</span><span class="v">Tu relis tout</span></div>
+      <div class="cmp-row"><span class="k">Mise en route</span><span class="v">Recrutement + formation</span></div>
+    </div>
+    <div class="cmp-col">
+      <h4>Une agence</h4>
+      <div class="cmp-row"><span class="k">Coût</span><span class="v">1 500–3 000 €/mois</span></div>
+      <div class="cmp-row"><span class="k">Volume</span><span class="v">Forfait limité (8-20/mois)</span></div>
+      <div class="cmp-row"><span class="k">Ta voix</span><span class="v">Standardisée</span></div>
+      <div class="cmp-row"><span class="k">Régularité</span><span class="v">Bonne</span></div>
+      <div class="cmp-row"><span class="k">Contrôle</span><span class="v">Tu attends les retours</span></div>
+      <div class="cmp-row"><span class="k">Mise en route</span><span class="v">Onboarding de semaines</span></div>
+    </div>
+    <div class="cmp-col win">
+      <span class="cmp-badge">★ Le bon choix</span>
+      <h4>Postorico</h4>
+      <div class="cmp-row"><span class="k">Coût</span><span class="v">À partir de 0 €</span></div>
+      <div class="cmp-row"><span class="k">Volume</span><span class="v">Illimité, tous réseaux</span></div>
+      <div class="cmp-row"><span class="k">Ta voix</span><span class="v">Calibrée sur ta marque</span></div>
+      <div class="cmp-row"><span class="k">Régularité</span><span class="v">Automatique</span></div>
+      <div class="cmp-row"><span class="k">Contrôle</span><span class="v">Tu valides en 1 clic</span></div>
+      <div class="cmp-row"><span class="k">Mise en route</span><span class="v">2 minutes</span></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- POUR QUI -->
+<section class="section" id="sec-aud"><div class="wrap">
+  <div class="shead reveal">
+    <div class="eyebrow">Pour qui</div>
+    <h2>Tu te reconnais dans une de ces situations ?</h2>
+    <p class="lead">On ne s'adresse pas à un secteur, mais à une réalité de dirigeant.</p>
+  </div>
+  <div class="aud-grid reveal-stagger">
+    <div class="aud-card"><h3>« Je n'ai pas le temps »</h3><p>Tu fais tourner ta boîte, pas un studio de contenu. Postorico, c'est ton agence marketing de poche : du contenu unique qui colle à ta marque, en seulement 2 à 3 h par mois.</p></div>
+    <div class="aud-card"><h3>« Je délègue… et je croise les doigts »</h3><p>Fini le quitte ou double du stagiaire ou de l'alternant. Postorico produit dans ta voix, tu valides en un clic. Régulier sur tous les réseaux : ton ton, ta marque.</p></div>
+    <div class="aud-card"><h3>« Je paie une agence »</h3><p>Pas de forfait limité, ni de facture à 3 000 € par mois. Publie autant que tu veux, sur tous les réseaux, et développe ta présence en ligne pour 10× moins cher.</p></div>
+  </div>
+</div></section>
+
+<!-- ACCOMPAGNEMENT -->
+<section class="section" id="sec-flow"><div class="wrap">
+  <div class="shead reveal">
+    <div class="eyebrow">Accompagnement</div>
+    <h2>Tu n'as pas le temps ? <em>On construit ton système à ta place.</em></h2>
+    <p class="lead">Nos experts marketing étudient ta marque et bâtissent ton studio sur-mesure. Tu n'as plus qu'à valider et publier.</p>
+  </div>
+  <div class="flow-grid reveal-stagger">
+    <div class="fstep"><div class="n">1</div><h3>On étudie ta boîte</h3><p>Positionnement, offres, cibles, ton de marque, concurrents. Un vrai audit, pas un formulaire.</p></div>
+    <div class="fstep"><div class="n">2</div><h3>On construit ton système</h3><p>Lignes éditoriales, angles, calendrier, calibrage de l'IA sur ta voix, et des propositions concrètes de posts et formats vidéo à ton image.</p></div>
+    <div class="fstep"><div class="n">3</div><h3>Tu pilotes, en ~2 h/mois</h3><p>Le système est prêt : tu génères tes sujets, tu valides, tu produis tes visuels et vidéos, tu programmes. Rien ne sort sans toi.</p></div>
+  </div>
+  <div class="roles reveal">
+    <b class="roles-title">On installe. Tu pilotes.</b>
+    <p><b>Nous :</b> on étudie ta marque, on paramètre tout, on crée tes modèles de visuels. <b>Toi :</b> ~2 h par mois pour générer, valider et publier. Tu gardes le contrôle, on porte la complexité.</p>
+  </div>
+</div></section>
+
+<!-- TÉMOIGNAGE -->
+<section class="section" id="sec-testi"><div class="wrap">
+  <div class="shead reveal">
+    <div class="eyebrow">Accès anticipé</div>
+    <h2>Les premiers dirigeants à bord</h2>
+  </div>
+  <div class="testi-frame reveal">
+    <div class="play">▶</div>
+    <b>Témoignage vidéo, à intégrer</b>
+    <span>Placeholder honnête — la vraie vidéo client remplace ce cadre en production.</span>
+  </div>
+</div></section>
+
+<!-- AVIS -->
+<section class="section"><div class="wrap">
+  <div class="avis-grid reveal-stagger">
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <blockquote>« Avant je payais une agence 2 000 €/mois. Là je gère ça moi-même en quelques minutes, et c'est plus à mon image. »</blockquote>
+      <div class="avis-foot"><span class="avis-av">A</span><div><b>Aurélie M.</b><span>Gérante, cabinet de conseil</span></div></div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <blockquote>« Le setup a tout changé : le système est calibré sur ma voix, je n'ai plus qu'à valider. Un gain de temps énorme. »</blockquote>
+      <div class="avis-foot"><span class="avis-av">T</span><div><b>Thomas R.</b><span>Dirigeant PME</span></div></div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <blockquote>« Génération, planif et réponses aux commentaires au même endroit. Je ne jongle plus entre dix outils. »</blockquote>
+      <div class="avis-foot"><span class="avis-av">L</span><div><b>Léa B.</b><span>Fondatrice de startup</span></div></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- CTA FINAL -->
+<section class="final-sec"><div class="wrap reveal">
+  <h2>Prêt à reprendre le contrôle de ta présence ?</h2>
+  <p>Réserve ton call de setup, on étudie ta boîte, on construit ton système, tu pilotes.</p>
+  <div class="cta-row2">
+    <a class="btn btn-grad" href="#" style="padding:15px 26px">Réserve ton call de setup →</a>
+    <a class="btn btn-ghost" href="#" style="padding:15px 26px">Créer mon compte</a>
+  </div>
+</div></section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-grid">
+    <div class="f-col">
+      <div class="f-brand"><img src="assets/logo.png" alt="">Postorico</div>
+      <p>Ton studio de contenu IA, installé par des experts et calibré sur ta voix. Tu génères, tu valides, tu publies : 2 h par mois, tous réseaux.</p>
+    </div>
+    <div class="f-col">
+      <h4>Produit</h4>
+      <a href="#">Fonctionnalités</a><a href="#">Comment ça marche</a><a href="#">Tarifs</a><a href="#">FAQ</a>
+    </div>
+    <div class="f-col">
+      <h4>Compte</h4>
+      <a href="#">Se connecter</a><a href="#">Créer mon compte</a><a href="#">App Android</a><a href="#">Réserver un call</a>
+    </div>
+    <div class="f-col">
+      <h4>Mentions légales</h4>
+      <a href="#">CGU</a><a href="#">Confidentialité</a><a href="#">Mentions légales</a><a href="#">GoodTime BNB ↗</a>
+    </div>
+  </div>
+  <div class="f-bottom">
+    <span>© 2026 Postorico, un produit GoodTime BNB</span>
+    <span>Fait avec 🐓 en France</span>
+  </div>
+</footer>
+
+<script type="module">
+  // Real Motion (the engine behind framer-motion / motion/react — same spring physics, same
+  // easing curves), loaded framework-agnostic here since this is a static HTML prototype.
+  // In the real React page this becomes `motion/react`: motion.div + variants/whileHover/whileInView
+  // instead of these animate()/inView() calls, but the visual result is identical.
+  import { animate, stagger, inView } from "https://cdn.jsdelivr.net/npm/motion@11/+esm";
+
+  document.documentElement.classList.remove('no-js');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var easeOut = [0.16, 1, 0.3, 1];
+
+  // ---- entrance choreography : hero elements rise in, staggered ----
+  if (reduced) {
+    document.querySelectorAll('.r1,.r2,.r3,.r4,.r5,.reveal').forEach(function (el) { el.style.opacity = 1; });
+    document.querySelectorAll('.reveal-stagger').forEach(function (g) {
+      [].forEach.call(g.children, function (c) { c.style.opacity = 1; });
+    });
+    document.querySelectorAll('.word').forEach(function (w) { w.style.opacity = 1; w.style.filter = 'none'; w.style.transform = 'none'; });
+    document.querySelectorAll('[data-count]').forEach(function (el) {
+      el.textContent = (el.dataset.prefix || '') + el.dataset.count + (el.dataset.suffix || '');
+    });
+  } else {
+    animate('.r1,.r2,.r3,.r4,.r5',
+      { opacity: [0, 1], y: [14, 0] },
+      { duration: 0.7, delay: stagger(0.1), easing: easeOut });
+
+    // ---- breathing glow behind the prompt box, and behind the réseaux orbit hub ----
+    animate('.glow', { opacity: [0.5, 0.85, 0.5], scale: [1, 1.08, 1] },
+      { duration: 6, repeat: Infinity, easing: 'ease-in-out' });
+    animate('.orbit-glow', { opacity: [0.4, 0.75, 0.4], scale: [1, 1.12, 1] },
+      { duration: 7, repeat: Infinity, easing: 'ease-in-out' });
+
+    // ---- réseaux : orbite façon système solaire — les icônes tournent en continu autour du hub,
+    // chacune reste droite (le contre-rotate dans le CSS annule la rotation de l'orbite). On pilote
+    // --ang nous-mêmes à chaque frame (onUpdate) plutôt que de laisser Motion/CSS interpoler la
+    // custom property directement : sans @property CSS, une custom property ne s'anime pas en douceur,
+    // donc on fait l'interpolation en JS et on la pose sur l'élément, image par image. ----
+    var orbitNodes = Array.from(document.querySelectorAll('.orbit-node'));
+    var baseAngles = orbitNodes.map(function (n) { return parseFloat(n.style.getPropertyValue('--ang')) || 0; });
+    animate(0, 360, {
+      duration: 42, repeat: Infinity, easing: 'linear',
+      onUpdate: function (v) {
+        orbitNodes.forEach(function (n, i) { n.style.setProperty('--ang', (baseAngles[i] + v) + 'deg'); });
+      },
+    });
+    // L'anneau pointillé dérive lentement dans l'autre sens : deux orbites, deux rythmes, ça se lit
+    // vraiment comme un système en mouvement plutôt qu'un simple carrousel.
+    animate('.orbit-ring--dash', { rotate: [0, -360] }, { duration: 70, repeat: Infinity, easing: 'linear' });
+
+    // ---- caret blink (persistent node — never rebuilt by the typewriter below) ----
+    animate('#caret', { opacity: [1, 1, 0, 0] }, { duration: 1, repeat: Infinity, easing: 'linear' });
+
+    // ---- réseaux : slow continuous drift ----
+    animate('.nets-track', { x: ['0%', '-50%'] }, { duration: 22, repeat: Infinity, easing: 'linear' });
+
+    // ---- scroll reveals : every section below the hero ----
+    // inView's callback receives an IntersectionObserverEntry, not the element itself —
+    // animate(entry, ...) silently no-ops (wrong type), which is why this stayed broken:
+    // everything below the hero was stuck at opacity:0 no matter how far you scrolled.
+    inView('.reveal', function (entry) {
+      animate(entry.target, { opacity: [0, 1], y: [28, 0] }, { duration: 0.8, easing: easeOut });
+    }, { amount: 0.3 });
+
+    // ---- scroll reveals : grids of cards (gallery, comparatif, pour qui, flow, avis) — the
+    // cards cascade in one after another instead of the whole grid popping in as one flat block ----
+    inView('.reveal-stagger', function (entry) {
+      // animate() silently no-ops on a live HTMLCollection — .children must be a real array.
+      animate(Array.from(entry.target.children), { opacity: [0, 1], y: [22, 0] },
+        { duration: 0.6, delay: stagger(0.08), easing: easeOut });
+    }, { amount: 0.2 });
+
+    // ---- springy hover/press feedback (the Framer Motion signature feel) ----
+    var spring = { type: 'spring', stiffness: 400, damping: 24 };
+    var springCard = { type: 'spring', stiffness: 340, damping: 26 };
+    document.querySelectorAll('.pill').forEach(function (pill) {
+      pill.addEventListener('pointerenter', function () { animate(pill, { y: -2, scale: 1.04 }, spring); });
+      pill.addEventListener('pointerleave', function () { animate(pill, { y: 0, scale: 1 }, spring); });
+    });
+    var send = document.getElementById('send');
+    send.addEventListener('pointerenter', function () { animate(send, { scale: 1.08 }, spring); });
+    send.addEventListener('pointerleave', function () { animate(send, { scale: 1 }, spring); });
+    send.addEventListener('pointerdown', function () { animate(send, { scale: 0.92 }, spring); });
+    send.addEventListener('pointerup', function () { animate(send, { scale: 1.08 }, spring); });
+
+    // Cards : a small lift + a border/glow that brightens on hover, springy on the way in and out.
+    // (.gcard gets its own richer, tilt-based treatment just below instead of this flat lift.)
+    document.querySelectorAll('.cmp-col, .aud-card, .avis-card').forEach(function (card) {
+      var win = card.classList.contains('win');
+      var borderIn = win ? 'rgba(58,255,163,.5)' : 'rgba(255,255,255,.28)';
+      var borderOut = win ? 'rgba(58,255,163,.28)' : 'rgba(255,255,255,.09)';
+      card.addEventListener('pointerenter', function () {
+        animate(card, { y: -5, scale: 1.015 }, springCard);
+        animate(card, { borderColor: borderIn }, { duration: 0.25 });
+      });
+      card.addEventListener('pointerleave', function () {
+        animate(card, { y: 0, scale: 1 }, springCard);
+        animate(card, { borderColor: borderOut }, { duration: 0.25 });
+      });
+    });
+
+    // Galerie produit : inclinaison 3D façon carte à jouer tenue en main, le reflet (gcard-sheen)
+    // suit le curseur via les variables --mx/--my. Un ressort assez raide pour suivre la souris
+    // sans traîner, mais pas raide au point de saccader.
+    var springTilt = { type: 'spring', stiffness: 300, damping: 22 };
+    document.querySelectorAll('.tilt').forEach(function (card) {
+      card.addEventListener('pointermove', function (e) {
+        var r = card.getBoundingClientRect();
+        var px = (e.clientX - r.left) / r.width;
+        var py = (e.clientY - r.top) / r.height;
+        animate(card, { rotateX: (py - 0.5) * -14, rotateY: (px - 0.5) * 14, scale: 1.035 }, springTilt);
+        card.style.setProperty('--mx', (px * 100) + '%');
+        card.style.setProperty('--my', (py * 100) + '%');
+      });
+      card.addEventListener('pointerleave', function () {
+        animate(card, { rotateX: 0, rotateY: 0, scale: 1 }, springTilt);
+      });
+    });
+
+    // ---- orbite des réseaux : chaque logo se soulève dans sa propre couleur de marque au survol ----
+    document.querySelectorAll('.tilt-pop').forEach(function (node) {
+      var nc = node.style.getPropertyValue('--nc');
+      node.addEventListener('pointerenter', function () {
+        animate(node, { scale: 1.18 }, spring);
+        animate(node, { borderColor: nc, boxShadow: '0 0 24px ' + nc + '55' }, { duration: 0.25 });
+      });
+      node.addEventListener('pointerleave', function () {
+        animate(node, { scale: 1 }, spring);
+        animate(node, { borderColor: 'rgba(255,255,255,.18)', boxShadow: '0 12px 26px -10px rgba(0,0,0,.55)' }, { duration: 0.25 });
+      });
+    });
+
+    // ---- aurore : 3 halos qui dérivent en continu derrière toute la page, chacun sur son propre
+    // rythme (durée + retard différents) pour que le motif ne se répète jamais à l'œil ----
+    var auroraMoves = [
+      { sel: '.a1', x: [0, 70, -30, 0], y: [0, 40, 60, 0], duration: 26 },
+      { sel: '.a2', x: [0, -60, 30, 0], y: [0, -50, -20, 0], duration: 32 },
+      { sel: '.a3', x: [0, 40, -60, 0], y: [0, 60, -30, 0], duration: 29 },
+    ];
+    auroraMoves.forEach(function (m) {
+      animate(m.sel, { x: m.x, y: m.y }, { duration: m.duration, repeat: Infinity, easing: 'ease-in-out' });
+    });
+
+    // ---- halo du hero réactif au curseur : parallaxe douce, la respiration (Motion, sur .glow)
+    // reste sur un calque séparé (.glow-wrap fait le déplacement, en CSS transition simple) ----
+    var heroStage = document.getElementById('heroStage');
+    var glowWrap = document.getElementById('glowWrap');
+    heroStage.addEventListener('pointermove', function (e) {
+      var r = heroStage.getBoundingClientRect();
+      var dx = (e.clientX - r.left - r.width / 2) / r.width;
+      var dy = (e.clientY - r.top - r.height / 2) / r.height;
+      glowWrap.style.transform = 'translate(' + (dx * 50) + 'px, ' + (dy * 50) + 'px)';
+    });
+    heroStage.addEventListener('pointerleave', function () { glowWrap.style.transform = 'translate(0,0)'; });
+
+    // ---- boutons magnétiques : les CTA principaux se laissent légèrement attirer par le curseur ----
+    var springMag = { type: 'spring', stiffness: 200, damping: 18 };
+    document.querySelectorAll('.btn-grad').forEach(function (btn) {
+      btn.addEventListener('pointermove', function (e) {
+        var r = btn.getBoundingClientRect();
+        var dx = e.clientX - r.left - r.width / 2;
+        var dy = e.clientY - r.top - r.height / 2;
+        animate(btn, { x: dx * 0.3, y: dy * 0.3 }, springMag);
+      });
+      btn.addEventListener('pointerleave', function () { animate(btn, { x: 0, y: 0 }, springMag); });
+    });
+
+    // ---- chiffres qui comptent jusqu'à leur valeur réelle, en même temps que le hero apparaît ----
+    document.querySelectorAll('[data-count]').forEach(function (el) {
+      var target = parseFloat(el.dataset.count);
+      var prefix = el.dataset.prefix || '';
+      var suffix = el.dataset.suffix || '';
+      animate(0, target, {
+        duration: 1.3, delay: 0.5, easing: easeOut,
+        onUpdate: function (v) { el.textContent = prefix + Math.round(v) + suffix; },
+      });
+    });
+
+    // ---- texte qui se matérialise mot à mot (flou + montée), au lieu d'un simple fondu ----
+    inView('.word-reveal', function (entry) {
+      var words = Array.from(entry.target.querySelectorAll('.word'));
+      animate(words, { opacity: [0, 1], filter: ['blur(6px)', 'blur(0px)'], y: [10, 0] },
+        { duration: 0.5, delay: stagger(0.045), easing: easeOut });
+    }, { amount: 0.6 });
+
+    // ---- vitrine du studio : le cadre passe automatiquement par les 6 écrans du produit
+    // (mêmes visuels que la galerie), pause au survol, points cliquables en bas ----
+    var SCENES = [
+      { src: 'assets/studio.jpg', url: 'studio.postorico.app', tag: 'ta voix, pas du générique', title: 'Studio IA', desc: "L'IA rédige dans ton ton, tu valides en un clic." },
+      { src: 'assets/contenus.jpg', url: 'contenus.postorico.app', tag: 'tout au même endroit', title: 'Contenus', desc: 'Posts et visuels à ta charte, prêts à publier.' },
+      { src: 'assets/planification.jpg', url: 'planification.postorico.app', tag: 'en automatique', title: 'Planification', desc: 'Tes jours, ton heure : le calendrier publie tout seul.' },
+      { src: 'assets/commentaires.jpg', url: 'commentaires.postorico.app', tag: "l'inbox unifiée", title: 'Commentaires', desc: 'Tu réponds à tous tes réseaux depuis un seul écran.' },
+      { src: 'assets/performance.jpg', url: 'performance.postorico.app', tag: 'tu sais ce qui marche', title: 'Performance', desc: 'Impressions, portée, engagement, réseau par réseau.' },
+      { src: 'assets/carrousels.jpg', url: 'carrousels.postorico.app', tag: 'des slides qui accrochent', title: 'Carrousels', desc: 'Générés à ta charte, rendus pixel-perfect.' },
+    ];
+    var proofImg = document.getElementById('proofImg');
+    var proofUrl = document.getElementById('proofUrl');
+    var proofBadge = document.getElementById('proofBadge');
+    var proofDots = document.getElementById('proofDots');
+    var sceneIdx = 0;
+    SCENES.forEach(function (s, i) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'pdot' + (i === 0 ? ' on' : '');
+      dot.setAttribute('aria-label', s.title);
+      dot.addEventListener('click', function () { goToScene(i); });
+      proofDots.appendChild(dot);
+    });
+    function renderScene(i) {
+      var s = SCENES[i];
+      proofImg.src = s.src;
+      proofImg.alt = s.title + ' Postorico';
+      proofUrl.textContent = s.url;
+      proofBadge.querySelector('b').textContent = '✓ ' + s.tag;
+      proofBadge.querySelector('span').textContent = s.desc;
+      Array.from(proofDots.children).forEach(function (d, di) { d.classList.toggle('on', di === i); });
+    }
+    function goToScene(i) {
+      if (i === sceneIdx) return;
+      sceneIdx = i;
+      animate(proofImg, { opacity: [1, 0] }, { duration: 0.22, easing: 'easeIn' });
+      setTimeout(function () {
+        renderScene(sceneIdx);
+        animate(proofImg, { opacity: [0, 1] }, { duration: 0.35, easing: easeOut });
+      }, 220);
+    }
+    var proofTimer = null;
+    function startProofRotation() {
+      if (proofTimer) return;
+      proofTimer = setInterval(function () { goToScene((sceneIdx + 1) % SCENES.length); }, 4000);
+    }
+    function stopProofRotation() { clearInterval(proofTimer); proofTimer = null; }
+    var proofFrame = document.getElementById('proofFrame');
+    proofFrame.addEventListener('pointerenter', stopProofRotation);
+    proofFrame.addEventListener('pointerleave', startProofRotation);
+    inView('.proof-stage', function () { startProofRotation(); }, { amount: 0.5 });
+
+    // ---- Rico en fond : un clip par chapitre, comme sur le site actuel — inView() renvoie une
+    // fonction "onLeave" quand on lui en donne une, ce qui permet de revenir en arrière proprement
+    // si on remonte le scroll (pas juste un aller simple) ----
+    var vids = [
+      document.getElementById('vid0'), document.getElementById('vid1'),
+      document.getElementById('vid2'), document.getElementById('vid3'),
+    ];
+    var tint = document.getElementById('bgTint');
+    function showVid(i) {
+      vids.forEach(function (v, vi) {
+        if (vi === i) { v.classList.add('active'); if (v.paused) v.play().catch(function () {}); }
+        else { v.classList.remove('active'); v.pause(); }
+      });
+      tint.classList.toggle('blackout', i === -1);
+    }
+    inView('#sec-cmp', function () { showVid(1); return function () { showVid(0); }; }, { amount: 0.35 });
+    inView('#sec-aud', function () { showVid(2); return function () { showVid(1); }; }, { amount: 0.35 });
+    inView('#sec-flow', function () { showVid(3); return function () { showVid(2); }; }, { amount: 0.35 });
+    inView('#sec-testi', function () { showVid(-1); return function () { showVid(3); }; }, { amount: 0.35 });
+  }
+
+  // ---- typewriter : only touches the text span, the caret node is left alone ----
+  var exemples = [
+    "Un post LinkedIn sur notre nouvelle offre…",
+    "Un carrousel pour présenter nos 3 avantages…",
+    "Une story pour annoncer notre promo du mois…",
+  ];
+  var textEl = document.getElementById('typer-text');
+  var ei = 0, ci = 0, deleting = false;
+  function tick() {
+    var s = exemples[ei];
+    if (!deleting) {
+      ci++;
+      textEl.textContent = s.slice(0, ci);
+      if (ci === s.length) { deleting = true; setTimeout(tick, 1400); return; }
+    } else {
+      ci--;
+      textEl.textContent = s.slice(0, ci);
+      if (ci === 0) { deleting = false; ei = (ei + 1) % exemples.length; }
+    }
+    setTimeout(tick, deleting ? 22 : 38);
+  }
+  if (!reduced) { tick(); } else { textEl.textContent = exemples[0]; }
+</script>
+</body>
+</html>
