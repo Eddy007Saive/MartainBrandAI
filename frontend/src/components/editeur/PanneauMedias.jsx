@@ -111,12 +111,12 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, 
 
   return (
     <div className="flex flex-col h-full" data-testid="editeur-medias">
-      {/* overflow-x-auto + whitespace-nowrap (pas flex-1) : 6 onglets ne tiennent plus côte à
-          côte sans se chevaucher dans les 268px du panneau — ça défile plutôt que d'écraser. */}
-      <div className="flex overflow-x-auto border-b border-white/[0.08]" style={{ scrollbarWidth: 'none' }}>
-        {ONGLETS.map((o) => (
+      {/* Grille 3 colonnes (2 rangées pour 6 onglets) : un défilement horizontal cachait
+          "Modèles" dès qu'on scrollait vers Texte/Voix — ici tout reste visible d'un coup. */}
+      <div className="grid grid-cols-3 border-b border-white/[0.08]">
+        {ONGLETS.map((o, i) => (
           <button key={o} type="button" onClick={() => setOnglet(o)} data-testid={`medias-onglet-${o}`}
-            className={`shrink-0 px-2.5 py-2.5 text-[11px] font-inter font-semibold uppercase tracking-wide border-b-2 whitespace-nowrap transition-colors ${onglet === o ? 'border-[#3AFFA3] text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
+            className={`py-2 text-[10.5px] font-inter font-semibold uppercase tracking-wide border-white/[0.06] ${i % 3 !== 2 ? 'border-r' : ''} ${i < 3 && ONGLETS.length > 3 ? 'border-b' : ''} transition-colors ${onglet === o ? 'bg-[#3AFFA3]/10 text-[#3AFFA3]' : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]'}`}>
             {t(`editeur.medias.${o}`)}
           </button>
         ))}

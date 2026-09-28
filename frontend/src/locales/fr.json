@@ -1522,6 +1522,8 @@
     "retablir": "Rétablir (Ctrl+Y)",
     "pleinEcran": "Plein écran",
     "pleinEcranQuitter": "Quitter le plein écran",
+    "reduirePanneau": "Réduire le panneau",
+    "agrandirPanneau": "Afficher le panneau",
     "sauvegarde": {
       "ok": "Enregistré",
       "attente": "Modifié…",
@@ -1664,7 +1666,8 @@
       "lance": "Rendu lancé : la vidéo arrive dans Contenus dans quelques minutes.",
       "pret": "Ta vidéo est prête dans Contenus ✨",
       "echec": "Le rendu a échoué. Ton quota a été rendu, réessaie.",
-      "voir": "Voir dans Contenus"
+      "voir": "Voir dans Contenus",
+      "telecharger": "Télécharger"
     },
     "ouvrir": "Ouvrir dans l'éditeur",
     "ouvrirAide": "Découpe, textes, musique : monte à la main, plan par plan.",

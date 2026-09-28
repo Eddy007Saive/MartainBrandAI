@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Play, Pause, Scissors, Copy, Trash2, Undo2, Redo2, Loader2, Download, Check, ZoomIn, ZoomOut, Monitor, Image as ImageIcon,
-  Maximize2, Minimize2,
+  Maximize2, Minimize2, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { editeurService } from '../services/editeurService';
+import { lienTelechargement } from '../lib/telechargement';
 import useProjet from '../components/editeur/useProjet';
 import Timeline from '../components/editeur/Timeline';
 import Apercu from '../components/editeur/Apercu';
@@ -53,6 +54,20 @@ export default function EditeurVideo() {
   const petitEcran = typeof window !== 'undefined' && window.innerWidth < 900;
   const racine = useRef(null);
   const [pleinEcran, setPleinEcran] = useState(false);
+  // Panneaux latéraux repliables (plus de place pour l'aperçu) et timeline redimensionnable
+  // (tirer vers le haut pour l'agrandir) : deux réglages d'écran, pas du contenu du projet —
+  // état local, pas dans `projet` (pas de sens à les enregistrer/exporter).
+  const [panneauGauche, setPanneauGauche] = useState(true);
+  const [panneauDroit, setPanneauDroit] = useState(true);
+  const [hauteurTimeline, setHauteurTimeline] = useState(280);
+  const redimensionnerTimeline = (e) => {
+    e.preventDefault();
+    const depart = e.clientY, h0 = hauteurTimeline;
+    const bouger = (ev) => setHauteurTimeline(Math.min(600, Math.max(140, h0 - (ev.clientY - depart))));
+    const relacher = () => { window.removeEventListener('pointermove', bouger); window.removeEventListener('pointerup', relacher); };
+    window.addEventListener('pointermove', bouger);
+    window.addEventListener('pointerup', relacher, { once: true });
+  };
   // Ecran large mais fenêtre/panneaux étroits : l'éditeur gagne à occuper tout l'écran (sidebar
   // masquée). Le state suit aussi une sortie par Échap ou par le navigateur, pas seulement le bouton.
   useEffect(() => {
@@ -339,6 +354,12 @@ export default function EditeurVideo() {
           <button type="button" onClick={basculerPleinEcran} title={t(pleinEcran ? 'editeur.pleinEcranQuitter' : 'editeur.pleinEcran')} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white" data-testid="editeur-plein-ecran">
             {pleinEcran ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
+          {montage?.statut === 'rendu' && montage.video_url && (
+            <a href={lienTelechargement(montage.video_url, titre)} download
+              className="inline-flex items-center gap-1.5 text-[12.5px] font-inter font-semibold text-slate-300 px-3 py-2 rounded-lg border border-white/15 hover:bg-white/[0.06] hover:text-white" data-testid="editeur-telecharger">
+              <Download className="w-3.5 h-3.5" />{t('editeur.export.telecharger')}
+            </a>
+          )}
           {montage?.statut === 'rendu' && montage.contenu_id && (
             <button type="button" onClick={() => navigate('/dashboard/contenus')} className="text-[12.5px] font-inter font-semibold text-[#3AFFA3] px-3 py-2 rounded-lg border border-[#3AFFA3]/40 hover:bg-[#3AFFA3]/10" data-testid="editeur-voir-contenus">
               {t('editeur.export.voir')}
@@ -354,20 +375,36 @@ export default function EditeurVideo() {
 
       {/* Corps : médias · aperçu · propriétés */}
       <div className="flex-1 min-h-0 flex">
-        <aside className="w-[268px] shrink-0 border-r border-white/[0.08] bg-[#0a0f1c] min-h-0">
-          <PanneauMedias medias={medias} setMedias={setMedias} onAjouter={ajouter} onModele={appliquerModele} t={t} />
-        </aside>
+        <div className="relative shrink-0 flex">
+          <aside className={`border-r border-white/[0.08] bg-[#0a0f1c] min-h-0 overflow-hidden transition-[width] duration-150 ${panneauGauche ? 'w-[268px]' : 'w-0'}`}>
+            <div className="w-[268px] h-full"><PanneauMedias medias={medias} setMedias={setMedias} onAjouter={ajouter} onModele={appliquerModele} t={t} /></div>
+          </aside>
+          <button type="button" onClick={() => setPanneauGauche((v) => !v)} data-testid="editeur-repli-gauche"
+            title={t(panneauGauche ? 'editeur.reduirePanneau' : 'editeur.agrandirPanneau')}
+            className="absolute top-1/2 -translate-y-1/2 -right-2.5 z-10 w-5 h-9 rounded-r-md bg-[#0f172a] border border-white/10 border-l-0 grid place-items-center text-slate-500 hover:text-white">
+            {panneauGauche ? <ChevronLeft className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          </button>
+        </div>
         <main className="flex-1 min-w-0 min-h-0 flex flex-col">
           <Apercu projet={projet} tete={tete} onTete={onTete} lecture={lecture} onLecture={onLecture}
             selection={selection} onSelection={setSelection} onChange={setProjet} onFiger={figer} />
         </main>
-        <aside className="w-[300px] shrink-0 border-l border-white/[0.08] bg-[#0a0f1c] overflow-y-auto min-h-0">
-          <PanneauProprietes projet={projet} element={element} t={t}
-            onElement={(maj) => setProjet((p) => majElement(p, selection, maj))}
-            onProjet={(maj) => setProjet(maj)}
-            onTranscrire={transcrire} transcription={transcription}
-            onSilences={couperSilences} silences={silences} onSeparerAudio={separerLAudio} />
-        </aside>
+        <div className="relative shrink-0 flex">
+          <button type="button" onClick={() => setPanneauDroit((v) => !v)} data-testid="editeur-repli-droit"
+            title={t(panneauDroit ? 'editeur.reduirePanneau' : 'editeur.agrandirPanneau')}
+            className="absolute top-1/2 -translate-y-1/2 -left-2.5 z-10 w-5 h-9 rounded-l-md bg-[#0f172a] border border-white/10 border-r-0 grid place-items-center text-slate-500 hover:text-white">
+            {panneauDroit ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
+          </button>
+          <aside className={`border-l border-white/[0.08] bg-[#0a0f1c] overflow-y-auto min-h-0 transition-[width] duration-150 ${panneauDroit ? 'w-[300px]' : 'w-0'}`}>
+            <div className="w-[300px]">
+              <PanneauProprietes projet={projet} element={element} t={t}
+                onElement={(maj) => setProjet((p) => majElement(p, selection, maj))}
+                onProjet={(maj) => setProjet(maj)}
+                onTranscrire={transcrire} transcription={transcription}
+                onSilences={couperSilences} silences={silences} onSeparerAudio={separerLAudio} />
+            </div>
+          </aside>
+        </div>
       </div>
 
       {/* Barre d'outils + timeline */}
@@ -389,7 +426,10 @@ export default function EditeurVideo() {
           <ZoomIn className="w-3.5 h-3.5" />
         </div>
       </div>
-      <div className="h-[min(300px,34vh)] shrink-0 min-h-0">
+      {/* Poignée : tirer vers le haut agrandit la timeline (plus de pistes visibles sans scroller). */}
+      <div onPointerDown={redimensionnerTimeline} data-testid="editeur-timeline-poignee"
+        className="h-1.5 shrink-0 cursor-row-resize bg-white/[0.02] hover:bg-[#3AFFA3]/30 active:bg-[#3AFFA3]/40 transition-colors" />
+      <div style={{ height: hauteurTimeline }} className="shrink-0 min-h-0">
         <Timeline projet={projet} tete={tete} onTete={(v) => { setLecture(false); setTete(v); }} selection={selection} onSelection={setSelection}
           onChange={setProjet} onFiger={figer} onDeposer={deposer} zoom={zoom} t={t}
           selectionIds={selectionIds} onBasculerSelection={basculerSelection} onZoom={changerZoom} onAjouterPiste={ajouterPiste} />

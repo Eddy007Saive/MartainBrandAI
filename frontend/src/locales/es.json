@@ -1522,6 +1522,8 @@
     "retablir": "Rehacer (Ctrl+Y)",
     "pleinEcran": "Pantalla completa",
     "pleinEcranQuitter": "Salir de pantalla completa",
+    "reduirePanneau": "Contraer el panel",
+    "agrandirPanneau": "Mostrar el panel",
     "sauvegarde": {
       "ok": "Guardado",
       "attente": "Modificado…",
@@ -1664,7 +1666,8 @@
       "lance": "Render iniciado: el vídeo llega a Contenidos en unos minutos.",
       "pret": "Tu vídeo está listo en Contenidos ✨",
       "echec": "El render falló. Se devolvió tu cuota, inténtalo de nuevo.",
-      "voir": "Ver en Contenidos"
+      "voir": "Ver en Contenidos",
+      "telecharger": "Descargar"
     },
     "ouvrir": "Abrir en el editor",
     "ouvrirAide": "Cortes, textos, música: monta a mano, plano a plano.",

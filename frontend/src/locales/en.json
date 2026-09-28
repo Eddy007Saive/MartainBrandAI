@@ -1522,6 +1522,8 @@
     "retablir": "Redo (Ctrl+Y)",
     "pleinEcran": "Full screen",
     "pleinEcranQuitter": "Exit full screen",
+    "reduirePanneau": "Collapse panel",
+    "agrandirPanneau": "Show panel",
     "sauvegarde": {
       "ok": "Saved",
       "attente": "Edited…",
@@ -1664,7 +1666,8 @@
       "lance": "Rendering started: the video reaches Content in a few minutes.",
       "pret": "Your video is ready in Content ✨",
       "echec": "Rendering failed. Your quota was refunded, try again.",
-      "voir": "See in Content"
+      "voir": "See in Content",
+      "telecharger": "Download"
     },
     "ouvrir": "Open in the editor",
     "ouvrirAide": "Cuts, text, music: edit by hand, shot by shot.",
