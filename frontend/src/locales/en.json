@@ -1529,6 +1529,12 @@
       "erreur": "Not saved, check your connection"
     },
     "medias": {
+      "modeles": "Templates",
+      "modelesAide": "Sets up video tracks for a common layout. Then drop your clips in: they land in the right spot right away.",
+      "modelePlein": "Full screen",
+      "modeleHautBas": "Split screen, top / bottom",
+      "modeleGaucheDroite": "Split screen, left / right",
+      "modeleOk": "Tracks ready, drop your clips in",
       "medias": "Media",
       "videos": "Videos",
       "musique": "Music",

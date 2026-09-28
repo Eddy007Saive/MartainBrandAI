@@ -28,18 +28,32 @@ export function dureeMedia(url, type = 'video') {
 export const estClip = (url) => /\/video\/upload\//.test(url || '') && !/\.(jpg|png|webp)$/i.test(url || '');
 
 /**
- * Pose un élément déjà fabriqué à la tête de lecture, après le dernier élément de sa piste si la
- * place est prise. Pur et déterministe : appelable dans un updater React (StrictMode l'exécute deux
- * fois, l'identifiant doit donc être tiré AVANT, par l'appelant).
+ * Pose un élément déjà fabriqué à la tête de lecture. Pur et déterministe : appelable dans un
+ * updater React (StrictMode l'exécute deux fois, l'identifiant doit donc être tiré AVANT, par
+ * l'appelant).
+ *
+ * Plusieurs pistes du même type (ex. modèle « écran partagé » : deux pistes Vidéo, chacune avec
+ * son propre `cadreDefaut`) -> on cherche la première piste libre à cet instant plutôt que de
+ * toujours remplir la première puis pousser en série dans le temps, sinon le 2e plan atterrit
+ * bout à bout après le 1er au lieu de se superposer sur l'autre piste au même moment. Une seule
+ * piste de ce type (cas courant) : comportement inchangé. La piste choisie fournit son
+ * `cadreDefaut` si l'élément n'en a pas déjà un explicite.
  */
 export function placerElement(projet, e, tete) {
-  const memePiste = projet.elements.filter((x) => x.piste === e.piste);
-  let debut = Math.max(0, tete || 0);
-  const chevauche = (d) => memePiste.some((x) => d < x.debut + x.duree && d + e.duree > x.debut);
-  if (chevauche(debut)) {
+  const debutSouhaite = Math.max(0, tete || 0);
+  const libre = (pisteId, d) => !projet.elements.some((x) => x.piste === pisteId && d < x.debut + x.duree && d + e.duree > x.debut);
+  const memeType = projet.pistes.filter((p) => p.type === e.type && !p.verrou);
+  const cible = memeType.find((p) => libre(p.id, debutSouhaite))
+    || memeType.find((p) => p.id === e.piste) || memeType[0]
+    || projet.pistes.find((p) => p.id === e.piste);
+  const piste = cible?.id ?? e.piste;
+  let debut = debutSouhaite;
+  if (!libre(piste, debut)) {
+    const memePiste = projet.elements.filter((x) => x.piste === piste);
     debut = memePiste.reduce((m, x) => Math.max(m, x.debut + x.duree), 0);
   }
-  return { ...projet, elements: [...projet.elements, { ...e, debut: arrondi(debut) }] };
+  const cadre = e.cadre && cible?.cadreDefaut ? { ...cible.cadreDefaut } : e.cadre;
+  return { ...projet, elements: [...projet.elements, { ...e, piste, cadre, debut: arrondi(debut) }] };
 }
 
 export { nouvelElement };

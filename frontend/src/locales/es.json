@@ -1529,6 +1529,12 @@
       "erreur": "No guardado, revisa tu conexión"
     },
     "medias": {
+      "modeles": "Plantillas",
+      "modelesAide": "Prepara las pistas de vídeo para una disposición habitual. Luego suelta tus planos: caen directamente en el lugar correcto.",
+      "modelePlein": "Pantalla completa",
+      "modeleHautBas": "Pantalla dividida, arriba / abajo",
+      "modeleGaucheDroite": "Pantalla dividida, izquierda / derecha",
+      "modeleOk": "Pistas listas, suelta tus planos",
       "medias": "Medios",
       "videos": "Vídeos",
       "musique": "Música",

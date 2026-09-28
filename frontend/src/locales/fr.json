@@ -1529,6 +1529,12 @@
       "erreur": "Non enregistré, vérifie ta connexion"
     },
     "medias": {
+      "modeles": "Modèles",
+      "modelesAide": "Prépare les pistes vidéo pour une mise en page courante. Pose ensuite tes plans : ils se calent directement au bon endroit.",
+      "modelePlein": "Plein écran",
+      "modeleHautBas": "Écran partagé, haut / bas",
+      "modeleGaucheDroite": "Écran partagé, gauche / droite",
+      "modeleOk": "Pistes prêtes, pose tes plans",
       "medias": "Médias",
       "videos": "Vidéos",
       "musique": "Musique",

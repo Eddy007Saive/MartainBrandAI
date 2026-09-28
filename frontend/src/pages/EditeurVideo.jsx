@@ -174,6 +174,30 @@ export default function EditeurVideo() {
       return { ...p, pistes: [...p.pistes.slice(0, idx), piste, ...p.pistes.slice(idx)] };
     });
   }, [setProjet, t]);
+  // Modèle d'écran (« écran partagé »...) : prépare N pistes vidéo avec un cadre par défaut
+  // chacune, pour que les plans qu'on pose ensuite (clic ou glisser) tombent directement au bon
+  // endroit — réutilise les pistes Vidéo existantes avant d'en créer, pour ne pas en laisser une
+  // vide et inutile à côté. `cadreDefaut` ne sert qu'ici (placerElement) : il n'est jamais lu par
+  // le rendu Remotion, qui ne connaît que le cadre de chaque élément.
+  const appliquerModele = useCallback((slots) => {
+    setProjet((p) => {
+      let pistes = [...p.pistes];
+      let videoPistes = pistes.filter((x) => x.type === 'video');
+      slots.forEach((cadreDefaut, i) => {
+        if (videoPistes[i]) {
+          pistes = pistes.map((x) => (x.id === videoPistes[i].id ? { ...x, cadreDefaut } : x));
+        } else {
+          const id = nouvelId();
+          const idx = pistes.map((x) => x.type).lastIndexOf('video') + 1;
+          const piste = { id: `p-video-${id}`, type: 'video', nom: `${t('editeur.piste.video')} ${videoPistes.length + 1}`, muet: false, verrou: false, cadreDefaut };
+          pistes = [...pistes.slice(0, idx), piste, ...pistes.slice(idx)];
+          videoPistes = pistes.filter((x) => x.type === 'video');
+        }
+      });
+      return { ...p, pistes };
+    });
+    toast.success(t('editeur.medias.modeleOk'));
+  }, [setProjet, t]);
   // « Couverture ici » : l'instant de la tête de lecture devient la miniature de la vidéo exportée.
   const definirCouverture = useCallback(() => {
     const instant = Math.round(tete * 10) / 10;
@@ -331,7 +355,7 @@ export default function EditeurVideo() {
       {/* Corps : médias · aperçu · propriétés */}
       <div className="flex-1 min-h-0 flex">
         <aside className="w-[268px] shrink-0 border-r border-white/[0.08] bg-[#0a0f1c] min-h-0">
-          <PanneauMedias medias={medias} setMedias={setMedias} onAjouter={ajouter} t={t} />
+          <PanneauMedias medias={medias} setMedias={setMedias} onAjouter={ajouter} onModele={appliquerModele} t={t} />
         </aside>
         <main className="flex-1 min-w-0 min-h-0 flex flex-col">
           <Apercu projet={projet} tete={tete} onTete={onTete} lecture={lecture} onLecture={onLecture}

@@ -10,10 +10,10 @@ import { dureeMedia, estClip } from './outils';
  * Panneau de gauche : tout ce qu'on peut poser sur la timeline. Un clic ajoute l'élément à la
  * tête de lecture (la page se charge de la piste et du chevauchement).
  */
-const ONGLETS = ['medias', 'videos', 'musique', 'texte', 'voix'];
+const ONGLETS = ['modeles', 'medias', 'videos', 'musique', 'texte', 'voix'];
 
-export default function PanneauMedias({ medias, setMedias, onAjouter, t }) {
-  const [onglet, setOnglet] = useState('medias');
+export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, t }) {
+  const [onglet, setOnglet] = useState('modeles');
   const [envoi, setEnvoi] = useState(false);
   const [occupe, setOccupe] = useState(null);
   const [categorie, setCategorie] = useState('');
@@ -101,18 +101,48 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, t }) {
   const musiques = (medias?.musiques || []).filter((m) => !categorie || m.category === categorie);
   const cats = medias?.categories || [];
 
+  // Modèles d'écran : préparent des pistes vidéo avec un cadre par défaut chacune (voir
+  // appliquerModele / placerElement), pour poser les plans ensuite sans régler le cadrage à la main.
+  const MODELES = [
+    { id: 'plein', lib: t('editeur.medias.modelePlein'), slots: [{ x: 0, y: 0, w: 100, h: 100 }] },
+    { id: 'haut-bas', lib: t('editeur.medias.modeleHautBas'), slots: [{ x: 0, y: 0, w: 100, h: 50 }, { x: 0, y: 50, w: 100, h: 50 }] },
+    { id: 'gauche-droite', lib: t('editeur.medias.modeleGaucheDroite'), slots: [{ x: 0, y: 0, w: 50, h: 100 }, { x: 50, y: 0, w: 50, h: 100 }] },
+  ];
+
   return (
     <div className="flex flex-col h-full" data-testid="editeur-medias">
-      <div className="flex border-b border-white/[0.08]">
+      {/* overflow-x-auto + whitespace-nowrap (pas flex-1) : 6 onglets ne tiennent plus côte à
+          côte sans se chevaucher dans les 268px du panneau — ça défile plutôt que d'écraser. */}
+      <div className="flex overflow-x-auto border-b border-white/[0.08]" style={{ scrollbarWidth: 'none' }}>
         {ONGLETS.map((o) => (
           <button key={o} type="button" onClick={() => setOnglet(o)} data-testid={`medias-onglet-${o}`}
-            className={`flex-1 py-2.5 text-[11.5px] font-inter font-semibold uppercase tracking-wide border-b-2 transition-colors ${onglet === o ? 'border-[#3AFFA3] text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
+            className={`shrink-0 px-2.5 py-2.5 text-[11px] font-inter font-semibold uppercase tracking-wide border-b-2 whitespace-nowrap transition-colors ${onglet === o ? 'border-[#3AFFA3] text-white' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>
             {t(`editeur.medias.${o}`)}
           </button>
         ))}
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">
+        {onglet === 'modeles' && (
+          <div className="space-y-1.5">
+            <p className="text-[11.5px] text-slate-500 font-inter leading-snug mb-1.5">{t('editeur.medias.modelesAide')}</p>
+            {MODELES.map((m) => (
+              <button key={m.id} type="button" onClick={() => onModele?.(m.slots)} data-testid={`modele-${m.id}`}
+                className="w-full flex items-center gap-3 p-2 rounded-lg border border-white/[0.06] hover:border-[#3AFFA3]/60 hover:bg-white/[0.03] text-left">
+                <div className="w-9 h-14 rounded bg-black/40 border border-white/10 relative overflow-hidden shrink-0">
+                  {m.slots.map((s, i) => (
+                    <span key={i} className="absolute bg-[#3AFFA3]/60" style={{
+                      left: `${s.x}%`, top: `${s.y}%`, width: `${s.w}%`, height: `${s.h}%`,
+                      borderWidth: 1, borderStyle: 'solid', borderColor: '#0a0f1c',
+                    }} />
+                  ))}
+                </div>
+                <span className="text-[12.5px] text-slate-200 font-inter font-medium">{m.lib}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {onglet === 'medias' && (
           <>
             <input ref={fichier} type="file" accept="image/*,video/mp4,video/quicktime,.mp4,.mov" multiple className="hidden"
