@@ -28,6 +28,44 @@ export function dureeMedia(url, type = 'video') {
 export const estClip = (url) => /\/video\/upload\//.test(url || '') && !/\.(jpg|png|webp)$/i.test(url || '');
 
 /**
+ * Pics de forme d'onde d'une source audio (Web Audio API), en cache par URL — le décodage
+ * (télécharge tout le fichier, l'analyse) ne se fait qu'une fois par source, même si plusieurs
+ * éléments de la timeline pointent vers le même fichier ou si le composant se re-rend.
+ * Renvoie { pics: Float32Array (200 valeurs 0-1), duree } ou null (décodage impossible : piste
+ * muette, CORS, navigateur sans Web Audio API — l'appelant se contente alors du bloc uni).
+ */
+const _cacheOndes = new Map();
+export function chargerOnde(url) {
+  if (!url) return Promise.resolve(null);
+  if (_cacheOndes.has(url)) return _cacheOndes.get(url);
+  const AC = typeof window !== 'undefined' && (window.AudioContext || window.webkitAudioContext);
+  const p = !AC ? Promise.resolve(null) : fetch(url)
+    .then((r) => r.arrayBuffer())
+    .then((buf) => {
+      const ctx = new AC();
+      return ctx.decodeAudioData(buf).then((audioBuf) => {
+        const data = audioBuf.getChannelData(0);
+        const N = 200;
+        const pas = Math.max(1, Math.floor(data.length / N));
+        const pics = new Float32Array(N);
+        for (let i = 0; i < N; i++) {
+          let max = 0;
+          const debut = i * pas;
+          for (let j = 0; j < pas && debut + j < data.length; j++) {
+            const v = Math.abs(data[debut + j]);
+            if (v > max) max = v;
+          }
+          pics[i] = max;
+        }
+        ctx.close();
+        return { pics, duree: audioBuf.duration };
+      });
+    }).catch(() => null);
+  _cacheOndes.set(url, p);
+  return p;
+}
+
+/**
  * Pose un élément déjà fabriqué à la tête de lecture. Pur et déterministe : appelable dans un
  * updater React (StrictMode l'exécute deux fois, l'identifiant doit donc être tiré AVANT, par
  * l'appelant).

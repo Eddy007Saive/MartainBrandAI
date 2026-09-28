@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Volume2, VolumeX, Lock, Unlock, Type, Captions, Image as ImageIcon, Film, Music, Plus, ChevronDown } from 'lucide-react';
-import { fmtTemps, arrondi, aimants, aimanter, dureeProjet } from './outils';
+import { fmtTemps, arrondi, aimants, aimanter, dureeProjet, chargerOnde } from './outils';
 
 /**
  * Timeline multipiste : règle, tête de lecture, un rang par piste, éléments déplaçables et
@@ -21,6 +21,34 @@ const COULEURS = {
   video: 'from-[#14b8a6]/60 to-[#0d9488]/60 border-[#2dd4bf]/60',
   audio: 'from-[#3AFFA3]/50 to-[#10b981]/50 border-[#3AFFA3]/60',
 };
+
+/** Silhouette de forme d'onde (miroir haut/bas) sur la tranche de la source réellement jouée par
+ * cet élément (decalage -> decalage + duree*vitesse), pour qu'un plan coupé ou accéléré affiche
+ * bien le bon segment. Se dessine par-dessus le bloc uni une fois le décodage terminé. */
+function FormeOnde({ el }) {
+  const [onde, setOnde] = useState(null);
+  useEffect(() => {
+    let vivant = true;
+    chargerOnde(el.src).then((r) => { if (vivant) setOnde(r); });
+    return () => { vivant = false; };
+  }, [el.src]);
+  if (!onde || !onde.duree) return null;
+  const vitesse = el.vitesse || 1;
+  const ratioDebut = Math.max(0, (el.decalage || 0) / onde.duree);
+  const ratioFin = Math.min(1, ((el.decalage || 0) + (el.duree || 0) * vitesse) / onde.duree);
+  const i0 = Math.floor(ratioDebut * onde.pics.length);
+  const i1 = Math.min(onde.pics.length, Math.max(i0 + 2, Math.ceil(ratioFin * onde.pics.length)));
+  const tranche = Array.from(onde.pics.slice(i0, i1));
+  const n = tranche.length;
+  if (n < 2) return null;
+  const haut = tranche.map((v, i) => `${(i / (n - 1)) * 100},${50 - v * 46}`);
+  const bas = tranche.map((v, i) => `${(i / (n - 1)) * 100},${50 + v * 46}`).reverse();
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none opacity-80 text-white/60">
+      <polygon points={[...haut, ...bas].join(' ')} fill="currentColor" />
+    </svg>
+  );
+}
 
 export default function Timeline({ projet, tete, onTete, selection, selectionIds = [], onSelection, onBasculerSelection, onChange, onFiger, onDeposer, onZoom, zoom, t, onAjouterPiste }) {
   const zone = useRef(null);
@@ -245,6 +273,7 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
                     onPointerDown={(e) => commencer(e, el, 'deplacer')}
                     className={`absolute top-1.5 bottom-1.5 rounded-md border bg-gradient-to-r ${COULEURS[el.type] || COULEURS.video} ${sel ? 'ring-2 ring-white shadow-[0_0_0_2px_rgba(58,255,163,.35)]' : 'hover:brightness-110'} cursor-grab active:cursor-grabbing overflow-hidden`}
                     style={{ left: el.debut * zoom, width: Math.max(6, el.duree * zoom) }}>
+                    {el.type === 'audio' && el.src && <FormeOnde el={el} />}
                     {el.transition?.type && el.transition.type !== 'aucune' && (
                       <div className="absolute inset-y-0 left-0 bg-[repeating-linear-gradient(135deg,rgba(255,255,255,.35)_0_3px,transparent_3px_6px)] pointer-events-none" style={{ width: Math.max(4, (el.transition.duree || 0.5) * zoom) }} title={t(`editeur.transition.${el.transition.type}`)} />
                     )}
