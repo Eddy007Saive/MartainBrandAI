@@ -301,10 +301,17 @@
 
 /* ===== Galerie shell d'app ===== */
 .cine .gallery{position:relative;padding:10vh 0;display:flex;justify-content:center}
-.cine .gallery-pin{width:100%;display:flex;justify-content:center}
-.cine .preview{width:min(1020px,88vw);
+.cine .gallery-pin{width:100%;display:flex;justify-content:center;perspective:1800px}
+/* carte à jouer tenue en main : inclinaison 3D qui suit le curseur (JS, HomeCine.jsx tiltMove/tiltLeave,
+   via Motion) + un reflet qui glisse dessus (preview-sheen, positionné par --mx/--my posées en JS) —
+   même traitement que la galerie du prototype HTML validé. */
+.cine .preview{width:min(1020px,88vw);position:relative;transform-style:preserve-3d;will-change:transform;
          border-radius:20px;border:1px solid var(--line2);background:linear-gradient(180deg,rgba(15,23,42,.92),rgba(11,19,34,.92));
          backdrop-filter:blur(10px);padding:12px;box-shadow:0 40px 120px -30px rgba(91,108,255,.4)}
+.cine .preview-sheen{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;border-radius:20px;
+         transition:opacity .3s ease;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.14),transparent 55%)}
+.cine .preview:hover .preview-sheen{opacity:1}
+@media(hover:none),(max-width:860px){.cine .gallery-pin{perspective:none}.cine .preview-sheen{display:none}}
 .cine .pbar{display:flex;gap:7px;padding:4px 8px 10px}
 .cine .pbar i{width:10px;height:10px;border-radius:50%;background:#2a3550}
 .cine .shot{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--bg);height:min(62vh,560px);display:grid;grid-template-columns:210px 1fr;text-align:left}

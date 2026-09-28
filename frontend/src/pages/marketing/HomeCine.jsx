@@ -4,11 +4,26 @@ import { useTranslation, Trans } from 'react-i18next';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import { animate } from 'motion/react';
 import { APK_URL } from '../../lib/appDownload';
 import { isAuthenticated, isAdminAuthenticated, espaceParDefaut } from '../../lib/auth';
 import LangSwitcher from '../../components/LangSwitcher';
 import { propsRdv } from './shared';
 import './homeCine.css';
+
+// Inclinaison 3D façon carte à jouer, au survol de la vitrine produit (desktop uniquement,
+// pas de curseur au doigt) — même traitement que la galerie du prototype HTML validé.
+const TILT_SPRING = { type: 'spring', stiffness: 300, damping: 22 };
+const tiltMove = (e) => {
+  const el = e.currentTarget;
+  const r = el.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width;
+  const py = (e.clientY - r.top) / r.height;
+  animate(el, { rotateX: (py - 0.5) * -9, rotateY: (px - 0.5) * 9, scale: 1.012 }, TILT_SPRING);
+  el.style.setProperty('--mx', `${px * 100}%`);
+  el.style.setProperty('--my', `${py * 100}%`);
+};
+const tiltLeave = (e) => animate(e.currentTarget, { rotateX: 0, rotateY: 0, scale: 1 }, TILT_SPRING);
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -436,7 +451,10 @@ export default function HomeCine() {
           </section>
         ) : (
           <section className="gallery"><div className="gallery-pin">
-            <div className="preview" onMouseEnter={() => setScenePause(true)} onMouseLeave={() => setScenePause(false)}>
+            <div className="preview"
+              onMouseEnter={() => setScenePause(true)} onMouseLeave={() => setScenePause(false)}
+              onPointerMove={tiltMove} onPointerLeave={tiltLeave}>
+              <span className="preview-sheen" aria-hidden="true" />
               <div className="pbar"><i /><i /><i /></div>
               <div className="shot">
                 <div className="sb">
