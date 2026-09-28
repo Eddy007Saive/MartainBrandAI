@@ -130,6 +130,45 @@ export default function PanneauProprietes({ projet, element, onElement, onProjet
         <Champ label={t('editeur.prop.duree')}><Nombre valeur={e.duree} onChange={(v) => onElement({ duree: Math.max(0.1, v) })} min={0.1} pas={0.1} suffixe="s" /></Champ>
       </div>
 
+      {e.cadre && (
+        <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-2.5" data-testid="prop-cadre">
+          <div className="text-[10.5px] uppercase tracking-wide text-slate-500 font-inter mb-1.5">{t('editeur.prop.cadre')}</div>
+          {/* Emplacements courants (superposer deux plans : un en haut, un en bas...) en un clic,
+              sans calculer de pourcentages ni glisser précisément dans l'aperçu. */}
+          <div className="grid grid-cols-5 gap-1 mb-2">
+            {[
+              { id: 'plein', lib: t('editeur.prop.cadrePlein'), cadre: { x: 0, y: 0, w: 100, h: 100 } },
+              { id: 'haute', lib: t('editeur.prop.cadreHaute'), cadre: { x: 0, y: 0, w: 100, h: 50 } },
+              { id: 'basse', lib: t('editeur.prop.cadreBasse'), cadre: { x: 0, y: 50, w: 100, h: 50 } },
+              { id: 'gauche', lib: t('editeur.prop.cadreGauche'), cadre: { x: 0, y: 0, w: 50, h: 100 } },
+              { id: 'droite', lib: t('editeur.prop.cadreDroite'), cadre: { x: 50, y: 0, w: 50, h: 100 } },
+            ].map((p) => (
+              <button key={p.id} type="button" title={p.lib} data-testid={`prop-cadre-${p.id}`}
+                onClick={() => onElement({ cadre: p.cadre })}
+                className="h-9 rounded-lg border border-white/10 hover:border-[#3AFFA3]/60 grid place-items-center text-slate-400 hover:text-[#3AFFA3]">
+                <span className="block bg-current" style={{
+                  width: p.cadre.w === 100 ? 16 : 7, height: p.cadre.h === 100 ? 16 : 7,
+                  marginLeft: p.cadre.x === 50 ? 9 : 0, marginTop: p.cadre.y === 50 ? 9 : 0,
+                }} />
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {['x', 'y', 'w', 'h'].map((k) => (
+              <div key={k} className="relative">
+                <input type="number" value={Math.round(e.cadre[k] * 10) / 10} step={1} onChange={(ev) => majCadre(k, Number(ev.target.value))} className={`${cls} pl-5`} />
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 uppercase">{k}</span>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <Champ label={t('editeur.prop.rotation')}><Nombre valeur={e.rotation || 0} onChange={(v) => onElement({ rotation: v })} min={-180} max={180} pas={1} suffixe="°" /></Champ>
+            <Champ label={`${t('editeur.prop.opacite')} · ${Math.round((e.opacite ?? 1) * 100)} %`}><Curseur valeur={e.opacite ?? 1} onChange={(v) => onElement({ opacite: v })} /></Champ>
+          </div>
+          <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1.5">{t('editeur.prop.cadreAide')}</p>
+        </div>
+      )}
+
       {(e.type === 'video' || e.type === 'audio') && (
         <>
           <Champ label={`${t('editeur.prop.volume')} · ${Math.round((e.volume ?? 1) * 100)} %`}><Curseur valeur={e.volume ?? 1} onChange={(v) => onElement({ volume: v })} /></Champ>
@@ -284,25 +323,6 @@ export default function PanneauProprietes({ projet, element, onElement, onProjet
         </>
       )}
 
-      {e.cadre && (
-        <div className="pt-2 border-t border-white/[0.06]">
-          <div className="text-[10.5px] uppercase tracking-wide text-slate-500 font-inter mb-1.5">{t('editeur.prop.cadre')}</div>
-          <div className="grid grid-cols-4 gap-1.5">
-            {['x', 'y', 'w', 'h'].map((k) => (
-              <div key={k} className="relative">
-                <input type="number" value={Math.round(e.cadre[k] * 10) / 10} step={1} onChange={(ev) => majCadre(k, Number(ev.target.value))} className={`${cls} pl-5`} />
-                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 uppercase">{k}</span>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <Champ label={t('editeur.prop.rotation')}><Nombre valeur={e.rotation || 0} onChange={(v) => onElement({ rotation: v })} min={-180} max={180} pas={1} suffixe="°" /></Champ>
-            <Champ label={`${t('editeur.prop.opacite')} · ${Math.round((e.opacite ?? 1) * 100)} %`}><Curseur valeur={e.opacite ?? 1} onChange={(v) => onElement({ opacite: v })} /></Champ>
-          </div>
-          <button type="button" onClick={() => onElement({ cadre: { x: 0, y: 0, w: 100, h: 100 }, rotation: 0 })}
-            className="mt-2 text-[11.5px] text-slate-400 hover:text-white font-inter underline underline-offset-2">{t('editeur.prop.pleinEcran')}</button>
-        </div>
-      )}
     </div>
   );
 }
