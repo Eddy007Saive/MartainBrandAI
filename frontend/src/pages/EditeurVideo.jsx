@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Play, Pause, Scissors, Copy, Trash2, Undo2, Redo2, Loader2, Download, Check, ZoomIn, ZoomOut, Monitor, Image as ImageIcon,
+  Maximize2, Minimize2,
 } from 'lucide-react';
 import { editeurService } from '../services/editeurService';
 import useProjet from '../components/editeur/useProjet';
@@ -50,6 +51,19 @@ export default function EditeurVideo() {
   const premierChargement = useRef(true);
   const minuterie = useRef(null);
   const petitEcran = typeof window !== 'undefined' && window.innerWidth < 900;
+  const racine = useRef(null);
+  const [pleinEcran, setPleinEcran] = useState(false);
+  // Ecran large mais fenêtre/panneaux étroits : l'éditeur gagne à occuper tout l'écran (sidebar
+  // masquée). Le state suit aussi une sortie par Échap ou par le navigateur, pas seulement le bouton.
+  useEffect(() => {
+    const onChange = () => setPleinEcran(document.fullscreenElement === racine.current);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+  const basculerPleinEcran = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else racine.current?.requestFullscreen?.();
+  };
 
   // ---- chargement ----
   useEffect(() => {
@@ -283,7 +297,7 @@ export default function EditeurVideo() {
   const rendu = montage?.statut === 'rendu_en_cours';
 
   return (
-    <div className="fixed inset-y-0 right-0 left-0 md:left-64 z-30 flex flex-col bg-[#020617] text-slate-200" data-testid="editeur-video">
+    <div ref={racine} className={`fixed inset-y-0 right-0 left-0 z-30 flex flex-col bg-[#020617] text-slate-200 ${pleinEcran ? '' : 'md:left-64'}`} data-testid="editeur-video">
       {/* Barre du haut */}
       <header className="h-14 shrink-0 flex items-center gap-3 px-4 border-b border-white/[0.08] bg-[#0a0f1c]">
         <button type="button" onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/dashboard/editeur'))} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white" title={t('editeur.retour')} data-testid="editeur-retour">
@@ -298,6 +312,9 @@ export default function EditeurVideo() {
         <div className="ml-auto flex items-center gap-2">
           <button type="button" onClick={annuler} disabled={!peutAnnuler} title={t('editeur.annuler')} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white disabled:opacity-30" data-testid="editeur-annuler"><Undo2 className="w-4 h-4" /></button>
           <button type="button" onClick={retablir} disabled={!peutRetablir} title={t('editeur.retablir')} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white disabled:opacity-30" data-testid="editeur-retablir"><Redo2 className="w-4 h-4" /></button>
+          <button type="button" onClick={basculerPleinEcran} title={t(pleinEcran ? 'editeur.pleinEcranQuitter' : 'editeur.pleinEcran')} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white" data-testid="editeur-plein-ecran">
+            {pleinEcran ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
           {montage?.statut === 'rendu' && montage.contenu_id && (
             <button type="button" onClick={() => navigate('/dashboard/contenus')} className="text-[12.5px] font-inter font-semibold text-[#3AFFA3] px-3 py-2 rounded-lg border border-[#3AFFA3]/40 hover:bg-[#3AFFA3]/10" data-testid="editeur-voir-contenus">
               {t('editeur.export.voir')}

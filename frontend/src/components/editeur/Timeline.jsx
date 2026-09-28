@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Volume2, VolumeX, Lock, Unlock, Type, Captions, Image as ImageIcon, Film, Music, Plus } from 'lucide-react';
+import { Volume2, VolumeX, Lock, Unlock, Type, Captions, Image as ImageIcon, Film, Music, Plus, ChevronDown } from 'lucide-react';
 import { fmtTemps, arrondi, aimants, aimanter, dureeProjet } from './outils';
 
 /**
@@ -24,6 +24,8 @@ const COULEURS = {
 
 export default function Timeline({ projet, tete, onTete, selection, selectionIds = [], onSelection, onBasculerSelection, onChange, onFiger, onDeposer, onZoom, zoom, t, onAjouterPiste }) {
   const zone = useRef(null);
+  const etiquettes = useRef(null); // colonne des pistes : suit le défilement vertical de `zone`
+  const [plusEnBas, setPlusEnBas] = useState(false); // des pistes restent cachées sous le bas visible (ex. Audio)
   const [glisser, setGlisser] = useState(null); // {mode, id, x0, orig}
   const aBouge = useRef(false);                 // un simple clic (sans glisser) referme une sélection multiple sur l'élément cliqué
   const duree = dureeProjet(projet);
@@ -140,6 +142,17 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
     ...p, pistes: p.pistes.map((x) => (x.id === pisteId ? { ...x, [champ]: !x[champ] } : x)),
   }));
 
+  // La colonne des étiquettes (gauche) n'a pas son propre défilement : elle suit celui de la
+  // zone des pistes (droite) par transform, sinon les deux se désynchronisent dès qu'on scrolle.
+  // `plusEnBas` alimente l'indicateur "il y a d'autres pistes plus bas" (ex. Audio hors champ).
+  const majDefilement = () => {
+    const z = zone.current;
+    if (!z) return;
+    if (etiquettes.current) etiquettes.current.style.transform = `translateY(${-z.scrollTop}px)`;
+    setPlusEnBas(z.scrollHeight - z.clientHeight - z.scrollTop > 1);
+  };
+  useEffect(majDefilement, [projet.pistes.length]);
+
   const etiquette = (el) => {
     if (el.type === 'texte' || el.type === 'soustitre') return el.texte || '…';
     if (el.type === 'audio') return t('editeur.piste.audio');
@@ -150,7 +163,8 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
   return (
     <div className="flex h-full bg-[#0a0f1c] border-t border-white/[0.08] select-none" data-testid="editeur-timeline">
       {/* Étiquettes des pistes */}
-      <div className="shrink-0 border-r border-white/[0.08] overflow-hidden" style={{ width: L_ETIQUETTES }}>
+      <div className="shrink-0 border-r border-white/[0.08] overflow-hidden relative" style={{ width: L_ETIQUETTES }}>
+        <div ref={etiquettes}>
         <div style={{ height: H_REGLE }} className="border-b border-white/[0.06] px-3 flex items-center text-[10.5px] uppercase tracking-wide text-slate-500 font-inter">
           {t('editeur.pistes')}
         </div>
@@ -181,10 +195,16 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
             </div>
           );
         })}
+        </div>
+        {plusEnBas && (
+          <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-[#0a0f1c] to-transparent pointer-events-none flex items-end justify-center pb-0.5">
+            <ChevronDown className="w-3.5 h-3.5 text-slate-500 animate-bounce" />
+          </div>
+        )}
       </div>
 
       {/* Zone défilante : règle + pistes */}
-      <div ref={zone} className="flex-1 overflow-x-auto overflow-y-auto relative" onPointerDown={(e) => { if (e.target === e.currentTarget) onSelection(null); }}
+      <div ref={zone} className="flex-1 overflow-x-auto overflow-y-auto relative" onScroll={majDefilement} onPointerDown={(e) => { if (e.target === e.currentTarget) onSelection(null); }}
         onDragOver={(e) => { if (e.dataTransfer.types.includes('application/x-postorico-media')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }}
         onDrop={(e) => {
           const brut = e.dataTransfer.getData('application/x-postorico-media');

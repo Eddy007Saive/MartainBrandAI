@@ -1068,7 +1068,7 @@
       "contrasteFaible": "low (accent hard to read)",
       "typographie": "Brand typography",
       "typographieTitre": "Three fonts",
-      "typographieAide": "Default for carousels (overridable on each one); given to the image AI alongside the reference template — it doesn't guarantee an exact font.",
+      "typographieAide": "Default for carousels (overridable on each one), given to the image AI alongside the reference template: it doesn't guarantee an exact font.",
       "typoPrimaireCourt": "Primary",
       "typoPrimaireRole": "Titles",
       "typoSecondaireCourt": "Secondary",
@@ -1497,7 +1497,7 @@
     "echecChargement": "This edit could not be opened.",
     "petitEcran": "The editor is mouse-driven and needs a wide screen. Open it from a computer: your edit is saved and will be exactly as you left it.",
     "pistes": "Tracks",
-    "ajouterPiste": "Add a track — to overlay (two videos, two text layers...)",
+    "ajouterPiste": "Add a track, to overlay (two videos, two text layers...)",
     "piste": {
       "texte": "Text",
       "soustitres": "Subtitles",
@@ -1520,6 +1520,8 @@
     "supprimer": "Delete",
     "annuler": "Undo (Ctrl+Z)",
     "retablir": "Redo (Ctrl+Y)",
+    "pleinEcran": "Full screen",
+    "pleinEcranQuitter": "Exit full screen",
     "sauvegarde": {
       "ok": "Saved",
       "attente": "Edited…",

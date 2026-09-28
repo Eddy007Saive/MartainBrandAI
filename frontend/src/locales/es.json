@@ -1068,7 +1068,7 @@
       "contrasteFaible": "bajo (acento poco legible)",
       "typographie": "Tipografía de marca",
       "typographieTitre": "Tres tipografías",
-      "typographieAide": "Ajuste por defecto de los carruseles (modificable en cada uno); se indica a la IA de imagen junto con la plantilla de referencia — no garantiza una fuente exacta.",
+      "typographieAide": "Ajuste por defecto de los carruseles (modificable en cada uno), se indica a la IA de imagen junto con la plantilla de referencia: no garantiza una fuente exacta.",
       "typoPrimaireCourt": "Primaria",
       "typoPrimaireRole": "Títulos",
       "typoSecondaireCourt": "Secundaria",
@@ -1497,7 +1497,7 @@
     "echecChargement": "No se pudo abrir este montaje.",
     "petitEcran": "El editor se maneja con el ratón, en una pantalla ancha. Ábrelo desde un ordenador: tu montaje está guardado y lo encontrarás tal cual.",
     "pistes": "Pistas",
-    "ajouterPiste": "Añadir una pista — para superponer (dos vídeos, dos textos...)",
+    "ajouterPiste": "Añadir una pista, para superponer (dos vídeos, dos textos...)",
     "piste": {
       "texte": "Textos",
       "soustitres": "Subtítulos",
@@ -1520,6 +1520,8 @@
     "supprimer": "Eliminar",
     "annuler": "Deshacer (Ctrl+Z)",
     "retablir": "Rehacer (Ctrl+Y)",
+    "pleinEcran": "Pantalla completa",
+    "pleinEcranQuitter": "Salir de pantalla completa",
     "sauvegarde": {
       "ok": "Guardado",
       "attente": "Modificado…",

@@ -1068,7 +1068,7 @@
       "contrasteFaible": "faible (accent peu lisible)",
       "typographie": "Typographie de marque",
       "typographieTitre": "Trois polices",
-      "typographieAide": "Réglage par défaut des carrousels (remplaçable sur chacun) ; donnée à l'IA image en complément du gabarit de référence — elle ne garantit pas une police exacte.",
+      "typographieAide": "Réglage par défaut des carrousels (remplaçable sur chacun), donnée à l'IA image en complément du gabarit de référence : elle ne garantit pas une police exacte.",
       "typoPrimaireCourt": "Primaire",
       "typoPrimaireRole": "Titres",
       "typoSecondaireCourt": "Secondaire",
@@ -1497,7 +1497,7 @@
     "echecChargement": "Impossible d'ouvrir ce montage.",
     "petitEcran": "L'éditeur se pilote à la souris, sur un écran large. Ouvre-le depuis un ordinateur : ton montage est enregistré, tu le retrouveras tel quel.",
     "pistes": "Pistes",
-    "ajouterPiste": "Ajouter une piste — pour superposer (deux vidéos, deux textes...)",
+    "ajouterPiste": "Ajouter une piste, pour superposer (deux vidéos, deux textes...)",
     "piste": {
       "texte": "Textes",
       "soustitres": "Sous-titres",
@@ -1520,6 +1520,8 @@
     "supprimer": "Supprimer",
     "annuler": "Annuler (Ctrl+Z)",
     "retablir": "Rétablir (Ctrl+Y)",
+    "pleinEcran": "Plein écran",
+    "pleinEcranQuitter": "Quitter le plein écran",
     "sauvegarde": {
       "ok": "Enregistré",
       "attente": "Modifié…",
