@@ -199,6 +199,22 @@ def _charte(u: dict) -> str:
             "secondary and harmonious with them. The codes are for colour matching only: never draw or write them.")
 
 
+def _typo(u: dict) -> str:
+    """Polices de marque (Paramètres), en complément de la consigne « reproduis le gabarit » —
+    utile quand le texte affiché est nouveau (pas déjà présent dans l'image de gabarit à copier).
+    Signal plus faible qu'une image de référence : un modèle d'image ne respecte pas une police
+    exacte de façon garantie, mais gratuit à ajouter."""
+    parts = []
+    for cle, role in (("typo_primaire", "title"), ("typo_secondaire", "subtitle/kicker"), ("typo_tertiaire", "body text")):
+        v = (u.get(cle) or "").strip()
+        if v:
+            parts.append(f"{role} in '{v}'")
+    if not parts:
+        return ""
+    return ("\n\nBRAND TYPOGRAPHY, when the design includes text: " + ", ".join(parts)
+            + ". Match their visual style (weight, letterform) as closely as possible.")
+
+
 _STYLE_AUTO = "auto"
 _GUIDE_CHOIX_STYLE = (
     "photo : sujet concret, humain, produit, lieu, témoignage, coulisses ; "
@@ -504,7 +520,8 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                 "« Consignes de l'utilisateur » sont fournies, EXÉCUTE-les — ce sont des ORDRES, pas du texte à "
                 "afficher (ex. « remplace la phrase par X » = afficher UNIQUEMENT X). L'ancien texte du gabarit "
                 "DISPARAÎT : ne montre JAMAIS l'ancien et le nouveau en même temps. Garde les accents français "
-                "corrects (é, è, ê…). Texte parfaitement lisible, sans faute." + ecran_txt_gabarit + "\n\n" + prompt
+                "corrects (é, è, ê…). Texte parfaitement lisible, sans faute."
+                + ecran_txt_gabarit + _typo(u) + "\n\n" + prompt
             )
         else:
             texte = (
@@ -516,7 +533,8 @@ async def generer_image(telegram_id: str, prompt: str, avec_photo: bool = False,
                 "fournies, EXÉCUTE-les — ce sont des ORDRES, pas du texte à afficher (ex. « remplace la phrase "
                 "par X » = afficher UNIQUEMENT X). L'ancien texte DISPARAÎT : ne montre JAMAIS l'ancien et le "
                 "nouveau en même temps. Parfaitement lisible, sans faute, accents français corrects."
-                + (" (Exception : l'écran de l'appareil, voir ci-dessous.)" if ecran_data else "") + ecran_txt_gabarit + "\n\n" + prompt
+                + (" (Exception : l'écran de l'appareil, voir ci-dessous.)" if ecran_data else "")
+                + ecran_txt_gabarit + _typo(u) + "\n\n" + prompt
             )
         content = [{"type": "text", "text": texte}]
         content += [{"type": "image_url", "image_url": {"url": url}} for url in inspi_refs]

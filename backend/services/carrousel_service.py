@@ -624,8 +624,9 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     nom = u.get("nom") or u.get("username") or ""
     secteur = u.get("secteur") or ""
     logo = u.get("logo_url") or None
-    font = ((font if font is not None else u.get("carrousel_font")) or "").strip() or None
-    font_corps = ((font_corps if font_corps is not None else u.get("carrousel_font_corps")) or "").strip() or None
+    # Police explicite (retouche) > police propre au carrousel > police de marque (Paramètres) > signature du template.
+    font = ((font if font is not None else u.get("carrousel_font")) or u.get("typo_primaire") or "").strip() or None
+    font_corps = ((font_corps if font_corps is not None else u.get("carrousel_font_corps")) or u.get("typo_tertiaire") or "").strip() or None
     # Un template sur mesure ne se rend que pour les comptes à qui il a été attribué.
     template = template_valide(template, telegram_id)
     base = (contenu_id or "tmp").replace("-", "")[:16]

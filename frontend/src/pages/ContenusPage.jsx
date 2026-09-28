@@ -575,8 +575,8 @@ export default function ContenusPage() {
       p: user?.carrousel_couleur_principale || user?.couleur_principale || '#003D2E',
       s: user?.carrousel_couleur_secondaire || user?.couleur_secondaire || '#0077FF',
       a: user?.carrousel_couleur_accent || user?.couleur_accent || '#3AFFA3',
-      font: user?.carrousel_font || '',
-      fontBody: user?.carrousel_font_corps || '',
+      font: user?.carrousel_font || user?.typo_primaire || '',
+      fontBody: user?.carrousel_font_corps || user?.typo_tertiaire || '',
     } : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedContenu]);

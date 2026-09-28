@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { Field } from '../components/Field';
 import { ApercuStyle, ApercuPost, IMAGE_STYLES, contraste, paletteDe } from '../components/StyleMarque';
+import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS } from '../lib/carrouselPreview';
 import { track } from '../lib/analytics';
 import InvoicesList from '../components/InvoicesList';
 import { COMMON_TIMEZONES } from '../lib/tz';
@@ -1326,6 +1327,11 @@ export default function ParametresPage() {
       ['couleur_accent', t('params.style.courtAccent'), t('params.style.roleAccent'), couleurs.accent],
     ];
     const pointContraste = ct.niveau === 'bon' ? 'bg-[#3AFFA3]' : ct.niveau === 'moyen' ? 'bg-amber-400' : 'bg-[#F26B6B]';
+    const typographie = [
+      ['typo_primaire', t('params.style.typoPrimaireCourt'), t('params.style.typoPrimaireRole'), CAROUSEL_FONTS],
+      ['typo_secondaire', t('params.style.typoSecondaireCourt'), t('params.style.typoSecondaireRole'), CAROUSEL_FONTS],
+      ['typo_tertiaire', t('params.style.typoTertiaireCourt'), t('params.style.typoTertiaireRole'), CAROUSEL_BODY_FONTS],
+    ];
 
     return (
       <div className="grid gap-4 items-start lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -1355,6 +1361,23 @@ export default function ParametresPage() {
                 {t('params.style.contraste', { ratio: ct.ratio, niveau: t(`params.style.contraste${ct.niveau[0].toUpperCase()}${ct.niveau.slice(1)}`) })}
               </p>
             </>
+          ))}
+
+          {rang('typographie', { eyebrow: t('params.style.typographie'), titre: t('params.style.typographieTitre'), aide: t('params.style.typographieAide'), testid: 'section-typographie' }, (
+            <div className="grid gap-2">
+              {typographie.map(([name, lib, role, fonts]) => (
+                <div key={name} className="flex items-center gap-3 px-2.5 py-2 rounded-[14px] border border-white/[0.07] bg-[#0b1224]">
+                  <div className="min-w-0 flex-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                    <span className="text-[13px] font-semibold text-slate-100 font-inter">{lib}</span>
+                    <span className="text-[11.5px] text-slate-500 font-inter truncate">{role}</span>
+                  </div>
+                  <select value={user?.[name] || ''} onChange={(e) => handleChange(name, e.target.value)} data-testid={`typo-select-${name}`}
+                    className="bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 w-[180px] shrink-0">
+                    {fonts.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
           ))}
 
           {rang('style', { eyebrow: t('params.style.styleImage'), titre: t('params.style.styleTitre'), aide: t('params.style.styleAide'), testid: 'section-style-image' }, (

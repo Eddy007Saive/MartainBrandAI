@@ -36,6 +36,12 @@ class UserUpdate(BaseModel):
     carrousel_couleur_accent: Optional[str] = None
     carrousel_font: Optional[str] = None
     carrousel_font_corps: Optional[str] = None
+    # Typographie de MARQUE (titre / sous-titre / corps) : défaut des carrousels (sous
+    # carrousel_font/_corps, propres au carrousel) et donnée à l'IA image en complément
+    # du gabarit de référence.
+    typo_primaire: Optional[str] = None
+    typo_secondaire: Optional[str] = None
+    typo_tertiaire: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
     late_account_instagram: Optional[str] = None
@@ -71,6 +77,9 @@ class UserResponse(BaseModel):
     carrousel_couleur_accent: Optional[str] = None
     carrousel_font: Optional[str] = None
     carrousel_font_corps: Optional[str] = None
+    typo_primaire: Optional[str] = None
+    typo_secondaire: Optional[str] = None
+    typo_tertiaire: Optional[str] = None
     late_profile_id: Optional[str] = None
     late_account_linkedin: Optional[str] = None
     late_account_instagram: Optional[str] = None
