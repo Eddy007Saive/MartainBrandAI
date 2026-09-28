@@ -1487,6 +1487,7 @@
     "echecChargement": "No se pudo abrir este montaje.",
     "petitEcran": "El editor se maneja con el ratón, en una pantalla ancha. Ábrelo desde un ordenador: tu montaje está guardado y lo encontrarás tal cual.",
     "pistes": "Pistas",
+    "ajouterPiste": "Añadir una pista — para superponer (dos vídeos, dos textos...)",
     "piste": {
       "texte": "Textos",
       "soustitres": "Subtítulos",

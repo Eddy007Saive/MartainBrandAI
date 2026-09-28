@@ -106,6 +106,7 @@ export function separerAudio(projet, id, nouveauId, nouvellePisteId) {
   const audio = {
     id: nouveauId, piste: piste.id, type: 'audio', debut: v.debut, duree: v.duree, opacite: 1,
     src: v.src, decalage: v.decalage || 0, vitesse: v.vitesse || 1, volume: v.volume ?? 1, fonduSortie: 0,
+    dureeSource: v.dureeSource,
   };
   return {
     projet: { ...projet, pistes, elements: [...projet.elements.map((x) => (x.id === id ? { ...x, volume: 0 } : x)), audio] },

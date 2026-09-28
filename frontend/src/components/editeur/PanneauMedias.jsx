@@ -44,7 +44,7 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, t }) {
     setVoixEnCours(true);
     try {
       const r = await editeurService.genererVoixOff(phraseVoix.trim(), voixChoisie);
-      onAjouter('audio', { src: r.url, duree: r.duree, volume: 1, fonduSortie: 0, nom: t('editeur.medias.voixOffNom') });
+      onAjouter('audio', { src: r.url, duree: r.duree, dureeSource: r.duree, volume: 1, fonduSortie: 0, nom: t('editeur.medias.voixOffNom') });
       toast.success(t('editeur.medias.voixOffOk'));
       setPhraseVoix('');
     } catch (e) {
@@ -57,7 +57,8 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, t }) {
     try {
       if (type === 'video' || estClip(url)) {
         const d = await dureeMedia(url, 'video');
-        onAjouter('video', { src: url, duree: d ? Math.round(d * 100) / 100 : 5, apercu_url: apercu || null });
+        const dur = d ? Math.round(d * 100) / 100 : 5;
+        onAjouter('video', { src: url, duree: dur, dureeSource: d ? dur : null, apercu_url: apercu || null });
       } else {
         onAjouter('image', { src: url, duree: 4 });
       }
@@ -69,7 +70,8 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, t }) {
     setOccupe(m.id);
     try {
       const d = await dureeMedia(m.url, 'audio');
-      onAjouter('audio', { src: m.url, duree: d ? Math.round(d * 100) / 100 : 30, volume: 0.5, fonduSortie: 1.5, nom: m.label });
+      const dur = d ? Math.round(d * 100) / 100 : 30;
+      onAjouter('audio', { src: m.url, duree: dur, dureeSource: d ? dur : null, volume: 0.5, fonduSortie: 1.5, nom: m.label });
     } finally { setOccupe(null); }
   };
 

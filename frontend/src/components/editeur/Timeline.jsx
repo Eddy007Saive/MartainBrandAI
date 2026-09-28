@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Volume2, VolumeX, Lock, Unlock, Type, Captions, Image as ImageIcon, Film, Music } from 'lucide-react';
+import { Volume2, VolumeX, Lock, Unlock, Type, Captions, Image as ImageIcon, Film, Music, Plus } from 'lucide-react';
 import { fmtTemps, arrondi, aimants, aimanter, dureeProjet } from './outils';
 
 /**
@@ -22,7 +22,7 @@ const COULEURS = {
   audio: 'from-[#3AFFA3]/50 to-[#10b981]/50 border-[#3AFFA3]/60',
 };
 
-export default function Timeline({ projet, tete, onTete, selection, selectionIds = [], onSelection, onBasculerSelection, onChange, onFiger, onDeposer, onZoom, zoom, t }) {
+export default function Timeline({ projet, tete, onTete, selection, selectionIds = [], onSelection, onBasculerSelection, onChange, onFiger, onDeposer, onZoom, zoom, t, onAjouterPiste }) {
   const zone = useRef(null);
   const [glisser, setGlisser] = useState(null); // {mode, id, x0, orig}
   const aBouge = useRef(false);                 // un simple clic (sans glisser) referme une sélection multiple sur l'élément cliqué
@@ -69,18 +69,29 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
       const o = glisser.orig;
       // Écart du groupe : celui de l'élément saisi (aimanté), borné pour qu'aucun élément ne passe sous 0.
       let deltaGroupe = 0;
+      let pisteCible = null;
       if (glisser.mode === 'deplacer') {
         let debut = Math.max(0, o.debut + dt);
         const finAimantee = aimanter(debut + o.duree, cibles, tol);
         debut = aimanter(debut, cibles, tol);
         if (debut === Math.max(0, o.debut + dt)) debut = Math.max(0, finAimantee - o.duree);
         deltaGroupe = Math.max(-Math.min(...Object.values(glisser.origs)), debut - o.debut);
+        // Glisser verticalement un SEUL élément vers une autre piste du même type -> superposition
+        // (deux vidéos, deux textes en même temps) : chaque piste garde son rang dans l'empilement
+        // du rendu. Pas de changement de piste pour un déplacement de groupe (ambigu à répartir).
+        if (glisser.groupe.length === 1 && zone.current) {
+          const r = zone.current.getBoundingClientRect();
+          const y = e.clientY - r.top - H_REGLE + zone.current.scrollTop;
+          const idx = Math.min(projet.pistes.length - 1, Math.max(0, Math.floor(y / H_PISTE)));
+          const cible = projet.pistes[idx];
+          if (cible && cible.type === o.type && !cible.verrou) pisteCible = cible.id;
+        }
       }
       onChange((p) => ({
         ...p,
         elements: p.elements.map((x) => {
           if (glisser.mode === 'deplacer' && glisser.groupe.includes(x.id)) {
-            return { ...x, debut: arrondi(glisser.origs[x.id] + deltaGroupe, 0.001) };
+            return { ...x, debut: arrondi(glisser.origs[x.id] + deltaGroupe, 0.001), ...(pisteCible ? { piste: pisteCible } : {}) };
           }
           if (x.id !== glisser.id) return x;
           if (glisser.mode === 'gauche') {
@@ -95,9 +106,13 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
             }
             return { ...x, ...extra, debut: arrondi(debut, 0.001), duree: arrondi(o.debut + o.duree - debut, 0.001) };
           }
-          // droite
+          // droite : ne dépasse pas la fin du média source (decalage + duree*vitesse <= dureeSource),
+          // sinon le rognage laisse voir du noir/dernière image au-delà du fichier réel.
           let fin = aimanter(o.debut + o.duree + dt, cibles, tol);
           fin = Math.max(o.debut + 0.1, fin);
+          if ((o.type === 'video' || o.type === 'audio') && o.dureeSource) {
+            fin = Math.min(fin, o.debut + (o.dureeSource - (o.decalage || 0)) / (o.vitesse || 1));
+          }
           return { ...x, duree: arrondi(fin - o.debut, 0.001) };
         }),
       }), { historique: false });
@@ -141,10 +156,18 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
         </div>
         {projet.pistes.map((p) => {
           const Icone = ICONES[p.type] || Film;
+          const dernierePisteDuType = (p.type === 'video' || p.type === 'texte')
+            && projet.pistes.filter((x) => x.type === p.type).at(-1)?.id === p.id;
           return (
             <div key={p.id} style={{ height: H_PISTE }} className="border-b border-white/[0.05] px-2.5 flex items-center gap-2 text-[12px] text-slate-300 font-inter">
               <Icone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span className="truncate flex-1">{t(`editeur.piste.${p.type}`)}</span>
+              <span className="truncate flex-1">{p.nom || t(`editeur.piste.${p.type}`)}</span>
+              {dernierePisteDuType && onAjouterPiste && (
+                <button type="button" onClick={() => onAjouterPiste(p.type)} title={t('editeur.ajouterPiste')} data-testid={`piste-ajouter-${p.type}`}
+                  className="w-6 h-6 grid place-items-center rounded text-slate-600 hover:text-[#3AFFA3] hover:bg-[#3AFFA3]/10">
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              )}
               {(p.type === 'video' || p.type === 'audio') && (
                 <button type="button" onClick={() => basculer(p.id, 'muet')} title={t('editeur.muet')} data-testid={`piste-muet-${p.type}`}
                   className={`w-6 h-6 grid place-items-center rounded ${p.muet ? 'text-red-400 bg-red-500/10' : 'text-slate-500 hover:text-white'}`}>

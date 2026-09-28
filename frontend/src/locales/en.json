@@ -1487,6 +1487,7 @@
     "echecChargement": "This edit could not be opened.",
     "petitEcran": "The editor is mouse-driven and needs a wide screen. Open it from a computer: your edit is saved and will be exactly as you left it.",
     "pistes": "Tracks",
+    "ajouterPiste": "Add a track — to overlay (two videos, two text layers...)",
     "piste": {
       "texte": "Text",
       "soustitres": "Subtitles",

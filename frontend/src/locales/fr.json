@@ -1487,6 +1487,7 @@
     "echecChargement": "Impossible d'ouvrir ce montage.",
     "petitEcran": "L'éditeur se pilote à la souris, sur un écran large. Ouvre-le depuis un ordinateur : ton montage est enregistré, tu le retrouveras tel quel.",
     "pistes": "Pistes",
+    "ajouterPiste": "Ajouter une piste — pour superposer (deux vidéos, deux textes...)",
     "piste": {
       "texte": "Textes",
       "soustitres": "Sous-titres",

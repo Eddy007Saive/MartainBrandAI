@@ -119,8 +119,8 @@ export default function EditeurVideo() {
   const deposer = useCallback(async (d, temps) => {
     if (!projet || !d?.url) return;
     let extra = { src: d.url };
-    if (d.type === 'video') { const dur = await dureeMedia(d.url, 'video'); extra = { ...extra, duree: dur ? Math.round(dur * 100) / 100 : 5, apercu_url: d.apercu || null }; }
-    else if (d.type === 'audio') { const dur = await dureeMedia(d.url, 'audio'); extra = { ...extra, duree: dur ? Math.round(dur * 100) / 100 : 30, volume: 0.5, fonduSortie: 1.5 }; }
+    if (d.type === 'video') { const dur = await dureeMedia(d.url, 'video'); const val = dur ? Math.round(dur * 100) / 100 : 5; extra = { ...extra, duree: val, dureeSource: dur ? val : null, apercu_url: d.apercu || null }; }
+    else if (d.type === 'audio') { const dur = await dureeMedia(d.url, 'audio'); const val = dur ? Math.round(dur * 100) / 100 : 30; extra = { ...extra, duree: val, dureeSource: dur ? val : null, volume: 0.5, fonduSortie: 1.5 }; }
     else extra = { ...extra, duree: 4 };
     const e = nouvelElement(projet, d.type, extra);
     setProjet((p) => placerElement(p, e, temps));
@@ -147,6 +147,19 @@ export default function EditeurVideo() {
     setSelection(nid);
     toast.success(t('editeur.prop.separerAudioOk'));
   }, [setProjet, t, setSelection]);
+  // Piste supplémentaire (vidéo ou texte) : permet de superposer deux plans ou deux textes
+  // en les posant sur des pistes différentes plutôt que bout à bout sur la même piste.
+  const ajouterPiste = useCallback((type) => {
+    const id = nouvelId();
+    setProjet((p) => {
+      const memeType = p.pistes.filter((x) => x.type === type);
+      // Insérée juste après la dernière piste du même type (pas tout en bas) : le glisser
+      // vertical pour superposer reste une rangée voisine, pas un saut par-dessus les autres types.
+      const idx = p.pistes.lastIndexOf(memeType[memeType.length - 1]) + 1;
+      const piste = { id: `p-${type}-${id}`, type, nom: `${t(`editeur.piste.${type}`)} ${memeType.length + 1}`, muet: false, verrou: false };
+      return { ...p, pistes: [...p.pistes.slice(0, idx), piste, ...p.pistes.slice(idx)] };
+    });
+  }, [setProjet, t]);
   // « Couverture ici » : l'instant de la tête de lecture devient la miniature de la vidéo exportée.
   const definirCouverture = useCallback(() => {
     const instant = Math.round(tete * 10) / 10;
@@ -338,7 +351,7 @@ export default function EditeurVideo() {
       <div className="h-[min(300px,34vh)] shrink-0 min-h-0">
         <Timeline projet={projet} tete={tete} onTete={(v) => { setLecture(false); setTete(v); }} selection={selection} onSelection={setSelection}
           onChange={setProjet} onFiger={figer} onDeposer={deposer} zoom={zoom} t={t}
-          selectionIds={selectionIds} onBasculerSelection={basculerSelection} onZoom={changerZoom} />
+          selectionIds={selectionIds} onBasculerSelection={basculerSelection} onZoom={changerZoom} onAjouterPiste={ajouterPiste} />
       </div>
 
       {/* Export */}
