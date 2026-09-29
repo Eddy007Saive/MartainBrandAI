@@ -1564,6 +1564,9 @@
       "voixOffNom": "Voz en off",
       "videosVide": "Aún no hay vídeos producidos. Tus reels y vídeos montados aparecerán aquí.",
       "musiqueVide": "No hay música en esta categoría.",
+      "audioImporter": "Importar un audio",
+      "audioImporte": "Audio añadido a la pista de audio",
+      "audioImportEchec": "Error al importar el audio.",
       "toutes": "Todas",
       "texteAide": "Elige un estilo, el texto se coloca en el cabezal. Lo editas a la derecha y lo mueves en la vista previa.",
       "raccourcis": "Espacio reproducir · S cortar · D duplicar · Supr · Ctrl+Z · Ctrl+C/X/V · Ctrl+A · Mayús+clic múltiple · Ctrl+rueda zoom"

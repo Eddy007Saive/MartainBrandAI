@@ -1,5 +1,5 @@
 """Éditeur vidéo manuel : projets de montage (CRUD), médias mobilisables, export."""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from dependencies import verify_token
 from services import editeur_service, quota_service, demarrage_service
 from models.montage import MontageCreer, MontageModifier, MontageRendre, MontageTranscrire, MontageVoixOff, MontageSilences
@@ -39,6 +39,15 @@ def medias(payload: dict = Depends(verify_token)):
     return editeur_service.medias(_tid(payload))
 
 
+@router.post("/audio-import")
+async def audio_import(file: UploadFile = File(...), payload: dict = Depends(verify_token)):
+    """Un fichier audio du client (musique perso...), prêt à poser sur la piste Audio."""
+    res = await editeur_service.importer_audio(_tid(payload), file)
+    if res.get("error"):
+        raise HTTPException(status_code=400, detail=res["error"])
+    return res
+
+
 @router.get("/montages/{montage_id}")
 def lire(montage_id: str, payload: dict = Depends(verify_token)):
     m = editeur_service.lire(_tid(payload), montage_id)
@@ -53,6 +62,15 @@ def modifier(montage_id: str, body: MontageModifier, payload: dict = Depends(ver
     if not m:
         raise HTTPException(status_code=404, detail="Montage introuvable.")
     return {"id": m["id"], "statut": m.get("statut"), "updated_at": m.get("updated_at")}
+
+
+@router.post("/montages/{montage_id}/restaurer")
+def restaurer(montage_id: str, payload: dict = Depends(verify_token)):
+    """Remet le projet dans l'état où il était au moment du dernier export."""
+    m = editeur_service.restaurer_rendu(_tid(payload), montage_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Aucune version exportée à restaurer.")
+    return m
 
 
 @router.delete("/montages/{montage_id}")

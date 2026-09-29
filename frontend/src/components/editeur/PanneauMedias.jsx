@@ -75,6 +75,25 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, 
     } finally { setOccupe(null); }
   };
 
+  // Fichier audio perso (musique, voix enregistrée...) : pas de banque persistante, on l'upload
+  // et on le pose directement sur la piste Audio — comme une voix off générée.
+  const [envoiAudio, setEnvoiAudio] = useState(false);
+  const fichierAudio = useRef(null);
+  const importerAudio = async (files) => {
+    const f = files?.[0];
+    if (!f) return;
+    setEnvoiAudio(true);
+    try {
+      const r = await editeurService.importerAudio(f);
+      const d = r.duree_s || await dureeMedia(r.url, 'audio');
+      const dur = d ? Math.round(d * 100) / 100 : 30;
+      onAjouter('audio', { src: r.url, duree: dur, dureeSource: d ? dur : null, volume: 0.7, fonduSortie: 0, nom: f.name });
+      toast.success(t('editeur.medias.audioImporte'));
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('editeur.medias.audioImportEchec'));
+    } finally { setEnvoiAudio(false); }
+  };
+
   // Glisser-déposer vers la timeline : la timeline lit ce paquet et pose l'élément à l'endroit lâché.
   const glisser = (e, donnees) => {
     e.dataTransfer.setData('application/x-postorico-media', JSON.stringify(donnees));
@@ -199,6 +218,13 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, 
 
         {onglet === 'musique' && (
           <>
+            <input ref={fichierAudio} type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" className="hidden"
+              onChange={(e) => { importerAudio(e.target.files); e.target.value = ''; }} />
+            <button type="button" onClick={() => fichierAudio.current?.click()} disabled={envoiAudio} data-testid="medias-audio-importer"
+              className="w-full h-10 mb-3 flex items-center justify-center gap-2 rounded-[10px] border border-dashed border-[#3AFFA3]/50 text-[#3AFFA3] text-[13px] font-inter font-semibold hover:bg-[#3AFFA3]/10 disabled:opacity-50">
+              {envoiAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              {envoiAudio ? t('editeur.medias.envoi') : t('editeur.medias.audioImporter')}
+            </button>
             {cats.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-3">
                 <button type="button" onClick={() => setCategorie('')} className={`text-[11px] px-2 py-1 rounded-full border ${!categorie ? 'border-[#3AFFA3] text-[#3AFFA3]' : 'border-white/10 text-slate-400'}`}>{t('editeur.medias.toutes')}</button>

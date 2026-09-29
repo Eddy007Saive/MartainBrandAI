@@ -1564,6 +1564,9 @@
       "voixOffNom": "Voix off",
       "videosVide": "Aucune vidéo produite pour l'instant. Tes reels et vidéos montées apparaîtront ici.",
       "musiqueVide": "Aucune musique dans cette catégorie.",
+      "audioImporter": "Importer un audio",
+      "audioImporte": "Audio ajouté à la piste Audio",
+      "audioImportEchec": "Échec de l'import audio.",
       "toutes": "Toutes",
       "texteAide": "Choisis un style, le texte se pose à la tête de lecture. Tu le modifies ensuite à droite, et tu le déplaces sur l'aperçu.",
       "raccourcis": "Espace lecture · S couper · D dupliquer · Suppr · Ctrl+Z · Ctrl+C/X/V · Ctrl+A · Maj+clic multiple · Ctrl+molette zoom"

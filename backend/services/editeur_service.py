@@ -10,8 +10,13 @@ départ d'un rendu ; le rendu lui-même est fait par render_service.
 import copy
 import re
 from datetime import datetime, timezone
+import cloudinary
+import cloudinary.uploader
 from config import supabase, logger
 from services import banque_service, music_library, quota_service, render_service
+
+AUDIO_EXT = (".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac", ".wma")
+MAX_AUDIO_MO = 25
 
 TYPES_PISTE = ("texte", "soustitres", "image", "video", "audio")
 TYPES_ELEMENT = ("texte", "soustitre", "image", "video", "audio")
@@ -263,6 +268,25 @@ def medias(telegram_id: str) -> dict:
             "categories": cats}
 
 
+async def importer_audio(telegram_id: str, fichier) -> dict:
+    """Un fichier audio du client (musique perso, voix enregistrée...), posé directement sur la
+    piste Audio — pas de banque persistante ici (contrairement aux photos/clips) : on l'upload et
+    on renvoie l'URL, le client s'en sert une fois comme pour une voix off générée."""
+    ct = (fichier.content_type or "").lower()
+    nom = (fichier.filename or "").lower()
+    if not (ct.startswith("audio/") or nom.endswith(AUDIO_EXT)):
+        return {"error": "Le fichier doit être un audio (mp3, wav, m4a...)."}
+    data = await fichier.read()
+    if len(data) > MAX_AUDIO_MO * 1024 * 1024:
+        return {"error": f"Fichier trop lourd (max {MAX_AUDIO_MO} Mo)."}
+    try:
+        up = cloudinary.uploader.upload(data, folder=f"editeur-audio/{telegram_id}", resource_type="video")
+    except Exception as e:
+        logger.error(f"editeur importer_audio: {e}")
+        return {"error": "Échec de l'import."}
+    return {"url": up["secure_url"], "duree_s": round(float(up.get("duration") or 0), 2) or None}
+
+
 # ------------------------------------------------------------------ rendu
 def rendre(telegram_id: str, montage_id: str, reseau: str = "Instagram", titre: str = None) -> dict:
     """Exporte le montage : une ligne Contenus (Reel, À valider, rendu en cours) reçoit le
@@ -310,9 +334,20 @@ def rendre(telegram_id: str, montage_id: str, reseau: str = "Instagram", titre: 
         logger.error(f"editeur rendre {montage_id}: {e!r}")
         return {"error": "Impossible de lancer le rendu, réessaie."}
     quota_service.confirm(q)
-    m = _maj(montage_id, {"statut": "rendu_en_cours", "contenu_id": contenu_id, "projet": projet})
+    # `projet_rendu` fige l'état envoyé au rendu : un filet de secours pour revenir à cette
+    # version après des modifications ultérieures (l'enregistrement automatique écrase `projet`).
+    m = _maj(montage_id, {"statut": "rendu_en_cours", "contenu_id": contenu_id, "projet": projet, "projet_rendu": projet})
     return {"montage": _resume(m), "contenu_id": contenu_id,
             "quota": {"action": "reel", "used": q.get("used"), "limit": q.get("limit")}}
+
+
+def restaurer_rendu(telegram_id: str, montage_id: str) -> dict | None:
+    """Remet le projet dans l'état où il était au moment du dernier export (réussi ou non).
+    Passe par `modifier()` pour garder la même logique de statut (retour en brouillon)."""
+    m = lire(telegram_id, montage_id)
+    if not m or not m.get("projet_rendu"):
+        return None
+    return modifier(telegram_id, montage_id, projet=m["projet_rendu"])
 
 
 # ------------------------------------------------------------------ passerelles

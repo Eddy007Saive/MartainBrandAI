@@ -1564,6 +1564,9 @@
       "voixOffNom": "Voice-over",
       "videosVide": "No video produced yet. Your reels and edited videos will show up here.",
       "musiqueVide": "No music in this category.",
+      "audioImporter": "Import an audio file",
+      "audioImporte": "Audio added to the Audio track",
+      "audioImportEchec": "Audio import failed.",
       "toutes": "All",
       "texteAide": "Pick a style, the text lands at the playhead. Edit it on the right, move it on the preview.",
       "raccourcis": "Space play · S split · D duplicate · Del · Ctrl+Z · Ctrl+C/X/V · Ctrl+A · Shift+click multi · Ctrl+wheel zoom"

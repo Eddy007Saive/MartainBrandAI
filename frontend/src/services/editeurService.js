@@ -19,6 +19,14 @@ export const editeurService = {
   genererVoixOff: (texte, voix) => api.post('/editeur/voix-off', { texte, voix }, { timeout: 60000 }).then((r) => r.data),
   // Ouvre un reel / une vidéo de Contenus dans l'éditeur -> { id, existant }
   depuisContenu: (contenuId) => api.post(`/editeur/montages/depuis-contenu/${contenuId}`).then((r) => r.data),
+  // Fichier audio du client (musique perso...) -> { url, duree_s }, prêt à poser sur la piste Audio
+  importerAudio: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post('/editeur/audio-import', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 60000 }).then((r) => r.data);
+  },
+  // Remet le projet dans l'état du dernier export -> montage complet (avec le nouveau `projet`)
+  restaurer: (id) => api.post(`/editeur/montages/${id}/restaurer`).then((r) => r.data),
 };
 
 export default editeurService;
