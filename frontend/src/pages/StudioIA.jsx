@@ -384,7 +384,7 @@ export default function StudioIA() {
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret' } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -427,7 +427,7 @@ export default function StudioIA() {
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite, source: 'brief' });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, statut: 'pret' } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret' } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -456,7 +456,7 @@ export default function StudioIA() {
     try {
       const d = await agentService.redigerPhoto(file, photoReseau, photoQualite);
       if (d.credits != null) updateUser({ credits: d.credits });
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'photo', texte: d.contenu || '', image: d.lien_visuel } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'photo', texte: d.contenu || '', texteOriginal: d.contenu || '', image: d.lien_visuel } : c)));
     } catch (e) {
       setContenus((prev) => prev.filter((c) => c.id !== cardId));
       erreurGen(e);
@@ -492,7 +492,9 @@ export default function StudioIA() {
         : await agentService.rediger(prompt, card.meta, false, card.qualite);
       if (d.credits != null) updateUser({ credits: d.credits });
       const texte = card.format === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, statut: 'pret' } : c)));
+      // Une régénération est une nouvelle proposition de l'IA, pas une retouche du client :
+      // texteOriginal repart de ce nouveau texte (même principe que carrousel() côté backend).
+      setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, texteOriginal: texte, statut: 'pret' } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -516,7 +518,7 @@ export default function StudioIA() {
         });
         return;
       }
-      const d = await agentService.enregistrer(card.texte, card.sujet, card.meta, card.format === 'story' ? 'Story' : null);
+      const d = await agentService.enregistrer(card.texte, card.sujet, card.meta, card.format === 'story' ? 'Story' : null, card.texteOriginal || null);
       // Réseaux additionnels cochés : on NE duplique PLUS tout de suite (le post n'a pas encore
       // d'image → ça obligeait à régénérer une image par copie). On duplique seulement une fois
       // qu'une image existe sur cette fiche, via le bouton ♻️ Recycler dans Contenus — la même

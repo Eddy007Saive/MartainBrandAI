@@ -642,6 +642,16 @@
       "envoyerFile": "Enviar a la cola de publicación",
       "replanifierTitle": "Encuentra automáticamente el próximo hueco libre (según tu planificación) y reprograma"
     },
+    "ressemblance": {
+      "question": "¿Este contenido suena como tú?",
+      "echelle": "1 = para nada · 5 = totalmente",
+      "passer": "Omitir"
+    },
+    "motifRefus": {
+      "titre": "¿Por qué rechazas esto?",
+      "placeholder": "Opcional: dinos qué no va bien…",
+      "confirmer": "Confirmar el rechazo"
+    },
     "retouche": {
       "titre": "Retocar",
       "style": "Estilo",

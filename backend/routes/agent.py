@@ -232,6 +232,10 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 "reseau_cible": reseau_cap, "statut": "A valider",
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
+            if action in ("post", "carrousel"):
+                # Base de comparaison pour le taux de réécriture (H2) — voir migration
+                # contenu_original.sql. Absente pour les scripts (contenu mis à None plus bas).
+                row["contenu_original"] = texte
             if date_pub:
                 row["date_publication"] = date_pub
             if fmt == "story":
@@ -250,6 +254,9 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
                 row["contenu"] = None  # le post publiable arrivera après le montage
             ins = supabase.table("contenu").insert(row).execute()
             cid = ins.data[0]["id"] if ins.data else None
+            if cid:
+                from services.contenu_service import log_evenement
+                log_evenement(cid, "genere", acteur=telegram_id, texte=row.get("contenu_original") or texte)
 
             # carrousel : rendu des images de slides
             if action == "carrousel" and ccontent and cid:
@@ -556,6 +563,9 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
                "created_at": datetime.now(timezone.utc).isoformat()}
         ins = supabase.table("contenu").insert(row).execute()
         result["contenu_id"] = ins.data[0]["id"] if ins.data else None
+        if result["contenu_id"]:
+            from services.contenu_service import log_evenement
+            log_evenement(result["contenu_id"], "genere", acteur=telegram_id, texte=result["contenu"])
     result["quota"] = {"action": "post", "used": q.get("used"), "limit": q.get("limit")}
     return result
 
@@ -612,6 +622,9 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
         row["lien_visuel"] = lien
     ins = supabase.table("contenu").insert(row).execute()
     cid = ins.data[0]["id"] if ins.data else None
+    if cid:
+        from services.contenu_service import log_evenement
+        log_evenement(cid, "genere", acteur=telegram_id, texte=texte)
     return {"contenu_id": cid, "contenu": texte, "lien_visuel": lien, "quota": {"action": "post", "used": q.get("used"), "limit": q.get("limit")}}
 
 
@@ -678,6 +691,10 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
                 row["date_publication"] = creneau
         ins = supabase.table("contenu").insert(row).execute()
         contenu_id = ins.data[0]["id"] if ins.data else None
+
+    if contenu_id:
+        from services.contenu_service import log_evenement
+        log_evenement(contenu_id, "genere", acteur=telegram_id, texte=texte)
 
     # Rendu des slides en images + PDF
     slides_images, pdf_url = [], None
@@ -767,6 +784,11 @@ def enregistrer(body: dict, payload: dict = Depends(verify_token)):
             "contenu": contenu,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
+        # Texte IA tel que généré, jamais retouché (mémoire d'évaluation, H2) : le frontend le
+        # renvoie tel qu'il l'a reçu à la génération — absent pour un post rédigé à la main.
+        contenu_original = (body.get("contenu_original") or "").strip()
+        if contenu_original:
+            row["contenu_original"] = contenu_original
         reseau = body.get("reseau")
         # Story (Instagram/Facebook uniquement) : publiée en éphémère 24h chez Zernio
         if body.get("type") == "Story":
@@ -780,7 +802,11 @@ def enregistrer(body: dict, payload: dict = Depends(verify_token)):
             if creneau:
                 row["date_publication"] = creneau
         ins = supabase.table("contenu").insert(row).execute()
-        return {"success": True, "contenu_id": ins.data[0]["id"] if ins.data else None}
+        contenu_id = ins.data[0]["id"] if ins.data else None
+        if contenu_id:
+            from services.contenu_service import log_evenement
+            log_evenement(contenu_id, "genere", acteur=telegram_id, texte=contenu_original or contenu)
+        return {"success": True, "contenu_id": contenu_id}
     except Exception as e:
         logger.error(f"Agent enregistrer error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

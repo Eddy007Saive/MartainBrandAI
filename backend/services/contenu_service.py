@@ -1,11 +1,34 @@
 import cloudinary
 import cloudinary.uploader
+import difflib
 from datetime import datetime, timezone
 from config import supabase, logger, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 from services import planning_service
 from services.user_service import _public_id_from_cloudinary_url
 
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
+
+
+def _taux_reecriture(original: str | None, final: str | None) -> float | None:
+    """0 = texte validé tel quel, proche de 1 = quasi totalement réécrit.
+    None si pas de base de comparaison (contenu_original absent — créé avant
+    la migration, ou format hors périmètre : vidéo, reel, story)."""
+    if not original or final is None:
+        return None
+    ratio = difflib.SequenceMatcher(None, original, final).ratio()
+    return round(1 - ratio, 3)
+
+
+def log_evenement(contenu_id: str, type_: str, acteur: str = None, texte: str = None) -> None:
+    """Journal du cycle de vie d'un contenu (mémoire d'évaluation) : une ligne par étape
+    (généré, modifié, validé, refusé, publié). Toujours best-effort — un souci de
+    journalisation ne doit jamais faire échouer l'action réelle qui l'entoure."""
+    try:
+        supabase.table("contenu_evenement").insert({
+            "contenu_id": contenu_id, "type": type_, "acteur": acteur, "texte": texte,
+        }).execute()
+    except Exception as e:
+        logger.warning(f"contenu_evenement {type_} {contenu_id}: {e}")
 
 
 def upload_visuel(telegram_id: str, contenu_id: str, file_bytes: bytes) -> dict | None:
@@ -81,8 +104,29 @@ async def update_contenu(contenu_id: str, telegram_id: str, update_data: dict) -
                 update_data["date_publication"] = creneau
                 logger.info(f"Auto-planif contenu {contenu_id} -> {creneau} ({'date passée' if past else 'date absente'})")
 
+        # Taux de réécriture (H2) : figé à l'instant de la validation, jamais recalculé
+        # ensuite — c'est une mesure ponctuelle, pas une valeur vivante.
+        texte_final = update_data.get("contenu", contenu_data.get("contenu"))
+        taux = _taux_reecriture(contenu_data.get("contenu_original"), texte_final)
+        if taux is not None:
+            update_data["taux_reecriture"] = taux
+
+        # Qui a validé, quand (mémoire d'évaluation) — telegram_id est déjà le bon acteur
+        # même pour un sous-compte (chaque sous-compte a son propre telegram_id).
+        update_data["valide_at"] = update_data["updated_at"]
+        update_data["valide_par"] = telegram_id
+
     result = supabase.table("contenu").update(update_data).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     response = result.data[0] if result.data else contenu_data
+
+    # Journal du cycle de vie (mémoire d'évaluation) : une édition de texte et une
+    # validation/un refus dans le même appel comptent comme deux événements distincts.
+    if update_data.get("contenu") is not None and update_data.get("contenu") != contenu_data.get("contenu"):
+        log_evenement(contenu_id, "modifie", acteur=telegram_id, texte=update_data["contenu"])
+    if update_data.get("statut") == "Valider":
+        log_evenement(contenu_id, "valide", acteur=telegram_id)
+    elif update_data.get("statut") == "Refuse":
+        log_evenement(contenu_id, "refuse", acteur=telegram_id, texte=update_data.get("motif_refus"))
 
     # Mémoire de voix : un contenu validé entre dans les exemples donnés à Claude ;
     # un texte modifié est réindexé ; un contenu repassé « À valider » en sort.

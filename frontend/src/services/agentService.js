@@ -37,8 +37,10 @@ export const agentService = {
     api.post('/agent/rediger', { sujet, reseau, save, qualite, ...(dimensions ? { dimensions } : {}) }).then((r) => r.data),
 
   // Enregistre le texte (éventuellement édité) dans les contenus
-  enregistrer: (contenu, titre, reseau, type = null) =>
-    api.post('/agent/enregistrer', { contenu, titre, reseau, type }).then((r) => r.data),
+  // `contenuOriginal` : le texte tel que reçu de l'IA, avant toute édition du client
+  // (mémoire d'évaluation, H2) — absent pour un post rédigé à la main.
+  enregistrer: (contenu, titre, reseau, type = null, contenuOriginal = null) =>
+    api.post('/agent/enregistrer', { contenu, titre, reseau, type, contenu_original: contenuOriginal }).then((r) => r.data),
 
   // Génère un script vidéo
   script: (sujet, type_video = 'Reel', qualite = 'equilibre', dimensions = null) =>

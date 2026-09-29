@@ -557,6 +557,10 @@ def handle_webhook(payload: dict) -> dict:
 
     if upd:
         supabase.table("contenu").update(upd).eq("id", cid).execute()
+        if upd.get("statut") == "Publie":
+            # Événement système (mémoire d'évaluation) : pas d'acteur humain, confirmé par Zernio.
+            from services.contenu_service import log_evenement
+            log_evenement(cid, "publie")
     if notif:
         _notify(tg, cid, reseau, event, notif[0], notif[1])
         try:

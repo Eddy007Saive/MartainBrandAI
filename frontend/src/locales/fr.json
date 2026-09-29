@@ -642,6 +642,16 @@
       "envoyerFile": "Envoyer dans la file de publication",
       "replanifierTitle": "Trouve automatiquement le prochain créneau libre (selon ta planification) et reprogramme"
     },
+    "ressemblance": {
+      "question": "Ce contenu sonne-t-il comme vous ?",
+      "echelle": "1 = pas du tout · 5 = tout à fait",
+      "passer": "Passer"
+    },
+    "motifRefus": {
+      "titre": "Pourquoi ce refus ?",
+      "placeholder": "Optionnel : dites-nous ce qui ne va pas…",
+      "confirmer": "Confirmer le refus"
+    },
     "retouche": {
       "titre": "Retoucher",
       "style": "Style",

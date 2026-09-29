@@ -642,6 +642,16 @@
       "envoyerFile": "Send to the publishing queue",
       "replanifierTitle": "Automatically finds the next free slot (based on your schedule) and reschedules"
     },
+    "ressemblance": {
+      "question": "Does this content sound like you?",
+      "echelle": "1 = not at all · 5 = totally",
+      "passer": "Skip"
+    },
+    "motifRefus": {
+      "titre": "Why reject this?",
+      "placeholder": "Optional: tell us what's off…",
+      "confirmer": "Confirm rejection"
+    },
     "retouche": {
       "titre": "Touch up",
       "style": "Style",

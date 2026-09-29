@@ -9,6 +9,8 @@ import { SocialIcon } from '../components/SocialIcon';
 import PostManuelDialog from '../components/PostManuelDialog';
 import StoryDialog from '../components/StoryDialog';
 import MiniatureDialog from '../components/MiniatureDialog';
+import PopupRessemblance from '../components/PopupRessemblance';
+import PopupMotifRefus from '../components/PopupMotifRefus';
 import {
   Dialog,
   DialogContent,
@@ -626,7 +628,7 @@ export default function ContenusPage() {
       catch (e) { /* on valide quand même avec les images existantes */ }
       finally { setCzRBusy(false); }
     }
-    handleUpdateStatut(id, 'Valider');
+    demanderValidation(id);
   };
   const [imgPrompt, setImgPrompt] = useState('');
   const [imgAvecPhoto, setImgAvecPhoto] = useState(false);
@@ -1175,7 +1177,7 @@ export default function ContenusPage() {
   // opts.skipFetch/skipToast : utilisés en boucle pour une action de groupe
   // (story en série) — un seul fetch + un seul toast récapitulatif après la
   // boucle plutôt que N refetch et N toasts redondants.
-  const handleUpdateStatut = async (id, newStatut, opts = {}) => {
+  const handleUpdateStatut = async (id, newStatut, opts = {}, extra = {}) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
       // Vidéo encore en rendu (worker) : rien à programmer tant que le média n'est pas là.
@@ -1192,7 +1194,7 @@ export default function ContenusPage() {
     }
     setActionLoading(id);
     try {
-      const data = await contenuService.update(id, { statut: newStatut });
+      const data = await contenuService.update(id, { statut: newStatut, ...extra });
 
       // Validation -> programmation automatique (push vers Late dans la foulée)
       if (newStatut === 'Valider') {
@@ -1274,10 +1276,10 @@ export default function ContenusPage() {
 
   // Actions de groupe (story en série) : boucle l'action mono-contenu sur
   // chaque écran, un seul fetch récapitulatif à la fin plutôt que N.
-  const validerSerie = async (groupe) => {
+  const validerSerie = async (groupe, extra = {}) => {
     setSerieActionLoading(groupe.serie_id);
     try {
-      for (const c of groupe.items) await handleUpdateStatut(c.id, 'Valider', { skipFetch: true, skipToast: true });
+      for (const c of groupe.items) await handleUpdateStatut(c.id, 'Valider', { skipFetch: true, skipToast: true }, extra);
       toast.success(t('contenus.toast.valideProgramme'));
       fetchContenus();
     } finally {
@@ -1285,15 +1287,43 @@ export default function ContenusPage() {
     }
   };
 
-  const refuserSerie = async (groupe) => {
+  const refuserSerie = async (groupe, extra = {}) => {
     setSerieActionLoading(groupe.serie_id);
     try {
-      for (const c of groupe.items) await handleUpdateStatut(c.id, 'Refuse', { skipFetch: true, skipToast: true });
+      for (const c of groupe.items) await handleUpdateStatut(c.id, 'Refuse', { skipFetch: true, skipToast: true }, extra);
       toast.success(t('contenus.toast.contenuRefuse'));
       fetchContenus();
     } finally {
       setSerieActionLoading(null);
     }
+  };
+
+  // Question de ressemblance (mémoire d'évaluation, H2) : ouverte avant TOUTE
+  // validation (carte, détail, série — une seule fois pour toute la série) ;
+  // motif de refus optionnel, même logique sur les 3 chemins de refus.
+  const [ressemblanceCible, setRessemblanceCible] = useState(null); // { id } | { serie: groupe } | null
+  const [refusCible, setRefusCible] = useState(null); // { id } | { serie: groupe } | null
+  const demanderValidation = (id) => setRessemblanceCible({ id });
+  const demanderValidationSerie = (groupe) => setRessemblanceCible({ serie: groupe });
+  const demanderRefus = (id) => setRefusCible({ id });
+  const demanderRefusSerie = (groupe) => setRefusCible({ serie: groupe });
+
+  const confirmerRessemblance = (note) => {
+    const cible = ressemblanceCible;
+    setRessemblanceCible(null);
+    if (!cible) return;
+    const extra = note ? { note_ressemblance: note } : {};
+    if (cible.serie) validerSerie(cible.serie, extra);
+    else handleUpdateStatut(cible.id, 'Valider', {}, extra);
+  };
+
+  const confirmerRefus = (motif) => {
+    const cible = refusCible;
+    setRefusCible(null);
+    if (!cible) return;
+    const extra = motif ? { motif_refus: motif } : {};
+    if (cible.serie) refuserSerie(cible.serie, extra);
+    else handleUpdateStatut(cible.id, 'Refuse', {}, extra);
   };
 
   // Comptes groupés (une story en série = 1, pas N) pour matcher ce que la grille affiche.
@@ -1464,8 +1494,8 @@ export default function ContenusPage() {
                     key={`serie-${contenu.serie_id}`}
                     groupe={contenu}
                     onEnlarge={(images, index) => setLightbox({ images, index: Math.max(0, index) })}
-                    onValiderSerie={validerSerie}
-                    onRefuserSerie={refuserSerie}
+                    onValiderSerie={demanderValidationSerie}
+                    onRefuserSerie={demanderRefusSerie}
                     onDeleteSerie={setDeleteContenu}
                     loading={serieActionLoading}
                   />
@@ -1479,8 +1509,8 @@ export default function ContenusPage() {
                     carrouselLoading={carrouselLoading}
                     onEdit={setEditContenu}
                     onDelete={setDeleteContenu}
-                    onValidate={(id) => handleUpdateStatut(id, 'Valider')}
-                    onRefuse={(id) => handleUpdateStatut(id, 'Refuse')}
+                    onValidate={demanderValidation}
+                    onRefuse={demanderRefus}
                     onRecycle={openRecycle}
                     onStory={declinerEnStory}
                     dejaDecline={sourcesAvecStory.has(contenu.id)}
@@ -1850,7 +1880,7 @@ export default function ContenusPage() {
                     )}
                     {selectedContenu.statut === 'A valider' && (
                       <>
-                        <Button size="sm" onClick={() => handleUpdateStatut(selectedContenu.id, 'Refuse')} disabled={actionLoading === selectedContenu.id}
+                        <Button size="sm" onClick={() => demanderRefus(selectedContenu.id)} disabled={actionLoading === selectedContenu.id}
                           className="bg-transparent border border-white/[0.12] text-slate-400 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] px-4 transition-colors"><X className="w-4 h-4 mr-1.5" />{t('contenus.actions.refuser')}</Button>
                         <Button size="sm" onClick={() => validerContenu(selectedContenu.id)} data-testid="contenu-valider-detail"
                           disabled={actionLoading === selectedContenu.id || czRBusy || ((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)}
@@ -2521,6 +2551,9 @@ export default function ContenusPage() {
       {miniatureFor && (
         <MiniatureDialog contenu={miniatureFor} onClose={() => setMiniatureFor(null)} onDone={() => fetchContenus({ silencieux: true })} />
       )}
+
+      <PopupRessemblance open={!!ressemblanceCible} onAnswer={confirmerRessemblance} />
+      <PopupMotifRefus open={!!refusCible} onConfirm={confirmerRefus} />
     </div>
   );
 }
