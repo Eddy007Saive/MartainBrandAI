@@ -1524,6 +1524,12 @@
     "pleinEcranQuitter": "Salir de pantalla completa",
     "reduirePanneau": "Contraer el panel",
     "agrandirPanneau": "Mostrar el panel",
+    "restaurer": {
+      "bouton": "Volver a la última versión exportada",
+      "confirmation": "Los cambios hechos desde la última exportación serán reemplazados por la versión que produjo este vídeo. ¿Continuar?",
+      "ok": "Versión exportada restaurada",
+      "echec": "No se pudo restaurar esta versión."
+    },
     "sauvegarde": {
       "ok": "Guardado",
       "attente": "Modificado…",
@@ -1645,7 +1651,7 @@
     "couverture": "Portada aquí",
     "couvertureActuelle": "Portada {{t}} s",
     "couvertureOk": "Portada fijada en {{t}} s: será la miniatura del vídeo",
-    "liste": {"titre": "Mis montajes", "sous": "Retoma un borrador o abre un montaje ya exportado.", "nouveau": "Nuevo montaje", "vide": "Aún no hay montajes", "videAide": "Crea un montaje vacío, o abre un vídeo de Contenidos en el editor: aparecerá aquí.", "statut": {"brouillon": "Borrador", "rendu_en_cours": "Renderizando", "rendu": "Exportado", "echec": "Error"}, "supprimerTitre": "¿Eliminar este montaje?", "supprimerDesc": "«{{titre}}» se eliminará. El vídeo ya exportado sigue en Contenidos.", "supprimerConfirm": "Eliminar", "supprime": "Montaje eliminado", "supprimerEchec": "No se pudo eliminar."},
+    "liste": {"titre": "Mis montajes", "sous": "Retoma un borrador o abre un montaje ya exportado.", "nouveau": "Nuevo montaje", "vide": "Aún no hay montajes", "videAide": "Crea un montaje vacío, o abre un vídeo de Contenidos en el editor: aparecerá aquí.", "statut": {"brouillon": "Borrador", "rendu_en_cours": "Renderizando", "rendu": "Exportado", "echec": "Error"}, "supprimerTitre": "¿Eliminar este montaje?", "supprimerDesc": "«{{titre}}» se eliminará. El vídeo ya exportado sigue en Contenidos.", "supprimerConfirm": "Eliminar", "supprime": "Montaje eliminado", "supprimerEchec": "No se pudo eliminar.", "voirSource": "Ver la publicación de origen", "sourceTitre": "Publicación de origen", "sourceType": "Contenido", "sourceVide": "No hay texto para este contenido.", "sourceEchec": "No se pudo cargar la publicación de origen."},
     "nSelection_one": "1 seleccionado",
     "nSelection_other": "{{count}} seleccionados",
     "anim": {

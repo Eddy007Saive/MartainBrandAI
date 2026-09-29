@@ -1524,6 +1524,12 @@
     "pleinEcranQuitter": "Exit full screen",
     "reduirePanneau": "Collapse panel",
     "agrandirPanneau": "Show panel",
+    "restaurer": {
+      "bouton": "Revert to the last exported version",
+      "confirmation": "Changes made since the last export will be replaced by the version that produced this video. Continue?",
+      "ok": "Exported version restored",
+      "echec": "Could not restore this version."
+    },
     "sauvegarde": {
       "ok": "Saved",
       "attente": "Edited…",
@@ -1645,7 +1651,7 @@
     "couverture": "Cover here",
     "couvertureActuelle": "Cover {{t}} s",
     "couvertureOk": "Cover set at {{t}} s: it will be the video thumbnail",
-    "liste": {"titre": "My edits", "sous": "Resume a draft or open an already exported edit.", "nouveau": "New edit", "vide": "No edits yet", "videAide": "Create an empty edit, or open a video from Content in the editor: it will show up here.", "statut": {"brouillon": "Draft", "rendu_en_cours": "Rendering", "rendu": "Exported", "echec": "Failed"}, "supprimerTitre": "Delete this edit?", "supprimerDesc": "“{{titre}}” will be deleted. The video already exported stays in Content.", "supprimerConfirm": "Delete", "supprime": "Edit deleted", "supprimerEchec": "Could not delete."},
+    "liste": {"titre": "My edits", "sous": "Resume a draft or open an already exported edit.", "nouveau": "New edit", "vide": "No edits yet", "videAide": "Create an empty edit, or open a video from Content in the editor: it will show up here.", "statut": {"brouillon": "Draft", "rendu_en_cours": "Rendering", "rendu": "Exported", "echec": "Failed"}, "supprimerTitre": "Delete this edit?", "supprimerDesc": "“{{titre}}” will be deleted. The video already exported stays in Content.", "supprimerConfirm": "Delete", "supprime": "Edit deleted", "supprimerEchec": "Could not delete.", "voirSource": "View source post", "sourceTitre": "Source post", "sourceType": "Content", "sourceVide": "No text for this content.", "sourceEchec": "Could not load the source post."},
     "nSelection_one": "1 selected",
     "nSelection_other": "{{count}} selected",
     "anim": {

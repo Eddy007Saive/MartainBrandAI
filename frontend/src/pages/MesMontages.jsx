@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Clapperboard, Plus, Trash2, Loader2, Film } from 'lucide-react';
+import { Clapperboard, Plus, Trash2, Loader2, Film, FileText } from 'lucide-react';
 import { editeurService } from '../services/editeurService';
+import { contenuService } from '../services/contenuService';
+import { SocialIcon } from '../components/SocialIcon';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 // Liste des montages du compte : reprendre un brouillon, ouvrir un montage exporté, en supprimer.
 const STATUTS = {
@@ -18,6 +21,22 @@ export default function MesMontages() {
   const navigate = useNavigate();
   const [montages, setMontages] = useState(null);
   const [erreur, setErreur] = useState(false);
+  // Popup « voir la source » : le post/reel d'origine dont ce montage a été ouvert (source_contenu_id).
+  const [sourceOuvert, setSourceOuvert] = useState(false);
+  const [source, setSource] = useState(null);
+  const [sourceChargement, setSourceChargement] = useState(false);
+
+  const voirSource = async (id) => {
+    setSourceOuvert(true); setSourceChargement(true); setSource(null);
+    try {
+      setSource(await contenuService.getById(id));
+    } catch {
+      toast.error(t('editeur.liste.sourceEchec'));
+      setSourceOuvert(false);
+    } finally {
+      setSourceChargement(false);
+    }
+  };
 
   useEffect(() => {
     editeurService.lister().then(setMontages).catch(() => { setErreur(true); setMontages([]); });
@@ -85,7 +104,11 @@ export default function MesMontages() {
                   <div className="text-[11px] text-slate-500 font-inter mt-0.5">{fmtDuree(m.duree_s || 0)} · {fmtDate(m.updated_at)}</div>
                 </div>
               </button>
-              <div className="px-3 pb-3 -mt-1 flex justify-end">
+              <div className="px-3 pb-3 -mt-1 flex justify-end gap-1">
+                {m.source_contenu_id && (
+                  <button type="button" onClick={() => voirSource(m.source_contenu_id)} data-testid={`montage-source-${m.id}`} title={t('editeur.liste.voirSource')}
+                    className="w-7 h-7 grid place-items-center rounded-md text-slate-600 hover:text-[#5B6CFF] hover:bg-[#5B6CFF]/10"><FileText className="w-3.5 h-3.5" /></button>
+                )}
                 <button type="button" onClick={() => supprimer(m)} data-testid={`montage-suppr-${m.id}`} title={t('editeur.supprimer')}
                   className="w-7 h-7 grid place-items-center rounded-md text-slate-600 hover:text-red-400 hover:bg-red-500/10"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
@@ -93,6 +116,33 @@ export default function MesMontages() {
           ))}
         </div>
       )}
+
+      <Dialog open={sourceOuvert} onOpenChange={setSourceOuvert}>
+        <DialogContent className="bg-[#0f172a] border-slate-800 max-w-lg" data-testid="montage-source-dialog">
+          <DialogHeader>
+            <DialogTitle className="font-sora text-white flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#5B6CFF]" />{t('editeur.liste.sourceTitre')}
+            </DialogTitle>
+          </DialogHeader>
+          {sourceChargement ? (
+            <div className="py-10 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-slate-500" /></div>
+          ) : source ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-[12px] text-slate-400 font-inter">
+                {source.reseau_cible && <SocialIcon network={source.reseau_cible} className="w-4 h-4" />}
+                <span>{source.type || t('editeur.liste.sourceType')}</span>
+                {source.sujet && <span className="truncate">· {source.sujet}</span>}
+              </div>
+              <div className="max-h-[50vh] overflow-y-auto rounded-lg border border-white/10 bg-[#05091a] p-4 text-[13.5px] leading-relaxed text-slate-200 font-inter whitespace-pre-wrap">
+                {source.contenu || source.script
+                  || (Array.isArray(source.reel_data?.segments) && source.reel_data.segments.length
+                    ? source.reel_data.segments.map((s) => s.texte).filter(Boolean).join('\n\n')
+                    : '') || t('editeur.liste.sourceVide')}
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

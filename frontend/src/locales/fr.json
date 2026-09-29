@@ -1524,6 +1524,12 @@
     "pleinEcranQuitter": "Quitter le plein écran",
     "reduirePanneau": "Réduire le panneau",
     "agrandirPanneau": "Afficher le panneau",
+    "restaurer": {
+      "bouton": "Revenir à la dernière version exportée",
+      "confirmation": "Les modifications faites depuis le dernier export seront remplacées par la version qui a produit cette vidéo. Continuer ?",
+      "ok": "Version exportée restaurée",
+      "echec": "Impossible de restaurer cette version."
+    },
     "sauvegarde": {
       "ok": "Enregistré",
       "attente": "Modifié…",
@@ -1645,7 +1651,7 @@
     "couverture": "Couverture ici",
     "couvertureActuelle": "Couverture {{t}} s",
     "couvertureOk": "Couverture fixée à {{t}} s : ce sera la miniature de la vidéo",
-    "liste": {"titre": "Mes montages", "sous": "Reprends un brouillon ou ouvre un montage déjà exporté.", "nouveau": "Nouveau montage", "vide": "Aucun montage pour l'instant", "videAide": "Crée un montage vide, ou ouvre une vidéo de Contenus dans l'éditeur : elle apparaîtra ici.", "statut": {"brouillon": "Brouillon", "rendu_en_cours": "Rendu en cours", "rendu": "Exporté", "echec": "Échec"}, "supprimerTitre": "Supprimer ce montage ?", "supprimerDesc": "« {{titre}} » sera supprimé. La vidéo déjà exportée reste dans Contenus.", "supprimerConfirm": "Supprimer", "supprime": "Montage supprimé", "supprimerEchec": "Suppression impossible."},
+    "liste": {"titre": "Mes montages", "sous": "Reprends un brouillon ou ouvre un montage déjà exporté.", "nouveau": "Nouveau montage", "vide": "Aucun montage pour l'instant", "videAide": "Crée un montage vide, ou ouvre une vidéo de Contenus dans l'éditeur : elle apparaîtra ici.", "statut": {"brouillon": "Brouillon", "rendu_en_cours": "Rendu en cours", "rendu": "Exporté", "echec": "Échec"}, "supprimerTitre": "Supprimer ce montage ?", "supprimerDesc": "« {{titre}} » sera supprimé. La vidéo déjà exportée reste dans Contenus.", "supprimerConfirm": "Supprimer", "supprime": "Montage supprimé", "supprimerEchec": "Suppression impossible.", "voirSource": "Voir le post source", "sourceTitre": "Post source", "sourceType": "Contenu", "sourceVide": "Aucun texte pour ce contenu.", "sourceEchec": "Impossible de charger le post source."},
     "nSelection_one": "1 sélectionné",
     "nSelection_other": "{{count}} sélectionnés",
     "anim": {
