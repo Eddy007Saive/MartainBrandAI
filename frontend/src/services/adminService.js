@@ -79,6 +79,7 @@ export const adminService = {
   getSystem: () => adminFetch('/admin/system'),
   getApiBalances: () => adminFetch('/admin/api-balances'),
   getAnalyticsProduit: () => adminFetch('/admin/analytics-produit'),
+  getVerdictH2: () => adminFetch('/admin/verdict-h2'),
   refreshAnalytics: () => adminFetch('/admin/analytics/refresh', { method: 'POST' }),
   // Analyse du site d'un client, depuis le back-office : c'est l'equipe qui
   // pose la fiche de marque, pas le client.

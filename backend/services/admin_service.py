@@ -435,6 +435,78 @@ def analytics_produit() -> dict:
     return data
 
 
+# ---------------------------------------------------------------------------
+# Vérdict H2 (mémoire d'évaluation) : ressemblance perçue (note_ressemblance,
+# 1-5, déclarée par le client à la validation) vs taux de réécriture objectif
+# (taux_reecriture, calculé). Voir _design/migrations/contenu_validation_suivi.sql,
+# taux_reecriture.sql et _design/correction-hypotheses-evaluation.html.
+# ---------------------------------------------------------------------------
+_verdict_h2_cache = {"at": None, "data": None}  # cache 10 min
+
+
+def verdict_h2() -> dict:
+    now = datetime.now(timezone.utc)
+    if _verdict_h2_cache["at"] and (now - _verdict_h2_cache["at"]).total_seconds() < 600:
+        return _verdict_h2_cache["data"]
+
+    rows = supabase.table("contenu").select(
+        "id, note_ressemblance, taux_reecriture, statut, motif_refus, valide_at, reseau_cible"
+    ).execute().data or []
+
+    valides = [r for r in rows if r.get("valide_at")]
+    notes = [r["note_ressemblance"] for r in valides if r.get("note_ressemblance") is not None]
+    taux = [r["taux_reecriture"] for r in valides if r.get("taux_reecriture") is not None]
+    refuses = [r for r in rows if r.get("statut") == "Refuse"]
+    motifs = [r["motif_refus"] for r in refuses if r.get("motif_refus")]
+
+    distribution = {str(n): 0 for n in range(1, 6)}
+    for n in notes:
+        distribution[str(n)] = distribution.get(str(n), 0) + 1
+
+    # Croisement H2 : taux de réécriture moyen PAR note de ressemblance -- une note
+    # basse avec un taux de réécriture bas révèlerait une validation "par flemme"
+    # plutôt qu'une vraie ressemblance (les deux mesures se complètent).
+    par_note = {}
+    for r in valides:
+        n, t = r.get("note_ressemblance"), r.get("taux_reecriture")
+        if n is None or t is None:
+            continue
+        par_note.setdefault(n, []).append(t)
+    croisement = [
+        {"note": n, "n": len(ts), "taux_reecriture_moyen": round(sum(ts) / len(ts), 3)}
+        for n, ts in sorted(par_note.items())
+    ]
+
+    par_reseau = {}
+    for r in valides:
+        if r.get("note_ressemblance") is None:
+            continue
+        rs = r.get("reseau_cible") or "?"
+        par_reseau.setdefault(rs, []).append(r["note_ressemblance"])
+    moyenne_par_reseau = [
+        {"reseau": rs, "n": len(ns), "moyenne_note": round(sum(ns) / len(ns), 2)}
+        for rs, ns in sorted(par_reseau.items())
+    ]
+
+    data = {
+        "n_valides": len(valides),
+        "n_note": len(notes),
+        "n_taux": len(taux),
+        "n_refuses": len(refuses),
+        "n_motifs": len(motifs),
+        "moyenne_note": round(sum(notes) / len(notes), 2) if notes else None,
+        "moyenne_taux_reecriture": round(sum(taux) / len(taux), 3) if taux else None,
+        "distribution_note": distribution,
+        "croisement_note_taux": croisement,
+        "moyenne_note_par_reseau": moyenne_par_reseau,
+        "derniers_motifs_refus": motifs[-10:],
+        "genere_a": now.isoformat(),
+    }
+    _verdict_h2_cache["at"] = now
+    _verdict_h2_cache["data"] = data
+    return data
+
+
 def broadcast_push(title: str, body: str, telegram_id: str = None) -> dict:
     """Envoie un push à un user (telegram_id) ou à tous ceux ayant un appareil enregistré."""
     from services import push_service

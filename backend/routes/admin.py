@@ -453,6 +453,16 @@ def get_analytics_produit(payload: dict = Depends(verify_admin_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/verdict-h2")
+def get_verdict_h2(payload: dict = Depends(verify_admin_token)):
+    """Vérdict H2 (mémoire d'évaluation) : note de ressemblance vs taux de réécriture."""
+    try:
+        return admin_service.verdict_h2()
+    except Exception as e:
+        logger.error(f"Verdict H2 error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/api-balances")
 def get_api_balances(payload: dict = Depends(verify_admin_token)):
     """Soldes fournisseurs IA : OpenRouter (restant exact) + Anthropic (dépense du mois)."""

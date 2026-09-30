@@ -12,6 +12,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import QuotaConfigTab from '../components/admin/QuotaConfigTab';
 import AuditsTab from '../components/admin/AuditsTab';
+import VerdictH2Tab from '../components/admin/VerdictH2Tab';
 import BillingTab from '../components/admin/BillingTab';
 import AffiliationTab from '../components/admin/AffiliationTab';
 import RemplirDepuisSite from '../components/RemplirDepuisSite';
@@ -48,6 +49,7 @@ const navGroupes = [
     enfants: [
       { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
       { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+      { id: 'verdict-h2', label: 'Vérdict H2', icon: TrendingUp },
       { id: 'activity', label: 'Activité', icon: Activity },
     ],
   },
@@ -1239,6 +1241,7 @@ export default function Admin() {
 
           {/* Offres & quotas Tab */}
           {activeTab === 'audits' && <AuditsTab />}
+          {activeTab === 'verdict-h2' && <VerdictH2Tab />}
           {activeTab === 'quotas' && <QuotaConfigTab />}
           {activeTab === 'promos' && <AdminPromos />}
           {activeTab === 'facturation' && <BillingTab />}
