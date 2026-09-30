@@ -27,6 +27,7 @@ export const TEMPLATES = [
   { id: 'pop', label: 'Pop' },
   { id: 'clean', label: 'Clean' },
   { id: 'neon', label: 'Néon' },
+  { id: 'chiffres', label: 'Chiffres clés' },
   { id: 'postorico', label: 'Postorico', exclusif: true },
   // Gabarits maison : aperçu JS comme les autres, mascotte qui change de pose.
   { id: 'rico-studio', label: 'Rico Studio', exclusif: true },
@@ -56,9 +57,9 @@ export const SLIDE_CSS = `
 const DEMO_CONTENT = {
   hook: 'Le sujet de ton carrousel',
   slides: [
-    { t: 'Idée forte 01', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'chart' },
-    { t: 'Idée forte 02', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'brain' },
-    { t: 'Idée forte 03', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'rocket' },
+    { t: 'Idée forte 01', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'chart', chiffre: '92%' },
+    { t: 'Idée forte 02', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'brain', chiffre: 'x4' },
+    { t: 'Idée forte 03', x: 'Une phrase qui appuie ton idée.', pills: ['Mot-clé', 'Mot-clé'], tip: 'Un conseil actionnable ici.', icon: 'rocket', chiffre: '' },
   ],
   cta: { t: 'Passe à l’action', x: 'Ton appel à l’action final.' },
 };
@@ -69,6 +70,7 @@ function _mapContent(d) {
   const slides = (d.slides || []).map((s) => ({
     t: s.titre || s.t || '', x: s.texte || s.x || '',
     pills: Array.isArray(s.pills) ? s.pills : [], tip: s.pro_tip || s.protip || s.tip || '', icon: s.icon || '',
+    chiffre: s.chiffre || '',
   }));
   const cta = d.cta || {};
   return {
@@ -96,6 +98,15 @@ const fitFs = (text, base) => {
   return Math.round(base * 0.52);
 };
 const dots = (n, i, on, off) => `<div class="cz-dots">${Array.from({ length: n }).map((_, k) => `<i class="${k === i ? 'on' : ''}" style="background:${k === i ? on : off}"></i>`).join('')}<span class="cz-cnt" style="color:${off};margin-left:6px">${i + 1}/${n}</span></div>`;
+// Taille du chiffre géant (famille "chiffres") selon sa longueur -> "92%" reste énorme,
+// "3 000€/mois" rétrécit pour ne jamais déborder du cadre de l'aperçu.
+const chiffreFs = (text) => {
+  const n = (text || '').length;
+  if (n <= 4) return 44;
+  if (n <= 7) return 34;
+  if (n <= 10) return 26;
+  return 20;
+};
 const pills = (arr, bg, col, out) => arr.map((x) => `<span class="cz-pill" style="background:${bg};color:${col};${out || ''}">${x}</span>`).join('');
 
 function refFamily(P, A, { bg, bg2, ink, mut, line, accentText, pillOutline }, ctx) {
@@ -198,6 +209,24 @@ function _renderRaw(tplId, colors) {
     return o;
   }
 
+  if (tplId === 'chiffres') {
+    // Miroir de _tpl_chiffres (carrousel_service.py) : un chiffre énorme par slide, pas de
+    // bandeau pills/pro-tip. Composition volontairement différente de refFamily.
+    const out = [];
+    const footD = `<div class="cz-foot" style="color:#fff">${av(A, Aink)}<div>${nom}</div></div>`;
+    out.push(`<div class="cz-slide" style="background:${NEAR};color:#fff"><span class="cz-tag" style="background:transparent;color:${accD};padding:0">Chiffres clés</span><div class="cz-grow" style="display:flex;align-items:center"><div style="font-family:Sora,sans-serif;font-weight:800;font-size:${fitFs(CONTENT.hook, 20)}px;line-height:1.05">${CONTENT.hook}</div></div><div class="cz-bar">${footD}<span class="cz-cnt" style="color:${accD}">Swipe →</span></div></div>`);
+    CONTENT.slides.forEach((s, i) => {
+      const dk = i % 2 === 0;
+      const bg = dk ? NEAR : CREAM, ink = dk ? '#fff' : '#14201b', acc = dk ? accD : accL;
+      const chiffre = (s.chiffre || '').trim() || `0${i + 1}`;
+      const chiffreStyle = s.chiffre ? `color:${acc}` : `color:${ink};opacity:.18`;
+      out.push(`<div class="cz-slide" style="background:${bg};color:${ink}"><span class="cz-tag" style="background:transparent;color:${ink};opacity:.68;padding:0">${s.t || `Étape 0${i + 1}`}</span><div style="font-family:Sora,sans-serif;font-weight:800;font-size:${chiffreFs(chiffre)}px;line-height:.9;letter-spacing:-1.5px;margin-top:6px;overflow-wrap:anywhere;${chiffreStyle}">${chiffre}</div>${s.x ? `<div style="font-size:9px;line-height:1.45;opacity:.82;margin-top:6px">${s.x}</div>` : ''}<div class="cz-grow"></div><div class="cz-bar"><div class="cz-dots">${Array.from({ length: n }).map((_, k) => `<i class="${k === i + 1 ? 'on' : ''}" style="background:${k === i + 1 ? acc : ink};opacity:${k === i + 1 ? 1 : 0.3}"></i>`).join('')}</div><span class="cz-cnt" style="color:${ink};opacity:.68">${i + 2}/${n}</span></div></div>`);
+    });
+    const footS = `<div class="cz-foot" style="color:${Sink}">${av(Sink, S)}<div>${nom}</div></div>`;
+    out.push(`<div class="cz-slide" style="background:${S};color:${Sink}"><span class="cz-tag" style="background:transparent;color:${Sink};opacity:.68;padding:0">À toi de jouer</span><div class="cz-grow" style="display:flex;flex-direction:column;justify-content:center"><div class="cz-h2" style="font-size:${fitFs(CONTENT.cta.t, 21)}px">${CONTENT.cta.t}</div>${CONTENT.cta.x ? `<div style="font-size:9px;opacity:.85;margin-top:6px">${CONTENT.cta.x}</div>` : ''}<span style="align-self:flex-start;background:${Sink};color:${S};font-family:Sora,sans-serif;font-weight:800;font-size:9px;padding:7px 12px;border-radius:6px;margin-top:10px;text-transform:uppercase">Lien en bio →</span></div><div class="cz-bar">${footS}<div></div></div></div>`);
+    return out;
+  }
+
   if (tplId === 'rico-studio' || tplId === 'rico-scene') {
     // Aperçu des gabarits maison : mêmes ingrédients que le rendu backend
     // (carrousel_service.py). Rico change de pose d'une slide à l'autre — ici
@@ -282,10 +311,28 @@ function _renderRaw(tplId, colors) {
   return out;
 }
 
+// Polices custom (fichiers de marque, pas sur Google Fonts) : servies depuis
+// public/fonts/ (mêmes fichiers que côté rendu, voir _CUSTOM_FONTS dans
+// carrousel_service.py — à garder synchronisé avec cet objet).
+export const CUSTOM_FONTS = {
+  'Circular Bold': [{ file: 'CircularBold.ttf', format: 'truetype', weight: '100 900' }],
+  'Wotfard': [{ file: 'Wotfard-Regular.woff2', format: 'woff2', weight: '100 500' }],
+  'TT Norms Pro': [
+    { file: 'TTNormsPro-Regular.otf', format: 'opentype', weight: '400' },
+    { file: 'TTNormsPro-Medium.otf', format: 'opentype', weight: '500' },
+    { file: 'TTNormsPro-Bold.otf', format: 'opentype', weight: '700' },
+    { file: 'TTNormsPro-ExtraBold.otf', format: 'opentype', weight: '800 900' },
+  ],
+};
+
 // Police d'affichage : liste proposée + application (remplace la police signature du template)
 const CZ_DISPLAY_FONTS = ['Anton', 'Fraunces', 'Sora'];
 export const CAROUSEL_FONTS = [
   { id: '', label: 'Auto (par style)' },
+  // — marque (fichiers custom)
+  { id: 'Circular Bold', label: 'Circular Bold' },
+  { id: 'TT Norms Pro', label: 'TT Norms Pro' },
+  { id: 'Wotfard', label: 'Wotfard' },
   // — impact / gras
   { id: 'Anton', label: 'Anton' },
   { id: 'Archivo Black', label: 'Archivo Black' },
@@ -299,6 +346,8 @@ export const CAROUSEL_FONTS = [
   { id: 'Montserrat', label: 'Montserrat' },
   { id: 'Raleway', label: 'Raleway' },
   { id: 'Nunito', label: 'Nunito' },
+  { id: 'Gantari', label: 'Gantari' },
+  { id: 'Geologica', label: 'Geologica' },
   // — éditoriales / serif
   { id: 'Playfair Display', label: 'Playfair' },
   { id: 'Fraunces', label: 'Fraunces' },
@@ -318,7 +367,27 @@ export const CAROUSEL_BODY_FONTS = [
   { id: 'DM Sans', label: 'DM Sans' },
   { id: 'Lora', label: 'Lora' },
   { id: 'Source Serif 4', label: 'Source Serif' },
+  { id: 'Inter', label: 'Inter' },
+  { id: 'Manrope', label: 'Manrope' },
 ];
+
+// Injecte les @font-face des polices custom (parmi `fams`) utilisées dans un aperçu
+// navigateur — pendant du _font_face_css() Python côté rendu Playwright.
+export function loadCustomFonts(fams) {
+  (fams || []).filter(Boolean).forEach((fam) => {
+    const faces = CUSTOM_FONTS[fam];
+    if (!faces) return;
+    const id = 'customfont-' + fam.replace(/\s/g, '-');
+    if (document.getElementById(id)) return;
+    const css = faces.map((f) =>
+      `@font-face{font-family:'${fam}';src:url('/fonts/${f.file}') format('${f.format}');font-weight:${f.weight};font-display:swap;}`
+    ).join('');
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = css;
+    document.head.appendChild(style);
+  });
+}
 
 function renderSlides(tplId, colors) {
   CONTENT = colors?.content ? _mapContent(colors.content) : DEMO_CONTENT;  // vrai carrousel si fourni

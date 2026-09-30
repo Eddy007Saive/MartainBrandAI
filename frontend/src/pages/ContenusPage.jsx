@@ -41,7 +41,7 @@ import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
-import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, renderSlides, SLIDE_CSS, TEMPLATES } from '../lib/carrouselPreview';
+import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, CUSTOM_FONTS, loadCustomFonts, renderSlides, SLIDE_CSS, TEMPLATES } from '../lib/carrouselPreview';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
@@ -582,9 +582,11 @@ export default function ContenusPage() {
     } : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedContenu]);
-  // Charge les Google Fonts choisies pour la retouche
+  // Charge les polices choisies pour la retouche : Google Fonts, ou @font-face
+  // pour les polices custom de marque (Circular Bold, TT Norms Pro, Wotfard…).
   useEffect(() => {
-    [czR?.font, czR?.fontBody].filter(Boolean).forEach((f) => {
+    loadCustomFonts([czR?.font, czR?.fontBody]);
+    [czR?.font, czR?.fontBody].filter(Boolean).filter((f) => !CUSTOM_FONTS[f]).forEach((f) => {
       const id = 'czfont-' + f.replace(/\s/g, '-');
       if (document.getElementById(id)) return;
       const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet';

@@ -14,7 +14,7 @@ from io import BytesIO
 from PIL import Image
 import cloudinary
 import cloudinary.uploader
-from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, supabase, logger
+from config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET, FRONTEND_URL, supabase, logger
 from services.agent_service import _charger_marque
 
 cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME, api_key=CLOUDINARY_API_KEY, api_secret=CLOUDINARY_API_SECRET)
@@ -57,7 +57,7 @@ async def _rendre(fonction, *args):
         return await asyncio.to_thread(fonction, *args)
     finally:
         _atelier.release()
-TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon",
+TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon", "chiffres",
              "postorico", "rico-studio", "rico-scene"]
 
 # Templates sur mesure : invisibles par défaut, attribués compte par compte depuis le
@@ -222,6 +222,19 @@ def _fit_fs(text, base):
     return round(base * 0.52)
 
 
+def _chiffre_fs(text, base=76):
+    """Taille du chiffre géant (famille « chiffres ») selon sa longueur -> "92%" reste énorme,
+    "3 000€/mois" rétrécit dès le premier rendu (avant même la passe d'auto-ajustement Playwright)."""
+    n = len(text or "")
+    if n <= 4:
+        return base
+    if n <= 7:
+        return round(base * .76)
+    if n <= 10:
+        return round(base * .58)
+    return round(base * .44)
+
+
 def build_html(content, p, s, a, nom, secteur, template="creme", logo=None, poses=None):
     secteur = (secteur or "").strip()
     if len(secteur) > 42:
@@ -234,6 +247,7 @@ def build_html(content, p, s, a, nom, secteur, template="creme", logo=None, pose
             return carrousel_custom.construire(row["html"], content, p, s, a, nom, secteur, logo)
     fn = {"creme": _tpl_creme, "sombre": _tpl_sombre, "alterne": _tpl_alterne,
           "editorial": _tpl_editorial, "pop": _tpl_pop, "clean": _tpl_clean, "neon": _tpl_neon,
+          "chiffres": _tpl_chiffres,
           "postorico": _tpl_postorico, "rico-studio": _tpl_rico_studio,
           "rico-scene": _tpl_rico_scene,
           "bold": _tpl_sombre, "instagram": _tpl_clean}.get(template, _tpl_creme)
@@ -459,6 +473,60 @@ def _tpl_clean(content, p, s, a, nom, secteur, logo):
     return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'
 
 
+# =============================================================================
+# Famille « chiffres clés » : un chiffre énorme par slide, pas de bandeau pills/pro-tip.
+# Composition volontairement différente de _ref (pas de recolorisation d'un même squelette) :
+# le CHIFFRE porte la slide, le titre/texte sont secondaires. `sl.get("chiffre")` vient de
+# rediger_carrousel (Claude) ; si absent (idée non chiffrable), on retombe sur "0{i+1}" —
+# discret (opacité réduite), le template reste lisible sans jamais inventer un chiffre.
+# =============================================================================
+def _tpl_chiffres(content, p, s, a, nom, secteur, logo):
+    p = p or "#003D2E"; s = s or "#0077FF"; A = a or "#3AFFA3"
+    NEAR = _near(p); CREAM = _lighten(p, .94); CLINE = _mix(p, "#ffffff", .8)
+    accL = _acc_light(A); accD = _acc_dark(A); Aink = _ink_on(A); Sink = _ink_on(s)
+    hook, slides, cta = _parts(content); n = 2 + len(slides)
+    head = '<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">'
+    css = f'''<style>*{{box-sizing:border-box;margin:0}} body{{margin:0;font-family:Inter,sans-serif}}
+  .slide{{width:{SLIDE_W}px;height:{SLIDE_H}px;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:32px 30px 26px}}
+  .kick{{font-family:Sora;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.68}}
+  .grow{{flex:1;overflow:hidden}}
+  .chiffre{{font-family:Sora;font-weight:800;font-size:76px;line-height:.86;letter-spacing:-2.5px;margin-top:10px;overflow-wrap:anywhere}}
+  h2{{font-family:Sora;font-weight:700;font-size:21px;line-height:1.12;letter-spacing:-.3px;margin-top:8px}}
+  p{{font-size:13.5px;line-height:1.5;opacity:.82;margin-top:8px}}
+  .bar{{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:0 30px 22px}}
+  .dots{{display:flex;gap:6px}} .dots i{{width:7px;height:7px;border-radius:50%;opacity:.3;background:currentColor}} .dots i.on{{opacity:1;width:22px;border-radius:5px}}
+  .foot{{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600}}
+  .av{{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-size:14px}}
+  .cta-btn{{align-self:flex-start;font-family:Sora;font-weight:800;font-size:14px;padding:13px 24px;border-radius:10px;margin-top:18px;text-transform:uppercase;letter-spacing:.3px}}
+</style>'''
+    initial = (nom or "?")[:1].upper()
+    av_accent = _av_span(logo, initial, A, Aink)
+    av_secondaire = _av_span(logo, initial, Sink, s)
+    foot_cover = f'<div class="foot">{av_accent}<div>{_esc(nom)}</div></div>'
+    out = [f'<div class="slide" style="background:{NEAR};color:#fff"><span class="kick" style="color:{accD}">Chiffres clés</span>'
+           f'<div class="grow" style="display:flex;align-items:center"><h2 style="font-size:{_fit_fs(hook, 30)}px;font-weight:800">{_esc(hook)}</h2></div>'
+           f'<div class="bar">{foot_cover}<span class="kick" style="color:{accD}">Swipe →</span></div></div>']
+    for i, sl in enumerate(slides):
+        dk = i % 2 == 0
+        bg = NEAR if dk else CREAM
+        ink = "#fff" if dk else "#14201b"
+        acc = accD if dk else accL
+        chiffre = (sl.get("chiffre") or "").strip() or f"0{i+1}"
+        chiffre_style = f"color:{acc}" if sl.get("chiffre") else f"color:{ink};opacity:.18"
+        out.append(f'<div class="slide" style="background:{bg};color:{ink}"><span class="kick">{_esc(sl.get("titre")) or f"Étape {i+1:02d}"}</span>'
+                    f'<div class="chiffre" style="font-size:{_chiffre_fs(chiffre)}px;{chiffre_style}">{_esc(chiffre)}</div>'
+                    + (f'<p>{_esc(sl.get("texte"))}</p>' if sl.get("texte") else "")
+                    + f'<div class="grow"></div><div class="bar"><div class="dots" style="color:{acc}">{_dots(n, i+1)}</div>'
+                      f'<span class="kick">{i+2}/{n}</span></div></div>')
+    foot_cta = f'<div class="foot">{av_secondaire}<div>{_esc(nom)}</div></div>'
+    out.append(f'<div class="slide" style="background:{s};color:{Sink}"><span class="kick">À toi de jouer</span>'
+               f'<div class="grow" style="display:flex;flex-direction:column;justify-content:center"><h2 style="font-size:{_fit_fs(cta["titre"], 26)}px">{_esc(cta["titre"])}</h2>'
+               + (f'<p>{_esc(cta["texte"])}</p>' if cta["texte"] else "")
+               + f'<span class="cta-btn" style="background:{Sink};color:{s}">Lien en bio →</span></div>'
+               + f'<div class="bar">{foot_cta}<div class="dots" style="color:{Sink}">{_dots(n, n-1)}</div></div></div>')
+    return f'<!DOCTYPE html><html><head><meta charset="utf-8">{head}{css}</head><body>{"".join(out)}</body></html>'
+
+
 def _tpl_neon(content, p, s, a, nom, secteur, logo):
     p = p or "#0b1c44"; A = a or "#2f7bff"
     acc = _acc_dark(A)
@@ -519,16 +587,48 @@ def _tpl_neon(content, p, s, a, nom, secteur, logo):
 # Polices d'affichage utilisées par les templates (remplacées par la police choisie)
 _DISPLAY_FONTS = ["Anton", "Fraunces", "Sora"]
 
+# Polices custom (fichiers de marque, pas sur Google Fonts) : servies depuis
+# frontend/public/fonts/ (mêmes fichiers utilisés par l'aperçu navigateur, voir
+# le useEffect équivalent dans CarrouselsPage.jsx / ContenusPage.jsx). Chaque
+# entrée peut avoir plusieurs graisses -> une seule famille CSS, comme Google Fonts.
+_CUSTOM_FONTS = {
+    "Circular Bold": [{"file": "CircularBold.ttf", "format": "truetype", "weight": "100 900"}],
+    "Wotfard": [{"file": "Wotfard-Regular.woff2", "format": "woff2", "weight": "100 500"}],
+    "TT Norms Pro": [
+        {"file": "TTNormsPro-Regular.otf", "format": "opentype", "weight": "400"},
+        {"file": "TTNormsPro-Medium.otf", "format": "opentype", "weight": "500"},
+        {"file": "TTNormsPro-Bold.otf", "format": "opentype", "weight": "700"},
+        {"file": "TTNormsPro-ExtraBold.otf", "format": "opentype", "weight": "800 900"},
+    ],
+}
+
+
+def _font_face_css(fams):
+    """@font-face pour les polices custom parmi `fams` (les Google Fonts sont ignorées ici)."""
+    blocks = []
+    for fam in fams:
+        for face in _CUSTOM_FONTS.get(fam, []):
+            url = f"{FRONTEND_URL}/fonts/{face['file']}"
+            blocks.append(
+                f"@font-face{{font-family:'{fam}';src:url('{url}') format('{face['format']}');"
+                f"font-weight:{face['weight']};font-display:swap;}}"
+            )
+    return f"<style>{''.join(blocks)}</style>" if blocks else ""
+
 
 def _apply_font(html_str, font, font_corps=None):
-    """Applique les polices choisies + charge les Google Fonts correspondantes.
+    """Applique les polices choisies + charge les polices correspondantes (Google
+    Fonts, ou @font-face pour les polices custom de marque, voir _CUSTOM_FONTS).
     `font` = police d'AFFICHAGE (titres), `font_corps` = police du TEXTE (corps,
     Inter par défaut). Valeur vide -> police d'origine du template."""
     if not font and not font_corps:
         return html_str
     fams = [f for f in dict.fromkeys([font, font_corps]) if f]
-    q = "&".join(f"family={f.replace(' ', '+')}:wght@400;500;600;700;800;900" for f in fams)
-    html_str = f'<link href="https://fonts.googleapis.com/css2?{q}&display=swap" rel="stylesheet">' + html_str
+    google_fams = [f for f in fams if f not in _CUSTOM_FONTS]
+    if google_fams:
+        q = "&".join(f"family={f.replace(' ', '+')}:wght@400;500;600;700;800;900" for f in google_fams)
+        html_str = f'<link href="https://fonts.googleapis.com/css2?{q}&display=swap" rel="stylesheet">' + html_str
+    html_str = _font_face_css(fams) + html_str
     if font:
         for f in _DISPLAY_FONTS:
             html_str = html_str.replace(f"font-family:{f}", f"font-family:'{font}'")
@@ -563,12 +663,14 @@ def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, templa
         page.wait_for_timeout(300)  # laisse les polices se peindre
         # Auto-ajustement : réduit la taille des titres (puis du sous-texte) tant que le contenu
         # déborde de la slide -> plus de texte coupé quand l'accroche/le titre est long.
+        # .chiffre (famille "chiffres") : même logique mais sur la largeur aussi -> un chiffre
+        # avec unité ("3 000€/mois") ne déborde plus hors cadre comme un h1/h2 le ferait en hauteur.
         try:
             page.evaluate("""() => {
               document.querySelectorAll('.slide').forEach(function(sl){
-                var heads = Array.prototype.slice.call(sl.querySelectorAll('h1,h2'));
+                var heads = Array.prototype.slice.call(sl.querySelectorAll('h1,h2,.chiffre'));
                 var guard = 0;
-                while (sl.scrollHeight > sl.clientHeight + 1 && guard < 120) {
+                while ((sl.scrollHeight > sl.clientHeight + 1 || sl.scrollWidth > sl.clientWidth + 1) && guard < 120) {
                   var shrunk = false;
                   heads.forEach(function(h){
                     var c = parseFloat(getComputedStyle(h).fontSize);

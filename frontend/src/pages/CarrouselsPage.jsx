@@ -10,7 +10,7 @@ import { agentService } from '../services/agentService';
 import { DEFAULT_SCHEDULE } from '../constants/schedules';
 import { SocialIcon } from '../components/SocialIcon';
 import { ColorField } from '../components/ColorField';
-import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS, CAROUSEL_BODY_FONTS } from '../lib/carrouselPreview';
+import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, CUSTOM_FONTS, loadCustomFonts } from '../lib/carrouselPreview';
 
 const NETS = [
   { id: 'linkedin', label: 'LinkedIn', bg: '#0A66C2', noteKey: 'noteLinkedin' },
@@ -55,9 +55,11 @@ export default function CarrouselsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Charge les Google Fonts choisies (pour l'aperçu)
+  // Charge les polices choisies (pour l'aperçu) : Google Fonts, ou @font-face
+  // pour les polices custom de marque (Circular Bold, TT Norms Pro, Wotfard…).
   useEffect(() => {
-    [cz?.font, cz?.fontBody].filter(Boolean).forEach((font) => {
+    loadCustomFonts([cz?.font, cz?.fontBody]);
+    [cz?.font, cz?.fontBody].filter(Boolean).filter((f) => !CUSTOM_FONTS[f]).forEach((font) => {
       const id = 'czfont-' + font.replace(/\s/g, '-');
       if (document.getElementById(id)) return;
       const l = document.createElement('link');
