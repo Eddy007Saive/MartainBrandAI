@@ -10,7 +10,8 @@ import { agentService } from '../services/agentService';
 import { DEFAULT_SCHEDULE } from '../constants/schedules';
 import { SocialIcon } from '../components/SocialIcon';
 import { ColorField } from '../components/ColorField';
-import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, CUSTOM_FONTS, loadCustomFonts } from '../lib/carrouselPreview';
+import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, CUSTOM_FONTS, loadCustomFonts, parseFontSpec } from '../lib/carrouselPreview';
+import FontPicker from '../components/FontPicker';
 
 const NETS = [
   { id: 'linkedin', label: 'LinkedIn', bg: '#0A66C2', noteKey: 'noteLinkedin' },
@@ -59,7 +60,7 @@ export default function CarrouselsPage() {
   // pour les polices custom de marque (Circular Bold, TT Norms Pro, Wotfard…).
   useEffect(() => {
     loadCustomFonts([cz?.font, cz?.fontBody]);
-    [cz?.font, cz?.fontBody].filter(Boolean).filter((f) => !CUSTOM_FONTS[f]).forEach((font) => {
+    [cz?.font, cz?.fontBody].map((f) => parseFontSpec(f).family).filter(Boolean).filter((f) => !CUSTOM_FONTS[f]).forEach((font) => {
       const id = 'czfont-' + font.replace(/\s/g, '-');
       if (document.getElementById(id)) return;
       const l = document.createElement('link');
@@ -213,17 +214,11 @@ export default function CarrouselsPage() {
           <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 max-w-xl">
             <div>
               <label className="block text-[12px] font-medium text-slate-300 mb-1.5">{t('carrousels.policeDesTitres')}</label>
-              <select value={cz.font || ''} onChange={(e) => setColor('font', e.target.value)}
-                className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
-                {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-              </select>
+              <FontPicker value={cz.font || ''} onChange={(v) => setColor('font', v)} options={CAROUSEL_FONTS} />
             </div>
             <div>
               <label className="block text-[12px] font-medium text-slate-300 mb-1.5">{t('carrousels.policeDuTexte')}</label>
-              <select value={cz.fontBody || ''} onChange={(e) => setColor('fontBody', e.target.value)}
-                className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
-                {CAROUSEL_BODY_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-              </select>
+              <FontPicker value={cz.fontBody || ''} onChange={(v) => setColor('fontBody', v)} options={CAROUSEL_BODY_FONTS} />
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2">

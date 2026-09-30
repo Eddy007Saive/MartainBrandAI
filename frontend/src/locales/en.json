@@ -238,6 +238,8 @@
     "couleurAccent": "Accent",
     "policeDesTitres": "Headline font",
     "policeDuTexte": "Body text font",
+    "policeGras": "Bold",
+    "policeItalique": "Italic",
     "chargement": "Loading…",
     "noteLinkedin": "Published as a PDF (document)",
     "noteInstagram": "Image carousel (up to 10)",

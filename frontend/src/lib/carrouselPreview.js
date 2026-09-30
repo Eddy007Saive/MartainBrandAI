@@ -371,10 +371,29 @@ export const CAROUSEL_BODY_FONTS = [
   { id: 'Manrope', label: 'Manrope' },
 ];
 
-// Injecte les @font-face des polices custom (parmi `fams`) utilisées dans un aperçu
+// Un choix de police se sérialise en une string "Famille" ou "Famille|bi" (b =
+// gras, i = italique, forcés sur la police choisie quel que soit le poids du
+// template) — pas de nouvelle colonne/prop à faire voyager partout, la même
+// string qui portait juste la famille porte maintenant aussi le style.
+export function parseFontSpec(spec) {
+  if (!spec) return { family: '', bold: false, italic: false };
+  const [family, flags = ''] = spec.split('|');
+  return { family, bold: flags.includes('b'), italic: flags.includes('i') };
+}
+export function buildFontSpec(family, bold, italic) {
+  if (!family) return '';
+  const flags = (bold ? 'b' : '') + (italic ? 'i' : '');
+  return flags ? `${family}|${flags}` : family;
+}
+function _styleOverride(bold, italic) {
+  return (bold ? 'font-weight:700 !important;' : '') + (italic ? 'font-style:italic !important;' : '');
+}
+
+// Injecte les @font-face des polices custom (parmi `specs`) utilisées dans un aperçu
 // navigateur — pendant du _font_face_css() Python côté rendu Playwright.
-export function loadCustomFonts(fams) {
-  (fams || []).filter(Boolean).forEach((fam) => {
+export function loadCustomFonts(specs) {
+  (specs || []).filter(Boolean).forEach((spec) => {
+    const { family: fam } = parseFontSpec(spec);
     const faces = CUSTOM_FONTS[fam];
     if (!faces) return;
     const id = 'customfont-' + fam.replace(/\s/g, '-');
@@ -398,11 +417,17 @@ function renderSlides(tplId, colors) {
   if (!font && !fontBody) return slides;
   return slides.map((h) => {
     let out = h;
-    if (font) out = CZ_DISPLAY_FONTS.reduce((acc, f) => acc.split('font-family:' + f).join("font-family:'" + font + "'"), out);
+    if (font) {
+      const { family, bold, italic } = parseFontSpec(font);
+      const override = _styleOverride(bold, italic);
+      out = CZ_DISPLAY_FONTS.reduce((acc, f) => acc.split('font-family:' + f).join(`font-family:'${family}';${override}`), out);
+    }
     // Corps : on injecte la police à la racine de la slide (équivaut au remplacement
     // d'Inter côté rendu). Le style « jakarta » garde sa propre police de corps.
     if (fontBody && !out.includes('Plus Jakarta Sans')) {
-      out = out.split('class="cz-slide" style="').join(`class="cz-slide" style="font-family:'${fontBody}',sans-serif;`);
+      const { family, bold, italic } = parseFontSpec(fontBody);
+      const override = _styleOverride(bold, italic);
+      out = out.split('class="cz-slide" style="').join(`class="cz-slide" style="font-family:'${family}',sans-serif;${override}`);
     }
     return out;
   });

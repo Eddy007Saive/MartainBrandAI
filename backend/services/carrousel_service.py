@@ -616,6 +616,20 @@ def _font_face_css(fams):
     return f"<style>{''.join(blocks)}</style>" if blocks else ""
 
 
+def _parse_font_spec(spec):
+    """Décode "Famille" ou "Famille|bi" (b=gras, i=italique) -> (famille, gras, italique).
+    Même convention que parseFontSpec() côté frontend (carrouselPreview.js) : pas de
+    colonne/param dédié, la string qui portait la famille porte aussi le style."""
+    if not spec:
+        return None, False, False
+    family, _, flags = spec.partition("|")
+    return family, "b" in flags, "i" in flags
+
+
+def _style_override(bold, italic):
+    return ("font-weight:700 !important;" if bold else "") + ("font-style:italic !important;" if italic else "")
+
+
 def _apply_font(html_str, font, font_corps=None):
     """Applique les polices choisies + charge les polices correspondantes (Google
     Fonts, ou @font-face pour les polices custom de marque, voir _CUSTOM_FONTS).
@@ -623,17 +637,21 @@ def _apply_font(html_str, font, font_corps=None):
     Inter par défaut). Valeur vide -> police d'origine du template."""
     if not font and not font_corps:
         return html_str
-    fams = [f for f in dict.fromkeys([font, font_corps]) if f]
+    font_fam, font_bold, font_italic = _parse_font_spec(font)
+    corps_fam, corps_bold, corps_italic = _parse_font_spec(font_corps)
+    fams = [f for f in dict.fromkeys([font_fam, corps_fam]) if f]
     google_fams = [f for f in fams if f not in _CUSTOM_FONTS]
     if google_fams:
         q = "&".join(f"family={f.replace(' ', '+')}:wght@400;500;600;700;800;900" for f in google_fams)
         html_str = f'<link href="https://fonts.googleapis.com/css2?{q}&display=swap" rel="stylesheet">' + html_str
     html_str = _font_face_css(fams) + html_str
-    if font:
+    if font_fam:
+        override = _style_override(font_bold, font_italic)
         for f in _DISPLAY_FONTS:
-            html_str = html_str.replace(f"font-family:{f}", f"font-family:'{font}'")
-    if font_corps:
-        html_str = html_str.replace("font-family:Inter", f"font-family:'{font_corps}'")
+            html_str = html_str.replace(f"font-family:{f}", f"font-family:'{font_fam}';{override}")
+    if corps_fam:
+        override = _style_override(corps_bold, corps_italic)
+        html_str = html_str.replace("font-family:Inter", f"font-family:'{corps_fam}';{override}")
     return html_str
 
 

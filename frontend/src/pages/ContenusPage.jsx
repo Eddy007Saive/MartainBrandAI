@@ -41,7 +41,8 @@ import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
-import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, CUSTOM_FONTS, loadCustomFonts, renderSlides, SLIDE_CSS, TEMPLATES } from '../lib/carrouselPreview';
+import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, CUSTOM_FONTS, loadCustomFonts, parseFontSpec, renderSlides, SLIDE_CSS, TEMPLATES } from '../lib/carrouselPreview';
+import FontPicker from '../components/FontPicker';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
@@ -586,7 +587,7 @@ export default function ContenusPage() {
   // pour les polices custom de marque (Circular Bold, TT Norms Pro, Wotfard…).
   useEffect(() => {
     loadCustomFonts([czR?.font, czR?.fontBody]);
-    [czR?.font, czR?.fontBody].filter(Boolean).filter((f) => !CUSTOM_FONTS[f]).forEach((f) => {
+    [czR?.font, czR?.fontBody].map((f) => parseFontSpec(f).family).filter(Boolean).filter((f) => !CUSTOM_FONTS[f]).forEach((f) => {
       const id = 'czfont-' + f.replace(/\s/g, '-');
       if (document.getElementById(id)) return;
       const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet';
@@ -1766,17 +1767,11 @@ export default function ContenusPage() {
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <label className="block text-[10.5px] text-slate-500 mb-1">{t('carrousels.policeDesTitres')}</label>
-                          <select value={czR.font || ''} onChange={(e) => setCzRColor('font', e.target.value)}
-                            className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
-                            {CAROUSEL_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-                          </select>
+                          <FontPicker value={czR.font || ''} onChange={(v) => setCzRColor('font', v)} options={CAROUSEL_FONTS} />
                         </div>
                         <div>
                           <label className="block text-[10.5px] text-slate-500 mb-1">{t('carrousels.policeDuTexte')}</label>
-                          <select value={czR.fontBody || ''} onChange={(e) => setCzRColor('fontBody', e.target.value)}
-                            className="w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50">
-                            {CAROUSEL_BODY_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-                          </select>
+                          <FontPicker value={czR.fontBody || ''} onChange={(v) => setCzRColor('fontBody', v)} options={CAROUSEL_BODY_FONTS} />
                         </div>
                       </div>
                       <p className="text-[11px] text-slate-600 font-inter">{t('contenus.retouche.noteAvant')}<b className="text-slate-400">{t('contenus.retouche.noteValidation')}</b>{t('contenus.retouche.noteApres')}</p>

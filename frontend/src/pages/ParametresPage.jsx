@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../com
 import { Field } from '../components/Field';
 import { ApercuStyle, ApercuPost, IMAGE_STYLES, contraste, paletteDe } from '../components/StyleMarque';
 import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS } from '../lib/carrouselPreview';
+import FontPicker from '../components/FontPicker';
 import { track } from '../lib/analytics';
 import InvoicesList from '../components/InvoicesList';
 import { COMMON_TIMEZONES } from '../lib/tz';
@@ -1371,10 +1372,9 @@ export default function ParametresPage() {
                     <span className="text-[13px] font-semibold text-slate-100 font-inter">{lib}</span>
                     <span className="text-[11.5px] text-slate-500 font-inter truncate">{role}</span>
                   </div>
-                  <select value={user?.[name] || ''} onChange={(e) => handleChange(name, e.target.value)} data-testid={`typo-select-${name}`}
-                    className="bg-slate-950/60 border border-white/10 text-slate-200 text-[13px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#5B6CFF]/50 w-[180px] shrink-0">
-                    {fonts.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-                  </select>
+                  <div className="w-[220px] shrink-0" data-testid={`typo-select-${name}`}>
+                    <FontPicker value={user?.[name] || ''} onChange={(v) => handleChange(name, v)} options={fonts} />
+                  </div>
                 </div>
               ))}
             </div>
