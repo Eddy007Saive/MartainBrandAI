@@ -41,7 +41,7 @@ import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
-import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, CUSTOM_FONTS, loadCustomFonts, parseFontSpec, renderSlides, SLIDE_CSS, TEMPLATES } from '../lib/carrouselPreview';
+import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, parseFontSpec, renderSlides, SLIDE_CSS, TEMPLATES } from '../lib/carrouselPreview';
 import FontPicker from '../components/FontPicker';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
@@ -587,13 +587,7 @@ export default function ContenusPage() {
   // pour les polices custom de marque (Circular Bold, TT Norms Pro, Wotfard…).
   useEffect(() => {
     loadCustomFonts([czR?.font, czR?.fontBody]);
-    [czR?.font, czR?.fontBody].map((f) => parseFontSpec(f).family).filter(Boolean).filter((f) => !CUSTOM_FONTS[f]).forEach((f) => {
-      const id = 'czfont-' + f.replace(/\s/g, '-');
-      if (document.getElementById(id)) return;
-      const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet';
-      l.href = `https://fonts.googleapis.com/css2?family=${f.replace(/\s/g, '+')}:wght@400;500;600;700;800;900&display=swap`;
-      document.head.appendChild(l);
-    });
+    [czR?.font, czR?.fontBody].map((f) => parseFontSpec(f).family).filter(Boolean).forEach(loadGoogleFont);
   }, [czR?.font, czR?.fontBody]);
   const setCzRColor = (name, val) => setCzR((prev) => ({ ...prev, [name]: val }));
   const retoucherCarrousel = async () => {

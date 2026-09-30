@@ -10,7 +10,7 @@ import { agentService } from '../services/agentService';
 import { DEFAULT_SCHEDULE } from '../constants/schedules';
 import { SocialIcon } from '../components/SocialIcon';
 import { ColorField } from '../components/ColorField';
-import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, CUSTOM_FONTS, loadCustomFonts, parseFontSpec } from '../lib/carrouselPreview';
+import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, parseFontSpec } from '../lib/carrouselPreview';
 import FontPicker from '../components/FontPicker';
 
 const NETS = [
@@ -60,14 +60,7 @@ export default function CarrouselsPage() {
   // pour les polices custom de marque (Circular Bold, TT Norms Pro, Wotfard…).
   useEffect(() => {
     loadCustomFonts([cz?.font, cz?.fontBody]);
-    [cz?.font, cz?.fontBody].map((f) => parseFontSpec(f).family).filter(Boolean).filter((f) => !CUSTOM_FONTS[f]).forEach((font) => {
-      const id = 'czfont-' + font.replace(/\s/g, '-');
-      if (document.getElementById(id)) return;
-      const l = document.createElement('link');
-      l.id = id; l.rel = 'stylesheet';
-      l.href = `https://fonts.googleapis.com/css2?family=${font.replace(/\s/g, '+')}:wght@400;500;600;700;800;900&display=swap`;
-      document.head.appendChild(l);
-    });
+    [cz?.font, cz?.fontBody].map((f) => parseFontSpec(f).family).filter(Boolean).forEach(loadGoogleFont);
   }, [cz?.font, cz?.fontBody]);
 
   const colors = useMemo(() => ({

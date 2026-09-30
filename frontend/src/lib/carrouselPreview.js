@@ -408,6 +408,19 @@ export function loadCustomFonts(specs) {
   });
 }
 
+// Charge une Google Font (famille seule, jamais une police custom — voir
+// loadCustomFonts) : utilisé aussi bien pour l'aperçu carrousel que pour le
+// petit échantillon « Aa » affiché sous chaque sélecteur (FontPicker).
+export function loadGoogleFont(family) {
+  if (!family || CUSTOM_FONTS[family]) return;
+  const id = 'czfont-' + family.replace(/\s/g, '-');
+  if (document.getElementById(id)) return;
+  const l = document.createElement('link');
+  l.id = id; l.rel = 'stylesheet';
+  l.href = `https://fonts.googleapis.com/css2?family=${family.replace(/\s/g, '+')}:wght@400;500;600;700;800;900&display=swap`;
+  document.head.appendChild(l);
+}
+
 function renderSlides(tplId, colors) {
   CONTENT = colors?.content ? _mapContent(colors.content) : DEMO_CONTENT;  // vrai carrousel si fourni
   let slides;
