@@ -143,12 +143,16 @@ Depende del perímetro. El freelance conviene a una microempresa o una pyme con 
 **¿Cómo saber si un freelance es realmente competente?**
 Pide un portfolio con resultados cuantificados: tasa de interacción, crecimiento de comunidad, ejemplos de campañas. Mira sus propias cuentas. Y empieza por una misión corta o una auditoría de tu presencia actual antes de comprometerte a largo plazo.
 
+**¿Cuál es el precio de un community manager freelance en Francia?**
+Entre 250 y 500 € por día según la experiencia, o entre 800 y 3.500 € al mes en paquete, las mismas cifras que la tarifa diaria y los paquetes mensuales detallados más arriba: "precio" y "tarifa" designan aquí exactamente lo mismo.
+
 ## Para ir más lejos
 
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
 - [Optimizar tu ficha de Google My Business: los 8 puntos que realmente marcan la diferencia](/es/blog/optimizar-ficha-google-my-business)
 - [Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción](/es/blog/agencia-freelance-ia-redes-sociales-costes)
 - [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
+- [¿Qué software de gestión de redes sociales para una pequeña empresa?](/es/blog/software-gestion-redes-sociales)
 ## Fuentes
 
 - [Malt: Barómetro de tarifas, community manager](https://www.malt.fr/t/barometre-tarifs/communication/community-manager)

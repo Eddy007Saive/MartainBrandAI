@@ -196,6 +196,7 @@ Sí, y es cada vez más habitual. Las herramientas de IA pueden generar ideas de
 - [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
 - [Plan de comunicación en redes sociales para pymes: construirlo sin agencia](/es/blog/plan-comunicacion-redes-sociales-pyme)
 - [Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar](/es/blog/estrategia-contenido-redes-sociales-pymes)
+- [¿Qué software de gestión de redes sociales para una pequeña empresa?](/es/blog/software-gestion-redes-sociales)
 ## Fuentes útiles
 
 - [France Num - El calendario editorial: una herramienta estratégica para tu comunicación digital](https://www.francenum.gouv.fr/guides-et-conseils/communication-et-publicite/strategie-de-communication/le-calendrier-editorial-un)

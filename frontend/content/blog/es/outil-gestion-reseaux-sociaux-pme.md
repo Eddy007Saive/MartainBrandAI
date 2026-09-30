@@ -271,6 +271,10 @@ No, y es uno de los errores más frecuentes. Cada red tiene sus códigos: Linked
 
 Con Buffer o Swello, estás operativo en menos de 30 minutos. SocialPilot requiere una hora de aprendizaje para sacar partido al asistente de IA y al calendario. Agorapulse y Hootsuite necesitan más tiempo, sobre todo para configurar la bandeja de entrada unificada y los informes. Regla general: si necesitas una formación de 3 días, la herramienta no se adapta a tu perfil.
 
+**¿Qué diferencia hay entre un "programa administrador de redes sociales" y las herramientas comparadas aquí?**
+
+Ninguna en la práctica: "programa administrador de redes sociales", "software de gestión de redes sociales" y "herramienta de gestión de redes sociales" designan la misma categoría de producto. Las cinco herramientas comparadas en este artículo (Buffer, Swello, SocialPilot, Agorapulse, Hootsuite) responden exactamente a esa búsqueda. Para otra comparativa centrada en Buffer, Hootsuite y Metricool con precios verificados, consulta también [¿Qué software de gestión de redes sociales para una pequeña empresa?](/es/blog/software-gestion-redes-sociales)
+
 ---
 
 ## Para ir más lejos
