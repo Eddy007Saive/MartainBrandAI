@@ -478,6 +478,88 @@ def nettoyer_profond(obj):
     return obj
 
 
+def normaliser_carrousel_data(nouveau, ancien) -> dict:
+    """Slides d'un carrousel RETOUCHÉES À LA MAIN par le client (retouche avant validation) :
+    même forme que rediger_carrousel (hook, legende, slides[titre, texte, pills, pro_tip,
+    icon, chiffre], cta{titre, texte}), longueurs bornées, filet anti-Markdown, et l'icône
+    de chaque slide reprise de l'ancienne version si la nouvelle est absente ou inconnue
+    (l'icône n'est pas éditable). Un `nouveau` inexploitable renvoie `ancien` tel quel."""
+    if not isinstance(nouveau, dict) or not isinstance(ancien, dict):
+        return ancien
+    def _s(v, n):
+        return (v if isinstance(v, str) else "").strip()[:n]
+    anciennes = ancien.get("slides") or []
+    slides = []
+    for i, sl in enumerate((nouveau.get("slides") or [])[:10]):
+        if not isinstance(sl, dict):
+            continue
+        prev = anciennes[i] if i < len(anciennes) and isinstance(anciennes[i], dict) else {}
+        pills = sl.get("pills")
+        if isinstance(pills, str):
+            pills = [p for p in pills.split(",")]
+        pills = [_s(p, 40) for p in (pills or []) if _s(p, 40)][:4]
+        icon = (sl.get("icon") or "").strip().lower()
+        if icon not in ICON_HINTS:
+            icon = prev.get("icon") or ""
+        slide = {"titre": _s(sl.get("titre"), 90), "texte": _s(sl.get("texte"), 400), "pills": pills,
+                 "pro_tip": _s(sl.get("pro_tip"), 200), "icon": icon, "chiffre": _s(sl.get("chiffre"), 20)}
+        if slide["titre"] or slide["texte"]:
+            slides.append(slide)
+    if not slides:
+        return ancien
+    cta = nouveau.get("cta") if isinstance(nouveau.get("cta"), dict) else {}
+    ancien_cta = ancien.get("cta") if isinstance(ancien.get("cta"), dict) else {}
+    data = {
+        "hook": _s(nouveau.get("hook"), 140) or _s(ancien.get("hook"), 140),
+        "legende": _s(nouveau.get("legende"), 2000) or _s(ancien.get("legende"), 2000),
+        "slides": slides,
+        "cta": {"titre": _s(cta.get("titre"), 80) or _s(ancien_cta.get("titre"), 80) or "On en parle ?",
+                "texte": _s(cta.get("texte"), 200)},
+    }
+    return nettoyer_profond(data)
+
+
+_MD_GRAS = re.compile(r"\*\*(.+?)\*\*", re.S)
+_MD_GRAS_US = re.compile(r"__(.+?)__", re.S)
+_MD_ITALIQUE = re.compile(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])")
+_MD_TITRE = re.compile(r"^[ \t]*#{1,6}[ \t]+", re.M)
+_MD_PUCE = re.compile(r"^[ \t]*\*[ \t]+", re.M)
+_TIRET_PUCE = re.compile(r"^[ \t]*[—–][ \t]*", re.M)
+
+
+def nettoyer_texte_genere(txt):
+    """Filet de sécurité après génération (posts, légendes, slides, scripts) : le prompt
+    interdit le Markdown et les tirets cadratins, mais le modèle désobéit parfois (6 posts
+    sur 41 en septembre 2026 : « **gras** », tirets). Les réseaux affichent ces caractères
+    tels quels, un lecteur voit les astérisques. On retire les marqueurs (gras, italique,
+    titres #, backticks), on transforme les puces « * » / « — » en « • », puis on applique
+    _sans_tiret. Les hashtags (#mot, sans espace) sont préservés. Idempotent."""
+    if not isinstance(txt, str):
+        return txt
+    t = _MD_GRAS.sub(r"\1", txt)
+    t = _MD_GRAS_US.sub(r"\1", t)
+    t = _MD_ITALIQUE.sub(r"\1", t)
+    t = t.replace("**", "")
+    t = _MD_TITRE.sub("", t)
+    t = _MD_PUCE.sub("• ", t)
+    t = t.replace("`", "")
+    t = _TIRET_PUCE.sub("• ", t)
+    t = _sans_tiret(t)
+    lignes = [re.sub(r"[ \t]{2,}", " ", ligne).rstrip() for ligne in t.split("\n")]
+    return "\n".join(lignes).strip()
+
+
+def nettoyer_profond(obj):
+    """nettoyer_texte_genere appliqué à toutes les chaînes d'une structure (dict/list)."""
+    if isinstance(obj, str):
+        return nettoyer_texte_genere(obj)
+    if isinstance(obj, list):
+        return [nettoyer_profond(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: nettoyer_profond(v) for k, v in obj.items()}
+    return obj
+
+
     if not (u.get("secteur") or "").strip():
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)

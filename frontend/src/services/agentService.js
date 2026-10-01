@@ -87,7 +87,7 @@ export const agentService = {
   imageEditer: (imageUrl, instruction, contenu_id = null, modele = 'nano2') =>
     api.post('/agent/image/editer', { image_url: imageUrl, instruction, contenu_id, modele }, { timeout: 180000 }).then((r) => r.data),
   // Retouche les couleurs/police d'un carrousel (re-render depuis les slides stockées, texte inchangé)
-  recolorCarrousel: (contenu_id, colors, font, fontCorps, template) => api.post('/agent/carrousel/recolor', { contenu_id, colors, ...(font !== undefined ? { font } : {}), ...(fontCorps !== undefined ? { font_corps: fontCorps } : {}), ...(template ? { template } : {}) }).then((r) => r.data),
+  recolorCarrousel: (contenu_id, colors, font, fontCorps, template, carrouselData) => api.post('/agent/carrousel/recolor', { contenu_id, colors, ...(font !== undefined ? { font } : {}), ...(fontCorps !== undefined ? { font_corps: fontCorps } : {}), ...(template ? { template } : {}), ...(carrouselData ? { carrousel_data: carrouselData } : {}) }).then((r) => r.data),
   // Jauge de résultats (quotas par type + état de l'abonnement)
   usage: () => api.get('/agent/usage').then((r) => r.data),
   // Templates de carrousel proposables au compte (les sur-mesure non attribues sont exclus)

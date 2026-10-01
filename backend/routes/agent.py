@@ -1042,8 +1042,9 @@ async def generate_photo(body: dict, payload: dict = Depends(verify_token)):
 
 @router.post("/carrousel/recolor")
 async def carrousel_recolor(body: dict, payload: dict = Depends(verify_token)):
-    """Re-rend un carrousel à partir de ses slides stockées, avec de nouvelles couleurs/police.
-    Le TEXTE ne change pas (pas de re-génération IA). Gratuit."""
+    """Re-rend un carrousel à partir de ses slides stockées, avec de nouvelles couleurs/police
+    et, depuis le 2026-10-01, un texte de slides éventuellement retouché à la main
+    (`carrousel_data`). Jamais de re-génération IA. Gratuit."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
@@ -1066,8 +1067,20 @@ async def carrousel_recolor(body: dict, payload: dict = Depends(verify_token)):
     colors = body.get("colors") if isinstance(body.get("colors"), dict) else None
     font = body.get("font")
     font_corps = body.get("font_corps")
+    carrousel_data = data["carrousel_data"]
+    # Texte des slides retouché à la main (jamais régénéré par l'IA) : normalisé, enregistré,
+    # journalisé « modifié » (mémoire d'évaluation), puis rendu avec le reste de la retouche.
+    if isinstance(body.get("carrousel_data"), dict):
+        nouveau = agent_service.normaliser_carrousel_data(body["carrousel_data"], carrousel_data)
+        if nouveau != carrousel_data:
+            carrousel_data = nouveau
+            supabase.table("contenu").update({"carrousel_data": carrousel_data}) \
+                .eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+            from services.contenu_service import log_evenement
+            log_evenement(contenu_id, "modifie", acteur=telegram_id,
+                          texte="\n".join(f"{sl.get('titre', '')} — {sl.get('texte', '')}" for sl in carrousel_data["slides"]))
     try:
-        res = await carrousel_service.generer_carrousel(telegram_id, data["carrousel_data"], contenu_id, template, colors=colors, font=font, font_corps=font_corps)
+        res = await carrousel_service.generer_carrousel(telegram_id, carrousel_data, contenu_id, template, colors=colors, font=font, font_corps=font_corps)
     except Exception as e:
         logger.error(f"carrousel recolor error: {e}")
         raise HTTPException(status_code=500, detail="Échec du re-rendu du carrousel.")
@@ -1076,4 +1089,4 @@ async def carrousel_recolor(body: dict, payload: dict = Depends(verify_token)):
         supabase.table("contenu").update(
             {"slides_images": imgs, "lien_visuel": imgs[0], "carrousel_pdf": res.get("pdf")}
         ).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
-    return {"images": imgs, "pdf": res.get("pdf")}
+    return {"images": imgs, "pdf": res.get("pdf"), "carrousel_data": carrousel_data}

@@ -445,6 +445,8 @@ export default function ContenusPage() {
   const [czR, setCzR] = useState(null);     // retouche couleurs/police d'un carrousel (aperçu live)
   const [czRBusy, setCzRBusy] = useState(false);
   const [czSlide, setCzSlide] = useState(0); // slide affichée dans l'aperçu
+  const [czText, setCzText] = useState(null); // texte des slides retouché à la main (null = inchangé)
+  const [czTextOpen, setCzTextOpen] = useState(false);
   const [czBig, setCzBig] = useState(false); // aperçu live agrandi (plein écran)
   const [czTemplates, setCzTemplates] = useState({}); // template de carrousel par réseau
   // Styles proposables à ce compte (communs + sur mesure attribués), pour le choix ponctuel.
@@ -574,6 +576,8 @@ export default function ContenusPage() {
     // Retouche/aperçu live seulement AVANT validation ; une fois validé, l'image finale est figée
     const editable = selectedContenu && selectedContenu.statut === 'A valider' && selectedContenu.carrousel_data;
     setCzSlide(0);
+    setCzText(null);
+    setCzTextOpen(false);
     setCzR(editable ? {
       p: user?.carrousel_couleur_principale || user?.couleur_principale || '#003D2E',
       s: user?.carrousel_couleur_secondaire || user?.couleur_secondaire || '#0077FF',
@@ -590,14 +594,25 @@ export default function ContenusPage() {
     [czR?.font, czR?.fontBody].map((f) => parseFontSpec(f).family).filter(Boolean).forEach(loadGoogleFont);
   }, [czR?.font, czR?.fontBody]);
   const setCzRColor = (name, val) => setCzR((prev) => ({ ...prev, [name]: val }));
+  // Texte des slides retouché à la main : édité localement, envoyé avec la retouche (jamais régénéré par l'IA)
+  const czContent = () => czText || selectedContenu?.carrousel_data;
+  const czTextChanged = () => !!czText && JSON.stringify(czText) !== JSON.stringify(selectedContenu?.carrousel_data);
+  const czTextBase = () => czText || JSON.parse(JSON.stringify(selectedContenu?.carrousel_data || {}));
+  const setCzTextField = (field, val) => setCzText({ ...czTextBase(), [field]: val });
+  const setCzCtaField = (field, val) => { const b = czTextBase(); setCzText({ ...b, cta: { ...(b.cta || {}), [field]: val } }); };
+  const setCzSlideField = (i, field, val) => {
+    const b = czTextBase();
+    const slides = (b.slides || []).map((sl, j) => (j === i ? { ...sl, [field]: val } : sl));
+    setCzText({ ...b, slides });
+  };
   const retoucherCarrousel = async () => {
     if (!selectedContenu || !czR || czRBusy) return;
     setCzRBusy(true);
     try {
-      const d = await agentService.recolorCarrousel(selectedContenu.id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || '', czR.tpl);
+      const d = await agentService.recolorCarrousel(selectedContenu.id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || '', czR.tpl, czTextChanged() ? czText : undefined);
       const imgs = d.images || [];
       if (imgs.length) {
-        const patch = { slides_images: imgs, lien_visuel: imgs[0], carrousel_pdf: d.pdf };
+        const patch = { slides_images: imgs, lien_visuel: imgs[0], carrousel_pdf: d.pdf, ...(d.carrousel_data ? { carrousel_data: d.carrousel_data } : {}) };
         setContenus((prev) => prev.map((c) => (c.id === selectedContenu.id ? { ...c, ...patch } : c)));
         setSelectedContenu((prev) => (prev ? { ...prev, ...patch } : prev));
         toast.success(t('contenus.toast.carrouselRetouche'));
@@ -614,14 +629,14 @@ export default function ContenusPage() {
     return renderSlides(tpl, {
       p: czR.p, s: czR.s, a: czR.a, font: czR.font || '', fontBody: czR.fontBody || '',
       logo: user?.logo_url, nom: user?.nom || user?.username,
-      content: selectedContenu.carrousel_data,
+      content: czContent(),
     });
   };
   // Validation : rendu final des images avec la retouche, PUIS validation
   const validerContenu = async (id) => {
     if (czR && selectedContenu?.carrousel_data) {
       setCzRBusy(true);
-      try { await agentService.recolorCarrousel(id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || '', czR.tpl); }
+      try { await agentService.recolorCarrousel(id, { p: czR.p, s: czR.s, a: czR.a }, czR.font || '', czR.fontBody || '', czR.tpl, czTextChanged() ? czText : undefined); }
       catch (e) { /* on valide quand même avec les images existantes */ }
       finally { setCzRBusy(false); }
     }
@@ -1767,6 +1782,39 @@ export default function ContenusPage() {
                           <label className="block text-[10.5px] text-slate-500 mb-1">{t('carrousels.policeDuTexte')}</label>
                           <FontPicker value={czR.fontBody || ''} onChange={(v) => setCzRColor('fontBody', v)} options={CAROUSEL_BODY_FONTS} />
                         </div>
+                      </div>
+                      {/* Texte des slides : retouche à la main, jamais régénéré par l'IA (gratuit) */}
+                      <div className="pt-1">
+                        <button type="button" onClick={() => setCzTextOpen((o) => !o)} data-testid="retouche-texte-toggle"
+                          className="w-full flex items-center justify-between text-[11px] font-semibold tracking-wide uppercase text-slate-500 hover:text-slate-300 transition-colors">
+                          <span>{t('contenus.retouche.texteSlides')}{czTextChanged() ? <span className="ml-1.5 text-[#3AFFA3] normal-case tracking-normal font-medium">{t('contenus.retouche.modifie')}</span> : null}</span>
+                          <span>{czTextOpen ? '−' : '+'}</span>
+                        </button>
+                        {czTextOpen && (() => {
+                          const c = czContent() || {};
+                          const cls = 'w-full bg-slate-950/60 border border-white/10 text-slate-200 text-[12.5px] font-inter rounded-lg px-2.5 py-1.5 outline-none focus:border-[#5B6CFF]/50';
+                          return (
+                            <div className="mt-2 space-y-2.5 max-h-[46vh] overflow-y-auto pr-1">
+                              <div>
+                                <label className="block text-[10.5px] text-slate-500 font-inter mb-1">{t('contenus.retouche.accroche')}</label>
+                                <Textarea rows={2} value={c.hook || ''} onChange={(e) => setCzTextField('hook', e.target.value)} className={cls} data-testid="retouche-hook" />
+                              </div>
+                              {(c.slides || []).map((sl, i) => (
+                                <div key={i} className="rounded-lg border border-white/10 p-2 space-y-1.5">
+                                  <div className="text-[10.5px] text-slate-400 font-semibold">{t('contenus.retouche.slideN', { n: i + 1 })}</div>
+                                  <input value={sl.titre || ''} onChange={(e) => setCzSlideField(i, 'titre', e.target.value)} placeholder={t('contenus.retouche.titre')} className={cls} data-testid={`retouche-slide-titre-${i}`} />
+                                  <Textarea rows={3} value={sl.texte || ''} onChange={(e) => setCzSlideField(i, 'texte', e.target.value)} placeholder={t('contenus.retouche.texte')} className={cls} data-testid={`retouche-slide-texte-${i}`} />
+                                  <input value={Array.isArray(sl.pills) ? sl.pills.join(', ') : (sl.pills || '')} onChange={(e) => setCzSlideField(i, 'pills', e.target.value)} placeholder={t('contenus.retouche.puces')} className={cls} />
+                                  <input value={sl.pro_tip || ''} onChange={(e) => setCzSlideField(i, 'pro_tip', e.target.value)} placeholder={t('contenus.retouche.conseil')} className={cls} />
+                                </div>
+                              ))}
+                              <div className="grid grid-cols-2 gap-2">
+                                <input value={c.cta?.titre || ''} onChange={(e) => setCzCtaField('titre', e.target.value)} placeholder={t('contenus.retouche.ctaTitre')} className={cls} />
+                                <input value={c.cta?.texte || ''} onChange={(e) => setCzCtaField('texte', e.target.value)} placeholder={t('contenus.retouche.ctaTexte')} className={cls} />
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                       <p className="text-[11px] text-slate-600 font-inter">{t('contenus.retouche.noteAvant')}<b className="text-slate-400">{t('contenus.retouche.noteValidation')}</b>{t('contenus.retouche.noteApres')}</p>
                     </div>

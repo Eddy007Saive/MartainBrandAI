@@ -2,7 +2,7 @@ import socket
 
 import pytest
 
-from services import admin_service, image_service, site_service
+from services import admin_service, contenu_service, image_service, site_service
 
 
 # ------------------------------------------------------------------ noms de couleurs
@@ -171,3 +171,35 @@ def test_nettoyer_profond_carrousel():
     content = {"hook": "**Hook**", "slides": [{"titre": "# Un", "texte": "a — b", "pills": ["*x*"]}], "cta": {"titre": "ok"}}
     assert agent_service.nettoyer_profond(content) == {
         "hook": "Hook", "slides": [{"titre": "Un", "texte": "a, b", "pills": ["x"]}], "cta": {"titre": "ok"}}
+
+
+# ---------------------------------------------------------------------------
+# Retouche du texte des slides (agent_service.normaliser_carrousel_data), 2026-10-01
+# ---------------------------------------------------------------------------
+ANCIEN_CARROUSEL = {
+    "hook": "Accroche", "legende": "Légende",
+    "slides": [{"titre": "Un", "texte": "a", "pills": [], "pro_tip": "", "icon": "rocket", "chiffre": ""},
+               {"titre": "Deux", "texte": "b", "pills": ["x"], "pro_tip": "", "icon": "", "chiffre": ""}],
+    "cta": {"titre": "On en parle ?", "texte": ""},
+}
+
+
+def test_normaliser_carrousel_data_retouche_texte_et_garde_icone():
+    nouveau = {"hook": "**Nouvelle** accroche", "legende": "Légende",
+               "slides": [{"titre": "Un bis", "texte": "a — b", "pills": "p1, p2", "icon": "inconnue"},
+                          {"titre": "Deux", "texte": "b"}],
+               "cta": {"titre": "Écris-moi", "texte": "en DM"}}
+    out = agent_service.normaliser_carrousel_data(nouveau, ANCIEN_CARROUSEL)
+    assert out["hook"] == "Nouvelle accroche"
+    assert out["slides"][0] == {"titre": "Un bis", "texte": "a, b", "pills": ["p1", "p2"], "pro_tip": "", "icon": "rocket", "chiffre": ""}
+    assert out["slides"][1]["icon"] == ""
+    assert out["cta"] == {"titre": "Écris-moi", "texte": "en DM"}
+
+
+def test_normaliser_carrousel_data_borne_et_rejette_le_vide():
+    long = "x" * 500
+    out = agent_service.normaliser_carrousel_data({"slides": [{"titre": long, "texte": long, "pills": ["a"] * 9}]}, ANCIEN_CARROUSEL)
+    assert len(out["slides"][0]["titre"]) == 90 and len(out["slides"][0]["texte"]) == 400 and len(out["slides"][0]["pills"]) == 4
+    assert out["hook"] == "Accroche"  # repris de l'ancien quand absent
+    assert agent_service.normaliser_carrousel_data({"slides": []}, ANCIEN_CARROUSEL) is ANCIEN_CARROUSEL
+    assert agent_service.normaliser_carrousel_data("n'importe quoi", ANCIEN_CARROUSEL) is ANCIEN_CARROUSEL
