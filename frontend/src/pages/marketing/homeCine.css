@@ -30,6 +30,12 @@
          background:linear-gradient(to right, rgba(2,6,23,.82) 0%, rgba(2,6,23,.55) 38%, rgba(2,6,23,.12) 58%, rgba(2,6,23,0) 75%)}
 .cine .grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;
        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+/* Fond du site : l'image violette (sol lumineux) fixée derrière tout. Les vidéos
+   de fond (z-index 0, plus loin dans le DOM) la recouvrent quand elles jouent ;
+   les sections sans vidéo la laissent voir. Pseudo-élément fixe plutôt que
+   background-attachment:fixed, mal géré sur mobile. */
+.cine::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:#0A0638 url("./bg-site.jpg") center bottom/cover no-repeat}
 .cine .page{position:relative;z-index:10}
 @media (hover:none), (max-width:900px){
   .cine .bg-video{display:none}
@@ -286,18 +292,14 @@
    (puis preview (2).html pour l'empilement continu). Le rendu (opacity/transform)
    est piloté en JS à chaque frame de scroll (voir HomeCine.jsx, useEffect principal,
    bloc "POUR QUI"), pas en CSS transition — donc peu de règles ici, surtout de la mise en place. */
-.cine .pq-wrap{position:relative;height:430vh;background:#0F092D;z-index:2}
+.cine .pq-wrap{position:relative;height:430vh;z-index:2}
 .cine .pq-sticky{position:sticky;top:0;height:100vh;min-height:680px;display:flex;align-items:center;overflow:hidden;perspective:1800px;isolation:isolate}
 /* Fond violet de la marque (même teinte que le fond des rendus Rico, les cartes s'y fondent) */
 .cine .pq-sticky::before{content:"";position:absolute;inset:0;z-index:-2;
-  background:
-    radial-gradient(circle at 50% 85%,rgba(75,46,145,.35) 0%,rgba(30,20,80,.15) 35%,transparent 65%),
-    radial-gradient(circle at 80% 20%,rgba(79,243,176,.08) 0%,transparent 30%),
-    linear-gradient(135deg,#0F092D 0%,#1E1450 45%,#160C3D 100%)}
+  background:#0A0638 url("./bg-site.jpg") center bottom/cover no-repeat}
 /* Fondu du bas vers la couleur de fond de la section suivante (Accompagnement,
    #0F092D) : pas de cassure nette entre les deux sections. */
-.cine .pq-sticky::after{content:"";position:absolute;left:0;right:0;bottom:0;height:22%;z-index:-1;pointer-events:none;
-  background:linear-gradient(to bottom,rgba(15,9,45,0),#0F092D)}
+
 .cine .pq-inner{width:100%;max-width:1280px;margin:0 auto;padding:44px 34px 30px;display:grid;grid-template-columns:minmax(0,1fr) 500px;grid-template-rows:auto 1fr;column-gap:76px;row-gap:28px;align-items:center}
 .cine .pq-head{grid-column:1/-1;grid-row:1;width:min(900px,100%);margin:0 auto;text-align:center;transform:translateZ(70px)}
 .cine .pq-left{position:relative;z-index:5;grid-column:1;grid-row:2;transform-style:preserve-3d;min-width:0}
@@ -352,13 +354,10 @@
 
 /* ---- ACCOMPAGNEMENT : rail horizontal 3D (porté de frontend/assets/postorico-final-3-sections-corrige.html).
    Transforms pilotés en JS (HomeCine.jsx, bloc ACCOMPAGNEMENT). ---- */
-.cine .acc-stage{position:relative;z-index:2;height:320vh;padding:0 3vw;background:#0F092D}
+.cine .acc-stage{position:relative;z-index:2;height:320vh;padding:0 3vw}
 .cine .acc-scene{position:sticky;top:60px;height:calc(100vh - 100px);min-height:560px;border-radius:28px;overflow:hidden;isolation:isolate;
   border:1px solid rgba(244,241,250,.08);box-shadow:0 30px 100px rgba(0,0,0,.55);
-  background:
-    radial-gradient(circle at 50% 85%,rgba(75,46,145,.35) 0%,rgba(30,20,80,.15) 35%,transparent 65%),
-    radial-gradient(circle at 80% 20%,rgba(79,243,176,.08) 0%,transparent 30%),
-    linear-gradient(135deg,#0F092D 0%,#1E1450 45%,#160C3D 100%)}
+  background:rgba(10,6,56,.35);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
 .cine .acc-stars{position:absolute;inset:0;pointer-events:none;opacity:.6;
   background-image:radial-gradient(circle at 8% 19%,#4FF3B0 0 1px,transparent 2px),radial-gradient(circle at 18% 76%,#4FF3B0 0 1px,transparent 2px),
     radial-gradient(circle at 38% 31%,#F4F1FA 0 1px,transparent 2px),radial-gradient(circle at 59% 13%,#4FF3B0 0 1px,transparent 2px),
