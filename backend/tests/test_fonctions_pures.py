@@ -106,3 +106,68 @@ def test_forfait_pro_en_minuscules_avec_ses_dates():
     assert c["plan"] == "pro" and c["plan_libelle"] == "Pro"
     assert c["plan_renews_at"] == "2026-10-01" and c["plan_cancel_at"] is None
     assert c["stripe_subscription_id"] == "sub_1" and c["prix_cents"] == 25900
+
+
+# ------------------------------------------------------------------ taux de réécriture (H2)
+def test_taux_reecriture_texte_valide_tel_quel():
+    texte = "Trois acheteurs professionnels sur quatre regardent les réseaux avant d'acheter."
+    assert contenu_service._taux_reecriture(texte, texte) == 0.0
+
+
+def test_taux_reecriture_quasi_totale():
+    taux = contenu_service._taux_reecriture(
+        "Un texte généré par l'IA, assez long pour que la comparaison soit significative.",
+        "Autre chose, entièrement différente, sans aucun rapport avec la phrase de départ.",
+    )
+    assert taux > 0.7
+
+
+def test_taux_reecriture_correction_mineure():
+    taux = contenu_service._taux_reecriture(
+        "Trois acheteurs professionnels sur quatre regardent les réseaux avant d'acheter.",
+        "Trois acheteurs professionnels sur quatre regardent les réseaux sociaux avant d'acheter.",
+    )
+    assert 0 < taux < 0.15
+
+
+@pytest.mark.parametrize("original,final", [
+    (None, "un texte final"),
+    ("", "un texte final"),
+    ("un texte original", None),
+])
+def test_taux_reecriture_sans_base_de_comparaison(original, final):
+    assert contenu_service._taux_reecriture(original, final) is None
+
+
+# ---------------------------------------------------------------------------
+# Filet de sécurité anti-Markdown / anti-tirets (agent_service.nettoyer_texte_genere)
+# Un client a signalé des « ** » et des tirets cadratins dans ses posts (1er octobre 2026) :
+# 6 posts sur 41 en septembre. Le prompt les interdit, ce filet rattrape la désobéissance.
+# ---------------------------------------------------------------------------
+from services import agent_service
+
+
+@pytest.mark.parametrize("entree, attendu", [
+    ("Un **mot fort** et *un autre*.", "Un mot fort et un autre."),
+    ("__souligné__", "souligné"),
+    ("## Mon titre\nTexte #postorico #pme", "Mon titre\nTexte #postorico #pme"),
+    ("* premier\n* second\n— troisième", "• premier\n• second\n• troisième"),
+    ("Publier souvent — même imparfait – compte.", "Publier souvent, même imparfait, compte."),
+    ("Tape `yarn start`  deux  fois.", "Tape yarn start deux fois."),
+    ("2*3 = 6, un savoir-faire", "2*3 = 6, un savoir-faire"),
+])
+def test_nettoyer_texte_genere(entree, attendu):
+    assert agent_service.nettoyer_texte_genere(entree) == attendu
+
+
+def test_nettoyer_texte_genere_idempotent_et_texte_propre():
+    propre = "Trois erreurs, une solution.\nOn en parle ?\n\n#linkedin"
+    assert agent_service.nettoyer_texte_genere(propre) == propre
+    une_fois = agent_service.nettoyer_texte_genere("**a** — b")
+    assert agent_service.nettoyer_texte_genere(une_fois) == une_fois
+
+
+def test_nettoyer_profond_carrousel():
+    content = {"hook": "**Hook**", "slides": [{"titre": "# Un", "texte": "a — b", "pills": ["*x*"]}], "cta": {"titre": "ok"}}
+    assert agent_service.nettoyer_profond(content) == {
+        "hook": "Hook", "slides": [{"titre": "Un", "texte": "a, b", "pills": ["x"]}], "cta": {"titre": "ok"}}

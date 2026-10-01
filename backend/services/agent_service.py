@@ -96,6 +96,9 @@ REGLES_ANTI_IA = (
     "- Punctuation: NEVER use an em dash (—) or en dash (–), neither as separator nor as an aside. "
     "Rewrite with a comma, period, colon or parentheses. Hyphen (-) only inside a compound word. "
     "Use the target language's proper quotes (French uses « »), never curly quotes “ ”.\n"
+    "- PLAIN TEXT ONLY, never Markdown: no **bold**, no *italics*, no # headings, no backticks, no '* ' bullets. "
+    "Social networks print those characters literally (a reader sees the asterisks). For a list, one line per item, "
+    "optionally starting with a « • » or an emoji the brand actually uses.\n"
     "- Ban AI-cliché vocabulary and filler. When writing FRENCH, avoid: « au cœur de », « à l'ère de », "
     "« dans un monde où », « véritable », « incontournable », « riche »/« vibrant », « profond », "
     "« révolutionnaire », « témoigne de », « s'inscrit dans une dynamique », « en constante évolution », "
@@ -434,6 +437,47 @@ def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> d
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
+_MD_GRAS = re.compile(r"\*\*(.+?)\*\*", re.S)
+_MD_GRAS_US = re.compile(r"__(.+?)__", re.S)
+_MD_ITALIQUE = re.compile(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])")
+_MD_TITRE = re.compile(r"^[ \t]*#{1,6}[ \t]+", re.M)
+_MD_PUCE = re.compile(r"^[ \t]*\*[ \t]+", re.M)
+_TIRET_PUCE = re.compile(r"^[ \t]*[—–][ \t]*", re.M)
+
+
+def nettoyer_texte_genere(txt):
+    """Filet de sécurité après génération (posts, légendes, slides, scripts) : le prompt
+    interdit le Markdown et les tirets cadratins, mais le modèle désobéit parfois (6 posts
+    sur 41 en septembre 2026 : « **gras** », tirets). Les réseaux affichent ces caractères
+    tels quels, un lecteur voit les astérisques. On retire les marqueurs (gras, italique,
+    titres #, backticks), on transforme les puces « * » / « — » en « • », puis on applique
+    _sans_tiret. Les hashtags (#mot, sans espace) sont préservés. Idempotent."""
+    if not isinstance(txt, str):
+        return txt
+    t = _MD_GRAS.sub(r"\1", txt)
+    t = _MD_GRAS_US.sub(r"\1", t)
+    t = _MD_ITALIQUE.sub(r"\1", t)
+    t = t.replace("**", "")
+    t = _MD_TITRE.sub("", t)
+    t = _MD_PUCE.sub("• ", t)
+    t = t.replace("`", "")
+    t = _TIRET_PUCE.sub("• ", t)
+    t = _sans_tiret(t)
+    lignes = [re.sub(r"[ \t]{2,}", " ", ligne).rstrip() for ligne in t.split("\n")]
+    return "\n".join(lignes).strip()
+
+
+def nettoyer_profond(obj):
+    """nettoyer_texte_genere appliqué à toutes les chaînes d'une structure (dict/list)."""
+    if isinstance(obj, str):
+        return nettoyer_texte_genere(obj)
+    if isinstance(obj, list):
+        return [nettoyer_profond(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: nettoyer_profond(v) for k, v in obj.items()}
+    return obj
+
+
     if not (u.get("secteur") or "").strip():
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
@@ -612,7 +656,7 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
             ),
         }],
     )
-    return {"contenu": _texte(resp), "usage": _usage(resp)}
+    return {"contenu": nettoyer_texte_genere(_texte(resp)), "usage": _usage(resp)}
 
 
 def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,
@@ -648,7 +692,7 @@ def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,
             ],
         }],
     )
-    return {"contenu": _texte(resp), "usage": _usage(resp)}
+    return {"contenu": nettoyer_texte_genere(_texte(resp)), "usage": _usage(resp)}
 
 
 # ---------------------------------------------------------------------------
@@ -740,7 +784,7 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
     }
     if not content["hook"] and not slides:
         return {"error": "parse"}
-    return {"content": content, "usage": _usage(resp)}
+    return {"content": nettoyer_profond(content), "usage": _usage(resp)}
 
 
 # ---------------------------------------------------------------------------
@@ -792,7 +836,7 @@ def rediger_script(telegram_id: str, sujet: str, type_video: str = "Reel", model
             ),
         }],
     )
-    return {"script": _texte(resp), "usage": _usage(resp)}
+    return {"script": nettoyer_texte_genere(_texte(resp)), "usage": _usage(resp)}
 
 
 # ---------------------------------------------------------------------------
