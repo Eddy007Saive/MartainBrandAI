@@ -32,21 +32,21 @@ const CLD = 'https://res.cloudinary.com/dy9gp5pim/video/upload';
 // Vidéos de fond par chapitre de la page (fondu enchaîné au scroll).
 // `sel` = la section qui déclenche le clip ; un fichier manquant est ignoré (repli sur le précédent).
 const BG_CLIPS = [
-  // Aucune transformation sur le hero : « object-fit: cover » remplit deja tout
-  // l'ecran, et toute reduction rouvre des bandes sur les bords. La planche v4
-  // est cadree pour ca — la mascotte y est plus petite et decalee a droite,
-  // le tiers gauche reste libre pour l'accroche.
-  { src: '/videos/hero-bg.mp4' },  // hero : il tape au clavier
-  // Pleine largeur, comme le hero et « Pour qui ». Attention : ce clip est
-  // encore l'ANCIENNE mascotte, et il etait cadre pour etre reduit — la
-  // mascotte y prend donc plus de place que sur les plans v4. A regenerer.
-  { src: '/videos/bg-idle-wink.mp4', sel: '.cmp' },
+  // Nouvelle generation (studio violet, Rico + panneaux holographiques, deja
+  // cadree avec le tiers gauche vide) : recadrage centre, propre a chaque clip
+  // via `pos` — ne pas lui laisser l'objet-position globale de .bg-video
+  // (72% 32%), calee sur l'ancienne source 1024x448, qui pousse l'image vers
+  // le bas/le bord sur ces nouvelles compositions differentes.
+  { src: '/videos/hero-bg.mp4' },  // hero : Rico presente les formats generes (cadrage global, deja bon)
+  // `sel` pointe sur le wrapper <section> (sec-cmp/sec-aud/sec-flow), pas sur la
+  // grille de cartes a l'interieur : la grille arrive visuellement APRES le
+  // titre+texte de la section, donc un trigger cale dessus declenchait le fond
+  // en retard (on lisait deja le titre de la section suivante avec l'ancien fond).
+  { src: '/videos/bg-idle-wink.mp4', sel: '.sec-cmp', pos: 'center' },  // comparatif : Rico confiant, ailes croisees
   // Comme le hero : aucune transformation, « cover » remplit l'ecran. Le clip
   // v4 est cadre pour ca — le coq est deja a droite, le tiers gauche est vide.
-  { src: '/videos/bg-point.mp4', sel: '.aud' },  // « Pour qui » : il pointe le titre
-  // Pleine largeur comme les autres plans v4 : meme cadrage source, donc les
-  // recadrages taillees pour l'ancien clip n'ont plus lieu d'etre.
-  { src: '/videos/bg-work.mp4', sel: '.flow' },  // « Comment ca marche » : il travaille, puis boit son cafe
+  { none: true, sel: '.sec-aud' },  // « Pour qui » : section scroll 3D autonome, pas de vidéo de fond
+  { none: true, sel: '.sec-flow' },  // accompagnement : rail 3D autonome, pas de vidéo de fond
   { none: true, sel: '.testi' },                      // Témoignages : fond noir, toute l'attention sur la vidéo client
   // { src: '/videos/bg-wave.mp4', sel: '.final' },   // CTA final : il salue (à activer quand le clip sera généré)
 ];
@@ -160,6 +160,9 @@ export default function HomeCine() {
   const rootRef = useRef(null);
   const videoRef = useRef(null);
   const impactRef = useRef(null);
+  const pqWrapRef = useRef(null);
+  const pqCardRef = useRef(null);
+  const accStageRef = useRef(null);
   const [scene, setScene] = useState(0);
 
   // Utilisateur déjà connecté -> « Mon dashboard » remplace Se connecter / Commencer
@@ -303,10 +306,169 @@ export default function HomeCine() {
     };
     document.addEventListener('visibilitychange', onVis);
 
+    // ---- POUR QUI : empilement 3D scroll-scrubbé (prototype validé, voir
+    // _design/landing-redesign/pour-qui-scroll.html) — chaque carte est une
+    // fonction continue de la position de scroll (pas d'étapes qui "sautent").
+    // La dernière carte ne repart jamais une fois atteinte (gelée à d=0),
+    // sinon elle "sortirait" sans rien pour la remplacer. ----
+    let pqCleanup = () => {};
+    if (pqWrapRef.current && pqCardRef.current) {
+      const pqWrap = pqWrapRef.current;
+      const pqCard = pqCardRef.current;
+      const pqSteps = Array.from(pqWrap.querySelectorAll('.pq-step'));
+      const pqImgs = Array.from(pqCard.querySelectorAll('img'));
+      const pqDots = Array.from(pqWrap.querySelectorAll('.pq-dot'));
+      const pqCount = pqWrap.querySelector('.pq-count');
+      const pqCaption = pqWrap.querySelector('.pq-caption');
+      const n = pqSteps.length;
+      const pqClamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+      const pqCaptions = [
+        ['Système Postorico', 'Le calendrier du mois, prêt avant même que tu y penses.'],
+        ['Système Postorico', 'Écrit dans ta voix. Tu relis, tu valides en un clic.'],
+        ['Système Postorico', 'Le même résultat qu’une agence, sans la facture qui va avec.'],
+      ];
+
+      const renderPourQui = () => {
+        const r = pqWrap.getBoundingClientRect();
+        const total = Math.max(1, r.height - window.innerHeight);
+        const p = pqClamp(-r.top / total);
+        const raw = p * (n - 0.001);
+        const active = Math.min(n - 1, Math.floor(raw));
+        const local = pqClamp(raw - active);
+
+        pqSteps.forEach((step, i) => {
+          let d = i - raw;
+          if (i === n - 1) d = Math.max(d, 0); // dernière carte : jamais "sortie"
+          const y = d > 0 ? d * 300 : d * 150; // sortie plus courte que l'entrée (ne recouvre pas le titre)
+          const z = -Math.abs(d) * 180;
+          const rotateX = d * -7;
+          const scale = 1 - Math.min(0.12, Math.abs(d) * 0.055);
+          let opacity = 1 - Math.min(1, Math.abs(d) * 0.95);
+          if (Math.abs(d) > 1.15) opacity = 0;
+          if (i === active) opacity = 1;
+          if (i === active + 1) opacity = Math.max(opacity, local);
+          if (i === active - 1) opacity = Math.max(opacity, 1 - local);
+          step.style.visibility = opacity > 0.015 ? 'visible' : 'hidden';
+          step.style.opacity = opacity;
+          step.style.setProperty('--completion', `${i < active ? 100 : i === active ? local * 100 : 0}%`);
+          step.style.transform = `translate3d(0,${y}px,${z}px) rotateX(${rotateX}deg) scale(${scale})`;
+          step.classList.toggle('is-active', i === active);
+        });
+
+        pqImgs.forEach((img, i) => {
+          let d = i - raw;
+          if (i === n - 1) d = Math.max(d, 0);
+          const opacity = Math.max(0, 1 - Math.abs(d) * 1.25);
+          img.style.visibility = opacity > 0.01 ? 'visible' : 'hidden';
+          img.style.opacity = opacity;
+          img.style.transform = `translate3d(${d * 110}px,${d * -18}px,${-Math.abs(d) * 170}px) rotateY(${d * -9}deg) scale(${1 - Math.min(0.08, Math.abs(d) * 0.035)})`;
+        });
+
+        if (pqCount) pqCount.textContent = `${active + 1} / ${n}`;
+        if (pqCaption) {
+          pqCaption.querySelector('b').textContent = pqCaptions[active][0];
+          pqCaption.querySelector('p').textContent = pqCaptions[active][1];
+        }
+
+        const wave = Math.sin(local * Math.PI);
+        pqCard.style.transform = `translate3d(0,${-wave * 20}px,0) rotateX(${-2 + wave * 4}deg) rotateY(${(p - 0.5) * 5}deg) scale(${1 + wave * 0.025})`;
+
+        const head = pqWrap.querySelector('.pq-head');
+        if (head) head.style.transform = `translate3d(0,${(p - 0.5) * -14}px,70px)`;
+        const left = pqWrap.querySelector('.pq-left');
+        if (left) left.style.transform = `translate3d(0,${(p - 0.5) * 4}px,0)`;
+
+        pqDots.forEach((dot, i) => {
+          const fill = dot.querySelector('i');
+          fill.style.width = i < active ? '100%' : i === active ? `${local * 100}%` : '0%';
+        });
+      };
+
+      if (!reduced) {
+        // Lenis.on() renvoie une fonction de désinscription (pas de .off() sur
+        // l'instance elle-même) — on la garde pour le cleanup.
+        let pqUnsubscribe = null;
+        if (lenis) pqUnsubscribe = lenis.on('scroll', renderPourQui);
+        else window.addEventListener('scroll', renderPourQui, { passive: true });
+        window.addEventListener('resize', renderPourQui);
+        renderPourQui();
+
+        let pqPointerHandler = null;
+        if (matchMedia('(hover:hover)').matches) {
+          pqPointerHandler = (e) => {
+            const r = pqCard.getBoundingClientRect();
+            pqCard.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`);
+            pqCard.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`);
+          };
+          pqCard.addEventListener('pointermove', pqPointerHandler);
+        }
+        pqCleanup = () => {
+          if (pqUnsubscribe) pqUnsubscribe();
+          else window.removeEventListener('scroll', renderPourQui);
+          window.removeEventListener('resize', renderPourQui);
+          if (pqPointerHandler) pqCard.removeEventListener('pointermove', pqPointerHandler);
+        };
+      } else {
+        // reduced motion : état final statique, pas d'animation scroll-liée
+        pqSteps.forEach((step, i) => { step.style.opacity = i === 0 ? 1 : 0; step.style.visibility = i === 0 ? 'visible' : 'hidden'; });
+        pqImgs.forEach((img, i) => { img.style.opacity = i === 0 ? 1 : 0; img.style.visibility = i === 0 ? 'visible' : 'hidden'; });
+      }
+    }
+
+    // ---- ACCOMPAGNEMENT : rail horizontal 3D piloté par le scroll. La scène
+    // reste épinglée (sticky) et le scroll vertical fait glisser la piste vers
+    // la gauche ; chaque carte pivote (rotateY), recule (Z) et rétrécit selon
+    // sa distance au centre du rail. Desktop seulement : sous 900px, la piste
+    // défile en scroll horizontal natif. ----
+    let accCleanup = () => {};
+    if (accStageRef.current) {
+      const stage = accStageRef.current;
+      const rail = stage.querySelector('.acc-rail');
+      const track = stage.querySelector('.acc-track');
+      const cards = Array.from(stage.querySelectorAll('.acc-card'));
+      const metric = stage.querySelector('.acc-metric-number');
+      const clampA = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+
+      const renderAcc = () => {
+        if (window.innerWidth <= 900 || reduced) {
+          track.style.transform = '';
+          cards.forEach((c) => { c.style.transform = ''; c.style.opacity = ''; });
+          return;
+        }
+        const r = stage.getBoundingClientRect();
+        const p = clampA(-r.top / Math.max(1, r.height - window.innerHeight));
+        const usable = Math.max(0, track.scrollWidth - rail.clientWidth + 90);
+        const x = p * usable;
+        track.style.transform = `translate3d(${-x}px,0,0)`;
+        const railCenter = rail.clientWidth / 2;
+        cards.forEach((card, i) => {
+          const center = i * (card.offsetWidth + 22) - x + 28 + card.offsetWidth / 2;
+          const d = (center - railCenter) / Math.max(rail.clientWidth * 0.65, 1);
+          card.style.transform = `translateZ(${-Math.min(1, Math.abs(d)) * 150}px) rotateY(${clampA(d, -1.3, 1.3) * -13}deg) scale(${1 - Math.min(0.08, Math.abs(d) * 0.055)})`;
+          card.style.opacity = String(1 - Math.min(0.28, Math.abs(d) * 0.12));
+          card.querySelector('.acc-progress i').style.width = `${clampA(1 - Math.abs(d)) * 100}%`;
+        });
+        if (metric) metric.textContent = String(Math.min(cards.length, Math.floor(p * cards.length) + 1)).padStart(2, '0');
+      };
+
+      let accUnsub = null;
+      if (lenis) accUnsub = lenis.on('scroll', renderAcc);
+      else window.addEventListener('scroll', renderAcc, { passive: true });
+      window.addEventListener('resize', renderAcc);
+      renderAcc();
+      accCleanup = () => {
+        if (accUnsub) accUnsub();
+        else window.removeEventListener('scroll', renderAcc);
+        window.removeEventListener('resize', renderAcc);
+      };
+    }
+
     return () => {
       st1.kill(); clipTriggers.forEach((tr) => tr.kill());
       ScrollTrigger.getAll().forEach((tr) => tr.kill());
       gsap.ticker.remove(raf);
+      pqCleanup();
+      accCleanup();
       if (lenis) lenis.destroy();
       document.removeEventListener('visibilitychange', onVis);
     };
@@ -322,7 +484,7 @@ export default function HomeCine() {
       {!isTouch && BG_CLIPS.filter((c) => c.src).map((c, i) => (
         <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
           muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
-          style={{ transition: 'opacity 700ms ease', ...(c.transform ? { transform: c.transform } : {}) }} />
+          style={{ transition: 'opacity 700ms ease', ...(c.pos ? { objectPosition: c.pos } : {}), ...(c.transform ? { transform: c.transform } : {}) }} />
       ))}
       <div className="bg-tint" />
       <div className="grain" />
@@ -481,7 +643,7 @@ export default function HomeCine() {
         )}
 
         {/* PLUTÔT QUE… */}
-        <section className="sec"><div className="wrap">
+        <section className="sec sec-cmp"><div className="wrap">
           <div className="shead">
             <div className="eyebrow">{t('lp.cmp.eyebrow')}</div>
             <h2>{t('lp.cmp.title')}</h2>
@@ -501,50 +663,107 @@ export default function HomeCine() {
           </div>
         </div></section>
 
-        {/* POUR QUI */}
-        <section className="sec"><div className="wrap">
-          <div className="shead">
-            <div className="eyebrow">{t('lp.aud.eyebrow')}</div>
-            <h2>{t('lp.aud.title')}</h2>
-            <p className="lead">{t('lp.aud.lead')}</p>
-          </div>
-          <div className="aud">
-            <div className="acard">
-              <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 7v5l3 2M12 21a9 9 0 110-18 9 9 0 010 18z" /></svg></div>
-              <h3>{t('lp.aud.1.title')}</h3>
-              <p>{t('lp.aud.1.text')}</p>
+        {/* POUR QUI — scroll 3D : le texte s'empile en continu (fonction directe de la
+            position de scroll, pas d'étapes qui "sautent"), la carte à droite suit le
+            même calendrier. Prototype validé : _design/landing-redesign/pour-qui-scroll.html */}
+        <section className="sec-aud"><div className="pq-wrap" ref={pqWrapRef}>
+          <div className="pq-sticky">
+            <div className="pq-inner">
+
+              <div className="pq-head">
+                <div className="pq-eyebrow">{t('lp.aud.eyebrow')}</div>
+                <h2 className="pq-title">{t('lp.aud.title')}</h2>
+                <p className="pq-lead">{t('lp.aud.lead')}</p>
+              </div>
+
+              <div className="pq-left">
+                <div className="pq-steps">
+                  <article className="pq-step" data-step="0">
+                    <div className="pq-num">01 / 03</div>
+                    <h3 className="pq-quote">{t('lp.aud.1.title')}</h3>
+                    <p className="pq-desc">{t('lp.aud.1.text')}</p>
+                    <div className="pq-tags"><span className="pq-tag">2-3h / mois</span><span className="pq-tag">Zéro recrutement</span></div>
+                  </article>
+                  <article className="pq-step" data-step="1">
+                    <div className="pq-num">02 / 03</div>
+                    <h3 className="pq-quote">{t('lp.aud.2.title')}</h3>
+                    <p className="pq-desc">{t('lp.aud.2.text')}</p>
+                    <div className="pq-tags"><span className="pq-tag">Ta voix, pas un ton générique</span><span className="pq-tag">Validation en 1 clic</span></div>
+                  </article>
+                  <article className="pq-step" data-step="2">
+                    <div className="pq-num">03 / 03</div>
+                    <h3 className="pq-quote">{t('lp.aud.3.title')}</h3>
+                    <p className="pq-desc">{t('lp.aud.3.text')}</p>
+                    <div className="pq-tags"><span className="pq-tag">Pas de forfait limité</span><span className="pq-tag">10× moins cher</span></div>
+                  </article>
+                </div>
+                <div className="pq-progress"><div className="pq-dot"><i></i></div><div className="pq-dot"><i></i></div><div className="pq-dot"><i></i></div></div>
+              </div>
+
+              <div className="pq-card-stage">
+                <div className="pq-card" ref={pqCardRef}>
+                  <div className="pq-count">1 / 3</div>
+                  <img src="/images/pour-qui/calendrier.jpg" data-img="0" alt="Rico — calendrier" />
+                  <img src="/images/pour-qui/panneaux.jpg" data-img="1" alt="Rico — formats" />
+                  <img src="/images/pour-qui/confiant.jpg" data-img="2" alt="Rico — confiance" />
+                  <span className="pq-sheen"></span>
+                  <div className="pq-caption">
+                    <b>Système Postorico</b>
+                    <p>Le calendrier du mois, prêt avant même que tu y penses.</p>
+                  </div>
+                </div>
+              </div>
+
             </div>
-            <div className="acard">
-              <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg></div>
-              <h3>{t('lp.aud.2.title')}</h3>
-              <p>{t('lp.aud.2.text')}</p>
-            </div>
-            <div className="acard">
-              <div className="ab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A6CFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V5a1 1 0 011-1h7v17M12 9h7a1 1 0 011 1v11M7 8h2M7 12h2M16 13h2M16 17h2" /></svg></div>
-              <h3>{t('lp.aud.3.title')}</h3>
-              <p>{t('lp.aud.3.text')}</p>
-            </div>
+            <div className="pq-hint">continue à scroller ↓</div>
           </div>
         </div></section>
 
         {/* ACCOMPAGNEMENT */}
-        <section className="sec"><div className="wrap">
-          <div className="shead">
-            <div className="eyebrow">{t('lp.flow.eyebrow')}</div>
-            <h2>{t('lp.flow.title')}</h2>
-            <p className="lead">{t('lp.flow.lead')}</p>
-          </div>
-          <div className="flow">
-            <div className="fstep"><div className="n">1</div><h3>{t('lp.flow.1.title')}</h3><p>{t('lp.flow.1.text')}</p></div>
-            <div className="fstep"><div className="n">2</div><h3>{t('lp.flow.2.title')}</h3><p>{t('lp.flow.2.text')}</p></div>
-            <div className="fstep"><div className="n">3</div><h3>{t('lp.flow.3.title')}</h3><p>{t('lp.flow.3.text')}</p></div>
-          </div>
-          <div className="roles">
-            <b>{t('lp.flow.roles.title')}</b>
-            <p><Trans i18nKey="lp.flow.roles.text" components={{ b: <b /> }} /></p>
-          </div>
-          <div className="cta-row center" style={{ marginTop: 32 }}>
-            <a className="btn grad" {...propsRdv()}>{t('lp.cta.call')}</a>
+        {/* Rail horizontal 3D : le scroll vertical fait défiler les cartes de côté,
+            chaque carte pivote selon sa distance au centre. Porté depuis
+            frontend/assets/postorico-final-3-sections-corrige.html (dernière section). */}
+        <section className="sec-flow"><div className="acc-stage" ref={accStageRef}>
+          <div className="acc-scene">
+            <div className="acc-stars" aria-hidden="true" />
+            <div className="acc-layout">
+              <aside className="acc-intro">
+                <div>
+                  <div className="acc-eyebrow">{t('lp.flow.eyebrow')}</div>
+                  <h2>{t('lp.flow.title')}</h2>
+                  <p>{t('lp.flow.lead')}</p>
+                </div>
+                <div className="acc-metric">
+                  <div className="acc-metric-label">Ton système</div>
+                  <div className="acc-metric-number">01</div>
+                  <div className="acc-metric-sub">étudier · construire · piloter</div>
+                </div>
+              </aside>
+              <div className="acc-rail">
+                <div className="acc-track">
+                  {[
+                    { pill: 'Étape 01', idx: '1', kicker: 'Audit', title: t('lp.flow.1.title'), text: t('lp.flow.1.text'), tags: ['Audit', 'Positionnement'] },
+                    { pill: 'Étape 02', idx: '2', kicker: 'Construction', title: t('lp.flow.2.title'), text: t('lp.flow.2.text'), tags: ['Système', 'Calendrier'] },
+                    { pill: 'Étape 03', idx: '3', kicker: 'Pilotage', title: t('lp.flow.3.title'), text: t('lp.flow.3.text'), tags: ['Contrôle', '~2 h / mois'] },
+                    { pill: 'Résultat', idx: '✓', kicker: 'Système installé', title: t('lp.flow.roles.title'), text: <Trans i18nKey="lp.flow.roles.text" components={{ b: <b /> }} />, tags: ['Prêt à utiliser', 'Tu gardes le contrôle'] },
+                  ].map((c) => (
+                    <article className="acc-card" key={c.pill}>
+                      <div className="acc-pill">{c.pill}</div>
+                      <div className="acc-card-index">{c.idx}</div>
+                      <div className="acc-card-content">
+                        <div className="acc-card-kicker">{c.kicker}</div>
+                        <h3>{c.title}</h3>
+                        <p>{c.text}</p>
+                        <div className="acc-card-tags">{c.tags.map((tg) => <span className="acc-tag" key={tg}>{tg}</span>)}</div>
+                      </div>
+                      <div className="acc-progress"><i /></div>
+                    </article>
+                  ))}
+                </div>
+                <div className="acc-hint"><span />Continue à scroller</div>
+              </div>
+            </div>
+            <a className="acc-cta" {...propsRdv()}>{t('lp.cta.call')}</a>
           </div>
         </div></section>
 
