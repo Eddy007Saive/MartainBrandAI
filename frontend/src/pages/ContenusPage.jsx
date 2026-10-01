@@ -1788,7 +1788,7 @@ export default function ContenusPage() {
                         <button type="button" onClick={() => setCzTextOpen((o) => !o)} data-testid="retouche-texte-toggle"
                           className="w-full flex items-center justify-between text-[11px] font-semibold tracking-wide uppercase text-slate-500 hover:text-slate-300 transition-colors">
                           <span>{t('contenus.retouche.texteSlides')}{czTextChanged() ? <span className="ml-1.5 text-[#3AFFA3] normal-case tracking-normal font-medium">{t('contenus.retouche.modifie')}</span> : null}</span>
-                          <span>{czTextOpen ? '−' : '+'}</span>
+                          <span className="text-[11px] normal-case tracking-normal font-semibold text-[#a5b0ff]">{czTextOpen ? t('contenus.retouche.fermerTexte') : t('contenus.retouche.modifierTexte')}</span>
                         </button>
                         {czTextOpen && (() => {
                           const c = czContent() || {};
@@ -1816,6 +1816,11 @@ export default function ContenusPage() {
                           );
                         })()}
                       </div>
+                      <button type="button" onClick={retoucherCarrousel} disabled={czRBusy} data-testid="retouche-appliquer"
+                        className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-3.5 py-2.5 rounded-[10px] transition-colors active:scale-[0.98] disabled:opacity-50">
+                        {czRBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        {czRBusy ? t('contenus.retouche.appliquerEnCours') : t('contenus.retouche.appliquer')}
+                      </button>
                       <p className="text-[11px] text-slate-600 font-inter">{t('contenus.retouche.noteAvant')}<b className="text-slate-400">{t('contenus.retouche.noteValidation')}</b>{t('contenus.retouche.noteApres')}</p>
                     </div>
                   )}

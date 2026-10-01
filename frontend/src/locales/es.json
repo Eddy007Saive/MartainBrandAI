@@ -655,6 +655,10 @@
       "confirmer": "Confirmar el rechazo"
     },
     "retouche": {
+      "modifierTexte": "Editar ▾",
+      "fermerTexte": "Cerrar ▴",
+      "appliquer": "Aplicar los retoques (rehacer las imágenes)",
+      "appliquerEnCours": "Generando…",
       "texteSlides": "Texto de las diapositivas",
       "modifie": "(editado)",
       "accroche": "Gancho",

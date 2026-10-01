@@ -655,6 +655,10 @@
       "confirmer": "Confirm rejection"
     },
     "retouche": {
+      "modifierTexte": "Edit ▾",
+      "fermerTexte": "Close ▴",
+      "appliquer": "Apply changes (re-render images)",
+      "appliquerEnCours": "Rendering…",
       "texteSlides": "Slide text",
       "modifie": "(edited)",
       "accroche": "Hook",

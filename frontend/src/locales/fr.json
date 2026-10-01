@@ -655,6 +655,10 @@
       "confirmer": "Confirmer le refus"
     },
     "retouche": {
+      "modifierTexte": "Modifier ▾",
+      "fermerTexte": "Fermer ▴",
+      "appliquer": "Appliquer la retouche (refaire les images)",
+      "appliquerEnCours": "Rendu en cours…",
       "texteSlides": "Texte des slides",
       "modifie": "(modifié)",
       "accroche": "Accroche",
