@@ -788,6 +788,36 @@ def brouillons_contenus(payload: dict = Depends(verify_token)):
     return r.data or []
 
 
+@router.post("/brouillons-contenus")
+def creer_brouillon_contenu(body: dict, payload: dict = Depends(verify_token)):
+    """Reprise d'une ancienne carte du Studio (texte deja redige, gardee seulement dans
+    studio_drafts) : la range dans contenu au statut Brouillon. Sans IA, sans quota."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    contenu = (body.get("contenu") or "").strip()
+    if not contenu:
+        raise HTTPException(status_code=400, detail="contenu requis")
+    row = {
+        "telegram_id": telegram_id,
+        "titre": ((body.get("titre") or contenu[:80]).strip())[:120],
+        "contenu": contenu,
+        "contenu_original": (body.get("contenu_original") or "").strip() or contenu,
+        "statut": "Brouillon",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if body.get("reseau") in RESEAU_MAP:
+        row["reseau_cible"] = RESEAU_MAP[body.get("reseau")]
+    if body.get("type") == "Story":
+        row["type"] = "Story"
+    ins = supabase.table("contenu").insert(row).execute()
+    cid = ins.data[0]["id"] if ins.data else None
+    if cid:
+        from services.contenu_service import log_evenement
+        log_evenement(cid, "genere", acteur=telegram_id, texte=row["contenu_original"])
+    return {"success": True, "contenu_id": cid}
+
+
 @router.patch("/brouillons-contenus/{contenu_id}")
 def maj_brouillon_contenu(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
     """Retouche du texte d'un brouillon (sauvegarde auto du Studio). Ne touche QUE les brouillons."""

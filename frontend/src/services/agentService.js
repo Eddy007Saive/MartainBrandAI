@@ -40,6 +40,7 @@ export const agentService = {
   brouillonsContenus: () => api.get('/agent/brouillons-contenus').then((r) => r.data),
   majBrouillon: (id, contenu, contenuOriginal = null) =>
     api.patch(`/agent/brouillons-contenus/${id}`, { contenu, ...(contenuOriginal ? { contenu_original: contenuOriginal } : {}) }).then((r) => r.data),
+  creerBrouillon: (carte) => api.post('/agent/brouillons-contenus', carte).then((r) => r.data),
   supprimerBrouillon: (id) => api.delete(`/agent/brouillons-contenus/${id}`).then((r) => r.data),
 
   // Enregistre le texte (éventuellement édité) dans les contenus

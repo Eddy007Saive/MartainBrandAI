@@ -275,6 +275,17 @@ export default function StudioIA() {
         const locales = (Array.isArray(data) ? data : [])
           .filter((c) => c.statut !== 'redaction' && !c.brouillon);
         setContenus(idsUniques([...deBase, ...locales]));
+        // Reprise des anciennes cartes post/story (rédigées avant les brouillons en base) :
+        // chacune devient un vrai brouillon dans Contenus, sans IA ni quota.
+        locales.filter((c) => c.statut === 'pret' && (c.format === 'post' || c.format === 'story') && (c.texte || '').trim())
+          .forEach((c) => {
+            agentService.creerBrouillon({
+              titre: c.sujet, contenu: c.texte, contenu_original: c.texteOriginal || c.texte,
+              reseau: c.meta, ...(c.format === 'story' ? { type: 'Story' } : {}),
+            }).then((d) => {
+              if (d?.contenu_id) setContenus((prev) => prev.map((x) => (x.id === c.id ? { ...x, contenuId: d.contenu_id, brouillon: true } : x)));
+            }).catch(() => {});
+          });
       })
       .catch(() => setContenus([]))
       .finally(() => { draftsLoaded.current = true; });
