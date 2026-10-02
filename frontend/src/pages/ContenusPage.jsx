@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -441,6 +441,15 @@ export default function ContenusPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedContenu, setSelectedContenu] = useState(null);
+  // ?ouvrir=<id> (depuis le Studio IA) : ouvre directement ce contenu une fois la liste chargée
+  const [searchParams, setSearchParams] = useSearchParams();
+  const aOuvrir = searchParams.get('ouvrir');
+  useEffect(() => {
+    if (!aOuvrir || !contenus.length) return;
+    const c = contenus.find((x) => x.id === aOuvrir);
+    if (c) setSelectedContenu(c);
+    setSearchParams((sp) => { sp.delete('ouvrir'); return sp; }, { replace: true });
+  }, [aOuvrir, contenus, setSearchParams]);
   useEffect(() => { setRetoucheOuverte(false); setRetoucheInstr(''); }, [selectedContenu?.id]);
   const [czR, setCzR] = useState(null);     // retouche couleurs/police d'un carrousel (aperçu live)
   const [czRBusy, setCzRBusy] = useState(false);

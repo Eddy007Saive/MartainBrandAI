@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
-  ChevronLeft, ChevronRight, X, ZoomIn,
+  ChevronLeft, ChevronRight, X, ZoomIn, ArrowRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -365,7 +365,7 @@ export default function StudioIA() {
         const d = await agentService.carrousel(s.titre, meta, nbSlides, qualite, null, dimsEdit);
         if (d.credits != null) updateUser({ credits: d.credits });
         track('contenu_genere', { format: 'carrousel', reseau: meta, qualite });
-        setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [], contenuId: d.contenu_id || null } : c)));
         if (s.id) supprimerSujet(s.id); // carrousel enregistré directement → le sujet est traité
         // Réseaux additionnels cochés : copie du carrousel sur chacun (slides re-rendues, créneau propre)
         if (extras.length && d.contenu_id) {
@@ -410,7 +410,7 @@ export default function StudioIA() {
         const d = await agentService.carrousel(txt, meta, nbSlides, qualite);
         if (d.credits != null) updateUser({ credits: d.credits });
         track('contenu_genere', { format: 'carrousel', reseau: meta, qualite, source: 'brief' });
-        setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'carrousel', images: d.slides_images || [], contenuId: d.contenu_id || null } : c)));
         if (extras.length && d.contenu_id) {
           try {
             await contenuService.recycler(d.contenu_id, extras);
@@ -475,7 +475,7 @@ export default function StudioIA() {
       if (card.format === 'carrousel') {
         const d = await agentService.carrousel(prompt, card.meta, nbSlides, card.qualite);
         if (d.credits != null) updateUser({ credits: d.credits });
-        setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'carrousel', images: d.slides_images || [] } : c)));
+        setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'carrousel', images: d.slides_images || [], contenuId: d.contenu_id || null } : c)));
         const extras = card.extras || [];
         if (extras.length && d.contenu_id) {
           try {
@@ -997,30 +997,34 @@ export default function StudioIA() {
                       </div>
                     </div>
                   ) : c.format === 'carrousel' ? (
-                    <div className="space-y-3">
+                    // Carrousel déjà enregistré dans Contenus (« À valider ») : la carte se replie en une
+                    // ligne compacte avec une sortie claire, au lieu de la grille de slides qui restait là.
+                    <div className="flex items-center gap-3 flex-wrap">
                       {c.images && c.images.length ? (
-                        <div className="grid grid-cols-3 gap-2">
-                          {c.images.map((u, i) => (
-                            <button
-                              key={i}
-                              type="button"
-                              onClick={() => setLightbox({ images: c.images, index: i })}
-                              className="group relative w-full aspect-[4/5] rounded-lg border border-white/10 overflow-hidden bg-slate-950/60 cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                              title={t('studio.enlargeSlide', 'Agrandir')}
-                            >
-                              <img src={u} alt={t('studio.slideAlt', { n: i + 1 })} className="w-full h-full object-cover" />
-                              <span className="absolute inset-0 flex items-center justify-center bg-slate-950/0 group-hover:bg-slate-950/40 transition-colors">
-                                <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </span>
-                            </button>
+                        <button type="button" onClick={() => setLightbox({ images: c.images, index: 0 })}
+                          className="flex -space-x-3 focus:outline-none focus:ring-2 focus:ring-indigo-400 rounded-md" title={t('studio.enlargeSlide', 'Agrandir')}>
+                          {c.images.slice(0, 4).map((u, i) => (
+                            <img key={i} src={u} alt={t('studio.slideAlt', { n: i + 1 })}
+                              className="w-10 h-[50px] object-cover rounded-md border-2 border-slate-950 shadow-md" style={{ zIndex: 10 - i }} />
                           ))}
-                        </div>
+                          {c.images.length > 4 && (
+                            <span className="w-10 h-[50px] rounded-md border-2 border-slate-950 bg-slate-800 text-[11px] text-slate-300 grid place-items-center">+{c.images.length - 4}</span>
+                          )}
+                        </button>
                       ) : (
-                        <p className="text-xs text-amber-400 font-inter py-4 text-center">{t('studio.noImagesGenerated')}</p>
+                        <p className="text-xs text-amber-400 font-inter">{t('studio.noImagesGenerated')}</p>
                       )}
-                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-inter">
-                        <Check className="w-3.5 h-3.5" /> {t('studio.carouselSaved')}
+                      <div className="flex-1 min-w-[10rem] flex items-center gap-2 text-emerald-400 text-xs font-inter">
+                        <Check className="w-3.5 h-3.5 flex-shrink-0" /> {t('studio.carouselSaved')}
                       </div>
+                      <Button size="sm" data-testid={`studio-carrousel-ouvrir-${c.id}`}
+                        onClick={() => { supprimerContenu(c.id); navigate(c.contenuId ? `/dashboard/contenus?ouvrir=${c.contenuId}` : '/dashboard/contenus'); }}
+                        className="bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30">
+                        {t('studio.openInContents')}<ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => supprimerContenu(c.id)} className="text-slate-400 hover:text-white">
+                        {t('studio.closeCard')}
+                      </Button>
                     </div>
                   ) : (
                     <>
