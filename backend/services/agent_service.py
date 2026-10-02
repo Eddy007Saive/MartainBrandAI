@@ -393,50 +393,6 @@ def _sans_tiret(txt: str) -> str:
     return t.replace(" ,", ",").replace(",,", ",").strip(" ,")
 
 
-def _norm(s: str) -> str:
-    """Normalise un titre pour comparer (minuscules, sans accents, alphanumérique)."""
-    s = unicodedata.normalize("NFD", (s or "").lower())
-    s = "".join(c for c in s if unicodedata.category(c) != "Mn")  # retire les accents
-    s = "".join(c if c.isalnum() else " " for c in s)
-    return " ".join(s.split())
-
-
-def _sujets_historique(telegram_id: str, limit: int = 60) -> list:
-    """Titres des sujets déjà proposés (brouillons) ou publiés (contenus), récents d'abord.
-
-    Sert de MÉMOIRE anti-répétition : on la réinjecte dans le prompt et on filtre la sortie.
-    """
-    titres = []
-    for table, col in (("brouillons", "created_at"), ("contenu", "created_at")):
-        try:
-            rows = (supabase.table(table).select("titre, " + col)
-                    .eq("telegram_id", telegram_id).order(col, desc=True).limit(limit).execute().data or [])
-        except Exception:
-            # Table sans created_at (ou autre) : repli sans tri
-            try:
-                rows = (supabase.table(table).select("titre")
-                        .eq("telegram_id", telegram_id).limit(limit).execute().data or [])
-            except Exception as e:
-                logger.warning(f"historique {table}: {e}")
-                rows = []
-        titres += [r.get("titre") for r in rows if r.get("titre")]
-    # Dédup en gardant l'ordre (récents d'abord)
-    seen, out = set(), []
-    for t in titres:
-        k = _norm(t)
-        if k and k not in seen:
-            seen.add(k)
-            out.append(t.strip())
-    return out
-
-
-def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> dict:
-    """Propose des sujets TAGGÉS (objectif/angle/cible/format), pas une liste plate.
-    `filtres` : dimensions imposées par l'utilisateur (ex. {objectif:'Conversion',
-    format:'Reel'}) ; celles laissées libres sont variées automatiquement."""
-    if not _client:
-        return {"error": "no_api_key"}
-    u = _charger_marque(telegram_id)
 _MD_GRAS = re.compile(r"\*\*(.+?)\*\*", re.S)
 _MD_GRAS_US = re.compile(r"__(.+?)__", re.S)
 _MD_ITALIQUE = re.compile(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])")
@@ -519,47 +475,50 @@ def normaliser_carrousel_data(nouveau, ancien) -> dict:
     return nettoyer_profond(data)
 
 
-_MD_GRAS = re.compile(r"\*\*(.+?)\*\*", re.S)
-_MD_GRAS_US = re.compile(r"__(.+?)__", re.S)
-_MD_ITALIQUE = re.compile(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])")
-_MD_TITRE = re.compile(r"^[ \t]*#{1,6}[ \t]+", re.M)
-_MD_PUCE = re.compile(r"^[ \t]*\*[ \t]+", re.M)
-_TIRET_PUCE = re.compile(r"^[ \t]*[—–][ \t]*", re.M)
+def _norm(s: str) -> str:
+    """Normalise un titre pour comparer (minuscules, sans accents, alphanumérique)."""
+    s = unicodedata.normalize("NFD", (s or "").lower())
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")  # retire les accents
+    s = "".join(c if c.isalnum() else " " for c in s)
+    return " ".join(s.split())
 
 
-def nettoyer_texte_genere(txt):
-    """Filet de sécurité après génération (posts, légendes, slides, scripts) : le prompt
-    interdit le Markdown et les tirets cadratins, mais le modèle désobéit parfois (6 posts
-    sur 41 en septembre 2026 : « **gras** », tirets). Les réseaux affichent ces caractères
-    tels quels, un lecteur voit les astérisques. On retire les marqueurs (gras, italique,
-    titres #, backticks), on transforme les puces « * » / « — » en « • », puis on applique
-    _sans_tiret. Les hashtags (#mot, sans espace) sont préservés. Idempotent."""
-    if not isinstance(txt, str):
-        return txt
-    t = _MD_GRAS.sub(r"\1", txt)
-    t = _MD_GRAS_US.sub(r"\1", t)
-    t = _MD_ITALIQUE.sub(r"\1", t)
-    t = t.replace("**", "")
-    t = _MD_TITRE.sub("", t)
-    t = _MD_PUCE.sub("• ", t)
-    t = t.replace("`", "")
-    t = _TIRET_PUCE.sub("• ", t)
-    t = _sans_tiret(t)
-    lignes = [re.sub(r"[ \t]{2,}", " ", ligne).rstrip() for ligne in t.split("\n")]
-    return "\n".join(lignes).strip()
+def _sujets_historique(telegram_id: str, limit: int = 60) -> list:
+    """Titres des sujets déjà proposés (brouillons) ou publiés (contenus), récents d'abord.
+
+    Sert de MÉMOIRE anti-répétition : on la réinjecte dans le prompt et on filtre la sortie.
+    """
+    titres = []
+    for table, col in (("brouillons", "created_at"), ("contenu", "created_at")):
+        try:
+            rows = (supabase.table(table).select("titre, " + col)
+                    .eq("telegram_id", telegram_id).order(col, desc=True).limit(limit).execute().data or [])
+        except Exception:
+            # Table sans created_at (ou autre) : repli sans tri
+            try:
+                rows = (supabase.table(table).select("titre")
+                        .eq("telegram_id", telegram_id).limit(limit).execute().data or [])
+            except Exception as e:
+                logger.warning(f"historique {table}: {e}")
+                rows = []
+        titres += [r.get("titre") for r in rows if r.get("titre")]
+    # Dédup en gardant l'ordre (récents d'abord)
+    seen, out = set(), []
+    for t in titres:
+        k = _norm(t)
+        if k and k not in seen:
+            seen.add(k)
+            out.append(t.strip())
+    return out
 
 
-def nettoyer_profond(obj):
-    """nettoyer_texte_genere appliqué à toutes les chaînes d'une structure (dict/list)."""
-    if isinstance(obj, str):
-        return nettoyer_texte_genere(obj)
-    if isinstance(obj, list):
-        return [nettoyer_profond(x) for x in obj]
-    if isinstance(obj, dict):
-        return {k: nettoyer_profond(v) for k, v in obj.items()}
-    return obj
-
-
+def generer_sujets(telegram_id: str, nombre: int = 6, filtres: dict = None) -> dict:
+    """Propose des sujets TAGGÉS (objectif/angle/cible/format), pas une liste plate.
+    `filtres` : dimensions imposées par l'utilisateur (ex. {objectif:'Conversion',
+    format:'Reel'}) ; celles laissées libres sont variées automatiquement."""
+    if not _client:
+        return {"error": "no_api_key"}
+    u = _charger_marque(telegram_id)
     if not (u.get("secteur") or "").strip():
         return {"error": "profil_incomplet"}
     contexte = _contexte_marque(u)
