@@ -53,11 +53,11 @@ export const Root: React.FC = () => (
       defaultProps={{
         brand: { nom: 'Postorico', principale: '#5B6CFF', accent: '#3AFFA3', fond: '#020617', logo: null as string | null, police: null as string | null },
         plans: [
-          { texte: 'Tu diriges une boîte,', accents: ['boîte'], effet: 'revele' as const, dur: 2.2 },
-          { texte: 'pas une rédaction.', accents: ['rédaction'], effet: 'barre' as const, dur: 2.4 },
-          { texte: '2 h', accents: ['2 h'], effet: 'geant' as const, dur: 2.2 },
-          { texte: 'par mois pour toute ta présence en ligne', accents: ['présence'], effet: 'surligne' as const, dur: 3 },
-          { texte: 'Ton studio, calibré sur ta voix.', accents: ['voix'], effet: 'machine' as const, dur: 2.8 },
+          { texte: 'Tu diriges une boîte,', accents: ['boîte'], effet: 'revele' as const, dur: 2.2, icone: 'personne' },
+          { texte: 'pas une rédaction.', accents: ['rédaction'], effet: 'barre' as const, dur: 2.4, icone: 'croix' },
+          { texte: '2 h par mois', accents: ['2 h'], effet: 'geant' as const, dur: 2.4 },
+          { texte: 'pour toute ta présence en ligne', accents: ['présence'], effet: 'surligne' as const, dur: 2.8, icone: 'megaphone' },
+          { texte: 'Ton studio, calibré sur ta voix.', accents: ['voix'], effet: 'machine' as const, dur: 2.8, icone: 'cible' },
         ] as MotionPlan[],
         cta: 'Réserve ton call de setup',
       }}

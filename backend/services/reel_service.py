@@ -806,9 +806,13 @@ _ROLE_MOTION = (
     "Varie les effets ; geant une fois au plus. accents = 1 a 2 mots EXACTS du plan a mettre en valeur. "
     "dur = duree en secondes (1.8 a 3.5) selon la longueur. N'invente aucun chiffre absent du post. "
     "Jamais de tiret cadratin. cta = appel a l'action final de 2 a 5 mots. "
-    'Reponds UNIQUEMENT en JSON strict : {"plans": [{"texte": "...", "accents": ["..."], "effet": "revele", "dur": 2.4}], "cta": "..."}'
+    "icone = UNE icone qui illustre le plan, parmi : fusee, horloge, cible, graphique, eclair, coeur, coche, croix, calendrier, message, personne, ampoule, argent, etoile, bouclier, telephone, megaphone, trophee; "
+    "mets null si aucune ne colle vraiment, et pas d'icone sur un plan geant. Au moins la moitie des plans ont une icone. "
+    'Reponds UNIQUEMENT en JSON strict : {"plans": [{"texte": "...", "accents": ["..."], "effet": "revele", "dur": 2.4, "icone": "cible"}], "cta": "..."}'
 )
 _EFFETS_MOTION = ("revele", "barre", "surligne", "geant", "machine")
+_ICONES_MOTION = ("fusee", "horloge", "cible", "graphique", "eclair", "coeur", "coche", "croix", "calendrier", "message",
+                  "personne", "ampoule", "argent", "etoile", "bouclier", "telephone", "megaphone", "trophee")
 
 
 def _script_motion(texte: str, marque: dict) -> dict:
@@ -839,7 +843,8 @@ def _script_motion(texte: str, marque: dict) -> dict:
             except (TypeError, ValueError):
                 dur = 2.6
             accents = [str(a)[:30] for a in (pl.get("accents") or []) if str(a).strip()][:2]
-            plans.append({"texte": t, "accents": accents, "effet": effet, "dur": dur})
+            icone = pl.get("icone") if pl.get("icone") in _ICONES_MOTION and effet != "geant" else None
+            plans.append({"texte": t, "accents": accents, "effet": effet, "dur": dur, "icone": icone})
         if len(plans) >= 3:
             return {"plans": plans, "cta": _sans_tiret(str(data.get("cta") or marque.get("nom") or ""))[:40],
                     "hook": plans[0]["texte"][:80]}
@@ -847,7 +852,9 @@ def _script_motion(texte: str, marque: dict) -> dict:
         logger.warning(f"motion script LLM: {e}")
     phrases = [x.strip() for x in re.split(r"(?<=[.!?])\s+", texte or "") if x.strip()][:5] or ["Un message qui compte."]
     effets = ["revele", "surligne", "revele", "machine", "revele"]
-    plans = [{"texte": ph[:90], "accents": [], "effet": effets[i % len(effets)], "dur": 2.6} for i, ph in enumerate(phrases)]
+    icones = ["ampoule", "cible", "graphique", "coche", "fusee"]
+    plans = [{"texte": ph[:90], "accents": [], "effet": effets[i % len(effets)], "dur": 2.6, "icone": icones[i % len(icones)]}
+             for i, ph in enumerate(phrases)]
     return {"plans": plans, "cta": (marque.get("nom") or "")[:40], "hook": plans[0]["texte"][:80]}
 
 
