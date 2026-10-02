@@ -103,6 +103,9 @@ TEMPLATES = {
                 "desc": "Un chiffre géant par écran, qui compte en direct. Pour les posts à résultats."},
     "long":    {"composition": "ReelLong", "label": "Narratif", "duree": 22, "tags": ["Storytelling"], "apercu": None,
                 "desc": "Accroche → contexte → preuves plein écran → leçon en citation → CTA."},
+    "motion":  {"composition": "MotionTypo", "label": "Motion · Typo cinétique", "duree": 16,
+                "tags": ["Motion design", "Sans visuel"], "apercu": None,
+                "desc": "Ton message en typographie animée : mots révélés, barrés, surlignés, mot géant, machine à écrire. Aux couleurs de ta marque, aucun visuel requis."},
 }
 
 
@@ -132,6 +135,7 @@ _ROLE_RECO = (
     "- impact : promo punchy courte format stories\n"
     "- stats : posts a chiffres et resultats\n"
     "- long : storytelling, lecon, recit personnel\n"
+    "- motion : message fort et court a faire claquer en typographie animee, sans visuel (conviction, chiffre cle)\n"
     'Reponds UNIQUEMENT en JSON strict : {"template": "id", "raison": "8-14 mots dans la langue du post"}'
 )
 
@@ -789,6 +793,64 @@ def _script_depuis_post(texte: str, marque: dict, long: bool = False) -> dict:
     return script
 
 
+_ROLE_MOTION = (
+    "Tu es motion designer. Tu transformes un post en TYPOGRAPHIE CINETIQUE verticale (reel 9:16) "
+    "de 4 a 6 plans de texte, dans la langue du post. Chaque plan = une phrase courte (2 a 9 mots), "
+    "lisible en 2-3 secondes ; l'ensemble raconte le message du post, de l'accroche a la conclusion. "
+    "Pour chaque plan choisis UN effet parmi : "
+    "revele (mots qui apparaissent un a un, defaut), "
+    "barre (les mots accentues sont barres en rouge : ce qu'on rejette, l'ancienne facon de faire), "
+    "surligne (les mots accentues passent sous un marqueur : l'idee cle), "
+    "geant (UN mot ou chiffre enorme, le reste en petit dessous : chiffre, mot-choc), "
+    "machine (machine a ecrire : affirmation calme, conclusion). "
+    "Varie les effets ; geant une fois au plus. accents = 1 a 2 mots EXACTS du plan a mettre en valeur. "
+    "dur = duree en secondes (1.8 a 3.5) selon la longueur. N'invente aucun chiffre absent du post. "
+    "Jamais de tiret cadratin. cta = appel a l'action final de 2 a 5 mots. "
+    'Reponds UNIQUEMENT en JSON strict : {"plans": [{"texte": "...", "accents": ["..."], "effet": "revele", "dur": 2.4}], "cta": "..."}'
+)
+_EFFETS_MOTION = ("revele", "barre", "surligne", "geant", "machine")
+
+
+def _script_motion(texte: str, marque: dict) -> dict:
+    """Format Motion (typo cinetique) : Claude decoupe le post en 4 a 6 plans de texte anime,
+    chacun avec son effet ; repli heuristique sur les phrases du post si l'appel echoue."""
+    from services.agent_service import _sans_tiret
+    marque_ctx = (f"\n\nMarque : {marque.get('nom') or ''}. Secteur : {marque.get('secteur') or ''}. "
+                  f"Appels a l'action de la marque : {marque.get('ctas') or marque.get('cta') or ''}.")
+    try:
+        resp = _messages_create(
+            model="claude-haiku-4-5",
+            max_tokens=700,
+            system=_ROLE_MOTION + marque_ctx,
+            messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nDonne le JSON."}],
+        )
+        _journal_llm(marque.get("telegram_id"), "reel_script", resp)
+        raw = "".join(b.text for b in resp.content if b.type == "text").strip()
+        m = re.search(r"\{.*\}", raw, re.S)
+        data = json.loads(m.group(0) if m else raw)
+        plans = []
+        for pl in (data.get("plans") or [])[:6]:
+            t = _sans_tiret(str(pl.get("texte") or "").strip())[:90]
+            if not t:
+                continue
+            effet = pl.get("effet") if pl.get("effet") in _EFFETS_MOTION else "revele"
+            try:
+                dur = max(1.6, min(4.0, float(pl.get("dur") or 2.6)))
+            except (TypeError, ValueError):
+                dur = 2.6
+            accents = [str(a)[:30] for a in (pl.get("accents") or []) if str(a).strip()][:2]
+            plans.append({"texte": t, "accents": accents, "effet": effet, "dur": dur})
+        if len(plans) >= 3:
+            return {"plans": plans, "cta": _sans_tiret(str(data.get("cta") or marque.get("nom") or ""))[:40],
+                    "hook": plans[0]["texte"][:80]}
+    except Exception as e:
+        logger.warning(f"motion script LLM: {e}")
+    phrases = [x.strip() for x in re.split(r"(?<=[.!?])\s+", texte or "") if x.strip()][:5] or ["Un message qui compte."]
+    effets = ["revele", "surligne", "revele", "machine", "revele"]
+    plans = [{"texte": ph[:90], "accents": [], "effet": effets[i % len(effets)], "dur": 2.6} for i, ph in enumerate(phrases)]
+    return {"plans": plans, "cta": (marque.get("nom") or "")[:40], "hook": plans[0]["texte"][:80]}
+
+
 def _props_marque(u: dict, script: dict) -> dict:
     return {
         "brand": {
@@ -998,6 +1060,14 @@ def generer_reel(telegram_id: str, contenu_id: str, template: str = "impact",
         scenario["voix"] = voix or None
         script = {"hook": (scenario["segments"][0]["texte"] if scenario["segments"] else "")[:80]}
         props = _props_sequence(u, scenario, telegram_id)
+    elif template == "motion":
+        script = _script_motion(texte, u)
+        props = {
+            "brand": {**_props_marque(u, {"hook": "", "points": [], "cta": ""})["brand"],
+                      "fond": "#020617", "police": u.get("typo_primaire") or None},
+            "plans": script["plans"],
+            "cta": script["cta"],
+        }
     elif template == "affiche":
         script = _script_affiche(texte, u)
         props = {

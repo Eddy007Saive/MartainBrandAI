@@ -6,6 +6,7 @@ import { ReelStat } from './ReelStat';
 import { ReelAffiche } from './ReelAffiche';
 import { ReelSequence, dureeScenario, SequenceSegment } from './ReelSequence';
 import { StoryAnime } from './StoryAnime';
+import { MotionTypo, dureeMotion, MotionPlan } from './MotionTypo';
 // @ts-ignore — JSX partagé avec le front (éditeur vidéo manuel), voir montage/schema.js
 import { Montage } from './montage/Montage.jsx';
 // @ts-ignore
@@ -36,6 +37,29 @@ export const Root: React.FC = () => (
           { type: 'typo' as const, dur: 2.6, texte: "L'IA RÉDIGE TES POSTS", accents: ['RÉDIGE', 'POSTS'] },
           { type: 'cta' as const, dur: 3.6, texte: '14 JOURS GRATUITS', accents: ['14', 'JOURS'], bar: 'postorico.com' },
         ] as SequenceSegment[],
+      }}
+    />
+    {/* Typo cinétique (format Motion) : durée calculée depuis les plans */}
+    <Composition
+      id="MotionTypo"
+      component={MotionTypo}
+      durationInFrames={360}
+      fps={30}
+      width={1080}
+      height={1920}
+      calculateMetadata={({ props }) => ({
+        durationInFrames: Math.round(dureeMotion(props.plans as MotionPlan[]) * 30),
+      })}
+      defaultProps={{
+        brand: { nom: 'Postorico', principale: '#5B6CFF', accent: '#3AFFA3', fond: '#020617', logo: null as string | null, police: null as string | null },
+        plans: [
+          { texte: 'Tu diriges une boîte,', accents: ['boîte'], effet: 'revele' as const, dur: 2.2 },
+          { texte: 'pas une rédaction.', accents: ['rédaction'], effet: 'barre' as const, dur: 2.4 },
+          { texte: '2 h', accents: ['2 h'], effet: 'geant' as const, dur: 2.2 },
+          { texte: 'par mois pour toute ta présence en ligne', accents: ['présence'], effet: 'surligne' as const, dur: 3 },
+          { texte: 'Ton studio, calibré sur ta voix.', accents: ['voix'], effet: 'machine' as const, dur: 2.8 },
+        ] as MotionPlan[],
+        cta: 'Réserve ton call de setup',
       }}
     />
     {/* Format court 8 s : hook → 3 preuves → CTA */}
