@@ -557,10 +557,18 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
         _map_agent_error(result)
     quota_service.confirm(q)
     usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
-    if body.get("save"):
+    if body.get("save") or body.get("brouillon"):
         row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": result["contenu"],
                "contenu_original": result["contenu"],
                "created_at": datetime.now(timezone.utc).isoformat()}
+        if body.get("brouillon"):
+            # Studio IA : le post est en base DES sa redaction, au statut Brouillon (ni date ni
+            # creneau : il n'entre dans le planning qu'a la validation, via /agent/enregistrer).
+            row["statut"] = "Brouillon"
+            if body.get("reseau") in RESEAU_MAP:
+                row["reseau_cible"] = RESEAU_MAP[body.get("reseau")]
+            if body.get("type") == "Story":
+                row["type"] = "Story"
         ins = supabase.table("contenu").insert(row).execute()
         result["contenu_id"] = ins.data[0]["id"] if ins.data else None
         if result["contenu_id"]:
@@ -767,6 +775,47 @@ def enregistrer_script(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# --- Brouillons du Studio IA : posts rediges, en base au statut « Brouillon », pas encore valides ---
+@router.get("/brouillons-contenus")
+def brouillons_contenus(payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    r = (supabase.table("contenu")
+         .select("id, titre, contenu, contenu_original, reseau_cible, type, created_at")
+         .eq("telegram_id", telegram_id).eq("statut", "Brouillon")
+         .order("created_at", desc=True).limit(50).execute())
+    return r.data or []
+
+
+@router.patch("/brouillons-contenus/{contenu_id}")
+def maj_brouillon_contenu(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
+    """Retouche du texte d'un brouillon (sauvegarde auto du Studio). Ne touche QUE les brouillons."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    maj = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    if isinstance(body.get("contenu"), str):
+        maj["contenu"] = body["contenu"]
+    if isinstance(body.get("contenu_original"), str) and body["contenu_original"].strip():
+        maj["contenu_original"] = body["contenu_original"]  # regeneration : nouvelle proposition de l'IA
+    r = (supabase.table("contenu").update(maj).eq("id", contenu_id).eq("telegram_id", telegram_id)
+         .eq("statut", "Brouillon").execute())
+    if not r.data:
+        raise HTTPException(status_code=404, detail="Brouillon introuvable")
+    return {"success": True}
+
+
+@router.delete("/brouillons-contenus/{contenu_id}")
+def supprimer_brouillon_contenu(contenu_id: str, payload: dict = Depends(verify_token)):
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    (supabase.table("contenu").delete().eq("id", contenu_id).eq("telegram_id", telegram_id)
+     .eq("statut", "Brouillon").execute())
+    return {"success": True}
+
+
 @router.post("/enregistrer")
 def enregistrer(body: dict, payload: dict = Depends(verify_token)):
     """Enregistre le texte (éventuellement édité) dans la table contenu. Gratuit."""
@@ -801,6 +850,18 @@ def enregistrer(body: dict, payload: dict = Depends(verify_token)):
             creneau = planning_service.prochain_creneau(telegram_id, row["reseau_cible"], row.get("type"))
             if creneau:
                 row["date_publication"] = creneau
+        # Brouillon du Studio IA deja en base : on le PROMEUT (meme ligne, meme id) en « A valider »
+        # au lieu d'en creer une nouvelle. Le texte d'origine de l'IA est conserve tel qu'enregistre.
+        brouillon_id = body.get("contenu_id")
+        if brouillon_id:
+            ex = (supabase.table("contenu").select("id, statut").eq("id", brouillon_id)
+                  .eq("telegram_id", telegram_id).limit(1).execute()).data
+            if ex and ex[0].get("statut") == "Brouillon":
+                maj = {k: v for k, v in row.items() if k not in ("telegram_id", "created_at", "contenu_original")}
+                maj["statut"] = "A valider"
+                maj["updated_at"] = datetime.now(timezone.utc).isoformat()
+                supabase.table("contenu").update(maj).eq("id", brouillon_id).eq("telegram_id", telegram_id).execute()
+                return {"success": True, "contenu_id": brouillon_id}
         ins = supabase.table("contenu").insert(row).execute()
         contenu_id = ins.data[0]["id"] if ins.data else None
         if contenu_id:

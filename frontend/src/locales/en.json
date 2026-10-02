@@ -290,6 +290,7 @@
     "titre": "Content",
     "sousTitre": "Manage, approve and track your posts",
     "statut": {
+      "brouillon": "Draft",
       "aTourner": "To film",
       "aValider": "To review",
       "valide": "Approved",
@@ -571,6 +572,7 @@
       "photoProfilRequise": "Add a profile photo in Settings → Identity first."
     },
     "filtres": {
+      "brouillons": "Drafts",
       "tous": "All",
       "aValider": "To review",
       "valides": "Approved",

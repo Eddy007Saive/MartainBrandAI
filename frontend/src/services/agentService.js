@@ -33,14 +33,21 @@ export const agentService = {
 
   // Rédige un post sur un sujet ; save=true l'enregistre dans les contenus.
   // dimensions : le brief du sujet (objectif/angle/cible/format), pour orienter la rédaction.
-  rediger: (sujet, reseau = 'linkedin', save = false, qualite = 'equilibre', dimensions = null) =>
-    api.post('/agent/rediger', { sujet, reseau, save, qualite, ...(dimensions ? { dimensions } : {}) }).then((r) => r.data),
+  // extra : { brouillon: true, type: 'Story' } -> le post est enregistré en base au statut Brouillon (Studio IA)
+  rediger: (sujet, reseau = 'linkedin', save = false, qualite = 'equilibre', dimensions = null, extra = {}) =>
+    api.post('/agent/rediger', { sujet, reseau, save, qualite, ...(dimensions ? { dimensions } : {}), ...extra }).then((r) => r.data),
+  // Brouillons du Studio IA (contenus au statut « Brouillon »)
+  brouillonsContenus: () => api.get('/agent/brouillons-contenus').then((r) => r.data),
+  majBrouillon: (id, contenu, contenuOriginal = null) =>
+    api.patch(`/agent/brouillons-contenus/${id}`, { contenu, ...(contenuOriginal ? { contenu_original: contenuOriginal } : {}) }).then((r) => r.data),
+  supprimerBrouillon: (id) => api.delete(`/agent/brouillons-contenus/${id}`).then((r) => r.data),
 
   // Enregistre le texte (éventuellement édité) dans les contenus
   // `contenuOriginal` : le texte tel que reçu de l'IA, avant toute édition du client
   // (mémoire d'évaluation, H2) — absent pour un post rédigé à la main.
-  enregistrer: (contenu, titre, reseau, type = null, contenuOriginal = null) =>
-    api.post('/agent/enregistrer', { contenu, titre, reseau, type, contenu_original: contenuOriginal }).then((r) => r.data),
+  // contenuId : brouillon déjà en base -> promu en « À valider » (même ligne) au lieu d'en créer une
+  enregistrer: (contenu, titre, reseau, type = null, contenuOriginal = null, contenuId = null) =>
+    api.post('/agent/enregistrer', { contenu, titre, reseau, type, contenu_original: contenuOriginal, ...(contenuId ? { contenu_id: contenuId } : {}) }).then((r) => r.data),
 
   // Génère un script vidéo
   script: (sujet, type_video = 'Reel', qualite = 'equilibre', dimensions = null) =>

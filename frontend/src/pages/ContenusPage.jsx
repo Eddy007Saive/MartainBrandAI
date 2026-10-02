@@ -57,6 +57,7 @@ const IMAGE_MODELES = [
 
 // Clés = valeurs réelles de l'enum statut_contenu en base ; labelKey = clé i18n d'affichage
 const STATUT_CONFIG = {
+  'Brouillon': { labelKey: 'contenus.statut.brouillon', bg: 'bg-slate-500/15', text: 'text-slate-300', border: 'border-slate-400/30', dot: 'bg-slate-300', icon: PenLine },
   'A tourner': { labelKey: 'contenus.statut.aTourner', bg: 'bg-[#8A6CFF]/15', text: 'text-[#b9a6ff]', border: 'border-[#8A6CFF]/30', dot: 'bg-[#8A6CFF]', icon: Video },
   'A valider': { labelKey: 'contenus.statut.aValider', bg: 'bg-amber-500/15', text: 'text-amber-400', border: 'border-amber-500/25', dot: 'bg-amber-400', icon: Clock },
   'Valider': { labelKey: 'contenus.statut.valide', bg: 'bg-emerald-500/15', text: 'text-emerald-400', border: 'border-emerald-500/25', dot: 'bg-emerald-400', icon: Check },
@@ -252,7 +253,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
             {contenu.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-            {contenu.statut === 'A valider' && (
+            {['A valider', 'Brouillon'].includes(contenu.statut) && (
               <button title={t('contenus.actions.validerProgrammer')} onClick={() => onValidate(contenu.id)} disabled={isLoading}
                 data-testid={`contenu-valider-${contenu.id}`}
                 className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors">
@@ -283,7 +284,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[210px] bg-[#111c33]/95 backdrop-blur-xl border-white/10 text-slate-200 font-inter">
-                {contenu.statut === 'A valider' && (
+                {['A valider', 'Brouillon'].includes(contenu.statut) && (
                   <DropdownMenuItem onClick={() => onRefuse(contenu.id)} className="gap-2.5 focus:bg-white/[0.07]">
                     <X className="w-4 h-4 opacity-70" />{t('contenus.actions.refuser')}
                   </DropdownMenuItem>
@@ -405,14 +406,14 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
             {premier.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-            {premier.statut === 'A valider' && (
+            {['A valider', 'Brouillon'].includes(premier.statut) && (
               <button title={bloqueValidation ? t('contenus.toast.attendsRendu') : t('contenus.carte.validerTout', { n: items.length })}
                 onClick={() => !bloqueValidation && onValiderSerie(groupe)} disabled={isLoading || bloqueValidation}
                 className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               </button>
             )}
-            {premier.statut === 'A valider' && (
+            {['A valider', 'Brouillon'].includes(premier.statut) && (
               <button title={t('contenus.carte.refuserTout', { n: items.length })} onClick={() => onRefuserSerie(groupe)} disabled={isLoading}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08]">
                 <X className="w-4 h-4" />
@@ -1352,6 +1353,7 @@ export default function ContenusPage() {
   const stats = {
     total: groupedActive.length,
     aValider: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'A valider').length,
+    brouillons: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Brouillon').length,
     valides: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Valider').length,
     planifies: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Planifie').length,
     publies: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Publie').length,
@@ -1360,6 +1362,7 @@ export default function ContenusPage() {
   // Pastilles de filtre : le chiffre EST le filtre (remplace stats + menu deroulant)
   const FILTRES = [
     { id: 'all', label: t('contenus.filtres.tous'), n: stats.total, dot: null },
+    { id: 'Brouillon', label: t('contenus.filtres.brouillons'), n: stats.brouillons, dot: '#cbd5e1' },
     { id: 'A valider', label: t('contenus.filtres.aValider'), n: stats.aValider, dot: '#fbbf24' },
     { id: 'Valider', label: t('contenus.filtres.valides'), n: stats.valides, dot: '#a5b0ff' },
     { id: 'Planifie', label: t('contenus.filtres.planifies'), n: stats.planifies, dot: '#c084fc' },

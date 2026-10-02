@@ -263,8 +263,19 @@ export default function StudioIA() {
     const uid = user?.telegram_id;
     if (!uid) return;
     draftsLoaded.current = false;
-    agentService.getDrafts()
-      .then((data) => setContenus(Array.isArray(data) ? idsUniques(data.filter((c) => c.statut !== 'redaction')) : []))
+    // Les posts/stories rédigés vivent en base (statut Brouillon) : source de vérité, id = id en base.
+    // La sauvegarde locale ne garde que les autres cartes (carrousels, photos, scripts).
+    Promise.all([agentService.getDrafts().catch(() => []), agentService.brouillonsContenus().catch(() => [])])
+      .then(([data, brouillons]) => {
+        const deBase = (brouillons || []).map((b) => ({
+          id: `b-${b.id}`, contenuId: b.id, brouillon: true, sujet: b.titre || '', texte: b.contenu || '',
+          texteOriginal: b.contenu_original || b.contenu || '', statut: 'pret',
+          format: b.type === 'Story' ? 'story' : 'post', meta: (b.reseau_cible || 'linkedin').toLowerCase(),
+        }));
+        const locales = (Array.isArray(data) ? data : [])
+          .filter((c) => c.statut !== 'redaction' && !c.brouillon);
+        setContenus(idsUniques([...deBase, ...locales]));
+      })
       .catch(() => setContenus([]))
       .finally(() => { draftsLoaded.current = true; });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -275,13 +286,17 @@ export default function StudioIA() {
     if (!draftsLoaded.current || !user?.telegram_id) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      agentService.saveDrafts(contenus.filter((c) => c.statut !== 'redaction')).catch(() => {});
+      agentService.saveDrafts(contenus.filter((c) => c.statut !== 'redaction' && !c.brouillon)).catch(() => {});
     }, 800);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contenus, user?.telegram_id]);
 
-  const supprimerContenu = (id) => setContenus((prev) => prev.filter((c) => c.id !== id));
+  const supprimerContenu = (id) => {
+    const card = contenus.find((c) => c.id === id);
+    if (card?.brouillon && card.contenuId) agentService.supprimerBrouillon(card.contenuId).catch(() => {});
+    setContenus((prev) => prev.filter((c) => c.id !== id));
+  };
 
   // Affichage traduit d'un type vidéo (la valeur stockée/envoyée à l'API reste l'id, ex. 'Video')
   const typeVideoLabel = (id) => {
@@ -392,11 +407,11 @@ export default function StudioIA() {
       }
       const d = fmt === 'script'
         ? await agentService.script(s.titre, meta, qualite, dimsEdit)
-        : await agentService.rediger(s.titre, meta, false, qualite, dimsEdit);
+        : await agentService.rediger(s.titre, meta, false, qualite, dimsEdit, { brouillon: true, ...(fmt === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret' } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(fmt !== 'script' && d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}) } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -435,11 +450,11 @@ export default function StudioIA() {
       }
       const d = fmt === 'script'
         ? await agentService.script(txt, meta, qualite)
-        : await agentService.rediger(txt, meta, false, qualite);
+        : await agentService.rediger(txt, meta, false, qualite, null, { brouillon: true, ...(fmt === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite, source: 'brief' });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret' } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(fmt !== 'script' && d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}) } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -501,9 +516,15 @@ export default function StudioIA() {
       }
       const d = card.format === 'script'
         ? await agentService.script(prompt, card.meta, card.qualite)
-        : await agentService.rediger(prompt, card.meta, false, card.qualite);
+        : await agentService.rediger(prompt, card.meta, false, card.qualite, null,
+          card.brouillon ? {} : { brouillon: true, ...(card.format === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       const texte = card.format === 'script' ? (d.script || '') : (d.contenu || '');
+      if (card.brouillon && card.contenuId) {
+        agentService.majBrouillon(card.contenuId, texte, texte).catch(() => {});
+      } else if (card.format !== 'script' && d.contenu_id) {
+        setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, contenuId: d.contenu_id, brouillon: true } : c)));
+      }
       // Une régénération est une nouvelle proposition de l'IA, pas une retouche du client :
       // texteOriginal repart de ce nouveau texte (même principe que carrousel() côté backend).
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, texteOriginal: texte, statut: 'pret' } : c)));
@@ -513,7 +534,15 @@ export default function StudioIA() {
     }
   };
 
-  const editer = (id, texte) => setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte } : c)));
+  const majTimers = useRef({});
+  const editer = (id, texte) => {
+    setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte } : c)));
+    const card = contenus.find((c) => c.id === id);
+    if (card?.brouillon && card.contenuId) {
+      clearTimeout(majTimers.current[id]);
+      majTimers.current[id] = setTimeout(() => { agentService.majBrouillon(card.contenuId, texte).catch(() => {}); }, 900);
+    }
+  };
 
   const valider = async (id) => {
     const card = contenus.find((c) => c.id === id);
@@ -530,7 +559,9 @@ export default function StudioIA() {
         });
         return;
       }
-      const d = await agentService.enregistrer(card.texte, card.sujet, card.meta, card.format === 'story' ? 'Story' : null, card.texteOriginal || null);
+      clearTimeout(majTimers.current[id]);
+      const d = await agentService.enregistrer(card.texte, card.sujet, card.meta, card.format === 'story' ? 'Story' : null, card.texteOriginal || null,
+        card.brouillon ? card.contenuId : null);
       // Réseaux additionnels cochés : on NE duplique PLUS tout de suite (le post n'a pas encore
       // d'image → ça obligeait à régénérer une image par copie). On duplique seulement une fois
       // qu'une image existe sur cette fiche, via le bouton ♻️ Recycler dans Contenus — la même

@@ -290,6 +290,7 @@
     "titre": "Contenidos",
     "sousTitre": "Gestiona, valida y sigue tus publicaciones",
     "statut": {
+      "brouillon": "Borrador",
       "aTourner": "Por grabar",
       "aValider": "Por validar",
       "valide": "Validado",
@@ -571,6 +572,7 @@
       "photoProfilRequise": "Añade primero una foto de perfil en Ajustes → Identidad."
     },
     "filtres": {
+      "brouillons": "Borradores",
       "tous": "Todos",
       "aValider": "Por validar",
       "valides": "Validados",
