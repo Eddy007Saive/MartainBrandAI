@@ -544,7 +544,6 @@ export default function HomeCine() {
           ) : (
             <>
               <Link className="nav-link" to="/login">{t('lp.nav.login')}</Link>
-              <Link className="nav-cta grad" to="/register">{t('lp.nav.start')}</Link>
             </>
           )}
           <button className={`burger${menuOpen ? ' open' : ''}`} aria-label={t('lp.nav.menu')} aria-expanded={menuOpen}
@@ -563,7 +562,6 @@ export default function HomeCine() {
         ) : (
           <>
             <Link className="ghost" to="/login" style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>{t('lp.nav.login')}</Link>
-            <Link className="cta" to="/register" style={{ transitionDelay: menuOpen ? '350ms' : '0ms' }}>{t('lp.nav.start')}</Link>
           </>
         )}
       </div>
