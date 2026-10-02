@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Fragment } from 'react';
 import Link from '../../components/LienLangue';
 import { useTranslation, Trans } from 'react-i18next';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import { animate } from 'motion/react';
+import { animate, motion, useMotionTemplate, useMotionValue } from 'motion/react';
 import { APK_URL } from '../../lib/appDownload';
 import { isAuthenticated, isAdminAuthenticated, espaceParDefaut } from '../../lib/auth';
 import LangSwitcher from '../../components/LangSwitcher';
@@ -155,6 +155,46 @@ const NAV_LINKS = [
   ['lp.nav.pricing', '/tarifs'],
   ['lp.nav.faq', '/faq'],
 ];
+
+// Halo violet qui suit le curseur sur le hero (inspiration : « Toolkit Hero Section », 21st.dev).
+// Écoute le mousemove du parent (la section hero) ; inactif sur tactile et si prefers-reduced-motion.
+// pointer-events:none et mix-blend-mode:screen : il éclaire le fond vidéo sans gêner les clics.
+function HeroGlow() {
+  const ref = useRef(null);
+  const x = useMotionValue(-1000);
+  const y = useMotionValue(-1000);
+  useEffect(() => {
+    const host = ref.current?.parentElement;
+    if (!host || matchMedia('(hover: none)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const onMove = (e) => {
+      const r = host.getBoundingClientRect();
+      x.set(e.clientX - r.left);
+      y.set(e.clientY - r.top);
+    };
+    const onLeave = () => { x.set(-1000); y.set(-1000); };
+    host.addEventListener('mousemove', onMove, { passive: true });
+    host.addEventListener('mouseleave', onLeave);
+    return () => { host.removeEventListener('mousemove', onMove); host.removeEventListener('mouseleave', onLeave); };
+  }, [x, y]);
+  const background = useMotionTemplate`radial-gradient(520px circle at ${x}px ${y}px, rgba(138,108,255,.22), rgba(91,108,255,.08) 45%, transparent 75%)`;
+  return <motion.div ref={ref} className="hero-glow" aria-hidden="true" style={{ background }} />;
+}
+
+// Titre du hero mot à mot : chaque mot est un <span class="mot"> avec son rang (--i) pour une
+// révélation en cascade (flou -> net) ; la 2e ligne garde le dégradé .g (dérive animée en CSS).
+function TitreAnime({ l1, l2 }) {
+  const m1 = l1.split(' ').filter(Boolean);
+  const m2 = l2.split(' ').filter(Boolean);
+  // L'espace reste HORS du span (inline-block avale un espace final) ; Fragment pour la clé.
+  const mot = (m, i) => <Fragment key={i}><span className="mot" style={{ '--i': i }}>{m}</span>{' '}</Fragment>;
+  return (
+    <>
+      {m1.map(mot)}
+      <br />
+      <span className="g">{m2.map((m, i) => mot(m, m1.length + i))}</span>
+    </>
+  );
+}
 
 export default function HomeCine() {
   const rootRef = useRef(null);
@@ -535,9 +575,10 @@ export default function HomeCine() {
               les hexagones flottants — déjà utilisés plus bas sur cette page
               et sur le reste du site — comblent le fond, sinon plat et vide. */}
           {isTouch && <FondHexagones />}
+          {!isTouch && <HeroGlow />}
           <div className="hero-copy">
             <span className="kicker"><span className="dot" />{t('lp.hero.kicker')}</span>
-            <h1>{t('lp.hero.title1')}<br /><span className="g">{t('lp.hero.title2')}</span></h1>
+            <h1 key={lang}><TitreAnime l1={t('lp.hero.title1')} l2={t('lp.hero.title2')} /></h1>
             <p className="hero-sub"><Trans i18nKey="lp.hero.sub" components={{ b: <b /> }} /></p>
             <div className="nets"><b>LinkedIn</b><i>·</i><b>Instagram</b><i>·</i><b>Facebook</b><i>·</i><b>TikTok</b><i>·</i><b>YouTube</b><i>·</i><b>Google Business</b></div>
             <div className="cta-row">

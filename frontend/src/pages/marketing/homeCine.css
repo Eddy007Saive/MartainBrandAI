@@ -107,13 +107,39 @@
 /* ===== Hero (grille 2 colonnes) ===== */
 .cine .hero{position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(480px,620px) 1fr;align-items:center;
       max-width:1240px;margin:0 auto;padding:92px 32px 40px}
-.cine .hero-copy{display:flex;flex-direction:column;align-items:flex-start}
+.cine .hero-copy{display:flex;flex-direction:column;align-items:flex-start;position:relative;z-index:1}
+/* Halo qui suit le curseur (HeroGlow) : au-dessus de la vidéo, sous le texte, jamais cliquable. */
+.cine .hero-glow{position:absolute;inset:0;pointer-events:none;z-index:0;mix-blend-mode:screen;will-change:background}
+/* Apparition en cascade des éléments du hero (kicker -> titre -> texte -> réseaux -> boutons -> note -> chiffres),
+   inspirée des heros 21st.dev : ease-out franc, 90 ms entre chaque élément, rien si reduced-motion. */
+.cine .hero-copy>*{animation:cineAppear .7s cubic-bezier(.23,1,.32,1) both}
+.cine .hero-copy>:nth-child(2){animation-delay:.09s}
+.cine .hero-copy>:nth-child(3){animation-delay:.18s}
+.cine .hero-copy>:nth-child(4){animation-delay:.27s}
+.cine .hero-copy>:nth-child(5){animation-delay:.36s}
+.cine .hero-copy>:nth-child(6){animation-delay:.45s}
+.cine .hero-copy>:nth-child(7){animation-delay:.54s}
+@keyframes cineAppear{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.cine .hero-copy>*{animation:none}.cine .hero-glow{display:none}}
 .cine .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--mint);
         border:1px solid rgba(58,255,163,.25);background:rgba(58,255,163,.06);border-radius:99px;padding:8px 15px;white-space:nowrap}
 .cine .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px rgba(58,255,163,.8)}
 .cine h1{font-family:Sora;font-weight:800;font-size:clamp(30px,min(3.6vw,7.2vh),52px);line-height:1.08;letter-spacing:-.02em;
    margin-top:20px;text-wrap:balance}
-.cine h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cine h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:220% 100%}
+@keyframes gradDerive{from{background-position:0% 50%}to{background-position:100% 50%}}
+/* Révélation du titre mot à mot : flou -> net en montant, 70 ms entre chaque mot, après le
+   fondu du bloc (cascade .hero-copy). Les mots du dégradé héritent du clip-text du parent. */
+.cine h1 .mot{display:inline-block;animation:motApparait .9s cubic-bezier(.23,1,.32,1) both;
+  animation-delay:calc(.2s + var(--i,0)*70ms)}
+/* Chaque mot de la ligne violette porte son propre clip-text (un inline-block animé forme son
+   propre calque : le clip du parent ne le traverse pas) ; la dérive est synchronisée entre
+   les mots, donc la ligne respire d'un seul mouvement. */
+.cine h1 .g .mot{background:var(--grad);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:motApparait .9s cubic-bezier(.23,1,.32,1) calc(.2s + var(--i,0)*70ms) both,gradDerive 7s ease-in-out infinite alternate}
+@keyframes motApparait{from{opacity:0;filter:blur(10px);transform:translateY(14px)}to{opacity:1;filter:blur(0);transform:none}}
+@media(prefers-reduced-motion:reduce){.cine h1 .mot,.cine h1 .g{animation:none}}
 .cine .hero-sub{color:var(--mut);font-size:15px;line-height:1.7;max-width:54ch;margin-top:18px}
 .cine .hero-sub b{color:#dbe4f2;font-weight:600}
 .cine .nets{display:flex;gap:14px;margin-top:14px;font-size:12px;color:var(--dim);flex-wrap:wrap;align-items:center}
@@ -258,6 +284,25 @@
 .cine .pscol.good .ps-ic{background:rgba(58,255,163,.14);color:var(--mint);box-shadow:0 0 18px rgba(58,255,163,.25)}
 .cine .pscol.good li{color:#c6d2e4}
 .cine .pscol.good .mk{background:rgba(58,255,163,.14);color:var(--mint)}
+/* Animation en boucle du comparatif, cadence 1 s : les 4 lignes de chaque colonne s'allument
+   à tour de rôle (cycle de 4 s, 1 s par ligne) — la croix tremble à gauche, la coche « pop » à
+   droite — et la flèche de bascule pulse chaque seconde. Rien si prefers-reduced-motion. */
+.cine .pscol li{animation-duration:4s;animation-timing-function:var(--ease);animation-iteration-count:infinite}
+.cine .pscol li:nth-child(2){animation-delay:1s}
+.cine .pscol li:nth-child(3){animation-delay:2s}
+.cine .pscol li:nth-child(4){animation-delay:3s}
+.cine .pscol.bad li{animation-name:psLigneBad}
+.cine .pscol.good li{animation-name:psLigneGood}
+@keyframes psLigneBad{0%,20%{color:#f3c0c0;transform:translateX(5px)}25%,100%{color:#7d8aa3;transform:none}}
+@keyframes psLigneGood{0%,20%{color:#fff;transform:translateX(5px)}25%,100%{color:#c6d2e4;transform:none}}
+.cine .pscol li .mk{animation-duration:4s;animation-timing-function:var(--ease);animation-iteration-count:infinite;animation-delay:inherit}
+.cine .pscol.bad li .mk{animation-name:psMkBad}
+.cine .pscol.good li .mk{animation-name:psMkGood}
+@keyframes psMkBad{0%{transform:none;background:rgba(248,113,113,.1)}3%{transform:translateX(-3px) rotate(-8deg)}6%{transform:translateX(3px) rotate(8deg)}9%{transform:translateX(-2px)}12%{transform:none;background:rgba(248,113,113,.35);box-shadow:0 0 14px rgba(248,113,113,.45)}22%{background:rgba(248,113,113,.35);box-shadow:0 0 14px rgba(248,113,113,.45)}25%,100%{transform:none;background:rgba(248,113,113,.1);box-shadow:none}}
+@keyframes psMkGood{0%{transform:scale(1)}6%{transform:scale(1.45);background:rgba(58,255,163,.4);box-shadow:0 0 18px rgba(58,255,163,.7)}14%{transform:scale(1.05)}20%{transform:scale(1.1);background:rgba(58,255,163,.4);box-shadow:0 0 18px rgba(58,255,163,.7)}25%,100%{transform:scale(1);background:rgba(58,255,163,.14);box-shadow:none}}
+.cine .ps-arrow{animation:psFleche 1s ease-in-out infinite}
+@keyframes psFleche{0%,100%{transform:scale(1)}50%{transform:scale(1.14) translateX(4px);box-shadow:0 0 26px rgba(138,108,255,.6)}}
+@media(prefers-reduced-motion:reduce){.cine .pscol li,.cine .pscol li .mk,.cine .ps-arrow{animation:none}}
 .cine .ps-badge{position:absolute;top:-11px;right:20px;background:var(--grad);font-size:10.5px;font-weight:700;letter-spacing:.06em;
           text-transform:uppercase;border-radius:99px;padding:4px 12px;color:#fff}
 @media(max-width:860px){
@@ -276,6 +321,28 @@
 .cine .cmpcard .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
 .cine .cmpcard .v{font-size:12.5px;color:#dbe4f2;margin-top:3px}
 .cine .cmpcard.win .v{color:#fff}
+/* Comparatif animé, cadence 1 s : les 6 critères s'allument à tour de rôle sur les 4 cartes à la
+   fois (cycle 6 s, 1 s par critère). Sur la carte Postorico la valeur passe en vert et glisse ;
+   sur les trois autres elle s'assombrit — le « gagnant » saute aux yeux ligne après ligne.
+   Le badge « Le bon choix » pulse chaque seconde. Rien si prefers-reduced-motion. */
+.cine .cmpcard .r{animation-duration:6s;animation-timing-function:var(--ease);animation-iteration-count:infinite}
+.cine .cmpcard .r:nth-child(2){animation-delay:1s}
+.cine .cmpcard .r:nth-child(3){animation-delay:2s}
+.cine .cmpcard .r:nth-child(4){animation-delay:3s}
+.cine .cmpcard .r:nth-child(5){animation-delay:4s}
+.cine .cmpcard .r:nth-child(6){animation-delay:5s}
+.cine .cmpcard .r{animation-name:cmpRow}
+.cine .cmpcard.win .r{animation-name:cmpRowWin}
+@keyframes cmpRow{0%,13%{background:rgba(248,113,113,.06);box-shadow:inset 3px 0 0 rgba(248,113,113,.45)}17%,100%{background:transparent;box-shadow:inset 3px 0 0 transparent}}
+@keyframes cmpRowWin{0%,13%{background:rgba(58,255,163,.08);box-shadow:inset 3px 0 0 var(--mint)}17%,100%{background:transparent;box-shadow:inset 3px 0 0 transparent}}
+.cine .cmpcard .r .v{animation-duration:6s;animation-timing-function:var(--ease);animation-iteration-count:infinite;animation-delay:inherit;animation-name:cmpVal}
+.cine .cmpcard.win .r .v{animation-name:cmpValWin}
+@keyframes cmpVal{0%,13%{color:#8a94a8;transform:translateX(6px)}17%,100%{color:#dbe4f2;transform:none}}
+@keyframes cmpValWin{0%{transform:translateX(6px) scale(1)}4%{transform:translateX(6px) scale(1.06)}13%{color:var(--mint);transform:translateX(6px);text-shadow:0 0 14px rgba(58,255,163,.55)}17%,100%{color:#fff;transform:none;text-shadow:none}}
+.cine .cmpcard .r{padding-left:8px;margin-left:-8px;border-radius:6px}
+.cine .cmpcard.win .badge{animation:cmpBadge 1s ease-in-out infinite}
+@keyframes cmpBadge{0%,100%{transform:scale(1)}50%{transform:scale(1.08);box-shadow:0 0 18px rgba(138,108,255,.7)}}
+@media(prefers-reduced-motion:reduce){.cine .cmpcard .r,.cine .cmpcard .r .v,.cine .cmpcard.win .badge{animation:none}}
 @media(max-width:1000px){.cine .cmp{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.cine .cmp{grid-template-columns:1fr}}
 
