@@ -405,6 +405,60 @@ async def sweep_planifies() -> int:
     return n
 
 
+_RESEAU_ENUM = {"linkedin": "LinkedIn", "instagram": "Instagram", "facebook": "Facebook",
+                "tiktok": "TikTok", "youtube": "YouTube", "googlebusiness": "GoogleBusiness"}
+REPROG_RETARD_MAX_JOURS = 30
+
+
+async def reprogrammer_reseau(telegram_id: str, plateforme: str) -> int:
+    """Filet de sécurité quand le compte d'un réseau CHANGE (reconnexion avec un autre compte,
+    profil Zernio recréé, première connexion après des posts validés sans réseau) : les posts
+    pas encore publiés de ce réseau sont reprogrammés chez Zernio sur le nouveau compte.
+    - date encore à venir : on GARDE la date ;
+    - date déjà passée (post jamais parti, au plus REPROG_RETARD_MAX_JOURS jours) : prochain
+      créneau libre, puis programmation.
+    L'ancien post Zernio éventuel est supprimé d'abord (sinon double publication si l'ancien
+    compte existe encore). Best-effort : ne lève jamais. Retourne le nombre reprogrammé."""
+    reseau = _RESEAU_ENUM.get((plateforme or "").lower())
+    if not reseau:
+        return 0
+    from services import planning_service
+    now = datetime.now(timezone.utc)
+    n = 0
+    try:
+        rows = (supabase.table("contenu")
+                .select("id, late_post_id, publish_status, date_publication, type")
+                .eq("telegram_id", telegram_id).eq("reseau_cible", reseau)
+                .in_("statut", ["Planifie", "Valider"])
+                .gte("date_publication", (now - timedelta(days=REPROG_RETARD_MAX_JOURS)).isoformat())
+                .limit(100).execute()).data or []
+    except Exception as e:
+        logger.error(f"reprogrammer_reseau lecture {telegram_id}/{reseau}: {e}")
+        return 0
+    for c in rows:
+        if c.get("publish_status") == "publié":
+            continue
+        try:
+            if c.get("late_post_id"):
+                await cancel_post(c["late_post_id"])  # ancien compte : on retire l'ancienne programmation
+            maj = {"late_post_id": None, "publish_status": None, "publish_error": None}
+            date = datetime.fromisoformat(str(c["date_publication"]).replace("Z", "+00:00"))
+            if date <= now:
+                creneau = planning_service.prochain_creneau(telegram_id, reseau, c.get("type"))
+                if not creneau:
+                    continue
+                maj["date_publication"] = creneau
+            supabase.table("contenu").update(maj).eq("id", c["id"]).eq("telegram_id", telegram_id).execute()
+            res = await programmer_contenu(telegram_id, c["id"])
+            if res.get("ok"):
+                n += 1
+        except Exception as e:
+            logger.error(f"reprogrammer_reseau contenu {c.get('id')}: {e}")
+    if rows:
+        logger.info(f"reprogrammer_reseau {telegram_id}/{reseau}: {n}/{len(rows)} post(s) reprogrammé(s)")
+    return n
+
+
 async def cancel_post(late_post_id: str) -> dict:
     """Supprime un post dans Late (Zernio deletePost) — annulation d'envoi ou suppression."""
     if not LATE_API_KEY:

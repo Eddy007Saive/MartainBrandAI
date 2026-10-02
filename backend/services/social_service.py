@@ -279,6 +279,20 @@ async def list_connected_accounts(telegram_id: str) -> dict:
     return out
 
 
+def _reprogrammer_si_change(telegram_id: str, platform: str, ancien: str | None, nouveau: str) -> None:
+    """Compte du réseau changé (ou première connexion) : les posts à venir de ce réseau sont
+    reprogrammés chez Zernio sur le nouveau compte. Lancé en tâche de fond pour ne pas retarder
+    le retour de l'OAuth."""
+    if not nouveau or ancien == nouveau:
+        return
+    import asyncio
+    from services import late_service
+    try:
+        asyncio.get_running_loop().create_task(late_service.reprogrammer_reseau(telegram_id, platform))
+    except Exception as e:
+        logger.error(f"reprogrammation {telegram_id}/{platform} non lancée: {e}")
+
+
 async def finalize_connection(telegram_id: str, platform: str, account_id: str = None) -> dict:
     """Après l'OAuth (Late a connecté le compte au profil), on enregistre l'accountId dans
     comptes_sociaux. account_id : fourni par Late dans le callback (le plus fiable)."""
@@ -286,10 +300,13 @@ async def finalize_connection(telegram_id: str, platform: str, account_id: str =
     if platform not in VALID_PLATFORMS:
         return {"ok": False, "error": "Plateforme inconnue."}
 
+    ancien = compte(telegram_id, platform)  # pour savoir si le compte change (filet de reprogrammation)
+
     # Cas idéal : Late nous a donné l'accountId directement dans le callback
     if account_id:
         if enregistrer_compte(telegram_id, platform, account_id):
             logger.info(f"Compte {platform} connecté pour {telegram_id}: {account_id} (via callback)")
+            _reprogrammer_si_change(telegram_id, platform, ancien, account_id)
             return {"ok": True, "account_id": account_id}
         return {"ok": False, "error": "Erreur lors de l'enregistrement du compte."}
 
@@ -310,6 +327,7 @@ async def finalize_connection(telegram_id: str, platform: str, account_id: str =
         account_id = chosen.get("field_id") or chosen.get("_id")
         enregistrer_compte(telegram_id, platform, account_id)
         logger.info(f"Compte {platform} connecté pour {telegram_id}: {account_id}")
+        _reprogrammer_si_change(telegram_id, platform, ancien, account_id)
         return {"ok": True, "account_id": account_id}
     except Exception as e:
         logger.error(f"finalize_connection error {telegram_id}/{platform}: {e}")
