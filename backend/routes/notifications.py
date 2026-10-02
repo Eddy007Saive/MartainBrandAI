@@ -14,18 +14,23 @@ def list_notifications(payload: dict = Depends(verify_token)):
         res = (supabase.table("notifications").select("*")
                .eq("telegram_id", telegram_id).order("created_at", desc=True).limit(50).execute())
         items = res.data or []
-        return {"items": items, "unread": sum(1 for n in items if not n.get("lu"))}
+        return {"items": items, "unread": sum(1 for n in items if not n.get("lu")),
+                "commentaires": sum(1 for n in items if not n.get("lu") and n.get("type") == "commentaire")}
     except Exception as e:
         logger.error(f"list notifications error: {e}")
         return {"items": [], "unread": 0}
 
 
 @router.post("/lus")
-def mark_all_read(payload: dict = Depends(verify_token)):
+def mark_all_read(type: str | None = None, payload: dict = Depends(verify_token)):
+    """Tout marquer lu, ou seulement un type (?type=commentaire à l'ouverture de Commentaires)."""
     telegram_id = payload.get("telegram_id")
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
-    supabase.table("notifications").update({"lu": True}).eq("telegram_id", telegram_id).eq("lu", False).execute()
+    q = supabase.table("notifications").update({"lu": True}).eq("telegram_id", telegram_id).eq("lu", False)
+    if type:
+        q = q.eq("type", type)
+    q.execute()
     return {"ok": True}
 
 

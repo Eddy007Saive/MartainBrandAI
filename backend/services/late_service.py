@@ -560,6 +560,9 @@ def handle_webhook(payload: dict) -> dict:
     # Événements de COMPTE (un réseau se connecte/déconnecte côté Late)
     if event.startswith("account."):
         return _handle_account_event(event, payload)
+    if event.startswith("comment."):  # même endpoint que les posts : on aiguille vers l'inbox
+        from services import inbox_service
+        return inbox_service.handle_comment_webhook(payload)
 
     post = payload.get("post") or payload.get("data") or payload
     platforms = post.get("platforms") if isinstance(post.get("platforms"), list) else []

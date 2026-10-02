@@ -11,7 +11,8 @@ router = APIRouter(prefix="/inbox", tags=["inbox"])
 async def comment_webhook(request: Request):
     """Webhook Late `comment.received` (public, vérifié par signature) -> push temps réel."""
     raw = await request.body()
-    sig = request.headers.get("X-Late-Signature", "") or request.headers.get("x-late-signature", "")
+    # Zernio signe avec X-Zernio-Signature (ancien nom : X-Late-Signature)
+    sig = request.headers.get("X-Zernio-Signature", "") or request.headers.get("X-Late-Signature", "")
     if not late_service.verify_signature(raw, sig):
         raise HTTPException(status_code=401, detail="Signature invalide")
     try:

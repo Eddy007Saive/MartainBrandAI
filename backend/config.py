@@ -120,7 +120,8 @@ NEWSLETTER_CRON_ACTIVE = os.environ.get('NEWSLETTER_CRON_ACTIVE', '1') != '0'
 # lit le web en direct et cite ses sources. Vide = passe désactivée.
 NEWSLETTER_PERPLEXITY_MODEL = os.environ.get('NEWSLETTER_PERPLEXITY_MODEL', 'perplexity/sonar-pro')
 # Cron analytics : rafraîchit le cache toutes les N heures (0 = désactivé)
-ANALYTICS_CRON_HOURS = float(os.environ.get('ANALYTICS_CRON_HOURS', '1'))
+# Secours quotidien : le rafraîchissement normal vient du webhook analytics.synced de Zernio
+ANALYTICS_CRON_HOURS = float(os.environ.get('ANALYTICS_CRON_HOURS', '24'))
 
 # Stripe (abonnements payants)
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')

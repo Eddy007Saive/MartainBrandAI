@@ -17,6 +17,7 @@ import { userService } from '../services/userService';
 import { removeToken, isAdminAuthenticated, memoriserEspace } from '../lib/auth';
 import { cn } from '../lib/utils';
 import NotificationsBell from '../components/NotificationsBell';
+import { notificationService } from '../services/notificationService';
 import LangSwitcher from '../components/LangSwitcher';
 import AccountSwitcher from '../components/AccountSwitcher';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
@@ -114,7 +115,7 @@ function SettingsNav({ onNavigate }) {
   );
 }
 
-function NavItem({ item, onClick }) {
+function NavItem({ item, onClick, badge = 0 }) {
   const { t } = useTranslation();
   const Icon = item.icon;
   return (
@@ -135,6 +136,12 @@ function NavItem({ item, onClick }) {
           {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-full bg-gradient-to-b from-[#5B6CFF] to-[#8A6CFF]" />}
           <Icon className={cn('w-[18px] h-[18px] transition-colors', isActive ? 'text-[#8A6CFF]' : 'text-slate-500 group-hover:text-slate-300')} />
           <span>{t(item.label)}</span>
+          {badge > 0 && (
+            <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-[#3AFFA3] text-[#020617] text-[11px] font-bold grid place-items-center"
+              data-testid={`nav-badge-${item.label.split('.').pop()}`}>
+              {badge > 99 ? '99+' : badge}
+            </span>
+          )}
         </>
       )}
     </NavLink>
@@ -188,6 +195,26 @@ function DashboardContent() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDl, setShowDl] = useState(!downloadHidden());
+
+  // Nouveaux commentaires (webhook comment.received) : compteur sur « Commentaires »,
+  // remis à zéro à l'ouverture de la page.
+  const [nbCommentaires, setNbCommentaires] = useState(0);
+  const surCommentaires = location.pathname.startsWith('/dashboard/commentaires');
+  useEffect(() => {
+    let actif = true;
+    const charger = () => notificationService.list()
+      .then((d) => { if (actif) setNbCommentaires(d?.commentaires || 0); })
+      .catch(() => {});
+    charger();
+    const iv = setInterval(charger, 30000);
+    return () => { actif = false; clearInterval(iv); };
+  }, []);
+  useEffect(() => {
+    if (surCommentaires && nbCommentaires > 0) {
+      notificationService.markType('commentaire').then(() => setNbCommentaires(0)).catch(() => {});
+    }
+  }, [surCommentaires, nbCommentaires]);
+  const badgeDe = (item) => (item.path === '/dashboard/commentaires' ? nbCommentaires : 0);
 
   const isHome = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
   const inSettings = location.pathname.startsWith('/dashboard/parametres');
@@ -327,7 +354,7 @@ function DashboardContent() {
           <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
             <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter px-3 mb-2">Menu</p>
             {navItems.map((item) => (
-              <NavItem key={item.path} item={item} />
+              <NavItem key={item.path} item={item} badge={badgeDe(item)} />
             ))}
           </nav>
         )}
@@ -369,7 +396,7 @@ function DashboardContent() {
           )}
           <nav className="px-4 space-y-1 flex-1">
             {navItems.map((item) => (
-              <NavItem key={item.path} item={item} onClick={() => setMobileMenuOpen(false)} />
+              <NavItem key={item.path} item={item} badge={badgeDe(item)} onClick={() => setMobileMenuOpen(false)} />
             ))}
           </nav>
           <UserBlock />

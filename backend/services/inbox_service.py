@@ -31,16 +31,24 @@ def user_by_account(platform: str, account_id: str) -> str | None:
 
 
 def handle_comment_webhook(payload: dict) -> dict:
-    """Traite l'event `comment.received` : notifie le user par push."""
+    """Traite l'event `comment.received` : notification dans l'app (cloche + compteur sur
+    « Commentaires ») et push. Les noms de champs sont lus de façon tolérante : la doc Zernio
+    annonce `account.accountId`, l'ancien format envoyait `account.id`."""
     event = (payload.get("event") or payload.get("type") or "").lower()
     if event != "comment.received":
         return {"ok": True, "ignored": event}
     comment = payload.get("comment") or {}
     account = payload.get("account") or {}
-    author = comment.get("author") or {}
+    post = payload.get("post") or {}
+    author = comment.get("author") or comment.get("from") or {}
+    if not isinstance(author, dict):
+        author = {"name": str(author)}
+    logger.info(f"comment webhook: cles={list(payload.keys())} comment={list(comment.keys())} "
+                f"account={list(account.keys())}")
 
-    platform = _norm_platform(account.get("platform") or comment.get("platform"))
-    account_id = account.get("id")
+    platform = _norm_platform(account.get("platform") or comment.get("platform") or post.get("platform"))
+    account_id = (account.get("accountId") or account.get("id") or account.get("_id")
+                  or payload.get("accountId"))
     # Ignore nos propres commentaires/réponses
     if author.get("username") and account.get("username") and author["username"] == account["username"]:
         return {"ok": True, "ignored": "self"}
@@ -51,15 +59,23 @@ def handle_comment_webhook(payload: dict) -> dict:
         return {"ok": True, "no_user": True}
 
     author_name = author.get("name") or author.get("username") or "Quelqu'un"
-    text = (comment.get("text") or "").strip()
+    text = (comment.get("text") or comment.get("message") or comment.get("content") or "").strip()
     title = f"💬 Nouveau commentaire · {platform.capitalize()}"
     body = f"{author_name}: {text[:90]}" if text else f"{author_name} a commenté ton post"
+    # Notification dans l'app : cloche + compteur sur « Commentaires » (lu à l'ouverture de la page)
+    try:
+        supabase.table("notifications").insert({
+            "telegram_id": telegram_id, "type": "commentaire", "event": event,
+            "titre": title, "message": body, "reseau": platform,
+        }).execute()
+    except Exception as e:
+        logger.warning(f"comment webhook notification: {e}")
     try:
         from services import push_service
         push_service.send_to_user(telegram_id, title, body, {
             "type": "comment",
             "platform": platform,
-            "post_id": str(comment.get("postId") or comment.get("platformPostId") or ""),
+            "post_id": str(comment.get("postId") or comment.get("platformPostId") or post.get("id") or ""),
             "account_id": str(account_id or ""),
         })
     except Exception as e:

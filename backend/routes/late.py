@@ -132,13 +132,21 @@ async def annuler(contenu_id: str, payload: dict = Depends(verify_token)):
 async def webhook(request: Request):
     """Webhook Late (public, vérifié par signature HMAC) : met à jour le statut de publication."""
     raw = await request.body()
-    sig = request.headers.get("X-Late-Signature", "") or request.headers.get("x-late-signature", "")
+    # Zernio signe avec X-Zernio-Signature (ancien nom : X-Late-Signature)
+    sig = request.headers.get("X-Zernio-Signature", "") or request.headers.get("X-Late-Signature", "")
     if not late_service.verify_signature(raw, sig):
         raise HTTPException(status_code=401, detail="Signature invalide")
     try:
         payload = json.loads(raw.decode() or "{}")
     except Exception:
         payload = {}
+    if (payload.get("event") or "").lower() == "analytics.synced":
+        # Gros volume (un par compte et par cycle) : on répond tout de suite, le rafraîchissement
+        # se fait en tâche de fond.
+        import asyncio
+        from services import analytics_service
+        asyncio.get_running_loop().create_task(analytics_service.refresh_depuis_webhook(payload))
+        return {"received": True, "ok": True, "event": "analytics.synced"}
     try:
         res = late_service.handle_webhook(payload)
     except Exception as e:

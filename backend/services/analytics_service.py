@@ -100,6 +100,36 @@ async def refresh_user(telegram_id: str) -> dict:
     return data
 
 
+_DERNIER_REFRESH: dict = {}
+REFRESH_WEBHOOK_MIN_S = 600  # un client a souvent plusieurs comptes : un seul rafraîchissement / 10 min
+
+
+async def refresh_depuis_webhook(payload: dict) -> dict:
+    """`analytics.synced` : Zernio annonce que les chiffres d'UN compte ont changé (le message ne
+    contient aucun chiffre). On rafraîchit le cache du client propriétaire, au plus une fois par
+    REFRESH_WEBHOOK_MIN_S (un événement arrive par compte connecté). Le cron reste en secours."""
+    import time
+    from services.inbox_service import user_by_account
+    account = payload.get("account") or {}
+    account_id = (account.get("accountId") or account.get("id") or account.get("_id")
+                  or payload.get("accountId"))
+    telegram_id = user_by_account("", account_id)
+    if not telegram_id:
+        logger.info(f"analytics.synced: compte {account_id} sans client connu")
+        return {"ok": True, "no_user": True}
+    maintenant = time.monotonic()
+    if maintenant - _DERNIER_REFRESH.get(telegram_id, -1e9) < REFRESH_WEBHOOK_MIN_S:
+        return {"ok": True, "debounced": True}
+    _DERNIER_REFRESH[telegram_id] = maintenant
+    try:
+        await refresh_user(telegram_id)
+        logger.info(f"analytics.synced: cache rafraîchi pour {telegram_id}")
+        return {"ok": True, "telegram_id": telegram_id}
+    except Exception as e:
+        logger.warning(f"analytics.synced refresh {telegram_id}: {e}")
+        return {"ok": False, "error": str(e)}
+
+
 async def refresh_all() -> dict:
     """Cron : rafraîchit le cache analytics de tous les users actifs ayant un profil Late."""
     if not LATE_API_KEY:
