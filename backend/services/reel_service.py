@@ -103,7 +103,7 @@ TEMPLATES = {
                 "desc": "Un chiffre géant par écran, qui compte en direct. Pour les posts à résultats."},
     "long":    {"composition": "ReelLong", "label": "Narratif", "duree": 22, "tags": ["Storytelling"], "apercu": None,
                 "desc": "Accroche → contexte → preuves plein écran → leçon en citation → CTA."},
-    "motion":  {"composition": "MotionTypo", "label": "Motion · Typo cinétique", "duree": 16,
+    "motion":  {"composition": "MotionTypo", "label": "Motion · Typo cinétique", "duree": 60,
                 "tags": ["Motion design", "Sans visuel"], "apercu": None,
                 "desc": "Ton message en typographie animée : mots révélés, barrés, surlignés, mot géant, machine à écrire. Aux couleurs de ta marque, aucun visuel requis."},
 }
@@ -794,9 +794,11 @@ def _script_depuis_post(texte: str, marque: dict, long: bool = False) -> dict:
 
 
 _ROLE_MOTION = (
-    "Tu es motion designer. Tu transformes un post en TYPOGRAPHIE CINETIQUE verticale (reel 9:16) "
-    "de 4 a 6 plans de texte, dans la langue du post. Chaque plan = une phrase courte (2 a 9 mots), "
-    "lisible en 2-3 secondes ; l'ensemble raconte le message du post, de l'accroche a la conclusion. "
+    "Tu es motion designer. Tu transformes un post en video de TYPOGRAPHIE CINETIQUE verticale (9:16) "
+    "d'AU MOINS 60 SECONDES : 15 a 20 plans de texte, dans la langue du post. Chaque plan = une phrase courte "
+    "(2 a 10 mots). Structure : accroche forte (2-3 plans), puis le developpement en 3 ou 4 temps (le probleme, "
+    "pourquoi, ce qui change, la preuve ou l'exemple du post), puis la conclusion (2-3 plans). Developpe uniquement "
+    "les idees du post, sans rien inventer. "
     "Pour chaque plan choisis UN effet parmi : "
     "revele (mots qui apparaissent un a un, defaut), "
     "barre (les mots accentues sont barres en rouge : ce qu'on rejette, l'ancienne facon de faire), "
@@ -804,7 +806,7 @@ _ROLE_MOTION = (
     "geant (UN mot ou chiffre enorme, le reste en petit dessous : chiffre, mot-choc), "
     "machine (machine a ecrire : affirmation calme, conclusion). "
     "Varie les effets ; geant une fois au plus. accents = 1 a 2 mots EXACTS du plan a mettre en valeur. "
-    "dur = duree en secondes (1.8 a 3.5) selon la longueur. N'invente aucun chiffre absent du post. "
+    "dur = duree en secondes (2.8 a 4.5) selon la longueur ; la somme des dur doit atteindre 55 s. N'invente aucun chiffre absent du post. "
     "Jamais de tiret cadratin. cta = appel a l'action final de 2 a 5 mots. "
     "icone = UNE icone qui illustre le plan, parmi : fusee, horloge, cible, graphique, eclair, coeur, coche, croix, calendrier, message, personne, ampoule, argent, etoile, bouclier, telephone, megaphone, trophee; "
     "mets null si aucune ne colle vraiment, et pas d'icone sur un plan geant. Au moins la moitie des plans ont une icone. "
@@ -816,15 +818,16 @@ _ICONES_MOTION = ("fusee", "horloge", "cible", "graphique", "eclair", "coeur", "
 
 
 def _script_motion(texte: str, marque: dict) -> dict:
-    """Format Motion (typo cinetique) : Claude decoupe le post en 4 a 6 plans de texte anime,
-    chacun avec son effet ; repli heuristique sur les phrases du post si l'appel echoue."""
+    """Format Motion (typo cinetique, 60 s minimum) : Claude ecrit 15 a 20 plans de texte anime
+    (accroche, developpement, conclusion), chacun avec son effet et son icone ; repli heuristique
+    sur les morceaux du post si l'appel echoue. La composition allonge les plans si besoin."""
     from services.agent_service import _sans_tiret
     marque_ctx = (f"\n\nMarque : {marque.get('nom') or ''}. Secteur : {marque.get('secteur') or ''}. "
                   f"Appels a l'action de la marque : {marque.get('ctas') or marque.get('cta') or ''}.")
     try:
         resp = _messages_create(
             model="claude-haiku-4-5",
-            max_tokens=700,
+            max_tokens=2600,
             system=_ROLE_MOTION + marque_ctx,
             messages=[{"role": "user", "content": f"Post :\n\n{texte[:4000]}\n\nDonne le JSON."}],
         )
@@ -833,27 +836,33 @@ def _script_motion(texte: str, marque: dict) -> dict:
         m = re.search(r"\{.*\}", raw, re.S)
         data = json.loads(m.group(0) if m else raw)
         plans = []
-        for pl in (data.get("plans") or [])[:6]:
+        for pl in (data.get("plans") or [])[:22]:
             t = _sans_tiret(str(pl.get("texte") or "").strip())[:90]
             if not t:
                 continue
             effet = pl.get("effet") if pl.get("effet") in _EFFETS_MOTION else "revele"
             try:
-                dur = max(1.6, min(4.0, float(pl.get("dur") or 2.6)))
+                dur = max(2.0, min(5.0, float(pl.get("dur") or 3.2)))
             except (TypeError, ValueError):
-                dur = 2.6
+                dur = 3.2
             accents = [str(a)[:30] for a in (pl.get("accents") or []) if str(a).strip()][:2]
             icone = pl.get("icone") if pl.get("icone") in _ICONES_MOTION and effet != "geant" else None
             plans.append({"texte": t, "accents": accents, "effet": effet, "dur": dur, "icone": icone})
-        if len(plans) >= 3:
+        if len(plans) >= 8:
             return {"plans": plans, "cta": _sans_tiret(str(data.get("cta") or marque.get("nom") or ""))[:40],
                     "hook": plans[0]["texte"][:80]}
     except Exception as e:
         logger.warning(f"motion script LLM: {e}")
-    phrases = [x.strip() for x in re.split(r"(?<=[.!?])\s+", texte or "") if x.strip()][:5] or ["Un message qui compte."]
+    # Repli : decoupe le post en morceaux courts (phrases puis virgules) pour nourrir ~60 s
+    morceaux = []
+    for ph in re.split(r"(?<=[.!?])\s+", texte or ""):
+        for bout in re.split(r"(?<=[,;:])\s+", ph.strip()):
+            if bout.strip():
+                morceaux.append(bout.strip())
+    phrases = morceaux[:20] or ["Un message qui compte."]
     effets = ["revele", "surligne", "revele", "machine", "revele"]
     icones = ["ampoule", "cible", "graphique", "coche", "fusee"]
-    plans = [{"texte": ph[:90], "accents": [], "effet": effets[i % len(effets)], "dur": 2.6, "icone": icones[i % len(icones)]}
+    plans = [{"texte": ph[:90], "accents": [], "effet": effets[i % len(effets)], "dur": 3.2, "icone": icones[i % len(icones)]}
              for i, ph in enumerate(phrases)]
     return {"plans": plans, "cta": (marque.get("nom") or "")[:40], "hook": plans[0]["texte"][:80]}
 

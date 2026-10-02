@@ -17,10 +17,20 @@ export type MotionPlan = { texte: string; accents?: string[]; effet?: MotionEffe
 type Props = { brand: MotionBrand; plans: MotionPlan[]; cta: string };
 
 const FPS = 30;
-const DUR_CTA = 3.2;
-export const dureePlan = (p: MotionPlan) => Math.max(1.6, Math.min(4.5, p.dur ?? 2.6));
+const DUR_CTA = 3.5;
+// Durée plancher d'un Motion : 60 s, plan final compris. Si les plans écrits ne suffisent pas,
+// chacun est allongé dans la même proportion (au plus ×2,5) : le rythme reste cohérent.
+export const DUREE_MIN = 60;
+const dureeBrute = (p: MotionPlan) => Math.max(1.8, Math.min(6, p.dur ?? 3));
+export const dureesPlans = (plans: MotionPlan[]) => {
+  const brutes = (plans || []).map(dureeBrute);
+  const somme = brutes.reduce((a, b) => a + b, 0);
+  const facteur = somme > 0 ? Math.min(2.5, Math.max(1, (DUREE_MIN - DUR_CTA) / somme)) : 1;
+  return brutes.map((d) => d * facteur);
+};
+export const dureePlan = dureeBrute;
 export const dureeMotion = (plans: MotionPlan[]) =>
-  (plans || []).reduce((s, p) => s + dureePlan(p), 0) + DUR_CTA;
+  dureesPlans(plans).reduce((s, d) => s + d, 0) + DUR_CTA;
 
 // Icônes au trait (grille 24×24), dessinées par stroke-dashoffset. Liste partagée avec le
 // prompt (reel_service._ICONES_MOTION) : toute icône inconnue est ignorée.
@@ -198,10 +208,9 @@ const Compteur: React.FC<{ texte: string }> = ({ texte }) => {
   return <>{m[1]}{txt}{m[3]}</>;
 };
 
-const Plan: React.FC<{ plan: MotionPlan; brand: MotionBrand; rang: number }> = ({ plan, brand, rang }) => {
+const Plan: React.FC<{ plan: MotionPlan; brand: MotionBrand; rang: number; dur: number }> = ({ plan, brand, rang, dur }) => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const effet: MotionEffet = plan.effet || 'revele';
-  const dur = dureePlan(plan);
   const fin = dur * fps;
   const mots = (plan.texte || '').split(/\s+/).filter(Boolean);
   // Entrée du bloc : alterne glissement vertical, zoom et glissement latéral selon le rang
@@ -323,11 +332,12 @@ const Fin: React.FC<{ brand: MotionBrand; cta: string }> = ({ brand, cta }) => {
 };
 
 export const MotionTypo: React.FC<Props> = ({ brand, plans, cta }) => {
-  const durees = (plans || []).map((p) => Math.round(dureePlan(p) * FPS));
+  const secondes = dureesPlans(plans);
+  const durees = secondes.map((d) => Math.round(d * FPS));
   let debut = 0;
   const seqs: React.ReactNode[] = [];
   (plans || []).forEach((p, i) => {
-    seqs.push(<Sequence key={`p${i}`} from={debut} durationInFrames={durees[i]}><Plan plan={p} brand={brand} rang={i} /></Sequence>);
+    seqs.push(<Sequence key={`p${i}`} from={debut} durationInFrames={durees[i]}><Plan plan={p} brand={brand} rang={i} dur={secondes[i]} /></Sequence>);
     debut += durees[i];
     seqs.push(<Sequence key={`b${i}`} from={debut - 6} durationInFrames={14}><Balayage brand={brand} sens={i % 2 ? -1 : 1} /></Sequence>);
   });
