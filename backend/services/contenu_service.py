@@ -31,6 +31,27 @@ def log_evenement(contenu_id: str, type_: str, acteur: str = None, texte: str = 
         logger.warning(f"contenu_evenement {type_} {contenu_id}: {e}")
 
 
+RETOUCHE_SESSION_MIN = 10
+
+
+def log_retouche(contenu_id: str, acteur: str, texte: str) -> None:
+    """Retouche d'un brouillon (sauvegarde auto du Studio, une écriture par pause de frappe) :
+    UN événement « modifie » par session de retouche. Si le dernier événement du contenu est une
+    retouche du même acteur de moins de RETOUCHE_SESSION_MIN minutes, on y met le texte à jour
+    (l'heure reste celle du début de la session) au lieu d'en créer un nouveau."""
+    try:
+        der = (supabase.table("contenu_evenement").select("id, type, acteur, created_at")
+               .eq("contenu_id", contenu_id).order("created_at", desc=True).limit(1).execute()).data
+        if der and der[0]["type"] == "modifie" and der[0].get("acteur") == acteur:
+            debut = datetime.fromisoformat(der[0]["created_at"].replace("Z", "+00:00"))
+            if (datetime.now(timezone.utc) - debut).total_seconds() < RETOUCHE_SESSION_MIN * 60:
+                supabase.table("contenu_evenement").update({"texte": texte}).eq("id", der[0]["id"]).execute()
+                return
+    except Exception as e:
+        logger.warning(f"contenu_evenement retouche {contenu_id}: {e}")
+    log_evenement(contenu_id, "modifie", acteur=acteur, texte=texte)
+
+
 def upload_visuel(telegram_id: str, contenu_id: str, file_bytes: bytes) -> dict | None:
     """Importe une image fournie par l'utilisateur comme visuel du contenu.
     Upload Cloudinary, met à jour lien_visuel, confirme la planification, remplace l'ancien asset."""

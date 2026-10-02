@@ -803,6 +803,12 @@ def maj_brouillon_contenu(contenu_id: str, body: dict, payload: dict = Depends(v
          .eq("statut", "Brouillon").execute())
     if not r.data:
         raise HTTPException(status_code=404, detail="Brouillon introuvable")
+    # Suivi de la rédaction : nouvelle proposition de l'IA, ou retouche (une par session)
+    from services.contenu_service import log_evenement, log_retouche
+    if "contenu_original" in maj:
+        log_evenement(contenu_id, "regenere", acteur=telegram_id, texte=maj["contenu_original"])
+    elif "contenu" in maj:
+        log_retouche(contenu_id, telegram_id, maj["contenu"])
     return {"success": True}
 
 
@@ -854,13 +860,17 @@ def enregistrer(body: dict, payload: dict = Depends(verify_token)):
         # au lieu d'en creer une nouvelle. Le texte d'origine de l'IA est conserve tel qu'enregistre.
         brouillon_id = body.get("contenu_id")
         if brouillon_id:
-            ex = (supabase.table("contenu").select("id, statut").eq("id", brouillon_id)
+            ex = (supabase.table("contenu").select("id, statut, contenu").eq("id", brouillon_id)
                   .eq("telegram_id", telegram_id).limit(1).execute()).data
             if ex and ex[0].get("statut") == "Brouillon":
                 maj = {k: v for k, v in row.items() if k not in ("telegram_id", "created_at", "contenu_original")}
                 maj["statut"] = "A valider"
                 maj["updated_at"] = datetime.now(timezone.utc).isoformat()
                 supabase.table("contenu").update(maj).eq("id", brouillon_id).eq("telegram_id", telegram_id).execute()
+                from services.contenu_service import log_evenement, log_retouche
+                if contenu != (ex[0].get("contenu") or "").strip():
+                    log_retouche(brouillon_id, telegram_id, contenu)  # dernière retouche pas encore sauvegardée
+                log_evenement(brouillon_id, "soumis", acteur=telegram_id, texte=contenu)  # envoyé « A valider »
                 return {"success": True, "contenu_id": brouillon_id}
         ins = supabase.table("contenu").insert(row).execute()
         contenu_id = ins.data[0]["id"] if ins.data else None
