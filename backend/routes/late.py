@@ -128,6 +128,29 @@ async def annuler(contenu_id: str, payload: dict = Depends(verify_token)):
     return {"publish_status": "annulé", "statut": "Valider"}
 
 
+@router.post("/webhook-analytics")
+async def webhook_analytics(request: Request):
+    """Webhook DÉDIÉ à `analytics.synced` (recommandation Zernio) : cet événement est très
+    fréquent (~1 par compte et par heure) ; isolé sur sa propre adresse, une coupure ne peut pas
+    faire désactiver le webhook des posts (statuts de publication). Réponse immédiate,
+    rafraîchissement en tâche de fond."""
+    raw = await request.body()
+    sig = request.headers.get("X-Zernio-Signature", "") or request.headers.get("X-Late-Signature", "")
+    if not late_service.verify_signature(raw, sig):
+        raise HTTPException(status_code=401, detail="Signature invalide")
+    try:
+        payload = json.loads(raw.decode() or "{}")
+    except Exception:
+        payload = {}
+    event = (payload.get("event") or "").lower()
+    if event != "analytics.synced":
+        return {"received": True, "ok": True, "ignored": event}
+    import asyncio
+    from services import analytics_service
+    asyncio.get_running_loop().create_task(analytics_service.refresh_depuis_webhook(payload))
+    return {"received": True, "ok": True, "event": event}
+
+
 @router.post("/webhook")
 async def webhook(request: Request):
     """Webhook Late (public, vérifié par signature HMAC) : met à jour le statut de publication."""
