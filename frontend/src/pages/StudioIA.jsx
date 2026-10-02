@@ -66,8 +66,20 @@ const STEPS = [
   { n: 3, labelKey: 'stepValidation', icon: CheckCircle2 },
 ];
 
+// Identifiant UNIQUE de carte, même entre deux chargements de page : l'ancien compteur `c1, c2…`
+// repartait de zéro à chaque chargement, une nouvelle carte reprenait l'id d'une carte restaurée
+// depuis la sauvegarde, et « Fermer » / la corbeille retiraient toutes les cartes de même id.
 let _uid = 0;
-const nextId = () => `c${++_uid}`;
+const nextId = () => `c${Date.now().toString(36)}${(++_uid).toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+// Cartes restaurées : ids en double (sauvegardes faites avant ce correctif) -> on les rend uniques.
+const idsUniques = (cartes) => {
+  const vus = new Set();
+  return cartes.map((c) => {
+    if (!c.id || vus.has(c.id)) { const id = nextId(); vus.add(id); return { ...c, id }; }
+    vus.add(c.id);
+    return c;
+  });
+};
 
 const Pill = ({ active, onClick, children }) => (
   <button
@@ -252,7 +264,7 @@ export default function StudioIA() {
     if (!uid) return;
     draftsLoaded.current = false;
     agentService.getDrafts()
-      .then((data) => setContenus(Array.isArray(data) ? data.filter((c) => c.statut !== 'redaction') : []))
+      .then((data) => setContenus(Array.isArray(data) ? idsUniques(data.filter((c) => c.statut !== 'redaction')) : []))
       .catch(() => setContenus([]))
       .finally(() => { draftsLoaded.current = true; });
     // eslint-disable-next-line react-hooks/exhaustive-deps
