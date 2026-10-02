@@ -6,7 +6,6 @@ from services.auth_service import (
     find_user_by_email, create_reset_token, reset_password, login_google,
 )
 from services import mail_service, rate_limit, affiliation_service, mfa_service
-from services.social_service import create_late_profile
 from config import FRONTEND_URL, GOOGLE_CLIENT_ID, logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -66,11 +65,8 @@ async def register(user_data: UserRegister, request: Request):
             except Exception as e:
                 logger.warning(f"attribution affiliation ignorée pour {telegram_id}: {e}")
 
-        # Compte actif immédiatement -> on crée son profil Late (best-effort)
-        try:
-            await create_late_profile(telegram_id, result.get("nom", ""))
-        except Exception as e:
-            logger.warning(f"Late profile creation failed for {telegram_id}: {e}")
+        # Le profil de publication (Zernio) n'est plus créé ici : il l'est à la première
+        # connexion d'un réseau (social_service._ensure_late_profile).
 
         # Auto-login : on renvoie un token pour aller direct au dashboard
         token = create_token({"telegram_id": telegram_id, "email": result.get("email"), "is_admin": False})
@@ -146,10 +142,7 @@ async def google(body: GoogleLogin, request: Request):
                 affiliation_service.attribuer(body.ref, telegram_id=tid, email=result["user"].get("email"), ip=ip)
             except Exception as e:
                 logger.warning(f"attribution affiliation ignorée pour {tid}: {e}")
-        try:
-            await create_late_profile(tid, result["user"].get("nom", ""))
-        except Exception as e:
-            logger.warning(f"Late profile creation failed for {tid}: {e}")
+        # Profil de publication : créé à la première connexion d'un réseau, plus à l'inscription.
     rate_limit.clear(ki)
     return {"token": result["token"], "is_admin": result["is_admin"], "pending": result["pending"],
             "nouveau": result["nouveau"]}

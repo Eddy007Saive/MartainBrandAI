@@ -96,22 +96,9 @@ async def activate_user(telegram_id: str, payload: dict = Depends(verify_admin_t
             raise HTTPException(status_code=404, detail="User not found")
 
         user = result.data[0]
-
-        late_profile_created = False
-        late_error = None
-        try:
-            late_result = await create_late_profile(telegram_id, user.get("nom", ""))
-            late_profile_created = late_result["created"]
-            late_error = late_result.get("error")
-        except Exception as e:
-            late_error = str(e)
-            logger.warning(f"Failed to create Late profile for {telegram_id}: {e}")
-
-        response = sanitize_user(user)
-        response["late_profile_created"] = late_profile_created
-        if late_error:
-            response["late_error"] = late_error
-        return response
+        # Le profil de publication (Zernio) n'est plus créé à l'activation : il l'est à la
+        # première connexion d'un réseau par le client (social_service._ensure_late_profile).
+        return sanitize_user(user)
     except HTTPException:
         raise
     except Exception as e:

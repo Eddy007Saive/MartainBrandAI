@@ -90,6 +90,13 @@ def supprimer_compte(telegram_id: str, plateforme: str) -> bool:
         return False
 
 
+async def _profils_zernio(client) -> list:
+    """Profils existants sur le compte Zernio (liste de dicts avec _id / name)."""
+    lst = await client.profiles.alist()
+    ld = lst.model_dump() if hasattr(lst, "model_dump") else (lst or {})
+    return ld.get("profiles") or ld.get("data") or []
+
+
 async def create_late_profile(telegram_id: str, nom: str) -> dict:
     """Crée le profil Late directement via le SDK (plus de dépendance n8n) et enregistre
     late_profile_id en base. Retourne {created: bool, late_profile_id?, error?}."""
@@ -106,9 +113,7 @@ async def create_late_profile(telegram_id: str, nom: str) -> dict:
         async with Zernio(api_key=LATE_API_KEY) as client:
             # 1) Réutiliser un profil existant du même nom (évite doublons + limite de profils)
             try:
-                lst = await client.profiles.alist()
-                ld = lst.model_dump() if hasattr(lst, "model_dump") else (lst or {})
-                for p in (ld.get("profiles") or ld.get("data") or []):
+                for p in await _profils_zernio(client):
                     pid = p.get("_id") or p.get("field_id")
                     if pid and (p.get("name") or "").strip().lower() == name.lower():
                         return _link(pid, reused=True)
@@ -138,7 +143,11 @@ async def create_late_profile(telegram_id: str, nom: str) -> dict:
 
 
 async def _ensure_late_profile(telegram_id: str) -> tuple:
-    """Filet de sécurité : crée le profil Late s'il manque, puis attend qu'il soit enregistré.
+    """Le profil de publication (Zernio) est créé ICI, à la première connexion d'un réseau —
+    plus à l'inscription : un compte qui ne connecte jamais rien ne consomme pas de profil (le
+    plan Zernio en limite le nombre). Si un identifiant est déjà enregistré, on vérifie qu'il
+    existe encore chez Zernio ; sinon (profil supprimé, autre clé API) on le recrée, au lieu de
+    laisser le client sur « profile not found / access denied ».
     Retourne (ok: bool, error: str | None)."""
     try:
         res = supabase.table("users").select("late_profile_id, nom").eq("telegram_id", telegram_id).execute()
@@ -148,10 +157,21 @@ async def _ensure_late_profile(telegram_id: str) -> tuple:
     row = res.data[0] if res.data else {}
     if not row:
         return False, "Compte introuvable."
-    if row.get("late_profile_id"):
-        return True, None
-
-    logger.info(f"connect: profil Late manquant pour {telegram_id} -> création automatique (backend/SDK)")
+    pid = row.get("late_profile_id")
+    if pid:
+        try:
+            async with Zernio(api_key=LATE_API_KEY) as client:
+                ids = {p.get("_id") or p.get("field_id") for p in await _profils_zernio(client)}
+        except Exception as e:
+            # Zernio injoignable : on ne bloque pas, la connexion dira elle-même ce qui ne va pas
+            logger.warning(f"_ensure_late_profile: vérification du profil {pid} impossible ({e})")
+            return True, None
+        if pid in ids:
+            return True, None
+        logger.warning(f"connect: profil Late {pid} introuvable chez Zernio pour {telegram_id} -> recréation")
+        supabase.table("users").update({"late_profile_id": None}).eq("telegram_id", telegram_id).execute()
+    else:
+        logger.info(f"connect: pas encore de profil Late pour {telegram_id} -> création")
     cr = await create_late_profile(telegram_id, row.get("nom") or "")
     if cr.get("created") and cr.get("late_profile_id"):
         return True, None
@@ -186,7 +206,7 @@ async def connect_platform(telegram_id: str, platform: str) -> dict:
                 "Pendant l'essai, tu peux connecter un réseau à la fois. "
                 "Les autres se débloquent dès le premier prélèvement — "
                 "ou déconnecte celui-ci pour en essayer un autre.")}
-    # Filet de sécurité : garantir l'existence du profil Late avant toute connexion
+    # Profil de publication : créé (ou recréé s'il n'existe plus chez Zernio) à ce moment-là
     ok, err = await _ensure_late_profile(telegram_id)
     if not ok:
         return {"success": False, "error": err}
