@@ -263,27 +263,41 @@ export default function StudioIA() {
     const uid = user?.telegram_id;
     if (!uid) return;
     draftsLoaded.current = false;
-    // Les posts/stories rédigés vivent en base (statut Brouillon) : source de vérité, id = id en base.
-    // La sauvegarde locale ne garde que les autres cartes (carrousels, photos, scripts).
+    // Les posts, stories et scripts rédigés vivent en base (statut Brouillon) : source de vérité,
+    // id = id en base. La sauvegarde locale ne garde que les raccourcis (carrousels, photos).
     Promise.all([agentService.getDrafts().catch(() => []), agentService.brouillonsContenus().catch(() => [])])
       .then(([data, brouillons]) => {
-        const deBase = (brouillons || []).map((b) => ({
-          id: `b-${b.id}`, contenuId: b.id, brouillon: true, sujet: b.titre || '', texte: b.contenu || '',
-          texteOriginal: b.contenu_original || b.contenu || '', statut: 'pret',
-          format: b.type === 'Story' ? 'story' : 'post', meta: (b.reseau_cible || 'linkedin').toLowerCase(),
-        }));
+        const deBase = (brouillons || []).map((b) => (b.script && !b.contenu
+          ? {
+            id: `b-${b.id}`, contenuId: b.id, brouillon: true, sujet: b.titre || '', texte: b.script,
+            texteOriginal: b.script, statut: 'pret', format: 'script', meta: 'Reel',
+            ...(b.reseau_cible ? { reseau: b.reseau_cible.toLowerCase() } : {}),
+          }
+          : {
+            id: `b-${b.id}`, contenuId: b.id, brouillon: true, sujet: b.titre || '', texte: b.contenu || '',
+            texteOriginal: b.contenu_original || b.contenu || '', statut: 'pret',
+            format: b.type === 'Story' ? 'story' : 'post', meta: (b.reseau_cible || 'linkedin').toLowerCase(),
+          }));
         const locales = (Array.isArray(data) ? data : [])
           .filter((c) => c.statut !== 'redaction' && !c.brouillon);
         setContenus(idsUniques([...deBase, ...locales]));
-        // Reprise des anciennes cartes post/story (rédigées avant les brouillons en base) :
+        // Reprise des anciennes cartes post/story/script (rédigées avant les brouillons en base) :
         // chacune devient un vrai brouillon dans Contenus, sans IA ni quota.
-        locales.filter((c) => c.statut === 'pret' && (c.format === 'post' || c.format === 'story') && (c.texte || '').trim())
+        locales.filter((c) => c.statut === 'pret' && ['post', 'story', 'script'].includes(c.format) && (c.texte || '').trim())
           .forEach((c) => {
-            agentService.creerBrouillon({
-              titre: c.sujet, contenu: c.texte, contenu_original: c.texteOriginal || c.texte,
-              reseau: c.meta, ...(c.format === 'story' ? { type: 'Story' } : {}),
-            }).then((d) => {
-              if (d?.contenu_id) setContenus((prev) => prev.map((x) => (x.id === c.id ? { ...x, contenuId: d.contenu_id, brouillon: true } : x)));
+            agentService.creerBrouillon(c.format === 'script'
+              ? { titre: c.sujet, script: c.texte, ...(c.reseau ? { reseau: c.reseau } : {}) }
+              : {
+                titre: c.sujet, contenu: c.texte, contenu_original: c.texteOriginal || c.texte,
+                reseau: c.meta, ...(c.format === 'story' ? { type: 'Story' } : {}),
+              }).then((d) => {
+              if (d?.contenu_id) {
+                setContenus((prev) => {
+                  // déjà présent depuis la base (reprise faite par un autre onglet) : on garde une seule carte
+                  if (prev.some((x) => x.id !== c.id && x.contenuId === d.contenu_id)) return prev.filter((x) => x.id !== c.id);
+                  return prev.map((x) => (x.id === c.id ? { ...x, contenuId: d.contenu_id, brouillon: true } : x));
+                });
+              }
             }).catch(() => {});
           });
       })
@@ -417,12 +431,12 @@ export default function StudioIA() {
         return;
       }
       const d = fmt === 'script'
-        ? await agentService.script(s.titre, meta, qualite, dimsEdit)
+        ? await agentService.script(s.titre, meta, qualite, dimsEdit, { brouillon: true, ...(reseau ? { reseau } : {}) })
         : await agentService.rediger(s.titre, meta, false, qualite, dimsEdit, { brouillon: true, ...(fmt === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(fmt !== 'script' && d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}) } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}) } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -460,12 +474,12 @@ export default function StudioIA() {
         return;
       }
       const d = fmt === 'script'
-        ? await agentService.script(txt, meta, qualite)
+        ? await agentService.script(txt, meta, qualite, null, { brouillon: true })
         : await agentService.rediger(txt, meta, false, qualite, null, { brouillon: true, ...(fmt === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite, source: 'brief' });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(fmt !== 'script' && d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}) } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}) } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -526,14 +540,16 @@ export default function StudioIA() {
         return;
       }
       const d = card.format === 'script'
-        ? await agentService.script(prompt, card.meta, card.qualite)
+        ? await agentService.script(prompt, card.meta, card.qualite, null, card.brouillon ? {} : { brouillon: true, ...(card.reseau ? { reseau: card.reseau } : {}) })
         : await agentService.rediger(prompt, card.meta, false, card.qualite, null,
           card.brouillon ? {} : { brouillon: true, ...(card.format === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       const texte = card.format === 'script' ? (d.script || '') : (d.contenu || '');
       if (card.brouillon && card.contenuId) {
-        agentService.majBrouillon(card.contenuId, texte, texte).catch(() => {});
-      } else if (card.format !== 'script' && d.contenu_id) {
+        (card.format === 'script'
+          ? agentService.majBrouillonScript(card.contenuId, texte, true)
+          : agentService.majBrouillon(card.contenuId, texte, texte)).catch(() => {});
+      } else if (d.contenu_id) {
         setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, contenuId: d.contenu_id, brouillon: true } : c)));
       }
       // Une régénération est une nouvelle proposition de l'IA, pas une retouche du client :
@@ -551,7 +567,9 @@ export default function StudioIA() {
     const card = contenus.find((c) => c.id === id);
     if (card?.brouillon && card.contenuId) {
       clearTimeout(majTimers.current[id]);
-      majTimers.current[id] = setTimeout(() => { agentService.majBrouillon(card.contenuId, texte).catch(() => {}); }, 900);
+      majTimers.current[id] = setTimeout(() => {
+        (card.format === 'script' ? agentService.majBrouillonScript(card.contenuId, texte) : agentService.majBrouillon(card.contenuId, texte)).catch(() => {});
+      }, 900);
     }
   };
 
@@ -562,7 +580,9 @@ export default function StudioIA() {
     try {
       if (card.format === 'script') {
         // Script vidéo → contenu « À tourner » (apparaît dans Contenus, prêt à monter)
-        const d = await videoService.createDraft({ script: card.texte, titre: card.sujet, ...(card.reseau ? { reseau: card.reseau } : {}) });
+        clearTimeout(majTimers.current[id]);
+        const d = await videoService.createDraft({ script: card.texte, titre: card.sujet, ...(card.reseau ? { reseau: card.reseau } : {}),
+          ...(card.brouillon && card.contenuId ? { contenu_id: card.contenuId } : {}) });
         setContenus((prev) => prev.filter((c) => c.id !== id));
         if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
         toast.success(t('studio.scriptReady'), {

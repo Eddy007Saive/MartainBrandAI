@@ -31,6 +31,7 @@ import {
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { videoService } from '@/services/videoService';
 import { contenuService } from '../services/contenuService';
 import { editeurService } from '../services/editeurService';
 import { PillFabrication } from '../components/Fabrication';
@@ -1202,6 +1203,21 @@ export default function ContenusPage() {
   const handleUpdateStatut = async (id, newStatut, opts = {}, extra = {}) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
+      // Script vidéo en brouillon : la validation l'envoie « À tourner » (même chemin que le Studio),
+      // pas en programmation — il n'y a encore aucune vidéo à publier.
+      if (cible?.statut === 'Brouillon' && cible?.script && !cible?.contenu) {
+        setActionLoading(id);
+        try {
+          await videoService.createDraft({ contenu_id: id, script: cible.script, titre: cible.titre });
+          setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'A tourner' } : c)));
+          if (!opts.skipToast) toast.success(t('studio.scriptReady'));
+        } catch (e) {
+          if (!opts.skipToast) toast.error(e.response?.data?.detail || t('studio.validationError'));
+        } finally {
+          setActionLoading(null);
+        }
+        return;
+      }
       // Vidéo encore en rendu (worker) : rien à programmer tant que le média n'est pas là.
       if (cible?.video_status && !cible?.video_url) {
         if (!opts.skipToast) toast.error(t('contenus.toast.attendsRendu'));

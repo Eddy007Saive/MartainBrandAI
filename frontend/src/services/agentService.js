@@ -40,6 +40,9 @@ export const agentService = {
   brouillonsContenus: () => api.get('/agent/brouillons-contenus').then((r) => r.data),
   majBrouillon: (id, contenu, contenuOriginal = null) =>
     api.patch(`/agent/brouillons-contenus/${id}`, { contenu, ...(contenuOriginal ? { contenu_original: contenuOriginal } : {}) }).then((r) => r.data),
+  // Script vidéo en brouillon : retouche, ou nouvelle proposition de l'IA (regenere)
+  majBrouillonScript: (id, script, regenere = false) =>
+    api.patch(`/agent/brouillons-contenus/${id}`, { script, ...(regenere ? { regenere: true } : {}) }).then((r) => r.data),
   creerBrouillon: (carte) => api.post('/agent/brouillons-contenus', carte).then((r) => r.data),
   supprimerBrouillon: (id) => api.delete(`/agent/brouillons-contenus/${id}`).then((r) => r.data),
 
@@ -51,8 +54,8 @@ export const agentService = {
     api.post('/agent/enregistrer', { contenu, titre, reseau, type, contenu_original: contenuOriginal, ...(contenuId ? { contenu_id: contenuId } : {}) }).then((r) => r.data),
 
   // Génère un script vidéo
-  script: (sujet, type_video = 'Reel', qualite = 'equilibre', dimensions = null) =>
-    api.post('/agent/script', { sujet, type_video, qualite, ...(dimensions ? { dimensions } : {}) }).then((r) => r.data),
+  script: (sujet, type_video = 'Reel', qualite = 'equilibre', dimensions = null, extra = {}) =>
+    api.post('/agent/script', { sujet, type_video, qualite, ...(dimensions ? { dimensions } : {}), ...extra }).then((r) => r.data),
 
   // Génère un carrousel (slides texte + images rendues) -> { contenu_id, slides, slides_images, credits }
   // contenu_id fourni = régénère le carrousel d'un contenu existant

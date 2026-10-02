@@ -5,6 +5,7 @@ b-roll + zooms + musique optionnelle) → rendu async (polling, pas de webhook c
 submagic-poc) → le MP4 est déjà sur Cloudinary (studio-montage/{job_id}/video) une fois
 `done`, on l'attache directement au contenu.
 """
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Request
 import cloudinary
 import cloudinary.uploader
@@ -119,6 +120,20 @@ def draft(body: dict, payload: dict = Depends(verify_token)):
     reseau = (body.get("reseau") or "").lower()
     if reseau in RESEAU_MAP:
         row["reseau_cible"] = RESEAU_MAP[reseau]
+    # Script du Studio IA deja en base (statut Brouillon) : on le PROMEUT (meme ligne) en « A tourner »
+    brouillon_id = body.get("contenu_id")
+    if brouillon_id:
+        ex = (supabase.table("contenu").select("id, statut, script").eq("id", brouillon_id)
+              .eq("telegram_id", telegram_id).limit(1).execute()).data
+        if ex and ex[0].get("statut") == "Brouillon":
+            maj = {k: v for k, v in row.items() if k != "telegram_id"}
+            maj["updated_at"] = datetime.now(timezone.utc).isoformat()
+            supabase.table("contenu").update(maj).eq("id", brouillon_id).eq("telegram_id", telegram_id).execute()
+            from services.contenu_service import log_evenement, log_retouche
+            if script and script != (ex[0].get("script") or "").strip():
+                log_retouche(brouillon_id, telegram_id, script)
+            log_evenement(brouillon_id, "soumis", acteur=telegram_id, texte=script)
+            return {"contenu_id": brouillon_id}
     ins = supabase.table("contenu").insert(row).execute()
     return {"contenu_id": ins.data[0]["id"] if ins.data else None}
 

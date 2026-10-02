@@ -747,6 +747,18 @@ def script(body: dict, payload: dict = Depends(verify_token)):
         _map_agent_error(result)
     quota_service.confirm(q)
     usage_service.log(telegram_id, "script", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite)
+    if body.get("brouillon") and (result.get("script") or "").strip():
+        # Studio IA : le script vit en base des sa redaction, au statut Brouillon ; il passe
+        # « A tourner » a la validation (/video/draft avec contenu_id).
+        row = {"telegram_id": telegram_id, "titre": sujet[:120], "type": "Reel", "statut": "Brouillon",
+               "script": result["script"], "created_at": datetime.now(timezone.utc).isoformat()}
+        if (body.get("reseau") or "").lower() in RESEAU_MAP:
+            row["reseau_cible"] = RESEAU_MAP[body["reseau"].lower()]
+        ins = supabase.table("contenu").insert(row).execute()
+        result["contenu_id"] = ins.data[0]["id"] if ins.data else None
+        if result["contenu_id"]:
+            from services.contenu_service import log_evenement
+            log_evenement(result["contenu_id"], "genere", acteur=telegram_id, texte=result["script"])
     result["quota"] = {"action": "post", "used": q.get("used"), "limit": q.get("limit")}
     return result
 
@@ -782,7 +794,7 @@ def brouillons_contenus(payload: dict = Depends(verify_token)):
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     r = (supabase.table("contenu")
-         .select("id, titre, contenu, contenu_original, reseau_cible, type, created_at")
+         .select("id, titre, contenu, contenu_original, script, reseau_cible, type, created_at")
          .eq("telegram_id", telegram_id).eq("statut", "Brouillon")
          .order("created_at", desc=True).limit(50).execute())
     return r.data or []
@@ -796,25 +808,36 @@ def creer_brouillon_contenu(body: dict, payload: dict = Depends(verify_token)):
     if not telegram_id:
         raise HTTPException(status_code=400, detail="Invalid token")
     contenu = (body.get("contenu") or "").strip()
-    if not contenu:
+    script_txt = (body.get("script") or "").strip()
+    if not contenu and not script_txt:
         raise HTTPException(status_code=400, detail="contenu requis")
     row = {
         "telegram_id": telegram_id,
-        "titre": ((body.get("titre") or contenu[:80]).strip())[:120],
-        "contenu": contenu,
-        "contenu_original": (body.get("contenu_original") or "").strip() or contenu,
+        "titre": ((body.get("titre") or (contenu or script_txt)[:80]).strip())[:120],
         "statut": "Brouillon",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    if body.get("reseau") in RESEAU_MAP:
-        row["reseau_cible"] = RESEAU_MAP[body.get("reseau")]
+    if script_txt:  # script video : prend le chemin « A tourner » a la validation
+        row.update({"type": "Reel", "script": script_txt})
+    else:
+        row.update({"contenu": contenu, "contenu_original": (body.get("contenu_original") or "").strip() or contenu})
+    reseau = (body.get("reseau") or "").lower()  # une ancienne carte peut porter « LinkedIn »
+    if reseau in RESEAU_MAP:
+        row["reseau_cible"] = RESEAU_MAP[reseau]
     if body.get("type") == "Story":
         row["type"] = "Story"
+    # Reprise idempotente : la meme carte reprise deux fois (deux onglets, double montage React)
+    # renvoie le brouillon deja cree au lieu d'en faire un doublon.
+    champ, valeur = ("script", script_txt) if script_txt else ("contenu", contenu)
+    deja = (supabase.table("contenu").select("id").eq("telegram_id", telegram_id).eq("statut", "Brouillon")
+            .eq("titre", row["titre"]).eq(champ, valeur).limit(1).execute()).data
+    if deja:
+        return {"success": True, "contenu_id": deja[0]["id"]}
     ins = supabase.table("contenu").insert(row).execute()
     cid = ins.data[0]["id"] if ins.data else None
     if cid:
         from services.contenu_service import log_evenement
-        log_evenement(cid, "genere", acteur=telegram_id, texte=row["contenu_original"])
+        log_evenement(cid, "genere", acteur=telegram_id, texte=row.get("contenu_original") or script_txt)
     return {"success": True, "contenu_id": cid}
 
 
@@ -829,16 +852,18 @@ def maj_brouillon_contenu(contenu_id: str, body: dict, payload: dict = Depends(v
         maj["contenu"] = body["contenu"]
     if isinstance(body.get("contenu_original"), str) and body["contenu_original"].strip():
         maj["contenu_original"] = body["contenu_original"]  # regeneration : nouvelle proposition de l'IA
+    if isinstance(body.get("script"), str):
+        maj["script"] = body["script"]
     r = (supabase.table("contenu").update(maj).eq("id", contenu_id).eq("telegram_id", telegram_id)
          .eq("statut", "Brouillon").execute())
     if not r.data:
         raise HTTPException(status_code=404, detail="Brouillon introuvable")
     # Suivi de la rédaction : nouvelle proposition de l'IA, ou retouche (une par session)
     from services.contenu_service import log_evenement, log_retouche
-    if "contenu_original" in maj:
-        log_evenement(contenu_id, "regenere", acteur=telegram_id, texte=maj["contenu_original"])
-    elif "contenu" in maj:
-        log_retouche(contenu_id, telegram_id, maj["contenu"])
+    if "contenu_original" in maj or body.get("regenere"):
+        log_evenement(contenu_id, "regenere", acteur=telegram_id, texte=maj.get("contenu_original") or maj.get("script"))
+    elif "contenu" in maj or "script" in maj:
+        log_retouche(contenu_id, telegram_id, maj.get("contenu", maj.get("script")))
     return {"success": True}
 
 
