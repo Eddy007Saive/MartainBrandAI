@@ -859,6 +859,23 @@
     "incompleteDesc": "The system cannot work properly until all required fields are filled in. Incomplete sections are marked with an orange dot in the navigation."
   },
   "params": {
+    "reprog": {
+      "titre": "Your {{reseau}} account changed",
+      "desc_one": "This post hasn't been published yet: it was scheduled on the old account. Reschedule it on the new one?",
+      "desc_other": "These {{count}} posts haven't been published yet: they were scheduled on the old account. Untick the ones you no longer want, then reschedule the rest on the new one.",
+      "dateGardee": "Keeps its date: {{date}}",
+      "enRetard": "Date passed ({{date}}): next free slot",
+      "sansTitre": "Untitled",
+      "toutCocher": "Select all",
+      "toutDecocher": "Deselect all",
+      "oui_one": "Reschedule this post",
+      "oui_other": "Reschedule {{count}} posts",
+      "non": "No thanks",
+      "toastOk_one": "{{count}} post rescheduled",
+      "toastOk_other": "{{count}} posts rescheduled",
+      "toastNon": "Okay, nothing was rescheduled.",
+      "erreur": "Rescheduling failed. Try again from Content."
+    },
     "commun": {
       "chargement": "Loading...",
       "annuler": "Cancel",

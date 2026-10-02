@@ -89,6 +89,11 @@ export const contenuService = {
 
   // Annule l'envoi d'un contenu programmé dans Late
   annuler: (id) => api.post(`/late/annuler/${id}`).then(r => r.data),
+
+  // Compte d'un réseau changé : posts pas encore publiés qu'on propose de reprogrammer
+  aReprogrammer: () => api.get('/late/a-reprogrammer').then(r => r.data),
+  // Réponse du client (ids vide = « non merci »)
+  reprogrammer: (platform, ids) => api.post('/late/reprogrammer', { platform, ids }).then(r => r.data),
   // Déclinaison en story : options (texte pré-rempli + modèles), aperçu live, création
   storyOptions: (id) => api.get(`/contenus/${id}/story/options`).then(r => r.data),
   storyApercu: (id, body) => api.post(`/contenus/${id}/story/apercu`, body).then(r => r.data),

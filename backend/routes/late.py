@@ -72,6 +72,38 @@ async def publier(contenu_id: str, payload: dict = Depends(verify_token)):
     raise HTTPException(status_code=502, detail=res.get("error") or "Échec de la publication")
 
 
+@router.get("/a-reprogrammer")
+def a_reprogrammer(payload: dict = Depends(verify_token)):
+    """Réseaux dont le compte vient de changer, avec les posts pas encore publiés qu'on propose
+    de reprogrammer : {plateforme: [{id, titre, date_publication, en_retard}]}. Un réseau sans
+    aucun post concerné est marqué traité (rien à demander)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    out = {}
+    for p in social_service.reprog_en_attente(telegram_id):
+        posts = late_service.candidats_reprogrammation(telegram_id, p)
+        if posts:
+            out[p] = [{k: c.get(k) for k in ("id", "titre", "date_publication", "en_retard")} for c in posts]
+        else:
+            social_service.reprog_traitee(telegram_id, p)
+    return out
+
+
+@router.post("/reprogrammer")
+async def reprogrammer(body: dict, payload: dict = Depends(verify_token)):
+    """Réponse du client à la question : `ids` = posts à reprogrammer (liste vide = « non
+    merci »). Dans les deux cas la question est close pour ce réseau."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    platform = (body.get("platform") or "").lower()
+    ids = [str(i) for i in (body.get("ids") or [])]
+    n = await late_service.reprogrammer_reseau(telegram_id, platform, ids) if ids else 0
+    social_service.reprog_traitee(telegram_id, platform)
+    return {"success": True, "reprogrammes": n}
+
+
 @router.post("/annuler/{contenu_id}")
 async def annuler(contenu_id: str, payload: dict = Depends(verify_token)):
     """Annule l'envoi d'un contenu programmé dans Late."""

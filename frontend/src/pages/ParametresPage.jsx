@@ -42,6 +42,7 @@ import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { DAYS, DEFAULT_SCHEDULE } from '../constants/schedules';
 import QuotaGauge from '../components/QuotaGauge';
+import ReprogrammationReseau from '../components/ReprogrammationReseau';
 import Affiliation from './Affiliation';
 
 const REQUIRED_FIELDS = {
@@ -625,6 +626,7 @@ export default function ParametresPage() {
     }
   };
 
+  const [reprogTick, setReprogTick] = useState(0);
   const openOAuthPopup = (url, platformName) => {
     const width = 600, height = 700;
     const left = window.screenX + (window.outerWidth - width) / 2;
@@ -632,7 +634,8 @@ export default function ParametresPage() {
     const popup = window.open(url, `${platformName}_oauth`,
       `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,scrollbars=yes`);
     if (popup) {
-      const timer = setInterval(() => { if (popup.closed) { clearInterval(timer); refetchUser(); } }, 500);
+      // À la fermeture : profil rafraîchi + question de reprogrammation si le compte a changé
+      const timer = setInterval(() => { if (popup.closed) { clearInterval(timer); refetchUser(); setReprogTick((n) => n + 1); } }, 500);
     }
   };
 
@@ -1968,6 +1971,7 @@ export default function ParametresPage() {
 
   return (
     <div className="h-full">
+      <ReprogrammationReseau declencheur={reprogTick} />
       {/* Header */}
       <PageHeader
         icon={Settings}

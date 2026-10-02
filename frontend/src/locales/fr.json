@@ -859,6 +859,23 @@
     "incompleteDesc": "Le système ne peut pas fonctionner correctement tant que tous les champs requis ne sont pas remplis. Les sections incomplètes sont signalées par un point orange dans la navigation."
   },
   "params": {
+    "reprog": {
+      "titre": "Ton compte {{reseau}} a changé",
+      "desc_one": "Ce post n'est pas encore publié : il était programmé sur l'ancien compte. Veux-tu le reprogrammer sur le nouveau ?",
+      "desc_other": "Ces {{count}} posts ne sont pas encore publiés : ils étaient programmés sur l'ancien compte. Décoche ceux dont tu ne veux plus, puis reprogramme les autres sur le nouveau.",
+      "dateGardee": "Garde sa date : {{date}}",
+      "enRetard": "Date passée ({{date}}) : prochain créneau libre",
+      "sansTitre": "Sans titre",
+      "toutCocher": "Tout cocher",
+      "toutDecocher": "Tout décocher",
+      "oui_one": "Reprogrammer ce post",
+      "oui_other": "Reprogrammer {{count}} posts",
+      "non": "Non merci",
+      "toastOk_one": "{{count}} post reprogrammé",
+      "toastOk_other": "{{count}} posts reprogrammés",
+      "toastNon": "D'accord, rien n'a été reprogrammé.",
+      "erreur": "La reprogrammation a échoué. Réessaie depuis Contenus."
+    },
     "commun": {
       "chargement": "Chargement...",
       "annuler": "Annuler",

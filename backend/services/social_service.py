@@ -280,17 +280,30 @@ async def list_connected_accounts(telegram_id: str) -> dict:
 
 
 def _reprogrammer_si_change(telegram_id: str, platform: str, ancien: str | None, nouveau: str) -> None:
-    """Compte du réseau changé (ou première connexion) : les posts à venir de ce réseau sont
-    reprogrammés chez Zernio sur le nouveau compte. Lancé en tâche de fond pour ne pas retarder
-    le retour de l'OAuth."""
+    """Compte du réseau changé (autre compte, profil Zernio recréé, reconnexion après une
+    déconnexion — Zernio donne alors un nouvel identifiant) : on ne reprogramme RIEN d'office,
+    on lève un indicateur ; la page Paramètres propose ensuite au client de reprogrammer ses
+    posts pas encore publiés (il peut ne plus en vouloir certains). Reconnecter le même compte
+    (accès expiré) garde le même identifiant : rien n'est proposé."""
     if not nouveau or ancien == nouveau:
         return
-    import asyncio
-    from services import late_service
     try:
-        asyncio.get_running_loop().create_task(late_service.reprogrammer_reseau(telegram_id, platform))
+        supabase.table("comptes_sociaux").update({"reprog_en_attente": True}) \
+            .eq("telegram_id", telegram_id).eq("plateforme", _norm_platform(platform)).execute()
     except Exception as e:
-        logger.error(f"reprogrammation {telegram_id}/{platform} non lancée: {e}")
+        logger.error(f"indicateur de reprogrammation {telegram_id}/{platform}: {e}")
+
+
+def reprog_en_attente(telegram_id: str) -> list:
+    """Réseaux dont le compte a changé et pour lesquels la question n'a pas encore été posée."""
+    r = (supabase.table("comptes_sociaux").select("plateforme")
+         .eq("telegram_id", telegram_id).eq("reprog_en_attente", True).execute())
+    return [x["plateforme"] for x in (r.data or [])]
+
+
+def reprog_traitee(telegram_id: str, platform: str) -> None:
+    supabase.table("comptes_sociaux").update({"reprog_en_attente": False}) \
+        .eq("telegram_id", telegram_id).eq("plateforme", _norm_platform(platform)).execute()
 
 
 async def finalize_connection(telegram_id: str, platform: str, account_id: str = None) -> dict:

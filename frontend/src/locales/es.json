@@ -859,6 +859,23 @@
     "incompleteDesc": "El sistema no puede funcionar correctamente mientras no se rellenen todos los campos obligatorios. Las secciones incompletas están marcadas con un punto naranja en la navegación."
   },
   "params": {
+    "reprog": {
+      "titre": "Tu cuenta de {{reseau}} ha cambiado",
+      "desc_one": "Esta publicación aún no se ha publicado: estaba programada en la cuenta anterior. ¿Quieres reprogramarla en la nueva?",
+      "desc_other": "Estas {{count}} publicaciones aún no se han publicado: estaban programadas en la cuenta anterior. Desmarca las que ya no quieras y reprograma el resto en la nueva.",
+      "dateGardee": "Conserva su fecha: {{date}}",
+      "enRetard": "Fecha pasada ({{date}}): próximo hueco libre",
+      "sansTitre": "Sin título",
+      "toutCocher": "Marcar todo",
+      "toutDecocher": "Desmarcar todo",
+      "oui_one": "Reprogramar esta publicación",
+      "oui_other": "Reprogramar {{count}} publicaciones",
+      "non": "No, gracias",
+      "toastOk_one": "{{count}} publicación reprogramada",
+      "toastOk_other": "{{count}} publicaciones reprogramadas",
+      "toastNon": "De acuerdo, no se ha reprogramado nada.",
+      "erreur": "La reprogramación ha fallado. Inténtalo desde Contenidos."
+    },
     "commun": {
       "chargement": "Cargando...",
       "annuler": "Cancelar",

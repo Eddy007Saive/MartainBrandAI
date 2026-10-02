@@ -410,40 +410,55 @@ _RESEAU_ENUM = {"linkedin": "LinkedIn", "instagram": "Instagram", "facebook": "F
 REPROG_RETARD_MAX_JOURS = 30
 
 
-async def reprogrammer_reseau(telegram_id: str, plateforme: str) -> int:
-    """Filet de sécurité quand le compte d'un réseau CHANGE (reconnexion avec un autre compte,
-    profil Zernio recréé, première connexion après des posts validés sans réseau) : les posts
-    pas encore publiés de ce réseau sont reprogrammés chez Zernio sur le nouveau compte.
+def candidats_reprogrammation(telegram_id: str, plateforme: str) -> list:
+    """Posts pas encore publiés d'un réseau, programmés ou validés (date à venir, ou passée
+    depuis au plus REPROG_RETARD_MAX_JOURS jours) : ceux qu'on PROPOSE de reprogrammer quand le
+    compte du réseau change. Chaque ligne porte `en_retard` (date passée)."""
+    reseau = _RESEAU_ENUM.get((plateforme or "").lower())
+    if not reseau:
+        return []
+    now = datetime.now(timezone.utc)
+    rows = (supabase.table("contenu")
+            .select("id, titre, late_post_id, publish_status, date_publication, type")
+            .eq("telegram_id", telegram_id).eq("reseau_cible", reseau)
+            .in_("statut", ["Planifie", "Valider"])
+            .gte("date_publication", (now - timedelta(days=REPROG_RETARD_MAX_JOURS)).isoformat())
+            .order("date_publication").limit(100).execute()).data or []
+    out = []
+    for c in rows:
+        if c.get("publish_status") == "publié" or not c.get("date_publication"):
+            continue
+        date = datetime.fromisoformat(str(c["date_publication"]).replace("Z", "+00:00"))
+        out.append({**c, "en_retard": date <= now})
+    return out
+
+
+async def reprogrammer_reseau(telegram_id: str, plateforme: str, ids: list | None = None) -> int:
+    """Reprogramme chez Zernio, sur le compte ACTUEL du réseau, les posts pas encore publiés
+    choisis par le client (`ids` ; None = tous les candidats) — après un changement de compte.
     - date encore à venir : on GARDE la date ;
-    - date déjà passée (post jamais parti, au plus REPROG_RETARD_MAX_JOURS jours) : prochain
-      créneau libre, puis programmation.
+    - date déjà passée : prochain créneau libre, puis programmation.
     L'ancien post Zernio éventuel est supprimé d'abord (sinon double publication si l'ancien
     compte existe encore). Best-effort : ne lève jamais. Retourne le nombre reprogrammé."""
     reseau = _RESEAU_ENUM.get((plateforme or "").lower())
     if not reseau:
         return 0
     from services import planning_service
-    now = datetime.now(timezone.utc)
     n = 0
     try:
-        rows = (supabase.table("contenu")
-                .select("id, late_post_id, publish_status, date_publication, type")
-                .eq("telegram_id", telegram_id).eq("reseau_cible", reseau)
-                .in_("statut", ["Planifie", "Valider"])
-                .gte("date_publication", (now - timedelta(days=REPROG_RETARD_MAX_JOURS)).isoformat())
-                .limit(100).execute()).data or []
+        rows = candidats_reprogrammation(telegram_id, plateforme)
     except Exception as e:
         logger.error(f"reprogrammer_reseau lecture {telegram_id}/{reseau}: {e}")
         return 0
+    if ids is not None:
+        voulus = set(ids)
+        rows = [c for c in rows if c["id"] in voulus]
     for c in rows:
-        if c.get("publish_status") == "publié":
-            continue
         try:
             if c.get("late_post_id"):
                 await cancel_post(c["late_post_id"])  # ancien compte : on retire l'ancienne programmation
             maj = {"late_post_id": None, "publish_status": None, "publish_error": None}
-            date = datetime.fromisoformat(str(c["date_publication"]).replace("Z", "+00:00"))
-            if date <= now:
+            if c["en_retard"]:
                 creneau = planning_service.prochain_creneau(telegram_id, reseau, c.get("type"))
                 if not creneau:
                     continue
