@@ -182,7 +182,7 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
         sujet = (it.get("sujet") or "").strip()
         dims = it.get("dimensions") if isinstance(it.get("dimensions"), dict) else None  # brief du sujet
         reseau_low = (it.get("reseau") or "").lower()
-        qualite = it.get("qualite", "equilibre")
+        qualite = "equilibre"  # un seul modèle de rédaction : le paramètre reçu est ignoré
         reseau_cap = RESEAU_MAP.get(reseau_low)
         if not sujet or not reseau_cap:
             errors.append({"sujet": sujet, "reseau": reseau_low, "err": "invalide"})
@@ -198,7 +198,7 @@ async def rafale(body: dict, payload: dict = Depends(verify_token)):
             errors.append({"sujet": sujet, "reseau": reseau_low, "err": "quota", "message": q.get("message")})
             break  # quota atteint -> on arrête la rafale
         try:
-            model = agent_service.QUALITE_MODELS.get(qualite)
+            model = agent_service.MODELE_REDACTION
             ccontent = None
             if action == "post":
                 r = agent_service.rediger_post(telegram_id, sujet, reseau_low, model, cache=True, dimensions=dims)
@@ -537,7 +537,7 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
     sujet = (body.get("sujet") or "").strip()
     if not sujet:
         raise HTTPException(status_code=400, detail="sujet requis")
-    qualite = body.get("qualite", "equilibre")
+    qualite = "equilibre"  # un seul modèle de rédaction : le paramètre reçu est ignoré
     demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "post")
     if not q.get("ok"):
@@ -545,7 +545,7 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
     depart = time.monotonic()
     try:
         result = agent_service.rediger_post(telegram_id, sujet, body.get("reseau", "linkedin"),
-                                            agent_service.QUALITE_MODELS.get(qualite),
+                                            agent_service.MODELE_REDACTION,
                                             dimensions=body.get("dimensions"))
     except Exception as e:
         quota_service.refund(q)
@@ -556,7 +556,7 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
         quota_service.refund(q)
         _map_agent_error(result)
     quota_service.confirm(q)
-    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
+    usage_service.log(telegram_id, "post", agent_service.MODELE_REDACTION, result.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
     if body.get("save") or body.get("brouillon"):
         row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": result["contenu"],
                "contenu_original": result["contenu"],
@@ -591,6 +591,7 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
     if len(data) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Image trop lourde (max 10 Mo)")
     reseau = (reseau or "linkedin").lower()
+    qualite = "equilibre"  # un seul modèle de rédaction : le paramètre reçu est ignoré
     demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "post")
     if not q.get("ok"):
@@ -599,7 +600,7 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
     try:
         r = agent_service.rediger_depuis_photo(
             telegram_id, base64.b64encode(data).decode(), file.content_type,
-            reseau, agent_service.QUALITE_MODELS.get(qualite))
+            reseau, agent_service.MODELE_REDACTION)
     except Exception as e:
         quota_service.refund(q)
         logger.error(f"rediger-photo error: {e}")
@@ -609,7 +610,7 @@ async def rediger_photo(file: UploadFile = File(...), reseau: str = Form("linked
         quota_service.refund(q)
         _map_agent_error(r)
     quota_service.confirm(q)
-    usage_service.log(telegram_id, "post", agent_service.QUALITE_MODELS.get(qualite), r.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
+    usage_service.log(telegram_id, "post", agent_service.MODELE_REDACTION, r.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
 
     texte = r["contenu"]
     lien = None
@@ -647,7 +648,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
         raise HTTPException(status_code=400, detail="sujet requis")
     reseau = (body.get("reseau") or "linkedin").lower()
     nb = max(3, min(10, int(body.get("nb_slides", 5))))
-    qualite = body.get("qualite", "equilibre")
+    qualite = "equilibre"  # un seul modèle de rédaction : le paramètre reçu est ignoré
     # template du carrousel : override explicite sinon celui configuré pour ce réseau
     tmpl = body.get("template")
     if not tmpl:
@@ -659,7 +660,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
         raise _refus(q)
     depart = time.monotonic()
     try:
-        result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.QUALITE_MODELS.get(qualite),
+        result = agent_service.rediger_carrousel(telegram_id, sujet, nb, agent_service.MODELE_REDACTION,
                                                  dimensions=body.get("dimensions"))
     except Exception as e:
         quota_service.refund(q)
@@ -672,7 +673,7 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
             raise HTTPException(status_code=502, detail="Échec de génération des slides")
         _map_agent_error(result)
     quota_service.confirm(q)
-    usage_service.log(telegram_id, "carrousel", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
+    usage_service.log(telegram_id, "carrousel", agent_service.MODELE_REDACTION, result.get("usage"), q.get("unit_cost", 0), qualite, duree_s=duree)
 
     content = result["content"]
     texte = _carrousel_legende(content)
@@ -729,14 +730,14 @@ def script(body: dict, payload: dict = Depends(verify_token)):
     sujet = (body.get("sujet") or "").strip()
     if not sujet:
         raise HTTPException(status_code=400, detail="sujet requis")
-    qualite = body.get("qualite", "equilibre")
+    qualite = "equilibre"  # un seul modèle de rédaction : le paramètre reçu est ignoré
     demarrage_service.exiger_profil(telegram_id)  # profil de marque minimum, avant de consommer
     q = quota_service.consume(telegram_id, "post")  # script vidéo compte comme un post
     if not q.get("ok"):
         raise _refus(q)
     try:
         result = agent_service.rediger_script(telegram_id, sujet, body.get("type_video", "Reel"),
-                                              agent_service.QUALITE_MODELS.get(qualite),
+                                              agent_service.MODELE_REDACTION,
                                               dimensions=body.get("dimensions"))
     except Exception as e:
         quota_service.refund(q)
@@ -746,7 +747,7 @@ def script(body: dict, payload: dict = Depends(verify_token)):
         quota_service.refund(q)
         _map_agent_error(result)
     quota_service.confirm(q)
-    usage_service.log(telegram_id, "script", agent_service.QUALITE_MODELS.get(qualite), result.get("usage"), q.get("unit_cost", 0), qualite)
+    usage_service.log(telegram_id, "script", agent_service.MODELE_REDACTION, result.get("usage"), q.get("unit_cost", 0), qualite)
     if body.get("brouillon") and (result.get("script") or "").strip():
         # Studio IA : le script vit en base des sa redaction, au statut Brouillon ; il passe
         # « A tourner » a la validation (/video/draft avec contenu_id).

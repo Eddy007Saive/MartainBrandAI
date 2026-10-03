@@ -54,12 +54,10 @@ RESEAUX = {
     "twitter": "X (Twitter)",
 }
 
-# Niveaux de qualité (noms neutres côté UI) → modèle réel (jamais exposé)
-QUALITE_MODELS = {
-    "rapide": "claude-haiku-4-5",
-    "equilibre": "claude-sonnet-4-6",
-    "premium": "claude-opus-4-8",
-}
+# Un seul modèle rédige tous les contenus (posts, stories, carrousels, scripts). L'ancien
+# choix de « qualité » (rapide / équilibré / premium) a été retiré de l'interface avec le
+# système de crédits ; s'il arrive encore dans une requête, il est ignoré.
+MODELE_REDACTION = "claude-sonnet-4-6"
 
 # Les sujets sont des idées jetables -> Haiku suffit (3x moins cher que Sonnet)
 SUJETS_MODEL = "claude-haiku-4-5"
