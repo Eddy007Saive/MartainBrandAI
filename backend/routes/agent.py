@@ -693,6 +693,8 @@ async def carrousel(body: dict, payload: dict = Depends(verify_token)):
         row = {"telegram_id": telegram_id, "titre": sujet[:120], "contenu": texte, "contenu_original": texte,
                "statut": "A valider", "type": "Carrousel", "carrousel_data": content,
                "created_at": datetime.now(timezone.utc).isoformat()}
+        if result.get("formule_accroche"):
+            row["formule_accroche"] = result["formule_accroche"]  # formule de la couverture
         if reseau in RESEAU_MAP:
             row["reseau_cible"] = RESEAU_MAP[reseau]
             # Réservation du créneau DÈS la création : évite que deux contenus non

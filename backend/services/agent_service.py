@@ -779,7 +779,8 @@ ROLE_CARROUSEL = (
 )
 
 
-def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: str = None, cache: bool = False, dimensions: dict = None) -> dict:
+def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: str = None, cache: bool = False, dimensions: dict = None,
+                      accroche: bool = True) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     u = _charger_marque(telegram_id)
@@ -798,7 +799,8 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
             "content": (f"Carousel topic: \"{sujet}\"." + brief_dimensions(dimensions)
                         + _bloc_offre(telegram_id, dimensions) + "\n"
                         f"Give the hook, the legende (short: hook + swipe invitation + 1 CTA, without repeating the slides), "
-                        f"EXACTLY {nb_idees} ideas (with short titre, texte, pills, pro_tip) and the cta, as JSON."),
+                        f"EXACTLY {nb_idees} ideas (with short titre, texte, pills, pro_tip) and the cta, as JSON."
+                        + (accroche_service.bloc_consigne_carrousel(sujet, contexte, dimensions) if accroche else "")),
         }],
     )
     txt = _texte(resp)
@@ -836,7 +838,12 @@ def rediger_carrousel(telegram_id: str, sujet: str, nb_slides: int = 5, model: s
     }
     if not content["hook"] and not slides:
         return {"error": "parse"}
-    return {"content": nettoyer_profond(content), "usage": _usage(resp)}
+    content = nettoyer_profond(content)
+    # Accroche de la couverture : formule retenue (mesure future), chiffre non sourcé signalé
+    sources = f"{sujet} {brief_dimensions(dimensions)} {contexte}"
+    return {"content": content, "usage": _usage(resp),
+            "formule_accroche": accroche_service.formule_valide(data.get("formule")),
+            "accroche_chiffres_non_sources": accroche_service.chiffres_non_sources(content.get("hook") or "", sources)}
 
 
 # ---------------------------------------------------------------------------

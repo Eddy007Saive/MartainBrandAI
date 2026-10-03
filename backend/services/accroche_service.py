@@ -83,6 +83,36 @@ def bloc_consigne(sujet: str, infos: str = "", dimensions: dict | None = None) -
     )
 
 
+def bloc_consigne_carrousel(sujet: str, infos: str = "", dimensions: dict | None = None) -> str:
+    """Même logique pour un carrousel : l'accroche est le titre de la couverture (champ « hook »),
+    et la formule retenue est rendue dans le JSON (champ « formule »)."""
+    formules = selection(sujet, infos, dimensions)
+    lignes = "\n".join(f"{f['id']}. {f['nom']} : {f['modele']}" for f in formules)
+    return (
+        "\n\n## HOOK = THE COVER (it decides whether people swipe)\n"
+        "The \"hook\" field is the cover slide. Before writing it, silently draft three different "
+        "covers, each from a DIFFERENT formula below, and keep the strongest one. Do not show the drafts.\n"
+        f"{lignes}\n"
+        "Rules for the cover: put the key fact or the stake in the FIRST words; prefer one concrete, "
+        "real detail (a figure, a moment, a name) taken ONLY from the topic, the brief or the brand "
+        "information above. NEVER invent a number, a client or a result; if no real figure is given, "
+        "use a formula without one. Keep it short (about 10 words at most) and specific to this brand. "
+        "The first line of the \"legende\" follows the same rules (no greeting, key point first).\n"
+        "Avoid these AI-sounding phrasings (and their equivalents in the output language): "
+        + "; ".join(f"« {x} »" for x in A_EVITER) + ".\n"
+        "Add to the JSON a field \"formule\" with the number of the formula used for the cover."
+    )
+
+
+def formule_valide(valeur) -> int | None:
+    """Numéro de formule lu dans un JSON (entier ou texte) ; None s'il n'existe pas."""
+    try:
+        n = int(str(valeur).strip())
+    except (TypeError, ValueError):
+        return None
+    return n if n in _PAR_ID else None
+
+
 def extraire_formule(texte: str) -> tuple[str, int | None]:
     """Retire la ligne technique « FORMULE: n » et renvoie (texte, n). Tolérant : sans ligne,
     renvoie le texte tel quel et None."""
