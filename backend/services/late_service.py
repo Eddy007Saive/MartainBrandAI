@@ -134,6 +134,27 @@ def _client() -> Zernio:
     return Zernio(api_key=LATE_API_KEY)
 
 
+# Réseaux qui refusent un post sans média (Late répond sinon « require media content »)
+_MEDIA_OBLIGATOIRE = {"instagram": "Instagram", "tiktok": "TikTok", "youtube": "YouTube"}
+
+
+def _erreur_lisible(msg: str, reseau: str = "") -> str:
+    """Erreur de Late (souvent en anglais) -> message compréhensible et actionnable."""
+    low = (msg or "").lower()
+    nom = _MEDIA_OBLIGATOIRE.get(reseau) or (reseau or "ce réseau").capitalize()
+    if "require media" in low or "media content" in low:
+        return f"{nom} ne publie pas de texte seul : ajoute une image ou une vidéo, puis revalide."
+    if "do not belong" in low or "account not found" in low or "not found for this user" in low:
+        return f"Ton compte {nom} n'est plus relié à ton espace de publication. Reconnecte-le dans Paramètres, puis revalide."
+    if "token" in low and ("expired" in low or "invalid" in low):
+        return f"La connexion à {nom} a expiré. Reconnecte-le dans Paramètres, puis revalide."
+    if "aspect ratio" in low:
+        return f"{nom} refuse le format de l'image (proportions). Change de visuel, puis revalide."
+    if "rate limit" in low or "too many" in low:
+        return f"{nom} limite le nombre de publications pour le moment. Réessaie un peu plus tard."
+    return f"{nom} a refusé la publication : {msg}"
+
+
 async def publish_contenu(telegram_id: str, contenu: dict, publish_now: bool = False) -> dict:
     """Pousse un contenu dans Late via le SDK Zernio. Retourne {ok, late_post_id, status} ou {ok:False, error}."""
     if not LATE_API_KEY:
@@ -153,6 +174,9 @@ async def publish_contenu(telegram_id: str, contenu: dict, publish_now: bool = F
     media = _media_items(contenu, reseau)
     if not content and not media:
         return {"ok": False, "error": "Le contenu est vide (ni texte ni visuel)."}
+    if reseau in _MEDIA_OBLIGATOIRE and not media:
+        # Vérifié ICI plutôt que de laisser Late refuser (en anglais) après coup
+        return {"ok": False, "error": _erreur_lisible("require media content", reseau)}
 
     # Garde-fou longueur : mieux vaut un message clair ici que le refus (en anglais) de Zernio
     # après coup. Limites de légende par plateforme (caractères, espaces compris).
@@ -195,7 +219,7 @@ async def publish_contenu(telegram_id: str, contenu: dict, publish_now: bool = F
         if "already" in low and ("24 hours" in low or "posted to this account" in low or "scheduled" in low):
             return {"ok": False, "duplicate": True,
                     "error": "Doublon : ce contenu (texte identique) a déjà été publié ou programmé sur ce compte il y a moins de 24 h. Modifie légèrement le texte pour pouvoir republier."}
-        return {"ok": False, "error": msg}
+        return {"ok": False, "error": _erreur_lisible(msg, reseau)}
     except Exception as e:
         logger.error(f"Late publish exception: {e}")
         return {"ok": False, "error": "Late injoignable, réessaie."}

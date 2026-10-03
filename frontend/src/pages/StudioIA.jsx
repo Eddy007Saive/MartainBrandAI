@@ -17,6 +17,7 @@ import { track } from '../lib/analytics';
 import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
+import AideAccroche from '../components/AideAccroche';
 
 const FORMATS = [
   { id: 'post', labelKey: 'formatPost', icon: PenLine },
@@ -436,7 +437,7 @@ export default function StudioIA() {
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}) } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}), accrocheAlerte: d.accroche_chiffres_non_sources || [] } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -479,7 +480,7 @@ export default function StudioIA() {
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite, source: 'brief' });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
-      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}) } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, texte, texteOriginal: texte, statut: 'pret', ...(d.contenu_id ? { contenuId: d.contenu_id, brouillon: true } : {}), accrocheAlerte: d.accroche_chiffres_non_sources || [] } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -548,13 +549,14 @@ export default function StudioIA() {
       if (card.brouillon && card.contenuId) {
         (card.format === 'script'
           ? agentService.majBrouillonScript(card.contenuId, texte, true)
-          : agentService.majBrouillon(card.contenuId, texte, texte)).catch(() => {});
+          : agentService.majBrouillon(card.contenuId, texte, texte,
+            d.formule_accroche ? { formule_accroche: d.formule_accroche } : {})).catch(() => {});
       } else if (d.contenu_id) {
         setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, contenuId: d.contenu_id, brouillon: true } : c)));
       }
       // Une régénération est une nouvelle proposition de l'IA, pas une retouche du client :
       // texteOriginal repart de ce nouveau texte (même principe que carrousel() côté backend).
-      setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, texteOriginal: texte, statut: 'pret' } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, texteOriginal: texte, statut: 'pret', accrocheAlerte: d.accroche_chiffres_non_sources || [] } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -1105,6 +1107,9 @@ export default function StudioIA() {
                       <Textarea value={c.texte} onChange={(e) => editer(c.id, e.target.value)}
                         rows={c.format === 'script' ? 12 : 9}
                         className="bg-slate-950/60 border-white/10 text-slate-100 font-inter resize-y" />
+                      {c.format !== 'script' && (
+                        <AideAccroche texte={c.texte} reseau={c.meta} chiffresNonSources={c.accrocheAlerte} />
+                      )}
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" onClick={() => regenerer(c.id)} className="text-slate-400 hover:text-white">
                           <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.regenerate')}</span>

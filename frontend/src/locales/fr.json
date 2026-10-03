@@ -1,4 +1,29 @@
 {
+  "publication": {
+    "ajouteVisuel": "Ajoute une image ou une vidéo avant de valider : ce réseau ne publie pas de texte seul.",
+    "erreur": {
+      "inconnue": "La publication a échoué.",
+      "media": "Ce réseau ne publie pas de texte seul : ajoute une image ou une vidéo, puis revalide.",
+      "compte": "Ce compte n'est plus relié à ton espace de publication. Reconnecte-le dans Paramètres, puis revalide.",
+      "expire": "La connexion à ce réseau a expiré. Reconnecte-le dans Paramètres, puis revalide.",
+      "format": "Le réseau refuse le format de l'image (proportions). Change de visuel, puis revalide.",
+      "limite": "Le réseau limite le nombre de publications pour le moment. Réessaie un peu plus tard."
+    }
+  },
+  "accroche": {
+    "titre": "Accroche :",
+    "ok": "bonne première ligne",
+    "conseil": {
+      "tard": "l'essentiel arrive tard",
+      "concret": "aucun fait concret (chiffre, moment, nom)",
+      "longue": "un peu longue",
+      "salutation": "commence par une salutation",
+      "hashtag": "commence par un hashtag"
+    },
+    "chiffre": "Vérifie ce chiffre, il n'apparaît pas dans tes informations : {{chiffres}}",
+    "apercuInstagram": "Ce que montre le fil Instagram",
+    "plus": "… plus"
+  },
   "auth": {
     "tagline": "Votre présence, amplifiée",
     "heroTitle1": "Gérez votre présence",
@@ -578,7 +603,8 @@
       "valides": "Validés",
       "planifies": "Planifiés",
       "publies": "Publiés",
-      "refuses": "Refusés"
+      "refuses": "Refusés",
+      "echecs": "Échecs"
     },
     "onglets": {
       "tous": "Tous",

@@ -46,6 +46,7 @@ import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, p
 import FontPicker from '../components/FontPicker';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
+import { manqueMedia, erreurLisible } from '../lib/publication';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
 
 // Styles de rendu de l'image IA (mêmes clés que les miniatures des reels, côté serveur aussi).
@@ -212,7 +213,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
         {contenu.reseau_cible && <span className="absolute top-2.5 left-2.5"><ReseauBadge reseau={contenu.reseau_cible} /></span>}
         <span className="absolute top-2.5 right-2.5">
           {contenu.publish_status === 'échec' ? (
-            <span title={contenu.publish_error || t('contenus.carte.publicationEchec')}
+            <span title={erreurLisible(contenu.publish_error, t)}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter bg-red-500/15 text-red-400 border border-red-500/25">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
               {t('contenus.carte.echecPublication')}
@@ -248,6 +249,11 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           <p className="text-slate-400 font-inter text-[12.5px] leading-relaxed line-clamp-3">{contenu.contenu}</p>
         </div>
 
+        {contenu.publish_status === 'échec' && (
+          <p className="mt-2 text-[11.5px] leading-snug text-red-300/90 font-inter line-clamp-3" data-testid={`contenu-erreur-${contenu.id}`}>
+            {erreurLisible(contenu.publish_error, t)}
+          </p>
+        )}
         {/* Contrôle segmenté : max 3 cibles (✓ valider · action du format · ⋯ menu) */}
         <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]" onClick={(e) => e.stopPropagation()}>
           <span className="text-[11px] text-slate-500 font-inter mr-auto inline-flex items-center gap-1">
@@ -255,9 +261,10 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
             {['A valider', 'Brouillon'].includes(contenu.statut) && (
-              <button title={t('contenus.actions.validerProgrammer')} onClick={() => onValidate(contenu.id)} disabled={isLoading}
+              <button title={manqueMedia(contenu) ? t('publication.ajouteVisuel') : t('contenus.actions.validerProgrammer')}
+                onClick={() => !manqueMedia(contenu) && onValidate(contenu.id)} disabled={isLoading || manqueMedia(contenu)}
                 data-testid={`contenu-valider-${contenu.id}`}
-                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors">
+                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               </button>
             )}
@@ -346,7 +353,8 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
   // la carte groupée doit l'avoir aussi).
   const enRendu = items.filter((c) => c.video_status === 'en_traitement').length;
   const enEchec = items.filter((c) => c.video_status === 'echec').length;
-  const bloqueValidation = enRendu > 0 || items.some((c) => c.video_status && !c.video_url);
+  const sansMedia = items.some((c) => manqueMedia(c));
+  const bloqueValidation = enRendu > 0 || sansMedia || items.some((c) => c.video_status && !c.video_url);
   const titre = (premier.titre || '').replace(/ — écran \d+\/\d+$/, '');
   const date = premier.date_publication
     ? new Date(premier.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
@@ -408,7 +416,7 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
             {['A valider', 'Brouillon'].includes(premier.statut) && (
-              <button title={bloqueValidation ? t('contenus.toast.attendsRendu') : t('contenus.carte.validerTout', { n: items.length })}
+              <button title={sansMedia ? t('publication.ajouteVisuel') : (bloqueValidation ? t('contenus.toast.attendsRendu') : t('contenus.carte.validerTout', { n: items.length }))}
                 onClick={() => !bloqueValidation && onValiderSerie(groupe)} disabled={isLoading || bloqueValidation}
                 className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
@@ -1157,7 +1165,8 @@ export default function ContenusPage() {
 
   const filteredContenus = useMemo(() => {
     let list = activeContenus;
-    if (filterStatut !== 'all') list = list.filter((c) => c.statut === filterStatut);
+    if (filterStatut === 'echec') list = list.filter((c) => (c.isGroup ? c.items : [c]).some((x) => x.publish_status === 'échec'));
+    else if (filterStatut !== 'all') list = list.filter((c) => c.statut === filterStatut);
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
     return list.filter(c =>
@@ -1203,6 +1212,11 @@ export default function ContenusPage() {
   const handleUpdateStatut = async (id, newStatut, opts = {}, extra = {}) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
+      // Instagram / TikTok / YouTube / story sans image ni vidéo : le réseau refuserait la publication
+      if (manqueMedia(cible)) {
+        if (!opts.skipToast) toast.error(t('publication.ajouteVisuel'), { duration: 6000 });
+        return;
+      }
       // Script vidéo en brouillon : la validation l'envoie « À tourner » (même chemin que le Studio),
       // pas en programmation — il n'y a encore aucune vidéo à publier.
       if (cible?.statut === 'Brouillon' && cible?.script && !cible?.contenu) {
@@ -1373,6 +1387,7 @@ export default function ContenusPage() {
     valides: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Valider').length,
     planifies: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Planifie').length,
     publies: groupedActive.filter(c => (c.isGroup ? c.items[0] : c).statut === 'Publie').length,
+    echecs: groupedActive.filter(c => (c.isGroup ? c.items : [c]).some((x) => x.publish_status === 'échec')).length,
   };
 
   // Pastilles de filtre : le chiffre EST le filtre (remplace stats + menu deroulant)
@@ -1383,7 +1398,7 @@ export default function ContenusPage() {
     { id: 'Valider', label: t('contenus.filtres.valides'), n: stats.valides, dot: '#a5b0ff' },
     { id: 'Planifie', label: t('contenus.filtres.planifies'), n: stats.planifies, dot: '#c084fc' },
     { id: 'Publie', label: t('contenus.filtres.publies'), n: stats.publies, dot: '#60a5fa' },
-    { id: 'Refuse', label: t('contenus.filtres.refuses'), n: null, dot: '#f87171' },
+    { id: 'echec', label: t('contenus.filtres.echecs'), n: stats.echecs, dot: '#f87171' },
   ];
 
   return (
@@ -1923,7 +1938,7 @@ export default function ContenusPage() {
                       {selectedContenu.publish_status === 'échec' && selectedContenu.publish_error && (
                         <div className="flex gap-2.5 items-start p-3 rounded-lg bg-red-500/[0.07] border border-red-500/20">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-                          <p className="text-[12px] text-red-300/90 leading-relaxed"><b className="text-red-200">{t('contenus.detail.publicationEchecLabel')}</b> {selectedContenu.publish_error}</p>
+                          <p className="text-[12px] text-red-300/90 leading-relaxed"><b className="text-red-200">{t('contenus.detail.publicationEchecLabel')}</b> {erreurLisible(selectedContenu.publish_error, t)}</p>
                         </div>
                       )}
                     </div>
@@ -1955,8 +1970,8 @@ export default function ContenusPage() {
                         <Button size="sm" onClick={() => demanderRefus(selectedContenu.id)} disabled={actionLoading === selectedContenu.id}
                           className="bg-transparent border border-white/[0.12] text-slate-400 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] px-4 transition-colors"><X className="w-4 h-4 mr-1.5" />{t('contenus.actions.refuser')}</Button>
                         <Button size="sm" onClick={() => validerContenu(selectedContenu.id)} data-testid="contenu-valider-detail"
-                          disabled={actionLoading === selectedContenu.id || czRBusy || ((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)}
-                          title={((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url) ? t('contenus.detail.attendsMontage') : undefined}
+                          disabled={actionLoading === selectedContenu.id || czRBusy || manqueMedia(selectedContenu) || ((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)}
+                          title={manqueMedia(selectedContenu) ? t('publication.ajouteVisuel') : (((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url) ? t('contenus.detail.attendsMontage') : undefined)}
                           className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] px-5 shadow-[0_8px_24px_rgba(91,108,255,0.35)] hover:-translate-y-px hover:shadow-[0_12px_30px_rgba(91,108,255,0.45)] transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none">
                           {((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)
                             ? <><Loader2 className="w-4 h-4 animate-spin mr-1.5" />{t('contenus.detail.montageEnCours')}</>

@@ -1,4 +1,29 @@
 {
+  "publication": {
+    "ajouteVisuel": "Añade una imagen o un vídeo antes de validar: esta red no publica solo texto.",
+    "erreur": {
+      "inconnue": "La publicación ha fallado.",
+      "media": "Esta red no publica solo texto: añade una imagen o un vídeo y vuelve a validar.",
+      "compte": "Esta cuenta ya no está vinculada a tu espacio de publicación. Vuelve a conectarla en Ajustes y valida de nuevo.",
+      "expire": "La conexión con esta red ha caducado. Vuelve a conectarla en Ajustes y valida de nuevo.",
+      "format": "La red rechaza el formato de la imagen (proporciones). Cambia el visual y valida de nuevo.",
+      "limite": "La red limita las publicaciones por ahora. Inténtalo un poco más tarde."
+    }
+  },
+  "accroche": {
+    "titre": "Gancho:",
+    "ok": "buena primera línea",
+    "conseil": {
+      "tard": "lo esencial llega tarde",
+      "concret": "ningún dato concreto (cifra, momento, nombre)",
+      "longue": "un poco larga",
+      "salutation": "empieza con un saludo",
+      "hashtag": "empieza con un hashtag"
+    },
+    "chiffre": "Revisa esta cifra, no aparece en tu información: {{chiffres}}",
+    "apercuInstagram": "Lo que muestra el feed de Instagram",
+    "plus": "… más"
+  },
   "auth": {
     "tagline": "Tu presencia, amplificada",
     "heroTitle1": "Gestiona tu presencia",
@@ -578,7 +603,8 @@
       "valides": "Validados",
       "planifies": "Planificados",
       "publies": "Publicados",
-      "refuses": "Rechazados"
+      "refuses": "Rechazados",
+      "echecs": "Fallidos"
     },
     "onglets": {
       "tous": "Todos",

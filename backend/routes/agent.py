@@ -569,6 +569,8 @@ def rediger(body: dict, payload: dict = Depends(verify_token)):
                 row["reseau_cible"] = RESEAU_MAP[body.get("reseau")]
             if body.get("type") == "Story":
                 row["type"] = "Story"
+        if result.get("formule_accroche"):
+            row["formule_accroche"] = result["formule_accroche"]  # formule d'accroche retenue par l'IA
         ins = supabase.table("contenu").insert(row).execute()
         result["contenu_id"] = ins.data[0]["id"] if ins.data else None
         if result["contenu_id"]:
@@ -855,6 +857,8 @@ def maj_brouillon_contenu(contenu_id: str, body: dict, payload: dict = Depends(v
         maj["contenu_original"] = body["contenu_original"]  # regeneration : nouvelle proposition de l'IA
     if isinstance(body.get("script"), str):
         maj["script"] = body["script"]
+    if isinstance(body.get("formule_accroche"), int):
+        maj["formule_accroche"] = body["formule_accroche"]  # régénération : nouvelle formule
     r = (supabase.table("contenu").update(maj).eq("id", contenu_id).eq("telegram_id", telegram_id)
          .eq("statut", "Brouillon").execute())
     if not r.data:

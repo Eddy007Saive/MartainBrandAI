@@ -14,6 +14,7 @@ import time
 import unicodedata
 import anthropic
 from config import CLAUDE_API_KEY, CLAUDE_MODEL, supabase, logger
+from services import accroche_service
 
 _client = anthropic.Anthropic(api_key=CLAUDE_API_KEY) if CLAUDE_API_KEY else None
 
@@ -397,6 +398,9 @@ _MD_ITALIQUE = re.compile(r"(?<![\w*])\*([^*\n]+?)\*(?![\w*])")
 _MD_TITRE = re.compile(r"^[ \t]*#{1,6}[ \t]+", re.M)
 _MD_PUCE = re.compile(r"^[ \t]*\*[ \t]+", re.M)
 _TIRET_PUCE = re.compile(r"^[ \t]*[—–][ \t]*", re.M)
+# Séparateur Markdown : une ligne faite seulement de tirets, étoiles ou soulignés (« --- »,
+# « *** », « ___ », « ——— »). Les réseaux l'affichent tel quel : on retire la ligne.
+_MD_SEPARATEUR = re.compile(r"^[ \t]*(?:[-*_—–][ \t]*){3,}$", re.M)
 
 
 def nettoyer_texte_genere(txt):
@@ -408,7 +412,8 @@ def nettoyer_texte_genere(txt):
     _sans_tiret. Les hashtags (#mot, sans espace) sont préservés. Idempotent."""
     if not isinstance(txt, str):
         return txt
-    t = _MD_GRAS.sub(r"\1", txt)
+    t = _MD_SEPARATEUR.sub("", txt)  # avant les puces et l'italique, qui le transformeraient
+    t = _MD_GRAS.sub(r"\1", t)
     t = _MD_GRAS_US.sub(r"\1", t)
     t = _MD_ITALIQUE.sub(r"\1", t)
     t = t.replace("**", "")
@@ -418,7 +423,7 @@ def nettoyer_texte_genere(txt):
     t = _TIRET_PUCE.sub("• ", t)
     t = _sans_tiret(t)
     lignes = [re.sub(r"[ \t]{2,}", " ", ligne).rstrip() for ligne in t.split("\n")]
-    return "\n".join(lignes).strip()
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lignes)).strip()
 
 
 def nettoyer_profond(obj):
@@ -659,7 +664,8 @@ ROLE_REDACTION = (
 )
 
 
-def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: str = None, cache: bool = False, dimensions: dict = None) -> dict:
+def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: str = None, cache: bool = False, dimensions: dict = None,
+                 accroche: bool = True) -> dict:
     if not _client:
         return {"error": "no_api_key"}
     reseau_label = RESEAUX.get(reseau, "LinkedIn")
@@ -691,11 +697,18 @@ def rediger_post(telegram_id: str, sujet: str, reseau: str = "linkedin", model: 
                 + f"\n\n{reseau_label} format: strong hook on the first line, short airy lines, "
                 f"one central idea, and a question / engagement prompt at the end."
                 + _consigne_longueur(reseau)
-                + " Give only the post text."
+                + (accroche_service.bloc_consigne(sujet, contexte, dimensions) if accroche else "")
+                + " Give only the post text" + (" and the final FORMULE line." if accroche else ".")
             ),
         }],
     )
-    return {"contenu": nettoyer_texte_genere(_texte(resp)), "usage": _usage(resp)}
+    # Accroche : ligne technique retirée, formule gardée (mesure future), chiffre non sourcé signalé
+    texte, formule = accroche_service.extraire_formule(_texte(resp))
+    texte = nettoyer_texte_genere(accroche_service.sans_invisibles(texte))
+    sources = f"{sujet} {brief_dimensions(dimensions)} {contexte}"
+    alerte = accroche_service.chiffres_non_sources(accroche_service.premiere_ligne(texte), sources)
+    return {"contenu": texte, "usage": _usage(resp), "formule_accroche": formule,
+            "accroche_chiffres_non_sources": alerte}
 
 
 def rediger_depuis_photo(telegram_id: str, img_b64: str, media_type: str,

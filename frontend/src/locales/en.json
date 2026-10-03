@@ -1,4 +1,29 @@
 {
+  "publication": {
+    "ajouteVisuel": "Add an image or a video before approving: this network does not publish text alone.",
+    "erreur": {
+      "inconnue": "Publishing failed.",
+      "media": "This network does not publish text alone: add an image or a video, then approve again.",
+      "compte": "This account is no longer linked to your publishing space. Reconnect it in Settings, then approve again.",
+      "expire": "The connection to this network has expired. Reconnect it in Settings, then approve again.",
+      "format": "The network rejects the image format (proportions). Change the visual, then approve again.",
+      "limite": "The network is limiting posts for now. Try again a little later."
+    }
+  },
+  "accroche": {
+    "titre": "Hook:",
+    "ok": "strong first line",
+    "conseil": {
+      "tard": "the key point comes late",
+      "concret": "no concrete fact (figure, moment, name)",
+      "longue": "a bit long",
+      "salutation": "starts with a greeting",
+      "hashtag": "starts with a hashtag"
+    },
+    "chiffre": "Check this figure, it is not in your information: {{chiffres}}",
+    "apercuInstagram": "What the Instagram feed shows",
+    "plus": "… more"
+  },
   "auth": {
     "tagline": "Your presence, amplified",
     "heroTitle1": "Manage your presence",
@@ -578,7 +603,8 @@
       "valides": "Approved",
       "planifies": "Scheduled",
       "publies": "Published",
-      "refuses": "Rejected"
+      "refuses": "Rejected",
+      "echecs": "Failed"
     },
     "onglets": {
       "tous": "All",

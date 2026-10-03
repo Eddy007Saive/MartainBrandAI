@@ -38,8 +38,8 @@ export const agentService = {
     api.post('/agent/rediger', { sujet, reseau, save, qualite, ...(dimensions ? { dimensions } : {}), ...extra }).then((r) => r.data),
   // Brouillons du Studio IA (contenus au statut « Brouillon »)
   brouillonsContenus: () => api.get('/agent/brouillons-contenus').then((r) => r.data),
-  majBrouillon: (id, contenu, contenuOriginal = null) =>
-    api.patch(`/agent/brouillons-contenus/${id}`, { contenu, ...(contenuOriginal ? { contenu_original: contenuOriginal } : {}) }).then((r) => r.data),
+  majBrouillon: (id, contenu, contenuOriginal = null, extra = {}) =>
+    api.patch(`/agent/brouillons-contenus/${id}`, { contenu, ...(contenuOriginal ? { contenu_original: contenuOriginal } : {}), ...extra }).then((r) => r.data),
   // Script vidéo en brouillon : retouche, ou nouvelle proposition de l'IA (regenere)
   majBrouillonScript: (id, script, regenere = false) =>
     api.patch(`/agent/brouillons-contenus/${id}`, { script, ...(regenere ? { regenere: true } : {}) }).then((r) => r.data),
