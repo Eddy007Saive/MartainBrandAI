@@ -66,11 +66,14 @@ export default function CarrouselsPage() {
     [cz?.font, cz?.fontBody].map((f) => parseFontSpec(f).family).filter(Boolean).forEach(loadGoogleFont);
   }, [cz?.font, cz?.fontBody]);
 
+  // Photos de démonstration des styles photo (Pexels, d'après le secteur de la marque)
+  const [photosDemo, setPhotosDemo] = useState([]);
+  useEffect(() => { agentService.carrouselPhotos('demo').then(setPhotosDemo).catch(() => {}); }, []);
   const colors = useMemo(() => ({
     p: cz?.p || brand.p, s: cz?.s || brand.s, a: cz?.a || brand.a, font: cz?.font || '', fontBody: cz?.fontBody || '',
-    logo: user?.logo_url, nom: user?.nom || user?.username,
+    logo: user?.logo_url, nom: user?.nom || user?.username, secteur: user?.secteur, photos: photosDemo,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [cz, user]);
+  }), [cz, user, photosDemo]);
 
   const setColor = (name, val) => setCz((prev) => ({ ...prev, [name]: val }));
   const resetColors = () => setCz({ ...brand, font: '', fontBody: '' });

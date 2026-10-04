@@ -42,7 +42,7 @@ import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
-import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, parseFontSpec, renderSlides, SLIDE_CSS, TEMPLATES, enregistrerGabaritsPerso } from '../lib/carrouselPreview';
+import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, parseFontSpec, renderSlides, SLIDE_CSS, TEMPLATES, enregistrerGabaritsPerso, stylePhotos } from '../lib/carrouselPreview';
 import FontPicker from '../components/FontPicker';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
@@ -665,10 +665,18 @@ export default function ContenusPage() {
     const tpl = czR.tpl || czTemplates[(selectedContenu.reseau_cible || '').toLowerCase()] || 'creme';
     return renderSlides(tpl, {
       p: czR.p, s: czR.s, a: czR.a, font: czR.font || '', fontBody: czR.fontBody || '',
-      logo: user?.logo_url, nom: user?.nom || user?.username,
+      logo: user?.logo_url, nom: user?.nom || user?.username, secteur: user?.secteur,
+      photos: czPhotos.id === selectedContenu.id ? czPhotos.photos : [],
       content: czContent(),
     });
   };
+  // Styles photo : les photos (Pexels) de CE carrousel, identiques à celles du rendu final.
+  const [czPhotos, setCzPhotos] = useState({ id: null, photos: [] });
+  const czTplCourant = selectedContenu && czR ? (czR.tpl || czTemplates[(selectedContenu.reseau_cible || '').toLowerCase()] || 'creme') : null;
+  useEffect(() => {
+    if (!selectedContenu?.id || !czTplCourant || !stylePhotos(czTplCourant) || czPhotos.id === selectedContenu.id) return;
+    agentService.carrouselPhotos(selectedContenu.id).then((photos) => setCzPhotos({ id: selectedContenu.id, photos })).catch(() => {});
+  }, [selectedContenu?.id, czTplCourant]); // eslint-disable-line react-hooks/exhaustive-deps
   // Validation : rendu final des images avec la retouche, PUIS validation
   const validerContenu = async (id) => {
     if (czR && selectedContenu?.carrousel_data) {

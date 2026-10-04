@@ -1299,3 +1299,12 @@ def supprimer_modele_carrousel(modele_id: str, payload: dict = Depends(verify_to
     if not modeles.supprimer(payload.get("telegram_id"), modele_id):
         raise HTTPException(status_code=404, detail="Modèle introuvable")
     return {"success": True}
+
+
+@router.get("/carrousel/photos")
+def photos_carrousel(graine: str = "demo", payload: dict = Depends(verify_token)):
+    """Photos (Pexels) d'un carrousel en style photo, pour l'aperçu : mêmes photos qu'au rendu
+    final (même secteur, même graine = l'id du contenu)."""
+    from services import pexels_service
+    u = carrousel_service._charger_marque(payload.get("telegram_id"))
+    return {"photos": pexels_service.photos(u.get("secteur"), (graine or "demo")[:64])}

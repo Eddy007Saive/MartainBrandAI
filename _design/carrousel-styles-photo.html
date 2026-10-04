@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Styles avec photos</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=EB+Garamond:ital,wght@0,500;0,600;1,500&family=Italiana&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Poppins:wght@400;500;600;700;800&family=Caveat:wght@700&family=Montserrat:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  /* Maquette à valider : 5 styles qui reposent sur des photos. Slides au format exact du rendu
+     (360×450, capturées ×3 = 1080×1350). Photos de démonstration : Unsplash (licence libre). */
+  :root { --page: #0b1224; --carte: #111a33; --texte: #e2e8f0; --sourdine: #94a3b8; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--page); color: var(--texte); font-family: Inter, system-ui, sans-serif; padding: 28px 16px 60px; }
+  .tete { max-width: 1900px; margin: 0 auto 26px; display: flex; flex-wrap: wrap; gap: 18px; align-items: end; justify-content: space-between; }
+  .tete h1 { font-size: 22px; font-weight: 700; }
+  .tete p { color: var(--sourdine); font-size: 14px; margin-top: 6px; max-width: 75ch; }
+  .reglages { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--sourdine); }
+  .reglages button { border: 1px solid #ffffff22; background: var(--carte); color: var(--texte); padding: 7px 12px; border-radius: 8px; cursor: pointer; font: inherit; }
+  .reglages button[aria-pressed="true"] { border-color: #8A6CFF; background: #8A6CFF33; }
+  .pastille { width: 12px; height: 12px; border-radius: 50%; display: inline-block; vertical-align: -1px; margin-right: 6px; }
+  section.style { max-width: 1900px; margin: 0 auto 40px; }
+  section.style h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  section.style .desc { color: var(--sourdine); font-size: 13px; margin-bottom: 14px; }
+  .rangee { display: flex; gap: 18px; overflow-x: auto; padding-bottom: 10px; }
+  .rangee > div { flex: 0 0 auto; }
+  .legende { color: var(--sourdine); font-size: 12px; margin-top: 8px; text-align: center; }
+  .slide { width: 360px; height: 450px; overflow: hidden; position: relative; border-radius: 6px; box-shadow: 0 18px 40px rgba(0,0,0,.45); }
+  .slide img.ph { position: absolute; object-fit: cover; display: block; }
+  .credit { max-width: 1900px; margin: 0 auto; color: var(--sourdine); font-size: 12px; }
+</style>
+</head>
+<body>
+<header class="tete">
+  <div>
+    <h1>Cinq styles avec photos</h1>
+    <p>Maquette à valider avant intégration. Mêmes contenus que les autres styles ; les couleurs suivent la marque (boutons à droite). Les photos sont des exemples : à l'intégration, elles viendront de la marque du client (voir la question en bas de page).</p>
+  </div>
+  <div class="reglages" role="group" aria-label="Couleurs de la marque">
+    <span>Marque :</span>
+    <button type="button" data-p="#5A3A2A" data-a="#C9806B" aria-pressed="true"><span class="pastille" style="background:#C9806B"></span>Terracotta</button>
+    <button type="button" data-p="#22304A" data-a="#4C74E8"><span class="pastille" style="background:#4C74E8"></span>Bleu</button>
+    <button type="button" data-p="#7E5A66" data-a="#D7B4BE"><span class="pastille" style="background:#D7B4BE"></span>Rose poudré</button>
+    <button type="button" data-p="#5B6CFF" data-a="#3AFFA3"><span class="pastille" style="background:#3AFFA3"></span>Postorico</button>
+  </div>
+</header>
+
+<section class="style"><h2>Duo</h2><p class="desc">Photos en noir et blanc teintées à la couleur de la marque, formes arrondies, gros texte en gras ; fonds sombre, moyen et clair en alternance.</p><div class="rangee" id="duo"></div></section>
+<section class="style"><h2>Organique</h2><p class="desc">Fond crème, titres en serif élégant, photo dans une arche, taches de couleur et branches dessinées, finale en aplat de couleur avec un dessin au trait.</p><div class="rangee" id="organique"></div></section>
+<section class="style"><h2>Poudré</h2><p class="desc">Couverture photo plein cadre traversée d'un bandeau translucide, titres fins en capitales ; étapes sur fond pastel avec étiquette « Le geste » et photo ronde.</p><div class="rangee" id="poudre"></div></section>
+<section class="style"><h2>Maison</h2><p class="desc">Couverture photo assombrie, titre serif dont les derniers mots passent en italique ; étapes sur fond crème avec collage de deux photos et grand numéro en italique.</p><div class="rangee" id="maison"></div></section>
+<section class="style"><h2>Café</h2><p class="desc">Couverture photo, gros titre blanc, étiquette manuscrite sur bande sombre et flèche dessinée ; étapes sur la photo voilée avec carte blanche « Mon conseil », finale en aplat sombre.</p><div class="rangee" id="cafe"></div></section>
+
+<p class="credit">Photos de démonstration : Unsplash (licence Unsplash, usage libre). Décors (taches, branches, flèches, fleur) dessinés pour Postorico.</p>
+
+<script>
+  const C = {
+    nom: 'Harper Russo', secteur: 'Stratégie', site: '@harperrusso',
+    hook: "Ta marque, c'est bien plus qu'un logo",
+    slides: [
+      { titre: 'Ce que ta marque veut vraiment dire', texte: "Ta marque, c'est la promesse que tu fais à chaque client : ce qu'il ressent avant, pendant et après avoir travaillé avec toi.", tip: 'Écris cette promesse en une phrase.' },
+      { titre: 'Les éléments invisibles', texte: "Tes valeurs, ta façon de répondre, ton ton : ce que personne ne voit, mais que tout le monde ressent.", tip: 'Relis tes trois derniers messages clients.' },
+      { titre: 'Au-delà de l’esthétique', texte: "Un beau logo attire l'œil une seconde. Une marque cohérente se retient pendant des années.", tip: 'Garde les mêmes 3 couleurs partout.' },
+    ],
+    cta: { titre: "Tu veux une marque qui marque ?", texte: 'Écris-moi « MARQUE » en commentaire.' },
+  };
+  const n = C.slides.length + 2;
+  const nbEtapes = C.slides.length;
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fitFs = (t, base) => { const l = t.length; return l <= 28 ? base : l <= 45 ? Math.round(base * .82) : l <= 65 ? Math.round(base * .68) : Math.round(base * .55); };
+  // #abc ou #aabbcc
+  const rgb = (h) => { let x = h.replace('#', ''); if (x.length === 3) x = x.split('').map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(x.slice(i, i + 2), 16)); };
+  const hex = (c) => '#' + c.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+  const mix = (a, b, t) => { const x = rgb(a), y = rgb(b); return hex(x.map((v, i) => v + (y[i] - v) * t)); };
+  const lum = (h) => { const [r, g, b] = rgb(h).map((v) => v / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const encreSur = (h) => (lum(h) > 0.5 ? '#111111' : '#ffffff');
+  const sombre = (h, t = 0.55) => (lum(h) > 0.3 ? mix(h, '#000000', t) : h);
+  const U = (id, w = 700) => `https://images.unsplash.com/${id}?w=${w}&q=75&auto=format&fit=crop`;
+  const PH = {
+    femme: 'photo-1573496359142-b8d87734a5a2', equipe: 'photo-1522202176988-66273c2fd55f', clavier: 'photo-1486312338219-ce68d2c6f44d',
+    bureau: 'photo-1499750310107-5fef28a66643', salon: 'photo-1484101403633-562f891dc89a', salon2: 'photo-1513694203232-719a280e022f',
+    open: 'photo-1600880292203-757bb62b4baf', portrait: 'photo-1544005313-94ddf0286df2', couloir: 'photo-1497366216548-37526070297c',
+  };
+  const img = (id, style, extra = '') => `<img class="ph" alt="" src="${U(id)}" style="${style}${extra}">`;
+  const decoupe = (t, k) => { const m = t.split(' '); return [m.slice(0, -k).join(' '), m.slice(-k).join(' ')]; };
+
+  // ---------------- Duo ----------------
+  function duo(P, A) {
+    const D = mix(sombre(P, .6), '#0b1020', .35), M = lum(A) > .55 ? mix(A, '#000', .35) : A, L = mix(A, '#ffffff', .62);
+    const txtD = lum(A) > .55 ? A : mix(A, '#ffffff', .35);
+    const teinte = (c) => `<div style="position:absolute;inset:0;background:${c};mix-blend-mode:multiply;opacity:.38"></div>`;
+    const photo = (id, pos, rayon, c) => `<div style="position:absolute;${pos};overflow:hidden;border-radius:${rayon}">${img(id, 'inset:0;width:100%;height:100%;', 'filter:grayscale(1) contrast(1.08) brightness(1.05)')}${teinte(c)}</div>`;
+    const logo = (col, pos) => `<div style="position:absolute;${pos};display:flex;flex-direction:column;align-items:center;gap:2px;color:${col}"><div style="width:16px;height:16px;border-radius:4px;background:${col};transform:rotate(45deg)"></div><span style="font:800 6.5px 'Bricolage Grotesque';letter-spacing:.5px;margin-top:3px">${esc(C.nom.toUpperCase())}</span></div>`;
+    const t = (txt, col, fs, extra = '') => `<div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:${fs}px;line-height:1.08;letter-spacing:-.3px;color:${col};${extra}">${esc(txt)}</div>`;
+    const o = [];
+    o.push(`<div class="slide" style="background:${D}">${logo(txtD, 'left:26px;top:22px')}${photo(PH.femme, 'right:14px;top:16px;width:180px;height:270px', '70px 70px 18px 70px', M)}<div style="position:absolute;left:26px;right:26px;bottom:40px">${t(C.hook, txtD, fitFs(C.hook, 27))}</div></div>`);
+    o.push(`<div class="slide" style="background:${M}">${photo(PH.equipe, 'left:0;bottom:0;width:190px;height:240px', '0 46px 0 0', D)}<div style="position:absolute;right:24px;top:30px;width:230px;text-align:right">${t(C.slides[0].titre, encreSur(M), fitFs(C.slides[0].titre, 24))}<p style="margin-top:12px;font:500 11px/1.5 Inter;color:${encreSur(M)};opacity:.85">${esc(C.slides[0].texte)}</p></div>${logo(encreSur(M), 'right:26px;bottom:24px')}</div>`);
+    o.push(`<div class="slide" style="background:${L}">${logo(D, 'left:50%;top:22px;transform:translateX(-50%)')}<div style="position:absolute;left:28px;right:28px;top:84px;text-align:center">${t(C.slides[1].titre, M === A ? mix(A, '#000', .2) : M, fitFs(C.slides[1].titre, 26))}<p style="margin-top:12px;font:500 11px/1.5 Inter;color:${D}">${esc(C.slides[1].texte)}</p></div>${photo(PH.clavier, 'left:16px;right:16px;bottom:16px;height:120px', '16px', M)}</div>`);
+    o.push(`<div class="slide" style="background:${D}">${photo(PH.bureau, 'left:14px;top:16px;width:170px;height:240px', '70px 70px 70px 18px', M)}<div style="position:absolute;left:26px;right:26px;bottom:36px">${t(C.slides[2].titre, txtD, fitFs(C.slides[2].titre, 24))}<p style="margin-top:10px;font:500 11px/1.5 Inter;color:#fff;opacity:.8">${esc(C.slides[2].texte)}</p></div>${logo(txtD, 'right:26px;top:22px')}</div>`);
+    o.push(`<div class="slide" style="background:${M};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 34px">${t(C.cta.titre, encreSur(M), 28)}<p style="margin-top:14px;font:600 12px Inter;color:${encreSur(M)}">${esc(C.cta.texte)}</p>${logo(encreSur(M), 'left:50%;bottom:24px;transform:translateX(-50%)')}</div>`);
+    return o;
+  }
+
+  // ---------------- Organique ----------------
+  const tache1 = (c) => `<path d="M30 40 C 70 0, 150 10, 160 60 C 170 110, 110 140, 60 125 C 10 110, -10 80, 30 40 Z" fill="${c}"/>`;
+  const tache2 = (c) => `<path d="M20 30 C 50 0, 110 20, 100 70 C 92 110, 30 100, 15 75 C 5 58, 5 42, 20 30 Z" fill="${c}"/>`;
+  const branche = (c) => `<g fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round"><path d="M10 10 C 60 40, 110 70, 170 95"/></g><g fill="${c}"><ellipse cx="38" cy="16" rx="11" ry="4" transform="rotate(-35 38 16)"/><ellipse cx="30" cy="33" rx="11" ry="4" transform="rotate(30 30 33)"/><ellipse cx="68" cy="33" rx="12" ry="4" transform="rotate(-40 68 33)"/><ellipse cx="58" cy="52" rx="12" ry="4" transform="rotate(25 58 52)"/><ellipse cx="100" cy="50" rx="12" ry="4" transform="rotate(-40 100 50)"/><ellipse cx="90" cy="69" rx="12" ry="4" transform="rotate(25 90 69)"/></g>`;
+  const points = (c) => [[0, 0], [14, 4], [28, 1], [6, 14], [22, 16], [36, 12]].map(([x, y]) => `<ellipse cx="${x + 6}" cy="${y + 6}" rx="5" ry="3" fill="${c}"/>`).join('');
+  function organique(P, A) {
+    const CREME = '#FBF7EE', ENC = sombre(P, .5), c1 = mix(A, '#F3E2CF', .45), c2 = mix(A, '#F3E2CF', .78), c3 = A;
+    const deco = (pos, w, contenu) => `<svg style="position:absolute;${pos}" width="${w}" height="${w}" viewBox="0 0 180 180">${contenu}</svg>`;
+    const serif = (txt, fs, col, extra = '') => `<div style="font-family:'EB Garamond',serif;font-weight:500;font-size:${fs}px;line-height:1.12;color:${col};${extra}">${esc(txt)}</div>`;
+    const o = [];
+    o.push(`<div class="slide" style="background:${CREME}">${deco('left:-30px;bottom:30px', 190, tache2(c2) + `<g transform="translate(40 40)">${tache1(c1)}</g>`)}${deco('left:4px;bottom:118px', 160, branche(ENC))}${deco('left:8px;bottom:56px', 60, points(c1))}
+      <div style="position:absolute;right:-50px;top:66px;width:250px;height:360px;border-radius:50%;overflow:hidden">${img(PH.salon2, 'inset:0;width:100%;height:100%')}</div>
+      <div style="position:absolute;left:28px;top:44px;width:200px">${serif(C.hook, fitFs(C.hook, 30), ENC)}<p style="margin-top:12px;font:400 12px Inter;color:${ENC}">${nbEtapes} conseils pour y arriver</p></div>
+      <p style="position:absolute;left:28px;bottom:24px;font:500 9px Inter;color:${ENC}">${esc(C.site)}</p>${deco('right:-30px;bottom:-40px', 150, tache2(c1))}</div>`);
+    C.slides.forEach((s, i) => o.push(`<div class="slide" style="background:${CREME}">${deco('right:-50px;top:-40px', 170, tache1(c2) + `<g transform="translate(60 10) scale(.6)">${branche(c1)}</g>`)}${deco('left:-40px;bottom:-30px', 160, tache2(c1) + `<g transform="translate(40 60) scale(.6)">${branche(ENC)}</g>`)}
+      <div style="position:absolute;left:44px;right:44px;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+        <div style="width:30px;height:30px;border-radius:50%;background:${c3};color:${encreSur(c3)};display:grid;place-items:center;font:600 13px 'EB Garamond'">${i + 1}</div>
+        ${serif(s.titre, fitFs(s.titre, 23), ENC, 'margin-top:14px')}<p style="margin-top:12px;font:400 11px/1.6 Inter;color:${ENC};opacity:.85">${esc(s.texte)}</p></div>
+      <p style="position:absolute;left:0;right:0;bottom:20px;text-align:center;font:500 8px Inter;color:${ENC};opacity:.7">${esc(C.site)}</p></div>`));
+    const fleur = `<g fill="none" stroke="${CREME}" stroke-width="1.8" stroke-linecap="round"><path d="M90 170 C 88 130, 92 100, 90 70"/><path d="M90 120 C 70 110, 58 95, 60 80 C 76 84, 88 100, 90 120"/><path d="M90 104 C 110 96, 122 80, 120 66 C 104 70, 92 86, 90 104"/><circle cx="90" cy="52" r="18"/><path d="M90 34 C 84 24, 96 24, 90 34 M72 52 C 62 46, 62 58, 72 52 M108 52 C 118 46, 118 58, 108 52"/></g>`;
+    o.push(`<div class="slide" style="background:${c3};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px">${deco('right:-30px;top:-30px', 120, tache2(mix(c3, '#fff', .25)))}<svg width="120" height="120" viewBox="0 0 180 180">${fleur}</svg>${serif(C.cta.titre, 22, encreSur(c3), 'margin-top:14px')}<p style="margin-top:10px;font:500 11px Inter;color:${encreSur(c3)}">${esc(C.cta.texte)}</p></div>`);
+    return o;
+  }
+
+  // ---------------- Poudré ----------------
+  function poudre(P, A) {
+    const L = mix(A, '#ffffff', .45), BANDE = mix(A, '#ffffff', .3), ENC = sombre(P, .55);
+    const titre = (txt, fs, col) => `<div style="font-family:Italiana,serif;font-size:${fs}px;line-height:1.15;letter-spacing:1.2px;text-transform:uppercase;color:${col}">${esc(txt)}</div>`;
+    const o = [];
+    o.push(`<div class="slide">${img(PH.bureau, 'inset:0;width:100%;height:100%')}<div style="position:absolute;left:0;right:0;top:150px;padding:20px 22px;background:${BANDE}e0;text-align:center">${titre(C.hook, fitFs(C.hook, 26), ENC)}<p style="margin-top:10px;font:700 10px Montserrat;color:${ENC}">${nbEtapes} conseils pour y arriver</p><p style="font:italic 400 9px Montserrat;color:${ENC}">(et éviter les pièges)</p></div><p style="position:absolute;left:0;right:0;bottom:30px;text-align:center;font:600 9px Montserrat;color:#1d1d1d">${esc(C.site)}</p></div>`);
+    C.slides.forEach((s, i) => o.push(`<div class="slide" style="background:${L};padding:34px 28px">
+      <p style="font-family:Italiana,serif;font-size:13px;letter-spacing:1.5px;color:${ENC}">ÉTAPE ${i + 1} :</p>
+      <p style="margin-top:8px;font:700 13px/1.35 Montserrat;color:${ENC}">${esc(s.titre)}</p>
+      <p style="margin-top:8px;font:400 10.5px/1.55 Montserrat;color:${ENC};max-width:280px">${esc(s.texte)}</p>
+      <span style="display:inline-block;margin-top:16px;background:#fff;color:${ENC};font:700 8px Montserrat;letter-spacing:1px;padding:5px 10px;border-radius:3px">LE GESTE</span>
+      <p style="margin-top:10px;font:600 10.5px/1.5 Montserrat;color:${ENC};max-width:200px">${esc(s.tip)}</p>
+      <div style="position:absolute;right:-30px;bottom:-30px;width:170px;height:170px;border-radius:50%;overflow:hidden;border:4px solid #fff">${img([PH.portrait, PH.clavier, PH.femme][i], 'inset:0;width:100%;height:100%')}</div></div>`));
+    o.push(`<div class="slide">${img(PH.clavier, 'inset:0;width:100%;height:100%')}<div style="position:absolute;inset:0;background:linear-gradient(transparent 45%, ${L}f2 78%)"></div><div style="position:absolute;left:24px;right:24px;bottom:34px;text-align:center">${titre(C.cta.titre, 20, ENC)}<p style="margin-top:8px;font:600 10px Montserrat;color:${ENC}">${esc(C.cta.texte)}</p></div></div>`);
+    return o;
+  }
+
+  // ---------------- Maison ----------------
+  function maison(P, A) {
+    const CREME = '#F3EEE7', ENC = '#2B2420';
+    const pastille = (txt, col) => `<span style="border:1px solid ${col};border-radius:50%;padding:4px 12px;font:400 8.5px Montserrat;color:${col}">${txt}</span>`;
+    const etoiles = `<div style="position:absolute;right:22px;bottom:24px;display:flex;gap:4px">${[0, 1, 2].map(() => `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M5 0 L6.2 3.8 L10 5 L6.2 6.2 L5 10 L3.8 6.2 L0 5 L3.8 3.8 Z" fill="${A}"/></svg>`).join('')}</div>`;
+    const deuxTons = (txt, k, fs, col) => { const [a, b] = decoupe(txt, k); return `<div style="font-family:'Cormorant Garamond',serif;font-weight:500;font-size:${fs}px;line-height:1.02;color:${col}">${esc(a)}<br><i style="font-weight:500;padding-left:32px">${esc(b)}</i></div>`; };
+    const o = [];
+    o.push(`<div class="slide">${img(PH.salon, 'inset:0;width:100%;height:100%')}<div style="position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.55))"></div>
+      <div style="position:absolute;left:22px;right:22px;top:22px;display:flex;justify-content:space-between;align-items:center">${pastille('Page 01', '#fff')}<span style="font:400 9px Montserrat;color:#fff">${esc(C.nom)}</span></div>
+      <div style="position:absolute;left:24px;right:20px;top:150px">${deuxTons(C.hook, 3, fitFs(C.hook, 40), '#fff')}</div>
+      <p style="position:absolute;left:24px;bottom:24px;font:400 9px Montserrat;color:#fff">${esc(C.site)}</p>${etoiles}</div>`);
+    C.slides.forEach((s, i) => o.push(`<div class="slide" style="background:${CREME}">
+      <div style="position:absolute;left:22px;right:22px;top:22px;display:flex;justify-content:space-between;align-items:center">${pastille('Page 0' + (i + 2), ENC)}<span style="font:400 9px Montserrat;color:${ENC}">${esc(C.nom)}</span></div>
+      <div style="position:absolute;left:22px;top:92px;width:120px;height:120px;overflow:hidden">${img([PH.salon2, PH.salon, PH.couloir][i], 'inset:0;width:100%;height:100%')}</div>
+      <div style="position:absolute;left:64px;top:200px;width:110px;height:150px;overflow:hidden;border:5px solid ${CREME}">${img([PH.salon, PH.couloir, PH.salon2][i], 'inset:0;width:100%;height:100%')}</div>
+      <div style="position:absolute;left:190px;right:22px;top:96px">
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:46px;line-height:1;color:${A === '#3AFFA3' ? mix(A, '#000', .4) : A}">0${i + 1}</div>
+        <div style="margin-top:8px">${deuxTons(s.titre, 1, fitFs(s.titre, 22), ENC)}</div>
+        <p style="margin-top:10px;font:400 9.5px/1.55 Montserrat;color:#5a524c">${esc(s.texte)}</p></div>
+      <p style="position:absolute;left:22px;bottom:24px;font:400 8.5px Montserrat;color:${ENC}">${esc(C.site)}</p>${etoiles}</div>`));
+    o.push(`<div class="slide" style="background:${CREME}">
+      <div style="position:absolute;left:22px;right:22px;top:22px;display:flex;justify-content:space-between">${pastille('Page 0' + n, ENC)}<span style="font:400 9px Montserrat;color:${ENC}">${esc(C.nom)}</span></div>
+      <div style="position:absolute;left:30px;right:30px;top:96px;height:170px;overflow:hidden">${img(PH.salon2, 'inset:0;width:100%;height:100%')}</div>
+      <div style="position:absolute;left:30px;right:30px;top:288px;text-align:center">${deuxTons(C.cta.titre, 2, 24, ENC)}<p style="margin-top:10px;font:400 10px Montserrat;color:#5a524c">${esc(C.cta.texte)}</p></div>${etoiles}</div>`);
+    return o;
+  }
+
+  // ---------------- Café ----------------
+  function cafe(P, A) {
+    const BRUN = sombre(P, .6);
+    const fleche = `<svg width="70" height="34" viewBox="0 0 70 34" fill="none" stroke="${BRUN}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 24 C 12 8, 26 8, 30 18 C 34 28, 20 30, 22 20 C 24 10, 46 10, 64 16"/><path d="M56 10 L64 16 L56 22"/></svg>`;
+    const points = (i) => `<div style="position:absolute;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:4px">${Array.from({ length: n }).map((_, k) => `<i style="width:6px;height:6px;border-radius:50%;border:1px solid #fff;background:${k === i ? '#fff' : 'transparent'}"></i>`).join('')}</div>`;
+    const [haut, bas] = (() => { const m = C.hook.split(' '); const k = Math.min(3, Math.ceil(m.length / 2)); return [m.slice(0, k).join(' '), m.slice(k).join(' ')]; })();
+    const o = [];
+    o.push(`<div class="slide">${img(PH.clavier, 'inset:0;width:100%;height:100%')}<div style="position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.38),rgba(0,0,0,.05) 60%)"></div>
+      <div style="position:absolute;left:20px;right:20px;top:46px;text-align:center;color:#fff">
+        <div style="font:800 ${fitFs(haut, 34)}px/1 Poppins;text-transform:uppercase">${esc(haut)}</div>
+        <div style="font:700 ${fitFs(bas, 30)}px/1.05 Poppins;margin-top:2px">${esc(bas)}</div>
+        <span style="display:inline-block;margin-top:12px;background:${BRUN};color:#fff;font:700 15px Caveat;padding:3px 12px;transform:rotate(-2deg)">Je te montre en ${nbEtapes} étapes</span>
+        <div style="margin-top:10px">${fleche.replace(BRUN, '#fff').replace(BRUN, '#fff')}</div></div>${points(0)}</div>`);
+    C.slides.forEach((s, i) => o.push(`<div class="slide">${img(PH.clavier, 'inset:-12px;width:calc(100% + 24px);height:calc(100% + 24px);', 'filter:blur(5px)')}<div style="position:absolute;inset:0;background:rgba(255,255,255,.62)"></div>
+      <div style="position:absolute;left:30px;right:30px;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:${BRUN}">
+        <div style="font:700 26px Poppins">${i + 1}</div>
+        <div style="font:800 ${fitFs(s.titre, 16)}px/1.2 Poppins;text-transform:uppercase;margin-top:6px">${esc(s.titre)}</div>
+        <p style="margin-top:10px;font:400 10.5px/1.55 Poppins">${esc(s.texte)}</p>
+        <div style="margin-top:16px;background:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 6px 16px rgba(0,0,0,.08)"><p style="font:700 10px Poppins">Mon conseil</p><p style="margin-top:4px;font:400 10px/1.5 Poppins">${esc(s.tip)}</p></div></div>${points(i + 1).replace(/#fff/g, BRUN)}</div>`));
+    o.push(`<div class="slide" style="background:${BRUN};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 40px;color:#fff"><div style="font:800 17px/1.25 Poppins;text-transform:uppercase">${esc(C.cta.titre)}</div><p style="margin-top:10px;font:500 10px Poppins;opacity:.85">${esc(C.cta.texte)}</p><p style="position:absolute;bottom:24px;font:500 9px Poppins;opacity:.7">${esc(C.site)}</p></div>`);
+    return o;
+  }
+
+  const legendes = ['Couverture', 'Étape 1', 'Étape 2', 'Étape 3', 'Finale'];
+  const STYLES = [['duo', duo], ['organique', organique], ['poudre', poudre], ['maison', maison], ['cafe', cafe]];
+  function rendre(P, A) {
+    STYLES.forEach(([id, fn]) => {
+      document.getElementById(id).innerHTML = fn(P, A).map((h, i) => `<div>${h}<p class="legende">${legendes[i]}</p></div>`).join('');
+    });
+  }
+  document.querySelectorAll('[data-p]').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-p]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    rendre(b.dataset.p, b.dataset.a);
+  }));
+  rendre('#5A3A2A', '#C9806B');
+</script>
+</body>
+</html>

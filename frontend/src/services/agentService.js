@@ -106,6 +106,8 @@ export const agentService = {
   // Modèles créés par le client dans l'éditeur (le serveur rend la vignette : délai large)
   creerModeleCarrousel: (nom, pages) => api.post('/agent/carrousel/modeles', { nom, pages }, { timeout: 180000 }).then((r) => r.data),
   supprimerModeleCarrousel: (id) => api.delete(`/agent/carrousel/modeles/${id}`).then((r) => r.data),
+  // Photos (Pexels) des styles photo : les mêmes que celles du rendu final de ce carrousel
+  carrouselPhotos: (graine = 'demo') => api.get('/agent/carrousel/photos', { params: { graine } }).then((r) => r.data?.photos || []),
   modeleCarrousel: (id) => api.get(`/agent/carrousel/modeles/${id}`).then((r) => r.data),
   modifierModeleCarrousel: (id, nom, pages) => api.put(`/agent/carrousel/modeles/${id}`, { nom, pages }, { timeout: 180000 }).then((r) => r.data),
   gabaritAuto: (gabarit, texte, contenu_id, bg_image = null) =>

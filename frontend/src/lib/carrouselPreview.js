@@ -1,5 +1,6 @@
 // Rendu des aperçus de carrousel (mêmes styles que le backend) — renvoie du HTML string.
 // Contraste AUTOMATIQUE : couleur de texte calculée selon la luminosité du fond -> toujours lisible.
+import './stylesCarrousel'; // window.StylesCarrousel : styles écrits une seule fois (aperçu + rendu serveur)
 
 const toRgb = (h) => {
   h = (h || '#000000').replace('#', '');
@@ -28,6 +29,14 @@ export const TEMPLATES = [
   { id: 'clean', label: 'Clean' },
   { id: 'neon', label: 'Néon' },
   { id: 'chiffres', label: 'Chiffres clés' },
+  { id: 'kraft', label: 'Kraft' },
+  { id: 'surligne', label: 'Surligné' },
+  { id: 'grand-chiffre', label: 'Grand chiffre' },
+  { id: 'duo', label: 'Duo', photos: true },
+  { id: 'organique', label: 'Organique', photos: true },
+  { id: 'poudre', label: 'Poudré', photos: true },
+  { id: 'maison', label: 'Maison', photos: true },
+  { id: 'cafe', label: 'Café', photos: true },
   { id: 'postorico', label: 'Postorico', exclusif: true },
   // Gabarits maison : aperçu JS comme les autres, mascotte qui change de pose.
   { id: 'rico-studio', label: 'Rico Studio', exclusif: true },
@@ -538,8 +547,36 @@ function _renderPerso(html, c, colors = {}) {
   });
 }
 
+/** Styles du générateur partagé : slides 360×450 réduites à la taille des aperçus (200×250). */
+const _policesChargees = new Set();
+function _renderPartage(tplId, c, colors) {
+  const SC = window.StylesCarrousel;
+  if (!_policesChargees.has(tplId)) {
+    _policesChargees.add(tplId);
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = SC.lienPolices(tplId);
+    document.head.appendChild(l);
+  }
+  const contenu = {
+    hook: c.hook, slides: c.slides, cta: c.cta,
+    nom: (colors.nom || 'Ta marque').trim() || 'Ta marque', secteur: colors.secteur || '', logo: colors.logo || null, photos: colors.photos || [],
+  };
+  return SC.rendre(tplId, contenu, { p: colors.p, s: colors.s, a: colors.a }).map((h) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = h;
+    _policesPerso(tmp, colors); // police choisie : remplace celle du style (data-police)
+    return `<div class="cz-slide" style="padding:0;display:block"><div style="position:absolute;left:0;top:0;width:360px;height:450px;transform:scale(${200 / 360});transform-origin:0 0">${tmp.innerHTML}</div></div>`;
+  });
+}
+/** Le style a-t-il besoin de photos (Pexels) ? */
+export const stylePhotos = (tplId) => !!window.StylesCarrousel?.avecPhotos(tplId);
+
 function renderSlides(tplId, colors) {
   CONTENT = colors?.content ? _mapContent(colors.content) : DEMO_CONTENT;  // vrai carrousel si fourni
+  if (window.StylesCarrousel?.ids.includes(tplId)) {
+    try { return _renderPartage(tplId, CONTENT, colors || {}); } finally { CONTENT = DEMO_CONTENT; }
+  }
   // Modèle du client : ses polices et couleurs sont celles qu'il a dessinées.
   if (GABARITS_PERSO[tplId]) {
     try { return _renderPerso(GABARITS_PERSO[tplId], CONTENT, colors || {}); } finally { CONTENT = DEMO_CONTENT; }

@@ -58,7 +58,32 @@ async def _rendre(fonction, *args):
     finally:
         _atelier.release()
 TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon", "chiffres",
-             "postorico", "rico-studio", "rico-scene"]
+             "postorico", "rico-studio", "rico-scene",
+             # styles écrits une seule fois en JS (assets/styles_carrousel.js, partagé avec l'aperçu)
+             "kraft", "surligne", "grand-chiffre", "duo", "organique", "poudre", "maison", "cafe"]
+
+# Styles du générateur partagé ; ceux qui demandent des photos (Pexels).
+STYLES_PARTAGES = {"kraft", "surligne", "grand-chiffre", "duo", "organique", "poudre", "maison", "cafe"}
+STYLES_PHOTOS = {"duo", "organique", "poudre", "maison", "cafe"}
+
+
+def _style_partage(template, content, p, s, a, nom, secteur, logo, photos=None):
+    """Document de rendu d'un style du générateur partagé : le JS construit les slides dans la
+    page Playwright (même code que l'aperçu du navigateur)."""
+    import json
+    hook, slides, cta = _parts(content)
+    donnees = {"hook": hook, "slides": slides, "cta": cta, "nom": nom or "", "secteur": secteur or "",
+               "logo": logo, "photos": photos or []}
+    import os
+    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "styles_carrousel.js")
+    js = open(chemin, encoding="utf-8").read()
+    # Le contenu vient de l'IA et du client : « </ » ne doit pas pouvoir fermer la balise script.
+    lit = lambda o: json.dumps(o, ensure_ascii=False).replace("</", "<\\/")
+    return ('<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{margin:0}</style></head><body>'
+            f"<script>{js}</script><script>(function(){{var S=window.StylesCarrousel;"
+            f"var l=document.createElement('link');l.rel='stylesheet';l.href=S.lienPolices({lit(template)});document.head.appendChild(l);"
+            f"document.body.insertAdjacentHTML('beforeend',S.rendre({lit(template)},{lit(donnees)},{lit({'p': p, 's': s, 'a': a})}).join(''));}})();</script>"
+            "</body></html>")
 
 # Templates sur mesure : invisibles par défaut, attribués compte par compte depuis le
 # back-office (colonne users.carrousel_templates_exclusifs, liste CSV).
@@ -240,10 +265,12 @@ def _chiffre_fs(text, base=76):
     return round(base * .44)
 
 
-def build_html(content, p, s, a, nom, secteur, template="creme", logo=None, poses=None):
+def build_html(content, p, s, a, nom, secteur, template="creme", logo=None, poses=None, photos=None):
     secteur = (secteur or "").strip()
     if len(secteur) > 42:
         secteur = secteur[:42].rstrip() + "…"
+    if template in STYLES_PARTAGES:
+        return _style_partage(template, content, p, s, a, nom, secteur, logo, photos)
     # Template importé depuis l'admin : son HTML est stocké en base, pas dans le code.
     if template not in TEMPLATES:
         from services import carrousel_custom
@@ -667,9 +694,9 @@ def _apply_font(html_str, font, font_corps=None):
     return html_str
 
 
-def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, template="creme", logo=None, font=None, font_corps=None):
+def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, template="creme", logo=None, font=None, font_corps=None, photos=None):
     from playwright.sync_api import sync_playwright
-    html_str = _apply_font(build_html(content, p, s, a, nom, secteur, template, logo), font, font_corps)
+    html_str = _apply_font(build_html(content, p, s, a, nom, secteur, template, logo, photos=photos), font, font_corps)
     urls, pngs = [], []
     with sync_playwright() as pw:
         args = ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]
@@ -771,7 +798,12 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     font_corps = ((font_corps if font_corps is not None else u.get("carrousel_font_corps"))
                   or (u.get("typo_tertiaire") if marque_fonts else None) or "").strip() or None
     base = (contenu_id or "tmp").replace("-", "")[:16]
-    args = (telegram_id, content, p, s, a, nom, secteur, base, template, logo, font, font_corps)
+    # Styles avec photos : photos libres (Pexels) d'après le secteur, stables pour ce carrousel.
+    photos = None
+    if template in STYLES_PHOTOS:
+        from services import pexels_service
+        photos = await asyncio.to_thread(pexels_service.photos, secteur, contenu_id or base)
+    args = (telegram_id, content, p, s, a, nom, secteur, base, template, logo, font, font_corps, photos)
     # Ratés intermittents de Playwright (timeout réseau/police) : jusqu'à 2 essais.
     res = {"images": [], "pdf": None}
     depart = time.monotonic()
