@@ -388,6 +388,11 @@ def list_carrousel_templates(payload: dict = Depends(verify_token)):
     # Les templates importés n'ont pas d'aperçu JS : on renvoie leur vignette.
     importes = [{"id": t["id"], "label": t["label"], "preview_url": t.get("preview_url")}
                 for t in carrousel_custom.lister() if t["id"] in autorises]
+    # Modèles créés par le client : leur gabarit sert à l'aperçu en direct dans Contenus.
+    for t in carrousel_custom.lister_du_compte(tid):
+        row = carrousel_custom.charger(t["id"]) or {}
+        importes.append({"id": t["id"], "label": t["label"], "preview_url": t.get("preview_url"),
+                         "perso": True, "html": row.get("html")})
     return {"templates": autorises, "importes": importes}
 
 
@@ -1223,3 +1228,74 @@ async def carrousel_recolor(body: dict, payload: dict = Depends(verify_token)):
             {"slides_images": imgs, "lien_visuel": imgs[0], "carrousel_pdf": res.get("pdf")}
         ).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
     return {"images": imgs, "pdf": res.get("pdf"), "carrousel_data": carrousel_data}
+
+
+@router.post("/carrousel/{contenu_id}/design")
+def enregistrer_design_carrousel(contenu_id: str, body: dict, payload: dict = Depends(verify_token)):
+    """Éditeur de carrousel : le client a retouché ou dessiné ses slides ; le navigateur envoie
+    les images exportées + le design (pour rouvrir plus tard). Gratuit (aucune IA)."""
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    res = carrousel_service.enregistrer_design(telegram_id, contenu_id, body.get("design") or {}, body.get("images") or [])
+    erreur = res.get("error")
+    if erreur == "introuvable":
+        raise HTTPException(status_code=404, detail="Carrousel introuvable")
+    if erreur == "deja_programme":
+        raise HTTPException(status_code=409, detail="Ce carrousel est déjà programmé ou publié : annule la programmation avant de modifier le design.")
+    if erreur == "trop_lourd":
+        raise HTTPException(status_code=413, detail="Une slide est trop lourde (6 Mo maximum).")
+    if erreur:
+        raise HTTPException(status_code=400, detail="Slides invalides (1 à 10 images attendues).")
+    return res
+
+
+@router.get("/carrousel/modeles")
+def lister_modeles_carrousel(payload: dict = Depends(verify_token)):
+    """Modèles de carrousel créés par ce client dans l'éditeur."""
+    from services import carrousel_custom
+    return {"modeles": carrousel_custom.lister_du_compte(payload.get("telegram_id"))}
+
+
+@router.post("/carrousel/modeles")
+async def creer_modele_carrousel(body: dict, payload: dict = Depends(verify_token)):
+    """« Enregistrer comme modèle » : trois slides (couverture, étape, finale) dont les textes
+    portent un rôle. Le gabarit HTML est construit ici, jamais reçu du navigateur."""
+    from services import carrousel_modele_service as modeles
+    telegram_id = payload.get("telegram_id")
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    try:
+        return await modeles.creer(telegram_id, body.get("nom") or "", body.get("pages") or [])
+    except modeles.ModeleInvalide as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/carrousel/modeles/{modele_id}")
+def lire_modele_carrousel(modele_id: str, payload: dict = Depends(verify_token)):
+    """Un modèle du client avec son design, pour le rouvrir dans l'éditeur."""
+    from services import carrousel_modele_service as modeles
+    row = modeles.charger(payload.get("telegram_id"), modele_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Modèle introuvable")
+    return row
+
+
+@router.put("/carrousel/modeles/{modele_id}")
+async def modifier_modele_carrousel(modele_id: str, body: dict, payload: dict = Depends(verify_token)):
+    from services import carrousel_modele_service as modeles
+    try:
+        res = await modeles.modifier(payload.get("telegram_id"), modele_id, body.get("nom") or "", body.get("pages") or [])
+    except modeles.ModeleInvalide as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    if not res:
+        raise HTTPException(status_code=404, detail="Modèle introuvable")
+    return res
+
+
+@router.delete("/carrousel/modeles/{modele_id}")
+def supprimer_modele_carrousel(modele_id: str, payload: dict = Depends(verify_token)):
+    from services import carrousel_modele_service as modeles
+    if not modeles.supprimer(payload.get("telegram_id"), modele_id):
+        raise HTTPException(status_code=404, detail="Modèle introuvable")
+    return {"success": True}

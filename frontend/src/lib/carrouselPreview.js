@@ -231,10 +231,11 @@ function _renderRaw(tplId, colors) {
     // Aperçu des gabarits maison : mêmes ingrédients que le rendu backend
     // (carrousel_service.py). Rico change de pose d'une slide à l'autre — ici
     // une rotation fixe, l'aperçu ne peut pas interroger l'IA.
-    // Source 500px : on part de la super-résolution IA (e_upscale, comme le rendu
-    // final) puis on redimensionne à 600px → net dans l'aperçu, cohérent avec la
-    // slide publiée. (rico_poses.py côté backend fait le même e_upscale.)
-    const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/e_upscale/w_600,q_auto,f_auto/brand/rico-v4';
+    // PNG d'origine (transparent) réduit à 600px : assez net à la taille de l'aperçu.
+    // Pas d'e_upscale ici : la super-résolution aplatit la transparence sur du blanc
+    // (Rico sur un carré blanc). Le rendu final (rico_poses.py) le peut, lui, car il
+    // redétoure ensuite Rico par IA — étape payante qu'un aperçu ne mérite pas.
+    const RICO = 'https://res.cloudinary.com/dy9gp5pim/image/upload/w_600,q_auto,f_auto/brand/rico-v4';
     // Memes identifiants que le repli de rico_poses.py cote backend : deux
     // listes qui divergent, et l'apercu montre autre chose que le rendu final.
     const ROT = ['presente-cote', 'idee', 'presente-calme', 'pointe-haut', 'clin-oeil', 'presente-produit'];
@@ -421,8 +422,128 @@ export function loadGoogleFont(family) {
   document.head.appendChild(l);
 }
 
+// Modèles créés par le client dans l'éditeur : le gabarit construit par le serveur (360×450,
+// blocs data-role) sert aussi à l'aperçu, réduit à la taille des vignettes (200×250).
+const GABARITS_PERSO = {};
+export function enregistrerGabaritsPerso(liste) {
+  (liste || []).forEach((m) => { if (m?.id && m.html) GABARITS_PERSO[m.id] = m.html; });
+}
+
+const _escPerso = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let _ctxMesure = null;
+
+/** Même idée que l'ajustement du rendu serveur : la police d'un texte rétrécit tant qu'il
+ * dépasse sa zone (mesure au canvas, l'aperçu étant une chaîne HTML sans script). */
+function _ajusterTextesPerso(racine) {
+  _ctxMesure = _ctxMesure || document.createElement('canvas').getContext('2d');
+  racine.querySelectorAll('[data-fit]').forEach((el) => {
+    const st = el.style;
+    const largeur = parseFloat(st.width);
+    const hauteur = parseFloat(st.height);
+    let fs = parseFloat(st.fontSize);
+    const lh = parseFloat(st.lineHeight) || 1.2;
+    if (!largeur || !hauteur || !fs) return;
+    const famille = st.fontFamily || 'Inter';
+    const lignes = (taille) => {
+      _ctxMesure.font = `${st.fontStyle || 'normal'} ${st.fontWeight || 400} ${taille}px ${famille}`;
+      return el.textContent.split('\n').reduce((n, para) => {
+        let ligne = '';
+        let compte = 1;
+        para.split(' ').forEach((mot) => {
+          const essai = ligne ? `${ligne} ${mot}` : mot;
+          if (ligne && _ctxMesure.measureText(essai).width > largeur) { compte += 1; ligne = mot; } else ligne = essai;
+        });
+        return n + compte;
+      }, 0);
+    };
+    const surUneLigne = st.whiteSpace === 'nowrap';
+    const deborde = (taille) => {
+      if (!surUneLigne) return lignes(taille) * taille * lh > hauteur + 1;
+      _ctxMesure.font = `${st.fontStyle || 'normal'} ${st.fontWeight || 400} ${taille}px ${famille}`;
+      return _ctxMesure.measureText(el.textContent).width > largeur + 1;
+    };
+    while (fs > 5 && deborde(fs)) fs -= 0.5;
+    st.fontSize = `${fs}px`;
+  });
+}
+
+/** Mots en couleur (data-accent-mots) : les N derniers mots passent dans un span coloré —
+ * même logique que FIT_JS côté rendu serveur. */
+function _accentsPerso(racine) {
+  racine.querySelectorAll('[data-accent-mots]').forEach((el) => {
+    const n = parseInt(el.getAttribute('data-accent-mots'), 10) || 0;
+    if (!n) return;
+    const morceaux = el.textContent.split(/(\s+)/);
+    const idx = [];
+    for (let i = morceaux.length - 1; i >= 0 && idx.length < n; i -= 1) if (morceaux[i].trim()) idx.push(i);
+    if (!idx.length) return;
+    const debut = Math.min(...idx);
+    const span = document.createElement('span');
+    span.style.color = el.getAttribute('data-accent');
+    span.textContent = morceaux.slice(debut).join('');
+    el.textContent = morceaux.slice(0, debut).join('');
+    el.appendChild(span);
+  });
+}
+/** Police choisie (Carrousels, retouche de Contenus) : remplace celle du modèle sur ses
+ * titres et son texte (data-police) — « Auto » garde les polices dessinées. */
+function _policesPerso(racine, colors) {
+  [['titre', colors.font], ['corps', colors.fontBody]].forEach(([cible, spec]) => {
+    if (!spec) return;
+    const { family, bold, italic } = parseFontSpec(spec);
+    if (!family) return;
+    racine.querySelectorAll(`[data-police="${cible}"]`).forEach((el) => {
+      el.style.fontFamily = `'${family}',sans-serif`;
+      el.style.letterSpacing = 'normal'; // l'espacement dessiné valait pour l'autre police
+      if (bold) el.style.fontWeight = '700';
+      if (italic) el.style.fontStyle = 'italic';
+    });
+  });
+}
+const _hexOk = (v) => (/^#[0-9a-f]{3,8}$/i.test(v || '') ? v : '');
+
+function _renderPerso(html, c, colors = {}) {
+  const nom = colors.nom;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('link[href^="https://fonts.googleapis.com/"]').forEach((l) => {
+    if (!document.head.querySelector(`link[href="${l.getAttribute('href')}"]`)) {
+      const x = document.createElement('link');
+      x.rel = 'stylesheet';
+      x.href = l.getAttribute('href');
+      document.head.appendChild(x);
+    }
+  });
+  const bloc = (r) => doc.querySelector(`.slide[data-role="${r}"]`)?.outerHTML || '';
+  const n = c.slides.length + 2;
+  const commun = { nom: _escPerso(nom), secteur: '', total: String(n), logo: _escPerso(colors.logo || '') };
+  // couleurs de la marque : les textes du modèle qui les utilisent les suivent
+  const vars = `--marque-p:${_hexOk(colors.p)};--marque-s:${_hexOk(colors.s)};--marque-a:${_hexOk(colors.a)};`;
+  const remplir = (b, valeurs) => Object.entries({ ...commun, ...valeurs })
+    .reduce((acc, [k, v]) => acc.split(`{{${k}}}`).join(v), b).replace(/\{\{[a-z_]+\}\}/g, '');
+  const blocs = [
+    remplir(bloc('couverture'), { hook: _escPerso(c.hook), index: '1' }),
+    ...c.slides.map((s, i) => remplir(bloc('etape'), {
+      numero: String(i + 1).padStart(2, '0'), titre: _escPerso(s.t), texte: _escPerso(s.x),
+      pills: '', pro_tip: _escPerso(s.tip), index: String(i + 2),
+    })),
+    remplir(bloc('final'), { cta_titre: _escPerso(c.cta.t), cta_texte: _escPerso(c.cta.x), index: String(n) }),
+  ];
+  return blocs.map((b) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = b;
+    _policesPerso(tmp, colors);
+    _accentsPerso(tmp);
+    _ajusterTextesPerso(tmp);
+    return `<div class="cz-slide" style="padding:0;display:block;${vars}"><div style="position:absolute;left:0;top:0;width:360px;height:450px;transform:scale(${200 / 360});transform-origin:0 0">${tmp.innerHTML}</div></div>`;
+  });
+}
+
 function renderSlides(tplId, colors) {
   CONTENT = colors?.content ? _mapContent(colors.content) : DEMO_CONTENT;  // vrai carrousel si fourni
+  // Modèle du client : ses polices et couleurs sont celles qu'il a dessinées.
+  if (GABARITS_PERSO[tplId]) {
+    try { return _renderPerso(GABARITS_PERSO[tplId], CONTENT, colors || {}); } finally { CONTENT = DEMO_CONTENT; }
+  }
   let slides;
   try { slides = _renderRaw(tplId, colors); } finally { CONTENT = DEMO_CONTENT; }
   const font = colors?.font;

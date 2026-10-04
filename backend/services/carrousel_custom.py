@@ -115,6 +115,8 @@ def construire(html_gabarit: str, content, p, s, a, nom, secteur, logo, styles_g
         ":root{"
         f"--principale:{p};--secondaire:{s};--accent:{A};"
         f"--encre:{_ink_on(p)};--sourdine:{_mix(_ink_on(p), p, .45)};"
+        # couleurs brutes de la marque (modèles créés dans l'éditeur)
+        f"--marque-p:{p};--marque-s:{s};--marque-a:{a};"
         "}"
     )
     return (
@@ -123,11 +125,35 @@ def construire(html_gabarit: str, content, p, s, a, nom, secteur, logo, styles_g
     )
 
 
+# Modèles créés dans l'éditeur, joué après le chargement des polices :
+# 1. mots en couleur (data-accent-mots) : les N derniers mots passent dans un span coloré ;
+# 2. ajustement (data-fit) : la police rétrécit tant que le texte déborde de sa zone.
+FIT_JS = r"""() => {
+  document.querySelectorAll('[data-accent-mots]').forEach(function(el){
+    var n = parseInt(el.getAttribute('data-accent-mots'), 10) || 0;
+    if (!n) return;
+    var m = el.textContent.split(/(\s+)/), idx = [];
+    for (var i = m.length - 1; i >= 0 && idx.length < n; i--) if (m[i].trim()) idx.push(i);
+    if (!idx.length) return;
+    var d = Math.min.apply(null, idx), s = document.createElement('span');
+    s.style.color = el.getAttribute('data-accent');
+    s.textContent = m.slice(d).join('');
+    el.textContent = m.slice(0, d).join('');
+    el.appendChild(s);
+  });
+  document.querySelectorAll('[data-fit]').forEach(function(el){
+    var fs = parseFloat(getComputedStyle(el).fontSize), g = 0;
+    while ((el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) && fs > 5 && g < 200) { fs -= 0.5; el.style.fontSize = fs + 'px'; g++; }
+  });
+}"""
+
+
 # ---------------------------------------------------------------- persistance
 def lister() -> list:
+    """Templates importés par l'admin (les modèles créés par les clients n'y figurent pas)."""
     try:
         r = supabase.table("carrousel_templates_custom").select("id,label,preview_url,created_at") \
-            .order("created_at", desc=True).execute()
+            .is_("owner_id", "null").order("created_at", desc=True).execute()
         return r.data or []
     except Exception as e:
         logger.warning(f"carrousels custom: {e}")
@@ -145,6 +171,23 @@ def charger(tpl_id: str) -> dict | None:
 
 def ids() -> set:
     return {t["id"] for t in lister()}
+
+
+def lister_du_compte(telegram_id: str) -> list:
+    """Modèles créés par ce client dans l'éditeur (ils lui sont réservés)."""
+    if not telegram_id:
+        return []
+    try:
+        r = supabase.table("carrousel_templates_custom").select("id,label,preview_url,created_at") \
+            .eq("owner_id", telegram_id).order("created_at", desc=True).execute()
+        return r.data or []
+    except Exception as e:
+        logger.warning(f"modèles carrousel de {telegram_id}: {e}")
+        return []
+
+
+def ids_du_compte(telegram_id: str) -> set:
+    return {t["id"] for t in lister_du_compte(telegram_id)}
 
 
 def enregistrer(tpl_id: str, label: str, html: str, preview_url: str | None, admin_id: str | None) -> dict:

@@ -103,6 +103,11 @@ export const agentService = {
   usage: () => api.get('/agent/usage').then((r) => r.data),
   // Templates de carrousel proposables au compte (les sur-mesure non attribues sont exclus)
   carrouselTemplates: () => api.get('/agent/carrousel-templates').then((r) => r.data),
+  // Modèles créés par le client dans l'éditeur (le serveur rend la vignette : délai large)
+  creerModeleCarrousel: (nom, pages) => api.post('/agent/carrousel/modeles', { nom, pages }, { timeout: 180000 }).then((r) => r.data),
+  supprimerModeleCarrousel: (id) => api.delete(`/agent/carrousel/modeles/${id}`).then((r) => r.data),
+  modeleCarrousel: (id) => api.get(`/agent/carrousel/modeles/${id}`).then((r) => r.data),
+  modifierModeleCarrousel: (id, nom, pages) => api.put(`/agent/carrousel/modeles/${id}`, { nom, pages }, { timeout: 180000 }).then((r) => r.data),
   gabaritAuto: (gabarit, texte, contenu_id, bg_image = null) =>
     api.post('/agent/gabarit/auto', { gabarit, texte, contenu_id, ...(bg_image ? { bg_image } : {}) }).then((r) => r.data),
 };

@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Palette, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -42,7 +42,7 @@ import { templateService } from '../services/templateService';
 import { useUser } from '../context/UserContext';
 import { SOCIAL_PLATFORMS } from '../constants/platforms';
 import { ColorField } from '../components/ColorField';
-import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, parseFontSpec, renderSlides, SLIDE_CSS, TEMPLATES } from '../lib/carrouselPreview';
+import { CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, parseFontSpec, renderSlides, SLIDE_CSS, TEMPLATES, enregistrerGabaritsPerso } from '../lib/carrouselPreview';
 import FontPicker from '../components/FontPicker';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
@@ -58,6 +58,9 @@ const IMAGE_MODELES = [
 ];
 
 // Clés = valeurs réelles de l'enum statut_contenu en base ; labelKey = clé i18n d'affichage
+// Éditeur de carrousel (Konva, ~300 Ko) : chargé seulement quand on l'ouvre
+const EditeurCarrousel = lazy(() => import('../components/EditeurCarrousel'));
+
 const STATUT_CONFIG = {
   'Brouillon': { labelKey: 'contenus.statut.brouillon', bg: 'bg-slate-500/15', text: 'text-slate-300', border: 'border-slate-400/30', dot: 'bg-slate-300', icon: PenLine },
   'A tourner': { labelKey: 'contenus.statut.aTourner', bg: 'bg-[#8A6CFF]/15', text: 'text-[#b9a6ff]', border: 'border-[#8A6CFF]/30', dot: 'bg-[#8A6CFF]', icon: Video },
@@ -474,6 +477,7 @@ export default function ContenusPage() {
     agentService.carrouselTemplates()
       .then((d) => {
         const autorises = d?.templates || [];
+        enregistrerGabaritsPerso(d?.importes); // aperçu en direct des modèles du client
         const importes = (d?.importes || []).map((x) => ({ id: x.id, label: x.label }));
         setCzStyles([...TEMPLATES.filter((x) => autorises.includes(x.id)), ...importes]);
       })
@@ -492,6 +496,20 @@ export default function ContenusPage() {
   const [carrouselLoading, setCarrouselLoading] = useState(null);
   const [publishLoading, setPublishLoading] = useState(null);
   const [lightbox, setLightbox] = useState(null); // { images:[], index:0 }
+  const [editeurDesign, setEditeurDesign] = useState(null); // { contenu, apparence } ouvert dans l'éditeur
+  const ouvrirEditeurDesign = (contenu, mode = 'carrousel') => {
+    const apparence = czR ? {
+      p: czR.p, s: czR.s, a: czR.a, font: czR.font, fontBody: czR.fontBody,
+      slidesHtml: czPreviewSlides(), // fonds du modèle choisi pour ce carrousel
+    } : {
+      p: user?.carrousel_couleur_principale || user?.couleur_principale,
+      s: user?.carrousel_couleur_secondaire || user?.couleur_secondaire,
+      a: user?.carrousel_couleur_accent || user?.couleur_accent,
+      font: user?.carrousel_font || user?.typo_primaire, fontBody: user?.carrousel_font_corps || user?.typo_tertiaire,
+    };
+    setEditeurDesign({ contenu, apparence, mode });
+    setSelectedContenu(null);
+  };
 
   const { user, updateUser } = useUser();
   const [imageContenu, setImageContenu] = useState(null);
@@ -1671,6 +1689,12 @@ export default function ContenusPage() {
                   ) : czR && selectedContenu.carrousel_data ? (
                     // Aperçu LIVE éditable — seulement AVANT validation (reflète la retouche)
                     <>
+                      {!['Planifie', 'Publie'].includes(selectedContenu.statut) && (
+                        <button type="button" onClick={() => ouvrirEditeurDesign(selectedContenu)} disabled={!user} data-testid="ouvrir-editeur-carrousel"
+                          className="disabled:cursor-wait disabled:opacity-50 mb-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 px-3 py-2 text-[12.5px] font-semibold text-[#a5b0ff] transition-colors hover:bg-[#5B6CFF]/25 hover:text-white">
+                          <Palette className="h-4 w-4" />{t('editeurCarrousel.ouvrir')}
+                        </button>
+                      )}
                       <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
                       {(() => {
                         const slides = czPreviewSlides() || [];
@@ -1703,6 +1727,12 @@ export default function ContenusPage() {
                     </>
                   ) : Array.isArray(selectedContenu.slides_images) && selectedContenu.slides_images.length > 0 ? (
                     <div className="grid grid-cols-2 gap-2">
+                      {selectedContenu.carrousel_data && !['Planifie', 'Publie'].includes(selectedContenu.statut) && (
+                        <button type="button" onClick={() => ouvrirEditeurDesign(selectedContenu)} disabled={!user} data-testid="ouvrir-editeur-carrousel"
+                          className="disabled:cursor-wait disabled:opacity-50 col-span-2 inline-flex items-center justify-center gap-2 rounded-lg border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 px-3 py-2 text-[12.5px] font-semibold text-[#a5b0ff] transition-colors hover:bg-[#5B6CFF]/25 hover:text-white">
+                          <Palette className="h-4 w-4" />{t('editeurCarrousel.ouvrir')}
+                        </button>
+                      )}
                       {selectedContenu.slides_images.map((u, i) => (
                         <div key={i} className="group relative overflow-hidden rounded-lg ring-1 ring-white/10 hover:ring-[#5B6CFF]/50 transition-all">
                           <button type="button" onClick={() => setLightbox({ images: selectedContenu.slides_images, index: i })}
@@ -1720,6 +1750,13 @@ export default function ContenusPage() {
                       ))}
                     </div>
                   ) : selectedContenu.lien_visuel ? (
+                    <>
+                      {!['Planifie', 'Publie'].includes(selectedContenu.statut) && (
+                        <button type="button" onClick={() => ouvrirEditeurDesign(selectedContenu, 'visuel')} disabled={!user} data-testid="ouvrir-editeur-visuel"
+                          className="disabled:cursor-wait disabled:opacity-50 mb-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 px-3 py-2 text-[12.5px] font-semibold text-[#a5b0ff] transition-colors hover:bg-[#5B6CFF]/25 hover:text-white">
+                          <Palette className="h-4 w-4" />{t('editeurCarrousel.ouvrirVisuel')}
+                        </button>
+                      )}
                     <div className="group relative">
                       <button type="button" onClick={() => setLightbox({ images: [selectedContenu.lien_visuel], index: 0 })}
                         className="block w-full cursor-zoom-in" title={t('contenus.image.agrandir')}>
@@ -1739,6 +1776,7 @@ export default function ContenusPage() {
                         <Download className="w-4 h-4" />
                       </a>
                     </div>
+                    </>
                   ) : (
                     <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-600">
                       <ImageIcon className="w-10 h-10" />
@@ -2557,6 +2595,13 @@ export default function ContenusPage() {
         </Dialog>
 
         {/* Lightbox : agrandir une slide de carrousel (portal sur body pour passer AU-DESSUS du Dialog) */}
+        {editeurDesign && createPortal((
+          <Suspense fallback={null}>
+            <EditeurCarrousel contenu={editeurDesign.contenu} marque={user} apparence={editeurDesign.apparence} mode={editeurDesign.mode}
+              onClose={() => setEditeurDesign(null)}
+              onSaved={(maj) => setContenus((prev) => prev.map((c) => (c.id === editeurDesign.contenu.id ? { ...c, ...maj } : c)))} />
+          </Suspense>
+        ), document.body)}
         {lightbox && createPortal((
           <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
             onClick={() => setLightbox(null)}>

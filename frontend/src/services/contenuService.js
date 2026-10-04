@@ -90,6 +90,10 @@ export const contenuService = {
   // Annule l'envoi d'un contenu programmé dans Late
   annuler: (id) => api.post(`/late/annuler/${id}`).then(r => r.data),
 
+  // Éditeur de carrousel : slides exportées (data URL) + design, remplacent les slides du carrousel
+  enregistrerDesign: (id, design, images) =>
+    api.post(`/agent/carrousel/${id}/design`, { design, images }, { timeout: 180000 }).then(r => r.data),
+
   // Compte d'un réseau changé : posts pas encore publiés qu'on propose de reprogrammer
   aReprogrammer: () => api.get('/late/a-reprogrammer').then(r => r.data),
   // Réponse du client (ids vide = « non merci »)

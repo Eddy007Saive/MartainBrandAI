@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
-import { Loader2, Check, X, Maximize2, Sparkles, ChevronDown } from 'lucide-react';
+import { Loader2, Check, X, Maximize2, Sparkles, ChevronDown, Trash2, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation, Trans } from 'react-i18next';
 import { useUser } from '../context/UserContext';
@@ -10,8 +10,11 @@ import { agentService } from '../services/agentService';
 import { DEFAULT_SCHEDULE } from '../constants/schedules';
 import { SocialIcon } from '../components/SocialIcon';
 import { ColorField } from '../components/ColorField';
-import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, parseFontSpec } from '../lib/carrouselPreview';
+import { TEMPLATES, SLIDE_LABELS, SLIDE_CSS, renderSlides, CAROUSEL_FONTS, CAROUSEL_BODY_FONTS, loadCustomFonts, loadGoogleFont, parseFontSpec, enregistrerGabaritsPerso } from '../lib/carrouselPreview';
 import FontPicker from '../components/FontPicker';
+
+// L'éditeur (Konva) n'est chargé qu'à l'ouverture d'un modèle à modifier.
+const EditeurCarrousel = lazy(() => import('../components/EditeurCarrousel'));
 
 const NETS = [
   { id: 'linkedin', label: 'LinkedIn', bg: '#0A66C2', noteKey: 'noteLinkedin' },
@@ -104,7 +107,7 @@ export default function CarrouselsPage() {
   const [importes, setImportes] = useState([]);      // templates HTML importés par l'admin
   useEffect(() => {
     agentService.carrouselTemplates()
-      .then((d) => { setAutorises(d?.templates || null); setImportes(d?.importes || []); })
+      .then((d) => { enregistrerGabaritsPerso(d?.importes); setAutorises(d?.templates || null); setImportes(d?.importes || []); })
       .catch(() => setAutorises(null));
   }, []);
   // Deux familles : les modèles communs à tous, et ceux qu'un admin a créés
@@ -115,7 +118,8 @@ export default function CarrouselsPage() {
   const miens = useMemo(() => [
     ...TEMPLATES.filter((t) => t.exclusif && autorises?.includes(t.id)),
     // Un template importé n'a pas d'aperçu JS : il affiche la vignette rendue à l'import.
-    ...importes.map((t) => ({ ...t, vignette: t.preview_url })),
+    // Un modèle du client se rend en direct (police et couleurs choisies) ; les autres : leur vignette.
+    ...importes.map((t) => ({ ...t, vignette: t.perso && t.html ? null : t.preview_url })),
   ], [autorises, importes]);
 
   const [ongletTpl, setOngletTpl] = useState('communs');
@@ -169,6 +173,41 @@ export default function CarrouselsPage() {
       toast.error(e?.response?.data?.detail || t('carrousels.toastEchecEnregistrement'));
     } finally { setSaving(null); }
   };
+
+  // Modèle créé par le client dans l'éditeur : lui seul peut le supprimer.
+  const [suppression, setSuppression] = useState(null);
+  const supprimerModele = async (id) => {
+    if (!window.confirm(t('carrousels.supprimerModeleConfirme'))) return;
+    setSuppression(id);
+    try {
+      await agentService.supprimerModeleCarrousel(id);
+      setImportes((l) => l.filter((x) => x.id !== id));
+      setAutorises((l) => (l ? l.filter((x) => x !== id) : l));
+      setSel((p) => Object.fromEntries(Object.entries(p).map(([k, v]) => [k, v === id ? 'creme' : v])));
+      setLightbox(null);
+      toast.success(t('carrousels.modeleSupprime'));
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || t('carrousels.toastEchecEnregistrement'));
+    } finally { setSuppression(null); }
+  };
+  const libelle = (id) => importes.find((x) => x.id === id)?.label || labelOf(id);
+
+  // Modifier un modèle créé par le client : il se rouvre dans l'éditeur avec ses rôles.
+  const [edition, setEdition] = useState(null); // { id, label, design }
+  const [ouvertureEdition, setOuvertureEdition] = useState(null);
+  const modifierModele = async (id) => {
+    setOuvertureEdition(id);
+    try {
+      const m = await agentService.modeleCarrousel(id);
+      setLightbox(null);
+      setEdition(m);
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || t('carrousels.toastEchecEnregistrement'));
+    } finally { setOuvertureEdition(null); }
+  };
+  const rafraichirModeles = () => agentService.carrouselTemplates()
+    .then((d) => { enregistrerGabaritsPerso(d?.importes); setAutorises(d?.templates || null); setImportes(d?.importes || []); })
+    .catch(() => {});
 
   const nt = NETS.find((n) => n.id === activeNet);
   const dirty = sel[activeNet] !== saved[activeNet];
@@ -309,15 +348,39 @@ export default function CarrouselsPage() {
         </>
       )}
 
+      {edition && createPortal((
+        <Suspense fallback={null}>
+          <EditeurCarrousel mode="modele" modele={edition} marque={user}
+            apparence={{ p: colors.p, s: colors.s, a: colors.a }}
+            onClose={() => setEdition(null)} onSaved={rafraichirModeles} />
+        </Suspense>
+      ), document.body)}
+
       {/* Lightbox */}
       {lightbox && createPortal((
         <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex flex-col animate-fade-in" onClick={() => setLightbox(null)}>
           <div className="flex items-start justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4" onClick={(e) => e.stopPropagation()}>
             <div className="min-w-0">
-              <div className="text-white font-sora font-bold text-base sm:text-lg truncate">{labelOf(lightbox.tpl)}</div>
+              <div className="text-white font-sora font-bold text-base sm:text-lg truncate">{libelle(lightbox.tpl)}</div>
               <div className="text-slate-400 text-xs">{t('carrousels.lightboxHint', { reseau: NETS.find((n) => n.id === lightbox.net)?.label })}</div>
             </div>
             <div className="flex items-center gap-3 shrink-0">
+              {importes.find((x) => x.id === lightbox.tpl)?.perso && (
+                <button type="button" onClick={() => modifierModele(lightbox.tpl)} disabled={ouvertureEdition === lightbox.tpl}
+                  data-testid="modifier-modele-carrousel"
+                  className="flex items-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-lg text-[#c3cbff] hover:bg-white/10 disabled:opacity-50">
+                  {ouvertureEdition === lightbox.tpl ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pencil className="w-4 h-4" />}
+                  <span className="hidden sm:inline">{t('carrousels.modifierModele')}</span>
+                </button>
+              )}
+              {importes.find((x) => x.id === lightbox.tpl)?.perso && (
+                <button type="button" onClick={() => supprimerModele(lightbox.tpl)} disabled={suppression === lightbox.tpl}
+                  data-testid="supprimer-modele-carrousel"
+                  className="flex items-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-lg text-rose-300 hover:bg-rose-500/10 disabled:opacity-50">
+                  {suppression === lightbox.tpl ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  <span className="hidden sm:inline">{t('carrousels.supprimerModele')}</span>
+                </button>
+              )}
               <button onClick={() => { save(lightbox.net); setLightbox(null); }}
                 className="hidden sm:block text-[13px] font-semibold px-4 py-2 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white">{t('carrousels.enregistrerCeStyle')}</button>
               <button onClick={() => setLightbox(null)} aria-label="Fermer" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><X className="w-5 h-5" /></button>

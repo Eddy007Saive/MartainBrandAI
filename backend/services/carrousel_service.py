@@ -82,7 +82,9 @@ def templates_autorises(telegram_id: str) -> list:
     accordes = _exclusifs_du_compte(telegram_id)
     from services import carrousel_custom
     importes = [t for t in carrousel_custom.ids() if t in accordes]
-    return [t for t in TEMPLATES if t not in EXCLUSIFS or t in accordes] + importes
+    # + les modèles que le client a créés lui-même dans l'éditeur
+    return [t for t in TEMPLATES if t not in EXCLUSIFS or t in accordes] + importes \
+        + [t["id"] for t in carrousel_custom.lister_du_compte(telegram_id)]
 
 
 def template_valide(template: str, telegram_id: str) -> str:
@@ -92,6 +94,9 @@ def template_valide(template: str, telegram_id: str) -> str:
         # Template importé : il n'est valable que s'il existe ET qu'il a été attribué.
         from services import carrousel_custom
         if t in carrousel_custom.ids() and t in _exclusifs_du_compte(telegram_id):
+            return t
+        # Modèle créé par le client dans l'éditeur : réservé à son auteur.
+        if t in carrousel_custom.ids_du_compte(telegram_id):
             return t
         return "creme"
     if t in EXCLUSIFS and t not in _exclusifs_du_compte(telegram_id):
@@ -652,6 +657,13 @@ def _apply_font(html_str, font, font_corps=None):
     if corps_fam:
         override = _style_override(corps_bold, corps_italic)
         html_str = html_str.replace("font-family:Inter", f"font-family:'{corps_fam}';{override}")
+    # Modèles créés dans l'éditeur : leurs textes portent data-police="titre" ou "corps".
+    regles = "".join(
+        f"[data-police={cible}]{{font-family:'{fam}',sans-serif !important;letter-spacing:normal !important;{_style_override(gras, ital)}}}"
+        for cible, fam, gras, ital in (("titre", font_fam, font_bold, font_italic),
+                                       ("corps", corps_fam, corps_bold, corps_italic)) if fam)
+    if regles and "data-police=" in html_str:
+        html_str = html_str.replace("<head>", f"<head><style>{regles}</style>", 1)
     return html_str
 
 
@@ -707,6 +719,11 @@ def _render_and_upload(telegram_id, content, p, s, a, nom, secteur, base, templa
             }""")
         except Exception:
             pass
+        try:
+            from services.carrousel_custom import FIT_JS
+            page.evaluate(FIT_JS)  # textes des modèles créés dans l'éditeur
+        except Exception:
+            pass
         page.wait_for_timeout(60)
         count = page.locator(".slide").count()
         for i in range(count):
@@ -744,11 +761,15 @@ async def generer_carrousel(telegram_id: str, content, contenu_id: str = None, t
     nom = u.get("nom") or u.get("username") or ""
     secteur = u.get("secteur") or ""
     logo = u.get("logo_url") or None
-    # Police explicite (retouche) > police propre au carrousel > police de marque (Paramètres) > signature du template.
-    font = ((font if font is not None else u.get("carrousel_font")) or u.get("typo_primaire") or "").strip() or None
-    font_corps = ((font_corps if font_corps is not None else u.get("carrousel_font_corps")) or u.get("typo_tertiaire") or "").strip() or None
     # Un template sur mesure ne se rend que pour les comptes à qui il a été attribué.
     template = template_valide(template, telegram_id)
+    # Police explicite (retouche) > police propre au carrousel > police de marque (Paramètres) > signature du template.
+    # Modèle créé par le client : sans choix explicite (« Auto »), il garde les polices qu'il a dessinées.
+    marque_fonts = not template.startswith("perso-")
+    font = ((font if font is not None else u.get("carrousel_font"))
+            or (u.get("typo_primaire") if marque_fonts else None) or "").strip() or None
+    font_corps = ((font_corps if font_corps is not None else u.get("carrousel_font_corps"))
+                  or (u.get("typo_tertiaire") if marque_fonts else None) or "").strip() or None
     base = (contenu_id or "tmp").replace("-", "")[:16]
     args = (telegram_id, content, p, s, a, nom, secteur, base, template, logo, font, font_corps)
     # Ratés intermittents de Playwright (timeout réseau/police) : jusqu'à 2 essais.
@@ -1187,6 +1208,10 @@ async def apercu_custom(tpl_id: str, html_gabarit: str) -> str | None:
             page = browser.new_page(viewport={"width": SLIDE_W, "height": SLIDE_H}, device_scale_factor=2)
             page.set_content(html, wait_until="load")
             page.wait_for_timeout(600)
+            try:
+                page.evaluate(carrousel_custom.FIT_JS)
+            except Exception:
+                pass
             el = page.query_selector(".slide") or page.query_selector("body")
             png = el.screenshot(type="png")
             browser.close()
@@ -1201,3 +1226,93 @@ async def apercu_custom(tpl_id: str, html_gabarit: str) -> str | None:
     # fait ramer le selecteur. 400 px suffisent pour une carte de choix.
     url = up.get("secure_url") or ""
     return url.replace("/upload/", "/upload/w_400,q_auto,f_auto/", 1) if url else url
+
+
+# ---------------------------------------------------------------------------
+# Éditeur de design (le client dessine / retouche lui-même ses slides dans Postorico)
+# ---------------------------------------------------------------------------
+_DESIGN_MAX_SLIDES = 10
+_DESIGN_MAX_OCTETS = 6 * 1024 * 1024  # par slide, après décodage
+
+
+def _public_id_cloudinary(url: str, garder_extension: bool = False) -> str | None:
+    """public_id d'une URL Cloudinary (les fichiers « raw » gardent leur extension)."""
+    if not url or "cloudinary.com" not in url or "/upload/" not in url:
+        return None
+    parts = url.split("/upload/", 1)[1].split("/")
+    if parts and parts[0].startswith("v") and parts[0][1:].isdigit():
+        parts = parts[1:]
+    chemin = "/".join(parts)
+    return chemin if garder_extension else chemin.rsplit(".", 1)[0]
+
+
+def enregistrer_design(telegram_id: str, contenu_id: str, design: dict, images: list) -> dict:
+    """Enregistre un carrousel retouché ou dessiné dans l'éditeur : les slides exportées par le
+    navigateur (data URL JPEG/PNG) remplacent les anciennes sur Cloudinary (mêmes public_id,
+    anciens fichiers supprimés), le PDF LinkedIn est reconstruit, et le design (JSON de
+    l'éditeur) est gardé pour pouvoir rouvrir et continuer plus tard."""
+    import base64
+    r = (supabase.table("contenu").select("id, statut, publish_status, slides_images, carrousel_pdf")
+         .eq("id", contenu_id).eq("telegram_id", telegram_id).limit(1).execute()).data
+    if not r:
+        return {"error": "introuvable"}
+    row = r[0]
+    if row.get("statut") in ("Planifie", "Publie") or row.get("publish_status") in ("programmé", "envoi", "publié"):
+        return {"error": "deja_programme"}
+    if not isinstance(images, list) or not images or len(images) > _DESIGN_MAX_SLIDES:
+        return {"error": "images"}
+
+    octets = []
+    for img in images:
+        try:
+            entete, b64 = str(img).split(",", 1)
+            if not entete.startswith("data:image/"):
+                return {"error": "images"}
+            brut = base64.b64decode(b64)
+            if len(brut) > _DESIGN_MAX_OCTETS:
+                return {"error": "trop_lourd"}
+            Image.open(BytesIO(brut)).verify()  # vraie image, pas autre chose
+            octets.append(brut)
+        except Exception:
+            return {"error": "images"}
+
+    dossier = f"carrousels/{telegram_id}"
+    urls = []
+    for i, brut in enumerate(octets):
+        up = cloudinary.uploader.upload(brut, resource_type="image", folder=dossier,
+                                        public_id=f"{contenu_id}_e{i + 1}", overwrite=True, invalidate=True)
+        urls.append(up["secure_url"])
+
+    pdf_url = None
+    try:
+        imgs = [Image.open(BytesIO(b)).convert("RGB") for b in octets]
+        buf = BytesIO()
+        imgs[0].save(buf, format="PDF", save_all=True, append_images=imgs[1:], resolution=150.0)
+        up = cloudinary.uploader.upload(buf.getvalue(), resource_type="raw", folder=dossier,
+                                        public_id=f"{contenu_id}_edit_doc.pdf", overwrite=True, invalidate=True)
+        pdf_url = up["secure_url"]
+    except Exception as e:
+        logger.error(f"design carrousel pdf {contenu_id}: {e}")
+
+    # Anciens fichiers (rendu d'origine, ou slides en trop d'un design précédent) : supprimés,
+    # pour ne pas accumuler sur Cloudinary.
+    gardes = {_public_id_cloudinary(u) for u in urls}
+    for u in row.get("slides_images") or []:
+        pid = _public_id_cloudinary(u)
+        if pid and pid not in gardes:
+            try:
+                cloudinary.uploader.destroy(pid, resource_type="image", invalidate=True)
+            except Exception as e:
+                logger.warning(f"design carrousel suppression {pid}: {e}")
+    ancien_pdf = _public_id_cloudinary(row.get("carrousel_pdf"), garder_extension=True)
+    if ancien_pdf and pdf_url and ancien_pdf != _public_id_cloudinary(pdf_url, garder_extension=True):
+        try:
+            cloudinary.uploader.destroy(ancien_pdf, resource_type="raw", invalidate=True)
+        except Exception as e:
+            logger.warning(f"design carrousel suppression pdf {ancien_pdf}: {e}")
+
+    maj = {"slides_images": urls, "lien_visuel": urls[0], "carrousel_design": design}
+    if pdf_url:
+        maj["carrousel_pdf"] = pdf_url
+    supabase.table("contenu").update(maj).eq("id", contenu_id).eq("telegram_id", telegram_id).execute()
+    return {"ok": True, "slides_images": urls, "carrousel_pdf": pdf_url}
