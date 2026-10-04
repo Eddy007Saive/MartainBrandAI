@@ -1,5 +1,6 @@
 {
   "modeleCarrousel": {
+    "nouveau": "New template",
     "enregistrerModele": "Save template",
     "titreModifier": "Edit template",
     "modifie": "Template “{{nom}}” updated.",
@@ -337,6 +338,11 @@
     "repartitionTitre": "Content breakdown"
   },
   "carrousels": {
+    "chargementModelesEchec": "Your templates couldn't be loaded right now. Reload the page in a moment.",
+    "creerModele": "Create my template",
+    "creerModeleAide": "Start from the “{{style}}” style and design your own",
+    "personnaliserStyle": "Customize this style",
+    "miensVide": "You don't have your own template yet. Create one from a style: change the texts, colors and images, then save it.",
     "modifierModele": "Edit",
     "supprimerModele": "Delete this template",
     "supprimerModeleConfirme": "Delete this template? Carousels already created stay unchanged.",

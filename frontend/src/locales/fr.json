@@ -1,5 +1,6 @@
 {
   "modeleCarrousel": {
+    "nouveau": "Nouveau modèle",
     "enregistrerModele": "Enregistrer le modèle",
     "titreModifier": "Modifier le modèle",
     "modifie": "Modèle « {{nom}} » mis à jour.",
@@ -337,6 +338,11 @@
     "repartitionTitre": "Répartition des contenus"
   },
   "carrousels": {
+    "chargementModelesEchec": "Impossible de charger tes modèles pour le moment. Recharge la page dans un instant.",
+    "creerModele": "Créer mon modèle",
+    "creerModeleAide": "À partir du style « {{style}} », dessine le tien",
+    "personnaliserStyle": "Personnaliser ce style",
+    "miensVide": "Tu n'as pas encore de modèle à toi. Crée-le à partir d'un style : change les textes, les couleurs, les images, puis enregistre-le.",
     "modifierModele": "Modifier",
     "supprimerModele": "Supprimer ce modèle",
     "supprimerModeleConfirme": "Supprimer ce modèle ? Les carrousels déjà créés ne changent pas.",

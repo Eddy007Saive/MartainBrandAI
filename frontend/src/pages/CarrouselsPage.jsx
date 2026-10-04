@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
-import { Loader2, Check, X, Maximize2, Sparkles, ChevronDown, Trash2, Pencil } from 'lucide-react';
+import { Loader2, Check, X, Maximize2, Sparkles, ChevronDown, Trash2, Pencil, Plus, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation, Trans } from 'react-i18next';
 import { useUser } from '../context/UserContext';
@@ -105,11 +105,13 @@ export default function CarrouselsPage() {
   // Templates sur mesure : invisibles tant qu'un admin ne les a pas attribués au compte.
   const [autorises, setAutorises] = useState(null);   // null = pas encore chargé
   const [importes, setImportes] = useState([]);      // templates HTML importés par l'admin
+  const [chargementTpl, setChargementTpl] = useState(true); // tant que vrai, les compteurs affichent « … »
   useEffect(() => {
     agentService.carrouselTemplates()
       .then((d) => { enregistrerGabaritsPerso(d?.importes); setAutorises(d?.templates || null); setImportes(d?.importes || []); })
-      .catch(() => setAutorises(null));
-  }, []);
+      .catch(() => { setAutorises(null); toast.error(t('carrousels.chargementModelesEchec')); })
+      .finally(() => setChargementTpl(false));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- chargement unique à l'ouverture
   // Deux familles : les modèles communs à tous, et ceux qu'un admin a créés
   // pour CE compte (sur mesure codés en dur + gabarits HTML importés).
   const communs = useMemo(
@@ -124,7 +126,8 @@ export default function CarrouselsPage() {
 
   const [ongletTpl, setOngletTpl] = useState('communs');
   // Si le compte n'a aucun carrousel sur mesure, l'onglet n'a pas lieu d'être.
-  const onglets = miens.length > 0;
+  // Toujours affichés : l'onglet « Mes carrousels » est aussi l'endroit où créer son modèle.
+  const onglets = true;
   const templatesVisibles = useMemo(
     () => (!onglets || ongletTpl === 'communs' ? communs : miens),
     [onglets, ongletTpl, communs, miens]);
@@ -204,6 +207,14 @@ export default function CarrouselsPage() {
     } catch (e) {
       toast.error(e?.response?.data?.detail || t('carrousels.toastEchecEnregistrement'));
     } finally { setOuvertureEdition(null); }
+  };
+  // Nouveau modèle à partir d'un style : ses slides de démonstration s'ouvrent dans l'éditeur.
+  const [creation, setCreation] = useState(null); // { apparence }
+  const personnaliser = (tpl) => {
+    setLightbox(null);
+    setCreation({
+      apparence: { p: colors.p, s: colors.s, a: colors.a, font: colors.font, fontBody: colors.fontBody, slidesHtml: renderSlides(tpl || 'creme', colors) },
+    });
   };
   const rafraichirModeles = () => agentService.carrouselTemplates()
     .then((d) => { enregistrerGabaritsPerso(d?.importes); setAutorises(d?.templates || null); setImportes(d?.importes || []); })
@@ -304,7 +315,7 @@ export default function CarrouselsPage() {
               <div className="flex gap-1 p-1 mb-4 bg-slate-950/60 rounded-xl border border-white/[0.04] w-fit">
                 {[
                   { id: 'communs', label: t('carrousels.ongletModeles'), n: communs.length },
-                  { id: 'miens', label: t('carrousels.ongletMiens'), n: miens.length },
+                  { id: 'miens', label: t('carrousels.ongletMiens'), n: chargementTpl ? '…' : miens.length },
                 ].map((o) => (
                   <button key={o.id} type="button" onClick={() => setOngletTpl(o.id)}
                     data-testid={`carr-onglet-${o.id}`}
@@ -320,10 +331,22 @@ export default function CarrouselsPage() {
             )}
 
             {onglets && ongletTpl === 'miens' && (
-              <p className="text-[12px] text-slate-500 font-inter mb-3 -mt-1">{t('carrousels.miensAide')}</p>
+              <p className="text-[12px] text-slate-500 font-inter mb-3 -mt-1">{t(miens.length || chargementTpl ? 'carrousels.miensAide' : 'carrousels.miensVide')}</p>
             )}
 
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 sm:gap-3.5">
+              {ongletTpl === 'miens' && (
+                <button type="button" onClick={() => personnaliser(sel[activeNet])} data-testid="carr-creer-modele"
+                  className="group rounded-xl p-2 border border-dashed border-[#5B6CFF]/50 bg-[#5B6CFF]/[0.06] hover:bg-[#5B6CFF]/15 transition-colors flex flex-col items-center">
+                  <div className="mx-auto w-[140px] h-[175px] sm:w-[176px] sm:h-[220px] rounded-lg grid place-items-center text-center px-3">
+                    <div className="flex flex-col items-center gap-2 text-[#c3cbff]">
+                      <span className="w-11 h-11 rounded-full bg-[#5B6CFF]/25 grid place-items-center"><Plus className="w-5 h-5" /></span>
+                      <span className="text-[12px] leading-snug text-slate-400">{t('carrousels.creerModeleAide', { style: libelle(sel[activeNet]) })}</span>
+                    </div>
+                  </div>
+                  <div className="text-center text-[12.5px] mt-2 text-white font-semibold">{t('carrousels.creerModele')}</div>
+                </button>
+              )}
               {templatesVisibles.map((t) => {
                 const on = sel[activeNet] === t.id;
                 const hero = t.vignette ? null : renderSlides(t.id, colors)[0];
@@ -347,6 +370,14 @@ export default function CarrouselsPage() {
           </div>
         </>
       )}
+
+      {creation && createPortal((
+        <Suspense fallback={null}>
+          <EditeurCarrousel mode="creation" marque={user} apparence={creation.apparence}
+            onClose={() => setCreation(null)}
+            onSaved={() => { rafraichirModeles(); setOngletTpl('miens'); }} />
+        </Suspense>
+      ), document.body)}
 
       {edition && createPortal((
         <Suspense fallback={null}>
@@ -381,6 +412,10 @@ export default function CarrouselsPage() {
                   <span className="hidden sm:inline">{t('carrousels.supprimerModele')}</span>
                 </button>
               )}
+              <button type="button" onClick={() => personnaliser(lightbox.tpl)} data-testid="personnaliser-style"
+                className="flex items-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-lg text-[#c3cbff] hover:bg-white/10">
+                <Palette className="w-4 h-4" /><span className="hidden sm:inline">{t('carrousels.personnaliserStyle')}</span>
+              </button>
               <button onClick={() => { save(lightbox.net); setLightbox(null); }}
                 className="hidden sm:block text-[13px] font-semibold px-4 py-2 rounded-lg bg-[#e7ecf5] text-[#0b1322] hover:bg-white">{t('carrousels.enregistrerCeStyle')}</button>
               <button onClick={() => setLightbox(null)} aria-label="Fermer" className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><X className="w-5 h-5" /></button>

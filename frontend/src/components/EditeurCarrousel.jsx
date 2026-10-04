@@ -83,11 +83,14 @@ const avecIds = (d) => ({ ...d, pages: d.pages.map((p) => ({ ...p, id: p.id || n
  *   fond + textes et images modifiables). Enregistrer = export 1080×1350 de chaque page.
  * - mode « visuel » : une page au format de l'image du post ; Enregistrer remplace le visuel.
  * - mode « modele » : un modèle enregistré (trois slides) ; Enregistrer met le modèle à jour.
+ * - mode « creation » : nouveau modèle à partir d'un style (Carrousels) ; Enregistrer le crée.
  */
 export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'carrousel', modele, onClose, onSaved }) {
   const { t } = useTranslation();
   const estVisuel = mode === 'visuel';
   const estModele = mode === 'modele';
+  const estCreation = mode === 'creation';
+  const versModele = estModele || estCreation; // l'enregistrement produit un modèle
   const [design, setDesign] = useState(() => {
     if (estModele) return avecIds(modele.design);
     if (estVisuel) return null; // chargé selon le format de l'image (effet ci-dessous)
@@ -449,23 +452,23 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
           <X className="h-5 w-5" />
         </button>
         <p className="mr-auto truncate font-sora text-sm font-semibold">
-          {estModele ? modele.label : t(estVisuel ? 'editeurCarrousel.titreVisuel' : 'editeurCarrousel.titre')}
+          {estModele ? modele.label : t(estCreation ? 'modeleCarrousel.nouveau' : (estVisuel ? 'editeurCarrousel.titreVisuel' : 'editeurCarrousel.titre'))}
         </p>
         <Button size="sm" variant="ghost" onClick={annuler} disabled={!etatHisto.annuler} className="px-2 text-slate-300"
           title={t('editeurCarrousel.annuler')} aria-label={t('editeurCarrousel.annuler')} data-testid="editeur-annuler"><Undo2 className="h-4 w-4" /></Button>
         <Button size="sm" variant="ghost" onClick={retablir} disabled={!etatHisto.retablir} className="px-2 text-slate-300"
           title={t('editeurCarrousel.retablir')} aria-label={t('editeurCarrousel.retablir')} data-testid="editeur-retablir"><Redo2 className="h-4 w-4" /></Button>
         <div className="hidden items-center gap-1 sm:flex">{outilsAjout}</div>
-        {!estVisuel && !estModele && (
+        {!estVisuel && !versModele && (
           <Button size="sm" variant="ghost" onClick={() => setModeleOuvert(true)} disabled={!pagesDuModele(design) || !!enregistrement}
             title={pagesDuModele(design) ? t('modeleCarrousel.ouvrir') : t('modeleCarrousel.troisSlides')}
             className="text-[#a5b0ff] hover:text-white" data-testid="editeur-enregistrer-modele">
             <LayoutTemplate className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">{t('modeleCarrousel.ouvrir')}</span>
           </Button>
         )}
-        <Button size="sm" onClick={estModele ? () => setModeleOuvert(true) : enregistrer} disabled={!!enregistrement || (estModele && !pagesDuModele(design))}
+        <Button size="sm" onClick={versModele ? () => setModeleOuvert(true) : enregistrer} disabled={!!enregistrement || (versModele && !pagesDuModele(design))}
           data-testid="editeur-enregistrer" className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white">
-          {enregistrement ? <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" />{enregistrement}</> : <><Save className="mr-1.5 h-4 w-4" />{t(estModele ? 'modeleCarrousel.enregistrerModele' : 'editeurCarrousel.enregistrer')}</>}
+          {enregistrement ? <><Loader2 className="mr-1.5 h-4 w-4 animate-spin" />{enregistrement}</> : <><Save className="mr-1.5 h-4 w-4" />{t(estModele ? 'modeleCarrousel.enregistrerModele' : (estCreation ? 'modeleCarrousel.enregistrer' : 'editeurCarrousel.enregistrer'))}</>}
         </Button>
       </div>
       <input ref={fichierImage} type="file" accept="image/*" hidden onChange={(e) => { ajouterImage(e.target.files?.[0]); e.target.value = ''; }} />
@@ -481,7 +484,7 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
               aria-label={t('editeurCarrousel.slideN', { n: i + 1 })} data-testid={`editeur-page-${i + 1}`}>
               {policesPretes ? <MiniPage page={p} W={W} H={H} largeur={miniLarge ? 118 : 64} /> : <div className="aspect-[4/5] bg-slate-900" />}
               <span className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px]">{i + 1}</span>
-              {estModele && i < 3 && <span className="absolute inset-x-0 bottom-0 bg-black/60 px-1 text-center text-[9px]">{t(`modeleCarrousel.page.${['couverture', 'etape', 'final'][i]}`)}</span>}
+              {versModele && (i === 0 || i === 1 || i === design.pages.length - 1) && <span className="absolute inset-x-0 bottom-0 bg-black/60 px-1 text-center text-[9px]">{t(`modeleCarrousel.page.${i === 0 ? 'couverture' : (i === 1 ? 'etape' : 'final')}`)}</span>}
             </button>
           ))}
           <button type="button" onClick={ajouterPage} disabled={design.pages.length >= 10}
@@ -663,7 +666,7 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
         <DialogueModeleCarrousel pages={pagesDuModele(design)} marque={marque} apparence={apparence}
           modele={estModele ? modele : null}
           onClose={() => setModeleOuvert(false)}
-          onCree={(m) => { if (estModele) { onSaved?.(m); onClose?.(); } }} />
+          onCree={(m) => { if (versModele) { onSaved?.(m); onClose?.(); } }} />
       )}
     </div>
   );

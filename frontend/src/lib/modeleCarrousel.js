@@ -43,12 +43,12 @@ export function devinerRoles(pages, nomMarque) {
     if (role === 'etape') {
       prendre(libres.find((e) => /\d/.test(e.text) && e.text.trim().length <= 20), 'numero');
       prendre(plusGrand(libres), 'titre');
-      prendre(plusLong(libres, 30), 'texte');
-      prendre(plusLong(libres, 30), 'astuce');
+      prendre(plusLong(libres, 15), 'texte');
+      prendre(plusLong(libres, 15), 'astuce');
     }
     if (role === 'final') {
       prendre(plusGrand(libres), 'cta');
-      prendre(plusLong(libres, 20), 'cta_texte');
+      prendre(plusLong(libres, 15), 'cta_texte');
     }
   });
   return roles;

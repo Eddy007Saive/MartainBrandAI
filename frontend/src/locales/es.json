@@ -1,5 +1,6 @@
 {
   "modeleCarrousel": {
+    "nouveau": "Nueva plantilla",
     "enregistrerModele": "Guardar plantilla",
     "titreModifier": "Editar plantilla",
     "modifie": "Plantilla «{{nom}}» actualizada.",
@@ -337,6 +338,11 @@
     "repartitionTitre": "Distribución de los contenidos"
   },
   "carrousels": {
+    "chargementModelesEchec": "No se pudieron cargar tus plantillas por ahora. Recarga la página en un momento.",
+    "creerModele": "Crear mi plantilla",
+    "creerModeleAide": "A partir del estilo «{{style}}», diseña el tuyo",
+    "personnaliserStyle": "Personalizar este estilo",
+    "miensVide": "Aún no tienes una plantilla propia. Créala a partir de un estilo: cambia los textos, colores e imágenes y guárdala.",
     "modifierModele": "Editar",
     "supprimerModele": "Eliminar esta plantilla",
     "supprimerModeleConfirme": "¿Eliminar esta plantilla? Los carruseles ya creados no cambian.",
