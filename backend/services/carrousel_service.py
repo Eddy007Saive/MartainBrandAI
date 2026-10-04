@@ -60,10 +60,10 @@ async def _rendre(fonction, *args):
 TEMPLATES = ["creme", "sombre", "alterne", "editorial", "pop", "clean", "neon", "chiffres",
              "postorico", "rico-studio", "rico-scene",
              # styles écrits une seule fois en JS (assets/styles_carrousel.js, partagé avec l'aperçu)
-             "kraft", "surligne", "grand-chiffre", "duo", "organique", "poudre", "maison", "cafe"]
+             "kraft", "surligne", "grand-chiffre", "duo", "organique", "poudre", "maison", "cafe", "halo", "pastel"]
 
 # Styles du générateur partagé ; ceux qui demandent des photos (Pexels).
-STYLES_PARTAGES = {"kraft", "surligne", "grand-chiffre", "duo", "organique", "poudre", "maison", "cafe"}
+STYLES_PARTAGES = {"kraft", "surligne", "grand-chiffre", "duo", "organique", "poudre", "maison", "cafe", "halo", "pastel"}
 STYLES_PHOTOS = {"duo", "organique", "poudre", "maison", "cafe"}
 
 

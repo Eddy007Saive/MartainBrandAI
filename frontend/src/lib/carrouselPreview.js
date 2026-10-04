@@ -37,6 +37,8 @@ export const TEMPLATES = [
   { id: 'poudre', label: 'Poudré', photos: true },
   { id: 'maison', label: 'Maison', photos: true },
   { id: 'cafe', label: 'Café', photos: true },
+  { id: 'halo', label: 'Halo' },
+  { id: 'pastel', label: 'Pastel' },
   { id: 'postorico', label: 'Postorico', exclusif: true },
   // Gabarits maison : aperçu JS comme les autres, mascotte qui change de pose.
   { id: 'rico-studio', label: 'Rico Studio', exclusif: true },
