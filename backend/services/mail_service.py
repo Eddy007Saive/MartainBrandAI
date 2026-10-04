@@ -677,3 +677,66 @@ def impaye_dernier_avis_html(nom: str, lien: str) -> tuple:
     </td></tr>"""
     return ("Dernier avis avant la résiliation de ton abonnement Postorico",
             _shell(inner, width=480, teinte="erreur", apercu="Demain, ton abonnement sera résilié. Régularise aujourd'hui."))
+
+
+# ---------------------------------------------------------------- Annonces produit
+_ANNONCE_EDITEUR_STYLES = ("https://res.cloudinary.com/dy9gp5pim/image/upload/w_912,q_auto,f_auto/"
+                           "brand/annonces/2026-10-editeur-styles.png")
+_ANNONCE_EDITEUR_CAPTURE = ("https://res.cloudinary.com/dy9gp5pim/image/upload/w_912,q_auto,f_auto/"
+                            "brand/annonces/2026-10-editeur-editeur.jpg")
+
+
+def _nouveaute(numero: str, titre: str, texte: str, ou: str) -> str:
+    """Une nouveauté : pastille numérotée, titre, ce que ça change, et où la trouver."""
+    return f"""<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:0 0 18px;"><tr>
+        <td width="30" valign="top" style="padding-top:1px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td width="24" height="24" align="center" bgcolor="#EEEBFF" style="width:24px;height:24px;border-radius:12px;background-color:#EEEBFF;color:#5B4BE0;font-size:12px;font-weight:bold;font-family:{_POLICE};">{numero}</td>
+          </tr></table>
+        </td>
+        <td valign="top" style="font-family:{_POLICE};">
+          <p style="color:#0f172a;font-size:15px;font-weight:bold;margin:0 0 4px;line-height:1.35;">{titre}</p>
+          <p style="color:#5b6a82;font-size:14px;line-height:1.6;margin:0 0 6px;">{texte}</p>
+          <p style="color:#6d4fe0;font-size:12.5px;line-height:1.5;margin:0;">{ou}</p>
+        </td>
+      </tr></table>"""
+
+
+def annonce_editeur_html(nom: str, lien: str) -> tuple:
+    """Annonce de l'éditeur de carrousel, des modèles personnels et des 8 nouveaux styles.
+
+    Un email produit pour les clients : ce qui change pour eux, où le trouver dans l'app,
+    un seul bouton. Les visuels sont décoratifs (images bloquées = le texte se suffit).
+    """
+    salutation = f"Bonjour {_html.escape(nom.strip())}," if nom and nom.strip() else "Bonjour,"
+    sujet = "Nouveau : dessine tes carrousels toi-même (et 8 nouveaux styles)"
+    apercu = "L'éditeur de carrousel arrive dans ton studio, avec tes propres modèles et 8 nouveaux styles."
+    inner = f"""<tr><td class="marge" style="padding:14px 32px 26px;">
+      <h1 class="titre" style="color:#0f172a;font-size:21px;font-weight:bold;margin:0 0 14px;line-height:1.25;">Tes carrousels, à ta main</h1>
+      <p style="color:#334155;font-size:14.5px;line-height:1.65;margin:0 0 10px;">{salutation}</p>
+      <p style="color:#5b6a82;font-size:14.5px;line-height:1.65;margin:0 0 22px;">
+        Jusqu'ici, tu choisissais un style et l'IA faisait le reste. Désormais, tu peux aussi
+        reprendre chaque carrousel à ta façon, et en faire ton propre modèle.
+      </p>
+      <img src="{_ANNONCE_EDITEUR_CAPTURE}" width="456" alt="L'éditeur de carrousel de Postorico" style="display:block;width:100%;max-width:456px;height:auto;border:1px solid #e6e9f2;border-radius:10px;margin:0 0 24px;">
+      {_nouveaute("1", "L'éditeur de carrousel",
+                  "Change un texte, une couleur, une police, déplace la mascotte, ajoute ton logo, une image ou "
+                  "des formes. Annuler, rétablir, guides d'alignement : tout y est, et c'est inclus dans ton abonnement.",
+                  "Contenus → ouvre un carrousel → « Éditer le design »")}
+      {_nouveaute("2", "Tes propres modèles",
+                  "Enregistre ton design comme modèle : à chaque nouveau carrousel, l'IA écrit le contenu et le "
+                  "place dans tes slides. Ton logo, tes couleurs et ta police suivent ta marque.",
+                  "Carrousels → Mes carrousels → « Créer mon modèle »")}
+      {_nouveaute("3", "8 nouveaux styles",
+                  "Kraft, Surligné, Grand chiffre, Duo, Organique, Poudré, Maison et Café, aux couleurs de ta "
+                  "marque. Les styles photo s'illustrent avec des photos libres de droits choisies d'après ton secteur.",
+                  "Carrousels → Modèles")}
+      <img src="{_ANNONCE_EDITEUR_STYLES}" width="456" alt="Les 8 nouveaux styles de carrousel" style="display:block;width:100%;max-width:456px;height:auto;border-radius:10px;margin:6px 0 26px;">
+      {_bouton(lien, "Découvrir les nouveaux carrousels")}
+      <p style="color:#6b7688;font-size:12.5px;line-height:1.65;margin:0;border-top:1px solid #e9ecf4;padding-top:16px;">
+        Un style te manque, ou l'éditeur pourrait faire mieux ? Réponds à cet email, on lit tout
+        et tes retours décident des prochaines nouveautés.
+      </p>
+      {_signature()}
+    </td></tr>"""
+    return sujet, _shell(inner, apercu=apercu)
