@@ -39,6 +39,14 @@
     "echec": "Le modèle n'a pas pu être créé."
   },
   "editeurCarrousel": {
+    "forme": "Forme",
+    "remplissage": "Fond",
+    "sansRemplissage": "Aucun",
+    "contour": "Contour",
+    "epaisseur": "Épaisseur",
+    "arrondi": "Arrondi",
+    "opacite": "Opacité",
+    "formes": {"rect": "Rectangle", "ellipse": "Cercle", "triangle": "Triangle", "etoile": "Étoile", "ligne": "Ligne", "fleche": "Flèche"},
     "annuler": "Annuler (Ctrl+Z)",
     "retablir": "Rétablir (Ctrl+Y)",
     "nSelectionnes": "{{n}} éléments sélectionnés : déplace-les ensemble, duplique-les ou supprime-les.",

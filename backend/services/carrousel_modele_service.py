@@ -12,6 +12,7 @@ est validée puis réécrite par nous ; les images sont hébergées sur notre Cl
 """
 import base64
 import html as _html
+import math
 import re
 import uuid
 
@@ -35,6 +36,8 @@ COMMUNS = {"nom": "{{nom}}", "compteur": "{{index}}/{{total}}"}
 VARIABLES = {r for m in MARQUEURS.values() for r in m}  # textes écrits par l'IA
 # Couleurs de marque qu'un texte ou un fond peut suivre : variable CSS posée par le rendu.
 VARS_MARQUE = {"principale": "--marque-p", "secondaire": "--marque-s", "accent": "--marque-a"}
+# Formes dessinées dans l'éditeur (même tracé que designCarrousel.js)
+FORMES = {"rect", "ellipse", "triangle", "etoile", "ligne", "fleche"}
 
 _COULEUR = re.compile(r"^(#[0-9a-fA-F]{3,8}|rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*(,\s*[\d.]+\s*)?\))$")
 _POLICE = re.compile(r"^[A-Za-z0-9 \-]{1,60}$")
@@ -141,6 +144,17 @@ def _page(page: dict, role: str, owner: str, tid: str) -> dict:
                 "accentCouleur": _couleur(e.get("accentCouleur"), "#3AFFA3"),
                 "accentMarque": _marque(e.get("accentMarque")),
             })
+        elif e.get("type") == "forme" and e.get("forme") in FORMES:
+            out["elements"].append({
+                **base, "type": "forme", "forme": e["forme"],
+                "height": _nombre(e.get("height"), 1, 3 * HAUTEUR, 100),
+                "fill": _couleur(e.get("fill"), None) if e.get("fill") else None,
+                "stroke": _couleur(e.get("stroke"), None) if e.get("stroke") else None,
+                "strokeWidth": _nombre(e.get("strokeWidth"), 0, 200),
+                "rayon": _nombre(e.get("rayon"), 0, 2 * HAUTEUR),
+                "couleurMarque": _marque(e.get("couleurMarque")),
+                "contourMarque": _marque(e.get("contourMarque")),
+            })
         elif e.get("type") == "image":
             src = _url_image(e.get("src"), owner, tid, f"{role}_img{i}")
             if not src:
@@ -225,6 +239,41 @@ def _police_de(e: dict, familles: tuple) -> str | None:
     return None
 
 
+def _points_etoile(w: float, h: float) -> str:
+    pts = []
+    for i in range(10):
+        a = -math.pi / 2 + i * math.pi / 5
+        r = 0.45 if i % 2 else 1
+        pts.append(f"{_n(w / 2 + w / 2 * r * math.cos(a))},{_n(h / 2 + h / 2 * r * math.sin(a))}")
+    return " ".join(pts)
+
+
+def _svg_forme(e: dict, commun: str) -> str:
+    """Forme en SVG, tracée dans sa boîte comme dans l'éditeur (coordonnées 1080×1350)."""
+    w, h, f = e["width"], e["height"], e["forme"]
+    ouverte = f in ("ligne", "fleche")
+    sw = e.get("strokeWidth") or 0
+    if f == "rect":
+        corps = f'<rect x="0" y="0" width="{_n(w)}" height="{_n(h)}" rx="{_n(min(e.get("rayon") or 0, w / 2, h / 2))}"'
+    elif f == "ellipse":
+        corps = f'<ellipse cx="{_n(w / 2)}" cy="{_n(h / 2)}" rx="{_n(w / 2)}" ry="{_n(h / 2)}"'
+    elif f == "triangle":
+        corps = f'<polygon points="{_n(w / 2)},0 {_n(w)},{_n(h)} 0,{_n(h)}"'
+    elif f == "etoile":
+        corps = f'<polygon points="{_points_etoile(w, h)}"'
+    else:
+        d = f"M0 {_n(h / 2)} L{_n(w)} {_n(h / 2)}"
+        if f == "fleche":
+            t = min(h / 2, max(sw * 2.5, 16))
+            d += f" M{_n(w - t)} {_n(h / 2 - t)} L{_n(w)} {_n(h / 2)} L{_n(w - t)} {_n(h / 2 + t)}"
+        corps = f'<path d="{d}"'
+    fond = "none" if ouverte or not e.get("fill") else _teinte(e["fill"], e.get("couleurMarque"))
+    trait = (f"stroke:{_teinte(e['stroke'], e.get('contourMarque'))};stroke-width:{_n(sw)};"
+             "stroke-linecap:round;stroke-linejoin:round" if e.get("stroke") and sw > 0 else "stroke:none")
+    return (f'<svg viewBox="0 0 {_n(w)} {_n(h)}" preserveAspectRatio="none" '
+            f'style="{commun}height:{_px(h)};overflow:visible">{corps} style="fill:{fond};{trait}"/></svg>')
+
+
 def _bloc(p: dict, familles: tuple = (None, None)) -> str:
     morceaux = [f'<div class="slide" data-role="{p["role"]}" style="position:relative;width:360px;height:450px;'
                 f'overflow:hidden;background:{_teinte(_fond_css(p), None if p.get("degrade") else p.get("fondMarque"))}">']
@@ -234,6 +283,9 @@ def _bloc(p: dict, familles: tuple = (None, None)) -> str:
     for e in p["elements"]:
         commun = (f"position:absolute;left:{_px(e['x'])};top:{_px(e['y'])};width:{_px(e['width'])};"
                   f"opacity:{_n(e['opacity'])};transform:rotate({_n(e['rotation'])}deg);transform-origin:0 0;")
+        if e["type"] == "forme":
+            morceaux.append(_svg_forme(e, commun))
+            continue
         if e["type"] == "image":
             o = e.get("ombre")
             filtre = (f"filter:drop-shadow({_px(o['x'])} {_px(o['y'])} {_px(o['flou'])} {_rgba(o['couleur'], o['opacite'])});"

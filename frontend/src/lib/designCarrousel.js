@@ -228,6 +228,85 @@ export const attributsTexteRiche = (e) => ({
 });
 export const estRiche = (e) => e.type === 'texte' && (e.accentMots || 0) > 0;
 
+// ---- Formes dessinées par le client (rectangle, ellipse, triangle, étoile, ligne, flèche).
+// Toutes tracées dans leur boîte [0, largeur] × [0, hauteur], origine en haut à gauche comme
+// les images : même aimantation, même cadre de sélection. Le tracé est identique côté
+// serveur (SVG des modèles, carrousel_modele_service.py / modele-client.util.ts).
+export const FORMES = ['rect', 'ellipse', 'triangle', 'etoile', 'ligne', 'fleche'];
+export const formeOuverte = (e) => e.forme === 'ligne' || e.forme === 'fleche'; // trait seul
+
+/** Sommets de l'étoile à 5 branches inscrite dans la boîte. */
+export function pointsEtoile(w, h) {
+  const pts = [];
+  for (let i = 0; i < 10; i += 1) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const r = i % 2 ? 0.45 : 1;
+    pts.push(w / 2 + (w / 2) * r * Math.cos(a), h / 2 + (h / 2) * r * Math.sin(a));
+  }
+  return pts;
+}
+/** Taille de la pointe d'une flèche (mêmes règles que le serveur). */
+export const pointeFleche = (e) => Math.min(e.height / 2, Math.max((e.strokeWidth || 0) * 2.5, 16));
+
+function tracerForme(c, e) {
+  const w = e.width;
+  const h = e.height;
+  c.beginPath();
+  if (e.forme === 'rect') {
+    const r = Math.min(e.rayon || 0, w / 2, h / 2);
+    c.moveTo(r, 0);
+    c.arcTo(w, 0, w, h, r);
+    c.arcTo(w, h, 0, h, r);
+    c.arcTo(0, h, 0, 0, r);
+    c.arcTo(0, 0, w, 0, r);
+    c.closePath();
+  } else if (e.forme === 'ellipse') {
+    c.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+  } else if (e.forme === 'triangle') {
+    c.moveTo(w / 2, 0); c.lineTo(w, h); c.lineTo(0, h); c.closePath();
+  } else if (e.forme === 'etoile') {
+    const p = pointsEtoile(w, h);
+    c.moveTo(p[0], p[1]);
+    for (let i = 2; i < p.length; i += 2) c.lineTo(p[i], p[i + 1]);
+    c.closePath();
+  } else {
+    c.moveTo(0, h / 2); c.lineTo(w, h / 2);
+    if (e.forme === 'fleche') {
+      const t = pointeFleche(e);
+      c.moveTo(w - t, h / 2 - t); c.lineTo(w, h / 2); c.lineTo(w - t, h / 2 + t);
+    }
+  }
+}
+
+/** Attributs d'un Konva.Shape qui dessine la forme (affichage, miniatures, export). */
+export function attributsForme(e) {
+  const ouverte = formeOuverte(e);
+  const trait = e.stroke && (e.strokeWidth || 0) > 0;
+  return {
+    x: e.x, y: e.y, width: e.width, height: e.height, rotation: e.rotation || 0, opacity: e.opacity ?? 1,
+    fill: !ouverte && e.fill ? e.fill : undefined,
+    fillEnabled: !ouverte && !!e.fill,
+    stroke: trait ? e.stroke : undefined,
+    strokeWidth: trait ? e.strokeWidth : 0,
+    strokeEnabled: !!trait,
+    hitStrokeWidth: ouverte ? Math.max(30, e.strokeWidth || 0) : 'auto',
+    lineCap: 'round', lineJoin: 'round',
+    sceneFunc: (ctx, shape) => { tracerForme(ctx._context, e); ctx.fillStrokeShape(shape); },
+  };
+}
+
+/** Nouvelle forme, au centre de la page, aux couleurs de la marque. */
+export function nouvelleForme(forme, W, H, couleur, contraste) {
+  const tailles = { rect: [420, 260], ellipse: [300, 300], triangle: [320, 280], etoile: [320, 320], ligne: [520, 40], fleche: [520, 60] };
+  const [w, h] = tailles[forme] || [300, 300];
+  const ouverte = forme === 'ligne' || forme === 'fleche';
+  return {
+    id: nouvelId(), type: 'forme', forme, x: (W - w) / 2, y: (H - h) / 2, width: w, height: h, opacity: 1,
+    fill: ouverte ? null : couleur, stroke: ouverte ? (contraste || couleur) : null, strokeWidth: ouverte ? 10 : 0,
+    rayon: forme === 'rect' ? 24 : 0,
+  };
+}
+
 /** Style Konva d'un texte : « bold », « italic », « italic bold » ou « normal ». */
 export const styleTexte = (e) => `${e.italique ? 'italic ' : ''}${e.gras ? 'bold' : ''}`.trim() || 'normal';
 
@@ -285,6 +364,8 @@ export async function exporterPage(page, design) {
         fill: e.fill, fontStyle: styleTexte(e), align: e.align, lineHeight: e.lineHeight || 1.2,
         letterSpacing: e.letterSpacing || 0, opacity: e.opacity ?? 1, rotation: e.rotation || 0,
       }));
+    } else if (e.type === 'forme') {
+      layer.add(new Konva.Shape(attributsForme(e)));
     } else if (e.type === 'image') {
       const img = await chargerImage(e.src);
       if (img) layer.add(new Konva.Image({ image: img, x: e.x, y: e.y, width: e.width, height: e.height, rotation: e.rotation || 0, ...attributsImage(e, img) }));

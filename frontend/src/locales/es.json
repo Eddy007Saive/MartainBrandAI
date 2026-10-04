@@ -39,6 +39,14 @@
     "echec": "No se pudo crear la plantilla."
   },
   "editeurCarrousel": {
+    "forme": "Forma",
+    "remplissage": "Relleno",
+    "sansRemplissage": "Ninguno",
+    "contour": "Contorno",
+    "epaisseur": "Grosor",
+    "arrondi": "Redondeo",
+    "opacite": "Opacidad",
+    "formes": {"rect": "Rectángulo", "ellipse": "Círculo", "triangle": "Triángulo", "etoile": "Estrella", "ligne": "Línea", "fleche": "Flecha"},
     "annuler": "Deshacer (Ctrl+Z)",
     "retablir": "Rehacer (Ctrl+Y)",
     "nSelectionnes": "{{n}} elementos seleccionados: muévelos juntos, duplícalos o elimínalos.",

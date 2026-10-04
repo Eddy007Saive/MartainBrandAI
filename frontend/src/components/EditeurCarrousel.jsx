@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import {
   X, Plus, Type, ImagePlus, Trash2, Copy, ChevronLeft, ChevronRight, Bold, AlignLeft, AlignCenter,
   AlignRight, Loader2, Save, Image as ImageIcon, LayoutTemplate, BringToFront, SendToBack, ArrowUp, ArrowDown,
-  Undo2, Redo2, CopyPlus,
+  Undo2, Redo2, CopyPlus, Shapes, Square, Circle, Triangle, Star, Minus, MoveRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,12 +17,13 @@ import DialogueModeleCarrousel from '@/components/DialogueModeleCarrousel';
 import {
   LARGEUR, HAUTEUR, nouvelId, designInitial, designDepuisSlides, designDepuisImage, chargerImage, chargerPolices,
   recadrage, exporterPage, lireImageLocale, texteSur, degradeKonva, styleTexte, attributsImage,
-  attributsTexteRiche, estRiche,
+  attributsTexteRiche, estRiche, attributsForme, nouvelleForme, formeOuverte,
 } from '@/lib/designCarrousel';
 
 const POLICES = [...new Set([...CAROUSEL_FONTS, ...CAROUSEL_BODY_FONTS].map((f) => f.id).filter(Boolean))];
 const SEUIL_AIMANT = 7;      // px à l'écran : distance où un élément s'aligne tout seul
 const PAS_HISTORIQUE = 500;  // ms : les modifications rapprochées (frappe) forment une seule étape
+const ICONES_FORMES = [['rect', Square], ['ellipse', Circle], ['triangle', Triangle], ['etoile', Star], ['ligne', Minus], ['fleche', MoveRight]];
 
 function useImg(src) {
   const [img, setImg] = useState(null);
@@ -52,6 +53,7 @@ function ElementImage({ el, interactif = true, refNode, ...evenements }) {
 function Element({ el, interactif = true, refNode, ...evenements }) {
   if (el.type === 'image') return <ElementImage el={el} interactif={interactif} refNode={refNode} {...evenements} />;
   const commun = { ref: refNode, draggable: interactif, listening: interactif, ...evenements };
+  if (el.type === 'forme') return <Shape {...attributsForme(el)} {...commun} />;
   if (estRiche(el)) return <Shape {...attributsTexteRiche(el)} {...commun} />;
   return (
     <Text x={el.x} y={el.y} width={el.width} text={el.text} fontSize={el.fontSize} fontFamily={el.fontFamily} fill={el.fill}
@@ -122,6 +124,7 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
   const [policesPretes, setPolicesPretes] = useState(false);
   const [modeleOuvert, setModeleOuvert] = useState(false); // « Enregistrer comme modèle »
   const [guides, setGuides] = useState({ v: [], h: [] });  // lignes d'alignement pendant un déplacement
+  const [menuFormes, setMenuFormes] = useState(false);
   const [miniLarge, setMiniLarge] = useState(() => window.matchMedia('(min-width: 768px)').matches);
   const zoneRef = useRef(null);
   const trRef = useRef(null);
@@ -333,6 +336,13 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
     majPage((p) => ({ ...p, elements: [...p.elements, el] }));
     setSelIds([el.id]);
   };
+  const ajouterForme = (forme) => {
+    const couleur = apparence?.a || marque?.couleur_accent || '#3AFFA3';
+    const el = nouvelleForme(forme, W, H, couleur, texteSur(page.fond));
+    majPage((p) => ({ ...p, elements: [...p.elements, el] }));
+    setSelIds([el.id]);
+    setMenuFormes(false);
+  };
   const ajouterImage = async (fichier) => {
     if (!fichier) return;
     try {
@@ -423,6 +433,12 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
     }
   };
 
+  // Poignées du cadre : texte et trait (ligne, flèche) en largeur seulement, forme dans tous les sens.
+  const ancres = (e) => {
+    if (e?.type === 'texte' || (e?.type === 'forme' && formeOuverte(e))) return ['middle-left', 'middle-right'];
+    if (e?.type === 'forme') return ['top-left', 'top-center', 'top-right', 'middle-left', 'middle-right', 'bottom-left', 'bottom-center', 'bottom-right'];
+    return ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
+  };
   const couleursMarque = [...new Set([apparence?.p || marque?.couleur_principale, apparence?.s || marque?.couleur_secondaire, apparence?.a || marque?.couleur_accent, '#ffffff', '#0f172a'].filter(Boolean))];
   const nbMots = sel?.type === 'texte' ? (sel.text.match(/\S+/g) || []).length : 0;
 
@@ -439,6 +455,20 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
   const outilsAjout = (
     <>
       <Button size="sm" variant="ghost" onClick={ajouterTexte} className="text-slate-300 hover:text-white"><Type className="mr-1.5 h-4 w-4" />{t('editeurCarrousel.texte')}</Button>
+      <div className="relative">
+        <Button size="sm" variant="ghost" onClick={() => setMenuFormes((v) => !v)} aria-expanded={menuFormes}
+          className="text-slate-300 hover:text-white" data-testid="editeur-formes"><Shapes className="mr-1.5 h-4 w-4" />{t('editeurCarrousel.forme')}</Button>
+        {menuFormes && (
+          <div className="absolute left-0 top-full z-[75] mt-1 grid w-56 grid-cols-3 gap-1 rounded-xl border border-white/10 bg-[#0f172a] p-2 shadow-2xl">
+            {ICONES_FORMES.map(([forme, Icone]) => (
+              <button key={forme} type="button" onClick={() => ajouterForme(forme)} data-testid={`editeur-forme-${forme}`}
+                className="flex flex-col items-center gap-1 rounded-lg px-1 py-2 text-[11px] text-slate-300 hover:bg-white/[0.06] hover:text-white">
+                <Icone className="h-5 w-5" />{t(`editeurCarrousel.formes.${forme}`)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <Button size="sm" variant="ghost" onClick={() => fichierImage.current?.click()} className="text-slate-300 hover:text-white"><ImagePlus className="mr-1.5 h-4 w-4" />{t('editeurCarrousel.image')}</Button>
       {marque?.logo_url && <Button size="sm" variant="ghost" onClick={ajouterLogo} className="text-slate-300 hover:text-white">{t('editeurCarrousel.logo')}</Button>}
     </>
@@ -529,7 +559,7 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
                 {guides.h.map((y) => <Line key={`h${y}`} points={[0, y, W, y]} stroke="#FF4DA6" strokeWidth={2 / echelle} dash={[10 / echelle, 8 / echelle]} listening={false} />)}
                 <Transformer ref={trRef} rotateEnabled anchorSize={14} borderStroke="#8A6CFF" anchorStroke="#8A6CFF"
                   keepRatio={sel?.type === 'image'}
-                  enabledAnchors={sel?.type === 'texte' ? ['middle-left', 'middle-right'] : ['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+                  enabledAnchors={ancres(sel)}
                   resizeEnabled={selection.length <= 1}
                   boundBoxFunc={(ancien, neuf) => (neuf.width < 40 ? ancien : neuf)} />
               </Layer>
@@ -593,6 +623,57 @@ export default function EditeurCarrousel({ contenu, marque, apparence, mode = 'c
                   <button key={a} type="button" onClick={() => majElement(sel.id, { align: a })} aria-pressed={sel.align === a}
                     className={`grid h-8 w-9 place-items-center rounded-md border ${sel.align === a ? 'border-[#8A6CFF] bg-[#8A6CFF]/20' : 'border-white/10'}`} aria-label={a}><Icone className="h-4 w-4" /></button>
                 ))}
+              </div>
+            </section>
+          )}
+          {sel?.type === 'forme' && (
+            <section className="space-y-2.5" aria-label={t('editeurCarrousel.forme')}>
+              <p className="text-[11px] uppercase tracking-wider text-slate-500">{t(`editeurCarrousel.formes.${sel.forme}`)}</p>
+              {!formeOuverte(sel) && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <label htmlFor="editeur-remplissage" className="w-16 text-xs text-slate-400">{t('editeurCarrousel.remplissage')}</label>
+                  <input id="editeur-remplissage" type="color" value={sel.fill || '#ffffff'} onChange={(e) => majElement(sel.id, { fill: e.target.value })}
+                    className="h-8 w-12 cursor-pointer rounded border border-white/10 bg-transparent" data-testid="editeur-forme-remplissage" />
+                  {couleursMarque.map((c) => (
+                    <button key={c} type="button" onClick={() => majElement(sel.id, { fill: c })} aria-label={c}
+                      className="h-6 w-6 rounded-full border border-white/20" style={{ background: c }} />
+                  ))}
+                  <button type="button" onClick={() => majElement(sel.id, { fill: null, stroke: sel.stroke || texteSur(page.fond), strokeWidth: sel.strokeWidth || 6 })}
+                    aria-pressed={!sel.fill} className={`rounded-md border px-2 py-1 text-[11px] ${!sel.fill ? 'border-[#8A6CFF] bg-[#8A6CFF]/20' : 'border-white/10 text-slate-400'}`}>
+                    {t('editeurCarrousel.sansRemplissage')}
+                  </button>
+                </div>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <label htmlFor="editeur-contour" className="w-16 text-xs text-slate-400">{t(formeOuverte(sel) ? 'editeurCarrousel.couleur' : 'editeurCarrousel.contour')}</label>
+                <input id="editeur-contour" type="color" value={sel.stroke || '#ffffff'}
+                  onChange={(e) => majElement(sel.id, { stroke: e.target.value, strokeWidth: sel.strokeWidth || 6 })}
+                  className="h-8 w-12 cursor-pointer rounded border border-white/10 bg-transparent" />
+                {couleursMarque.map((c) => (
+                  <button key={c} type="button" onClick={() => majElement(sel.id, { stroke: c, strokeWidth: sel.strokeWidth || 6 })} aria-label={c}
+                    className="h-6 w-6 rounded-full border border-white/20" style={{ background: c }} />
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="editeur-epaisseur" className="w-16 text-xs text-slate-400">{t('editeurCarrousel.epaisseur')}</label>
+                <input id="editeur-epaisseur" type="range" min={formeOuverte(sel) ? 1 : 0} max="40" value={sel.strokeWidth || 0}
+                  onChange={(e) => majElement(sel.id, { strokeWidth: Number(e.target.value), stroke: sel.stroke || texteSur(page.fond) })}
+                  className="flex-1 accent-[#8A6CFF]" />
+                <span className="w-8 text-right text-xs tabular-nums text-slate-400">{sel.strokeWidth || 0}</span>
+              </div>
+              {sel.forme === 'rect' && (
+                <div className="flex items-center gap-2">
+                  <label htmlFor="editeur-arrondi" className="w-16 text-xs text-slate-400">{t('editeurCarrousel.arrondi')}</label>
+                  <input id="editeur-arrondi" type="range" min="0" max={Math.round(Math.min(sel.width, sel.height) / 2)} value={sel.rayon || 0}
+                    onChange={(e) => majElement(sel.id, { rayon: Number(e.target.value) })} className="flex-1 accent-[#8A6CFF]" />
+                  <span className="w-8 text-right text-xs tabular-nums text-slate-400">{Math.round(sel.rayon || 0)}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <label htmlFor="editeur-opacite" className="w-16 text-xs text-slate-400">{t('editeurCarrousel.opacite')}</label>
+                <input id="editeur-opacite" type="range" min="10" max="100" value={Math.round((sel.opacity ?? 1) * 100)}
+                  onChange={(e) => majElement(sel.id, { opacity: Number(e.target.value) / 100 })} className="flex-1 accent-[#8A6CFF]" />
+                <span className="w-8 text-right text-xs tabular-nums text-slate-400">{Math.round((sel.opacity ?? 1) * 100)}</span>
               </div>
             </section>
           )}

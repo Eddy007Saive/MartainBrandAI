@@ -96,6 +96,9 @@ export function pagesPourServeur(pages, roles, { marque, apparence } = {}) {
     fond: page.fond, degrade: page.degrade || null, fondImage: page.fondImage || null,
     fondMarque: page.degrade ? null : couleurDeMarque(page.fond, palette),
     elements: page.elements.map((e) => {
+      if (e.type === 'forme') {
+        return { ...e, couleurMarque: couleurDeMarque(e.fill, palette), contourMarque: couleurDeMarque(e.stroke, palette) };
+      }
       if (e.type !== 'texte') {
         const logo = e.rond || (marque?.logo_url && e.src === marque.logo_url);
         return logo ? { ...e, role: 'logo' } : e;

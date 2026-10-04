@@ -147,3 +147,20 @@ def test_police_choisie_appliquee_aux_titres_et_au_texte():
     assert "[data-police=corps]{font-family:'Lora',sans-serif !important;letter-spacing:normal !important;}" in rendu
     assert rendu.index("<head><style>[data-police") < rendu.index("</head>")
     assert _apply_font(doc, None, None) == doc        # « Auto » : le modèle garde ses polices
+
+
+def test_formes_dessinees_en_svg():
+    pages = _pages()
+    pages[0]["elements"] += [
+        {"type": "forme", "forme": "rect", "x": 0, "y": 0, "width": 400, "height": 200, "fill": "#3AFFA3",
+         "rayon": 30, "couleurMarque": "accent"},
+        {"type": "forme", "forme": "etoile", "x": 0, "y": 0, "width": 300, "height": 300, "fill": "#ffffff",
+         "stroke": "#000000", "strokeWidth": 6},
+        {"type": "forme", "forme": "fleche", "x": 0, "y": 0, "width": 500, "height": 60, "stroke": "#ffffff", "strokeWidth": 10},
+        {"type": "forme", "forme": "<script>", "x": 0, "y": 0, "width": 10, "height": 10},
+    ]
+    html = modeles.html_depuis_pages([modeles._page(p, r, "u1", "perso-0123456789") for p, r in zip(pages, modeles.ROLES_PAGES)])
+    assert '<rect x="0" y="0" width="400" height="200" rx="30" style="fill:var(--marque-a,#3AFFA3);stroke:none"/>' in html
+    assert "<polygon points=" in html and "stroke:#000000;stroke-width:6" in html
+    assert '<path d="M0 30 L500 30 M475 5 L500 30 L475 55" style="fill:none;stroke:#ffffff;stroke-width:10' in html
+    assert html.count("<svg ") == 3 and "<script>" not in html

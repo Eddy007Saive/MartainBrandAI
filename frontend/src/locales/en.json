@@ -39,6 +39,14 @@
     "echec": "The template could not be created."
   },
   "editeurCarrousel": {
+    "forme": "Shape",
+    "remplissage": "Fill",
+    "sansRemplissage": "None",
+    "contour": "Outline",
+    "epaisseur": "Thickness",
+    "arrondi": "Rounding",
+    "opacite": "Opacity",
+    "formes": {"rect": "Rectangle", "ellipse": "Circle", "triangle": "Triangle", "etoile": "Star", "ligne": "Line", "fleche": "Arrow"},
     "annuler": "Undo (Ctrl+Z)",
     "retablir": "Redo (Ctrl+Y)",
     "nSelectionnes": "{{n}} items selected: move them together, duplicate or delete them.",
