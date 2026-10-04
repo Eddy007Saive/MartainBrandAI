@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Section Styles de carrousel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  /* Maquette de la section « Styles de carrousel » (page Carrousels), aux couleurs de l'app. */
+  :root {
+    --fond: #020617; --carte: #0f172a; --carte-2: #111c33; --bord: rgba(255,255,255,.08); --bord-fort: rgba(255,255,255,.16);
+    --texte: #e8edf6; --sourdine: #94a3b8; --discret: #64748b;
+    --violet: #6A5CFF; --degrade: linear-gradient(135deg,#5B6CFF,#8A6CFF); --menthe: #3AFFA3;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--fond); color: var(--texte); font-family: Inter, system-ui, sans-serif; padding: 28px 16px 60px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible, select:focus-visible { outline: 2px solid #8A6CFF; outline-offset: 2px; }
+  .page { max-width: 1240px; margin: 0 auto; }
+
+  .entete { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+  .entete h1 { font-family: Sora, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+  .entete p { color: var(--sourdine); font-size: 14px; margin-top: 6px; max-width: 62ch; line-height: 1.5; }
+
+  /* Réseaux : chaque onglet montre le style déjà choisi pour ce réseau */
+  .reseaux { display: flex; gap: 8px; flex-wrap: wrap; }
+  .reseau { display: flex; align-items: center; gap: 10px; padding: 7px 12px 7px 7px; border-radius: 12px; border: 1px solid var(--bord); background: var(--carte); text-align: left; transition: border-color .15s ease; }
+  .reseau[aria-pressed="true"] { border-color: #6A5CFF; background: #6A5CFF1f; }
+  .reseau img { width: 30px; height: 38px; border-radius: 5px; object-fit: cover; }
+  .reseau b { display: block; font-size: 13px; font-weight: 600; }
+  .reseau span { display: block; font-size: 11.5px; color: var(--sourdine); }
+
+  /* Couleurs et police : une barre compacte au lieu d'un grand bloc */
+  .reglages { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; padding: 12px 16px; border: 1px solid var(--bord); border-radius: 14px; background: var(--carte); margin-bottom: 20px; }
+  .reglages .titre { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--discret); font-weight: 600; }
+  .pastilles { display: flex; gap: 8px; align-items: center; }
+  .pastille { display: flex; align-items: center; gap: 7px; padding: 4px 9px 4px 4px; border: 1px solid var(--bord); border-radius: 999px; font-size: 12px; color: var(--sourdine); }
+  .pastille i { width: 20px; height: 20px; border-radius: 50%; display: block; border: 1px solid rgba(255,255,255,.18); }
+  .reglages select { background: var(--carte-2); border: 1px solid var(--bord); border-radius: 8px; color: var(--texte); padding: 6px 10px; font-size: 12.5px; }
+  .reglages .lien { margin-left: auto; background: none; border: 0; color: var(--sourdine); font-size: 12.5px; text-decoration: underline; }
+
+  .corps { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start; }
+  @media (max-width: 980px) { .corps { grid-template-columns: 1fr; } .apercu { position: static !important; } }
+
+  /* Catalogue */
+  .catalogue { border: 1px solid var(--bord); border-radius: 16px; background: var(--carte); padding: 16px; min-width: 0; }
+  .filtres { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .filtre { border: 1px solid var(--bord); background: transparent; border-radius: 999px; padding: 6px 12px; font-size: 13px; color: var(--sourdine); display: flex; gap: 7px; align-items: center; transition: background .15s ease, color .15s ease; }
+  .filtre em { font-style: normal; font-size: 11px; padding: 1px 6px; border-radius: 999px; background: rgba(255,255,255,.07); color: var(--discret); }
+  .filtre[aria-pressed="true"] { background: #6A5CFF26; border-color: #6A5CFF80; color: #fff; }
+  .filtre[aria-pressed="true"] em { background: #6A5CFF55; color: #fff; }
+  .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 14px; }
+  .tuile { position: relative; background: none; border: 0; padding: 0; text-align: left; }
+  .tuile .vignette { position: relative; aspect-ratio: 4/5; border-radius: 10px; overflow: hidden; border: 1px solid var(--bord); transition: transform .16s cubic-bezier(.23,1,.32,1), border-color .15s ease; }
+  .tuile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tuile:hover .vignette { transform: translateY(-2px); border-color: var(--bord-fort); }
+  .tuile[aria-pressed="true"] .vignette { border: 2px solid #8A6CFF; box-shadow: 0 0 0 4px #6A5CFF33; }
+  .tuile .nom { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; font-weight: 600; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+  .badge.photo { background: rgba(255,255,255,.08); color: var(--sourdine); }
+  .badge.actuel { position: absolute; left: 7px; top: 7px; background: #3AFFA3; color: #062a1b; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  .coche { position: absolute; right: 7px; top: 7px; width: 22px; height: 22px; border-radius: 50%; background: var(--degrade); display: none; place-items: center; }
+  .tuile[aria-pressed="true"] .coche { display: grid; }
+  .creer .vignette { display: grid; place-items: center; border: 1.5px dashed #6A5CFF80; background: #6A5CFF0f; text-align: center; padding: 12px; }
+  .creer .plus { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: #6A5CFF33; margin: 0 auto 10px; font-size: 22px; color: #c3cbff; }
+  .creer small { color: var(--sourdine); font-size: 11.5px; line-height: 1.45; display: block; }
+  .vide { color: var(--sourdine); font-size: 13px; padding: 4px 2px 14px; }
+
+  /* Aperçu du style sélectionné, toujours visible */
+  .apercu { position: sticky; top: 16px; border: 1px solid var(--bord); border-radius: 16px; background: var(--carte); padding: 16px; }
+  .apercu .grand { aspect-ratio: 4/5; border-radius: 12px; overflow: hidden; border: 1px solid var(--bord); }
+  .apercu .grand img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .apercu h2 { font-family: Sora, sans-serif; font-size: 18px; font-weight: 700; margin-top: 14px; }
+  .apercu p { color: var(--sourdine); font-size: 13px; line-height: 1.5; margin-top: 4px; }
+  .actions { display: grid; gap: 8px; margin-top: 14px; }
+  .principal { border: 0; border-radius: 10px; padding: 11px 14px; background: var(--degrade); color: #fff; font-weight: 600; font-size: 14px; transition: transform .12s ease; }
+  .principal:active { transform: scale(.97); }
+  .principal[disabled] { opacity: .55; cursor: default; }
+  .secondaire { border: 1px solid var(--bord-fort); border-radius: 10px; padding: 10px 14px; background: transparent; color: var(--texte); font-weight: 600; font-size: 13.5px; }
+  .note { margin-top: 10px; font-size: 12px; color: var(--discret); text-align: center; }
+
+  /* Mobile : l'aperçu passe sous la grille ; une barre fixe garde le choix et l'action à portée de pouce */
+  .barre-mobile { display: none; }
+  @media (max-width: 980px) {
+    body { padding-bottom: 96px; }
+    .apercu { display: none; }
+    .barre-mobile { display: flex; position: fixed; left: 0; right: 0; bottom: 0; gap: 12px; align-items: center; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(15,23,42,.96); border-top: 1px solid var(--bord); backdrop-filter: blur(8px); }
+    .barre-mobile img { width: 40px; height: 50px; border-radius: 6px; object-fit: cover; }
+    .barre-mobile .txt { flex: 1; min-width: 0; }
+    .barre-mobile b { display: block; font-size: 14px; }
+    .barre-mobile span { display: block; font-size: 12px; color: var(--sourdine); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .barre-mobile .principal { padding: 10px 14px; font-size: 13.5px; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="entete">
+    <div>
+      <h1>Styles de carrousel</h1>
+      <p>Un style par réseau, à tes couleurs. Choisis un style, regarde-le en grand dans l'aperçu, puis applique-le au réseau sélectionné.</p>
+    </div>
+    <div class="reseaux" role="group" aria-label="Réseau" id="reseaux"></div>
+  </header>
+
+  <section class="reglages" aria-label="Couleurs et police">
+    <span class="titre">Tes couleurs</span>
+    <div class="pastilles">
+      <span class="pastille"><i style="background:#5B6CFF"></i>Principale</span>
+      <span class="pastille"><i style="background:#8A6CFF"></i>Secondaire</span>
+      <span class="pastille"><i style="background:#3AFFA3"></i>Accent</span>
+    </div>
+    <span class="titre">Police</span>
+    <select aria-label="Police des titres"><option>Titres : celle du style</option><option>Sora</option><option>Anton</option></select>
+    <select aria-label="Police du texte"><option>Texte : celle du style</option><option>Inter</option></select>
+    <button class="lien" type="button">Modifier les couleurs</button>
+  </section>
+
+  <div class="corps">
+    <section class="catalogue" aria-label="Catalogue des styles">
+      <div class="filtres" role="group" aria-label="Filtrer les styles" id="filtres"></div>
+      <p class="vide" id="vide" hidden></p>
+      <div class="grille" id="grille"></div>
+    </section>
+
+    <aside class="apercu" aria-live="polite">
+      <div class="grand"><img id="ap-img" alt=""></div>
+      <h2 id="ap-nom"></h2>
+      <p id="ap-desc"></p>
+      <div class="actions">
+        <button class="principal" type="button" id="ap-utiliser"></button>
+        <button class="secondaire" type="button">Personnaliser ce style</button>
+      </div>
+      <p class="note">Tes prochains carrousels utiliseront ce style. Ceux déjà créés ne changent pas.</p>
+    </aside>
+  </div>
+</main>
+<div class="barre-mobile" aria-live="polite"><img id="bm-img" alt=""><div class="txt"><b id="bm-nom"></b><span id="bm-etat"></span></div><button class="principal" type="button" id="bm-utiliser">Utiliser</button></div>
+
+<script>
+  const IMG = (id) => `section-carrousels/${id}.jpg`;
+  const STYLES = [
+    { id: 'creme', nom: 'Crème', cat: 'classiques', desc: 'Fond clair à ta couleur, titres condensés, étapes avec mots-clés.' },
+    { id: 'sombre', nom: 'Sombre', cat: 'classiques', desc: 'La même mise en page sur fond sombre.' },
+    { id: 'alterne', nom: 'Alterné', cat: 'classiques', desc: 'Slides claires et sombres en alternance.' },
+    { id: 'editorial', nom: 'Éditorial', cat: 'classiques', desc: 'Serif élégant et filets fins, esprit magazine.' },
+    { id: 'pop', nom: 'Pop', cat: 'classiques', desc: 'Aplats vifs et grands numéros.' },
+    { id: 'clean', nom: 'Clean', cat: 'classiques', desc: 'Minimal, barre de progression en bas.' },
+    { id: 'neon', nom: 'Néon', cat: 'classiques', desc: 'Grille lumineuse et accent fluo.' },
+    { id: 'chiffres', nom: 'Chiffres clés', cat: 'classiques', desc: 'Un chiffre géant par slide.' },
+    { id: 'kraft', nom: 'Kraft', cat: 'editoriaux', desc: 'Papier beige grainé, coup de pinceau, bandeau coloré.' },
+    { id: 'surligne', nom: 'Surligné', cat: 'editoriaux', desc: 'Papier froissé, un mot surligné dans une étiquette.' },
+    { id: 'grand-chiffre', nom: 'Grand chiffre', cat: 'editoriaux', desc: "Le nombre d'étapes en chiffre géant derrière l'accroche." },
+    { id: 'halo', nom: 'Halo', cat: 'editoriaux', desc: 'Gris clair, halo coloré qui change de coin.' },
+    { id: 'pastel', nom: 'Pastel', cat: 'editoriaux', desc: 'Fond pastel, serif centré, guillemet en filigrane.' },
+    { id: 'duo', nom: 'Duo', cat: 'photos', photo: true, desc: 'Photos noir et blanc teintées à ta couleur.' },
+    { id: 'organique', nom: 'Organique', cat: 'photos', photo: true, desc: 'Crème, photo en arche, taches et branches.' },
+    { id: 'poudre', nom: 'Poudré', cat: 'photos', photo: true, desc: 'Photo plein cadre et bandeau translucide.' },
+    { id: 'maison', nom: 'Maison', cat: 'photos', photo: true, desc: 'Photo assombrie, serif avec italique, collages.' },
+    { id: 'cafe', nom: 'Café', cat: 'photos', photo: true, desc: 'Photo, gros titre blanc, étiquette manuscrite.' },
+    { id: 'rico-scene', nom: 'Rico Scène', cat: 'miens', desc: 'Créé pour ta marque : Rico sur scène, le texte en haut.' },
+  ];
+  const FILTRES = [['tous', 'Tous'], ['classiques', 'Classiques'], ['editoriaux', 'Éditoriaux'], ['photos', 'Avec photos'], ['miens', 'Mes modèles']];
+  const RESEAUX = [['linkedin', 'LinkedIn', 'rico-scene'], ['instagram', 'Instagram', 'rico-scene'], ['facebook', 'Facebook', 'creme']];
+  const etat = { reseau: 'linkedin', filtre: 'tous', choix: 'rico-scene', actuels: Object.fromEntries(RESEAUX.map(([id, , s]) => [id, s])) };
+  const nomDe = (id) => STYLES.find((s) => s.id === id)?.nom || id;
+  const coche = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2 5 8.6 9.6 3.6"/></svg>';
+
+  function rendre() {
+    document.getElementById('reseaux').innerHTML = RESEAUX.map(([id, nom]) =>
+      `<button type="button" class="reseau" data-reseau="${id}" aria-pressed="${etat.reseau === id}"><img src="${IMG(etat.actuels[id])}" alt=""><span><b>${nom}</b><span>${nomDe(etat.actuels[id])}</span></span></button>`).join('');
+    document.getElementById('filtres').innerHTML = FILTRES.map(([id, nom]) => {
+      const n = id === 'tous' ? STYLES.length : STYLES.filter((s) => s.cat === id).length;
+      return `<button type="button" class="filtre" data-filtre="${id}" aria-pressed="${etat.filtre === id}">${nom}<em>${n}</em></button>`;
+    }).join('');
+    const liste = STYLES.filter((s) => etat.filtre === 'tous' || s.cat === etat.filtre);
+    const actuel = etat.actuels[etat.reseau];
+    const creer = etat.filtre === 'miens' || etat.filtre === 'tous'
+      ? `<button type="button" class="tuile creer"><div class="vignette"><div><div class="plus">+</div><b style="font-size:13px">Créer mon modèle</b><small>À partir du style sélectionné</small></div></div></button>` : '';
+    document.getElementById('grille').innerHTML = (etat.filtre === 'miens' ? creer : '') + liste.map((s) =>
+      `<button type="button" class="tuile" data-style="${s.id}" aria-pressed="${etat.choix === s.id}">
+        <div class="vignette"><img src="${IMG(s.id)}" alt="" loading="lazy">${s.id === actuel ? '<span class="badge actuel">Actuel</span>' : ''}<span class="coche">${coche}</span></div>
+        <div class="nom">${s.nom}${s.photo ? '<span class="badge photo">Photo</span>' : ''}</div></button>`).join('') + (etat.filtre === 'tous' ? creer : '');
+    const vide = document.getElementById('vide');
+    vide.hidden = etat.filtre !== 'miens';
+    vide.textContent = 'Tes modèles créés dans l’éditeur et les styles conçus pour ta marque.';
+    const s = STYLES.find((x) => x.id === etat.choix);
+    document.getElementById('ap-img').src = IMG(s.id);
+    document.getElementById('ap-nom').textContent = s.nom;
+    document.getElementById('ap-desc').textContent = s.desc + (s.photo ? ' Photos libres choisies d’après ton secteur.' : '');
+    const bouton = document.getElementById('ap-utiliser');
+    const reseau = RESEAUX.find(([id]) => id === etat.reseau)[1];
+    bouton.disabled = s.id === actuel;
+    bouton.textContent = s.id === actuel ? `Déjà utilisé sur ${reseau}` : `Utiliser pour ${reseau}`;
+    document.getElementById('bm-img').src = IMG(s.id);
+    document.getElementById('bm-nom').textContent = s.nom;
+    document.getElementById('bm-etat').textContent = s.id === actuel ? `Actuel sur ${reseau}` : `Pour ${reseau}`;
+    document.getElementById('bm-utiliser').disabled = s.id === actuel;
+  }
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.reseau) { etat.reseau = b.dataset.reseau; etat.choix = etat.actuels[etat.reseau]; }
+    else if (b.dataset.filtre) etat.filtre = b.dataset.filtre;
+    else if (b.dataset.style) etat.choix = b.dataset.style;
+    else if (b.id === 'ap-utiliser' || b.id === 'bm-utiliser') etat.actuels[etat.reseau] = etat.choix;
+    else return;
+    rendre();
+  });
+  rendre();
+</script>
+</body>
+</html>
