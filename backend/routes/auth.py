@@ -1,11 +1,12 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from datetime import timedelta
 from models.auth import UserRegister, UserLogin, AdminLogin, GoogleLogin, CodeVerifier, CodeRenvoyer
 from services.auth_service import (
     login_user, login_admin, register_user, create_token,
     find_user_by_email, create_reset_token, reset_password, login_google,
 )
-from services import mail_service, rate_limit, affiliation_service, mfa_service
+from services import mail_service, rate_limit, affiliation_service, mfa_service, auth_service
+from dependencies import verify_token
 from config import FRONTEND_URL, GOOGLE_CLIENT_ID, logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -234,6 +235,21 @@ def reset_pw(body: dict):
     if result.get("error"):
         raise HTTPException(status_code=400, detail="Lien invalide ou expiré.")
     return {"success": True, "message": "Mot de passe réinitialisé avec succès."}
+
+
+@router.post("/logout")
+def logout(payload: dict = Depends(verify_token)):
+    """Déconnexion côté serveur : révoque tous les jetons du compte émis jusqu'ici, donc un
+    jeton copié ne sert plus (sinon il resterait valable jusqu'à son expiration, 7 jours).
+    Déconnecte TOUS les appareils du compte.
+    Un jeton de bascule (sous-marque) révoque aussi le compte d'origine. Un jeton Vision
+    (admin connecté en tant que client) ne révoque rien : déconnecter l'admin ne doit pas
+    déconnecter le client."""
+    if payload.get("vision"):
+        return {"success": True}
+    for tg in {payload.get("telegram_id"), payload.get("origine")} - {None, ""}:
+        auth_service.deconnecter(tg)
+    return {"success": True}
 
 
 @router.post("/admin-login")

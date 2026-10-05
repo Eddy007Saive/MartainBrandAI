@@ -102,7 +102,30 @@ def test_jeton_de_reinitialisation_invalide_apres_changement_du_mot_de_passe():
     assert ancien["fp"] != auth_service._pwd_fingerprint("hash-nouveau")
 
 
-@pytest.mark.parametrize("courante,attendu", [("fp-ok", True), ("fp-autre", False), (None, False)])
-def test_session_valide_compare_les_empreintes(monkeypatch, courante, attendu):
-    monkeypatch.setattr(auth_service, "_current_fp", lambda tg: courante)
-    assert auth_service.session_valid("u1", "fp-ok") is attendu
+@pytest.mark.parametrize("etat,attendu", [(("fp-ok", None), True), (("fp-autre", None), False), (None, False)])
+def test_session_valide_compare_les_empreintes(monkeypatch, etat, attendu):
+    monkeypatch.setattr(auth_service, "_etat_session", lambda tg: etat)
+    assert auth_service.session_valid("u1", "fp-ok", 1000) is attendu
+
+
+@pytest.mark.parametrize("iat,attendu", [(999, False), (1000, True), (1001, True), (None, False)])
+def test_jeton_emis_avant_la_deconnexion_est_refuse(monkeypatch, iat, attendu):
+    # Déconnexion posée à t=1000 : un jeton copié avant ne sert plus, une reconnexion oui.
+    monkeypatch.setattr(auth_service, "_etat_session", lambda tg: ("fp-ok", 1000.0))
+    assert auth_service.session_valid("u1", "fp-ok", iat) is attendu
+
+
+def test_sans_deconnexion_un_jeton_sans_iat_reste_valable(monkeypatch):
+    monkeypatch.setattr(auth_service, "_etat_session", lambda tg: ("fp-ok", None))
+    assert auth_service.session_valid("u1", "fp-ok", None) is True
+
+
+def test_le_jeton_porte_sa_date_d_emission():
+    p = _decode(auth_service.create_token({"telegram_id": "u1"}))
+    assert isinstance(p["iat"], int) and p["exp"] > p["iat"]
+
+
+def test_horodatage_lit_les_formats_postgres():
+    ref = auth_service._horodatage("2026-10-05T10:00:00+00:00")
+    assert auth_service._horodatage("2026-10-05T10:00:00.123+00:00") == ref
+    assert auth_service._horodatage("2026-10-05T10:00:00Z") == ref

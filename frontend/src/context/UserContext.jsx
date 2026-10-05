@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { userService } from '../services/userService';
 import { getToken, logout as clearAuth } from '../lib/auth';
+import { revoquerSession } from '../services/authService';
 import { identifyUser, resetAnalytics } from '../lib/analytics';
 import { identifierSentry } from '@/lib/sentry';
 
@@ -41,6 +42,7 @@ export function UserProvider({ children }) {
   };
 
   const logout = () => {
+    revoquerSession();  // avant clearAuth : lit le jeton encore présent
     clearAuth();
     setUser(null);
     identifierSentry(null);

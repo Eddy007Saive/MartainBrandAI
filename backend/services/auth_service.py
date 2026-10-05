@@ -2,6 +2,7 @@ import bcrypt
 import jwt
 import uuid
 import hashlib
+import re
 import time
 from datetime import datetime, timezone, timedelta
 from config import JWT_SECRET, supabase, logger, ADMIN_SESSION_HEURES, GOOGLE_CLIENT_ID
@@ -24,8 +25,9 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def create_token(data: dict, expires_delta: timedelta = timedelta(days=7)) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + expires_delta
-    to_encode.update({"exp": expire})
+    now = datetime.now(timezone.utc)
+    # iat : sert à refuser les jetons émis avant une déconnexion (sessions_invalidees_le).
+    to_encode.update({"exp": now + expires_delta, "iat": int(now.timestamp())})
     return jwt.encode(to_encode, JWT_SECRET, algorithm="HS256")
 
 
@@ -88,35 +90,73 @@ def _pwd_fingerprint(password_hash: str) -> str:
     return hashlib.sha256((password_hash or "").encode("utf-8")).hexdigest()[:16]
 
 
-# --- Invalidation des sessions au changement de mot de passe ---
-# Le token de login embarque l'empreinte `fp` du mdp ; à chaque requête on vérifie qu'elle
-# correspond toujours au mdp actuel. Cache mémoire (TTL court) pour éviter un read DB à chaque
-# appel — un changement de mdp déconnecte les AUTRES appareils en <= _FP_TTL secondes.
+# --- Invalidation des sessions ---
+# Deux mécanismes, lus dans la même ligne `users` :
+# 1. changement de mot de passe : le token embarque l'empreinte `fp` du mdp ; elle doit
+#    toujours correspondre au mdp actuel ;
+# 2. déconnexion : tout token émis (iat) avant `sessions_invalidees_le` est refusé — un
+#    jeton copié avant la déconnexion ne sert plus, sur aucun appareil.
+# Cache mémoire (TTL court) pour éviter un read DB à chaque appel : sur une autre instance,
+# la révocation prend effet en <= _FP_TTL secondes (immédiat sur l'instance qui la pose).
 _FP_TTL = 30  # secondes
-_fp_cache: dict = {}  # telegram_id -> (fingerprint, expiry_ts)
+_fp_cache: dict = {}  # telegram_id -> (fingerprint | None, invalidees_le_ts | None, expiry_ts)
 
 
-def _current_fp(telegram_id: str) -> str | None:
+def _horodatage(valeur: str) -> float:
+    """Timestamp d'une date ISO renvoyée par Postgres. Python 3.10 ne lit ni « Z » ni une
+    fraction de seconde de longueur quelconque : on retire la fraction (la date est posée à
+    la seconde près de toute façon)."""
+    v = re.sub(r"\.\d+", "", valeur.replace("Z", "+00:00"))
+    return datetime.fromisoformat(v).timestamp()
+
+
+def _etat_session(telegram_id: str) -> tuple | None:
+    """(empreinte du mdp actuel, horodatage d'invalidation) du compte, ou None s'il n'existe pas."""
     hit = _fp_cache.get(telegram_id)
     now = time.time()
-    if hit and hit[1] > now:
-        return hit[0]
-    r = supabase.table("users").select("password_hash").eq("telegram_id", telegram_id).execute()
+    if hit and hit[2] > now:
+        return hit[0], hit[1]
+    r = (supabase.table("users").select("password_hash, sessions_invalidees_le")
+         .eq("telegram_id", telegram_id).execute())
     if not r.data:
         return None
-    fp = _pwd_fingerprint(r.data[0].get("password_hash", ""))
-    _fp_cache[telegram_id] = (fp, now + _FP_TTL)
-    return fp
+    row = r.data[0]
+    fp = _pwd_fingerprint(row.get("password_hash", ""))
+    inv = row.get("sessions_invalidees_le")
+    inv_ts = _horodatage(inv) if inv else None
+    _fp_cache[telegram_id] = (fp, inv_ts, now + _FP_TTL)
+    return fp, inv_ts
 
 
 def _invalidate_fp(telegram_id: str):
     _fp_cache.pop(telegram_id, None)
 
 
-def session_valid(telegram_id: str, fp: str) -> bool:
-    """True si l'empreinte du token correspond au mot de passe actuel du compte."""
-    cur = _current_fp(telegram_id)
-    return bool(cur) and cur == fp
+def session_valid(telegram_id: str, fp: str | None, iat: int | None = None) -> bool:
+    """True si le token est toujours valable pour ce compte : empreinte du mdp à jour (si le
+    token en porte une) et émis après la dernière déconnexion."""
+    etat = _etat_session(telegram_id)
+    if etat is None:
+        # Compte introuvable : refusé si le token prétend une empreinte, toléré sinon
+        # (comportement d'avant la révocation, pour les jetons techniques sans fp).
+        return not fp
+    cur_fp, inv_ts = etat
+    if fp and cur_fp != fp:
+        return False
+    # Sans iat (jetons émis avant ce mécanisme), on ne peut pas dater le jeton : refusé
+    # dès qu'une déconnexion a été posée sur le compte.
+    if inv_ts is not None and (iat is None or iat < inv_ts):
+        return False
+    return True
+
+
+def deconnecter(telegram_id: str) -> None:
+    """Révoque TOUS les jetons du compte émis jusqu'ici (déconnexion de tous les appareils)."""
+    # Arrondi à la seconde inférieure : iat est en secondes entières, un jeton émis dans la
+    # même seconde que la déconnexion (reconnexion immédiate) reste ainsi valable.
+    maintenant = datetime.fromtimestamp(int(time.time()), tz=timezone.utc).isoformat()
+    supabase.table("users").update({"sessions_invalidees_le": maintenant}).eq("telegram_id", telegram_id).execute()
+    _invalidate_fp(telegram_id)
 
 
 def create_reset_token(telegram_id: str, password_hash: str) -> str:

@@ -30,6 +30,7 @@ import {
 import { toast } from 'sonner';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as ChartTooltip, CartesianGrid } from 'recharts';
 import { removeAdminToken, memoriserEspace } from '../lib/auth';
+import { revoquerSession } from '../services/authService';
 import BlocFacturation from '../components/admin/BlocFacturation';
 import Resiliations from '../components/admin/Resiliations';
 import { cn } from '../lib/utils';
@@ -434,6 +435,7 @@ export default function Admin() {
   };
 
   const handleLogout = () => {
+    revoquerSession();  // avant d'effacer : lit le jeton encore présent
     removeAdminToken();
     navigate('/login');
   };

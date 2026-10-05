@@ -1,5 +1,6 @@
+import axios from 'axios';
 import api from '../lib/api';
-import { jetonValide } from '../lib/auth';
+import { getToken, jetonValide } from '../lib/auth';
 
 /**
  * Le serveur a repondu 200 : cela ne suffit pas. Tant qu'on n'a pas un jeton
@@ -13,6 +14,22 @@ const exigerSession = (data) => {
     throw err;
   }
   return data;
+};
+
+/**
+ * Révoque côté serveur tous les jetons du compte (un jeton copié ne sert plus).
+ * Appelé AVANT d'effacer le jeton local, qu'on lit ici tout de suite : les intercepteurs
+ * d'`api` s'exécutent plus tard (micro-tâche), le jeton serait déjà effacé. Axios nu,
+ * pour qu'un 401 (jeton déjà expiré) ne déclenche pas la redirection de l'intercepteur.
+ * Sans réseau, la déconnexion locale a lieu quand même : on n'attend ni ne remonte rien.
+ */
+export const revoquerSession = () => {
+  const token = getToken();
+  if (!token) return;
+  axios.post(`${api.defaults.baseURL}/auth/logout`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+    timeout: 8000,
+  }).catch(() => {});
 };
 
 export const authService = {

@@ -14,12 +14,12 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    # Invalidation au changement de mot de passe : l'empreinte du token doit correspondre au mdp
-    # actuel. (Tokens émis avant cette fonctionnalité n'ont pas de `fp` -> tolérés jusqu'à expiration.)
+    # Invalidation : mot de passe modifié (empreinte `fp`) ou déconnexion posée après
+    # l'émission du jeton (`iat` < users.sessions_invalidees_le).
     fp = payload.get("fp")
     tg = payload.get("telegram_id")
-    if fp and tg and not auth_service.session_valid(tg, fp):
-        raise HTTPException(status_code=401, detail="Session expirée (mot de passe modifié)")
+    if tg and not auth_service.session_valid(tg, fp, payload.get("iat")):
+        raise HTTPException(status_code=401, detail="Session expirée")
     from services import suivi_erreurs
     suivi_erreurs.identifier(tg)
     return payload
