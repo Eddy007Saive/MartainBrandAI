@@ -20,6 +20,8 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     tg = payload.get("telegram_id")
     if fp and tg and not auth_service.session_valid(tg, fp):
         raise HTTPException(status_code=401, detail="Session expirée (mot de passe modifié)")
+    from services import suivi_erreurs
+    suivi_erreurs.identifier(tg)
     return payload
 
 

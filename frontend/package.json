@@ -40,6 +40,7 @@
     "@radix-ui/react-tooltip": "^1.2.4",
     "@remotion/google-fonts": "4.0.506",
     "@remotion/player": "4.0.506",
+    "@sentry/react": "^11.4.0",
     "@sparticuz/chromium": "^149.0.0",
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",

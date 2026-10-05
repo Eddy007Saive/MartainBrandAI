@@ -141,3 +141,4 @@ zernio-sdk==1.4.169
 zipp==3.23.0
 zstandard==0.25.0
 playwright==1.60.0
+sentry-sdk[fastapi]==2.71.0

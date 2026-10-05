@@ -79,6 +79,9 @@ HEYGEN_API_KEY = os.environ.get('HEYGEN_API_KEY', '')
 SUBMAGIC_API_KEY = os.environ.get('SUBMAGIC_API_KEY', '')
 # Pexels : photos libres de droits des styles de carrousel avec photos (vide = aplats à la place)
 PEXELS_API_KEY = os.environ.get('PEXELS_API_KEY', '')
+# Sentry : alertes sur les erreurs (vide = désactivé). SENTRY_ENV distingue production / dev.
+SENTRY_DSN = os.environ.get('SENTRY_DSN', '')
+SENTRY_ENV = os.environ.get('SENTRY_ENV', 'production')
 SUBMAGIC_BASE = os.environ.get('SUBMAGIC_BASE', 'https://api.submagic.co/v1')
 # Thème GLOBAL de marque (userThemeId créé dans l'éditeur Submagic) appliqué par défaut à TOUS
 # les comptes qui n'ont pas de thème perso. Vide = tout le monde sur les 45 templates.

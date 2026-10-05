@@ -27,6 +27,10 @@ from routes.newsletter import router as newsletter_router
 from routes.affiliation import router as affiliation_router
 from routes.offers import router as offers_router
 
+# Sentry avant la création de l'app : l'intégration FastAPI s'accroche à son démarrage.
+from services import suivi_erreurs
+suivi_erreurs.demarrer()
+
 app = FastAPI()
 
 # API router

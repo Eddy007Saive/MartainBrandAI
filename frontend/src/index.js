@@ -6,6 +6,10 @@ import App from "@/App";
 import { hydrateAuth } from "@/lib/auth";
 import { initAnalytics } from "@/lib/analytics";
 import { Capacitor } from "@capacitor/core";
+import { initSentry, optionsRacine } from "@/lib/sentry";
+
+// Sentry en premier : une erreur du tout premier rendu doit aussi remonter.
+initSentry();
 
 // Natif (APK/iOS) : l'app ne doit PAS ouvrir sur la home marketing. Elle
 // cold-start toujours sur "/" (index.html embarque) → on redirige vers le
@@ -52,7 +56,7 @@ const arbre = (
 // Le vidage sert aussi au natif : l'APK embarque le meme build, donc le meme
 // HTML prerendu, et l'accueil francais clignoterait avant l'ecran attendu.
 conteneur.innerHTML = "";
-const root = ReactDOM.createRoot(conteneur);
+const root = ReactDOM.createRoot(conteneur, optionsRacine);
 
 // Sur mobile : recharger le jeton depuis le stockage natif AVANT de rendre,
 // sinon ProtectedRoute renvoie au login au demarrage. No-op sur le web.
