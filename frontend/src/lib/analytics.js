@@ -1,6 +1,12 @@
 // PostHog — analytics produit + session replay.
 // Clé PUBLIQUE de projet (faite pour vivre dans le bundle front) ; surchargable via .env.
 import posthog from 'posthog-js';
+import { Capacitor } from '@capacitor/core';
+
+// Plateforme de chaque événement : « android » / « ios » pour l'app (APK), « web » sinon.
+// Dans PostHog, filtrer sur plateforme = android donne le nombre d'utilisateurs de l'app.
+const PLATEFORME = Capacitor.getPlatform();
+const NATIF = Capacitor.isNativePlatform();
 
 const KEY = process.env.REACT_APP_POSTHOG_KEY || 'phc_naLg2dDPq2sc5uE4cEmopTz83Gpmbz4QmiXj883AKzFk';
 const HOST = process.env.REACT_APP_POSTHOG_HOST || 'https://us.i.posthog.com';
@@ -30,7 +36,9 @@ export function initAnalytics() {
         if (process.env.NODE_ENV === 'development') ph.opt_out_capturing();
       },
     });
+    posthog.register({ plateforme: PLATEFORME, app_mobile: NATIF });
     ready = true;
+    if (NATIF) posthog.capture('app_ouverte', { plateforme: PLATEFORME });
     if (identificationEnAttente) {
       identifyUser(identificationEnAttente);
       identificationEnAttente = null;
@@ -50,6 +58,7 @@ export function identifyUser(user) {
       nom: user.nom,
       plan: user.plan || 'gratuit',
       langue: user.langue || 'fr',
+      ...(NATIF ? { utilise_app_mobile: true, plateforme_mobile: PLATEFORME } : {}),
     });
   } catch (e) { /* jamais bloquant */ }
 }
