@@ -67,6 +67,8 @@ export const contenuService = {
   reelMusiqueDecouper: (id, debut_s, duree_s) =>
     api.patch(`/reels/musique/${id}`, { debut_s, duree_s }).then(r => r.data),
   regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }).then(r => r.data),
+  // Refait seulement la voix off (même scénario, mêmes images) : seul le quota voix compte.
+  refaireVoixReel: (id, voix) => api.post('/reels/voix', { reel_id: id, ...(voix ? { voix } : {}) }).then(r => r.data),
   creerReel: (extra = {}) => api.post('/reels/creer', extra).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data),   // {templates, musiques, categories}
   reelRecommander: (id) => api.get(`/reels/recommander/${id}`).then(r => r.data),

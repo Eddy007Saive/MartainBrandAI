@@ -547,6 +547,7 @@
       "generer": "Generate an animated reel",
       "description": "Your post is turned into an animated vertical video in your brand style. Pick a template:",
       "nouveau": "★ New",
+      "voix": {"refaire": "Redo the voice-over", "enCours": "Voice-over restarted: the reel will be re-edited with the voice in a moment.", "echec": "Couldn't restart the voice-over, try again.", "sansVoix": "The voice-over failed during editing: this reel has no voice. Restart it; the script and images stay the same."},
       "seq": {
         "depuisPost": "Reel from your post",
         "descriptionDepuisPost": "The AI writes the script from the post. Pick a style, visuals, music and a voice; add instructions if you like.",

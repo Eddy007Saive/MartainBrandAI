@@ -547,6 +547,7 @@
       "generer": "Generar un reel animado",
       "description": "El post se transforma en un vídeo vertical animado con tu identidad. Elige la plantilla:",
       "nouveau": "★ Nuevo",
+      "voix": {"refaire": "Rehacer la voz", "enCours": "Voz en off relanzada: el reel se volverá a montar con la voz en unos instantes.", "echec": "No se pudo relanzar la voz, inténtalo de nuevo.", "sansVoix": "La voz en off falló durante el montaje: este reel no tiene voz. Relánzala; el guion y las imágenes no cambian."},
       "seq": {
         "depuisPost": "Reel a partir de tu post",
         "descriptionDepuisPost": "La IA escribe el guion a partir del post. Elige un estilo, visuales, música y una voz; añade indicaciones si quieres.",

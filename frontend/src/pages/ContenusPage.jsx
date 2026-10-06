@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Palette, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Palette, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload, Mic } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -545,6 +545,22 @@ export default function ContenusPage() {
   const openSequenceRegen = (reel) => {
     setSelectedContenu(null);
     navigate(`/dashboard/reel?reel=${reel.id}`);
+  };
+  // « Refaire la voix » : même scénario, seule la voix off est re-synthétisée puis remontée
+  // dans la vidéo. La vidéo actuelle reste visible pendant le rendu.
+  const refaireVoix = async (reel) => {
+    if (reelLoading) return;
+    setReelLoading(reel.id);
+    try {
+      await contenuService.refaireVoixReel(reel.id);
+      toast.success(t('contenus.reel.voix.enCours'));
+      setSelectedContenu(null);
+      fetchContenus();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.reel.voix.echec'));
+    } finally {
+      setReelLoading(null);
+    }
   };
   // « Modifier la vidéo » mène au studio qui l'a fabriquée (bug vu le 2026-09-17 : tout partait vers
   // l'import du Studio Vidéo) : un reel Remotion s'ouvre dans le Studio Reel, une vidéo montée par
@@ -1687,6 +1703,20 @@ export default function ContenusPage() {
                           className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-3.5 py-2.5 rounded-[10px] transition-colors active:scale-[0.98] disabled:opacity-50">
                           {reelLoading === selectedContenu.id ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.modifier')}
                         </button>
+                      )}
+                      {selectedContenu.type === 'Reel' && selectedContenu.reel_data?.voix && selectedContenu.statut === 'A valider' && (
+                        <>
+                          {selectedContenu.reel_data.voix_erreur && (
+                            <p className="text-[12px] font-inter text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2" data-testid="reel-voix-erreur">
+                              {t('contenus.reel.voix.sansVoix')}
+                            </p>
+                          )}
+                          <button type="button" onClick={() => refaireVoix(selectedContenu)} data-testid="reel-refaire-voix"
+                            disabled={reelLoading === selectedContenu.id || selectedContenu.video_status === 'en_traitement'}
+                            className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-semibold font-inter text-slate-300 border border-white/10 bg-white/5 hover:bg-white/10 hover:text-white px-3.5 py-2.5 rounded-[10px] transition-colors active:scale-[0.98] disabled:opacity-50">
+                            <Mic className="w-4 h-4" />{t('contenus.reel.voix.refaire')}
+                          </button>
+                        </>
                       )}
                     </div>
                   ) : selectedContenu.video_status === 'en_traitement' ? (
