@@ -642,6 +642,7 @@
         "castingGenererBtn_other": "Generate {{count}} images",
         "castingGenereOk_one": "1 image generated, added to the reel and your bank ✨",
         "castingGenereOk_other": "{{count}} images generated, added to the reel and your bank ✨",
+        "castingNouvelles": "Generate new images",
         "castingRien": "Your bank already covers the subject, nothing to add.",
         "castingBanqueVide": "Your bank is empty and the AI had nothing to suggest: describe an image below.",
         "castingEchec": "The AI could not suggest visuals.",

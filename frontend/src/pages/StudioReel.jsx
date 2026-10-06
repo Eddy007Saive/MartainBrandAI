@@ -243,14 +243,15 @@ export default function StudioReel() {
 
   // « Laisser l'IA proposer les visuels » : la banque d'abord (par pertinence), puis, pour les plans
   // non couverts, des images à générer — jamais sans montrer le coût (1 image de quota chacune).
-  const proposerVisuels = async () => {
+  const proposerVisuels = async (nouvelles = false) => {
     const texte = sujetImage();
     if (!texte) { toast.error(t('contenus.reel.seq.genImageBriefRequis')); return; }
     const place = 6 - images.length;
     if (place <= 0) return;
     setCastingEnCours(true);
     try {
-      const r = await contenuService.reelVisuelsProposer(texte, source ? brief.trim() : '', Math.min(3, place));
+      const r = await contenuService.reelVisuelsProposer(texte, source ? brief.trim() : '', Math.min(3, place),
+        { exclure: images.map((i) => i.url).filter(Boolean), nouvelles });
       const deja = new Set(images.map((i) => i.url));
       const ajout = (r.banque || []).filter((a) => a.url && !deja.has(a.url)).map((a) => ({
         cle: nouvelleCle(), url: a.url, desc: a.description || '', src: 'banque',
@@ -267,8 +268,14 @@ export default function StudioReel() {
         });
       } else if (ajout.length) {
         toast.success(t('contenus.reel.seq.castingBanque', { count: ajout.length }));
-      } else {
+      } else if (r.banque_vide || nouvelles) {
         toast(t(r.banque_vide ? 'contenus.reel.seq.castingBanqueVide' : 'contenus.reel.seq.castingRien'));
+      } else {
+        // La banque n'apporte rien de neuf : on propose directement des images à générer.
+        toast(t('contenus.reel.seq.castingRien'), {
+          id: 'casting-nouvelles', duration: 12000,
+          action: { label: t('contenus.reel.seq.castingNouvelles'), onClick: () => proposerVisuels(true) },
+        });
       }
     } catch (e) {
       toast.error(e.response?.data?.detail || t('contenus.reel.seq.castingEchec'));
@@ -461,11 +468,18 @@ export default function StudioReel() {
                 {uploading ? t('contenus.reel.seq.envoi') : t('contenus.reel.seq.importer')}
               </label>
               {(source || brief.trim()) && (
-                <button type="button" onClick={proposerVisuels} disabled={castingEnCours || genEnCours || uploading || images.length >= 6}
+                <button type="button" onClick={() => proposerVisuels()} disabled={castingEnCours || genEnCours || uploading || images.length >= 6}
                   data-testid="studio-reel-proposer-visuels" title={t('contenus.reel.seq.castingAide')}
                   className="flex items-center justify-center gap-2 h-10 text-[13px] font-inter font-semibold px-3.5 rounded-[10px] border border-[#8A6CFF]/50 bg-[#8A6CFF]/[0.08] text-[#c4b5fd] hover:bg-[#8A6CFF]/20 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   {castingEnCours ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   {castingEnCours ? t('contenus.reel.seq.castingEnCours') : t('contenus.reel.seq.casting')}
+                </button>
+              )}
+              {(source || brief.trim()) && images.length > 0 && images.length < 6 && (
+                <button type="button" onClick={() => proposerVisuels(true)} disabled={castingEnCours || genEnCours || uploading}
+                  data-testid="studio-reel-nouvelles-images"
+                  className="flex items-center justify-center gap-2 h-9 text-[12.5px] font-inter font-medium px-3 rounded-[10px] text-slate-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  <Wand2 className="w-4 h-4" />{t('contenus.reel.seq.castingNouvelles')}
                 </button>
               )}
             </div>
