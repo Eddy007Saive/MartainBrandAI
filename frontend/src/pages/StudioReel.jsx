@@ -475,7 +475,7 @@ export default function StudioReel() {
                   {castingEnCours ? t('contenus.reel.seq.castingEnCours') : t('contenus.reel.seq.casting')}
                 </button>
               )}
-              {(source || brief.trim()) && images.length > 0 && images.length < 6 && (
+              {(source || brief.trim()) && images.length < 6 && (
                 <button type="button" onClick={() => proposerVisuels(true)} disabled={castingEnCours || genEnCours || uploading}
                   data-testid="studio-reel-nouvelles-images"
                   className="flex items-center justify-center gap-2 h-9 text-[12.5px] font-inter font-medium px-3 rounded-[10px] text-slate-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
