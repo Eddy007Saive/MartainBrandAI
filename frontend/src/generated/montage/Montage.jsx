@@ -24,7 +24,7 @@ import { loadFont as fBebas } from '@remotion/google-fonts/BebasNeue';
 import { loadFont as fAnton } from '@remotion/google-fonts/Anton';
 import { loadFont as fPlayfair } from '@remotion/google-fonts/PlayfairDisplay';
 import { loadFont as fCaveat } from '@remotion/google-fonts/Caveat';
-import { STYLE_SOUSTITRES_DEFAUT, TRANSITION_DUREE_DEFAUT, RECADRE_DEFAUT, prolongation } from './schema.js';
+import { STYLE_SOUSTITRES_DEFAUT, TRANSITION_DUREE_DEFAUT, RECADRE_DEFAUT, prolongation, ANIMATIONS_PAR_MORCEAUX } from './schema.js';
 
 const POLICES = {
   Sora: "Sora, Inter, 'Segoe UI', sans-serif",
@@ -82,6 +82,28 @@ function useEntree(animation, dureeFrames) {
   const s = spring({ frame, fps, config: { damping: 14, stiffness: 160, mass: 0.7 } });
   if (animation === 'monter') {
     return { opacity: Math.min(s, sortie), transform: `translateY(${(1 - s) * 40}px)` };
+  }
+  if (animation === 'glisser') {
+    // Entre par la gauche, avec un léger flou de mouvement
+    const p = interpolate(frame, [0, Math.round(fps * 0.45)], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: (x) => 1 - Math.pow(1 - x, 3) });
+    return { opacity: Math.min(p * 1.5, sortie), transform: `translateX(${(1 - p) * -60}%)`, filter: p < 1 ? `blur(${(1 - p) * 10}px)` : 'none' };
+  }
+  if (animation === 'zoomin') {
+    // Arrive en grand puis se pose
+    const p = interpolate(frame, [0, Math.round(fps * 0.4)], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: (x) => 1 - Math.pow(1 - x, 3) });
+    return { opacity: Math.min(p * 1.4, sortie), transform: `scale(${1.6 - 0.6 * p})` };
+  }
+  if (animation === 'flou') {
+    const p = interpolate(frame, [0, Math.round(fps * 0.6)], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+    return { opacity: Math.min(p, sortie), transform: `scale(${1.08 - 0.08 * p})`, filter: p < 1 ? `blur(${(1 - p) * 18}px)` : 'none' };
+  }
+  if (animation === 'rebond') {
+    const b = spring({ frame, fps, config: { damping: 7, stiffness: 140, mass: 0.8 } });
+    return { opacity: Math.min(1, b * 2, sortie), transform: `translateY(${(1 - b) * -140}px)` };
+  }
+  if (ANIMATIONS_PAR_MORCEAUX.includes(animation)) {
+    // Le bloc reste en place : ce sont les lettres ou les mots qui s'animent (voir Texte)
+    return { opacity: sortie, transform: 'none' };
   }
   // pop
   return { opacity: Math.min(1, s * 1.4, sortie), transform: `scale(${0.7 + 0.3 * s})` };
@@ -209,9 +231,43 @@ export const boiteTexte = (style, echelle) => ({
   maxWidth: '100%',
 });
 
+/** Texte animé par morceaux : lettres (machine à écrire) ou mots (mot par mot, vague). */
+const TexteParMorceaux = ({ texte, animation }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const statique = useContext(StatiqueCtx);
+  const contenu = texte || '';
+  if (statique) return contenu;
+  if (animation === 'machine') {
+    // ~22 lettres par seconde, curseur clignotant tant que la frappe n'est pas finie
+    const n = Math.min(contenu.length, Math.floor((frame / fps) * 22));
+    const fini = n >= contenu.length;
+    return (
+      <>
+        {contenu.slice(0, n)}
+        {!fini && <span style={{ opacity: Math.floor(frame / 8) % 2 === 0 ? 1 : 0.2, marginLeft: 2 }}>|</span>}
+      </>
+    );
+  }
+  // Mots : chacun arrive à son tour (0,09 s d'écart), en pop ou en vague
+  const mots = contenu.split(/(\s+)/);
+  let i = 0;
+  return mots.map((m, k) => {
+    if (/^\s+$/.test(m)) return m;
+    const debut = Math.round(i++ * fps * 0.09);
+    const s = spring({ frame: frame - debut, fps, config: animation === 'vague'
+      ? { damping: 12, stiffness: 150, mass: 0.6 } : { damping: 11, stiffness: 190, mass: 0.6 } });
+    const style = animation === 'vague'
+      ? { opacity: Math.min(1, s * 1.6), transform: `translateY(${(1 - s) * 0.9}em)` }
+      : { opacity: Math.min(1, s * 1.6), transform: `scale(${0.4 + 0.6 * s})` };
+    return <span key={k} style={{ display: 'inline-block', ...style }}>{m}</span>;
+  });
+};
+
 const Texte = ({ e, projet, dureeFrames }) => {
   const echelle = projet.largeur / 1080;
-  const anim = useEntree(e.style?.animation, dureeFrames);
+  const animation = e.style?.animation;
+  const anim = useEntree(animation, dureeFrames);
   const st = cadreStyle(e.cadre, projet.largeur, projet.hauteur, e.rotation);
   const align = e.style?.align || 'center';
   return (
@@ -219,8 +275,11 @@ const Texte = ({ e, projet, dureeFrames }) => {
       ...st, display: 'flex', alignItems: 'center',
       justifyContent: align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center',
       opacity: (e.opacite ?? 1) * anim.opacity, transform: `${st.transform && st.transform !== 'none' ? st.transform + ' ' : ''}${anim.transform}`,
+      filter: anim.filter || 'none',
     }}>
-      <div style={boiteTexte(e.style || {}, echelle)}>{e.texte}</div>
+      <div style={boiteTexte(e.style || {}, echelle)}>
+        {ANIMATIONS_PAR_MORCEAUX.includes(animation) ? <TexteParMorceaux texte={e.texte} animation={animation} /> : e.texte}
+      </div>
     </div>
   );
 };

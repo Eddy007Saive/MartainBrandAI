@@ -1858,7 +1858,14 @@
       "fondu": "Fondu",
       "monter": "Monter",
       "pop": "Pop",
-      "zoom": "Zoom lent"
+      "zoom": "Zoom lent",
+      "machine": "Machine à écrire",
+      "mots": "Mot par mot",
+      "vague": "Vague",
+      "glisser": "Glisser",
+      "zoomin": "Zoom",
+      "flou": "Flou",
+      "rebond": "Rebond"
     },
     "export": {
       "bouton": "Exporter",

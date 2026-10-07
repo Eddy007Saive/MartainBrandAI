@@ -1858,7 +1858,14 @@
       "fondu": "Fundido",
       "monter": "Subir",
       "pop": "Pop",
-      "zoom": "Zoom lento"
+      "zoom": "Zoom lento",
+      "machine": "Máquina de escribir",
+      "mots": "Palabra a palabra",
+      "vague": "Ola",
+      "glisser": "Deslizar",
+      "zoomin": "Zoom",
+      "flou": "Desenfoque",
+      "rebond": "Rebote"
     },
     "export": {
       "bouton": "Exportar",

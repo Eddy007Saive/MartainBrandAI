@@ -1858,7 +1858,14 @@
       "fondu": "Fade",
       "monter": "Rise",
       "pop": "Pop",
-      "zoom": "Slow zoom"
+      "zoom": "Slow zoom",
+      "machine": "Typewriter",
+      "mots": "Word by word",
+      "vague": "Wave",
+      "glisser": "Slide",
+      "zoomin": "Zoom",
+      "flou": "Blur",
+      "rebond": "Bounce"
     },
     "export": {
       "bouton": "Export",

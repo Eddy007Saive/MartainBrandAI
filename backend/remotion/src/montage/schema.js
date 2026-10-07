@@ -35,7 +35,11 @@ export const STYLE_SOUSTITRES_DEFAUT = {
 };
 export const MODES_SOUSTITRES = ['phrase', 'surligne', 'apparition'];
 
-export const ANIMATIONS = ['aucune', 'fondu', 'monter', 'pop'];
+// Animations d'entrée d'un texte. Les trois premières après « pop » animent le texte par
+// morceaux (lettres ou mots) ; les autres animent le bloc entier.
+export const ANIMATIONS = ['aucune', 'fondu', 'monter', 'pop', 'machine', 'mots', 'vague',
+  'glisser', 'zoomin', 'flou', 'rebond'];
+export const ANIMATIONS_PAR_MORCEAUX = ['machine', 'mots', 'vague'];
 
 /** Polices proposées (Google Fonts, chargées par la composition via @remotion/google-fonts :
  *  même fichier de police à l'aperçu et au rendu serveur). Georgia et Mono restent des polices
