@@ -278,6 +278,7 @@
     "champsRemplis_other": "{{count}} champs remplis",
     "rienAremplir": "Tes champs sont déjà remplis. Utilise « Tout remplacer » si tu veux les écraser.",
     "rappelEnregistrer": "Relis, corrige, puis enregistre en bas de page.",
+    "police": {"titre": "Titres", "corps": "Texte", "horsCharte": "pas dans tes polices, non appliquée"},
     "champ": {
       "secteur": "Secteur",
       "audience": "Audience",
@@ -285,6 +286,7 @@
       "piliers": "Piliers de contenu",
       "hooks": "Accroches",
       "ctas": "Appels à l'action",
+      "polices": "Polices",
       "couleurs": "Couleurs"
     },
     "logo": {

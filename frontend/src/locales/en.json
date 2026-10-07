@@ -278,6 +278,7 @@
     "champsRemplis_other": "{{count}} fields filled",
     "rienAremplir": "Your fields are already filled. Use « Replace everything » to overwrite them.",
     "rappelEnregistrer": "Read it over, fix it, then save at the bottom of the page.",
+    "police": {"titre": "Headings", "corps": "Body", "horsCharte": "not in your fonts, not applied"},
     "champ": {
       "secteur": "Industry",
       "audience": "Audience",
@@ -285,6 +286,7 @@
       "piliers": "Content pillars",
       "hooks": "Hooks",
       "ctas": "Calls to action",
+      "polices": "Fonts",
       "couleurs": "Colours"
     },
     "logo": {
