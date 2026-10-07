@@ -3,6 +3,7 @@ import {
   AbsoluteFill, Audio, Img, OffthreadVideo, interpolate, spring, staticFile,
   useCurrentFrame, useVideoConfig, Sequence,
 } from 'remotion';
+import { policeTexte, policeTitre } from './polices';
 
 /**
  * ReelSequence — moteur de séquences à durée variable.
@@ -21,6 +22,8 @@ type Brand = {
   accent: string;
   fond: string;
   logo?: string | null;
+  police?: string | null;       // police de titre de la charte (typo_primaire)
+  policeTexte?: string | null;  // police du texte courant (typo_secondaire)
 };
 
 export type SequenceSegment = {
@@ -100,7 +103,7 @@ const LogoMark: React.FC<{ brand: Brand; size: number }> = ({ brand, size }) => 
       width: size, height: size, borderRadius: size / 4,
       background: `linear-gradient(135deg, ${brand.principale}, ${brand.accent})`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'Sora, Inter, sans-serif', fontWeight: 800, fontSize: size * 0.5, color: '#fff',
+      fontFamily: policeTitre(brand.police), fontWeight: 800, fontSize: size * 0.5, color: '#fff',
     }}>
       {(brand.nom || 'P')[0].toUpperCase()}
     </div>
@@ -209,7 +212,7 @@ const Karaoke: React.FC<{
           const isAcc = acc.has(strip(w));
           const kind = isAcc ? (chipIndex++ % 2 === 0 ? 'accent' : 'grad') : 'plain';
           const base: React.CSSProperties = {
-            fontFamily: 'Sora, Inter, sans-serif', fontWeight: 800,
+            fontFamily: policeTitre(brand.police), fontWeight: 800,
             fontSize: sz, lineHeight: 1.12, letterSpacing: '-0.5px',
             display: 'inline-block', opacity: vis ? Math.min(1, s * 3) : 0,
             transform: `scale(${vis ? Math.max(0.3, s) : 0.3}) rotate(${(1 - Math.min(1, s)) * (i % 2 ? 3 : -3)}deg)`,
@@ -327,7 +330,7 @@ const TipChip: React.FC<{ brand: Brand; n: number; top: string }> = ({ brand, n,
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, top, textAlign: 'center', zIndex: 7 }}>
       <span style={{
-        display: 'inline-block', fontFamily: 'Sora, Inter, sans-serif', fontWeight: 800, fontSize: 33,
+        display: 'inline-block', fontFamily: policeTitre(brand.police), fontWeight: 800, fontSize: 33,
         letterSpacing: '0.14em', color: inkOn(brand.accent), background: brand.accent,
         padding: '8px 30px', transform: `skewX(-8deg) scale(${Math.max(0.3, s)})`,
         opacity: Math.min(1, s * 2),
@@ -551,7 +554,7 @@ const SegImage: React.FC<{
       {badge && (
         <div style={{
           position: 'absolute', top: 22, left: 22, zIndex: 4,
-          fontFamily: 'Sora, Inter, sans-serif', fontWeight: 800, fontSize: 36, letterSpacing: '0.1em',
+          fontFamily: policeTitre(brand.police), fontWeight: 800, fontSize: 36, letterSpacing: '0.1em',
           padding: '8px 26px', transform: 'skewX(-8deg)',
           background: badgeApres ? brand.accent : 'rgba(10,14,24,0.85)',
           color: badgeApres ? inkOn(brand.accent) : '#fff',
@@ -607,7 +610,7 @@ const SegCta: React.FC<{ seg: SequenceSegment; brand: Brand; durFrames: number; 
         transform: `translateY(${(1 - bar) * 170}px)`,
       }}>
         <span style={{
-          fontFamily: 'Sora, Inter, sans-serif', fontWeight: 800, fontSize: 46,
+          fontFamily: policeTitre(brand.police), fontWeight: 800, fontSize: 46,
           color: ink, whiteSpace: 'nowrap', letterSpacing: '-0.5px',
         }}>{seg.bar || seg.texte}</span>
         <LogoMark brand={brand} size={62} />
@@ -633,7 +636,7 @@ const Habillage: React.FC<{ style: SequenceStyle; brand: Brand; segCount: number
     return (
       <>
         <div style={{ position: 'absolute', inset: 26, border: '1px solid rgba(242,239,230,0.22)', pointerEvents: 'none', zIndex: 41 }} />
-        <div style={{ position: 'absolute', top: 54, right: 66, fontFamily: 'Sora, Inter, sans-serif', fontWeight: 700, fontSize: 21,
+        <div style={{ position: 'absolute', top: 54, right: 66, fontFamily: policeTexte(brand.policeTexte), fontWeight: 700, fontSize: 21,
           letterSpacing: '0.2em', color: 'rgba(242,239,230,0.6)', zIndex: 42, fontVariantNumeric: 'tabular-nums' }}>
           N°{String(n).padStart(2, '0')}
         </div>
@@ -658,7 +661,7 @@ const Habillage: React.FC<{ style: SequenceStyle; brand: Brand; segCount: number
     return (
       <div style={{ position: 'absolute', top: 130, right: 66, zIndex: 42, display: 'flex', alignItems: 'center', gap: 12 }}>
         <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#ff3b30', opacity: on ? 1 : 0.25 }} />
-        <span style={{ fontFamily: 'Sora, Inter, sans-serif', fontWeight: 700, fontSize: 24, letterSpacing: '0.22em', color: '#fff', opacity: 0.85 }}>REC</span>
+        <span style={{ fontFamily: policeTexte(brand.policeTexte), fontWeight: 700, fontSize: 24, letterSpacing: '0.22em', color: '#fff', opacity: 0.85 }}>REC</span>
       </div>
     );
   }
@@ -781,7 +784,7 @@ export const ReelSequence: React.FC<Props> = ({ brand, segments, style = 'signat
       }}>
         <LogoMark brand={brand} size={48} />
         <span style={{
-          fontFamily: 'Sora, Inter, sans-serif', fontWeight: 800, fontSize: 28,
+          fontFamily: policeTitre(brand.police), fontWeight: 800, fontSize: 28,
           letterSpacing: '0.18em', color: papier ? PAPER_INK : '#EAF0FB', textTransform: 'uppercase',
         }}>{brand.nom}</span>
       </div>
