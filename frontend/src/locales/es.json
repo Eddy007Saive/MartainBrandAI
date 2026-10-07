@@ -278,7 +278,6 @@
     "champsRemplis_other": "{{count}} campos rellenados",
     "rienAremplir": "Tus campos ya están rellenados. Usa « Reemplazar todo » si quieres sobrescribirlos.",
     "rappelEnregistrer": "Repásalo, corrígelo y guarda al final de la página.",
-    "police": {"titre": "Títulos", "corps": "Texto", "horsCharte": "no está en tus fuentes, no se aplica"},
     "champ": {
       "secteur": "Sector",
       "audience": "Audiencia",
@@ -286,7 +285,6 @@
       "piliers": "Pilares de contenido",
       "hooks": "Ganchos",
       "ctas": "Llamadas a la acción",
-      "polices": "Fuentes",
       "couleurs": "Colores"
     },
     "logo": {

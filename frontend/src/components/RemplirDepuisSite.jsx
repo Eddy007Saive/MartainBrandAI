@@ -16,7 +16,7 @@ import { userService } from '../services/userService';
 const enTexte = (v) => (Array.isArray(v) ? v.join('\n') : v || '');
 
 const CHAMPS = ['secteur', 'audience', 'voix_marque', 'piliers', 'hooks', 'ctas', 'a_eviter',
-  'couleur_principale', 'couleur_secondaire', 'couleur_accent', 'typo_primaire', 'typo_secondaire'];
+  'couleur_principale', 'couleur_secondaire', 'couleur_accent'];
 
 /**
  * @param {object}   user      la fiche a completer (le client concerne)
@@ -176,21 +176,6 @@ export default function RemplirDepuisSite({ user, onChange, admin, onRefetch }) 
                 .filter(Boolean).map((c) => (
                   <span key={c} className="flex items-center gap-1.5 text-[11.5px] text-slate-400 font-mono">
                     <span className="w-4 h-4 rounded border border-white/15" style={{ background: c }} />{c}
-                  </span>
-                ))}
-            </div>
-          )}
-
-          {/* Polices réellement rendues sur le site (titres / texte). Proposées seulement si
-              elles existent dans les sélecteurs de la charte ; sinon, signalées pour info. */}
-          {(fiche._source?.polices?.titre || fiche._source?.polices?.corps) && (
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3" data-testid="site-polices">
-              <span className="text-[11px] text-slate-500 uppercase tracking-wide">{t('analyseSite.champ.polices')}</span>
-              {[['titre', fiche._source.polices.titre, fiche.typo_primaire], ['corps', fiche._source.polices.corps, fiche.typo_secondaire]]
-                .filter(([, vue]) => vue).map(([role, vue, retenue]) => (
-                  <span key={role} className="text-[12px] font-inter text-slate-300">
-                    {t(`analyseSite.police.${role}`)} : <b className="font-semibold">{vue}</b>
-                    {!retenue && <span className="text-amber-400/90"> ({t('analyseSite.police.horsCharte')})</span>}
                   </span>
                 ))}
             </div>
