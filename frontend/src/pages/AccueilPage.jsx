@@ -7,6 +7,7 @@ import { analyticsService } from '../services/analyticsService';
 import PerformanceCurve from '../components/PerformanceCurve';
 import TopPosts from '../components/TopPosts';
 import CartePremiersPas from '../components/CartePremiersPas';
+import { ResumePerformance } from '../components/performance/TableauPerformance';
 
 export default function AccueilPage() {
   const { t } = useTranslation();
@@ -77,7 +78,9 @@ export default function AccueilPage() {
         </div>
       ) : (
         <>
-          {/* KPI Cards */}
+          {/* Résumé des performances (30 j, variation vs période précédente) ; sans réseau
+              connecté ou sans add-on Analytics, on garde les anciennes cartes. */}
+          <ResumePerformance repli={(
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {kpis.map((kpi, index) => {
               const Icon = kpi.icon;
@@ -95,6 +98,7 @@ export default function AccueilPage() {
               );
             })}
           </div>
+          )} />
 
           {/* Courbe d'évolution (style Search Console) */}
           <PerformanceCurve />

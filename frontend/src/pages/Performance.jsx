@@ -5,6 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../components/PageHeader';
 import { SocialIcon } from '../components/SocialIcon';
 import { analyticsService } from '../services/analyticsService';
+import {
+  ChiffresCles, CourbeEngagement, CarteCreneaux, AbonnesParCompte, DetailReseaux, FrequenceConseillee, NET_BG, normPlat, fmt,
+} from '../components/performance/TableauPerformance';
 
 const NETS = [
   { id: '', labelKey: 'allNetworks' },
@@ -14,18 +17,6 @@ const NETS = [
   { id: 'tiktok', label: 'TikTok' },
   { id: 'youtube', label: 'YouTube' },
 ];
-const NET_BG = {
-  linkedin: '#0a66c2', instagram: 'linear-gradient(135deg,#feda75,#d62976,#962fbf)',
-  facebook: '#1877f2', tiktok: '#111', youtube: '#ff0000',
-};
-const normPlat = (p) => (p || '').toString().toLowerCase().split('.').pop();
-const fmt = (n) => {
-  n = Number(n) || 0;
-  if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
-  return String(n);
-};
-
 export default function Performance() {
   const { t, i18n } = useTranslation();
   const [days, setDays] = useState(30);
@@ -57,16 +48,7 @@ export default function Performance() {
     return h < 24 ? t('perf.hoursAgo', { count: h }) : t('perf.daysAgo', { count: Math.round(h / 24) });
   };
 
-  const kpis = data?.kpis || {};
   const posts = data?.posts || [];
-  const KPI = [
-    { k: 'impressions', label: t('perf.kpiImpressions'), icon: Eye, color: '#8A6CFF', val: fmt(kpis.impressions) },
-    { k: 'reach', label: t('perf.kpiReach'), icon: Users, color: '#E879F9', val: fmt(kpis.reach) },
-    { k: 'eng', label: t('perf.kpiEngagement'), icon: TrendingUp, color: '#3AFFA3', val: (kpis.engagementRate || 0) + '%' },
-    { k: 'likes', label: t('perf.kpiLikes'), icon: Heart, color: '#f87171', val: fmt(kpis.likes) },
-    { k: 'comments', label: t('perf.kpiComments'), icon: MessageCircle, color: '#60a5fa', val: fmt(kpis.comments) },
-    { k: 'shares', label: t('perf.kpiShares'), icon: Share2, color: '#8A6CFF', val: fmt(kpis.shares) },
-  ];
 
   return (
     <div className="w-full space-y-5 pb-10">
@@ -119,18 +101,14 @@ export default function Performance() {
         <div className="text-center py-16 text-slate-500 font-inter text-sm">{data?.error || t('perf.unavailable')}</div>
       ) : (
         <>
-          {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {KPI.map((m) => (
-              <div key={m.k} className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[12.5px] text-slate-400 font-inter">{m.label}</span>
-                  <span className="w-7 h-7 rounded-lg grid place-items-center" style={{ background: `${m.color}22` }}><m.icon className="w-4 h-4" style={{ color: m.color }} /></span>
-                </div>
-                <div className="text-2xl font-bold font-sora mt-2">{m.val}</div>
-              </div>
-            ))}
+          <ChiffresCles data={data} />
+          <CourbeEngagement data={data} days={days} />
+          <div className="grid lg:grid-cols-2 gap-5">
+            <CarteCreneaux data={data} />
+            <AbonnesParCompte data={data} />
           </div>
+          <DetailReseaux data={data} />
+          <FrequenceConseillee data={data} />
 
           {/* Top posts */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden">
