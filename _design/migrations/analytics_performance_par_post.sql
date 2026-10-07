@@ -16,7 +16,7 @@
 --   - RLS activée (elle ne l'était pas).
 -- En DEUX étapes, pour ne pas casser la prod : le Prisma Client en service lit encore les
 -- anciennes colonnes. Étape 1 (ajouts seulement) appliquée sur Supabase le 2026-10-07.
--- Étape 2 (suppressions) à appliquer UNE FOIS le Nest redéployé avec le nouveau schéma.
+-- Étape 2 (suppressions) appliquée le 2026-10-07, après redéploiement de Nest (commit 79468d3).
 
 -- ── Étape 1 ──────────────────────────────────────────────────────────────────────────
 
@@ -50,9 +50,9 @@ ALTER TABLE analytics_performance ENABLE ROW LEVEL SECURITY;
 COMMENT ON TABLE analytics_performance IS 'Rico Coach : stats par post et par réseau, collectées depuis Zernio (totaux du mois dans stats_mensuelles).';
 
 -- ── Étape 2 (après déploiement de Nest) ──────────────────────────────────────────────
--- ALTER TABLE analytics_performance
---   DROP COLUMN performance_score,
---   DROP COLUMN date_publication,
---   DROP COLUMN semaine,
---   DROP COLUMN taux_engagement,
---   ADD COLUMN taux_engagement numeric(6,2);   -- interactions / impressions (ou vues), en %
+ALTER TABLE analytics_performance
+  DROP COLUMN performance_score,
+  DROP COLUMN date_publication,
+  DROP COLUMN semaine,
+  DROP COLUMN taux_engagement,
+  ADD COLUMN taux_engagement numeric(6,2);   -- interactions / impressions (ou vues), en %
