@@ -302,6 +302,7 @@
     "plan": "Plan editorial",
     "contents": "Contenidos",
     "comments": "Comentarios",
+    "automations": "Automatizaciones",
     "performance": "Rendimiento",
     "planning": "Programación",
     "carousels": "Carruseles",
@@ -407,6 +408,24 @@
     "miensAide": "Diseños creados para tu marca: son solo tuyos y no aparecen en ninguna otra cuenta."
   },
   "comments": {
+    "aRepondre": "Por responder",
+    "retour": "Volver a los posts",
+    "nbCommentaires_one": "{{count}} comentario",
+    "nbCommentaires_other": "{{count}} comentarios",
+    "voirSur": "Ver en {{reseau}}",
+    "reponseA": "Respuesta a",
+    "annulerCible": "Dejar de responder a este comentario",
+    "commenterPost": "Escribe un comentario en el post…",
+    "envoyer": "Enviar",
+    "nonRepondus": "Sin responder",
+    "posts": "Posts",
+    "triRecent": "Más recientes",
+    "triCommentaires": "Más comentados",
+    "toutRepondu": "Todo respondido. Nada pendiente en estos posts.",
+    "nbAttente_one": "{{count}} comentario sin responder",
+    "nbAttente_other": "{{count}} comentarios sin responder",
+    "choisirPost": "Elige un post para ver sus comentarios",
+    "toi": "Tú",
     "allNetworks": "Todos",
     "minutesAgo": "hace {{count}} min",
     "hoursAgo": "hace {{count}} h",
@@ -3614,6 +3633,212 @@
       "titre": "Veinte minutos, y lo sabrás",
       "intro": "Lo más sencillo es que te muestre el software funcionando sobre tu propia empresa, con tus redes y tu ficha de Google. Veinte minutos por videollamada, a la hora que te venga bien, incluso muy temprano o a última hora si tus días están completos. Si a los cinco minutos ves que no es para ti, me lo dices y lo dejamos ahí.",
       "promesse": "Sin compromiso al terminar la demo, y sin insistir después si no es el momento. Me lo dices, y te dejo trabajar."
+    }
+  },
+  "auto": {
+    "post": {"tous": "Todos mis posts", "inconnu": "Post no encontrado ({{id}}): la automatización nunca se activará. Elige un post o «Todos mis posts».", "aucun": "No se encontró ningún post publicado en esta cuenta.", "sansTexte": "Post sin texto", "unSeul": "1 post concreto"},
+    "titre": "Automatizaciones",
+    "sousTitre": "Responde automáticamente a comentarios y mensajes privados, bloque a bloque",
+    "sansCompteTitre": "Conecta Instagram o Facebook",
+    "sansCompteDesc": "Las automatizaciones responden a comentarios y mensajes privados de Instagram y Facebook. Conecta al menos una de estas cuentas para empezar.",
+    "connecter": "Conectar una cuenta",
+    "nouvelle": "Nueva automatización",
+    "commencer": "Empieza con una plantilla",
+    "utiliser": "Usar",
+    "mesAutomatisations": "Mis automatizaciones",
+    "stats": "{{lances}} iniciada(s) · {{termines}} terminada(s)",
+    "statut": {
+      "draft": "Borrador",
+      "active": "Activa",
+      "paused": "En pausa"
+    },
+    "pause": "Pausar",
+    "activer": "Activar",
+    "supprimer": "Eliminar",
+    "supprime": "Automatización eliminada.",
+    "misEnPause": "Automatización en pausa.",
+    "active": "Automatización activada: responde desde ahora.",
+    "limiteReseaux": "Disponible en Instagram y Facebook. LinkedIn no permite automatizar mensajes.",
+    "confirmerSuppressionTitre": "¿Eliminar esta automatización?",
+    "confirmerSuppression": "«{{nom}}» dejará de responder y se eliminará definitivamente.",
+    "annuler": "Cancelar",
+    "retour": "Volver",
+    "enregistrer": "Guardar",
+    "enregistre": "Automatización guardada.",
+    "blocs": "Bloques",
+    "ajouterBloc": "Añadir un bloque",
+    "fermer": "Cerrar",
+    "supprimerBloc": "Eliminar este bloque",
+    "ajouterBouton": "Añadir un botón",
+    "ajouterReponse": "Añadir una respuesta",
+    "ajouterRegle": "Añadir una regla",
+    "lienDansTexte": "Poner el enlace en el texto",
+    "erreur": {
+      "chargement": "No se pudieron cargar las automatizaciones.",
+      "compte": "Elige la cuenta de Instagram o Facebook.",
+      "nom": "Ponle un nombre a tu automatización.",
+      "enregistrement": "No se pudo guardar.",
+      "activation": "No se pudo activar.",
+      "suppression": "No se pudo eliminar."
+    },
+    "aide": {
+      "palette": "Haz clic en un bloque para añadirlo bajo el bloque seleccionado. Une los bloques arrastrando de un punto a otro.",
+      "motsCles": "Separadas por comas. Déjalo vacío para reaccionar a todo.",
+      "post": "Elige un post para reaccionar solo a sus comentarios, o deja «Todos mis posts».",
+      "cooldown": "Una misma persona no reinicia la automatización durante este plazo.",
+      "reponsePrivee": "Este mensaje se envía como respuesta privada al comentario. Instagram solo muestra texto simple: pon tu enlace directamente en el mensaje.",
+      "boutonsCommentaire": "Instagram muestra una burbuja vacía cuando este primer mensaje tiene botones: la persona no ve nada. Pon el enlace en el texto.",
+      "rapides": "Botones de respuesta bajo el mensaje (20 caracteres máx.). El valor sirve en una condición.",
+      "condition": "La primera regla que se cumple elige la salida. Si ninguna se cumple, se usa la salida «Si no».",
+      "attente": "Salida «Respuesta» si la persona responde, «Silencio» tras el plazo.",
+      "saveAs": "La respuesta se guarda con este nombre, reutilizable en los mensajes entre dobles llaves.",
+      "ab": "Parte de las personas enviadas a la rama A; el resto va a B.",
+      "tag": "Las etiquetas sirven para encontrar y ordenar tus contactos.",
+      "handoff": "La automatización se detiene y se te señala la conversación para que respondas tú."
+    },
+    "champ": {
+      "declencheur": "Empieza cuando…",
+      "motsCles": "Palabras clave",
+      "correspondance": "Coincidencia",
+      "post": "Post",
+      "premierMessage": "Solo en el primer mensaje",
+      "cooldown": "Plazo antes de reiniciar (horas)",
+      "typeMessage": "Tipo de mensaje",
+      "typeMedia": "Tipo de medio",
+      "urlMedia": "Enlace del medio",
+      "texte": "Mensaje",
+      "options": "Bajo el mensaje",
+      "titreBouton": "Texto del botón",
+      "titreReponse": "Respuesta propuesta",
+      "valeur": "Valor",
+      "attendre": "Esperar como máximo",
+      "saveAs": "Guardar la respuesta como",
+      "patienter": "Esperar",
+      "pourcentage": "Parte hacia A (%)",
+      "tag": "Etiqueta",
+      "champ": "Nombre del campo",
+      "note": "Nota para ti",
+      "nomBloc": "Nombre del bloque"
+    },
+    "typeMessage": {
+      "text": "Texto",
+      "media": "Imagen, vídeo o archivo"
+    },
+    "media": {
+      "image": "Imagen",
+      "video": "Vídeo",
+      "audio": "Audio",
+      "document": "Documento"
+    },
+    "options": {
+      "aucun": "Nada",
+      "boutons": "Botones de enlace (3 máx.)",
+      "rapides": "Respuestas rápidas"
+    },
+    "match": {
+      "contains": "Contiene la palabra",
+      "exact": "Exactamente la palabra",
+      "any": "Cualquier mensaje"
+    },
+    "unite": {
+      "minutes": "minutos",
+      "heures": "horas",
+      "jours": "días"
+    },
+    "duree": {
+      "minutes_one": "{{count}} minuto",
+      "minutes_other": "{{count}} minutos",
+      "heures_one": "{{count}} hora",
+      "heures_other": "{{count}} horas",
+      "jours_one": "{{count}} día",
+      "jours_other": "{{count}} días"
+    },
+    "declencheur": {
+      "comment": "Comentario en un post",
+      "inbound_message": "Mensaje privado recibido",
+      "story_mention": "Mención en una historia"
+    },
+    "operateur": {
+      "contains": "contiene",
+      "not_contains": "no contiene",
+      "equals": "es igual a",
+      "not_equals": "es distinto de",
+      "starts_with": "empieza por",
+      "exists": "está rellenado",
+      "not_exists": "está vacío",
+      "has_tag": "tiene la etiqueta",
+      "not_has_tag": "no tiene la etiqueta",
+      "is_true": "es verdadero",
+      "is_false": "es falso",
+      "greater_than": "es mayor que",
+      "less_than": "es menor que"
+    },
+    "sortie": {
+      "regle": "Regla {{n}}",
+      "sinon": "Si no",
+      "reponse": "Respuesta",
+      "silence": "Silencio"
+    },
+    "resume": {
+      "messageVide": "Mensaje por escribir",
+      "attente": "Hasta {{duree}}",
+      "regles_one": "{{count}} regla",
+      "regles_other": "{{count}} reglas",
+      "tagVide": "Etiqueta por elegir",
+      "champVide": "Campo por elegir",
+      "humain": "Tomas el relevo"
+    },
+    "bloc": {
+      "trigger": "Disparador",
+      "send_message": "Enviar un mensaje",
+      "wait_for_reply": "Esperar una respuesta",
+      "condition": "Condición",
+      "delay": "Esperar",
+      "a_b_split": "Test A/B",
+      "add_tag": "Añadir una etiqueta",
+      "remove_tag": "Quitar una etiqueta",
+      "set_field": "Guardar un dato",
+      "handoff": "Pasar el relevo",
+      "end": "Fin"
+    },
+    "description": {
+      "trigger": "El punto de partida: lo que lanza la automatización.",
+      "send_message": "Envía un mensaje privado, con botones o respuestas rápidas si hace falta.",
+      "wait_for_reply": "Pausa la automatización hasta que la persona responda.",
+      "condition": "Elige la continuación según la respuesta, una etiqueta o un dato del contacto.",
+      "delay": "Espera un momento antes de continuar.",
+      "a_b_split": "Envía una parte de las personas a A y el resto a B para comparar dos versiones.",
+      "add_tag": "Añade una etiqueta al contacto.",
+      "remove_tag": "Quita una etiqueta del contacto.",
+      "set_field": "Guarda un dato duradero sobre el contacto.",
+      "handoff": "Detiene la automatización y te señala la conversación.",
+      "end": "Termina la automatización."
+    },
+    "modeles": {
+      "commentaireDm": {
+        "nom": "Comentario → mensaje privado",
+        "desc": "«Comenta GUÍA»: cada comentario con la palabra clave recibe tu enlace en privado.",
+        "message": "¡Gracias por tu comentario! Aquí tienes la guía:",
+        "bouton": "Recibir la guía"
+      },
+      "qualifier": {
+        "nom": "Calificar un nuevo contacto",
+        "desc": "En el primer mensaje privado, pregunta qué busca y te pasa el relevo para un presupuesto.",
+        "question": "¡Hola! ¿Qué te trae por aquí?",
+        "devis": "Un presupuesto",
+        "info": "Información",
+        "note": "Solicitud de presupuesto por atender",
+        "reponseInfo": "¡Con gusto! Cuéntame un poco más y te respondo pronto."
+      },
+      "story": {
+        "nom": "Gracias por la mención",
+        "desc": "Agradece automáticamente a cada persona que te menciona en una historia.",
+        "message": "¡Muchas gracias por la mención! 🙏"
+      },
+      "vide": {
+        "nom": "Empezar de cero",
+        "desc": "Solo un disparador: construye tu escenario bloque a bloque."
+      }
     }
   }
 }

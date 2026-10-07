@@ -42,6 +42,8 @@ const StudioReel = lazy(() => import("./pages/StudioReel"));
 const PlanEditorial = lazy(() => import("./pages/PlanEditorial"));
 const CommentairesPage = lazy(() => import("./pages/CommentairesPage"));
 const Performance = lazy(() => import("./pages/Performance"));
+const AutomatisationsPage = lazy(() => import("./pages/AutomatisationsPage"));
+const AutomatisationEditeur = lazy(() => import("./pages/AutomatisationEditeur"));
 const PlanificationPage = lazy(() => import("./pages/PlanificationPage"));
 const CarrouselsPage = lazy(() => import("./pages/CarrouselsPage"));
 const ParametresPage = lazy(() => import("./pages/ParametresPage"));
@@ -129,6 +131,9 @@ function App() {
               <Route path="contenus" element={<ContenusPage />} />
               <Route path="commentaires" element={<CommentairesPage />} />
               <Route path="performance" element={<Performance />} />
+              <Route path="automatisations" element={<AutomatisationsPage />} />
+              <Route path="automatisations/nouveau" element={<AutomatisationEditeur />} />
+              <Route path="automatisations/:id" element={<AutomatisationEditeur />} />
               <Route path="planification" element={<PlanificationPage />} />
               <Route path="carrousels" element={<CarrouselsPage />} />
               {/* L'affiliation vit dans Paramètres > Parrainage ; l'ancienne adresse suit. */}

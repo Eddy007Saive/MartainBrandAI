@@ -42,6 +42,7 @@
     "@remotion/player": "4.0.506",
     "@sentry/react": "^11.4.0",
     "@sparticuz/chromium": "^149.0.0",
+    "@xyflow/react": "^12.12.0",
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

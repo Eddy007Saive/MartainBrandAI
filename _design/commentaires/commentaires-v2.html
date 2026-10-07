@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Commentaires v2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" />
+<!--
+  Hypothèses (à valider avant de coder dans l'app) :
+  - Données réelles du compte de dev : posts de mini85918, commentaires « GUIDE » de lovahrandie,
+    réponse « je te répond depuis Postorico ». Les deux autres posts/commentaires sont les vrais
+    textes des posts de mini85918 ; leurs commentaires sont des exemples marqués « exemple ».
+  - Données disponibles via Zernio : posts avec commentaires (miniature, texte, compte, nb, date),
+    commentaires avec réponses imbriquées (replies), from.isOwner, canReply/canHide/canDelete.
+  - « Non répondu » = commentaire sans réponse du propriétaire (calculable côté front).
+  - Option C (réponse suggérée par Rico) = idée : demanderait un appel Claude avec la voix de marque.
+-->
+<style>
+  :root {
+    --bg: #020617; --card: #0f172a; --card2: #0b1222; --line: rgba(255,255,255,.07); --line2: rgba(255,255,255,.12);
+    --ink: #e2e8f0; --mut: #94a3b8; --dim: #64748b; --violet: #8A6CFF; --bleu: #5B6CFF; --vert: #3AFFA3;
+    --grad: linear-gradient(90deg, #5B6CFF, #8A6CFF);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 14px/1.5 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, .sora { font-family: Sora, Inter, sans-serif; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  /* Sélecteur de variantes (hors design) */
+  .switch { position: sticky; top: 0; z-index: 10; display: flex; gap: 8px; align-items: center; padding: 12px 24px; background: rgba(2,6,23,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .switch b { font-family: Sora; font-size: 13px; margin-right: 8px; }
+  .switch button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line2); font-size: 12.5px; color: var(--mut); }
+  .switch button.on { background: var(--grad); color: #fff; border-color: transparent; }
+  .switch small { color: var(--dim); margin-left: auto; font-size: 12px; }
+
+  .page { max-width: 1240px; margin: 0 auto; padding: 24px; }
+  .head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .head .ico { width: 44px; height: 44px; border-radius: 12px; background: var(--grad); display: grid; place-items: center; }
+  .head h1 { font-size: 24px; }
+  .head p { color: var(--mut); font-size: 13.5px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.02); font-size: 12.5px; color: var(--mut); display: inline-flex; align-items: center; gap: 6px; }
+  .chip.on { color: #fff; border-color: var(--line2); background: rgba(255,255,255,.06); }
+  .chip .n { background: rgba(138,108,255,.18); color: #c4b5fd; border-radius: 999px; padding: 0 6px; font-size: 11px; font-weight: 600; }
+  .net { width: 16px; height: 16px; border-radius: 4px; display: inline-grid; place-items: center; color: #fff; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .ig { background: linear-gradient(135deg,#feda75,#d62976,#962fbf); }
+  .li { background: #0a66c2; }
+  .fb { background: #1877f2; }
+  .thumb { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1e293b; display: grid; place-items: center; overflow: hidden; }
+  .thumb.sm { width: 36px; height: 36px; border-radius: 8px; }
+  .t1 { background: linear-gradient(160deg,#111 0%,#1f2937 100%); color: #e5e7eb; font: 600 7px/1.2 Sora; padding: 6px; text-align: center; }
+  .t2 { background: #050505; color: #3AFFA3; font: 700 7px/1.1 Sora; padding: 5px; text-transform: uppercase; }
+  .t3 { background: #f4f1ea; color: #111; font: 700 7px/1.1 Sora; padding: 5px; }
+  .avatar { width: 32px; height: 32px; border-radius: 999px; display: grid; place-items: center; font-weight: 600; font-size: 13px; color: #fff; flex-shrink: 0; background: #334155; }
+  .avatar.sm { width: 26px; height: 26px; font-size: 11px; }
+  .avatar.me { background: var(--grad); }
+  .you { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: rgba(138,108,255,.15); color: #c4b5fd; border: 1px solid rgba(138,108,255,.3); }
+  .new { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 999px; background: rgba(58,255,163,.12); color: var(--vert); border: 1px solid rgba(58,255,163,.25); }
+  .eg { font-size: 10px; color: var(--dim); border: 1px dashed var(--line2); border-radius: 4px; padding: 0 4px; }
+  .meta { color: var(--dim); font-size: 11.5px; }
+  .act { display: flex; gap: 14px; margin-top: 6px; }
+  .act button { font-size: 12px; color: var(--mut); display: inline-flex; align-items: center; gap: 4px; }
+  .act button:hover { color: #fff; }
+  .act .rep { color: #c4b5fd; }
+  .act .del:hover { color: #f87171; }
+  .composer { display: flex; gap: 8px; align-items: center; padding: 10px; border-top: 1px solid var(--line); background: var(--card2); }
+  .composer .to { font-size: 11.5px; color: var(--mut); padding: 0 4px 6px; }
+  .composer input { flex: 1; height: 40px; border-radius: 12px; border: 1px solid var(--line2); background: rgba(255,255,255,.03); color: #fff; padding: 0 14px; font: inherit; outline: none; }
+  .composer input:focus { border-color: rgba(138,108,255,.6); }
+  .send { width: 40px; height: 40px; border-radius: 12px; background: var(--grad); display: grid; place-items: center; }
+  svg { width: 15px; height: 15px; }
+  .variant { display: none; }
+  .variant.on { display: block; }
+  .note { margin-top: 14px; color: var(--dim); font-size: 12px; max-width: 760px; }
+  .note b { color: var(--mut); }
+
+  /* ---------- A · Inbox deux panneaux ---------- */
+  .inbox { display: grid; grid-template-columns: 360px 1fr; height: 640px; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: var(--card); }
+  .list { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .list-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .list-head h3 { font-size: 14px; }
+  .sort { font-size: 12px; color: var(--mut); border: 1px solid var(--line2); border-radius: 8px; padding: 4px 8px; }
+  .posts { overflow-y: auto; flex: 1; }
+  .post { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); cursor: pointer; position: relative; text-align: left; width: 100%; }
+  .post:hover { background: rgba(255,255,255,.02); }
+  .post.sel { background: rgba(138,108,255,.08); }
+  .post.sel::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 3px; background: var(--grad); }
+  .post .txt { font-size: 13px; color: #e2e8f0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-wrap: pretty; }
+  .post .row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .post .cnt { display: inline-flex; align-items: center; gap: 3px; }
+  .post .pending { margin-left: auto; width: 8px; height: 8px; border-radius: 999px; background: var(--vert); box-shadow: 0 0 10px rgba(58,255,163,.6); }
+  .thread { display: flex; flex-direction: column; min-height: 0; }
+  .thread-head { display: flex; gap: 12px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .thread-head .ttl { font-size: 13.5px; font-weight: 600; font-family: Sora; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .thread-head a { margin-left: auto; font-size: 12px; color: var(--mut); white-space: nowrap; text-decoration: none; }
+  .comments { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+  .c { display: flex; gap: 10px; }
+  .c .body { flex: 1; min-width: 0; }
+  .c .bubble { background: rgba(255,255,255,.035); border: 1px solid var(--line); border-radius: 4px 14px 14px 14px; padding: 9px 12px; display: inline-block; max-width: 100%; }
+  .c .who { display: flex; gap: 6px; align-items: center; font-size: 12.5px; font-weight: 600; }
+  .c .msg { font-size: 13.5px; margin-top: 2px; }
+  .replies { margin-top: 10px; padding-left: 14px; border-left: 2px solid rgba(138,108,255,.25); display: flex; flex-direction: column; gap: 10px; }
+  .replies .bubble { background: rgba(138,108,255,.08); border-color: rgba(138,108,255,.18); }
+  .c.hidden { opacity: .45; }
+  .reply-target { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--mut); padding: 8px 12px 0; background: var(--card2); border-top: 1px solid var(--line); }
+
+  /* ---------- B · Fil unifié « à traiter » ---------- */
+  .feed { display: flex; flex-direction: column; gap: 10px; max-width: 860px; }
+  .fc { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+  .fc.todo { border-color: rgba(58,255,163,.22); }
+  .fc .ctx { display: flex; gap: 8px; align-items: center; color: var(--dim); font-size: 11.5px; margin-bottom: 8px; min-width: 0; }
+  .fc .ctx span.p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fc .line { display: flex; gap: 10px; }
+  .fc .quick { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .fc .quick button { font-size: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line2); color: var(--mut); }
+  .fc .quick button:hover { color: #fff; border-color: rgba(138,108,255,.5); }
+  .fc .side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .fc .side .thumb { width: 44px; height: 44px; }
+  .done-line { font-size: 12px; color: var(--mut); margin-top: 8px; display: flex; gap: 6px; align-items: center; }
+
+  /* ---------- C · Triage + réponse suggérée ---------- */
+  .triage { display: grid; grid-template-columns: 1fr 380px; gap: 16px; }
+  .col { background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+  .col h3 { font-size: 13.5px; padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+  .q { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; cursor: pointer; }
+  .q.sel { background: rgba(138,108,255,.08); }
+  .q .mini { font-size: 11.5px; color: var(--dim); }
+  .detail { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .orig { background: rgba(255,255,255,.035); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+  .sugg { border: 1px solid rgba(58,255,163,.25); background: rgba(58,255,163,.05); border-radius: 14px; padding: 12px; }
+  .sugg .lab { font-size: 11px; color: var(--vert); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; display: flex; gap: 6px; align-items: center; }
+  .sugg textarea { width: 100%; margin-top: 8px; min-height: 76px; background: transparent; border: 0; color: #fff; font: inherit; resize: vertical; outline: none; }
+  .btns { display: flex; gap: 8px; }
+  .btn { height: 36px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .btn.pri { background: var(--grad); color: #fff; }
+  .btn.sec { border: 1px solid var(--line2); color: var(--mut); }
+
+  @media (max-width: 860px) {
+    .inbox { grid-template-columns: 1fr; height: auto; }
+    .list { border-right: 0; max-height: 300px; }
+    .thread { min-height: 480px; }
+    .triage { grid-template-columns: 1fr; }
+    .fc { grid-template-columns: 1fr; }
+    .fc .side { flex-direction: row; align-items: center; justify-content: space-between; }
+  }
+</style>
+</head>
+<body>
+<div class="switch">
+  <b>Commentaires · 3 directions</b>
+  <button data-v="A" class="on">A · Inbox deux panneaux</button>
+  <button data-v="B">B · Fil « à traiter »</button>
+  <button data-v="C">C · Triage + réponse suggérée</button>
+  <small>Maquette — données du compte de dev mini85918</small>
+</div>
+
+<div class="page">
+  <div class="head">
+    <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+    <div><h1>Commentaires</h1><p>Lis et réponds aux commentaires de tes posts, sans quitter Postorico</p></div>
+  </div>
+
+  <!-- ================= A ================= -->
+  <section class="variant on" id="A">
+    <div class="filters">
+      <span class="chip on">Tous les réseaux</span>
+      <span class="chip"><span class="net li">in</span>LinkedIn</span>
+      <span class="chip"><span class="net ig">◎</span>Instagram</span>
+      <span class="chip"><span class="net fb">f</span>Facebook</span>
+      <span class="chip" style="margin-left:auto">Non répondus <span class="n">1</span></span>
+    </div>
+    <div class="inbox">
+      <aside class="list">
+        <div class="list-head"><h3>Posts</h3><span class="sort">Plus récents ▾</span></div>
+        <div class="posts">
+          <button class="post sel">
+            <span class="thumb t1">Un post par mois…</span>
+            <span style="min-width:0;flex:1">
+              <span class="txt">Pourquoi un dirigeant doit publier une fois par semaine, pas une fois par mois : la régularité bat le talent</span>
+              <span class="row meta"><span class="net ig">◎</span>@mini85918 · 06/10 <span class="cnt">· 💬 3</span><span class="pending" title="1 commentaire sans réponse"></span></span>
+            </span>
+          </button>
+          <button class="post">
+            <span class="thumb t2">Répondre à 23h…</span>
+            <span style="min-width:0;flex:1">
+              <span class="txt">Répondre à 23h, c'est pas du dévouement. C'est un signal d'alarme. T'as pas une boîte, tu as recréé un…</span>
+              <span class="row meta"><span class="net ig">◎</span>@mini85918 · 01/07 <span class="cnt">· 💬 2</span></span>
+            </span>
+          </button>
+          <button class="post">
+            <span class="thumb t3">Changer d'agence</span>
+            <span style="min-width:0;flex:1">
+              <span class="txt">Tu changes d'agence comme de fournisseur d'électricité. Nouveau contrat, même facture, même frustration.</span>
+              <span class="row meta"><span class="net ig">◎</span>@mini85918 · 04/09 <span class="cnt">· 💬 1</span></span>
+            </span>
+          </button>
+        </div>
+      </aside>
+      <div class="thread">
+        <div class="thread-head">
+          <span class="thumb sm t1">Un post…</span>
+          <div style="min-width:0"><div class="ttl">Pourquoi un dirigeant doit publier une fois par semaine…</div><div class="meta">3 commentaires · Instagram</div></div>
+          <a href="#">Voir sur Instagram ↗</a>
+        </div>
+        <div class="comments">
+          <div class="c">
+            <span class="avatar">L</span>
+            <div class="body">
+              <div class="bubble"><div class="who">lovahrandie <span class="new">Nouveau</span></div><div class="msg">GUIDE</div></div>
+              <div class="meta" style="margin-top:4px">il y a 6 min</div>
+              <div class="act"><button class="rep">↩ Répondre</button><button>♡ J'aime</button><button>⊘ Masquer</button></div>
+            </div>
+          </div>
+          <div class="c">
+            <span class="avatar">L</span>
+            <div class="body">
+              <div class="bubble"><div class="who">lovahrandie</div><div class="msg">GUIDE</div></div>
+              <div class="meta" style="margin-top:4px">il y a 19 min · <span style="color:var(--vert)">message privé envoyé par l'automatisation</span></div>
+              <div class="act"><button class="rep">↩ Répondre</button><button>♡ J'aime</button><button>⊘ Masquer</button></div>
+              <div class="replies">
+                <div class="c">
+                  <span class="avatar sm me">M</span>
+                  <div class="body">
+                    <div class="bubble"><div class="who">mini85918 <span class="you">Toi</span></div><div class="msg">je te répond depuis Postorico</div></div>
+                    <div class="meta" style="margin-top:4px">il y a 13 min</div>
+                    <div class="act"><button>⊘ Masquer</button><button class="del">🗑 Supprimer</button></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="reply-target"><span>Réponse à <b style="color:#fff">lovahrandie</b> · « GUIDE »</span><button style="color:var(--dim)">✕</button></div>
+        <div class="composer">
+          <input placeholder="Écris ta réponse publique…" />
+          <button class="send"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>A · Comme l'inbox Zernio, en sombre.</b> Les posts à gauche (point vert = commentaire sans réponse), le fil à droite avec les réponses imbriquées et ta réponse marquée « Toi ». La zone de saisie reste en bas ; cliquer « Répondre » cible le commentaire. Sur mobile, la liste passe au-dessus du fil. <b>Idéal quand on gère post par post.</b></p>
+  </section>
+
+  <!-- ================= B ================= -->
+  <section class="variant" id="B">
+    <div class="filters">
+      <span class="chip on">À traiter <span class="n">1</span></span>
+      <span class="chip">Tous</span>
+      <span class="chip">Masqués</span>
+      <span class="chip" style="margin-left:auto"><span class="net ig">◎</span>Instagram</span>
+      <span class="chip"><span class="net li">in</span>LinkedIn</span>
+    </div>
+    <div class="feed">
+      <article class="fc todo">
+        <div>
+          <div class="ctx"><span class="net ig">◎</span><span class="p">Sur « Pourquoi un dirigeant doit publier une fois par semaine… »</span> · il y a 6 min</div>
+          <div class="line"><span class="avatar">L</span><div><div class="who" style="font-weight:600;font-size:13px">lovahrandie <span class="new">Nouveau</span></div><div class="msg">GUIDE</div></div></div>
+          <div class="quick"><button>Merci ! Je t'envoie ça en privé 📩</button><button>Avec plaisir 🙌</button><button>✎ Écrire une réponse</button></div>
+        </div>
+        <div class="side"><span class="thumb t1">Un post…</span><div class="act" style="margin:0"><button>♡</button><button>⊘</button></div></div>
+      </article>
+      <article class="fc">
+        <div>
+          <div class="ctx"><span class="net ig">◎</span><span class="p">Sur « Pourquoi un dirigeant doit publier une fois par semaine… »</span> · il y a 19 min</div>
+          <div class="line"><span class="avatar">L</span><div><div class="who" style="font-weight:600;font-size:13px">lovahrandie</div><div class="msg">GUIDE</div></div></div>
+          <div class="done-line"><span class="avatar sm me">M</span><b style="color:#fff">Toi</b> : je te répond depuis Postorico <span class="meta">· il y a 13 min</span></div>
+        </div>
+        <div class="side"><span class="thumb t1">Un post…</span><span class="meta" style="color:var(--vert)">✓ Répondu</span></div>
+      </article>
+      <article class="fc">
+        <div>
+          <div class="ctx"><span class="net ig">◎</span><span class="p">Sur « Répondre à 23h, c'est pas du dévouement… »</span> · 01/07 <span class="eg">exemple</span></div>
+          <div class="line"><span class="avatar" style="background:#7c3aed">S</span><div><div class="who" style="font-weight:600;font-size:13px">sophie.dirige</div><div class="msg">Tellement vrai. J'ai mis 2 ans à comprendre ça.</div></div></div>
+          <div class="done-line"><span class="avatar sm me">M</span><b style="color:#fff">Toi</b> : Merci Sophie, on est nombreux dans ce cas 🙏</div>
+        </div>
+        <div class="side"><span class="thumb t2">Répondre à 23h…</span><span class="meta" style="color:var(--vert)">✓ Répondu</span></div>
+      </article>
+    </div>
+    <p class="note"><b>B · Un seul fil, tous posts confondus, trié par « à traiter ».</b> Chaque carte rappelle le post concerné (miniature + titre) ; les commentaires sans réponse passent en premier avec des réponses rapides en un clic. <b>Idéal pour vider sa boîte en 2 minutes</b> ; moins adapté pour relire toute une discussion longue.</p>
+  </section>
+
+  <!-- ================= C ================= -->
+  <section class="variant" id="C">
+    <div class="triage">
+      <div class="col">
+        <h3>À répondre <span class="meta">1 en attente</span></h3>
+        <div class="q sel">
+          <span class="avatar">L</span>
+          <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">lovahrandie <span class="new">Nouveau</span></div><div class="msg">GUIDE</div><div class="mini">sur « Pourquoi un dirigeant doit publier… » · il y a 6 min</div></div>
+          <span class="thumb sm t1">…</span>
+        </div>
+        <h3 style="border-top:1px solid var(--line)">Répondus récemment</h3>
+        <div class="q"><span class="avatar">L</span><div style="flex:1"><div style="font-weight:600;font-size:13px">lovahrandie</div><div class="msg">GUIDE</div><div class="mini">✓ Toi : je te répond depuis Postorico</div></div></div>
+        <div class="q"><span class="avatar" style="background:#7c3aed">S</span><div style="flex:1"><div style="font-weight:600;font-size:13px">sophie.dirige <span class="eg">exemple</span></div><div class="msg">Tellement vrai. J'ai mis 2 ans à comprendre ça.</div><div class="mini">✓ Toi : Merci Sophie 🙏</div></div></div>
+      </div>
+      <div class="col">
+        <h3>Répondre à lovahrandie</h3>
+        <div class="detail">
+          <div class="orig"><div class="meta" style="margin-bottom:4px">Sur ton post Instagram du 06/10</div><b>lovahrandie</b> · GUIDE</div>
+          <div class="sugg">
+            <div class="lab">✦ Proposé par Rico, dans ta voix</div>
+            <textarea>Merci pour ton intérêt ! Je viens de t'envoyer le guide en message privé 📩 Dis-moi ce que tu en penses.</textarea>
+          </div>
+          <div class="btns"><button class="btn pri">Publier la réponse</button><button class="btn sec">↻ Autre proposition</button></div>
+          <div class="act" style="margin-top:0"><button>♡ J'aime</button><button>⊘ Masquer</button><button>Voir tout le fil</button></div>
+        </div>
+      </div>
+    </div>
+    <p class="note"><b>C · Une file « à répondre » et, pour chaque commentaire, une réponse proposée par Rico dans la voix de la marque</b> (à relire et publier en un clic). C'est la plus différenciante pour Postorico, mais elle demande une génération IA par commentaire (coût, quota « réponse »). Le fil complet reste accessible.</p>
+  </section>
+</div>
+
+<script>
+  document.querySelectorAll('.switch button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.switch button').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('.variant').forEach((v) => v.classList.toggle('on', v.id === b.dataset.v));
+  }));
+</script>
+</body>
+</html>

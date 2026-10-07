@@ -302,6 +302,7 @@
     "plan": "Editorial plan",
     "contents": "Content",
     "comments": "Comments",
+    "automations": "Automations",
     "performance": "Performance",
     "planning": "Scheduling",
     "carousels": "Carousels",
@@ -407,6 +408,24 @@
     "miensAide": "Designs built for your brand: they're yours alone and appear on no other account."
   },
   "comments": {
+    "aRepondre": "To answer",
+    "retour": "Back to posts",
+    "nbCommentaires_one": "{{count}} comment",
+    "nbCommentaires_other": "{{count}} comments",
+    "voirSur": "View on {{reseau}}",
+    "reponseA": "Replying to",
+    "annulerCible": "Stop replying to this comment",
+    "commenterPost": "Write a comment on the post…",
+    "envoyer": "Send",
+    "nonRepondus": "Unanswered",
+    "posts": "Posts",
+    "triRecent": "Newest",
+    "triCommentaires": "Most commented",
+    "toutRepondu": "All answered. Nothing pending on these posts.",
+    "nbAttente_one": "{{count}} unanswered comment",
+    "nbAttente_other": "{{count}} unanswered comments",
+    "choisirPost": "Pick a post to see its comments",
+    "toi": "You",
     "allNetworks": "All",
     "minutesAgo": "{{count}} min ago",
     "hoursAgo": "{{count}} h ago",
@@ -3614,6 +3633,212 @@
       "titre": "Twenty minutes, and you'll know",
       "intro": "The simplest thing is for me to show you the software running on your own business, with your networks and your Google listing. Twenty minutes on a call, whenever suits you — including early morning or end of day if your days are packed. If after five minutes you can see it's not for you, tell me and we'll stop there.",
       "promesse": "No commitment when the demo ends, and no endless follow-ups if it's not the right time. Tell me, and I'll leave you to it."
+    }
+  },
+  "auto": {
+    "post": {"tous": "All my posts", "inconnu": "Post not found ({{id}}): the automation will never trigger. Pick a post or “All my posts”.", "aucun": "No published post found on this account.", "sansTexte": "Post without text", "unSeul": "1 specific post"},
+    "titre": "Automations",
+    "sousTitre": "Reply automatically to comments and direct messages, block by block",
+    "sansCompteTitre": "Connect Instagram or Facebook",
+    "sansCompteDesc": "Automations reply to Instagram and Facebook comments and direct messages. Connect at least one of these accounts to get started.",
+    "connecter": "Connect an account",
+    "nouvelle": "New automation",
+    "commencer": "Start from a template",
+    "utiliser": "Use",
+    "mesAutomatisations": "My automations",
+    "stats": "{{lances}} started · {{termines}} completed",
+    "statut": {
+      "draft": "Draft",
+      "active": "Active",
+      "paused": "Paused"
+    },
+    "pause": "Pause",
+    "activer": "Activate",
+    "supprimer": "Delete",
+    "supprime": "Automation deleted.",
+    "misEnPause": "Automation paused.",
+    "active": "Automation activated: it replies from now on.",
+    "limiteReseaux": "Available on Instagram and Facebook. LinkedIn does not allow message automation.",
+    "confirmerSuppressionTitre": "Delete this automation?",
+    "confirmerSuppression": "“{{nom}}” will stop replying and be permanently deleted.",
+    "annuler": "Cancel",
+    "retour": "Back",
+    "enregistrer": "Save",
+    "enregistre": "Automation saved.",
+    "blocs": "Blocks",
+    "ajouterBloc": "Add a block",
+    "fermer": "Close",
+    "supprimerBloc": "Delete this block",
+    "ajouterBouton": "Add a button",
+    "ajouterReponse": "Add a reply",
+    "ajouterRegle": "Add a rule",
+    "lienDansTexte": "Put the link in the text",
+    "erreur": {
+      "chargement": "Could not load automations.",
+      "compte": "Choose the Instagram or Facebook account.",
+      "nom": "Give your automation a name.",
+      "enregistrement": "Could not save.",
+      "activation": "Could not activate.",
+      "suppression": "Could not delete."
+    },
+    "aide": {
+      "palette": "Click a block to add it under the selected one. Link blocks by dragging from one dot to another.",
+      "motsCles": "Comma-separated. Leave empty to react to everything.",
+      "post": "Pick a post to react only to its comments, or keep “All my posts”.",
+      "cooldown": "The same person cannot restart the automation during this window.",
+      "reponsePrivee": "This message is sent as a private reply to the comment. Instagram only shows plain text there: put your link directly in the message.",
+      "boutonsCommentaire": "Instagram shows an empty bubble when this first message has buttons: the person sees nothing. Put the link in the text.",
+      "rapides": "Reply buttons shown under the message (20 characters max). The value can be used in a condition.",
+      "condition": "The first matching rule picks the output. If none matches, the “Otherwise” output is used.",
+      "attente": "“Reply” output if the person answers, “Silence” after the delay.",
+      "saveAs": "The reply is kept under this name, reusable in messages between double braces.",
+      "ab": "Share of people sent to branch A; the rest go to B.",
+      "tag": "Tags help you find and sort your contacts.",
+      "handoff": "The automation stops and the conversation is flagged so you can reply yourself."
+    },
+    "champ": {
+      "declencheur": "Starts when…",
+      "motsCles": "Keywords",
+      "correspondance": "Matching",
+      "post": "Post",
+      "premierMessage": "Only on the first message",
+      "cooldown": "Delay before restarting (hours)",
+      "typeMessage": "Message type",
+      "typeMedia": "Media type",
+      "urlMedia": "Media link",
+      "texte": "Message",
+      "options": "Under the message",
+      "titreBouton": "Button text",
+      "titreReponse": "Suggested reply",
+      "valeur": "Value",
+      "attendre": "Wait at most",
+      "saveAs": "Keep the reply as",
+      "patienter": "Wait",
+      "pourcentage": "Share to A (%)",
+      "tag": "Tag",
+      "champ": "Field name",
+      "note": "Note for you",
+      "nomBloc": "Block name"
+    },
+    "typeMessage": {
+      "text": "Text",
+      "media": "Image, video or file"
+    },
+    "media": {
+      "image": "Image",
+      "video": "Video",
+      "audio": "Audio",
+      "document": "Document"
+    },
+    "options": {
+      "aucun": "Nothing",
+      "boutons": "Link buttons (3 max)",
+      "rapides": "Quick replies"
+    },
+    "match": {
+      "contains": "Contains the word",
+      "exact": "Exactly the word",
+      "any": "Any message"
+    },
+    "unite": {
+      "minutes": "minutes",
+      "heures": "hours",
+      "jours": "days"
+    },
+    "duree": {
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "heures_one": "{{count}} hour",
+      "heures_other": "{{count}} hours",
+      "jours_one": "{{count}} day",
+      "jours_other": "{{count}} days"
+    },
+    "declencheur": {
+      "comment": "Comment on a post",
+      "inbound_message": "Direct message received",
+      "story_mention": "Story mention"
+    },
+    "operateur": {
+      "contains": "contains",
+      "not_contains": "does not contain",
+      "equals": "equals",
+      "not_equals": "is not",
+      "starts_with": "starts with",
+      "exists": "is set",
+      "not_exists": "is empty",
+      "has_tag": "has tag",
+      "not_has_tag": "does not have tag",
+      "is_true": "is true",
+      "is_false": "is false",
+      "greater_than": "is greater than",
+      "less_than": "is less than"
+    },
+    "sortie": {
+      "regle": "Rule {{n}}",
+      "sinon": "Otherwise",
+      "reponse": "Reply",
+      "silence": "Silence"
+    },
+    "resume": {
+      "messageVide": "Message to write",
+      "attente": "Up to {{duree}}",
+      "regles_one": "{{count}} rule",
+      "regles_other": "{{count}} rules",
+      "tagVide": "Tag to choose",
+      "champVide": "Field to choose",
+      "humain": "You take over"
+    },
+    "bloc": {
+      "trigger": "Trigger",
+      "send_message": "Send a message",
+      "wait_for_reply": "Wait for a reply",
+      "condition": "Condition",
+      "delay": "Wait",
+      "a_b_split": "A/B test",
+      "add_tag": "Add a tag",
+      "remove_tag": "Remove a tag",
+      "set_field": "Save info",
+      "handoff": "Hand over",
+      "end": "End"
+    },
+    "description": {
+      "trigger": "The starting point: what launches the automation.",
+      "send_message": "Sends a direct message, with buttons or quick replies if needed.",
+      "wait_for_reply": "Pauses the automation until the person replies.",
+      "condition": "Chooses what happens next based on the reply, a tag or contact info.",
+      "delay": "Waits a while before continuing.",
+      "a_b_split": "Sends some people to A and the rest to B to compare two versions.",
+      "add_tag": "Adds a tag to the contact.",
+      "remove_tag": "Removes a tag from the contact.",
+      "set_field": "Saves lasting information on the contact.",
+      "handoff": "Stops the automation and flags the conversation for you.",
+      "end": "Ends the automation."
+    },
+    "modeles": {
+      "commentaireDm": {
+        "nom": "Comment → direct message",
+        "desc": "“Comment GUIDE”: every comment with the keyword gets your link privately.",
+        "message": "Thanks for your comment! Here is the guide:",
+        "bouton": "Get the guide"
+      },
+      "qualifier": {
+        "nom": "Qualify a new contact",
+        "desc": "On the first direct message, asks what they need and hands over for a quote.",
+        "question": "Hi! What brings you here?",
+        "devis": "A quote",
+        "info": "Some info",
+        "note": "Quote request to handle",
+        "reponseInfo": "Happy to help! Tell me a bit more and I'll get back to you soon."
+      },
+      "story": {
+        "nom": "Thanks for the mention",
+        "desc": "Automatically thanks everyone who mentions you in a story.",
+        "message": "Thank you so much for the mention! 🙏"
+      },
+      "vide": {
+        "nom": "Start from scratch",
+        "desc": "Just a trigger: build your scenario block by block."
+      }
     }
   }
 }
