@@ -245,7 +245,8 @@ export default function CommentairesPage() {
     }
   }, []);
 
-  const items = useMemo(() => data?.items || [], [data]);
+  // Seuls les posts qui ont au moins un commentaire sont listés.
+  const items = useMemo(() => (data?.items || []).filter((p) => (p.commentCount || 0) > 0), [data]);
 
   // Les fils des posts commentés sont chargés d'avance : c'est ce qui permet le point
   // « à répondre » et le filtre « Non répondus » sans ouvrir chaque post.
