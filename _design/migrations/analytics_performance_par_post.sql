@@ -20,7 +20,9 @@
 
 -- ── Étape 1 ──────────────────────────────────────────────────────────────────────────
 
-DELETE FROM analytics_performance;  -- la ligne de mars 2026, héritée de n8n
+-- (Le 2026-10-07, la ligne de mars 2026 héritée de n8n avait été effacée ici par erreur ;
+--  elle a été remise le jour même : date_publication -> publie_le, semaine et
+--  performance_score -> details. Ne pas supprimer de données existantes.)
 
 ALTER TABLE analytics_performance
   ADD COLUMN late_post_id       text,
@@ -56,3 +58,12 @@ ALTER TABLE analytics_performance
   DROP COLUMN semaine,
   DROP COLUMN taux_engagement,
   ADD COLUMN taux_engagement numeric(6,2);   -- interactions / impressions (ou vues), en %
+
+-- ── Étape 3 (2026-10-07) : clé de dédoublonnage ─────────────────────────────────────
+-- Zernio renvoie une entrée d'analytics par post ET par réseau, avec son propre `_id`.
+-- `latePostId` (= contenu.late_post_id) est vide pour les posts publiés hors Postorico :
+-- (late_post_id, reseau) ne peut donc pas dédoublonner. On garde l'`_id` Zernio.
+ALTER TABLE analytics_performance ADD COLUMN zernio_id text;
+ALTER TABLE analytics_performance DROP CONSTRAINT analytics_performance_post_reseau;
+ALTER TABLE analytics_performance ADD CONSTRAINT analytics_performance_zernio_id UNIQUE (zernio_id);
+CREATE INDEX IF NOT EXISTS analytics_performance_late_post ON analytics_performance (late_post_id);
