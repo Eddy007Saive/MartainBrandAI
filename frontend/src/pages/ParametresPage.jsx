@@ -2039,7 +2039,7 @@ export default function ParametresPage() {
 
         {/* Sélecteur de section (mobile — le sidebar desktop porte la sous-nav) */}
         <div className="md:hidden w-full mb-4">
-          <Select value={activeSection} onValueChange={setActiveSection}>
+          <Select value={activeSection} onValueChange={(v) => (v === 'carrousels' ? navigate('/dashboard/carrousels') : setActiveSection(v))}>
             <SelectTrigger className="bg-slate-950/50 border-slate-800 text-slate-200">
               <SelectValue />
             </SelectTrigger>
@@ -2047,6 +2047,8 @@ export default function ParametresPage() {
               {SETTINGS_SECTIONS.map(s => (
                 <SelectItem key={s.id} value={s.id} className="text-slate-200 focus:bg-slate-800">{t(s.titleKey)}</SelectItem>
               ))}
+              {/* Page à part, rangée dans les réglages (même entrée que le sidebar desktop) */}
+              <SelectItem value="carrousels" className="text-slate-200 focus:bg-slate-800">{t('nav.carousels')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

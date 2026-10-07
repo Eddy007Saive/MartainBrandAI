@@ -30,17 +30,33 @@ import { getVision, exitVision } from '../lib/vision';
 // Une version precedente grisait toute la navigation et remplacait chaque page
 // par un ecran d'activation. C'etait le parcours inverse : on demandait la
 // carte avant d'avoir rien montre.
-const navItems = [
-  { path: '/dashboard', label: 'nav.home', icon: Home },
-  { path: '/dashboard/studio', label: 'nav.studio', icon: Sparkles },
-  { path: '/dashboard/plan', label: 'nav.plan', icon: CalendarDays },
-  { path: '/dashboard/contenus', label: 'nav.contents', icon: FileText },
-  { path: '/dashboard/commentaires', label: 'nav.comments', icon: MessageCircle },
-  { path: '/dashboard/performance', label: 'nav.performance', icon: BarChart3 },
-  { path: '/dashboard/planification', label: 'nav.planning', icon: Calendar },
-  { path: '/dashboard/carrousels', label: 'nav.carousels', icon: LayoutGrid },
-  { path: '/dashboard/editeur', label: 'nav.editeur', icon: Clapperboard },
-  { path: '/dashboard/parametres', label: 'nav.settings', icon: Settings },
+// Menu rangé par usage : créer → publier → suivre. « Carrousels » (choix des styles)
+// est un réglage : il vit dans la sous-navigation Paramètres (SETTINGS_NAV).
+const navGroupes = [
+  { items: [{ path: '/dashboard', label: 'nav.home', icon: Home }] },
+  {
+    titre: 'nav.groupeCreer',
+    items: [
+      { path: '/dashboard/studio', label: 'nav.studio', icon: Sparkles },
+      { path: '/dashboard/plan', label: 'nav.plan', icon: CalendarDays },
+      { path: '/dashboard/editeur', label: 'nav.editeur', icon: Clapperboard },
+    ],
+  },
+  {
+    titre: 'nav.groupePublier',
+    items: [
+      { path: '/dashboard/contenus', label: 'nav.contents', icon: FileText },
+      { path: '/dashboard/planification', label: 'nav.planning', icon: Calendar },
+    ],
+  },
+  {
+    titre: 'nav.groupeSuivre',
+    items: [
+      { path: '/dashboard/performance', label: 'nav.performance', icon: BarChart3 },
+      { path: '/dashboard/commentaires', label: 'nav.comments', icon: MessageCircle },
+    ],
+  },
+  { items: [{ path: '/dashboard/parametres', label: 'nav.settings', icon: Settings }] },
 ];
 
 // Sous-navigation Paramètres : le sidebar principal se transforme en réglages quand on entre dans Paramètres.
@@ -53,6 +69,8 @@ const SETTINGS_NAV = [
   { id: 'abonnement', label: 'nav.subscription', icon: CreditCard },
   { id: 'parrainage', label: 'nav.affiliation', icon: Handshake },
   { id: 'style', label: 'nav.style', icon: Palette },
+  // Page à part (/dashboard/carrousels), rangée ici parce que c'est un réglage de marque.
+  { id: 'carrousels', label: 'nav.carousels', icon: LayoutGrid, path: '/dashboard/carrousels' },
   { id: 'avatar', label: 'nav.avatar', icon: Video, soon: true },
 ];
 
@@ -60,8 +78,10 @@ function SettingsNav({ onNavigate }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useUser();
-  const [params, setParams] = useSearchParams();
-  const active = params.get('s') || 'identity';
+  const location = useLocation();
+  const [params] = useSearchParams();
+  const surParametres = location.pathname.startsWith('/dashboard/parametres');
+  const estActif = (s) => (s.path ? location.pathname.startsWith(s.path) : surParametres && (params.get('s') || 'identity') === s.id);
   return (
     <div className="flex-1 px-3 py-4 overflow-y-auto">
       <button
@@ -79,11 +99,11 @@ function SettingsNav({ onNavigate }) {
       <div className="space-y-1">
         {SETTINGS_NAV.map((s, i) => {
           const Icon = s.icon;
-          const on = active === s.id;
+          const on = estActif(s);
           return (
             <button
               key={s.id}
-              onClick={() => { setParams({ s: s.id }); onNavigate?.(); }}
+              onClick={() => { navigate(s.path || `/dashboard/parametres?s=${s.id}`); onNavigate?.(); }}
               data-testid={`settings-nav-${s.id}`}
               style={{ animationDelay: `${i * 30}ms` }}
               className={cn(
@@ -113,6 +133,20 @@ function SettingsNav({ onNavigate }) {
       </div>
     </div>
   );
+}
+
+function NavGroupes({ badgeDe, onClick }) {
+  const { t } = useTranslation();
+  return navGroupes.map((g, i) => (
+    <div key={g.titre || i} className={cn('space-y-1', i > 0 && (g.titre ? 'pt-4' : 'pt-3'))}>
+      {g.titre && (
+        <p className="text-[10px] uppercase tracking-[0.14em] text-slate-600 font-inter font-semibold px-3 pb-1">{t(g.titre)}</p>
+      )}
+      {g.items.map((item) => (
+        <NavItem key={item.path} item={item} badge={badgeDe(item)} onClick={onClick} />
+      ))}
+    </div>
+  ));
 }
 
 function NavItem({ item, onClick, badge = 0 }) {
@@ -217,7 +251,8 @@ function DashboardContent() {
   const badgeDe = (item) => (item.path === '/dashboard/commentaires' ? nbCommentaires : 0);
 
   const isHome = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
-  const inSettings = location.pathname.startsWith('/dashboard/parametres');
+  // La page Carrousels est un réglage : on y garde la sous-navigation Paramètres.
+  const inSettings = ['/dashboard/parametres', '/dashboard/carrousels'].some((p) => location.pathname.startsWith(p));
   const goBack = () => { if (window.history.length > 1) navigate(-1); else navigate('/dashboard'); };
 
   // Notifications push (mobile) : demande la permission + enregistre le token
@@ -351,11 +386,8 @@ function DashboardContent() {
         {inSettings ? (
           <SettingsNav />
         ) : (
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter px-3 mb-2">Menu</p>
-            {navItems.map((item) => (
-              <NavItem key={item.path} item={item} badge={badgeDe(item)} />
-            ))}
+          <nav className="flex-1 px-3 py-4 overflow-y-auto">
+            <NavGroupes badgeDe={badgeDe} />
           </nav>
         )}
         <UserBlock />
@@ -394,10 +426,8 @@ function DashboardContent() {
               <AccountSwitcher />
             </div>
           )}
-          <nav className="px-4 space-y-1 flex-1">
-            {navItems.map((item) => (
-              <NavItem key={item.path} item={item} badge={badgeDe(item)} onClick={() => setMobileMenuOpen(false)} />
-            ))}
+          <nav className="px-4 flex-1">
+            <NavGroupes badgeDe={badgeDe} onClick={() => setMobileMenuOpen(false)} />
           </nav>
           <UserBlock />
         </div>
