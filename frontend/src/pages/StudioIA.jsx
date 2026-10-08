@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
@@ -155,6 +155,7 @@ const DimSelect = ({ emoji, label, value, reco, options, onChange }) => {
 export default function StudioIA() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, updateUser } = useUser();
   const [usage, setUsage] = useState(null);
   const refreshUsage = () => agentService.usage().then(setUsage).catch(() => {});
@@ -445,19 +446,22 @@ export default function StudioIA() {
   };
 
   // --- Génération depuis un brief libre écrit par l'utilisateur ---
-  const genererBrief = async () => {
-    const txt = briefText.trim();
+  // `force` : brief envoyé par Rico Coach ({ texte, format, reseau, type }), généré tel quel.
+  const genererBrief = async (force = null) => {
+    const txt = (force ? force.texte : briefText).trim();
     if (!txt) return;
     if (!marqueOk) { toast.error(t('studio.fillSectorFirst')); return; }
-    const fmt = bFormat;
-    const meta = fmt === 'script' ? bType : bReseaux[0];
-    const extras = fmt === 'script' ? [] : bReseaux.slice(1);
+    const fmt = force ? force.format : bFormat;
+    const meta = fmt === 'script' ? (force ? force.type || 'Reel' : bType) : (force ? force.reseau : bReseaux[0]);
+    const extras = fmt === 'script' || force ? [] : bReseaux.slice(1);
     const qualite = bQualite;
     const cardId = nextId();
     const titre = txt.length > 80 ? txt.slice(0, 80) + '…' : txt;
     setContenus((prev) => [{ id: cardId, sujet: titre, promptFull: txt, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
-    setBriefText('');
-    setBriefOpen(false);
+    if (!force) {
+      setBriefText('');
+      setBriefOpen(false);
+    }
     try {
       if (fmt === 'carrousel') {
         const d = await agentService.carrousel(txt, meta, nbSlides, qualite);
@@ -486,6 +490,19 @@ export default function StudioIA() {
       erreurGen(e);
     }
   };
+
+  // Sujets envoyés par Rico Coach (« Générer ») : générés dès que le profil est chargé.
+  const coachLance = useRef(false);
+  useEffect(() => {
+    const liste = location.state?.coach;
+    if (!Array.isArray(liste) || !liste.length || coachLance.current || !user || !marqueOk) return;
+    coachLance.current = true;
+    navigate(location.pathname, { replace: true, state: null });
+    (async () => {
+      for (const b of liste) await genererBrief(b);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, user, marqueOk]);
 
   // --- Génération d'un post à partir d'une photo (vision) ---
   const prendrePhoto = async () => {
@@ -806,7 +823,7 @@ export default function StudioIA() {
                   </div>
                 )}
                 <div className="flex items-center justify-end">
-                  <Button onClick={genererBrief} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer"
+                  <Button onClick={() => genererBrief()} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer"
                     className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
                     <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.writeButton')}</span>
                   </Button>

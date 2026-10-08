@@ -43,6 +43,7 @@ const PlanEditorial = lazy(() => import("./pages/PlanEditorial"));
 const CommentairesPage = lazy(() => import("./pages/CommentairesPage"));
 const Performance = lazy(() => import("./pages/Performance"));
 const AutomatisationsPage = lazy(() => import("./pages/AutomatisationsPage"));
+const RicoCoachPage = lazy(() => import("./pages/RicoCoachPage"));
 const AutomatisationEditeur = lazy(() => import("./pages/AutomatisationEditeur"));
 const PlanificationPage = lazy(() => import("./pages/PlanificationPage"));
 const CarrouselsPage = lazy(() => import("./pages/CarrouselsPage"));
@@ -130,6 +131,7 @@ function App() {
               <Route path="plan" element={<PlanEditorial />} />
               <Route path="contenus" element={<ContenusPage />} />
               <Route path="commentaires" element={<CommentairesPage />} />
+              <Route path="coach" element={<RicoCoachPage />} />
               <Route path="performance" element={<Performance />} />
               <Route path="automatisations" element={<AutomatisationsPage />} />
               <Route path="automatisations/nouveau" element={<AutomatisationEditeur />} />

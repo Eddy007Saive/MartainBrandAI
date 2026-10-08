@@ -315,6 +315,7 @@
     "groupeCreer": "Create",
     "groupePublier": "Publish",
     "groupeSuivre": "Track",
+    "coach": "Rico Coach",
     "identity": "Identity",
     "offers": "Offers",
     "brandVoice": "Brand voice",
@@ -3839,6 +3840,132 @@
         "nom": "Start from scratch",
         "desc": "Just a trigger: build your scenario block by block."
       }
+    }
+  },
+  "coach": {
+    "erreur": "Your plan can't be loaded right now. Try again in a few minutes.",
+    "vide": {
+      "titre": "Your first plan is on its way",
+      "texte": "At the start of each month, I read last month's numbers and prepare an action plan for you. Your networks need to be connected, with at least one month of posts. Come back after the 3rd."
+    },
+    "ricoAlt": "Rico, Postorico's mascot",
+    "planDe": "{{mois}} plan",
+    "tireDe": "based on your {{mois}} numbers",
+    "lu_one": "I read your post from {{debut}} to {{fin}}. Here are the {{n}} things that matter most this month, in order.",
+    "lu_other": "I read your {{count}} posts from {{debut}} to {{fin}}. Here are the {{n}} things that matter most this month, in order.",
+    "actions_one": "Your action this month",
+    "actions_other": "Your {{count}} actions this month",
+    "ordre": "By importance",
+    "generer": "Generate",
+    "genererTous": "Generate all {{count}}",
+    "quota": "Each piece of content uses your usual quota.",
+    "planifier": "Set my schedule to this slot",
+    "connecter": "Connect my networks",
+    "question": "Ask Rico: \"Why are my reels doing worse?\"",
+    "bientot": "Soon",
+    "semaineCourt": "wk",
+    "joursCourt": "d",
+    "impressions": "impressions",
+    "dEngagement": "engagement",
+    "types": {
+      "volume_reprise": "Volume",
+      "volume_chute": "Volume",
+      "regularite": "Consistency",
+      "cadence": "Cadence",
+      "format": "Format",
+      "fiche_google_baisse": "Google profile",
+      "fiche_google_entretien": "Google profile",
+      "top_post": "What worked",
+      "creneau": "Time slot",
+      "connecter_reseaux": "Getting started"
+    },
+    "titres": {
+      "volume_reprise": "Start posting again on {{reseau}}",
+      "volume_chute": "Get your rhythm back on {{reseau}}",
+      "regularite": "Post every week, no gaps",
+      "cadence": "Step up the pace on {{reseau}}",
+      "format": "Focus on {{format}} on {{reseau}}",
+      "fiche_google_baisse": "Revive your Google profile",
+      "fiche_google_entretien": "Keep your Google profile alive",
+      "top_post": "Do another post in the same vein",
+      "creneau": "Post on {{jour}} around {{heure}}:00",
+      "connecter_reseaux": "Connect your networks"
+    },
+    "formats": {
+      "image": "image posts",
+      "carrousel": "carousels",
+      "reel": "reels",
+      "video": "videos",
+      "story": "stories",
+      "texte": "text posts",
+      "document": "documents"
+    },
+    "formatsCourt": {
+      "image": "Image",
+      "carrousel": "Carousel",
+      "reel": "Reel",
+      "video": "Video",
+      "story": "Story",
+      "texte": "Text",
+      "document": "Document"
+    },
+    "genres": {
+      "post": "Post",
+      "carrousel": "Carousel",
+      "reel": "Reel",
+      "story": "Story",
+      "actualite_google": "Google update"
+    },
+    "jours": {
+      "lundi": "Monday",
+      "mardi": "Tuesday",
+      "mercredi": "Wednesday",
+      "jeudi": "Thursday",
+      "vendredi": "Friday",
+      "samedi": "Saturday",
+      "dimanche": "Sunday"
+    },
+    "unites": {
+      "impressions": "impressions",
+      "posts": "posts",
+      "abonnes": "followers"
+    },
+    "courbe": {
+      "titre": "Your curve since {{mois}}",
+      "sous": "Full months · all networks",
+      "impressions": "Impressions per month",
+      "posts": "Posts per month",
+      "abonnes": "Followers, end of month",
+      "enMois": "in {{mois}}",
+      "depuis": "{{delta}} since {{mois}}"
+    },
+    "diag": {
+      "titre": "What I see in your numbers",
+      "publications": "Posts",
+      "impressions": "Impressions",
+      "engagement": "Engagement",
+      "abonnesGagnes": "Followers gained",
+      "abonnesTotal": "Total followers",
+      "parReseau": "By network",
+      "ligneReseau_one": "1 post, {{impressions}} impressions",
+      "ligneReseau_other": "{{count}} posts, {{impressions}} impressions",
+      "aucunPost": "no posts",
+      "postsAvant_one": "1 the month before",
+      "postsAvant_other": "{{count}} the month before",
+      "regularite": "Consistency in {{mois}}",
+      "semaines": "{{actives}} active week(s) out of {{total}} · longest silence: {{silence}} days",
+      "creneaux": "Your best time slots",
+      "posts_one": "1 post",
+      "posts_other": "{{count}} posts",
+      "fiche": "Google profile",
+      "ficheVide": "No Google profile connected. Connect it to track calls, directions and searches.",
+      "connecterFiche": "Connect my profile →",
+      "fiche_appels": "Calls",
+      "fiche_itineraires": "Directions",
+      "fiche_clics_site": "Website clicks",
+      "fiche_vues_recherche": "Search views",
+      "fiche_vues_maps": "Maps views",
+      "source": "Calculated on {{date}} from your statistics."
     }
   }
 }

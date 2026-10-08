@@ -315,6 +315,7 @@
     "groupeCreer": "Créer",
     "groupePublier": "Publier",
     "groupeSuivre": "Suivre",
+    "coach": "Rico Coach",
     "identity": "Identité",
     "offers": "Offres",
     "brandVoice": "Voix de marque",
@@ -3839,6 +3840,132 @@
         "nom": "Partir de zéro",
         "desc": "Un déclencheur seul : construis ton scénario bloc par bloc."
       }
+    }
+  },
+  "coach": {
+    "erreur": "Impossible de charger ton plan pour le moment. Réessaie dans quelques minutes.",
+    "vide": {
+      "titre": "Ton premier plan arrive bientôt",
+      "texte": "Au début de chaque mois, je lis tes chiffres du mois précédent et je te prépare un plan d'action. Il faut que tes réseaux soient connectés et qu'il y ait eu au moins un mois de publications. Reviens après le 3 du mois."
+    },
+    "ricoAlt": "Rico, la mascotte de Postorico",
+    "planDe": "Plan de {{mois}}",
+    "tireDe": "tiré de tes chiffres de {{mois}}",
+    "lu_one": "J'ai lu ta publication de {{debut}} à {{fin}}. Voici les {{n}} choses qui comptent le plus ce mois-ci, dans l'ordre.",
+    "lu_other": "J'ai lu tes {{count}} publications de {{debut}} à {{fin}}. Voici les {{n}} choses qui comptent le plus ce mois-ci, dans l'ordre.",
+    "actions_one": "Ton action du mois",
+    "actions_other": "Tes {{count}} actions du mois",
+    "ordre": "Par ordre d'importance",
+    "generer": "Générer",
+    "genererTous": "Générer les {{count}} d'un coup",
+    "quota": "Chaque contenu utilise ton quota habituel.",
+    "planifier": "Caler ma planification sur ce créneau",
+    "connecter": "Connecter mes réseaux",
+    "question": "Pose ta question à Rico : « Pourquoi mes reels marchent moins ? »",
+    "bientot": "Bientôt",
+    "semaineCourt": "sem.",
+    "joursCourt": "j",
+    "impressions": "impressions",
+    "dEngagement": "d'engagement",
+    "types": {
+      "volume_reprise": "Volume",
+      "volume_chute": "Volume",
+      "regularite": "Régularité",
+      "cadence": "Cadence",
+      "format": "Format",
+      "fiche_google_baisse": "Fiche Google",
+      "fiche_google_entretien": "Fiche Google",
+      "top_post": "Ce qui a marché",
+      "creneau": "Créneau",
+      "connecter_reseaux": "Pour commencer"
+    },
+    "titres": {
+      "volume_reprise": "Reprends la publication sur {{reseau}}",
+      "volume_chute": "Remets le rythme sur {{reseau}}",
+      "regularite": "Publie chaque semaine, sans trou",
+      "cadence": "Monte le rythme sur {{reseau}}",
+      "format": "Mise sur les {{format}} sur {{reseau}}",
+      "fiche_google_baisse": "Relance ta fiche Google",
+      "fiche_google_entretien": "Entretiens ta fiche Google",
+      "top_post": "Refais un post dans la même veine",
+      "creneau": "Publie le {{jour}} vers {{heure}} h",
+      "connecter_reseaux": "Connecte tes réseaux"
+    },
+    "formats": {
+      "image": "posts image",
+      "carrousel": "carrousels",
+      "reel": "reels",
+      "video": "vidéos",
+      "story": "stories",
+      "texte": "posts texte",
+      "document": "documents"
+    },
+    "formatsCourt": {
+      "image": "Image",
+      "carrousel": "Carrousel",
+      "reel": "Reel",
+      "video": "Vidéo",
+      "story": "Story",
+      "texte": "Texte",
+      "document": "Document"
+    },
+    "genres": {
+      "post": "Post",
+      "carrousel": "Carrousel",
+      "reel": "Reel",
+      "story": "Story",
+      "actualite_google": "Actualité Google"
+    },
+    "jours": {
+      "lundi": "lundi",
+      "mardi": "mardi",
+      "mercredi": "mercredi",
+      "jeudi": "jeudi",
+      "vendredi": "vendredi",
+      "samedi": "samedi",
+      "dimanche": "dimanche"
+    },
+    "unites": {
+      "impressions": "impressions",
+      "posts": "publications",
+      "abonnes": "abonnés"
+    },
+    "courbe": {
+      "titre": "Ta courbe depuis {{mois}}",
+      "sous": "Mois complets · tous réseaux",
+      "impressions": "Impressions par mois",
+      "posts": "Publications par mois",
+      "abonnes": "Abonnés, fin de mois",
+      "enMois": "en {{mois}}",
+      "depuis": "{{delta}} depuis {{mois}}"
+    },
+    "diag": {
+      "titre": "Ce que je vois dans tes chiffres",
+      "publications": "Publications",
+      "impressions": "Impressions",
+      "engagement": "Engagement",
+      "abonnesGagnes": "Abonnés gagnés",
+      "abonnesTotal": "Abonnés au total",
+      "parReseau": "Par réseau",
+      "ligneReseau_one": "1 post, {{impressions}} impressions",
+      "ligneReseau_other": "{{count}} posts, {{impressions}} impressions",
+      "aucunPost": "aucun post",
+      "postsAvant_one": "1 le mois d'avant",
+      "postsAvant_other": "{{count}} le mois d'avant",
+      "regularite": "Régularité en {{mois}}",
+      "semaines": "{{actives}} semaine(s) active(s) sur {{total}} · plus long silence : {{silence}} jours",
+      "creneaux": "Tes meilleurs créneaux",
+      "posts_one": "1 post",
+      "posts_other": "{{count}} posts",
+      "fiche": "Fiche Google",
+      "ficheVide": "Pas de fiche Google connectée. Connecte-la pour suivre tes appels, itinéraires et recherches.",
+      "connecterFiche": "Connecter ma fiche →",
+      "fiche_appels": "Appels",
+      "fiche_itineraires": "Itinéraires",
+      "fiche_clics_site": "Clics vers le site",
+      "fiche_vues_recherche": "Vues en recherche",
+      "fiche_vues_maps": "Vues sur Maps",
+      "source": "Calculé le {{date}} à partir de tes statistiques."
     }
   }
 }
