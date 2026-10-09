@@ -205,7 +205,7 @@ export default function StudioReel() {
         setImages((prev) => prev.length >= 6 ? prev : [...prev, { cle: nouvelleCle(), url: a.url, desc: a.description || '', src: 'banque', apercu_url: a.apercu_url || null, type: a.type || 'image' }]);
       }
     } catch (e) {
-      toast.error(e.response?.data?.detail || t('contenus.reel.seq.uploadEchec'));
+      toast.error(e.response?.data?.detail || e.response?.data?.message || t('contenus.reel.seq.uploadEchec'));
     } finally { setUploading(false); }
   };
 

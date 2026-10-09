@@ -2008,6 +2008,7 @@
     "defaultTitle": "Video",
     "fileType": "Pick a video file (mp4, mov…)",
     "fileTooBig": "Video too large (300 MB max)",
+    "tropLongue": "Video too long: {{duree}} ({{max}} maximum). Trim it before importing.",
     "networksSaved": "Network(s) saved ✓. Review & publish from Contents.",
     "networksError": "Failed to save the networks.",
     "proOnly": "Pro plan only",

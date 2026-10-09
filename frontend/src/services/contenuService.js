@@ -1,4 +1,5 @@
 import api from '../lib/api';
+import { videoTropLongue } from '../lib/dureeVideo';
 
 export const contenuService = {
   getAll: (statut) => {
@@ -37,7 +38,9 @@ export const contenuService = {
     return api.post('/reels/upload-image', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 }).then(r => r.data);
   },
   reelBanque: () => api.get('/reels/banque').then(r => r.data.images || []),
-  reelBanqueAjouter: (file) => {
+  reelBanqueAjouter: async (file) => {
+    const tropLongue = await videoTropLongue(file);
+    if (tropLongue) throw Object.assign(new Error(tropLongue), { response: { status: 400, data: { message: tropLongue, detail: tropLongue } } });
     const form = new FormData();
     form.append('file', file);
     // 10 min : un clip vidéo (jusqu'à 60 Mo) peut dépasser 2 min d'envoi sur une connexion moyenne.

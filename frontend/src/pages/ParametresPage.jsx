@@ -236,7 +236,7 @@ export default function ParametresPage() {
       }
       toast.success(t('params.banque.ajoutee', { n: list.length }));
     } catch (e) {
-      toast.error(e.response?.data?.detail || t('params.banque.echec'));
+      toast.error(e.response?.data?.detail || e.response?.data?.message || t('params.banque.echec'));
     } finally { setBanqueUpload(false); }
   };
 

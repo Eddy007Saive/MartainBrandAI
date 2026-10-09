@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
 import { videoService } from '../services/videoService';
 import { contenuService } from '../services/contenuService';
+import { videoTropLongue } from '../lib/dureeVideo';
 
 const LANGUES = [
   { id: 'fr', label: 'Français' },
@@ -161,10 +162,12 @@ export default function StudioVideo() {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const onFile = (f) => {
+  const onFile = async (f) => {
     if (!f) return;
     if (!f.type.startsWith('video/')) { toast.error(t('video.fileType')); return; }
     if (f.size > 300 * 1024 * 1024) { toast.error(t('video.fileTooBig')); return; }
+    const tropLongue = await videoTropLongue(f);
+    if (tropLongue) { toast.error(tropLongue); return; }
     if (localUrl) URL.revokeObjectURL(localUrl);
     setFile(f);
     setLocalUrl(URL.createObjectURL(f));   // aperçu LOCAL : rien n'est envoyé tant qu'on ne monte pas

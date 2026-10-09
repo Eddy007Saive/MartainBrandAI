@@ -2008,6 +2008,7 @@
     "defaultTitle": "Vídeo",
     "fileType": "Elige un archivo de vídeo (mp4, mov…)",
     "fileTooBig": "Vídeo demasiado pesado (300 MB máx.)",
+    "tropLongue": "Vídeo demasiado largo: {{duree}} ({{max}} como máximo). Recórtalo antes de importarlo.",
     "networksSaved": "Red(es) guardada(s) ✓. Valida y publica desde Contenidos.",
     "networksError": "No se pudieron guardar las redes.",
     "proOnly": "Reservado al plan Pro",
