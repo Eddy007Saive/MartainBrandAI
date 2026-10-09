@@ -3637,6 +3637,10 @@
     }
   },
   "auto": {
+    "ranger": "Ordenar",
+    "rangerAide": "Ordenar los bloques automáticamente",
+    "insererBloc": "Insertar un bloque",
+    "supprimerLien": "Eliminar este enlace",
     "post": {"tous": "Todos mis posts", "inconnu": "Post no encontrado ({{id}}): la automatización nunca se activará. Elige un post o «Todos mis posts».", "aucun": "No se encontró ningún post publicado en esta cuenta.", "sansTexte": "Post sin texto", "unSeul": "1 post concreto"},
     "titre": "Automatizaciones",
     "sousTitre": "Responde automáticamente a comentarios y mensajes privados, bloque a bloque",

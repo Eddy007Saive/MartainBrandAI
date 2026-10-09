@@ -3637,6 +3637,10 @@
     }
   },
   "auto": {
+    "ranger": "Ranger",
+    "rangerAide": "Ranger automatiquement les blocs",
+    "insererBloc": "Insérer un bloc",
+    "supprimerLien": "Supprimer ce lien",
     "post": {"tous": "Tous mes posts", "inconnu": "Post introuvable ({{id}}) : l’automatisation ne se déclenchera pas. Choisis un post ou « Tous mes posts ».", "aucun": "Aucun post publié trouvé sur ce compte.", "sansTexte": "Post sans texte", "unSeul": "1 post précis"},
     "titre": "Automatisations",
     "sousTitre": "Réponds automatiquement aux commentaires et messages privés, bloc par bloc",

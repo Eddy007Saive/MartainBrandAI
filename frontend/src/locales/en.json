@@ -3637,6 +3637,10 @@
     }
   },
   "auto": {
+    "ranger": "Tidy up",
+    "rangerAide": "Automatically arrange the blocks",
+    "insererBloc": "Insert a block",
+    "supprimerLien": "Delete this link",
     "post": {"tous": "All my posts", "inconnu": "Post not found ({{id}}): the automation will never trigger. Pick a post or “All my posts”.", "aucun": "No published post found on this account.", "sansTexte": "Post without text", "unSeul": "1 specific post"},
     "titre": "Automations",
     "sousTitre": "Reply automatically to comments and direct messages, block by block",

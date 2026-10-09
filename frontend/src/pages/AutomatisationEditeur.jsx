@@ -5,15 +5,17 @@ import {
   ReactFlow, ReactFlowProvider, Background, Controls, MiniMap, addEdge, useEdgesState, useNodesState, useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ArrowLeft, Loader2, Save, Play, Pause, Plus, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Play, Pause, Plus, X, Network } from 'lucide-react';
 import { toast } from 'sonner';
 import NoeudBloc from '../components/automatisations/NoeudBloc';
+import AreteAjout, { ContexteAretes } from '../components/automatisations/AreteAjout';
 import Inspecteur from '../components/automatisations/Inspecteur';
-import { BLOCS, MODELES, PALETTE, rid } from '../components/automatisations/catalogue';
+import { BLOCS, MODELES, PALETTE, rid, sorties, rangerArbre } from '../components/automatisations/catalogue';
 import { SocialIcon } from '../components/SocialIcon';
 import { messageErreur, workflowService } from '../services/workflowService';
 
 const TYPES_NOEUDS = { bloc: NoeudBloc };
+const TYPES_ARETES = { ajout: AreteAjout };
 
 /* Conversion entre le format Zernio ({ id, type, config, position, label }) et celui de
    React Flow ({ id, type: 'bloc', position, data }). */
@@ -24,7 +26,7 @@ const versCanevas = (nodes = []) => nodes.map((nd, i) => ({
   deletable: nd.type !== 'trigger',
   data: { kind: nd.type, config: nd.config || {}, label: nd.label || '' },
 }));
-const aretesCanevas = (edges = []) => edges.map((ed) => ({ ...ed, id: ed.id || rid('e'), sourceHandle: ed.sourceHandle ?? null }));
+const aretesCanevas = (edges = []) => edges.map((ed) => ({ ...ed, id: ed.id || rid('e'), type: 'ajout', sourceHandle: ed.sourceHandle ?? null }));
 
 const versZernio = (nodes, edges) => ({
   nodes: nodes.map((nd) => {
@@ -125,7 +127,7 @@ function Editeur() {
 
   const onConnect = useCallback((c) => {
     // Une sortie ne mène qu'à un seul bloc : relier à nouveau remplace l'ancien lien.
-    setEdges((eds) => addEdge({ ...c, id: rid('e') }, eds.filter((ed) => !(ed.source === c.source && (ed.sourceHandle ?? null) === (c.sourceHandle ?? null)))));
+    setEdges((eds) => addEdge({ ...c, id: rid('e'), type: 'ajout' }, eds.filter((ed) => !(ed.source === c.source && (ed.sourceHandle ?? null) === (c.sourceHandle ?? null)))));
     marquer();
   }, [setEdges]);
 
@@ -143,10 +145,55 @@ function Editeur() {
     setNodes((nds) => [...nds.map((nd) => ({ ...nd, selected: false })), { id: nid, type: 'bloc', position, selected: true, data: { kind, config: BLOCS[kind].defaut(), label: '' } }]);
     // Relie automatiquement au bloc sélectionné s'il a une sortie libre (sortie unique).
     if (depuis && !['condition', 'wait_for_reply', 'a_b_split'].includes(depuis.data.kind) && !edges.some((ed) => ed.source === depuis.id)) {
-      setEdges((eds) => [...eds, { id: rid('e'), source: depuis.id, target: nid, sourceHandle: null }]);
+      setEdges((eds) => [...eds, { id: rid('e'), type: 'ajout', source: depuis.id, target: nid, sourceHandle: null }]);
     }
     setSelection(nid);
     setPalette(false);
+    marquer();
+  };
+
+  /** Insère un bloc sur un lien existant (le « + » au milieu du lien) : source → nouveau
+   * bloc → cible. Si les deux blocs sont trop proches, tout ce qui est sous la cible
+   * descend pour faire la place. */
+  const insererSurLien = (edgeId, kind) => {
+    const lien = edges.find((ed) => ed.id === edgeId);
+    if (!lien) return;
+    const src = nodes.find((nd) => nd.id === lien.source);
+    const cib = nodes.find((nd) => nd.id === lien.target);
+    if (!src || !cib) return;
+    const PAS = 150;
+    const manque = Math.max(0, src.position.y + 2 * PAS - cib.position.y);
+    const nid = rid('n');
+    const config = BLOCS[kind].defaut();
+    const position = { x: Math.round((src.position.x + cib.position.x) / 2), y: src.position.y + PAS };
+    setNodes((nds) => [
+      ...nds.map((nd) => ({
+        ...nd,
+        selected: false,
+        position: manque && nd.id !== src.id && nd.position.y >= cib.position.y ? { ...nd.position, y: nd.position.y + manque } : nd.position,
+      })),
+      { id: nid, type: 'bloc', position, selected: true, data: { kind, config, label: '' } },
+    ]);
+    const sortie = sorties(kind, config)[0]?.id ?? null;
+    setEdges((eds) => [
+      ...eds.filter((ed) => ed.id !== edgeId),
+      { id: rid('e'), type: 'ajout', source: lien.source, sourceHandle: lien.sourceHandle ?? null, target: nid },
+      { id: rid('e'), type: 'ajout', source: nid, sourceHandle: sortie, target: lien.target },
+    ]);
+    setSelection(nid);
+    marquer();
+  };
+
+  /** Range automatiquement tous les blocs en arbre, puis recadre la vue. */
+  const ranger = () => {
+    const pos = rangerArbre(nodes, edges);
+    setNodes((nds) => nds.map((nd) => (pos[nd.id] ? { ...nd, position: pos[nd.id] } : nd)));
+    marquer();
+    setTimeout(() => rf.fitView({ padding: 0.25, maxZoom: 1, duration: 400 }), 50);
+  };
+
+  const supprimerLien = (edgeId) => {
+    setEdges((eds) => eds.filter((ed) => ed.id !== edgeId));
     marquer();
   };
 
@@ -242,6 +289,10 @@ function Editeur() {
         <span className={`px-2.5 py-1 rounded-full text-[11.5px] font-semibold border ${actif ? 'text-[#3AFFA3] border-[#3AFFA3]/30 bg-[#3AFFA3]/10' : 'text-slate-400 border-white/10 bg-white/[0.03]'}`}>
           {t(`auto.statut.${statut}`)}
         </span>
+        <button type="button" onClick={ranger} data-testid="auto-ranger" title={t('auto.rangerAide')}
+          className="h-9 px-3 flex items-center gap-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-[13px] text-slate-300 hover:text-white hover:bg-white/[0.08]">
+          <Network className="w-4 h-4" /><span className="hidden sm:inline">{t('auto.ranger')}</span>
+        </button>
         <button type="button" onClick={enregistrer} disabled={enCours || (!modifie && !!workflowId)} data-testid="auto-enregistrer"
           className="h-9 px-3.5 flex items-center gap-1.5 rounded-xl bg-white/[0.06] border border-white/10 text-[13px] text-white hover:bg-white/[0.1] disabled:opacity-40">
           {enCours ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}{t('auto.enregistrer')}
@@ -262,16 +313,18 @@ function Editeur() {
 
         {/* Canevas */}
         <div ref={canevasRef} className="flex-1 min-w-0 rounded-2xl border border-white/[0.06] bg-[#0b1120] overflow-hidden relative" data-testid="auto-canevas">
+          <ContexteAretes.Provider value={{ inserer: insererSurLien, supprimer: supprimerLien }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
             nodeTypes={TYPES_NOEUDS}
+            edgeTypes={TYPES_ARETES}
             onNodesChange={(ch) => { onNodesChange(ch); if (ch.some((c) => c.type === 'position' && c.dragging === false) || ch.some((c) => c.type === 'remove')) marquer(); }}
             onEdgesChange={(ch) => { onEdgesChange(ch); if (ch.some((c) => c.type === 'remove')) marquer(); }}
             onConnect={onConnect}
             onSelectionChange={({ nodes: sel }) => setSelection(sel[0]?.id || null)}
             onNodesDelete={() => setSelection(null)}
-            defaultEdgeOptions={{ style: STYLE_ARETE, type: 'smoothstep' }}
+            defaultEdgeOptions={{ style: STYLE_ARETE, type: 'ajout' }}
             colorMode="dark"
             style={{ background: '#0b1120' }}
             fitView
@@ -282,6 +335,7 @@ function Editeur() {
             <Controls showInteractive={false} position="bottom-left" />
             <MiniMap pannable zoomable className="!hidden md:!block" maskColor="rgba(2,6,23,0.7)" nodeColor={(nd) => BLOCS[nd.data?.kind]?.color || '#64748b'} />
           </ReactFlow>
+          </ContexteAretes.Provider>
           {/* Ajouter un bloc (mobile / tablette) */}
           <button type="button" onClick={() => setPalette(true)} data-testid="auto-palette-mobile"
             className="lg:hidden absolute top-3 right-3 z-10 h-9 px-3 flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white text-[13px] font-semibold shadow-lg">

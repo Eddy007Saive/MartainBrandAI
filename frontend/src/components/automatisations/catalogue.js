@@ -155,3 +155,83 @@ export const MODELES = [
     }),
   },
 ];
+
+/* ---------- Rangement automatique ---------- */
+
+const LARGEUR_BLOC = 230;
+const ECART_X = 50;
+const PAS_Y = 150;
+
+/**
+ * Range les blocs en arbre, de haut en bas : le déclencheur en haut, chaque branche sous
+ * son bloc, dans l'ordre de ses sorties (règles puis « Sinon », Réponse puis Silence, A
+ * puis B). Un bloc atteint par plusieurs chemins est placé sous le premier qui l'atteint ;
+ * les blocs isolés (non reliés) vont dans une colonne à droite.
+ * Renvoie { id: { x, y } }.
+ */
+export function rangerArbre(nodes, edges) {
+  const parId = new Map(nodes.map((nd) => [nd.id, nd]));
+  const ordreSortie = (nd, handle) => {
+    const outs = sorties(nd.data.kind, nd.data.config);
+    const i = outs.findIndex((o) => (o.id ?? null) === (handle ?? null));
+    return i < 0 ? outs.length : i;
+  };
+  // Enfants de chaque bloc, triés par l'ordre de ses sorties.
+  const enfants = new Map(nodes.map((nd) => [nd.id, []]));
+  for (const ed of edges) {
+    if (!parId.has(ed.source) || !parId.has(ed.target)) continue;
+    enfants.get(ed.source).push(ed);
+  }
+  for (const [id, liste] of enfants) {
+    const nd = parId.get(id);
+    liste.sort((a, b) => ordreSortie(nd, a.sourceHandle) - ordreSortie(nd, b.sourceHandle));
+  }
+
+  const vus = new Set();
+  const arbre = new Map(); // id -> ids des enfants dans l'arbre
+  const construire = (id) => {
+    vus.add(id);
+    const fils = [];
+    for (const ed of enfants.get(id) || []) {
+      if (vus.has(ed.target)) continue;
+      fils.push(ed.target);
+      construire(ed.target);
+    }
+    arbre.set(id, fils);
+  };
+  const racine = nodes.find((nd) => nd.data.kind === 'trigger');
+  if (racine) construire(racine.id);
+
+  // Largeur (en colonnes) de chaque sous-arbre, puis placement centré sur ses enfants.
+  const largeur = new Map();
+  const mesurer = (id) => {
+    const fils = arbre.get(id) || [];
+    const l = fils.length ? fils.reduce((s, f) => s + mesurer(f), 0) : 1;
+    largeur.set(id, l);
+    return l;
+  };
+  const positions = {};
+  const COL = LARGEUR_BLOC + ECART_X;
+  const placer = (id, gauche, prof) => {
+    const fils = arbre.get(id) || [];
+    positions[id] = { x: Math.round(gauche + ((largeur.get(id) - 1) * COL) / 2), y: prof * PAS_Y };
+    let x = gauche;
+    for (const f of fils) {
+      placer(f, x, prof + 1);
+      x += largeur.get(f) * COL;
+    }
+  };
+  let largeurTotale = 0;
+  if (racine) {
+    largeurTotale = mesurer(racine.id);
+    placer(racine.id, 0, 0);
+  }
+  // Blocs non reliés au déclencheur : une colonne à droite.
+  let rang = 0;
+  for (const nd of nodes) {
+    if (positions[nd.id]) continue;
+    positions[nd.id] = { x: (largeurTotale + 0.5) * COL, y: rang * PAS_Y };
+    rang += 1;
+  }
+  return positions;
+}
