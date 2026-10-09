@@ -40,7 +40,8 @@ export const contenuService = {
   reelBanqueAjouter: (file) => {
     const form = new FormData();
     form.append('file', file);
-    return api.post('/reels/banque', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 }).then(r => r.data);
+    // 10 min : un clip vidéo (jusqu'à 60 Mo) peut dépasser 2 min d'envoi sur une connexion moyenne.
+    return api.post('/reels/banque', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 600000 }).then(r => r.data);
   },
   reelBanqueSupprimer: (assetId) => api.delete(`/reels/banque/${assetId}`).then(r => r.data),
   // Miniature (couverture) d'un reel : gabarits, textes proposés (gratuit), génération
