@@ -1,0 +1,45 @@
+# Serveur de montage vidéo par Claude Code — /etc/systemd/system/agent-montage.service
+# Tourne sous l'utilisateur « montage » (sans droits), dans un bac à sable : même si l'agent
+# exécutait une commande malveillante, il ne pourrait écrire que dans les montages et son dossier
+# personnel, et ne verrait ni /root, ni /home, ni les fichiers du serveur en écriture.
+[Unit]
+Description=Serveur de montage video par Claude Code
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=montage
+Group=montage
+WorkingDirectory=/srv/agent-video
+EnvironmentFile=/srv/agent-video/.env
+Environment=HOME=/srv/agent-video/home
+ExecStart=/usr/bin/node /srv/agent-video/serveur-agent.mjs
+Restart=on-failure
+RestartSec=5
+
+# --- Bac à sable
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/agent-video/montages /srv/agent-video/home /srv/agent-video/assets
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+UMask=0027
+# Ressources : 2 montages en parallèle sur 2 cœurs / 7,8 Go, sans faire tomber la machine
+MemoryMax=6G
+TasksMax=512
+
+[Install]
+WantedBy=multi-user.target

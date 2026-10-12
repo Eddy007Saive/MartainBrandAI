@@ -1953,7 +1953,9 @@
       "faceCam": "I talk to the camera",
       "faceCamDesc": "You film this script with your phone, Postorico adds captions, cuts silences, zooms and music.",
       "clips": "I have photos or clips, or nothing",
-      "clipsDesc": "The AI writes the reel's texts and edits it from your visuals, with a voice-over if you want."
+      "clipsDesc": "The AI writes the reel's texts and edits it from your visuals, with a voice-over if you want.",
+      "motion": "Animated video, no filming",
+      "motionDesc": "Your script read by an AI voice, and a video fully animated by the AI: text, diagrams, photos."
     },
     "edition": {
       "titre": "Edit the video",
@@ -2029,8 +2031,10 @@
     },
     "mode": {
       "montage": "AI editing",
-      "direct": "Video already done"
+      "direct": "Video already done",
+      "agent": "AI agent"
     },
+    "agent": {"titre": "Full edit by the AI agent", "aide": "An AI editor watches your video, cuts the silences, adds captions, zooms, titles and illustrations. Allow 5 to 10 minutes.", "consignes": "What you want from the edit", "placeholder": "E.g.: punchy Instagram reel, word-by-word captions with key words in colour, a strong hook in the first second, titles that sum up each idea, a call to book a meeting at the end.", "format": "Format", "dureeMax": "Maximum length", "cta": "Start the AI edit", "envoi": "Uploading the video… {{pct}} %", "enCours": "The AI editor is working on your video", "depuis": "For {{min}} min. You can leave this page: the video will appear in Contents.", "fini": "Edit finished", "echec": "The edit failed", "echecAide": "Your quota has been refunded. You can try again.", "resume": "What the AI did", "illustrations": "B-roll shots", "illustrationsAide": "The AI spots the key moments: royalty-free video shots for concrete things, small animated diagrams for ideas (steps, figures). Your voice carries on.", "logo": "Add my logo", "logoAide": "Your brand logo, discreet during the video and clearly visible on the final shot.", "images": "My photos", "imagesAide": "Pick photos from your library (products, team, place): the AI places them at the right moments.", "imagesAjouter": "Add a photo to your library", "imagesVide": "Your library has no photos yet.", "imagesErreur": "This photo could not be added.", "version": "Version {{v}}", "correctionTitre": "Request a change", "correctionGratuites": "{{n}} free change(s) left on this edit.", "correctionPayante": "Free changes are used up: this one counts as an edit.", "correctionPlaceholder": "E.g.: remove the part about the quote, move the captions higher, add this photo when I talk about the team.", "correctionEnvoyer": "Send the change", "correctionErreur": "The change could not be sent, try again.", "correctionRatee": "The last change did not go through, the previous version is kept:", "correctionExpiree": "Changes are no longer possible on this edit (7 days after it was made).", "sourceVideo": "I have a video", "sourceMotion": "No video · motion design", "motionTitre": "Animated video, no filming", "motionAide": "Write your text: Postorico creates the voice-over, then the AI animates the whole video (word-timed text, diagrams, your photos, video shots). Allow 5 to 10 minutes.", "script": "Voice-over text", "scriptPlaceholder": "E.g.: Already past 100 properties? Here's how to grow 10x without losing control…", "scriptDuree": "≈ {{s}} s of voice", "voix": "Voice", "voixClone": "My voice", "ctaMotion": "Create the animated video", "indispo": "The AI editor is temporarily unavailable."},
     "hook": {
       "label": "Opening hook",
       "auto": "Automatic AI hook",

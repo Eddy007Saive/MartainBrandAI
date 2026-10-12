@@ -1953,7 +1953,9 @@
       "faceCam": "Je parle face caméra",
       "faceCamDesc": "Tu filmes ce script avec ton téléphone, Postorico sous-titre, coupe les silences, ajoute zooms et musique.",
       "clips": "J'ai des photos ou des clips, ou rien",
-      "clipsDesc": "L'IA écrit les textes du reel et le monte à partir de tes visuels, avec voix off si tu veux."
+      "clipsDesc": "L'IA écrit les textes du reel et le monte à partir de tes visuels, avec voix off si tu veux.",
+      "motion": "Vidéo animée, sans tourner",
+      "motionDesc": "Ton script lu par une voix IA, et une vidéo entièrement animée par l'IA : textes, schémas, photos."
     },
     "edition": {
       "titre": "Modifier la vidéo",
@@ -2029,8 +2031,10 @@
     },
     "mode": {
       "montage": "Montage IA",
-      "direct": "Vidéo déjà prête"
+      "direct": "Vidéo déjà prête",
+      "agent": "Agent IA"
     },
+    "agent": {"titre": "Montage complet par l'agent IA", "aide": "Un monteur IA regarde ta vidéo, coupe les silences, ajoute sous-titres, zooms, titres et illustrations. Compte 5 à 10 minutes.", "consignes": "Ce que tu veux comme montage", "placeholder": "Ex. : reel Instagram nerveux, sous-titres mot à mot avec les mots clés en couleur, une accroche forte dès la première seconde, des titres qui résument chaque idée, un appel à prendre rendez-vous à la fin.", "format": "Format", "dureeMax": "Durée maximale", "cta": "Lancer le montage IA", "envoi": "Envoi de la vidéo… {{pct}} %", "enCours": "Le monteur IA travaille sur ta vidéo", "depuis": "Depuis {{min}} min. Tu peux quitter la page : la vidéo arrivera dans Contenus.", "fini": "Montage terminé", "echec": "Le montage a échoué", "echecAide": "Ton quota a été rendu. Tu peux réessayer.", "resume": "Ce que l'IA a fait", "illustrations": "Plans d'illustration", "illustrationsAide": "L'IA repère les moments clés : plans vidéo libres de droits pour le concret, petits schémas animés pour les idées (étapes, chiffres). Ta voix continue.", "logo": "Ajouter mon logo", "logoAide": "Le logo de ta charte, discret pendant la vidéo et bien visible sur le plan final.", "images": "Mes photos", "imagesAide": "Choisis des photos de ta banque (produits, équipe, lieu) : l'IA les place sur les bons moments.", "imagesAjouter": "Ajouter une photo à ta banque", "imagesVide": "Ta banque n'a pas encore de photo.", "imagesErreur": "Impossible d'ajouter cette photo.", "version": "Version {{v}}", "correctionTitre": "Demander une correction", "correctionGratuites": "Encore {{n}} correction(s) gratuite(s) sur ce montage.", "correctionPayante": "Les corrections gratuites sont utilisées : celle-ci compte comme un montage.", "correctionPlaceholder": "Ex. : enlève le passage sur le devis, mets les sous-titres plus haut, ajoute cette photo quand je parle de l'équipe.", "correctionEnvoyer": "Envoyer la correction", "correctionErreur": "La correction n'a pas pu être envoyée, réessaie.", "correctionRatee": "La dernière correction n'a pas abouti, la version précédente est conservée :", "correctionExpiree": "Les corrections ne sont plus possibles sur ce montage (7 jours après sa création).", "sourceVideo": "J'ai une vidéo", "sourceMotion": "Sans vidéo · motion design", "motionTitre": "Vidéo animée, sans tourner", "motionAide": "Écris ton texte : Postorico crée la voix off, puis l'IA anime toute la vidéo (textes au mot près, schémas, tes photos, plans vidéo). Compte 5 à 10 minutes.", "script": "Texte de la voix off", "scriptPlaceholder": "Ex. : Tu as déjà franchi le cap des 100 biens ? Voici comment passer au x10 sans perdre le contrôle…", "scriptDuree": "≈ {{s}} s de voix", "voix": "Voix", "voixClone": "Ma voix", "ctaMotion": "Créer la vidéo animée", "indispo": "Le monteur IA est momentanément indisponible."},
     "hook": {
       "label": "Hook d'ouverture",
       "auto": "Hook automatique par IA",

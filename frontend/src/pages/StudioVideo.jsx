@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, Film, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors, Type, Smile, X, Clapperboard } from 'lucide-react';
+import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, Film, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors, Type, Smile, X, Clapperboard, ImagePlus, PenLine } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
 import { videoService } from '../services/videoService';
 import { contenuService } from '../services/contenuService';
+import { agentVideoService } from '../services/agentVideoService';
 import { videoTropLongue } from '../lib/dureeVideo';
 
 const LANGUES = [
@@ -116,7 +117,19 @@ export default function StudioVideo() {
   const [subPosition, setSubPosition] = useState(30);
   const [subUppercase, setSubUppercase] = useState(true);
   const [tab, setTab] = useState('hook');           // hook|captions|style|montage|music — onglets des réglages
-  const [mode, setMode] = useState('montage');     // 'montage' (Submagic) | 'direct' (import tel quel)
+  const [mode, setMode] = useState('montage');     // 'montage' (Submagic) | 'agent' (agent IA du VPS) | 'direct' (import tel quel)
+  const [agentConsignes, setAgentConsignes] = useState('');
+  const [agentFormat, setAgentFormat] = useState('9:16');
+  const [agentDuree, setAgentDuree] = useState(60);
+  const [agentIllustrations, setAgentIllustrations] = useState(true);
+  const [agentLogo, setAgentLogo] = useState(true);
+  const [agentImages, setAgentImages] = useState([]);  // photos de la banque : [{url, description}]
+  const [agentSource, setAgentSource] = useState('video');  // 'video' (sa vidéo) | 'motion' (sans tournage)
+  const [agentScript, setAgentScript] = useState('');
+  const [agentVoix, setAgentVoix] = useState(null);
+  const motionActif = mode === 'agent' && agentSource === 'motion';
+  const [agentEtat, setAgentEtat] = useState(null);  // dernier état renvoyé par /agent-video/:id
+  const [maintenant, setMaintenant] = useState(Date.now());
   const [reseaux, setReseaux] = useState(['instagram']);  // multi-réseaux → 1 carte contenu par réseau
   const [asStory, setAsStory] = useState(false);          // story 24h (Instagram/Facebook) au lieu de Reel
   const [result, setResult] = useState(null);
@@ -203,6 +216,29 @@ export default function StudioVideo() {
     }, 6000);
   };
 
+  // Montage par l'agent IA : on suit l'état toutes les 10 s (15 à 25 min de montage).
+  const suivreAgent = (id) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    const tick = async () => {
+      try {
+        const e = await agentVideoService.etat(id);
+        setAgentEtat(e);
+        setMaintenant(Date.now());
+        if (e.statut === 'termine') {
+          clearInterval(pollRef.current);
+          setResult({
+            id: e.contenu_id, travailId: e.id, video_url: e.video_url, video_preview_url: e.video_preview_url, titre: e.titre,
+            resume: e.resume ? e.resume.replace(/\*\*|`/g, '') : null,
+            version: e.version, gratuites: e.corrections_gratuites_restantes, correctionPossible: e.correction_possible, erreurCorrection: e.erreur_correction,
+          });
+          setStep('done');
+        } else if (e.statut === 'echec') { clearInterval(pollRef.current); setStep('error'); }
+      } catch { /* nouvel essai au prochain passage */ }
+    };
+    tick();
+    pollRef.current = setInterval(tick, 10000);
+  };
+
   // Progression approximative (Submagic renvoie des ÉTAPES, pas un %) : upload puis étapes.
   const progress = () => {
     if (uploadPct > 0 && uploadPct < 100) return { pct: Math.round(uploadPct * 0.2), label: t('video.progress.sending', { pct: uploadPct }) };
@@ -228,11 +264,31 @@ export default function StudioVideo() {
     }
   };
 
+  // Réglages communs au montage par l'agent et au motion design
+  const reglagesAgent = () => ({
+    consignes: agentConsignes.trim() || undefined,
+    reseau: reseaux[0],
+    format: agentFormat,
+    duree_max_s: agentDuree,
+    illustrations: agentIllustrations,
+    logo: agentLogo,
+    images: agentImages,
+    musique: form.music !== 'none' ? form.music : undefined,
+    musique_volume: form.music !== 'none' ? Math.max(5, volume) : undefined,
+  });
+
   const lancer = async () => {
-    if (!file) return;
+    if (!file && !motionActif) return;
     stopPreview();
     setStep('processing'); setResult(null); setUploadPct(0);
     try {
+      if (motionActif) {
+        // Sans tournage : pas d'envoi de vidéo, Postorico crée la voix off du texte
+        setAgentEtat(null);
+        const d = await agentVideoService.creer({ mode: 'motion', script: agentScript.trim(), voix: agentVoix || undefined, ...reglagesAgent() });
+        suivreAgent(d.id);
+        return;
+      }
       // Upload MAINTENANT (pas à la sélection) → aucun orphelin si l'utilisateur abandonne avant.
       const up = await videoService.uploadRaw(file, setUploadPct);
       const titre = draft?.titre || file?.name?.replace(/\.[^.]+$/, '') || t('video.defaultTitle');
@@ -240,6 +296,12 @@ export default function StudioVideo() {
         // Import tel quel : pas de Submagic, pas de quota.
         await videoService.importVideo({ video_url: up.video_url, contenu_id: contenuId || undefined, titre, reseaux, as_story: asStory });
         setResult({ video_url: up.video_url }); setStep('done');
+        return;
+      }
+      if (mode === 'agent') {
+        setAgentEtat(null);
+        const d = await agentVideoService.creer({ clips: [{ url: up.video_url }], ...reglagesAgent() });
+        suivreAgent(d.id);
         return;
       }
       const d = await videoService.create({
@@ -271,15 +333,29 @@ export default function StudioVideo() {
       startPolling(d.contenu_id);
     } catch (e) {
       setStep('ready');
-      if (e.response?.status === 402) toast.error(e.response?.data?.detail || t('video.proOnly'));
-      else toast.error(e.response?.data?.detail || t('video.startError'));
+      const msg = e.response?.data?.detail || e.response?.data?.message;
+      if (e.response?.status === 402) toast.error(msg || t('video.proOnly'));
+      else if (mode === 'agent' && [502, 503].includes(e.response?.status)) toast.error(msg || t('video.agent.indispo'));
+      else toast.error(msg || t('video.startError'));
+    }
+  };
+
+  // Correction d'un montage de l'agent : même suivi que le montage, la nouvelle version remplace l'ancienne
+  const corriger = async (consignes, images) => {
+    try {
+      await agentVideoService.corriger(result.travailId, { consignes, images });
+      const travailId = result.travailId;
+      setAgentEtat(null); setResult(null); setUploadPct(0); setStep('processing');
+      suivreAgent(travailId);
+    } catch (e) {
+      toast.error(e.response?.data?.message || e.response?.data?.detail || t('video.agent.correctionErreur'));
     }
   };
 
   const reset = () => {
     if (pollRef.current) clearInterval(pollRef.current);
     if (localUrl) URL.revokeObjectURL(localUrl);
-    setFile(null); setLocalUrl(null); setUploadPct(0); setStep('idle'); setResult(null);
+    setFile(null); setLocalUrl(null); setUploadPct(0); setStep('idle'); setResult(null); setAgentEtat(null);
   };
 
   // Vidéo déjà montée : (re)définit le(s) réseau(x) sans re-montage (réutilise l'import,
@@ -299,6 +375,54 @@ export default function StudioVideo() {
       setPublishing(false);
     }
   };
+
+  // Sélecteur de musique (catégories, écoute, volume), commun au montage IA et à l'agent IA
+  const choixMusique = (
+    <>
+      <div className="sv-lab"><Music className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.music.label')}</div>
+      <p className="sv-hint">{t('video.music.hint')}</p>
+      {/* Niveau 1 : Aucune + catégories */}
+      <div className="flex gap-2 flex-wrap">
+        <div onClick={() => { set('music', 'none'); setMusicCat(null); stopPreview(); }}
+          className={`sv-chip cursor-pointer ${form.music === 'none' ? 'on' : ''}`}>{t('video.music.none')}</div>
+        {(options.music_categories || []).map((c) => {
+          const open = musicCat === c.id;
+          const hasSel = selMusic && selMusic.category === c.id;
+          return (
+            <div key={c.id} onClick={() => { setMusicCat(open ? null : c.id); stopPreview(); }}
+              className={`sv-chip cursor-pointer flex items-center gap-1.5 ${open || hasSel ? 'on' : ''}`}>
+              {c.label}{hasSel ? <span className="text-[#3AFFA3]">· {selMusic.label}</span> : null}
+              <ChevronDown className={`w-3 h-3 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`} />
+            </div>
+          );
+        })}
+      </div>
+      {/* Niveau 2 : pistes de la catégorie ouverte */}
+      {musicCat && (
+        <div className="mt-2.5 flex gap-2 flex-wrap rounded-xl border border-white/[0.07] bg-[#0c111f] p-2.5">
+          {options.music.filter((m) => m.category === musicCat).map((m) => (
+            <div key={m.id} onClick={() => set('music', m.id)}
+              className={`sv-chip flex items-center gap-1.5 cursor-pointer ${form.music === m.id ? 'on' : ''}`}>
+              {m.url && (
+                <button type="button" aria-label={t('video.music.listen')} onClick={(e) => { e.stopPropagation(); togglePlay(m); }}
+                  className="w-5 h-5 -ml-0.5 rounded-full flex items-center justify-center hover:bg-white/15 transition-colors">
+                  {playing === m.id ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                </button>
+              )}
+              {m.label}
+            </div>
+          ))}
+        </div>
+      )}
+      <audio ref={audioRef} onEnded={() => setPlaying(null)} className="hidden" />
+      {form.music !== 'none' && (
+        <div className="mt-3.5">
+          <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">{t('video.music.volume')}</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{volume} %</span></div>
+          <input type="range" min="0" max="100" value={volume} onChange={(e) => setVolume(+e.target.value)} style={{ '--pct': `${volume}%` }} />
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className="sv max-w-5xl mx-auto space-y-5">
@@ -336,12 +460,12 @@ export default function StudioVideo() {
         </div>
       )}
 
-      {(draft?.script && !file && step === 'idle' && choix !== 'facecam') ? (
+      {(draft?.script && !file && step === 'idle' && choix !== 'facecam' && choix !== 'motion') ? (
         // Décision PO du 2026-09-17 : un script reel ne part plus d'office en face caméra, on demande.
         <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5" data-testid="choix-montage">
           <h2 className="text-[17px] font-bold font-sora text-white">{t('video.choix.titre')}</h2>
           <p className="text-[13px] text-slate-500 font-inter mt-1">{t('video.choix.aide')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
             <button type="button" onClick={() => setChoix('facecam')} data-testid="choix-facecam"
               className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#5B6CFF]/60 hover:bg-[#5B6CFF]/10 p-4 transition-colors">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center mb-3"><Video className="w-5 h-5 text-white" /></div>
@@ -354,6 +478,13 @@ export default function StudioVideo() {
               <div className="font-sora font-semibold text-white text-[15px]">{t('video.choix.clips')}</div>
               <p className="text-[12.5px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.choix.clipsDesc')}</p>
             </button>
+            <button type="button" data-testid="choix-motion"
+              onClick={() => { setChoix('motion'); setMode('agent'); setAgentSource('motion'); setAgentScript(draft?.script || ''); }}
+              className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#F2A65A]/60 hover:bg-[#F2A65A]/[0.06] p-4 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-[#F2A65A]/15 border border-[#F2A65A]/30 grid place-items-center mb-3"><Wand2 className="w-5 h-5 text-[#F2A65A]" /></div>
+              <div className="font-sora font-semibold text-white text-[15px]">{t('video.choix.motion')}</div>
+              <p className="text-[12.5px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.choix.motionDesc')}</p>
+            </button>
             <button type="button" onClick={() => navigate('/dashboard/editeur')} data-testid="choix-editeur"
               className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#8A6CFF]/60 hover:bg-[#8A6CFF]/10 p-4 transition-colors">
               <div className="w-10 h-10 rounded-lg bg-[#8A6CFF]/15 border border-[#8A6CFF]/30 grid place-items-center mb-3"><Clapperboard className="w-5 h-5 text-[#c4b5fd]" /></div>
@@ -363,12 +494,15 @@ export default function StudioVideo() {
           </div>
         </div>
       ) : (step === 'done' && result) ? (
-        <ResultCard result={result} onReset={reset} navigate={navigate}
+        <ResultCard result={result} onReset={reset} navigate={navigate} onCorriger={result.travailId ? corriger : undefined}
           reseaux={reseaux} setReseaux={setReseaux} onPublish={publishMontaged} publishing={publishing} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* GAUCHE : vidéo */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5 space-y-4">
+            {motionActif ? (
+              <TexteVoixOff script={agentScript} setScript={setAgentScript} voix={agentVoix} setVoix={setAgentVoix} />
+            ) : <>
             <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('video.yourVideo')}</p>
             {!file ? (
               <label className="flex flex-col items-center justify-center gap-3 py-14 rounded-xl border-2 border-dashed border-white/10 hover:border-[#5B6CFF]/40 cursor-pointer transition-colors text-center">
@@ -424,6 +558,7 @@ export default function StudioVideo() {
                 )}
               </div>
             )}
+            </>}
           </div>
 
           {/* DROITE : réglages */}
@@ -464,7 +599,7 @@ export default function StudioVideo() {
 
             {/* Mode : montage IA (Submagic) ou import direct */}
             <div className="flex gap-1 p-1 rounded-xl bg-[#0c111f] border border-white/[0.06] mb-4">
-              {[{ id: 'montage', labelKey: 'video.mode.montage' }, { id: 'direct', labelKey: 'video.mode.direct' }].map((m) => (
+              {[{ id: 'montage', labelKey: 'video.mode.montage' }, { id: 'agent', labelKey: 'video.mode.agent' }, { id: 'direct', labelKey: 'video.mode.direct' }].map((m) => (
                 <button key={m.id} type="button" onClick={() => setMode(m.id)}
                   className={`flex-1 py-2 rounded-lg text-[13px] font-sora font-semibold transition-all ${mode === m.id ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>
                   {t(m.labelKey)}
@@ -686,50 +821,57 @@ export default function StudioVideo() {
 
             {/* Musique */}
             {tab === 'music' && <div className="sv-sec">
-              <div className="sv-lab"><Music className="w-[15px] h-[15px] text-[#8A6CFF]" />{t('video.music.label')}</div>
-              <p className="sv-hint">{t('video.music.hint')}</p>
-              {/* Niveau 1 : Aucune + catégories */}
-              <div className="flex gap-2 flex-wrap">
-                <div onClick={() => { set('music', 'none'); setMusicCat(null); stopPreview(); }}
-                  className={`sv-chip cursor-pointer ${form.music === 'none' ? 'on' : ''}`}>{t('video.music.none')}</div>
-                {(options.music_categories || []).map((c) => {
-                  const open = musicCat === c.id;
-                  const hasSel = selMusic && selMusic.category === c.id;
-                  return (
-                    <div key={c.id} onClick={() => { setMusicCat(open ? null : c.id); stopPreview(); }}
-                      className={`sv-chip cursor-pointer flex items-center gap-1.5 ${open || hasSel ? 'on' : ''}`}>
-                      {c.label}{hasSel ? <span className="text-[#3AFFA3]">· {selMusic.label}</span> : null}
-                      <ChevronDown className={`w-3 h-3 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`} />
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Niveau 2 : pistes de la catégorie ouverte */}
-              {musicCat && (
-                <div className="mt-2.5 flex gap-2 flex-wrap rounded-xl border border-white/[0.07] bg-[#0c111f] p-2.5">
-                  {options.music.filter((m) => m.category === musicCat).map((m) => (
-                    <div key={m.id} onClick={() => set('music', m.id)}
-                      className={`sv-chip flex items-center gap-1.5 cursor-pointer ${form.music === m.id ? 'on' : ''}`}>
-                      {m.url && (
-                        <button type="button" aria-label={t('video.music.listen')} onClick={(e) => { e.stopPropagation(); togglePlay(m); }}
-                          className="w-5 h-5 -ml-0.5 rounded-full flex items-center justify-center hover:bg-white/15 transition-colors">
-                          {playing === m.id ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                        </button>
-                      )}
-                      {m.label}
-                    </div>
+              {choixMusique}
+            </div>}
+            </>) : mode === 'agent' ? (
+              <div className="space-y-4 mb-1" data-testid="agent-video-form">
+                <div className="flex gap-2 flex-wrap" data-testid="agent-video-source">
+                  {[{ id: 'video', labelKey: 'video.agent.sourceVideo' }, { id: 'motion', labelKey: 'video.agent.sourceMotion' }].map((o) => (
+                    <button key={o.id} type="button" onClick={() => setAgentSource(o.id)} className={`sv-chip ${agentSource === o.id ? 'on' : ''}`}>{t(o.labelKey)}</button>
                   ))}
                 </div>
-              )}
-              <audio ref={audioRef} onEnded={() => setPlaying(null)} className="hidden" />
-              {form.music !== 'none' && (
-                <div className="mt-3.5">
-                  <div className="flex justify-between items-baseline mb-1.5"><span className="text-[12px] text-slate-400">{t('video.music.volume')}</span><span className="font-sora font-bold text-sm text-[#3AFFA3]">{volume} %</span></div>
-                  <input type="range" min="0" max="100" value={volume} onChange={(e) => setVolume(+e.target.value)} style={{ '--pct': `${volume}%` }} />
+                <div className="rounded-xl border border-[#8A6CFF]/25 bg-[#8A6CFF]/[0.06] p-3.5">
+                  <p className="text-[13.5px] text-white font-sora font-semibold flex items-center gap-2"><Wand2 className="w-4 h-4 text-[#b9a6ff]" />{t('video.agent.titre')}</p>
+                  <p className="text-[12px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.agent.aide')}</p>
                 </div>
-              )}
-            </div>}
-            </>) : (
+                <div>
+                  <label htmlFor="agent-consignes" className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5 block">{t('video.agent.consignes')}</label>
+                  <textarea id="agent-consignes" data-testid="agent-video-consignes" rows={6} maxLength={1500}
+                    value={agentConsignes} onChange={(e) => setAgentConsignes(e.target.value)}
+                    placeholder={t('video.agent.placeholder')}
+                    className="w-full bg-[#0c111f] border border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] leading-relaxed text-white font-inter outline-none focus:border-[#8A6CFF]/50 resize-y" />
+                  <p className="text-[10.5px] text-slate-600 font-inter text-right tabular-nums">{agentConsignes.length} / 1500</p>
+                </div>
+                <div className="sv-trow">
+                  <div className="flex-1"><div className="sv-t">{t('video.agent.illustrations')}</div><div className="sv-s">{t('video.agent.illustrationsAide')}</div></div>
+                  <Switch on={agentIllustrations} onClick={() => setAgentIllustrations((v) => !v)} />
+                </div>
+                <div className="sv-trow">
+                  <div className="flex-1"><div className="sv-t">{t('video.agent.logo')}</div><div className="sv-s">{t('video.agent.logoAide')}</div></div>
+                  <Switch on={agentLogo} onClick={() => setAgentLogo((v) => !v)} />
+                </div>
+                <ImagesBanque selection={agentImages} onChange={setAgentImages} />
+                <div className="sv-sec">{choixMusique}</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">{t('video.agent.format')}</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {['9:16', '1:1', '16:9'].map((f) => (
+                        <button key={f} type="button" onClick={() => setAgentFormat(f)} className={`sv-chip ${agentFormat === f ? 'on' : ''}`}>{f}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">{t('video.agent.dureeMax')}</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {[30, 60, 90, 180].map((s) => (
+                        <button key={s} type="button" onClick={() => setAgentDuree(s)} className={`sv-chip ${agentDuree === s ? 'on' : ''}`}>{s < 60 ? `${s} s` : `${s / 60} min`}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <div className="rounded-xl border border-dashed border-white/10 bg-[#0c111f] p-4 text-center mb-1">
                 <p className="text-sm text-white font-inter font-medium">{t('video.direct.title')}</p>
                 <p className="text-xs text-slate-500 font-inter mt-1">{t('video.direct.sub')} <b className="text-slate-300">{t('video.direct.free')}</b>{t('video.direct.sub2')}</p>
@@ -738,11 +880,11 @@ export default function StudioVideo() {
 
             {/* CTA */}
             <div className="pt-4 mt-1 border-t border-white/[0.06]">
-              <Button onClick={lancer} disabled={!file || step === 'processing'} className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2">
+              <Button onClick={lancer} disabled={(motionActif ? agentScript.trim().length < 20 : !file) || step === 'processing'} className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2">
                 {step === 'processing' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {step === 'processing' ? (mode === 'direct' ? t('video.cta.importing') : t('video.cta.editing')) : (mode === 'direct' ? t('video.cta.import') : t('video.cta.edit'))}
+                {step === 'processing' ? (mode === 'direct' ? t('video.cta.importing') : t('video.cta.editing')) : (mode === 'direct' ? t('video.cta.import') : motionActif ? t('video.agent.ctaMotion') : mode === 'agent' ? t('video.agent.cta') : t('video.cta.edit'))}
               </Button>
-              {mode === 'montage' ? (
+              {mode !== 'direct' ? (
                 <p className="text-[11px] text-slate-600 font-inter text-center mt-2.5 flex items-center justify-center gap-1.5">
                   <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#b9a6ff] border border-[#8A6CFF]/30">PRO</span>
                   {t('video.cta.proNote')}
@@ -755,7 +897,22 @@ export default function StudioVideo() {
         </div>
       )}
 
-      {step === 'processing' && (() => { const p = progress(); return (
+      {step === 'processing' && mode === 'agent' && (() => {
+        const envoi = uploadPct > 0 && uploadPct < 100;
+        const min = agentEtat?.debut ? Math.max(0, Math.floor((maintenant - new Date(agentEtat.debut).getTime()) / 60000)) : 0;
+        return (
+          <div className="rounded-2xl border border-[#8A6CFF]/25 bg-[#8A6CFF]/[0.06] p-5" data-testid="agent-video-attente">
+            <div className="flex items-center gap-3">
+              <Loader2 className="w-5 h-5 animate-spin text-[#8A6CFF] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white font-inter font-medium">{envoi ? t('video.agent.envoi', { pct: uploadPct }) : t('video.agent.enCours')}</p>
+                {!envoi && <p className="text-xs text-slate-400 font-inter">{agentEtat?.progression ? `${agentEtat.progression} · ` : ''}{t('video.agent.depuis', { min })}</p>}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+      {step === 'processing' && mode !== 'agent' && (() => { const p = progress(); return (
         <div className="rounded-2xl border border-[#5B6CFF]/25 bg-[#5B6CFF]/[0.06] p-5 space-y-3">
           <div className="flex items-center gap-3">
             <Loader2 className="w-5 h-5 animate-spin text-[#8A6CFF] shrink-0" />
@@ -773,7 +930,11 @@ export default function StudioVideo() {
       {step === 'error' && (
         <div className="rounded-2xl border border-red-500/25 bg-red-500/[0.06] p-5 flex items-center gap-3">
           <AlertCircle className="w-5 h-5 text-red-400" />
-          <div className="flex-1"><p className="text-sm text-white font-inter font-medium">{t('video.error.failed')}</p><p className="text-xs text-slate-400 font-inter">{t('video.error.requeued')}</p></div>
+          {mode === 'agent' ? (
+            <div className="flex-1"><p className="text-sm text-white font-inter font-medium">{t('video.agent.echec')}</p><p className="text-xs text-slate-400 font-inter">{agentEtat?.erreur ? `${agentEtat.erreur} · ` : ''}{t('video.agent.echecAide')}</p></div>
+          ) : (
+            <div className="flex-1"><p className="text-sm text-white font-inter font-medium">{t('video.error.failed')}</p><p className="text-xs text-slate-400 font-inter">{t('video.error.requeued')}</p></div>
+          )}
           <Button variant="ghost" onClick={reset} className="text-slate-300">{t('video.error.retry')}</Button>
         </div>
       )}
@@ -781,7 +942,7 @@ export default function StudioVideo() {
   );
 }
 
-function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish, publishing }) {
+function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish, publishing, onCorriger }) {
   const { t } = useTranslation();
   return (
     <div className="rounded-2xl border border-[#3AFFA3]/25 bg-[#3AFFA3]/[0.06] p-5 space-y-4">
@@ -789,6 +950,18 @@ function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish,
       <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4 items-start">
         {result.video_url && <video src={result.video_url} controls className="w-full max-h-[420px] rounded-xl bg-black" />}
         <div className="space-y-3">
+          {result.version > 1 && (
+            <p className="text-[11px] font-semibold font-inter text-[#b9a6ff]">{t('video.agent.version', { v: result.version })}</p>
+          )}
+          {result.erreurCorrection && (
+            <p className="text-[12px] text-amber-300 font-inter rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2">{t('video.agent.correctionRatee')} {result.erreurCorrection}</p>
+          )}
+          {result.resume && (
+            <div className="rounded-xl border border-white/[0.06] bg-[#0c111f] p-3.5">
+              <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-1">{t('video.agent.resume')}</p>
+              <p className="text-[12.5px] text-slate-300 font-inter leading-relaxed whitespace-pre-line max-h-40 overflow-y-auto">{result.resume}</p>
+            </div>
+          )}
           {/* Réseaux de publication (multi) */}
           <div>
             <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-1.5">{t('video.result.publishOn')}</p>
@@ -814,6 +987,7 @@ function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish,
             {onReset && <Button variant="ghost" onClick={onReset} className="text-slate-400">{t('video.result.newVideo')}</Button>}
           </div>
           <p className="text-[11px] text-slate-500 font-inter">{t('video.result.note1')} <b className="text-slate-300">{t('video.result.note2')}</b>.</p>
+          {onCorriger && <CorrectionAgent result={result} onEnvoyer={onCorriger} />}
         </div>
       </div>
     </div>
@@ -871,3 +1045,138 @@ const CSS = `
 .sv .sv-tip .sv-tip-box{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:210px;background:#0b1120;border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:8px 10px;font-family:'Inter',sans-serif;font-weight:400;font-size:11.5px;line-height:1.5;color:#cbd5e1;text-align:left;opacity:0;visibility:hidden;transition:.15s;z-index:30;box-shadow:0 10px 30px rgba(0,0,0,.55);pointer-events:none}
 .sv .sv-tip:hover .sv-tip-box,.sv .sv-tip:focus .sv-tip-box{opacity:1;visibility:visible}
 `;
+
+/** Photos de la banque du client à confier à l'agent (sélection multiple, ajout direct). */
+function ImagesBanque({ selection, onChange, max = 10 }) {
+  const { t } = useTranslation();
+  const [banque, setBanque] = useState(null);
+  const [ajout, setAjout] = useState(false);
+  const charger = () => contenuService.reelBanque().then((l) => setBanque((l || []).filter((a) => a.type !== 'video'))).catch(() => setBanque([]));
+  useEffect(() => { charger(); }, []);
+  const choisie = (url) => selection.some((im) => im.url === url);
+  const basculer = (a) => onChange(choisie(a.url)
+    ? selection.filter((im) => im.url !== a.url)
+    : selection.length < max ? [...selection, { url: a.url, description: a.description || '' }] : selection);
+  const ajouter = async (f) => {
+    if (!f) return;
+    setAjout(true);
+    try {
+      const a = await contenuService.reelBanqueAjouter(f);
+      await charger();
+      if (a?.url && selection.length < max) onChange([...selection, { url: a.url, description: a.description || '' }]);
+    } catch (e) {
+      toast.error(e.response?.data?.message || t('video.agent.imagesErreur'));
+    } finally { setAjout(false); }
+  };
+  return (
+    <div data-testid="agent-video-images">
+      <div className="flex items-baseline justify-between mb-1.5">
+        <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter">{t('video.agent.images')}</p>
+        {selection.length > 0 && <span className="text-[11px] text-[#b9a6ff] font-inter tabular-nums">{selection.length} / {max}</span>}
+      </div>
+      <p className="text-[11.5px] text-slate-500 font-inter mb-2">{t('video.agent.imagesAide')}</p>
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        <label className="shrink-0 w-16 h-16 rounded-lg border border-dashed border-white/15 hover:border-[#8A6CFF]/50 grid place-items-center cursor-pointer text-slate-400" title={t('video.agent.imagesAjouter')}>
+          <input type="file" accept="image/*" className="hidden" onChange={(e) => ajouter(e.target.files?.[0])} />
+          {ajout ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImagePlus className="w-4 h-4" />}
+        </label>
+        {(banque || []).map((a) => (
+          <button key={a.id || a.url} type="button" onClick={() => basculer(a)} title={a.description || ''}
+            className={`relative shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${choisie(a.url) ? 'border-[#8A6CFF]' : 'border-transparent hover:border-white/20'}`}>
+            <img src={a.apercu_url || a.url} alt={a.description || ''} className="w-full h-full object-cover" loading="lazy" />
+            {choisie(a.url) && <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#8A6CFF] grid place-items-center"><Check className="w-3 h-3 text-white" /></span>}
+          </button>
+        ))}
+        {banque && !banque.length && <p className="text-[11.5px] text-slate-600 font-inter self-center">{t('video.agent.imagesVide')}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Demande de correction d'un montage de l'agent : texte libre + photos éventuelles. */
+function CorrectionAgent({ result, onEnvoyer }) {
+  const { t } = useTranslation();
+  const [texte, setTexte] = useState('');
+  const [images, setImages] = useState([]);
+  const [envoi, setEnvoi] = useState(false);
+  if (!result.correctionPossible) return <p className="text-[11.5px] text-slate-500 font-inter">{t('video.agent.correctionExpiree')}</p>;
+  const envoyer = async () => {
+    if (!texte.trim()) return;
+    setEnvoi(true);
+    try { await onEnvoyer(texte.trim(), images); } finally { setEnvoi(false); }
+  };
+  return (
+    <div className="rounded-xl border border-[#8A6CFF]/25 bg-[#8A6CFF]/[0.05] p-3.5 space-y-3" data-testid="agent-video-correction">
+      <div>
+        <p className="text-[13px] text-white font-sora font-semibold flex items-center gap-2"><PenLine className="w-4 h-4 text-[#b9a6ff]" />{t('video.agent.correctionTitre')}</p>
+        <p className="text-[11.5px] text-slate-400 font-inter mt-0.5">
+          {result.gratuites > 0 ? t('video.agent.correctionGratuites', { n: result.gratuites }) : t('video.agent.correctionPayante')}
+        </p>
+      </div>
+      <textarea rows={3} maxLength={1500} value={texte} onChange={(e) => setTexte(e.target.value)} data-testid="agent-video-correction-texte"
+        placeholder={t('video.agent.correctionPlaceholder')}
+        className="w-full bg-[#0c111f] border border-white/10 rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed text-white font-inter outline-none focus:border-[#8A6CFF]/50 resize-y" />
+      <ImagesBanque selection={images} onChange={setImages} />
+      <Button onClick={envoyer} disabled={envoi || !texte.trim()} className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2 disabled:opacity-50">
+        {envoi ? <Loader2 className="w-4 h-4 animate-spin" /> : <PenLine className="w-4 h-4" />}{t('video.agent.correctionEnvoyer')}
+      </Button>
+    </div>
+  );
+}
+
+/** Motion design : le texte que la voix off lira, et le choix de la voix (ElevenLabs, ou la sienne). */
+function TexteVoixOff({ script, setScript, voix, setVoix }) {
+  const { t } = useTranslation();
+  const [catalogue, setCatalogue] = useState(null);
+  const [ecoute, setEcoute] = useState(null);
+  const lecteur = useRef(null);
+  useEffect(() => {
+    contenuService.reelVoix().then((c) => { setCatalogue(c); if (!voix && c?.defaut) setVoix(c.defaut); }).catch(() => setCatalogue({ voix: [] }));
+    return () => lecteur.current?.pause();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const ecouter = (v) => {
+    lecteur.current?.pause();
+    if (ecoute === v.id || !v.apercu) { setEcoute(null); return; }
+    lecteur.current = new Audio(v.apercu);
+    lecteur.current.onended = () => setEcoute(null);
+    lecteur.current.play().catch(() => setEcoute(null));
+    setEcoute(v.id);
+  };
+  const choix = [...(catalogue?.voix || []), ...(catalogue?.clone?.existe ? [{ id: 'moi', genre: 'moi', apercu: catalogue.clone.apercu }] : [])];
+  return (
+    <div className="space-y-4" data-testid="agent-video-motion">
+      <div className="rounded-xl border border-[#F2A65A]/25 bg-[#F2A65A]/[0.06] p-3.5">
+        <p className="text-[13.5px] text-white font-sora font-semibold flex items-center gap-2"><Wand2 className="w-4 h-4 text-[#F2A65A]" />{t('video.agent.motionTitre')}</p>
+        <p className="text-[12px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.agent.motionAide')}</p>
+      </div>
+      <div>
+        <label htmlFor="agent-script" className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5 block">{t('video.agent.script')}</label>
+        <textarea id="agent-script" data-testid="agent-video-script" rows={9} maxLength={3000}
+          value={script} onChange={(e) => setScript(e.target.value)} placeholder={t('video.agent.scriptPlaceholder')}
+          className="w-full bg-[#0c111f] border border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] leading-relaxed text-white font-inter outline-none focus:border-[#F2A65A]/50 resize-y" />
+        <p className="text-[10.5px] text-slate-600 font-inter flex justify-between tabular-nums">
+          <span>{t('video.agent.scriptDuree', { s: Math.round(script.trim().split(/\s+/).filter(Boolean).length / 2.6) })}</span>
+          <span>{script.length} / 3000</span>
+        </p>
+      </div>
+      <div>
+        <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">{t('video.agent.voix')}</p>
+        <div className="flex gap-2 flex-wrap">
+          {catalogue === null && <Loader2 className="w-4 h-4 animate-spin text-slate-500" />}
+          {choix.map((v) => (
+            <div key={v.id} onClick={() => setVoix(v.id)} className={`sv-chip cursor-pointer flex items-center gap-1.5 capitalize ${voix === v.id ? 'on' : ''}`}>
+              {v.apercu && (
+                <button type="button" aria-label={t('video.music.listen')} onClick={(e) => { e.stopPropagation(); ecouter(v); }}
+                  className="w-5 h-5 -ml-0.5 rounded-full flex items-center justify-center hover:bg-white/15 transition-colors">
+                  {ecoute === v.id ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                </button>
+              )}
+              {v.id === 'moi' ? t('video.agent.voixClone') : v.id}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
