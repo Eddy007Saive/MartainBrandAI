@@ -47,6 +47,7 @@ import FontPicker from '../components/FontPicker';
 import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
 import { manqueMedia, erreurLisible } from '../lib/publication';
+import OptionsPostGoogle from '../components/OptionsPostGoogle';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
 
 // Styles de rendu de l'image IA (mêmes clés que les miniatures des reels, côté serveur aussi).
@@ -1328,6 +1329,9 @@ export default function ContenusPage() {
       await contenuService.update(editContenu.id, {
         contenu: editContenu.contenu,
         titre: editContenu.titre,
+        // Fiche Google : type de post, événement, offre, bouton d'action
+        ...((editContenu.reseau_cible || '').toLowerCase() === 'googlebusiness' && editContenu.google_options
+          ? { google_options: editContenu.google_options } : {}),
       });
       toast.success(t('contenus.toast.contenuModifie'));
       fetchContenus();
@@ -2090,7 +2094,7 @@ export default function ContenusPage() {
 
         {/* Edit Dialog */}
         <Dialog open={!!editContenu} onOpenChange={() => setEditContenu(null)}>
-          <DialogContent className="bg-[#0f172a] border-slate-800">
+          <DialogContent className="bg-[#0f172a] border-slate-800 max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-white font-sora">{t('contenus.edition.titre')}</DialogTitle>
             </DialogHeader>
@@ -2115,6 +2119,9 @@ export default function ContenusPage() {
                     </p>
                   );
                 })()}
+                {(editContenu.reseau_cible || '').toLowerCase() === 'googlebusiness' && (
+                  <OptionsPostGoogle valeur={editContenu.google_options} onChange={(o) => setEditContenu({ ...editContenu, google_options: o })} />
+                )}
               </div>
             )}
             <DialogFooter>

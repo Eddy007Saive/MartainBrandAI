@@ -41,6 +41,7 @@ const MesMontages = lazy(() => import("./pages/MesMontages"));
 const StudioReel = lazy(() => import("./pages/StudioReel"));
 const PlanEditorial = lazy(() => import("./pages/PlanEditorial"));
 const CommentairesPage = lazy(() => import("./pages/CommentairesPage"));
+const FicheGooglePage = lazy(() => import("./pages/FicheGooglePage"));
 const Performance = lazy(() => import("./pages/Performance"));
 const AutomatisationsPage = lazy(() => import("./pages/AutomatisationsPage"));
 const RicoCoachPage = lazy(() => import("./pages/RicoCoachPage"));
@@ -131,6 +132,7 @@ function App() {
               <Route path="plan" element={<PlanEditorial />} />
               <Route path="contenus" element={<ContenusPage />} />
               <Route path="commentaires" element={<CommentairesPage />} />
+              <Route path="fiche-google" element={<FicheGooglePage />} />
               <Route path="coach" element={<RicoCoachPage />} />
               <Route path="performance" element={<Performance />} />
               <Route path="automatisations" element={<AutomatisationsPage />} />

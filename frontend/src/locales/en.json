@@ -297,6 +297,7 @@
     }
   },
   "nav": {
+    "ficheGoogle": "Google profile",
     "home": "Home",
     "studio": "AI Studio",
     "plan": "Editorial plan",
@@ -459,6 +460,7 @@
     "postFallback": "Post"
   },
   "contenus": {
+    "google": {"titre": "Google options", "type": {"STANDARD": "Update", "EVENT": "Event", "OFFER": "Offer"}, "titreEvenement": "Event title", "titreOffre": "Offer title", "debut": "Start", "fin": "End", "code": "Coupon code", "lienOffre": "Offer link", "conditions": "Terms", "bouton": "Call-to-action button", "lienBouton": "Button link", "boutons": {"AUCUN": "No button", "LEARN_MORE": "Learn more", "BOOK": "Book", "ORDER": "Order", "SHOP": "Shop", "SIGN_UP": "Sign up", "CALL": "Call"}, "aide": "Google shows only one photo per post and no video: for a reel or a carousel, the cover or first image is published. \"Call\" uses your profile's phone number."},
     "titre": "Content",
     "sousTitre": "Manage, approve and track your posts",
     "statut": {
@@ -3976,5 +3978,6 @@
       "fiche_vues_maps": "Maps views",
       "source": "Calculated on {{date}} from your statistics."
     }
-  }
+  },
+  "ficheGoogle": {"titre": "Google profile", "sousTitre": "Reviews, photos, hours and details of your profile, without leaving Postorico.", "verifiee": "Verified profile", "nonVerifiee": "Unverified profile", "voirMaps": "View on Maps", "etablissement": "Managed location:", "etabChoisi": "Location selected.", "chargement": "Loading your profile…", "absenteTitre": "No Google profile connected", "absenteAide": "Connect your Google Business profile to manage your reviews, photos and hours from Postorico.", "connecter": "Connect my profile", "erreur": "Google Business is temporarily unreachable, try again.", "reessayer": "Try again", "annuler": "Cancel", "supprimer": "Delete", "onglets": {"avis": "Reviews", "photos": "Photos", "infos": "Details and hours", "liens": "Links"}, "avis": {"total": "{{n}} reviews", "filtres": {"tous": "All", "sansReponse": "Unanswered", "critiques": "3 stars or less"}, "vide": "No reviews to show.", "plus": "Show more reviews", "anonyme": "Anonymous customer", "sansTexte": "Rating without a comment.", "votreReponse": "Your reply", "modifier": "Edit", "supprimer": "Delete reply", "confirmerSuppression": "Delete your reply to this review? The review stays online.", "proposer": "Suggest a reply (AI)", "reproposer": "Another suggestion", "ecrire": "Write it myself", "publier": "Publish reply", "publiee": "Reply published on Google.", "supprimee": "Reply deleted."}, "photos": {"ajouterTitre": "Add a photo to your profile", "ajouterAide": "Pick a photo from your library, then where it goes (cover, logo, interior…).", "banqueVide": "Your library has no photos yet: add some in Video studio or Settings.", "ajouter": "Add to my profile", "ajoutee": "Photo sent to Google (it may take a few minutes to appear).", "supprimer": "Delete photo", "confirmerSuppression": "Remove this photo from your Google profile?", "supprimee": "Photo removed.", "vide": "No photos on your profile yet.", "categories": {"COVER": "Cover", "PROFILE": "Profile photo", "LOGO": "Logo", "EXTERIOR": "Exterior", "INTERIOR": "Interior", "PRODUCT": "Products", "FOOD_AND_DRINK": "Food and drink", "MENU": "Menu", "TEAMS": "Team", "AT_WORK": "At work", "ADDITIONAL": "Other", "COMMON_AREA": "Common areas", "ROOMS": "Rooms"}}, "infos": {"description": "Profile description", "rediger": "Write with AI", "telephone": "Phone", "site": "Website", "horaires": "Opening hours", "ferme": "Closed", "h24": "Open 24 hours", "ajouterPlage": "+ Time slot", "basculer24": "24 hours", "fermer": "Close this day", "speciaux": "Special days", "speciauxAide": "Public holidays, time off, reduced hours: Google shows them instead of your usual hours.", "horairesSpeciales": "Special hours", "ajouterJour": "Add a day", "enregistrer": "Save on Google", "enregistre": "Profile updated on Google."}, "liens": {"aide": "Buttons shown on your profile to book, order or shop online.", "vide": "No links yet.", "ajouter": "Add", "ajoute": "Link added to your profile.", "types": {"APPOINTMENT": "Book an appointment", "ONLINE_APPOINTMENT": "Online appointment", "DINING_RESERVATION": "Book a table", "FOOD_ORDERING": "Order", "FOOD_DELIVERY": "Delivery", "FOOD_TAKEOUT": "Takeout", "SHOP_ONLINE": "Online shop"}}, "jours": {"MONDAY": "Monday", "TUESDAY": "Tuesday", "WEDNESDAY": "Wednesday", "THURSDAY": "Thursday", "FRIDAY": "Friday", "SATURDAY": "Saturday", "SUNDAY": "Sunday"}}
 }

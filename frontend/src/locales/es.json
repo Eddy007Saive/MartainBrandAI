@@ -297,6 +297,7 @@
     }
   },
   "nav": {
+    "ficheGoogle": "Ficha de Google",
     "home": "Inicio",
     "studio": "Estudio IA",
     "plan": "Plan editorial",
@@ -459,6 +460,7 @@
     "postFallback": "Publicación"
   },
   "contenus": {
+    "google": {"titre": "Opciones de Google", "type": {"STANDARD": "Novedad", "EVENT": "Evento", "OFFER": "Oferta"}, "titreEvenement": "Título del evento", "titreOffre": "Título de la oferta", "debut": "Inicio", "fin": "Fin", "code": "Código promocional", "lienOffre": "Enlace de la oferta", "conditions": "Condiciones", "bouton": "Botón de acción", "lienBouton": "Enlace del botón", "boutons": {"AUCUN": "Sin botón", "LEARN_MORE": "Más información", "BOOK": "Reservar", "ORDER": "Pedir", "SHOP": "Comprar", "SIGN_UP": "Registrarse", "CALL": "Llamar"}, "aide": "Google solo muestra una foto por publicación y ningún vídeo: para un reel o un carrusel se publica la portada o la primera imagen. «Llamar» usa el teléfono de tu ficha."},
     "titre": "Contenidos",
     "sousTitre": "Gestiona, valida y sigue tus publicaciones",
     "statut": {
@@ -3976,5 +3978,6 @@
       "fiche_vues_maps": "Vistas en Maps",
       "source": "Calculado el {{date}} a partir de tus estadísticas."
     }
-  }
+  },
+  "ficheGoogle": {"titre": "Ficha de Google", "sousTitre": "Reseñas, fotos, horarios y datos de tu ficha, sin salir de Postorico.", "verifiee": "Ficha verificada", "nonVerifiee": "Ficha sin verificar", "voirMaps": "Ver en Maps", "etablissement": "Establecimiento gestionado:", "etabChoisi": "Establecimiento seleccionado.", "chargement": "Cargando tu ficha…", "absenteTitre": "Ninguna ficha de Google conectada", "absenteAide": "Conecta tu ficha de Google Business para gestionar reseñas, fotos y horarios desde Postorico.", "connecter": "Conectar mi ficha", "erreur": "Google Business no responde por el momento, inténtalo de nuevo.", "reessayer": "Reintentar", "annuler": "Cancelar", "supprimer": "Eliminar", "onglets": {"avis": "Reseñas", "photos": "Fotos", "infos": "Datos y horarios", "liens": "Enlaces"}, "avis": {"total": "{{n}} reseñas", "filtres": {"tous": "Todas", "sansReponse": "Sin respuesta", "critiques": "3 estrellas o menos"}, "vide": "No hay reseñas que mostrar.", "plus": "Ver más reseñas", "anonyme": "Cliente anónimo", "sansTexte": "Valoración sin comentario.", "votreReponse": "Tu respuesta", "modifier": "Editar", "supprimer": "Eliminar la respuesta", "confirmerSuppression": "¿Eliminar tu respuesta a esta reseña? La reseña sigue publicada.", "proposer": "Proponer una respuesta (IA)", "reproposer": "Otra propuesta", "ecrire": "Escribirla yo", "publier": "Publicar la respuesta", "publiee": "Respuesta publicada en Google.", "supprimee": "Respuesta eliminada."}, "photos": {"ajouterTitre": "Añadir una foto a tu ficha", "ajouterAide": "Elige una foto de tu banco y su ubicación (portada, logo, interior…).", "banqueVide": "Tu banco aún no tiene fotos: añade en Estudio de vídeo o Ajustes.", "ajouter": "Añadir a mi ficha", "ajoutee": "Foto enviada a Google (puede tardar unos minutos en aparecer).", "supprimer": "Eliminar la foto", "confirmerSuppression": "¿Quitar esta foto de tu ficha de Google?", "supprimee": "Foto quitada.", "vide": "Tu ficha aún no tiene fotos.", "categories": {"COVER": "Portada", "PROFILE": "Foto de perfil", "LOGO": "Logo", "EXTERIOR": "Exterior", "INTERIOR": "Interior", "PRODUCT": "Productos", "FOOD_AND_DRINK": "Comida y bebida", "MENU": "Menú", "TEAMS": "Equipo", "AT_WORK": "Trabajando", "ADDITIONAL": "Otra", "COMMON_AREA": "Zonas comunes", "ROOMS": "Habitaciones"}}, "infos": {"description": "Descripción de la ficha", "rediger": "Redactar con IA", "telephone": "Teléfono", "site": "Sitio web", "horaires": "Horario de apertura", "ferme": "Cerrado", "h24": "Abierto 24 horas", "ajouterPlage": "+ Franja", "basculer24": "24 horas", "fermer": "Cerrar este día", "speciaux": "Días especiales", "speciauxAide": "Festivos, vacaciones, horario reducido: Google los muestra en lugar del horario habitual.", "horairesSpeciales": "Horario especial", "ajouterJour": "Añadir un día", "enregistrer": "Guardar en Google", "enregistre": "Ficha actualizada en Google."}, "liens": {"aide": "Botones de tu ficha para reservar, pedir o comprar en línea.", "vide": "Aún no hay enlaces.", "ajouter": "Añadir", "ajoute": "Enlace añadido a tu ficha.", "types": {"APPOINTMENT": "Pedir cita", "ONLINE_APPOINTMENT": "Cita en línea", "DINING_RESERVATION": "Reservar mesa", "FOOD_ORDERING": "Pedir", "FOOD_DELIVERY": "A domicilio", "FOOD_TAKEOUT": "Para llevar", "SHOP_ONLINE": "Tienda en línea"}}, "jours": {"MONDAY": "Lunes", "TUESDAY": "Martes", "WEDNESDAY": "Miércoles", "THURSDAY": "Jueves", "FRIDAY": "Viernes", "SATURDAY": "Sábado", "SUNDAY": "Domingo"}}
 }
