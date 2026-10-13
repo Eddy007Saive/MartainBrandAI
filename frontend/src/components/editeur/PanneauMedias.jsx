@@ -111,7 +111,8 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, 
       }
       toast.success(t('editeur.medias.importe'));
     } catch (e) {
-      toast.error(e.response?.data?.detail || t('editeur.medias.importEchec'));
+      // NestJS renvoie l'explication dans `message` (fichier trop lourd, banque pleine…).
+      toast.error(e.response?.data?.message || e.response?.data?.detail || t('editeur.medias.importEchec'));
     } finally { setEnvoi(false); }
   };
 
