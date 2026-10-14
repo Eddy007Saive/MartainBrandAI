@@ -8,6 +8,9 @@ export const agentVideoService = {
   // -> { statut: en_cours|termine|echec, progression, erreur, debut, video_url, video_preview_url, resume }
   etat: (id) => api.get(`/agent-video/${id}`).then((r) => r.data),
 
+  // Dernier montage par l'agent d'un contenu (même forme que etat, avec mode: video|motion)
+  parContenu: (contenuId) => api.get(`/agent-video/contenu/${contenuId}`).then((r) => r.data),
+
   // Correction d'un montage terminé : { consignes, images: [{ url, description }] } -> état (nouvelle version en cours)
   corriger: (id, payload) => api.post(`/agent-video/${id}/corrections`, payload).then((r) => r.data),
 };

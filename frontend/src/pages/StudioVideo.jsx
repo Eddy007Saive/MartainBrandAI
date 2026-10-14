@@ -174,6 +174,16 @@ export default function StudioVideo() {
           setDraft(c);
           if (c.langue) setForm((f) => ({ ...f, langue: c.langue }));
           if (c.reseau_cible) setReseaux([String(c.reseau_cible).toLowerCase()]);
+          // Montée par l'agent IA : on reprend son montage (résultat + corrections, ou suivi en cours)
+          if (c.reel_data?.agent) {
+            agentVideoService.parContenu(contenuId).then((e) => {
+              setMode('agent'); setAgentSource(e.mode === 'motion' ? 'motion' : 'video'); setAgentEtat(e);
+              if (e.statut === 'termine') { setResult(resultatAgent(e)); setStep('done'); }
+              else if (e.statut === 'echec') setStep('error');
+              else { setStep('processing'); suivreAgent(e.id, e.mode === 'motion'); }
+            }).catch(() => { if (c.video_url) { setResult(c); setStep('done'); } });
+            return;
+          }
           if (c.video_status === 'pret' && c.video_url) { setResult(c); setStep('done'); }
           else if (c.video_status === 'en_traitement') { setStep('processing'); startPolling(contenuId); }
         })
@@ -239,11 +249,7 @@ export default function StudioVideo() {
         setMaintenant(Date.now());
         if (e.statut === 'termine') {
           clearInterval(pollRef.current); oublier();
-          setResult({
-            id: e.contenu_id, travailId: e.id, video_url: e.video_url, video_preview_url: e.video_preview_url, titre: e.titre,
-            resume: e.resume ? e.resume.replace(/\*\*|`/g, '') : null,
-            version: e.version, gratuites: e.corrections_gratuites_restantes, correctionPossible: e.correction_possible, erreurCorrection: e.erreur_correction,
-          });
+          setResult(resultatAgent(e));
           setStep('done');
         } else if (e.statut === 'echec') { clearInterval(pollRef.current); oublier(); setStep('error'); }
       } catch (err) {
@@ -946,6 +952,13 @@ export default function StudioVideo() {
 }
 
 const CLE_AGENT_EN_COURS = 'postorico.agentVideoEnCours';
+
+/** État d'un montage terminé par l'agent -> résultat affiché (vidéo, résumé, corrections). */
+const resultatAgent = (e) => ({
+  id: e.contenu_id, travailId: e.id, video_url: e.video_url, video_preview_url: e.video_preview_url, titre: e.titre,
+  resume: e.resume ? e.resume.replace(/\*\*|`/g, '') : null,
+  version: e.version, gratuites: e.corrections_gratuites_restantes, correctionPossible: e.correction_possible, erreurCorrection: e.erreur_correction,
+});
 
 /** Étape courante du montage par l'agent, d'après le statut et le texte de progression du serveur. */
 function etapeAgent(etat, motion, envoi) {
