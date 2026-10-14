@@ -21,3 +21,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# corps des articles, regenere par scripts/blog.mjs (prebuild)
+/public/blog-contenu

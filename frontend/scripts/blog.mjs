@@ -174,5 +174,25 @@ fs.writeFileSync(SORTIE, `${JSON.stringify({
   traductions,
 }, null, 1)}\n`, 'utf8');
 
+// Le paquet JavaScript principal n'embarque QUE l'index (metadonnees) : le
+// corps de chaque article (html + sommaire, ~2 Mo pour 144 articles) part dans
+// public/blog-contenu/<langue>/<slug>.json et n'est telecharge qu'a la lecture
+// de l'article (cf. lib/blog.js chargerContenu). Le prerendu (scripts/prerendu.js)
+// continue de produire des pages completes : il attend que le contenu soit charge.
+const INDEX = path.resolve(ICI, '..', 'src', 'generated', 'blog-index.json');
+const CONTENU = path.resolve(ICI, '..', 'public', 'blog-contenu');
+fs.rmSync(CONTENU, { recursive: true, force: true });
+articles.forEach((a) => {
+  const dossier = path.join(CONTENU, a.langue);
+  fs.mkdirSync(dossier, { recursive: true });
+  fs.writeFileSync(path.join(dossier, `${a.slug}.json`),
+    JSON.stringify({ html: a.html, sommaire: a.sommaire }), 'utf8');
+});
+fs.writeFileSync(INDEX, `${JSON.stringify({
+  _: 'Genere par scripts/blog.mjs : index sans le corps des articles (voir public/blog-contenu). Ne pas editer.',
+  articles: articles.map(({ html, sommaire, ...meta }) => meta),
+  traductions,
+}, null, 1)}\n`, 'utf8');
+
 const parLangue = LANGUES.map((l) => `${l}:${articles.filter((a) => a.langue === l).length}`);
 console.log(`Blog : ${articles.length} article(s) compilé(s) — ${parLangue.join('  ')}`);

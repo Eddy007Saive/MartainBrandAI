@@ -19,6 +19,83 @@ const http = require('http');
 const path = require('path');
 const puppeteer = require('puppeteer');
 
+// critters (Google Chrome Labs) : extrait le CSS critique d'une page a partir
+// de son DOM prerendu. Les @font-face sont inlinees A PART (inlinerFontFaces
+// ci-dessous) : l'option inlineFonts de critters ne reconnait pas les familles
+// referencees via une variable CSS et laissait Sora de cote. Sans @font-face
+// dans le CSS inline, le premier affichage se fait en police de repli (plus
+// petite), puis le titre est repeint plus grand une fois main.css arrive ;
+// Chrome enregistrait alors un second candidat LCP, 1 a 10 s plus tard selon
+// le reseau. Les fichiers woff2 du premier ecran sont de plus precharges. Facultatif : s'il manque ou echoue, la page est ecrite
+// avec sa feuille de style classique.
+// Les polices du premier ecran (titres Sora 700/800, texte Inter 400) sont
+// declarees dans main.css, charge en differe depuis le passage au CSS critique :
+// sans preload, le navigateur ne les decouvre qu'apres la feuille complete
+// (chaine CSS -> woff2 de ~2,9 s dans Lighthouse). On les annonce dans <head>.
+const POLICES_PRIORITAIRES = ['sora-latin-700-normal', 'sora-latin-800-normal', 'inter-latin-400-normal'];
+let preloadsPolices = null;
+function precharcherPolices(html) {
+  if (preloadsPolices === null) {
+    const media = path.join(BUILD, 'static', 'media');
+    const fichiers = fs.existsSync(media) ? fs.readdirSync(media) : [];
+    preloadsPolices = POLICES_PRIORITAIRES
+      .map((nom) => fichiers.find((f) => f.startsWith(`${nom}.`) && f.endsWith('.woff2')))
+      .filter(Boolean)
+      .map((f) => `<link rel="preload" as="font" type="font/woff2" crossorigin href="/static/media/${f}">`)
+      .join('');
+  }
+  if (!preloadsPolices || html.includes('as="font"')) return html;
+  return html.replace('</head>', `${preloadsPolices}</head>`);
+}
+
+// @font-face des polices du premier ecran, extraites de main.css : sous-ensemble
+// latin uniquement (les variantes latin-ext/cyrillic/grec/vietnamien restent
+// dans la feuille complete, chargee en differe).
+const FACES_INLINE = { Sora: ['400', '700', '800'], Inter: ['400', '500', '600'] };
+let fontFacesInline = null;
+function inlinerFontFaces(html) {
+  if (fontFacesInline === null) {
+    fontFacesInline = '';
+    try {
+      const dossierCss = path.join(BUILD, 'static', 'css');
+      const feuille = fs.readdirSync(dossierCss).find((f) => /^main\..*\.css$/.test(f));
+      const css = feuille ? fs.readFileSync(path.join(dossierCss, feuille), 'utf8') : '';
+      const faces = css.match(/@font-face\{[^}]*\}/g) || [];
+      const gardees = faces.filter((face) => {
+        const famille = (face.match(/font-family:\s*"?([^;"]+)/) || [])[1];
+        const poids = (face.match(/font-weight:\s*([^;]+)/) || [])[1];
+        const url = (face.match(/url\(([^)]+)\)/) || [])[1] || '';
+        if (famille && / Fallback$/.test(famille)) return true; // replis calibres (App.css)
+        return FACES_INLINE[famille] && FACES_INLINE[famille].includes((poids || '').trim())
+          && /-latin-\d/.test(url);
+      });
+      if (gardees.length) fontFacesInline = `<style data-font-faces>${gardees.join('')}</style>`;
+    } catch (e) {
+      console.warn(`  ! @font-face non inlinees : ${e.message}`);
+    }
+  }
+  if (!fontFacesInline || html.includes('data-font-faces')) return html;
+  // Avant le CSS critique, pour que les polices soient connues au premier rendu.
+  return html.replace('<head>', `<head>${fontFacesInline}`);
+}
+
+let critters = null;
+async function inlinerCssCritique(html, chemin) {
+  try {
+    if (!critters) {
+      const Critters = require('critters');
+      critters = new Critters({
+        path: BUILD, publicPath: '/', preload: 'media', inlineFonts: false,
+        pruneSource: false, reduceInlineStyles: false, logLevel: 'silent',
+      });
+    }
+    return await critters.process(html);
+  } catch (e) {
+    console.warn(`  ! CSS critique ignore pour ${chemin} : ${e.message}`);
+    return html;
+  }
+}
+
 const BUILD = path.resolve(__dirname, '..', 'build');
 const PORT = 4599;
 
@@ -125,6 +202,13 @@ async function principal() {
         () => document.querySelector('#root')?.innerText.trim().length > 120,
         { timeout: 15000 },
       ).catch(() => { /* page pauvre en texte : on prend ce qu'il y a */ });
+      // Les articles chargent leur corps par un fichier JSON : on attend qu'il
+      // soit en place (data-article-pret, cf. pages/marketing/Article.jsx),
+      // sinon la page figee n'aurait que le titre.
+      if (/\/blog\/./.test(chemin)) {
+        await onglet.waitForSelector('article[data-article-pret]', { timeout: 15000 })
+          .catch(() => console.warn(`  ! ${chemin} : corps de l'article non charge avant expiration`));
+      }
       // Le temps que les images et les polices se posent : sans cette pause,
       // on capture parfois un rendu à moitié dessiné.
       await new Promise((r) => setTimeout(r, 600));
@@ -150,7 +234,11 @@ async function principal() {
       // Un fichier par adresse : build/es/tarifs/index.html
       const dossier = chemin === '/' ? BUILD : path.join(BUILD, chemin);
       fs.mkdirSync(dossier, { recursive: true });
-      fs.writeFileSync(path.join(dossier, 'index.html'), html, 'utf8');
+      // CSS critique : les regles necessaires au premier ecran sont inlinees,
+      // la feuille complete (main.css, ~25 Ko transferes) passe en chargement
+      // non bloquant. Audit Lighthouse "requetes de blocage du rendu".
+      const htmlFinal = precharcherPolices(inlinerFontFaces(await inlinerCssCritique(html, chemin)));
+      fs.writeFileSync(path.join(dossier, 'index.html'), htmlFinal, 'utf8');
 
       if (texte < 120) {
         vides += 1;

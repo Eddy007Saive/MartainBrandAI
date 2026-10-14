@@ -110,7 +110,7 @@ export const SectionHead = ({ eyebrow, title, lead }) => (
 );
 
 export const CSS = `
-.lp{--bg:#020617;--card:#0f172a;--panel:#0b1322;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);--ink:#e8edf6;--muted:#93a1b8;--dim:#5b6a82;--grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--accent:#3AFFA3;--ease:cubic-bezier(.23,1,.32,1);background:var(--bg);color:var(--ink);font-family:Inter,sans-serif;min-height:100vh;overflow-x:hidden;display:flex;flex-direction:column}
+.lp{--bg:#020617;--card:#0f172a;--panel:#0b1322;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);--ink:#e8edf6;--muted:#93a1b8;--dim:#5b6a82;--grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--accent:#3AFFA3;--ease:cubic-bezier(.23,1,.32,1);background:var(--bg);color:var(--ink);font-family:Inter,"Inter Fallback",sans-serif;min-height:100vh;overflow-x:hidden;display:flex;flex-direction:column}
 .lp *{box-sizing:border-box}
 .lp a{text-decoration:none;color:inherit}
 .lp .wrap{max-width:1140px;margin:0 auto;padding:0 24px;width:100%}
@@ -141,7 +141,7 @@ export const CSS = `
 .lp nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
 .lp .brand{display:flex;align-items:center;gap:11px}
 .lp .brand img{width:38px;height:38px;object-fit:contain}
-.lp .brand b{font-family:Sora;font-weight:800;font-size:18px;display:block}
+.lp .brand b{font-family:Sora,"Sora Fallback";font-weight:800;font-size:18px;display:block}
 .lp .brand small{display:block;font-size:11px;color:var(--dim);margin-top:-2px}
 .lp .navlinks{display:flex;align-items:center;gap:30px;font-size:14.5px;color:var(--muted)}
 .lp .navlinks a:hover{color:#fff}
@@ -154,7 +154,7 @@ export const CSS = `
 .lp .hero>*{position:relative;z-index:1}
 .lp .pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--accent);background:rgba(58,255,163,.08);border:1px solid rgba(58,255,163,.22);padding:7px 14px;border-radius:999px;margin-bottom:26px}
 .lp .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
-.lp h1{font-family:Sora;font-weight:800;font-size:58px;line-height:1.04;letter-spacing:-.025em;max-width:880px;margin:0 auto}
+.lp h1{font-family:Sora,"Sora Fallback";font-weight:800;font-size:58px;line-height:1.04;letter-spacing:-.025em;max-width:880px;margin:0 auto}
 .lp h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .lp .sub{font-size:19px;color:var(--muted);max-width:620px;margin:24px auto 0;line-height:1.6}
 .lp .cta-row{display:flex;gap:14px;justify-content:center;margin-top:38px;flex-wrap:wrap}
@@ -167,13 +167,13 @@ export const CSS = `
 .lp .shot .sb{background:#080c17;border-right:1px solid var(--line);padding:18px 14px}
 .lp .shot .sb .lg{display:flex;align-items:center;gap:8px;margin-bottom:22px}
 .lp .shot .sb .lg img{width:26px;height:26px}
-.lp .shot .sb .lg b{font-family:Sora;font-weight:800;font-size:13px}
+.lp .shot .sb .lg b{font-family:Sora,"Sora Fallback";font-weight:800;font-size:13px}
 .lp .shot .sb .it{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;font-size:12.5px;color:var(--muted);margin-bottom:3px}
 .lp .shot .sb .it.on{background:rgba(255,255,255,.06);color:#fff}
 .lp .shot .sb .it .ic{width:15px;height:15px;border-radius:4px;background:#2a3550}
 .lp .shot .sb .it.on .ic{background:var(--grad)}
 .lp .shot .main{padding:22px}
-.lp .shot .main .t{font-family:Sora;font-weight:700;font-size:17px;margin-bottom:3px}
+.lp .shot .main .t{font-family:Sora,"Sora Fallback";font-weight:700;font-size:17px;margin-bottom:3px}
 .lp .shot .main .d{font-size:12px;color:var(--dim);margin-bottom:18px}
 .lp .shot .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .lp .ccard{background:var(--card);border:1px solid var(--line);border-radius:12px;height:150px;padding:12px;display:flex;flex-direction:column}
@@ -213,12 +213,12 @@ export const CSS = `
 .lp .hp-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:6px}
 .lp .hp-kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
 .lp .hp-kpi .kl{font-size:11px;color:var(--muted)}
-.lp .hp-kpi .kv{font-family:Sora;font-weight:800;font-size:21px;margin-top:3px}
+.lp .hp-kpi .kv{font-family:Sora,"Sora Fallback";font-weight:800;font-size:21px;margin-top:3px}
 .lp .hp-kpi .kd{font-size:10px;color:var(--accent);font-weight:700;margin-top:2px}
 .lp .hp-slides{display:flex;gap:9px;margin-top:8px}
 .lp .hp-slide{flex:1;border-radius:10px;padding:12px;color:#fff;display:flex;flex-direction:column;gap:7px;min-height:160px;border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 26px -12px rgba(0,0,0,.5)}
 .lp .hp-slide .sn{font-size:9px;opacity:.85;font-weight:800;letter-spacing:.08em}
-.lp .hp-slide .sttl{font-family:Sora;font-weight:800;font-size:12.5px;line-height:1.2;margin-bottom:2px}
+.lp .hp-slide .sttl{font-family:Sora,"Sora Fallback";font-weight:800;font-size:12.5px;line-height:1.2;margin-bottom:2px}
 .lp .hp-slide .sline{height:5px;border-radius:3px;background:rgba(255,255,255,.32)}
 .lp .hp-slide .sline.s2{width:78%}
 .lp .hp-prompt{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line2);border-radius:11px;padding:8px 8px 8px 13px;margin:6px 0 12px}
@@ -248,23 +248,23 @@ export const CSS = `
 .lp section{padding:84px 0}
 .lp section.alt{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .lp .eyebrow{text-align:center;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
-.lp .h2{font-family:Sora;font-weight:800;font-size:38px;text-align:center;letter-spacing:-.02em;margin-top:12px}
+.lp .h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:38px;text-align:center;letter-spacing:-.02em;margin-top:12px}
 .lp .lead{text-align:center;color:var(--muted);max-width:560px;margin:14px auto 0;font-size:16px;line-height:1.6}
 .lp .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
 .lp .fcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;transition:.2s}
 .lp .fcard:hover{border-color:var(--line2);transform:translateY(-3px)}
 .lp .fcard .fi{width:46px;height:46px;border-radius:12px;background:rgba(91,108,255,.12);border:1px solid rgba(91,108,255,.25);display:grid;place-items:center;margin-bottom:18px}
-.lp .fcard h3{font-family:Sora;font-weight:700;font-size:17.5px;margin-bottom:8px}
+.lp .fcard h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:17.5px;margin-bottom:8px}
 .lp .fcard p{color:var(--muted);font-size:14px;line-height:1.6}
 .lp .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:52px}
 .lp .step{text-align:center}
-.lp .step .n{width:54px;height:54px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:20px;color:#fff;background:var(--grad);box-shadow:0 10px 30px rgba(91,108,255,.3)}
-.lp .step h3{font-family:Sora;font-weight:700;font-size:17px;margin-bottom:8px}
+.lp .step .n{width:54px;height:54px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;font-family:Sora,"Sora Fallback";font-weight:800;font-size:20px;color:#fff;background:var(--grad);box-shadow:0 10px 30px rgba(91,108,255,.3)}
+.lp .step h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:17px;margin-bottom:8px}
 .lp .step p{color:var(--muted);font-size:14px;line-height:1.6;max-width:300px;margin:0 auto}
 .lp .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
 .lp .fstep{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px}
-.lp .fstep .n{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:18px;color:#fff;background:var(--grad);margin-bottom:16px;box-shadow:0 10px 26px rgba(91,108,255,.3)}
-.lp .fstep h3{font-family:Sora;font-weight:700;font-size:17px;margin-bottom:8px}
+.lp .fstep .n{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-family:Sora,"Sora Fallback";font-weight:800;font-size:18px;color:#fff;background:var(--grad);margin-bottom:16px;box-shadow:0 10px 26px rgba(91,108,255,.3)}
+.lp .fstep h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:17px;margin-bottom:8px}
 .lp .fstep>p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:15px}
 .lp .fstep ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
 .lp .fstep li{display:flex;gap:9px;font-size:13px;color:var(--muted);line-height:1.4}
@@ -278,8 +278,8 @@ export const CSS = `
 .lp .plan{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:30px;display:flex;flex-direction:column}
 .lp .plan.pop{border-color:rgba(91,108,255,.5);background:linear-gradient(180deg,rgba(91,108,255,.10),var(--card));position:relative;box-shadow:0 30px 80px -34px rgba(91,108,255,.55)}
 .lp .plan .pbadge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--grad);color:#fff;font-size:11px;font-weight:700;padding:5px 14px;border-radius:999px;white-space:nowrap}
-.lp .plan .pname{font-family:Sora;font-weight:700;font-size:18px}
-.lp .plan .price{font-family:Sora;font-weight:800;font-size:42px;margin:16px 0 2px}
+.lp .plan .pname{font-family:Sora,"Sora Fallback";font-weight:700;font-size:18px}
+.lp .plan .price{font-family:Sora,"Sora Fallback";font-weight:800;font-size:42px;margin:16px 0 2px}
 .lp .plan .price small{font-size:15px;color:var(--muted);font-weight:600}
 .lp .plan .pcred{color:var(--accent);font-size:13px;font-weight:600}
 .lp .plan ul{list-style:none;margin:22px 0;padding:0;display:flex;flex-direction:column;gap:12px;flex:1}
@@ -288,7 +288,7 @@ export const CSS = `
 .lp .plan .pbtn{justify-content:center;width:100%}
 .lp .faq{max-width:760px;margin:46px auto 0;display:flex;flex-direction:column;gap:12px}
 .lp .qa{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
-.lp .qa .q{font-family:Sora;font-weight:600;font-size:15.5px}
+.lp .qa .q{font-family:Sora,"Sora Fallback";font-weight:600;font-size:15.5px}
 .lp .qa .a{color:var(--muted);font-size:14px;line-height:1.6;margin-top:9px}
 /* ---- Page Tarifs ------------------------------------------------------
    L'abonnement et le Pack cote a cote : la colonne de gauche est plus large,
@@ -305,7 +305,7 @@ export const CSS = `
 .lp .keynote{margin-top:34px;padding:34px;border-radius:20px;
   border:1px solid rgba(58,255,163,.3);
   background:linear-gradient(180deg,rgba(58,255,163,.07),transparent 60%),var(--card)}
-.lp .keynote h3{font-family:Sora;font-weight:800;font-size:24px;letter-spacing:-.01em;margin:10px 0 12px}
+.lp .keynote h3{font-family:Sora,"Sora Fallback";font-weight:800;font-size:24px;letter-spacing:-.01em;margin:10px 0 12px}
 .lp .keynote p{color:var(--muted);font-size:15px;line-height:1.66;max-width:76ch;margin-bottom:12px}
 .lp .keynote p:last-child{margin-bottom:0}
 .lp .keynote p b{color:var(--ink);font-weight:600}
@@ -330,7 +330,7 @@ export const CSS = `
 .lp .acc{max-width:760px;margin:40px auto 0;display:flex;flex-direction:column;gap:12px}
 .lp .acc details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 22px}
 .lp .acc details[open]{border-color:rgba(138,108,255,.4)}
-.lp .acc summary{padding:18px 0;font-family:Sora;font-weight:600;font-size:15.5px;
+.lp .acc summary{padding:18px 0;font-family:Sora,"Sora Fallback";font-weight:600;font-size:15.5px;
   cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
 .lp .acc summary::-webkit-details-marker{display:none}
 .lp .acc summary::after{content:'+';color:#a5b0ff;font-size:22px;font-weight:400;line-height:1}
@@ -348,12 +348,12 @@ export const CSS = `
 .lp .nl-note.err{color:#f87171}
 
 .lp .final{text-align:center}
-.lp .final h2{font-family:Sora;font-weight:800;font-size:30px;letter-spacing:-.02em}
+.lp .final h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:30px;letter-spacing:-.02em}
 .lp .final p{color:var(--muted);margin:12px auto 26px;max-width:560px}
 .lp .finalbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 
 .lp .ctaband{background:radial-gradient(600px 240px at 50% 0%,rgba(91,108,255,.16),transparent),var(--panel);border:1px solid rgba(138,108,255,.3);border-radius:26px;padding:60px;text-align:center;position:relative;overflow:hidden}
-.lp .ctaband h2{font-family:Sora;font-weight:800;font-size:34px;letter-spacing:-.02em}
+.lp .ctaband h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:34px;letter-spacing:-.02em}
 .lp .ctaband p{color:var(--muted);margin:14px auto 30px;max-width:480px}
 .lp .ctaband .mascot{position:absolute;right:26px;bottom:-6px;height:210px;width:auto;pointer-events:none;filter:drop-shadow(0 12px 30px rgba(0,0,0,.45));animation:mfloat 5s ease-in-out infinite;transform-origin:50% 100%}
 @keyframes mfloat{0%,100%{transform:translateY(0) rotate(-1.2deg)}50%{transform:translateY(-10px) rotate(1.2deg)}}
@@ -368,7 +368,7 @@ export const CSS = `
 .lp .statsband{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
 .lp .stat{text-align:center;padding:24px 14px}
 .lp .stat+.stat{border-left:1px solid var(--line)}
-.lp .stat .sv{font-family:Sora;font-weight:800;font-size:27px;font-variant-numeric:tabular-nums;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.lp .stat .sv{font-family:Sora,"Sora Fallback";font-weight:800;font-size:27px;font-variant-numeric:tabular-nums;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
 .lp .stat .sl{color:var(--muted);font-size:13px;margin-top:9px}
 /* Problème -> Solution */
 .lp .ps{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:52px;border:1px solid var(--line);border-radius:18px;overflow:hidden}
@@ -377,7 +377,7 @@ export const CSS = `
 .lp .pscol.good{background:linear-gradient(180deg,rgba(58,255,163,.05),var(--panel))}
 .lp .pscol.bad h3{color:#f87171}
 .lp .pscol.good h3{color:var(--accent)}
-.lp .pscol h3{font-family:Sora;font-weight:600;font-size:15px;margin-bottom:8px}
+.lp .pscol h3{font-family:Sora,"Sora Fallback";font-weight:600;font-size:15px;margin-bottom:8px}
 .lp .pscol ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
 .lp .pscol li{display:flex;gap:12px;font-size:13.5px;color:var(--muted);line-height:1.55;padding:13px 0}
 .lp .pscol li+li{border-top:1px solid var(--line)}
@@ -390,7 +390,7 @@ export const CSS = `
 .lp .acard::before{content:"0" counter(aud);font-family:ui-monospace,SFMono-Regular,monospace;font-weight:600;font-size:11px;letter-spacing:.08em;color:#8A6CFF;display:block;margin-bottom:14px}
 .lp .acard:hover{border-color:var(--line2);transform:translateY(-3px)}
 .lp .acard .ab{display:none}
-.lp .acard h3{font-family:Sora;font-weight:700;font-size:16px;margin-bottom:7px}
+.lp .acard h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:16px;margin-bottom:7px}
 .lp .acard p{color:var(--muted);font-size:13.5px;line-height:1.6}
 /* Témoignages */
 /* Comparatif 'Plutôt que…' */
@@ -399,7 +399,7 @@ export const CSS = `
 .lp .cmpcard:hover{transform:translateY(-3px);border-color:var(--line2)}
 .lp .cmpcard.win{border-color:rgba(91,108,255,.5);background:linear-gradient(180deg,rgba(91,108,255,.12),var(--card));box-shadow:0 30px 80px -36px rgba(91,108,255,.55);position:relative}
 .lp .cmpcard .badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--grad);color:#fff;font-size:10.5px;font-weight:700;padding:4px 12px;border-radius:999px;white-space:nowrap}
-.lp .cmpcard h4{font-family:Sora;font-weight:700;font-size:15.5px;margin-bottom:4px}
+.lp .cmpcard h4{font-family:Sora,"Sora Fallback";font-weight:700;font-size:15.5px;margin-bottom:4px}
 .lp .cmpcard.win h4{color:#fff}
 .lp .cmpcard .rows{display:flex;flex-direction:column;margin-top:8px}
 .lp .cmpcard .r{padding:10px 0;border-top:1px solid var(--line)}
@@ -408,7 +408,7 @@ export const CSS = `
 .lp .cmpcard.win .r .v{color:var(--ink);font-weight:600}
 /* Bandeau partage des rôles */
 .lp .roles{margin-top:32px;background:linear-gradient(135deg,rgba(91,108,255,.12),rgba(58,255,163,.06));border:1px solid var(--line2);border-radius:18px;padding:28px;text-align:center}
-.lp .roles b{font-family:Sora;font-weight:800;font-size:19px;display:block;margin-bottom:8px}
+.lp .roles b{font-family:Sora,"Sora Fallback";font-weight:800;font-size:19px;display:block;margin-bottom:8px}
 .lp .roles p{color:var(--muted);font-size:14.5px;max-width:660px;margin:0 auto;line-height:1.65}
 .lp .testi{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
 .lp .tcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;display:flex;flex-direction:column;gap:16px}
@@ -447,7 +447,7 @@ export const CSS = `
 .lp .legal{max-width:820px;margin:0 auto;padding:60px 0 40px}
 .lp .legal .h2{text-align:left;font-size:34px}
 .lp .legal .updated{color:var(--dim);font-size:13px;margin-top:10px}
-.lp .legal h3{font-family:Sora;font-weight:700;font-size:19px;margin:34px 0 10px;color:#fff}
+.lp .legal h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:19px;margin:34px 0 10px;color:#fff}
 .lp .legal p,.lp .legal li{color:var(--muted);font-size:15px;line-height:1.75}
 .lp .legal ul{margin:10px 0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
 .lp .legal a{color:#8aa0ff}

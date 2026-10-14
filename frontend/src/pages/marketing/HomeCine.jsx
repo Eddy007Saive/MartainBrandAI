@@ -268,15 +268,13 @@ export default function HomeCine() {
     // flux, puisque le score se base sur la position visuelle, pas le layout.
     // Sur le hero (entièrement au-dessus de la ligne de flottaison, vu à
     // chaque visite), ça pénalisait directement le score sans bénéfice réel.
-    if (!reduced) {
-      [...rootRef.current.querySelectorAll('.hero-copy > *')].forEach((el, i) => {
-        el.style.opacity = 0;
-        el.style.transition = `opacity 650ms cubic-bezier(.23,1,.32,1) ${i * 80}ms`;
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          el.style.opacity = 1;
-        }));
-      });
-    }
+    //
+    // Octobre 2026 : cascade SUPPRIMEE. La page est prerendue, le texte du hero
+    // est donc visible des le HTML ; ce fondu le masquait (opacity 0) jusqu'a
+    // l'execution du JavaScript puis le faisait reapparaitre. Lighthouse
+    // mesurait 2,9 s de « delai d'affichage » sur le sous-titre (element LCP)
+    // pour cette seule raison. Regle : ne jamais cacher par JavaScript un
+    // element deja peint au-dessus de la ligne de flottaison.
 
     // Impact : reveal mot à mot scrubé
     // (le h2 est remonté via key={lang} à chaque changement de langue -> on repart d'un texte propre)
@@ -523,7 +521,7 @@ export default function HomeCine() {
           sinon chaque re-render React écrase le fondu en cours */}
       {!isTouch && BG_CLIPS.filter((c) => c.src).map((c, i) => (
         <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
-          muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
+          muted loop playsInline preload={i === 0 ? 'auto' : 'none'}
           style={{ transition: 'opacity 700ms ease', ...(c.pos ? { objectPosition: c.pos } : {}), ...(c.transform ? { transform: c.transform } : {}) }} />
       ))}
       <div className="bg-tint" />
@@ -744,9 +742,9 @@ export default function HomeCine() {
               <div className="pq-card-stage">
                 <div className="pq-card" ref={pqCardRef}>
                   <div className="pq-count">1 / 3</div>
-                  <img src="/images/pour-qui/calendrier.jpg" data-img="0" alt="Rico — calendrier" />
-                  <img src="/images/pour-qui/panneaux.jpg" data-img="1" alt="Rico — formats" />
-                  <img src="/images/pour-qui/confiant.jpg" data-img="2" alt="Rico — confiance" />
+                  <img src="/images/pour-qui/calendrier.jpg" data-img="0" alt="Rico — calendrier" loading="lazy" decoding="async" />
+                  <img src="/images/pour-qui/panneaux.jpg" data-img="1" alt="Rico — formats" loading="lazy" decoding="async" />
+                  <img src="/images/pour-qui/confiant.jpg" data-img="2" alt="Rico — confiance" loading="lazy" decoding="async" />
                   <span className="pq-sheen"></span>
                   <div className="pq-caption">
                     <b>Système Postorico</b>

@@ -1,0 +1,3069 @@
+{
+ "_": "Genere par scripts/blog.mjs : index sans le corps des articles (voir public/blog-contenu). Ne pas editer.",
+ "articles": [
+  {
+   "id": "postorico-vs-metricool",
+   "langue": "fr",
+   "slug": "postorico-vs-metricool",
+   "chemin": "/blog/postorico-vs-metricool",
+   "titre": "Postorico vs Metricool",
+   "description": "Postorico vs Metricool : deux outils, deux usages. Comparatif complet, tarifs vérifiés en 2026 et conseil honnête pour choisir selon votre besoin réel.",
+   "date": "2026-10-08",
+   "maj": "2026-10-08",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "postorico",
+    "comparatif",
+    "outils"
+   ],
+   "image": null,
+   "pose": "presente-cote",
+   "minutes": 8,
+   "mots": 1564
+  },
+  {
+   "id": "postorico-vs-hootsuite",
+   "langue": "fr",
+   "slug": "postorico-vs-hootsuite",
+   "chemin": "/blog/postorico-vs-hootsuite",
+   "titre": "Postorico vs Hootsuite",
+   "description": "Postorico vs Hootsuite : comparatif honnête fonctionnalité par fonctionnalité, coût réel à 5 utilisateurs et 3 questions pour choisir le bon outil.",
+   "date": "2026-10-08",
+   "maj": "2026-10-08",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "postorico",
+    "comparatif",
+    "outils"
+   ],
+   "image": null,
+   "pose": "presente-cote",
+   "minutes": 8,
+   "mots": 1525
+  },
+  {
+   "id": "postorico-vs-buffer",
+   "langue": "fr",
+   "slug": "postorico-vs-buffer",
+   "chemin": "/blog/postorico-vs-buffer",
+   "titre": "Postorico vs Buffer",
+   "description": "Postorico génère le contenu avec l'IA puis le publie. Buffer planifie et publie, sans jamais écrire. Comparatif factuel, prix vérifiés, et le cas où Buffer est le bon choix.",
+   "date": "2026-10-08",
+   "maj": "2026-10-08",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "postorico",
+    "comparatif",
+    "outils"
+   ],
+   "image": null,
+   "pose": "presente-cote",
+   "minutes": 7,
+   "mots": 1332
+  },
+  {
+   "id": "alternative-metricool",
+   "langue": "fr",
+   "slug": "alternative-metricool",
+   "chemin": "/blog/alternative-metricool",
+   "titre": "Alternative à Metricool : comparatif 2026",
+   "description": "Buffer, Hootsuite, Swello, SocialPilot : tarifs 2026, limites réelles et critères de choix pour une PME qui cherche une alternative à Metricool, sans discours commercial.",
+   "date": "2026-10-08",
+   "maj": "2026-10-08",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "outils",
+    "comparatif",
+    "planification"
+   ],
+   "image": null,
+   "pose": "presente-cote",
+   "minutes": 9,
+   "mots": 1791
+  },
+  {
+   "id": "alternative-hootsuite",
+   "langue": "fr",
+   "slug": "alternative-hootsuite",
+   "chemin": "/blog/alternative-hootsuite",
+   "titre": "Alternative à Hootsuite : comparatif 2026",
+   "description": "Hootsuite démarre à 99 $ par utilisateur et par mois et grimpe vite. Voici les alternatives 2026 (Buffer, Metricool, Agorapulse, SocialPilot) avec leurs tarifs vérifiés, classées par profil de besoin.",
+   "date": "2026-10-08",
+   "maj": "2026-10-08",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "outils",
+    "comparatif",
+    "planification"
+   ],
+   "image": null,
+   "pose": "presente-cote",
+   "minutes": 7,
+   "mots": 1410
+  },
+  {
+   "id": "alternative-buffer",
+   "langue": "fr",
+   "slug": "alternative-buffer",
+   "chemin": "/blog/alternative-buffer",
+   "titre": "Alternative à Buffer : les meilleures solutions en 2026",
+   "description": "Buffer, Metricool, Hootsuite, Swello, SocialPilot, Agorapulse : comparatif honnête des alternatives à Buffer en 2026, avec les tarifs vérifiés et nos conseils selon votre profil.",
+   "date": "2026-10-08",
+   "maj": "2026-10-08",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "outils",
+    "comparatif",
+    "planification"
+   ],
+   "image": null,
+   "pose": "presente-cote",
+   "minutes": 8,
+   "mots": 1586
+  },
+  {
+   "id": "visuels-ia-reseaux-sociaux",
+   "langue": "es",
+   "slug": "visuales-ia-redes-sociales-coherencia",
+   "chemin": "/es/blog/visuales-ia-redes-sociales-coherencia",
+   "titre": "Visuales IA para redes sociales: cómo crear imágenes coherentes sin diseñador",
+   "description": "Crea visuales IA para tus redes sociales sin Photoshop ni diseñador. Guía concreta: estilos, formatos por canal, identidad de marca y límites reales.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "ia",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556737/blog/visuels-ia-reseaux-sociaux.png",
+   "pose": "annonce",
+   "minutes": 8,
+   "mots": 1581
+  },
+  {
+   "id": "veille-reseaux-sociaux",
+   "langue": "es",
+   "slug": "monitorizacion-redes-sociales-sin-perder-horas",
+   "chemin": "/es/blog/monitorizacion-redes-sociales-sin-perder-horas",
+   "titre": "Veille redes sociales: cómo mantenerse informado sin dedicarle horas",
+   "description": "Seguimiento de algoritmos, formatos y tendencias en 30 min/semana. Método concreto, fuentes fiables y herramientas para dirigentes de pymes.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "ia",
+    "estrategia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556703/blog/veille-reseaux-sociaux.png",
+   "pose": "accueille",
+   "minutes": 7,
+   "mots": 1460
+  },
+  {
+   "id": "strategie-contenu-reseaux-sociaux-pme",
+   "langue": "es",
+   "slug": "estrategia-contenido-redes-sociales-pymes",
+   "chemin": "/es/blog/estrategia-contenido-redes-sociales-pymes",
+   "titre": "Estrategia de contenido en redes sociales para pymes: las 5 decisiones que tomar antes de publicar",
+   "description": "Estrategia de contenido en redes sociales para pymes: 5 decisiones concretas sobre plataformas, línea editorial y frecuencia para publicar sin improvisar.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "estrategia",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554863/blog/strategie-contenu-reseaux-sociaux-pme.png",
+   "pose": "presente-calme",
+   "minutes": 9,
+   "mots": 1732
+  },
+  {
+   "id": "storytelling-reseaux-sociaux-entreprise",
+   "langue": "es",
+   "slug": "storytelling-redes-sociales-pymes",
+   "chemin": "/es/blog/storytelling-redes-sociales-pymes",
+   "titre": "Storytelling en redes sociales: 5 estructuras narrativas para una pyme",
+   "description": "Storytelling en redes sociales: 5 estructuras narrativas concretas para que una pyme publique posts que enganchen, con ejemplos sectoriales y consejos de IA.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "redaction",
+    "estrategia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556667/blog/storytelling-reseaux-sociaux-entreprise.png",
+   "pose": "presente-calme",
+   "minutes": 8,
+   "mots": 1652
+  },
+  {
+   "id": "plan-communication-reseaux-sociaux-pme",
+   "langue": "es",
+   "slug": "plan-comunicacion-redes-sociales-pyme",
+   "chemin": "/es/blog/plan-comunicacion-redes-sociales-pyme",
+   "titre": "Plan de comunicación en redes sociales para pymes: construirlo sin agencia",
+   "description": "Construye tu plan de comunicación en redes sociales para pymes en una mañana: objetivos, públicos, canales, ritmo e indicadores. Sin agencia ni jerga.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "estrategia",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554832/blog/plan-communication-reseaux-sociaux-pme.png",
+   "pose": "idee",
+   "minutes": 8,
+   "mots": 1688
+  },
+  {
+   "id": "personal-branding-instagram",
+   "langue": "es",
+   "slug": "personal-branding-instagram-dirigentes",
+   "chemin": "/es/blog/personal-branding-instagram-dirigentes",
+   "titre": "Personal branding en Instagram: el método para un directivo o autónomo",
+   "description": "Personal branding en Instagram: formatos, frecuencia y pilares concretos para un directivo o autónomo que quiere ser visible sin perder las noches en ello.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "instagram",
+    "personal-branding"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556632/blog/personal-branding-instagram.png",
+   "pose": "clin-oeil",
+   "minutes": 8,
+   "mots": 1541
+  },
+  {
+   "id": "modele-calendrier-editorial-reseaux-sociaux",
+   "langue": "es",
+   "slug": "plantilla-calendario-editorial-redes-sociales",
+   "chemin": "/es/blog/plantilla-calendario-editorial-redes-sociales",
+   "titre": "Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos",
+   "description": "Plantilla de calendario editorial para redes sociales lista para copiar en Google Sheets o Notion, con un ejemplo de un mes completo para 5 canales en 30 minutos.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "estrategia",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556601/blog/modele-calendrier-editorial-reseaux-sociaux.png",
+   "pose": "presente-cote",
+   "minutes": 10,
+   "mots": 1934
+  },
+  {
+   "id": "miniature-video-courte",
+   "langue": "es",
+   "slug": "miniatura-video-corta-crear",
+   "chemin": "/es/blog/miniatura-video-corta-crear",
+   "titre": "Miniatura de vídeo corto: cómo crear una que genera clics (con o sin diseñador)",
+   "description": "Miniatura de YouTube, Reels o TikTok: reglas visuales, 8 formatos, dimensiones por plataforma y herramientas para crear una thumbnail que mejore tu CTR.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "video",
+    "ia",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554805/blog/miniature-video-courte.png",
+   "pose": "pointe-haut",
+   "minutes": 9,
+   "mots": 1784
+  },
+  {
+   "id": "creer-page-entreprise-linkedin",
+   "langue": "es",
+   "slug": "crear-pagina-empresa-linkedin",
+   "chemin": "/es/blog/crear-pagina-empresa-linkedin",
+   "titre": "Crear una página de empresa en LinkedIn: la guía paso a paso 2026",
+   "description": "Crear una página de empresa en LinkedIn en 2026: pasos, configuración clave, contenido que funciona y errores a evitar. Guía concreta para directivos.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "linkedin",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554775/blog/creer-page-entreprise-linkedin.png",
+   "pose": "presente-produit",
+   "minutes": 8,
+   "mots": 1663
+  },
+  {
+   "id": "agence-reseaux-sociaux-alternative",
+   "langue": "es",
+   "slug": "agencia-freelance-ia-redes-sociales-costes",
+   "chemin": "/es/blog/agencia-freelance-ia-redes-sociales-costes",
+   "titre": "Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción",
+   "description": "Agencia, freelance, herramienta clásica o IA: compara los costes reales de cada opción y elige la más adecuada para tu pyme.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "estrategia",
+    "delegation",
+    "budget"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556568/blog/agence-reseaux-sociaux-alternative.png",
+   "pose": "curieux",
+   "minutes": 8,
+   "mots": 1697
+  },
+  {
+   "id": "visuels-ia-reseaux-sociaux",
+   "langue": "en",
+   "slug": "ai-visuals-social-media-consistency",
+   "chemin": "/en/blog/ai-visuals-social-media-consistency",
+   "titre": "AI Visuals for Social Media: How to Create Consistent Images Without a Designer",
+   "description": "Create AI visuals for social media without Photoshop or a designer. Practical guide: styles, formats by channel, brand guidelines, and real limitations to know.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "ai",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556737/blog/visuels-ia-reseaux-sociaux.png",
+   "pose": "annonce",
+   "minutes": 7,
+   "mots": 1473
+  },
+  {
+   "id": "veille-reseaux-sociaux",
+   "langue": "en",
+   "slug": "social-media-monitoring-small-business",
+   "chemin": "/en/blog/social-media-monitoring-small-business",
+   "titre": "Social media monitoring: how to stay informed without spending hours on it",
+   "description": "Social media monitoring: track algorithms, formats, and trends in 30 min/week. A practical method, reliable sources, and tools for small business owners.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "ai",
+    "strategy"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556703/blog/veille-reseaux-sociaux.png",
+   "pose": "accueille",
+   "minutes": 7,
+   "mots": 1360
+  },
+  {
+   "id": "strategie-contenu-reseaux-sociaux-pme",
+   "langue": "en",
+   "slug": "social-media-content-strategy-smb",
+   "chemin": "/en/blog/social-media-content-strategy-smb",
+   "titre": "Social Media Content Strategy for SMBs: 5 Decisions to Make Before You Post",
+   "description": "Social media content strategy for SMBs: 5 concrete decisions on platforms, editorial direction, and posting frequency so you never wing it again.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554863/blog/strategie-contenu-reseaux-sociaux-pme.png",
+   "pose": "presente-calme",
+   "minutes": 8,
+   "mots": 1632
+  },
+  {
+   "id": "storytelling-reseaux-sociaux-entreprise",
+   "langue": "en",
+   "slug": "social-media-storytelling-sme-structures",
+   "chemin": "/en/blog/social-media-storytelling-sme-structures",
+   "titre": "Social Media Storytelling: 5 Narrative Structures for Small Businesses",
+   "description": "Social media storytelling: 5 concrete narrative structures to help small businesses publish engaging posts, with industry examples and AI tips.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "redaction",
+    "strategy"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556667/blog/storytelling-reseaux-sociaux-entreprise.png",
+   "pose": "presente-calme",
+   "minutes": 8,
+   "mots": 1577
+  },
+  {
+   "id": "plan-communication-reseaux-sociaux-pme",
+   "langue": "en",
+   "slug": "social-media-plan-small-business",
+   "chemin": "/en/blog/social-media-plan-small-business",
+   "titre": "Social Media Communication Plan for Small Businesses: Build Yours Without an Agency",
+   "description": "Build your small business social media plan in a morning: goals, audiences, channels, schedule, and metrics. No agency, no jargon.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554832/blog/plan-communication-reseaux-sociaux-pme.png",
+   "pose": "idee",
+   "minutes": 8,
+   "mots": 1592
+  },
+  {
+   "id": "personal-branding-instagram",
+   "langue": "en",
+   "slug": "personal-branding-instagram-leaders-freelancers",
+   "chemin": "/en/blog/personal-branding-instagram-leaders-freelancers",
+   "titre": "Personal branding on Instagram: the method for business owners and freelancers",
+   "description": "Personal branding on Instagram: formats, frequency and concrete pillars for a business owner or freelancer who wants visibility without spending every evening on it.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "instagram",
+    "personal-branding"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556632/blog/personal-branding-instagram.png",
+   "pose": "clin-oeil",
+   "minutes": 7,
+   "mots": 1479
+  },
+  {
+   "id": "modele-calendrier-editorial-reseaux-sociaux",
+   "langue": "en",
+   "slug": "social-media-editorial-calendar-template",
+   "chemin": "/en/blog/social-media-editorial-calendar-template",
+   "titre": "Social Media Editorial Calendar Template: Build and Fill Yours in 30 Minutes",
+   "description": "A ready-to-copy social media editorial calendar template for Google Sheets or Notion, with a filled one-month example across 5 channels in 30 minutes.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556601/blog/modele-calendrier-editorial-reseaux-sociaux.png",
+   "pose": "presente-cote",
+   "minutes": 9,
+   "mots": 1876
+  },
+  {
+   "id": "miniature-video-courte",
+   "langue": "en",
+   "slug": "short-video-thumbnail-make-it-clickable",
+   "chemin": "/en/blog/short-video-thumbnail-make-it-clickable",
+   "titre": "Short video thumbnail: how to create one that gets clicks (with or without a designer)",
+   "description": "YouTube, Reels or TikTok thumbnail: visual rules, 8 formats, dimensions by platform and tools to boost your CTR without a designer.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "video",
+    "ai",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554805/blog/miniature-video-courte.png",
+   "pose": "pointe-haut",
+   "minutes": 8,
+   "mots": 1642
+  },
+  {
+   "id": "creer-page-entreprise-linkedin",
+   "langue": "en",
+   "slug": "create-linkedin-company-page-guide",
+   "chemin": "/en/blog/create-linkedin-company-page-guide",
+   "titre": "Creating a LinkedIn Company Page: The Step-by-Step Guide 2026",
+   "description": "Create a LinkedIn company page in 2026: steps, key settings, content that performs, and mistakes to avoid. A practical guide for business owners.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554775/blog/creer-page-entreprise-linkedin.png",
+   "pose": "presente-produit",
+   "minutes": 8,
+   "mots": 1525
+  },
+  {
+   "id": "agence-reseaux-sociaux-alternative",
+   "langue": "en",
+   "slug": "agency-freelance-ai-social-media-cost",
+   "chemin": "/en/blog/agency-freelance-ai-social-media-cost",
+   "titre": "Social media agency, freelance, or AI: what each option really costs",
+   "description": "Social media agency, freelance, classic tool, or AI: compare real costs and choose the right option for your small business.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy",
+    "delegation",
+    "budget"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556568/blog/agence-reseaux-sociaux-alternative.png",
+   "pose": "curieux",
+   "minutes": 8,
+   "mots": 1609
+  },
+  {
+   "id": "visuels-ia-reseaux-sociaux",
+   "langue": "fr",
+   "slug": "visuels-ia-reseaux-sociaux",
+   "chemin": "/blog/visuels-ia-reseaux-sociaux",
+   "titre": "Visuels IA pour les réseaux sociaux : comment créer des images cohérentes sans designer",
+   "description": "Créez des visuels IA pour vos réseaux sociaux sans Photoshop ni designer. Guide concret : styles, formats par canal, charte de marque et limites à connaître.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "ia",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556737/blog/visuels-ia-reseaux-sociaux.png",
+   "pose": "annonce",
+   "minutes": 8,
+   "mots": 1570
+  },
+  {
+   "id": "veille-reseaux-sociaux",
+   "langue": "fr",
+   "slug": "veille-reseaux-sociaux",
+   "chemin": "/blog/veille-reseaux-sociaux",
+   "titre": "Veille réseaux sociaux : comment rester informé sans y passer des heures",
+   "description": "Veille réseaux sociaux : suivez algorithmes, formats et tendances en 30 min/semaine. Méthode concrète, sources fiables et outils pour dirigeants de PME.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "ia",
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556703/blog/veille-reseaux-sociaux.png",
+   "pose": "accueille",
+   "minutes": 8,
+   "mots": 1518
+  },
+  {
+   "id": "strategie-contenu-reseaux-sociaux-pme",
+   "langue": "fr",
+   "slug": "strategie-contenu-reseaux-sociaux-pme",
+   "chemin": "/blog/strategie-contenu-reseaux-sociaux-pme",
+   "titre": "Stratégie de contenu réseaux sociaux pour PME : les 5 décisions à prendre avant de publier",
+   "description": "Stratégie de contenu réseaux sociaux pour PME : 5 décisions concrètes sur les plateformes, la ligne éditoriale et la fréquence pour publier sans improviser.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554863/blog/strategie-contenu-reseaux-sociaux-pme.png",
+   "pose": "presente-calme",
+   "minutes": 9,
+   "mots": 1758
+  },
+  {
+   "id": "storytelling-reseaux-sociaux-entreprise",
+   "langue": "fr",
+   "slug": "storytelling-reseaux-sociaux-entreprise",
+   "chemin": "/blog/storytelling-reseaux-sociaux-entreprise",
+   "titre": "Storytelling réseaux sociaux : 5 structures narratives pour une PME",
+   "description": "Storytelling réseaux sociaux : 5 structures narratives concrètes pour qu'une PME publie des posts qui accrochent, avec exemples sectoriels et conseils IA.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "redaction",
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556667/blog/storytelling-reseaux-sociaux-entreprise.png",
+   "pose": "presente-calme",
+   "minutes": 8,
+   "mots": 1692
+  },
+  {
+   "id": "plan-communication-reseaux-sociaux-pme",
+   "langue": "fr",
+   "slug": "plan-communication-reseaux-sociaux-pme",
+   "chemin": "/blog/plan-communication-reseaux-sociaux-pme",
+   "titre": "Plan de communication réseaux sociaux pour PME : construire le sien sans agence",
+   "description": "Construisez votre plan de communication réseaux sociaux pour PME en une matinée : objectifs, cibles, canaux, rythme et indicateurs. Sans agence, sans jargon.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554832/blog/plan-communication-reseaux-sociaux-pme.png",
+   "pose": "idee",
+   "minutes": 9,
+   "mots": 1719
+  },
+  {
+   "id": "personal-branding-instagram",
+   "langue": "fr",
+   "slug": "personal-branding-instagram",
+   "chemin": "/blog/personal-branding-instagram",
+   "titre": "Personal branding sur Instagram : la méthode pour un dirigeant ou indépendant",
+   "description": "Personal branding sur Instagram : formats, fréquence et piliers concrets pour un dirigeant ou indépendant qui veut être visible sans y passer ses soirées.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "instagram",
+    "personal-branding"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556632/blog/personal-branding-instagram.png",
+   "pose": "clin-oeil",
+   "minutes": 8,
+   "mots": 1585
+  },
+  {
+   "id": "modele-calendrier-editorial-reseaux-sociaux",
+   "langue": "fr",
+   "slug": "modele-calendrier-editorial-reseaux-sociaux",
+   "chemin": "/blog/modele-calendrier-editorial-reseaux-sociaux",
+   "titre": "Modèle de calendrier éditorial réseaux sociaux : construire et remplir le sien en 30 minutes",
+   "description": "Modèle de calendrier éditorial réseaux sociaux prêt à copier dans Google Sheets ou Notion, avec un exemple d'un mois rempli pour 5 canaux en 30 minutes.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556601/blog/modele-calendrier-editorial-reseaux-sociaux.png",
+   "pose": "presente-cote",
+   "minutes": 10,
+   "mots": 1936
+  },
+  {
+   "id": "miniature-video-courte",
+   "langue": "fr",
+   "slug": "miniature-video-courte",
+   "chemin": "/blog/miniature-video-courte",
+   "titre": "Miniature vidéo courte : comment en créer une qui fait cliquer (avec ou sans designer)",
+   "description": "Miniature YouTube, Reels ou TikTok : règles visuelles, 8 formats, dimensions par plateforme et outils pour créer une thumbnail qui booste votre CTR sans designer.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "video",
+    "ia",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554805/blog/miniature-video-courte.png",
+   "pose": "pointe-haut",
+   "minutes": 9,
+   "mots": 1796
+  },
+  {
+   "id": "creer-page-entreprise-linkedin",
+   "langue": "fr",
+   "slug": "creer-page-entreprise-linkedin",
+   "chemin": "/blog/creer-page-entreprise-linkedin",
+   "titre": "Créer une page entreprise LinkedIn : le guide pas-à-pas 2026",
+   "description": "Créer une page entreprise LinkedIn en 2026 : étapes, paramètres clés, contenu qui performe et erreurs à éviter. Guide concret pour dirigeants.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789554775/blog/creer-page-entreprise-linkedin.png",
+   "pose": "presente-produit",
+   "minutes": 8,
+   "mots": 1643
+  },
+  {
+   "id": "agence-reseaux-sociaux-alternative",
+   "langue": "fr",
+   "slug": "agence-reseaux-sociaux-alternative",
+   "chemin": "/blog/agence-reseaux-sociaux-alternative",
+   "titre": "Agence réseaux sociaux, freelance ou IA : ce que chaque option coûte vraiment",
+   "description": "Agence réseaux sociaux, freelance, outil classique ou IA : comparez les coûts réels et choisissez l'option adaptée à votre PME.",
+   "date": "2026-09-16",
+   "maj": "2026-09-16",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "delegation",
+    "budget"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1789556568/blog/agence-reseaux-sociaux-alternative.png",
+   "pose": "curieux",
+   "minutes": 9,
+   "mots": 1711
+  },
+  {
+   "id": "voix-off-ia",
+   "langue": "es",
+   "slug": "voz-en-off-ia-videos-profesionales-sin-estudio",
+   "chemin": "/es/blog/voz-en-off-ia-videos-profesionales-sin-estudio",
+   "titre": "Voz en off IA: cómo usarla en tus videos profesionales (sin estudio ni locutor)",
+   "description": "Voz en off IA para Reels, LinkedIn o YouTube Shorts: cómo elegir herramientas, clonar tu voz o no. Guía práctica para dueños de pymes.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "ia",
+    "video"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720554/blog/voix-off-ia.png",
+   "pose": "annonce",
+   "minutes": 8,
+   "mots": 1645
+  },
+  {
+   "id": "video-courte-entreprise",
+   "langue": "es",
+   "slug": "video-corta-empresa-2026",
+   "chemin": "/es/blog/video-corta-empresa-2026",
+   "titre": "Video corta para empresas: por qué es imprescindible en 2026 y cómo empezar",
+   "description": "Video corto para empresas: cifras clave, comparativa Reels/TikTok/Shorts, equipamiento mínimo y método batch para mantener el ritmo sin presupuesto de producción.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "video",
+    "estrategia",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723636/blog/video-courte-entreprise.png",
+   "pose": "annonce",
+   "minutes": 8,
+   "mots": 1652
+  },
+  {
+   "id": "tiktok-professionnel",
+   "langue": "es",
+   "slug": "tiktok-profesional-cuenta-algoritmo-publicar",
+   "chemin": "/es/blog/tiktok-profesional-cuenta-algoritmo-publicar",
+   "titre": "TikTok profesional: crear tu cuenta, entender el algoritmo y publicar sin perder horas",
+   "description": "Crear una cuenta TikTok profesional, configurar tu perfil y publicar con regularidad sin perder horas: la guía concreta para dirigentes de pymes.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "tiktok",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723602/blog/tiktok-professionnel.png",
+   "pose": "idee",
+   "minutes": 8,
+   "mots": 1523
+  },
+  {
+   "id": "tiktok-pour-entreprise",
+   "langue": "es",
+   "slug": "tiktok-para-empresas-por-donde-empezar",
+   "chemin": "/es/blog/tiktok-para-empresas-por-donde-empezar",
+   "titre": "TikTok para empresas: por dónde empezar sin dedicarle toda la vida",
+   "description": "TikTok para empresas: cifras clave en Francia 2026, para quién vale la pena, cómo funciona el algoritmo y cómo publicar sin agotarse.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "tiktok",
+    "pymes",
+    "estrategia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723570/blog/tiktok-pour-entreprise.png",
+   "pose": "presente-cote",
+   "minutes": 8,
+   "mots": 1666
+  },
+  {
+   "id": "page-facebook-professionnelle",
+   "langue": "es",
+   "slug": "pagina-facebook-profesional",
+   "chemin": "/es/blog/pagina-facebook-profesional",
+   "titre": "Página Facebook profesional: cómo crearla y gestionarla en 2026",
+   "description": "Crea una página Facebook profesional eficaz en 2026: pasos, configuración clave, formatos que funcionan y buenas prácticas para pymes y autónomos.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "pymes",
+    "facebook",
+    "estrategia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720520/blog/page-facebook-professionnelle.png",
+   "pose": "idee",
+   "minutes": 9,
+   "mots": 1754
+  },
+  {
+   "id": "optimiser-fiche-google-my-business",
+   "langue": "es",
+   "slug": "optimizar-ficha-google-my-business",
+   "chemin": "/es/blog/optimizar-ficha-google-my-business",
+   "titre": "Optimizar tu ficha de Google My Business: los 8 puntos que realmente marcan la diferencia",
+   "description": "¿Ya creaste tu ficha Google Business Profile? Aquí están las 8 optimizaciones concretas que mejoran tu SEO local y tu visibilidad en el pack local de Google.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "google",
+    "local",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723535/blog/optimiser-fiche-google-my-business.png",
+   "pose": "pointe-haut",
+   "minutes": 7,
+   "mots": 1405
+  },
+  {
+   "id": "google-business-profile-pme",
+   "langue": "es",
+   "slug": "google-business-profile-pymes",
+   "chemin": "/es/blog/google-business-profile-pymes",
+   "titre": "Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales",
+   "description": "Google Business Profile pymes: crea, verifica y optimiza tu ficha de empresa en 8 puntos para dominar la visibilidad local sin dedicarle horas.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "pymes",
+    "google",
+    "local"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720486/blog/google-business-profile-pme.png",
+   "pose": "presente-produit",
+   "minutes": 7,
+   "mots": 1360
+  },
+  {
+   "id": "creer-reels-instagram-entreprise",
+   "langue": "es",
+   "slug": "reels-instagram-para-empresas",
+   "chemin": "/es/blog/reels-instagram-para-empresas",
+   "titre": "Reels de Instagram para empresas: cómo crearlos sin videoasta ni montador",
+   "description": "Crear reels de Instagram para empresas sin presupuesto ni equipo de vídeo: formatos que funcionan, herramientas gratuitas y rutina de publicación eficaz.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "video",
+    "instagram",
+    "pymes"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723500/blog/creer-reels-instagram-entreprise.png",
+   "pose": "pouce-leve",
+   "minutes": 6,
+   "mots": 1285
+  },
+  {
+   "id": "creer-contenu-ia-pme",
+   "langue": "es",
+   "slug": "crear-contenido-con-ia-pme",
+   "chemin": "/es/blog/crear-contenido-con-ia-pme",
+   "titre": "Crear contenido con IA: lo que cambia de verdad para una pyme",
+   "description": "Crear contenido con IA reduce de 8 a 20 h/mes el trabajo editorial de una pyme. Lo que la herramienta hace bien, lo que no reemplaza y por dónde empezar.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "ia",
+    "pymes",
+    "estrategia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723466/blog/creer-contenu-ia-pme.png",
+   "pose": "presente-calme",
+   "minutes": 8,
+   "mots": 1598
+  },
+  {
+   "id": "cloner-voix-ia",
+   "langue": "es",
+   "slug": "clonar-voz-ia-dirigente-pyme",
+   "chemin": "/es/blog/clonar-voz-ia-dirigente-pyme",
+   "titre": "Clonar su voz con IA: cómo funciona y por qué es útil para un directivo",
+   "description": "Clonar su voz con IA en 2026: cómo funciona, cuánto tiempo lleva y por qué es útil para producir vídeos de empresa sin estudio.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "ia",
+    "video"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723430/blog/cloner-voix-ia.png",
+   "pose": "clin-oeil",
+   "minutes": 8,
+   "mots": 1523
+  },
+  {
+   "id": "voix-off-ia",
+   "langue": "en",
+   "slug": "ai-voiceover-videos-small-business",
+   "chemin": "/en/blog/ai-voiceover-videos-small-business",
+   "titre": "AI voiceover: how to use it for professional videos (no studio, no voice actor)",
+   "description": "AI voiceover for Reels, LinkedIn or YouTube Shorts: how to choose, which tools to use, whether to clone your voice. A practical guide for SMB owners.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "ai",
+    "video"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720554/blog/voix-off-ia.png",
+   "pose": "annonce",
+   "minutes": 7,
+   "mots": 1454
+  },
+  {
+   "id": "video-courte-entreprise",
+   "langue": "en",
+   "slug": "short-video-small-business-2026",
+   "chemin": "/en/blog/short-video-small-business-2026",
+   "titre": "Short video for business: why it is essential in 2026 and how to get started",
+   "description": "Short video for business: key figures, Reels/TikTok/Shorts comparison, minimum equipment and batch method to stay consistent without a production budget.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "video",
+    "strategy",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723636/blog/video-courte-entreprise.png",
+   "pose": "annonce",
+   "minutes": 8,
+   "mots": 1581
+  },
+  {
+   "id": "tiktok-professionnel",
+   "langue": "en",
+   "slug": "tiktok-professional-account-setup-guide",
+   "chemin": "/en/blog/tiktok-professional-account-setup-guide",
+   "titre": "Professional TikTok: set up your account, understand the algorithm, and post without it taking over your life",
+   "description": "Create a professional TikTok account, set up your profile, and post consistently without the extra workload. A practical guide for SMB owners.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "tiktok",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723602/blog/tiktok-professionnel.png",
+   "pose": "idee",
+   "minutes": 7,
+   "mots": 1429
+  },
+  {
+   "id": "tiktok-pour-entreprise",
+   "langue": "en",
+   "slug": "tiktok-for-business-getting-started",
+   "chemin": "/en/blog/tiktok-for-business-getting-started",
+   "titre": "TikTok for Business: How to Get Started Without It Taking Over Your Life",
+   "description": "TikTok for business in 2026: key figures, who it's right for, how the algorithm works, and how to post consistently without burning out.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "tiktok",
+    "small-business",
+    "strategy"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723570/blog/tiktok-pour-entreprise.png",
+   "pose": "presente-cote",
+   "minutes": 8,
+   "mots": 1568
+  },
+  {
+   "id": "page-facebook-professionnelle",
+   "langue": "en",
+   "slug": "professional-facebook-page",
+   "chemin": "/en/blog/professional-facebook-page",
+   "titre": "Professional Facebook Page: How to Create and Manage It in 2026",
+   "description": "Create an effective professional Facebook page in 2026: steps, key settings, top-performing formats and best practices for small businesses.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "small-business",
+    "facebook",
+    "strategy"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720520/blog/page-facebook-professionnelle.png",
+   "pose": "idee",
+   "minutes": 8,
+   "mots": 1619
+  },
+  {
+   "id": "optimiser-fiche-google-my-business",
+   "langue": "en",
+   "slug": "optimize-google-business-profile",
+   "chemin": "/en/blog/optimize-google-business-profile",
+   "titre": "Optimizing your Google My Business listing: the 8 points that actually make a difference",
+   "description": "Already created your Google Business Profile? Here are 8 concrete optimizations that improve your local SEO and visibility in the Google local pack.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "google",
+    "local",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723535/blog/optimiser-fiche-google-my-business.png",
+   "pose": "pointe-haut",
+   "minutes": 6,
+   "mots": 1280
+  },
+  {
+   "id": "google-business-profile-pme",
+   "langue": "en",
+   "slug": "google-business-profile-small-business",
+   "chemin": "/en/blog/google-business-profile-small-business",
+   "titre": "Google Business Profile for Small Businesses: the Complete Guide to Local Visibility",
+   "description": "Google Business Profile for SMBs: create, verify and optimize your listing in 8 steps to dominate local visibility without spending hours on it.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "small-business",
+    "google",
+    "local"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720486/blog/google-business-profile-pme.png",
+   "pose": "presente-produit",
+   "minutes": 6,
+   "mots": 1286
+  },
+  {
+   "id": "creer-reels-instagram-entreprise",
+   "langue": "en",
+   "slug": "instagram-reels-small-business",
+   "chemin": "/en/blog/instagram-reels-small-business",
+   "titre": "Instagram Reels for Business: How to Create Them Without a Videographer or Editor",
+   "description": "Create business Instagram Reels with no budget or video team: formats that work, free tools, AI voiceover, and an efficient publishing routine.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "video",
+    "instagram",
+    "small-business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723500/blog/creer-reels-instagram-entreprise.png",
+   "pose": "pouce-leve",
+   "minutes": 6,
+   "mots": 1208
+  },
+  {
+   "id": "creer-contenu-ia-pme",
+   "langue": "en",
+   "slug": "ai-content-creation-small-business",
+   "chemin": "/en/blog/ai-content-creation-small-business",
+   "titre": "Creating Content with AI: What It Really Changes for a Small Business",
+   "description": "Creating content with AI saves small businesses 8 to 20 hours a month. What the tool does well, what it cannot replace, and where to start.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "ai",
+    "small-business",
+    "strategy"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723466/blog/creer-contenu-ia-pme.png",
+   "pose": "presente-calme",
+   "minutes": 7,
+   "mots": 1479
+  },
+  {
+   "id": "cloner-voix-ia",
+   "langue": "en",
+   "slug": "clone-voice-ai-business-owner",
+   "chemin": "/en/blog/clone-voice-ai-business-owner",
+   "titre": "Cloning your voice with AI: how it works and why it matters for business owners",
+   "description": "Clone your voice with AI in 2026: how it works, how long it takes, and why it helps produce company videos without a studio.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "The Postorico team",
+   "tags": [
+    "ai",
+    "video"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723430/blog/cloner-voix-ia.png",
+   "pose": "clin-oeil",
+   "minutes": 7,
+   "mots": 1385
+  },
+  {
+   "id": "voix-off-ia",
+   "langue": "fr",
+   "slug": "voix-off-ia",
+   "chemin": "/blog/voix-off-ia",
+   "titre": "Voix off IA : comment l'utiliser pour ses vidéos pros (sans studio ni comédien)",
+   "description": "Voix off IA pour vos Reels, LinkedIn ou YouTube Shorts : comment choisir, quels outils, cloner sa voix ou pas - guide concret pour dirigeants de PME/TPE.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "ia",
+    "video"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720554/blog/voix-off-ia.png",
+   "pose": "annonce",
+   "minutes": 8,
+   "mots": 1606
+  },
+  {
+   "id": "video-courte-entreprise",
+   "langue": "fr",
+   "slug": "video-courte-entreprise",
+   "chemin": "/blog/video-courte-entreprise",
+   "titre": "Vidéo courte pour entreprise : pourquoi c'est incontournable en 2026 et comment s'y mettre",
+   "description": "Vidéo courte pour entreprise : chiffres clés, comparatif Reels/TikTok/Shorts, matériel minimum et méthode batch pour tenir dans la durée sans budget production.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "video",
+    "strategie",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723636/blog/video-courte-entreprise.png",
+   "pose": "annonce",
+   "minutes": 8,
+   "mots": 1633
+  },
+  {
+   "id": "tiktok-professionnel",
+   "langue": "fr",
+   "slug": "tiktok-professionnel",
+   "chemin": "/blog/tiktok-professionnel",
+   "titre": "TikTok professionnel : créer son compte, comprendre l'algorithme et publier sans y passer des heures",
+   "description": "Créer un compte TikTok professionnel, configurer son profil et publier régulièrement sans y passer des heures : le guide concret pour les dirigeants de PME.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "tiktok",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723602/blog/tiktok-professionnel.png",
+   "pose": "idee",
+   "minutes": 8,
+   "mots": 1515
+  },
+  {
+   "id": "tiktok-pour-entreprise",
+   "langue": "fr",
+   "slug": "tiktok-pour-entreprise",
+   "chemin": "/blog/tiktok-pour-entreprise",
+   "titre": "TikTok pour entreprise : par où commencer sans y passer sa vie",
+   "description": "TikTok pour entreprise : chiffres clés France 2026, pour qui ça vaut le coup, comment fonctionne l'algorithme et comment publier sans y passer ses soirées.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "tiktok",
+    "pme",
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723570/blog/tiktok-pour-entreprise.png",
+   "pose": "presente-cote",
+   "minutes": 8,
+   "mots": 1663
+  },
+  {
+   "id": "page-facebook-professionnelle",
+   "langue": "fr",
+   "slug": "page-facebook-professionnelle",
+   "chemin": "/blog/page-facebook-professionnelle",
+   "titre": "Page Facebook professionnelle : comment la créer et l'animer en 2026",
+   "description": "Créez une page Facebook professionnelle efficace en 2026 : étapes, paramètres clés, formats qui portent et bonnes pratiques pour PME et artisans.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "pme",
+    "facebook",
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720520/blog/page-facebook-professionnelle.png",
+   "pose": "idee",
+   "minutes": 9,
+   "mots": 1723
+  },
+  {
+   "id": "optimiser-fiche-google-my-business",
+   "langue": "fr",
+   "slug": "optimiser-fiche-google-my-business",
+   "chemin": "/blog/optimiser-fiche-google-my-business",
+   "titre": "Optimiser sa fiche Google My Business : les 8 points qui font vraiment la différence",
+   "description": "Fiche Google My Business déjà créée ? Voici les 8 optimisations concrètes qui améliorent votre référencement local et votre visibilité dans le pack local Google.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "google",
+    "local",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723535/blog/optimiser-fiche-google-my-business.png",
+   "pose": "pointe-haut",
+   "minutes": 7,
+   "mots": 1393
+  },
+  {
+   "id": "google-business-profile-pme",
+   "langue": "fr",
+   "slug": "google-business-profile-pme",
+   "chemin": "/blog/google-business-profile-pme",
+   "titre": "Google Business Profile pour PME : le guide complet pour être visible localement",
+   "description": "Google Business Profile PME : créez, vérifiez et optimisez votre fiche google entreprise en 8 points pour dominer la visibilité locale sans y passer des heures.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "pme",
+    "google",
+    "local"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788720486/blog/google-business-profile-pme.png",
+   "pose": "presente-produit",
+   "minutes": 7,
+   "mots": 1361
+  },
+  {
+   "id": "creer-reels-instagram-entreprise",
+   "langue": "fr",
+   "slug": "creer-reels-instagram-entreprise",
+   "chemin": "/blog/creer-reels-instagram-entreprise",
+   "titre": "Reels Instagram pour entreprise : comment en créer sans vidéaste ni monteur",
+   "description": "Créer des reels instagram entreprise sans budget ni équipe vidéo : formats qui marchent, outils gratuits, voix off IA et routine de publication efficace.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "video",
+    "instagram",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723500/blog/creer-reels-instagram-entreprise.png",
+   "pose": "pouce-leve",
+   "minutes": 6,
+   "mots": 1281
+  },
+  {
+   "id": "creer-contenu-ia-pme",
+   "langue": "fr",
+   "slug": "creer-contenu-ia-pme",
+   "chemin": "/blog/creer-contenu-ia-pme",
+   "titre": "Créer du contenu avec l'IA : ce que ça change vraiment pour une PME",
+   "description": "Créer du contenu avec l'IA réduit de 8 à 20 h/mois le travail éditorial d'une PME. Ce que l'outil fait bien, ce qu'il ne remplace pas, et par où commencer.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "ia",
+    "pme",
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723466/blog/creer-contenu-ia-pme.png",
+   "pose": "presente-calme",
+   "minutes": 8,
+   "mots": 1607
+  },
+  {
+   "id": "cloner-voix-ia",
+   "langue": "fr",
+   "slug": "cloner-voix-ia",
+   "chemin": "/blog/cloner-voix-ia",
+   "titre": "Cloner sa voix avec l'IA : comment ça marche et pourquoi c'est utile pour un dirigeant",
+   "description": "Cloner sa voix avec une IA en 2026 : comment ça marche, combien de temps ça prend et pourquoi c'est utile pour produire des vidéos entreprise sans studio.",
+   "date": "2026-09-06",
+   "maj": "2026-09-06",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "ia",
+    "video"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1788723430/blog/cloner-voix-ia.png",
+   "pose": "clin-oeil",
+   "minutes": 8,
+   "mots": 1539
+  },
+  {
+   "id": "social-selling-linkedin",
+   "langue": "es",
+   "slug": "social-selling-en-linkedin",
+   "chemin": "/es/blog/social-selling-en-linkedin",
+   "titre": "Social selling en LinkedIn: el método para vender sin prospección en frío",
+   "description": "El social selling en LinkedIn genera leads cualificados sin captación en frío. Método en 4 pasos, técnicas concretas, errores a evitar: la guía práctica 2026.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "linkedin",
+    "social-selling",
+    "prospeccion"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884200/contenus/df55ce02-b2e2-430e-841a-b30601635820/social-selling-linkedin.png",
+   "pose": "pouce-leve",
+   "minutes": 11,
+   "mots": 2179
+  },
+  {
+   "id": "social-selling-index-linkedin",
+   "langue": "es",
+   "slug": "social-selling-index-linkedin",
+   "chemin": "/es/blog/social-selling-index-linkedin",
+   "titre": "Social Selling Index de LinkedIn (SSI): ¿para qué sirve de verdad?",
+   "description": "El Social Selling Index de LinkedIn (SSI) mide tu eficacia comercial en la plataforma. Definición, los 4 pilares, referencias y 6 acciones concretas para mejorarlo, sin hacer trampas.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "linkedin",
+    "social-selling",
+    "rendimiento"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884078/contenus/df55ce02-b2e2-430e-841a-b30601635820/social-selling-index-linkedin.png",
+   "pose": "pointe-haut",
+   "minutes": 11,
+   "mots": 2135
+  },
+  {
+   "id": "rediger-un-post-linkedin",
+   "langue": "es",
+   "slug": "como-redactar-un-post-de-linkedin",
+   "chemin": "/es/blog/como-redactar-un-post-de-linkedin",
+   "titre": "Redactar un post de LinkedIn que funcione: el método gancho/cuerpo/CTA",
+   "description": "¿Cómo redactar un post de LinkedIn que genere de verdad interacción? Estructura gancho/cuerpo/CTA, 7 tipos de ganchos con ejemplos, errores que evitar: el método completo.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "linkedin",
+    "redaccion",
+    "rendimiento"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884166/contenus/df55ce02-b2e2-430e-841a-b30601635820/rediger-un-post-linkedin.png",
+   "pose": "idee",
+   "minutes": 11,
+   "mots": 2253
+  },
+  {
+   "id": "personal-branding-coach-consultant-se-differencier",
+   "langue": "es",
+   "slug": "personal-branding-coach-consultor-diferenciarse-sin-venderse",
+   "chemin": "/es/blog/personal-branding-coach-consultor-diferenciarse-sin-venderse",
+   "titre": "Personal branding para coach y consultor: diferenciarse sin venderse",
+   "description": "Personal branding para coach y consultor: ¿cómo construir una reputación que atraiga clientes sin venderte? Método en 4 etapas, canales y errores que evitar.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "personal-branding",
+    "coach",
+    "consultor"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884183/contenus/df55ce02-b2e2-430e-841a-b30601635820/personal-branding-coach-consultant-se-differencier.png",
+   "pose": "presente-cote",
+   "minutes": 10,
+   "mots": 2085
+  },
+  {
+   "id": "outil-gestion-reseaux-sociaux-pme",
+   "langue": "es",
+   "slug": "herramienta-gestion-redes-sociales-pyme",
+   "chemin": "/es/blog/herramienta-gestion-redes-sociales-pyme",
+   "titre": "Herramienta de gestión de redes sociales: ¿cuál elegir para una pyme en 2026?",
+   "description": "¿Qué herramienta de gestión de redes sociales elegir cuando diriges una pyme sin community manager? Comparativa honesta de 5 soluciones, criterios de elección y errores que evitar.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "herramientas",
+    "comparativa",
+    "pyme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884113/contenus/df55ce02-b2e2-430e-841a-b30601635820/outil-gestion-reseaux-sociaux-pme.png",
+   "pose": "presente-produit",
+   "minutes": 12,
+   "mots": 2364
+  },
+  {
+   "id": "marque-employeur-reseaux-sociaux-pme",
+   "langue": "es",
+   "slug": "marca-empleadora-redes-sociales-pymes",
+   "chemin": "/es/blog/marca-empleadora-redes-sociales-pymes",
+   "titre": "Marca empleadora: definición, estrategia y redes sociales para pymes",
+   "description": "La marca empleadora atrae a los buenos candidatos y fideliza a tus equipos. Definición, 5 pasos para construirla y el papel concreto de las redes sociales, incluso sin un área de RR. HH.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "marca-empleadora",
+    "reclutamiento",
+    "estrategia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884096/contenus/df55ce02-b2e2-430e-841a-b30601635820/marque-employeur-reseaux-sociaux-pme.png",
+   "pose": "presente-calme",
+   "minutes": 10,
+   "mots": 2064
+  },
+  {
+   "id": "instagram-pour-entreprise",
+   "langue": "es",
+   "slug": "instagram-para-empresas",
+   "chemin": "/es/blog/instagram-para-empresas",
+   "titre": "Instagram para empresas: cómo convertirlo en un canal de captación en 2026",
+   "description": "Instagram para empresas: ¿cómo transformar tu cuenta en un verdadero canal de captación? Perfil, formatos, frecuencia y estrategia, la guía práctica para pymes y autónomos.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "instagram",
+    "captacion",
+    "estrategia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884150/contenus/df55ce02-b2e2-430e-841a-b30601635820/instagram-pour-entreprise.png",
+   "pose": "annonce",
+   "minutes": 11,
+   "mots": 2182
+  },
+  {
+   "id": "ghostwriting-linkedin",
+   "langue": "es",
+   "slug": "ghostwriting-linkedin-redaccion",
+   "chemin": "/es/blog/ghostwriting-linkedin-redaccion",
+   "titre": "Ghostwriting en LinkedIn: escribir tus posts sin perder tu voz",
+   "description": "Ghostwriting en LinkedIn: tarifas reales, proceso, riesgos y la alternativa con IA, todo lo que un directivo debe saber antes de delegar la redacción de sus posts.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "linkedin",
+    "redaccion",
+    "ia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884131/contenus/df55ce02-b2e2-430e-841a-b30601635820/ghostwriting-linkedin.png",
+   "pose": "idee",
+   "minutes": 10,
+   "mots": 2080
+  },
+  {
+   "id": "deleguer-reseaux-sociaux",
+   "langue": "es",
+   "slug": "delegar-gestion-redes-sociales",
+   "chemin": "/es/blog/delegar-gestion-redes-sociales",
+   "titre": "Delegar tus redes sociales: ¿a quién, cómo y hasta dónde?",
+   "description": "Delegar tus redes sociales en una agencia, un freelance, un community manager o una IA calibrada: comparativa honesta de las opciones, pasos de preparación y hasta dónde delegar sin perder tu voz.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "estrategia",
+    "delegacion",
+    "ia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884321/contenus/df55ce02-b2e2-430e-841a-b30601635820/deleguer-reseaux-sociaux.png",
+   "pose": "presente-calme",
+   "minutes": 12,
+   "mots": 2347
+  },
+  {
+   "id": "banniere-linkedin",
+   "langue": "es",
+   "slug": "banner-linkedin-medidas-ejemplos-herramientas",
+   "chemin": "/es/blog/banner-linkedin-medidas-ejemplos-herramientas",
+   "titre": "Banner de LinkedIn: medidas, ejemplos y herramientas para crear uno en 10 min",
+   "description": "Crea un banner de LinkedIn profesional que llame la atención: medidas exactas, zonas seguras, 5 ejemplos por perfil, 3 herramientas gratuitas y errores a evitar.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "El equipo de Postorico",
+   "tags": [
+    "linkedin",
+    "banner",
+    "marca-personal"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884217/contenus/df55ce02-b2e2-430e-841a-b30601635820/banniere-linkedin.png",
+   "pose": "presente-produit",
+   "minutes": 10,
+   "mots": 2098
+  },
+  {
+   "id": "social-selling-linkedin",
+   "langue": "en",
+   "slug": "linkedin-social-selling",
+   "chemin": "/en/blog/linkedin-social-selling",
+   "titre": "LinkedIn social selling: the method to sell without cold outreach",
+   "description": "LinkedIn social selling generates qualified leads without cold prospecting. A 4-step method, concrete techniques, mistakes to avoid: the practical 2026 guide.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "social-selling",
+    "prospecting"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884200/contenus/df55ce02-b2e2-430e-841a-b30601635820/social-selling-linkedin.png",
+   "pose": "pouce-leve",
+   "minutes": 10,
+   "mots": 1995
+  },
+  {
+   "id": "social-selling-index-linkedin",
+   "langue": "en",
+   "slug": "linkedin-social-selling-index",
+   "chemin": "/en/blog/linkedin-social-selling-index",
+   "titre": "LinkedIn Social Selling Index (SSI): what is it actually good for?",
+   "description": "The LinkedIn Social Selling Index (SSI) measures how effectively you sell on the platform. Definition, the 4 pillars, benchmarks and 6 concrete actions to improve it, without gaming the system.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "social-selling",
+    "performance"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884078/contenus/df55ce02-b2e2-430e-841a-b30601635820/social-selling-index-linkedin.png",
+   "pose": "pointe-haut",
+   "minutes": 10,
+   "mots": 1944
+  },
+  {
+   "id": "rediger-un-post-linkedin",
+   "langue": "en",
+   "slug": "how-to-write-a-linkedin-post",
+   "chemin": "/en/blog/how-to-write-a-linkedin-post",
+   "titre": "Writing a LinkedIn post that performs: the hook/body/CTA method",
+   "description": "How do you write a LinkedIn post that actually drives engagement? Hook/body/CTA structure, 7 hook types with examples, mistakes to avoid: the complete method.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "copywriting",
+    "performance"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884166/contenus/df55ce02-b2e2-430e-841a-b30601635820/rediger-un-post-linkedin.png",
+   "pose": "idee",
+   "minutes": 11,
+   "mots": 2133
+  },
+  {
+   "id": "personal-branding-coach-consultant-se-differencier",
+   "langue": "en",
+   "slug": "personal-branding-coach-consultant-stand-out-without-selling",
+   "chemin": "/en/blog/personal-branding-coach-consultant-stand-out-without-selling",
+   "titre": "Personal branding for coaches and consultants: stand out without selling",
+   "description": "Personal branding for coaches and consultants: how to build a reputation that attracts clients without selling yourself? A 4-step method, channels, and mistakes to avoid.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "personal-branding",
+    "coach",
+    "consultant"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884183/contenus/df55ce02-b2e2-430e-841a-b30601635820/personal-branding-coach-consultant-se-differencier.png",
+   "pose": "presente-cote",
+   "minutes": 10,
+   "mots": 1941
+  },
+  {
+   "id": "outil-gestion-reseaux-sociaux-pme",
+   "langue": "en",
+   "slug": "social-media-management-tool-small-business",
+   "chemin": "/en/blog/social-media-management-tool-small-business",
+   "titre": "Social media management tool: which one to choose for a small business in 2026?",
+   "description": "Which social media management tool should you pick when you run a small business without a community manager? An honest comparison of 5 solutions, selection criteria, and pitfalls to avoid.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "tools",
+    "comparison",
+    "small business"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884113/contenus/df55ce02-b2e2-430e-841a-b30601635820/outil-gestion-reseaux-sociaux-pme.png",
+   "pose": "presente-produit",
+   "minutes": 11,
+   "mots": 2158
+  },
+  {
+   "id": "marque-employeur-reseaux-sociaux-pme",
+   "langue": "en",
+   "slug": "employer-branding-social-media-small-business",
+   "chemin": "/en/blog/employer-branding-social-media-small-business",
+   "titre": "Employer branding: definition, strategy and social media for SMBs",
+   "description": "A strong employer brand attracts the right candidates and keeps your teams. Definition, 5 steps to build it, and the concrete role of social media, even without a dedicated HR team.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "employer-branding",
+    "recruiting",
+    "strategy"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884096/contenus/df55ce02-b2e2-430e-841a-b30601635820/marque-employeur-reseaux-sociaux-pme.png",
+   "pose": "presente-calme",
+   "minutes": 10,
+   "mots": 1927
+  },
+  {
+   "id": "instagram-pour-entreprise",
+   "langue": "en",
+   "slug": "instagram-for-business",
+   "chemin": "/en/blog/instagram-for-business",
+   "titre": "Instagram for business: how to turn it into an acquisition channel in 2026",
+   "description": "Instagram for business: how do you turn your account into a real acquisition channel? Profile, formats, frequency and strategy, the practical guide for SMEs and freelancers.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "instagram",
+    "acquisition",
+    "strategy"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884150/contenus/df55ce02-b2e2-430e-841a-b30601635820/instagram-pour-entreprise.png",
+   "pose": "annonce",
+   "minutes": 10,
+   "mots": 1964
+  },
+  {
+   "id": "ghostwriting-linkedin",
+   "langue": "en",
+   "slug": "linkedin-ghostwriting",
+   "chemin": "/en/blog/linkedin-ghostwriting",
+   "titre": "LinkedIn Ghostwriting: Have Your Posts Written Without Losing Your Voice",
+   "description": "LinkedIn ghostwriting: real rates, process, risks and the AI alternative, everything an executive should know before delegating the writing of their posts.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "writing",
+    "ai"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884131/contenus/df55ce02-b2e2-430e-841a-b30601635820/ghostwriting-linkedin.png",
+   "pose": "idee",
+   "minutes": 10,
+   "mots": 1949
+  },
+  {
+   "id": "deleguer-reseaux-sociaux",
+   "langue": "en",
+   "slug": "delegate-social-media-management",
+   "chemin": "/en/blog/delegate-social-media-management",
+   "titre": "Delegating your social media: to whom, how, and how far?",
+   "description": "Delegating your social media to an agency, a freelancer, a community manager, or an AI calibrated on your voice: an honest comparison of the options, the prep steps, and how far to delegate without losing your voice.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy",
+    "delegation",
+    "ai"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884321/contenus/df55ce02-b2e2-430e-841a-b30601635820/deleguer-reseaux-sociaux.png",
+   "pose": "presente-calme",
+   "minutes": 11,
+   "mots": 2189
+  },
+  {
+   "id": "banniere-linkedin",
+   "langue": "en",
+   "slug": "linkedin-banner-size-examples-tools",
+   "chemin": "/en/blog/linkedin-banner-size-examples-tools",
+   "titre": "LinkedIn Banner: Sizes, Examples and Tools to Create One in 10 Minutes",
+   "description": "Create a professional LinkedIn banner that grabs attention: exact dimensions, safe zones, 5 examples by profile type, 3 free tools and mistakes to avoid.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "banner",
+    "personal-branding"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884217/contenus/df55ce02-b2e2-430e-841a-b30601635820/banniere-linkedin.png",
+   "pose": "presente-produit",
+   "minutes": 10,
+   "mots": 1911
+  },
+  {
+   "id": "social-selling-linkedin",
+   "langue": "fr",
+   "slug": "social-selling-linkedin",
+   "chemin": "/blog/social-selling-linkedin",
+   "titre": "Social selling LinkedIn : la méthode pour vendre sans prospecter à froid",
+   "description": "Le social selling LinkedIn permet de générer des leads qualifiés sans démarchage froid. Méthode en 4 étapes, techniques concrètes, erreurs à éviter - le guide pratique 2026.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "social-selling",
+    "prospection"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884200/contenus/df55ce02-b2e2-430e-841a-b30601635820/social-selling-linkedin.png",
+   "pose": "pouce-leve",
+   "minutes": 11,
+   "mots": 2208
+  },
+  {
+   "id": "social-selling-index-linkedin",
+   "langue": "fr",
+   "slug": "social-selling-index-linkedin",
+   "chemin": "/blog/social-selling-index-linkedin",
+   "titre": "Social Selling Index LinkedIn (SSI) : à quoi ça sert vraiment ?",
+   "description": "Le Social Selling Index LinkedIn (SSI) mesure votre efficacité commerciale sur la plateforme. Définition, 4 piliers, benchmarks et 6 actions concrètes pour l'améliorer - sans tricher.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "social-selling",
+    "performance"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884078/contenus/df55ce02-b2e2-430e-841a-b30601635820/social-selling-index-linkedin.png",
+   "pose": "pointe-haut",
+   "minutes": 11,
+   "mots": 2156
+  },
+  {
+   "id": "rediger-un-post-linkedin",
+   "langue": "fr",
+   "slug": "rediger-un-post-linkedin",
+   "chemin": "/blog/rediger-un-post-linkedin",
+   "titre": "Rédiger un post LinkedIn qui performe : méthode hook/corps/CTA",
+   "description": "Comment rédiger un post LinkedIn qui génère vraiment de l'engagement ? Structure hook/corps/CTA, 7 types d'accroches avec exemples, erreurs à éviter - la méthode complète.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "redaction",
+    "performance"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884166/contenus/df55ce02-b2e2-430e-841a-b30601635820/rediger-un-post-linkedin.png",
+   "pose": "idee",
+   "minutes": 13,
+   "mots": 2574
+  },
+  {
+   "id": "personal-branding-coach-consultant-se-differencier",
+   "langue": "fr",
+   "slug": "personal-branding-coach-consultant-se-differencier",
+   "chemin": "/blog/personal-branding-coach-consultant-se-differencier",
+   "titre": "Personal branding coach et consultant : se différencier sans se vendre",
+   "description": "Personal branding pour coach et consultant : comment construire une réputation qui attire des clients sans se vendre ? Méthode en 4 étapes, canaux, erreurs à éviter.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "personal-branding",
+    "coach",
+    "consultant"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884183/contenus/df55ce02-b2e2-430e-841a-b30601635820/personal-branding-coach-consultant-se-differencier.png",
+   "pose": "presente-cote",
+   "minutes": 11,
+   "mots": 2112
+  },
+  {
+   "id": "outil-gestion-reseaux-sociaux-pme",
+   "langue": "fr",
+   "slug": "outil-gestion-reseaux-sociaux-pme",
+   "chemin": "/blog/outil-gestion-reseaux-sociaux-pme",
+   "titre": "Outil gestion réseaux sociaux : lequel choisir pour une PME en 2026 ?",
+   "description": "Quel outil de gestion des réseaux sociaux choisir quand on dirige une PME sans community manager ? Comparatif honnête de 5 solutions, critères de choix et pièges à éviter.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "outils",
+    "comparatif",
+    "pme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884113/contenus/df55ce02-b2e2-430e-841a-b30601635820/outil-gestion-reseaux-sociaux-pme.png",
+   "pose": "presente-produit",
+   "minutes": 12,
+   "mots": 2337
+  },
+  {
+   "id": "marque-employeur-reseaux-sociaux-pme",
+   "langue": "fr",
+   "slug": "marque-employeur-reseaux-sociaux-pme",
+   "chemin": "/blog/marque-employeur-reseaux-sociaux-pme",
+   "titre": "Marque employeur : définition, stratégie et réseaux sociaux pour PME",
+   "description": "La marque employeur attire les bons candidats et fidélise vos équipes. Définition, 5 étapes pour la construire et rôle concret des réseaux sociaux - même sans RH dédié.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "marque-employeur",
+    "recrutement",
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884096/contenus/df55ce02-b2e2-430e-841a-b30601635820/marque-employeur-reseaux-sociaux-pme.png",
+   "pose": "presente-calme",
+   "minutes": 10,
+   "mots": 2070
+  },
+  {
+   "id": "instagram-pour-entreprise",
+   "langue": "fr",
+   "slug": "instagram-pour-entreprise",
+   "chemin": "/blog/instagram-pour-entreprise",
+   "titre": "Instagram pour entreprise : comment en faire un canal d'acquisition en 2026",
+   "description": "Instagram pour entreprise : comment transformer votre compte en vrai canal d'acquisition ? Profil, formats, fréquence et stratégie - le guide concret pour PME et indépendants.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "instagram",
+    "acquisition",
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884150/contenus/df55ce02-b2e2-430e-841a-b30601635820/instagram-pour-entreprise.png",
+   "pose": "annonce",
+   "minutes": 11,
+   "mots": 2158
+  },
+  {
+   "id": "ghostwriting-linkedin",
+   "langue": "fr",
+   "slug": "ghostwriting-linkedin",
+   "chemin": "/blog/ghostwriting-linkedin",
+   "titre": "Ghostwriting LinkedIn : faire écrire ses posts sans perdre sa voix",
+   "description": "Ghostwriting LinkedIn : tarifs réels, processus, risques et alternative IA - tout ce qu'un dirigeant doit savoir avant de déléguer la rédaction de ses posts.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "redaction",
+    "ia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884131/contenus/df55ce02-b2e2-430e-841a-b30601635820/ghostwriting-linkedin.png",
+   "pose": "idee",
+   "minutes": 11,
+   "mots": 2128
+  },
+  {
+   "id": "deleguer-reseaux-sociaux",
+   "langue": "fr",
+   "slug": "deleguer-reseaux-sociaux",
+   "chemin": "/blog/deleguer-reseaux-sociaux",
+   "titre": "Déléguer ses réseaux sociaux : à qui, comment et jusqu'où ?",
+   "description": "Déléguer ses réseaux sociaux à une agence, un freelance, un CM ou une IA calibrée : comparatif honnête des options, étapes de préparation et jusqu'où déléguer sans perdre sa voix.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "delegation",
+    "ia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884321/contenus/df55ce02-b2e2-430e-841a-b30601635820/deleguer-reseaux-sociaux.png",
+   "pose": "presente-calme",
+   "minutes": 12,
+   "mots": 2426
+  },
+  {
+   "id": "banniere-linkedin",
+   "langue": "fr",
+   "slug": "banniere-linkedin",
+   "chemin": "/blog/banniere-linkedin",
+   "titre": "Bannière LinkedIn : dimensions, exemples et outils pour en créer une en 10 min",
+   "description": "Créez une bannière LinkedIn professionnelle qui attire l'attention : dimensions exactes, zones sûres, 5 exemples par profil, 3 outils gratuits et erreurs à éviter.",
+   "date": "2026-08-28",
+   "maj": "2026-08-28",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "banniere",
+    "personal-branding"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787884217/contenus/df55ce02-b2e2-430e-841a-b30601635820/banniere-linkedin.png",
+   "pose": "presente-produit",
+   "minutes": 10,
+   "mots": 2066
+  },
+  {
+   "id": "taux-engagement-linkedin",
+   "langue": "es",
+   "slug": "tasa-engagement-linkedin",
+   "chemin": "/es/blog/tasa-engagement-linkedin",
+   "titre": "Tasa de engagement en LinkedIn: cálculo, benchmarks y consejos 2026",
+   "description": "¿Qué es una buena tasa de engagement en LinkedIn? Fórmula de cálculo, benchmarks por tamaño de audiencia y 6 acciones concretas para mejorarla, sin publicar todos los días.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "linkedin",
+    "rendimiento"
+   ],
+   "image": null,
+   "pose": "presente-cote",
+   "minutes": 11,
+   "mots": 2114
+  },
+  {
+   "id": "strategie-linkedin-pme",
+   "langue": "es",
+   "slug": "estrategia-linkedin-pymes",
+   "chemin": "/es/blog/estrategia-linkedin-pymes",
+   "titre": "Estrategia de LinkedIn para pymes: por dónde empezar sin community manager",
+   "description": "Construye una estrategia de LinkedIn para tu pyme sin community manager ni gran presupuesto: pilares de contenido, frecuencia, formatos y errores a evitar. La guía accionable 2026.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "linkedin",
+    "pymes",
+    "estrategia"
+   ],
+   "image": null,
+   "pose": "pouce-leve",
+   "minutes": 11,
+   "mots": 2238
+  },
+  {
+   "id": "reseaux-sociaux-pour-chef-d-entreprise",
+   "langue": "es",
+   "slug": "redes-sociales-para-directivos",
+   "chemin": "/es/blog/redes-sociales-para-directivos",
+   "titre": "Redes sociales para directivos: lo que funciona en 2026",
+   "description": "Redes sociales para directivos: qué plataformas elegir, con qué frecuencia publicar y cómo evitar los errores que hacen perder tiempo. La guía práctica de 2026.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "directivo"
+   ],
+   "image": null,
+   "pose": "curieux",
+   "minutes": 9,
+   "mots": 1897
+  },
+  {
+   "id": "personal-branding-linkedin-guide-dirigeants",
+   "langue": "es",
+   "slug": "personal-branding-linkedin-guia-directivos",
+   "chemin": "/es/blog/personal-branding-linkedin-guia-directivos",
+   "titre": "Personal branding en LinkedIn: la guía para directivos con poco tiempo",
+   "description": "Construye tu personal branding en LinkedIn sin dedicarle horas: perfil, contenido, interacciones. El método concreto para directivos y autónomos que quieren ser vistos sin ahogarse.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "linkedin",
+    "personal-branding",
+    "directivo"
+   ],
+   "image": null,
+   "pose": "clin-oeil",
+   "minutes": 10,
+   "mots": 1932
+  },
+  {
+   "id": "personal-branding-freelance",
+   "langue": "es",
+   "slug": "personal-branding-freelance-sin-presupuesto",
+   "chemin": "/es/blog/personal-branding-freelance-sin-presupuesto",
+   "titre": "Personal branding freelance: construir tu reputación sin presupuesto",
+   "description": "Personal branding freelance: ¿cómo construir una reputación sólida sin agencia ni presupuesto? Método en 4 pasos, herramientas gratuitas y errores que evitar para atraer clientes premium.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "personal-branding",
+    "freelance"
+   ],
+   "image": null,
+   "pose": "presente-produit",
+   "minutes": 9,
+   "mots": 1832
+  },
+  {
+   "id": "linkedin-pour-dirigeant",
+   "langue": "es",
+   "slug": "linkedin-para-directivos",
+   "chemin": "/es/blog/linkedin-para-directivos",
+   "titre": "LinkedIn para directivos: ser visible sin publicar todos los días",
+   "description": "LinkedIn para directivos: ¿cómo construir una visibilidad real sin dedicarle horas? Perfil, formatos, frecuencia y errores que evitar - la guía práctica para líderes de empresa.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "linkedin",
+    "directivo"
+   ],
+   "image": null,
+   "pose": "accueille",
+   "minutes": 12,
+   "mots": 2406
+  },
+  {
+   "id": "intelligence-artificielle-reseaux-sociaux-pme",
+   "langue": "es",
+   "slug": "inteligencia-artificial-redes-sociales-pymes",
+   "chemin": "/es/blog/inteligencia-artificial-redes-sociales-pymes",
+   "titre": "IA y redes sociales: lo que de verdad cambia para las pymes en 2026",
+   "description": "La inteligencia artificial está transformando la gestión de las redes sociales. Descubre qué puede hacer la IA de forma concreta por una pyme: contenido, programación, análisis, y qué debe seguir siendo humano.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "pyme",
+    "ia"
+   ],
+   "image": null,
+   "pose": "presente-calme",
+   "minutes": 9,
+   "mots": 1894
+  },
+  {
+   "id": "developper-son-personal-branding",
+   "langue": "es",
+   "slug": "personal-branding-para-directivos",
+   "chemin": "/es/blog/personal-branding-para-directivos",
+   "titre": "Desarrollar tu personal branding: la guía del director de empresa",
+   "description": "¿Cómo desarrollar tu personal branding cuando diriges una empresa? Un método en 5 pasos, los errores que evitar y el papel de la IA, para ser visible sin dedicarle horas.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "personal-branding"
+   ],
+   "image": null,
+   "pose": "annonce",
+   "minutes": 10,
+   "mots": 1918
+  },
+  {
+   "id": "calendrier-editorial-reseaux-sociaux",
+   "langue": "es",
+   "slug": "calendario-editorial-redes-sociales",
+   "chemin": "/es/blog/calendario-editorial-redes-sociales",
+   "titre": "Calendario editorial para redes sociales: guía práctica 2026",
+   "description": "Crea un calendario editorial para redes sociales eficaz en menos de una hora. Método paso a paso, ejemplo concreto y consejos para directivos con poco tiempo.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "estrategia"
+   ],
+   "image": null,
+   "pose": "idee",
+   "minutes": 10,
+   "mots": 1968
+  },
+  {
+   "id": "automatisation-reseaux-sociaux",
+   "langue": "es",
+   "slug": "automatizacion-redes-sociales",
+   "chemin": "/es/blog/automatizacion-redes-sociales",
+   "titre": "Automatización de redes sociales: lo que la IA puede (de verdad) hacer por ti",
+   "description": "Automatización de redes sociales: descubre qué puedes delegar en la IA, qué debe seguir siendo humano y las herramientas concretas para ganar tiempo sin perder tu voz.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "ia"
+   ],
+   "image": null,
+   "pose": "pointe-haut",
+   "minutes": 10,
+   "mots": 2044
+  },
+  {
+   "id": "taux-engagement-linkedin",
+   "langue": "en",
+   "slug": "linkedin-engagement-rate",
+   "chemin": "/en/blog/linkedin-engagement-rate",
+   "titre": "LinkedIn engagement rate: formula, benchmarks and 2026 tips",
+   "description": "What is a good LinkedIn engagement rate? The formula, benchmarks by audience size and 6 concrete actions to improve it, without posting every day.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "performance"
+   ],
+   "image": null,
+   "pose": "presente-cote",
+   "minutes": 10,
+   "mots": 1952
+  },
+  {
+   "id": "strategie-linkedin-pme",
+   "langue": "en",
+   "slug": "linkedin-strategy-for-smbs",
+   "chemin": "/en/blog/linkedin-strategy-for-smbs",
+   "titre": "LinkedIn strategy for SMBs: where to start without a community manager",
+   "description": "Build a LinkedIn strategy for your SMB without a community manager or a big budget: content pillars, frequency, formats and mistakes to avoid. The actionable 2026 guide.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "smb",
+    "strategy"
+   ],
+   "image": null,
+   "pose": "pouce-leve",
+   "minutes": 10,
+   "mots": 2074
+  },
+  {
+   "id": "reseaux-sociaux-pour-chef-d-entreprise",
+   "langue": "en",
+   "slug": "social-media-for-business-owners",
+   "chemin": "/en/blog/social-media-for-business-owners",
+   "titre": "Social media for business owners: what works in 2026",
+   "description": "Social media for business owners: which platforms to choose, how often to post and how to avoid the mistakes that waste your time. The practical 2026 guide.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "executive"
+   ],
+   "image": null,
+   "pose": "curieux",
+   "minutes": 9,
+   "mots": 1748
+  },
+  {
+   "id": "personal-branding-linkedin-guide-dirigeants",
+   "langue": "en",
+   "slug": "linkedin-personal-branding-guide-executives",
+   "chemin": "/en/blog/linkedin-personal-branding-guide-executives",
+   "titre": "LinkedIn personal branding: the guide for time-poor executives",
+   "description": "Build your LinkedIn personal branding without spending hours on it: profile, content, interactions. The concrete method for executives and freelancers who want to be seen without drowning.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "personal-branding",
+    "executive"
+   ],
+   "image": null,
+   "pose": "clin-oeil",
+   "minutes": 9,
+   "mots": 1805
+  },
+  {
+   "id": "personal-branding-freelance",
+   "langue": "en",
+   "slug": "freelance-personal-branding",
+   "chemin": "/en/blog/freelance-personal-branding",
+   "titre": "Freelance personal branding: building your reputation with no budget",
+   "description": "Freelance personal branding: how do you build a solid reputation with no agency and no budget? A four-step method, free tools and mistakes to avoid to attract premium clients.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "personal-branding",
+    "freelance"
+   ],
+   "image": null,
+   "pose": "presente-produit",
+   "minutes": 9,
+   "mots": 1832
+  },
+  {
+   "id": "linkedin-pour-dirigeant",
+   "langue": "en",
+   "slug": "linkedin-for-executives",
+   "chemin": "/en/blog/linkedin-for-executives",
+   "titre": "LinkedIn for executives: staying visible without posting every day",
+   "description": "LinkedIn for executives: how do you build real visibility without spending hours on it? Profile, formats, frequency and mistakes to avoid - the practical guide for business leaders.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "executive"
+   ],
+   "image": null,
+   "pose": "accueille",
+   "minutes": 11,
+   "mots": 2273
+  },
+  {
+   "id": "intelligence-artificielle-reseaux-sociaux-pme",
+   "langue": "en",
+   "slug": "ai-social-media-small-business",
+   "chemin": "/en/blog/ai-social-media-small-business",
+   "titre": "AI and social media: what really changes for small businesses in 2026",
+   "description": "Artificial intelligence is transforming social media management. Discover what AI can concretely do for a small business: content, scheduling, analysis, and what should stay human.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "small-business",
+    "ai"
+   ],
+   "image": null,
+   "pose": "presente-calme",
+   "minutes": 8,
+   "mots": 1688
+  },
+  {
+   "id": "developper-son-personal-branding",
+   "langue": "en",
+   "slug": "personal-branding-for-business-owners",
+   "chemin": "/en/blog/personal-branding-for-business-owners",
+   "titre": "Building your personal branding: the business owner's guide",
+   "description": "How do you build your personal branding when you run a company? A five-step method, the mistakes to avoid, and the role of AI, so you stay visible without spending hours on it.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "personal-branding"
+   ],
+   "image": null,
+   "pose": "annonce",
+   "minutes": 9,
+   "mots": 1849
+  },
+  {
+   "id": "calendrier-editorial-reseaux-sociaux",
+   "langue": "en",
+   "slug": "social-media-content-calendar",
+   "chemin": "/en/blog/social-media-content-calendar",
+   "titre": "Social media content calendar: a practical 2026 guide",
+   "description": "Build an effective social media content calendar in under an hour. A step-by-step method, a concrete example and tips for time-strapped executives.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy"
+   ],
+   "image": null,
+   "pose": "idee",
+   "minutes": 9,
+   "mots": 1898
+  },
+  {
+   "id": "automatisation-reseaux-sociaux",
+   "langue": "en",
+   "slug": "social-media-automation",
+   "chemin": "/en/blog/social-media-automation",
+   "titre": "Social media automation: what AI can (really) do for you",
+   "description": "Social media automation: discover what you can hand off to AI, what must stay human, and the concrete tools to save time without losing your voice.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "The Postorico team",
+   "tags": [
+    "ai"
+   ],
+   "image": null,
+   "pose": "pointe-haut",
+   "minutes": 10,
+   "mots": 1930
+  },
+  {
+   "id": "taux-engagement-linkedin",
+   "langue": "fr",
+   "slug": "taux-engagement-linkedin",
+   "chemin": "/blog/taux-engagement-linkedin",
+   "titre": "Taux d'engagement LinkedIn : calcul, benchmarks et conseils 2026",
+   "description": "Qu'est-ce qu'un bon taux d'engagement LinkedIn ? Formule de calcul, benchmarks par taille d'audience et 6 actions concrètes pour l'améliorer - sans publier tous les jours.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "performance"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752493/contenus/df55ce02-b2e2-430e-841a-b30601635820/taux-engagement-linkedin.png",
+   "pose": "presente-cote",
+   "minutes": 11,
+   "mots": 2148
+  },
+  {
+   "id": "strategie-linkedin-pme",
+   "langue": "fr",
+   "slug": "strategie-linkedin-pme",
+   "chemin": "/blog/strategie-linkedin-pme",
+   "titre": "Stratégie LinkedIn PME : par où commencer sans community manager",
+   "description": "Construire une stratégie LinkedIn pour votre PME sans community manager ni gros budget : piliers de contenu, fréquence, formats et erreurs à éviter - le guide actionnable 2026.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "pme",
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752713/contenus/df55ce02-b2e2-430e-841a-b30601635820/strategie-linkedin-pme.png",
+   "pose": "pouce-leve",
+   "minutes": 11,
+   "mots": 2193
+  },
+  {
+   "id": "reseaux-sociaux-pour-chef-d-entreprise",
+   "langue": "fr",
+   "slug": "reseaux-sociaux-pour-chef-d-entreprise",
+   "chemin": "/blog/reseaux-sociaux-pour-chef-d-entreprise",
+   "titre": "Réseaux sociaux pour chef d'entreprise : ce qui fonctionne en 2026",
+   "description": "Réseaux sociaux pour chef d'entreprise : quelles plateformes choisir, quelle fréquence tenir et comment éviter les erreurs qui font perdre du temps - le guide concret 2026.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "dirigeant"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752732/contenus/df55ce02-b2e2-430e-841a-b30601635820/reseaux-sociaux-pour-chef-d-entreprise.png",
+   "pose": "curieux",
+   "minutes": 9,
+   "mots": 1879
+  },
+  {
+   "id": "personal-branding-linkedin-guide-dirigeants",
+   "langue": "fr",
+   "slug": "personal-branding-linkedin-guide-dirigeants",
+   "chemin": "/blog/personal-branding-linkedin-guide-dirigeants",
+   "titre": "Personal branding LinkedIn : le guide pour dirigeants qui manquent de temps",
+   "description": "Construire son personal branding LinkedIn sans y passer des heures : profil, contenu, interactions - la méthode concrète pour dirigeants et indépendants qui veulent être vus sans se noyer.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "personal-branding",
+    "dirigeant"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752612/contenus/df55ce02-b2e2-430e-841a-b30601635820/personal-branding-linkedin-guide-dirigeants.png",
+   "pose": "clin-oeil",
+   "minutes": 10,
+   "mots": 2002
+  },
+  {
+   "id": "personal-branding-freelance",
+   "langue": "fr",
+   "slug": "personal-branding-freelance",
+   "chemin": "/blog/personal-branding-freelance",
+   "titre": "Personal branding freelance : construire sa réputation sans budget",
+   "description": "Personal branding freelance : comment construire une réputation solide sans agence ni budget ? Méthode en 4 étapes, outils gratuits et erreurs à éviter pour attirer des clients premium.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "personal-branding",
+    "freelance"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752656/contenus/df55ce02-b2e2-430e-841a-b30601635820/personal-branding-freelance.png",
+   "pose": "presente-produit",
+   "minutes": 10,
+   "mots": 1900
+  },
+  {
+   "id": "linkedin-pour-dirigeant",
+   "langue": "fr",
+   "slug": "linkedin-pour-dirigeant",
+   "chemin": "/blog/linkedin-pour-dirigeant",
+   "titre": "LinkedIn pour dirigeant : être visible sans publier tous les jours",
+   "description": "LinkedIn pour dirigeant : comment construire une vraie visibilité sans y passer des heures ? Profil, formats, fréquence et erreurs à éviter - le guide concret pour chefs d'entreprise.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "dirigeant"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752692/contenus/df55ce02-b2e2-430e-841a-b30601635820/linkedin-pour-dirigeant.png",
+   "pose": "accueille",
+   "minutes": 12,
+   "mots": 2461
+  },
+  {
+   "id": "intelligence-artificielle-reseaux-sociaux-pme",
+   "langue": "fr",
+   "slug": "intelligence-artificielle-reseaux-sociaux-pme",
+   "chemin": "/blog/intelligence-artificielle-reseaux-sociaux-pme",
+   "titre": "IA et réseaux sociaux : ce qui change vraiment pour les PME en 2026",
+   "description": "L'intelligence artificielle transforme la gestion des réseaux sociaux. Découvrez ce que l'IA peut faire concrètement pour une PME : contenu, programmation, analyse - et ce qui doit rester humain.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "pme",
+    "ia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752672/contenus/df55ce02-b2e2-430e-841a-b30601635820/intelligence-artificielle-reseaux-sociaux-pme.png",
+   "pose": "presente-calme",
+   "minutes": 9,
+   "mots": 1889
+  },
+  {
+   "id": "developper-son-personal-branding",
+   "langue": "fr",
+   "slug": "developper-son-personal-branding",
+   "chemin": "/blog/developper-son-personal-branding",
+   "titre": "Développer son personal branding : le guide du chef d'entreprise",
+   "description": "Comment développer son personal branding quand on dirige une entreprise ? Méthode en 5 étapes, erreurs à éviter et rôle de l'IA - pour être visible sans y passer des heures.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "personal-branding"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752634/contenus/df55ce02-b2e2-430e-841a-b30601635820/developper-son-personal-branding.png",
+   "pose": "annonce",
+   "minutes": 10,
+   "mots": 1954
+  },
+  {
+   "id": "calendrier-editorial-reseaux-sociaux",
+   "langue": "fr",
+   "slug": "calendrier-editorial-reseaux-sociaux",
+   "chemin": "/blog/calendrier-editorial-reseaux-sociaux",
+   "titre": "Calendrier éditorial réseaux sociaux : guide pratique 2026",
+   "description": "Créez un calendrier éditorial réseaux sociaux efficace en moins d'une heure. Méthode pas à pas, exemple concret et astuces pour dirigeants qui manquent de temps.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752476/contenus/df55ce02-b2e2-430e-841a-b30601635820/calendrier-editorial-reseaux-sociaux.png",
+   "pose": "idee",
+   "minutes": 10,
+   "mots": 1971
+  },
+  {
+   "id": "automatisation-reseaux-sociaux",
+   "langue": "fr",
+   "slug": "automatisation-reseaux-sociaux",
+   "chemin": "/blog/automatisation-reseaux-sociaux",
+   "titre": "Automatisation réseaux sociaux : ce que l'IA peut (vraiment) faire pour vous",
+   "description": "Automatisation réseaux sociaux : découvrez ce que vous pouvez déléguer à l'IA, ce qui doit rester humain, et les outils concrets pour gagner du temps sans perdre votre voix.",
+   "date": "2026-08-26",
+   "maj": "2026-08-26",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "ia"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787752513/contenus/df55ce02-b2e2-430e-841a-b30601635820/automatisation-reseaux-sociaux.png",
+   "pose": "pointe-haut",
+   "minutes": 11,
+   "mots": 2120
+  },
+  {
+   "id": "tarif-community-manager",
+   "langue": "es",
+   "slug": "tarifas-community-manager",
+   "chemin": "/es/blog/tarifas-community-manager",
+   "titre": "Community manager freelance: qué tarifas cobra y cómo elegir",
+   "description": "Las tarifas reales de un community manager freelance, precio por día, paquetes mensuales, comparación con una agencia y las preguntas que hacer antes de firmar.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "presupuesto",
+    "freelance",
+    "agencia"
+   ],
+   "image": null,
+   "pose": "idee",
+   "minutes": 9,
+   "mots": 1737
+  },
+  {
+   "id": "logiciel-reseaux-sociaux",
+   "langue": "es",
+   "slug": "software-gestion-redes-sociales",
+   "chemin": "/es/blog/software-gestion-redes-sociales",
+   "titre": "¿Qué software de gestión de redes sociales para una pequeña empresa?",
+   "description": "Buffer, Hootsuite, Metricool, un comparativo honesto para una pyme o un autónomo, con los precios verificados, los límites reales y lo que ninguna herramienta hará.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "herramientas",
+    "comparativa",
+    "planificacion"
+   ],
+   "image": null,
+   "pose": "pointe-haut",
+   "minutes": 8,
+   "mots": 1508
+  },
+  {
+   "id": "gestion-deleguer-ou-pas",
+   "langue": "es",
+   "slug": "gestionar-redes-sociales-uno-mismo-o-delegar",
+   "chemin": "/es/blog/gestionar-redes-sociales-uno-mismo-o-delegar",
+   "titre": "Gestión de redes sociales: ¿hacerlo uno mismo o delegar?",
+   "description": "¿Gestionar tus redes sociales solo o delegar? Comparamos las opciones de forma concreta: tiempo, coste, resultados, para que elijas bien.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "estrategia",
+    "delegacion",
+    "presupuesto"
+   ],
+   "image": null,
+   "pose": "presente-calme",
+   "minutes": 7,
+   "mots": 1390
+  },
+  {
+   "id": "tarif-community-manager",
+   "langue": "en",
+   "slug": "community-manager-rates",
+   "chemin": "/en/blog/community-manager-rates",
+   "titre": "Freelance community manager rates: what they cost and how to choose",
+   "description": "The real rates of a freelance community manager, day rates, monthly packages, how they compare with an agency, and the questions to ask before signing.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "The Postorico team",
+   "tags": [
+    "budget",
+    "freelance",
+    "agency"
+   ],
+   "image": null,
+   "pose": "idee",
+   "minutes": 8,
+   "mots": 1628
+  },
+  {
+   "id": "logiciel-reseaux-sociaux",
+   "langue": "en",
+   "slug": "social-media-management-software",
+   "chemin": "/en/blog/social-media-management-software",
+   "titre": "Which social media management software for a small business?",
+   "description": "Buffer, Hootsuite, Metricool, an honest comparison for a small business or freelancer, with verified prices, real limits and what no tool will ever do.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "The Postorico team",
+   "tags": [
+    "tools",
+    "comparison",
+    "scheduling"
+   ],
+   "image": null,
+   "pose": "pointe-haut",
+   "minutes": 7,
+   "mots": 1488
+  },
+  {
+   "id": "gestion-deleguer-ou-pas",
+   "langue": "en",
+   "slug": "social-media-management-in-house-or-outsource",
+   "chemin": "/en/blog/social-media-management-in-house-or-outsource",
+   "titre": "Social media management: should you do it yourself or delegate?",
+   "description": "Manage your social media alone or delegate? We compare the options concretely: time, cost, results, so you make the right call.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy",
+    "delegation",
+    "budget"
+   ],
+   "image": null,
+   "pose": "presente-calme",
+   "minutes": 7,
+   "mots": 1327
+  },
+  {
+   "id": "tarif-community-manager",
+   "langue": "fr",
+   "slug": "community-manager-freelance-tarif",
+   "chemin": "/blog/community-manager-freelance-tarif",
+   "titre": "Community manager freelance : quels tarifs, et comment choisir ?",
+   "description": "Les tarifs réels d'un community manager freelance, TJM, forfaits mensuels, comparaison avec une agence, et les questions à poser avant de signer.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "budget",
+    "freelance",
+    "agence"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372336/blog/tarif-community-manager-v2.png",
+   "pose": "idee",
+   "minutes": 9,
+   "mots": 1710
+  },
+  {
+   "id": "logiciel-reseaux-sociaux",
+   "langue": "fr",
+   "slug": "logiciel-gestion-reseaux-sociaux-petite-entreprise",
+   "chemin": "/blog/logiciel-gestion-reseaux-sociaux-petite-entreprise",
+   "titre": "Quel logiciel de gestion des réseaux sociaux pour une petite entreprise ?",
+   "description": "Buffer, Hootsuite, Metricool, comparatif honnête pour une TPE ou un indépendant, avec les prix vérifiés, les limites réelles et ce qu'aucun outil ne fera.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "outils",
+    "comparatif",
+    "planification"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372308/blog/logiciel-reseaux-sociaux-v2.png",
+   "pose": "pointe-haut",
+   "minutes": 8,
+   "mots": 1592
+  },
+  {
+   "id": "gestion-deleguer-ou-pas",
+   "langue": "fr",
+   "slug": "gestion-reseaux-sociaux-deleguer-ou-faire-soi-meme",
+   "chemin": "/blog/gestion-reseaux-sociaux-deleguer-ou-faire-soi-meme",
+   "titre": "Gestion des réseaux sociaux : faut-il le faire soi-même ou déléguer ?",
+   "description": "Gérer ses réseaux sociaux seul ou déléguer ? On compare les options concrètement, temps, coût, résultats, pour que vous fassiez le bon choix.",
+   "date": "2026-08-22",
+   "maj": "2026-08-22",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "delegation",
+    "budget"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372247/blog/gestion-deleguer-ou-pas-v2.png",
+   "pose": "presente-calme",
+   "minutes": 7,
+   "mots": 1449
+  },
+  {
+   "id": "automatiser-sans-perdre-sa-voix",
+   "langue": "es",
+   "slug": "automatizar-redes-sociales-sin-perder-tu-voz",
+   "chemin": "/es/blog/automatizar-redes-sociales-sin-perder-tu-voz",
+   "titre": "Automatizar tus redes sociales sin perder tu voz",
+   "description": "Lo que de verdad ahorra tiempo, lo que nunca hay que delegar en una máquina, y cómo se reconoce un contenido escrito por una IA dejada sola.",
+   "date": "2026-08-19",
+   "maj": "2026-08-19",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "ia",
+    "automatizacion",
+    "redaccion"
+   ],
+   "image": null,
+   "pose": "presente-produit",
+   "minutes": 4,
+   "mots": 790
+  },
+  {
+   "id": "automatiser-sans-perdre-sa-voix",
+   "langue": "en",
+   "slug": "automate-social-media-without-losing-your-voice",
+   "chemin": "/en/blog/automate-social-media-without-losing-your-voice",
+   "titre": "Automating social media without losing your voice",
+   "description": "What genuinely saves time, what should never be handed to a machine, and how to spot content written by an AI left on its own.",
+   "date": "2026-08-19",
+   "maj": "2026-08-19",
+   "auteur": "The Postorico team",
+   "tags": [
+    "ai",
+    "automation",
+    "writing"
+   ],
+   "image": null,
+   "pose": "presente-produit",
+   "minutes": 4,
+   "mots": 766
+  },
+  {
+   "id": "automatiser-sans-perdre-sa-voix",
+   "langue": "fr",
+   "slug": "automatiser-reseaux-sociaux-sans-perdre-sa-voix",
+   "chemin": "/blog/automatiser-reseaux-sociaux-sans-perdre-sa-voix",
+   "titre": "Automatiser ses réseaux sociaux sans perdre sa voix",
+   "description": "Ce qui gagne vraiment du temps, ce qu'il ne faut jamais déléguer à une machine, et comment on reconnaît un contenu écrit par une IA laissée seule.",
+   "date": "2026-08-19",
+   "maj": "2026-08-19",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "ia",
+    "automatisation",
+    "redaction"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372184/blog/automatiser-sans-perdre-sa-voix-v2.png",
+   "pose": "presente-produit",
+   "minutes": 4,
+   "mots": 849
+  },
+  {
+   "id": "ligne-editoriale",
+   "langue": "es",
+   "slug": "definir-tu-linea-editorial",
+   "chemin": "/es/blog/definir-tu-linea-editorial",
+   "titre": "Línea editorial: definirla en una sola página",
+   "description": "Un método en cinco bloques para poner por escrito de qué hablas, a quién y con qué voz, con la plantilla para copiar.",
+   "date": "2026-08-11",
+   "maj": "2026-08-11",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "estrategia",
+    "redaccion",
+    "marca"
+   ],
+   "image": null,
+   "pose": "idee",
+   "minutes": 4,
+   "mots": 780
+  },
+  {
+   "id": "ligne-editoriale",
+   "langue": "en",
+   "slug": "define-your-content-strategy",
+   "chemin": "/en/blog/define-your-content-strategy",
+   "titre": "Your content strategy, defined on a single page",
+   "description": "A five-block method to write down what you talk about, who you talk to and in what voice, with the template to copy.",
+   "date": "2026-08-11",
+   "maj": "2026-08-11",
+   "auteur": "The Postorico team",
+   "tags": [
+    "strategy",
+    "writing",
+    "brand"
+   ],
+   "image": null,
+   "pose": "idee",
+   "minutes": 4,
+   "mots": 746
+  },
+  {
+   "id": "ligne-editoriale",
+   "langue": "fr",
+   "slug": "definir-sa-ligne-editoriale",
+   "chemin": "/blog/definir-sa-ligne-editoriale",
+   "titre": "Ligne éditoriale : la définir en une page",
+   "description": "Une méthode en cinq blocs pour écrire noir sur blanc de quoi vous parlez, à qui, et sur quel ton, avec le modèle à recopier.",
+   "date": "2026-08-11",
+   "maj": "2026-08-11",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "strategie",
+    "redaction",
+    "marque"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372576/blog/ligne-editoriale-v3.png",
+   "pose": "idee",
+   "minutes": 4,
+   "mots": 855
+  },
+  {
+   "id": "frequence-publication",
+   "langue": "es",
+   "slug": "con-que-frecuencia-publicar-en-redes-sociales",
+   "chemin": "/es/blog/con-que-frecuencia-publicar-en-redes-sociales",
+   "titre": "¿Con qué frecuencia publicar en LinkedIn, Instagram y Facebook?",
+   "description": "El ritmo recomendado red por red, el mínimo por debajo del cual una cuenta se apaga, y el método para encontrar la cadencia que realmente vas a mantener.",
+   "date": "2026-08-04",
+   "maj": "2026-08-04",
+   "auteur": "El equipo Postorico",
+   "tags": [
+    "linkedin",
+    "instagram",
+    "facebook",
+    "ritmo"
+   ],
+   "image": null,
+   "pose": "annonce",
+   "minutes": 5,
+   "mots": 924
+  },
+  {
+   "id": "frequence-publication",
+   "langue": "en",
+   "slug": "how-often-to-post-on-social-media",
+   "chemin": "/en/blog/how-often-to-post-on-social-media",
+   "titre": "How often should you post on LinkedIn, Instagram and Facebook?",
+   "description": "The recommended pace network by network, the floor below which an account goes quiet, and how to find the cadence you will actually hold.",
+   "date": "2026-08-04",
+   "maj": "2026-08-04",
+   "auteur": "The Postorico team",
+   "tags": [
+    "linkedin",
+    "instagram",
+    "facebook",
+    "cadence"
+   ],
+   "image": null,
+   "pose": "annonce",
+   "minutes": 4,
+   "mots": 898
+  },
+  {
+   "id": "frequence-publication",
+   "langue": "fr",
+   "slug": "frequence-publication-reseaux-sociaux",
+   "chemin": "/blog/frequence-publication-reseaux-sociaux",
+   "titre": "À quelle fréquence publier sur LinkedIn, Instagram et Facebook ?",
+   "description": "Le rythme conseillé réseau par réseau, le minimum en dessous duquel un compte s'endort, et la méthode pour trouver la cadence que vous tiendrez vraiment.",
+   "date": "2026-08-04",
+   "maj": "2026-08-04",
+   "auteur": "L'équipe Postorico",
+   "tags": [
+    "linkedin",
+    "instagram",
+    "facebook",
+    "rythme"
+   ],
+   "image": "https://res.cloudinary.com/dy9gp5pim/image/upload/v1787372217/blog/frequence-publication-v2.png",
+   "pose": "annonce",
+   "minutes": 5,
+   "mots": 974
+  }
+ ],
+ "traductions": {
+  "postorico-vs-metricool": {
+   "fr": "/blog/postorico-vs-metricool"
+  },
+  "postorico-vs-hootsuite": {
+   "fr": "/blog/postorico-vs-hootsuite"
+  },
+  "postorico-vs-buffer": {
+   "fr": "/blog/postorico-vs-buffer"
+  },
+  "alternative-metricool": {
+   "fr": "/blog/alternative-metricool"
+  },
+  "alternative-hootsuite": {
+   "fr": "/blog/alternative-hootsuite"
+  },
+  "alternative-buffer": {
+   "fr": "/blog/alternative-buffer"
+  },
+  "visuels-ia-reseaux-sociaux": {
+   "es": "/es/blog/visuales-ia-redes-sociales-coherencia",
+   "en": "/en/blog/ai-visuals-social-media-consistency",
+   "fr": "/blog/visuels-ia-reseaux-sociaux"
+  },
+  "veille-reseaux-sociaux": {
+   "es": "/es/blog/monitorizacion-redes-sociales-sin-perder-horas",
+   "en": "/en/blog/social-media-monitoring-small-business",
+   "fr": "/blog/veille-reseaux-sociaux"
+  },
+  "strategie-contenu-reseaux-sociaux-pme": {
+   "es": "/es/blog/estrategia-contenido-redes-sociales-pymes",
+   "en": "/en/blog/social-media-content-strategy-smb",
+   "fr": "/blog/strategie-contenu-reseaux-sociaux-pme"
+  },
+  "storytelling-reseaux-sociaux-entreprise": {
+   "es": "/es/blog/storytelling-redes-sociales-pymes",
+   "en": "/en/blog/social-media-storytelling-sme-structures",
+   "fr": "/blog/storytelling-reseaux-sociaux-entreprise"
+  },
+  "plan-communication-reseaux-sociaux-pme": {
+   "es": "/es/blog/plan-comunicacion-redes-sociales-pyme",
+   "en": "/en/blog/social-media-plan-small-business",
+   "fr": "/blog/plan-communication-reseaux-sociaux-pme"
+  },
+  "personal-branding-instagram": {
+   "es": "/es/blog/personal-branding-instagram-dirigentes",
+   "en": "/en/blog/personal-branding-instagram-leaders-freelancers",
+   "fr": "/blog/personal-branding-instagram"
+  },
+  "modele-calendrier-editorial-reseaux-sociaux": {
+   "es": "/es/blog/plantilla-calendario-editorial-redes-sociales",
+   "en": "/en/blog/social-media-editorial-calendar-template",
+   "fr": "/blog/modele-calendrier-editorial-reseaux-sociaux"
+  },
+  "miniature-video-courte": {
+   "es": "/es/blog/miniatura-video-corta-crear",
+   "en": "/en/blog/short-video-thumbnail-make-it-clickable",
+   "fr": "/blog/miniature-video-courte"
+  },
+  "creer-page-entreprise-linkedin": {
+   "es": "/es/blog/crear-pagina-empresa-linkedin",
+   "en": "/en/blog/create-linkedin-company-page-guide",
+   "fr": "/blog/creer-page-entreprise-linkedin"
+  },
+  "agence-reseaux-sociaux-alternative": {
+   "es": "/es/blog/agencia-freelance-ia-redes-sociales-costes",
+   "en": "/en/blog/agency-freelance-ai-social-media-cost",
+   "fr": "/blog/agence-reseaux-sociaux-alternative"
+  },
+  "voix-off-ia": {
+   "es": "/es/blog/voz-en-off-ia-videos-profesionales-sin-estudio",
+   "en": "/en/blog/ai-voiceover-videos-small-business",
+   "fr": "/blog/voix-off-ia"
+  },
+  "video-courte-entreprise": {
+   "es": "/es/blog/video-corta-empresa-2026",
+   "en": "/en/blog/short-video-small-business-2026",
+   "fr": "/blog/video-courte-entreprise"
+  },
+  "tiktok-professionnel": {
+   "es": "/es/blog/tiktok-profesional-cuenta-algoritmo-publicar",
+   "en": "/en/blog/tiktok-professional-account-setup-guide",
+   "fr": "/blog/tiktok-professionnel"
+  },
+  "tiktok-pour-entreprise": {
+   "es": "/es/blog/tiktok-para-empresas-por-donde-empezar",
+   "en": "/en/blog/tiktok-for-business-getting-started",
+   "fr": "/blog/tiktok-pour-entreprise"
+  },
+  "page-facebook-professionnelle": {
+   "es": "/es/blog/pagina-facebook-profesional",
+   "en": "/en/blog/professional-facebook-page",
+   "fr": "/blog/page-facebook-professionnelle"
+  },
+  "optimiser-fiche-google-my-business": {
+   "es": "/es/blog/optimizar-ficha-google-my-business",
+   "en": "/en/blog/optimize-google-business-profile",
+   "fr": "/blog/optimiser-fiche-google-my-business"
+  },
+  "google-business-profile-pme": {
+   "es": "/es/blog/google-business-profile-pymes",
+   "en": "/en/blog/google-business-profile-small-business",
+   "fr": "/blog/google-business-profile-pme"
+  },
+  "creer-reels-instagram-entreprise": {
+   "es": "/es/blog/reels-instagram-para-empresas",
+   "en": "/en/blog/instagram-reels-small-business",
+   "fr": "/blog/creer-reels-instagram-entreprise"
+  },
+  "creer-contenu-ia-pme": {
+   "es": "/es/blog/crear-contenido-con-ia-pme",
+   "en": "/en/blog/ai-content-creation-small-business",
+   "fr": "/blog/creer-contenu-ia-pme"
+  },
+  "cloner-voix-ia": {
+   "es": "/es/blog/clonar-voz-ia-dirigente-pyme",
+   "en": "/en/blog/clone-voice-ai-business-owner",
+   "fr": "/blog/cloner-voix-ia"
+  },
+  "social-selling-linkedin": {
+   "es": "/es/blog/social-selling-en-linkedin",
+   "en": "/en/blog/linkedin-social-selling",
+   "fr": "/blog/social-selling-linkedin"
+  },
+  "social-selling-index-linkedin": {
+   "es": "/es/blog/social-selling-index-linkedin",
+   "en": "/en/blog/linkedin-social-selling-index",
+   "fr": "/blog/social-selling-index-linkedin"
+  },
+  "rediger-un-post-linkedin": {
+   "es": "/es/blog/como-redactar-un-post-de-linkedin",
+   "en": "/en/blog/how-to-write-a-linkedin-post",
+   "fr": "/blog/rediger-un-post-linkedin"
+  },
+  "personal-branding-coach-consultant-se-differencier": {
+   "es": "/es/blog/personal-branding-coach-consultor-diferenciarse-sin-venderse",
+   "en": "/en/blog/personal-branding-coach-consultant-stand-out-without-selling",
+   "fr": "/blog/personal-branding-coach-consultant-se-differencier"
+  },
+  "outil-gestion-reseaux-sociaux-pme": {
+   "es": "/es/blog/herramienta-gestion-redes-sociales-pyme",
+   "en": "/en/blog/social-media-management-tool-small-business",
+   "fr": "/blog/outil-gestion-reseaux-sociaux-pme"
+  },
+  "marque-employeur-reseaux-sociaux-pme": {
+   "es": "/es/blog/marca-empleadora-redes-sociales-pymes",
+   "en": "/en/blog/employer-branding-social-media-small-business",
+   "fr": "/blog/marque-employeur-reseaux-sociaux-pme"
+  },
+  "instagram-pour-entreprise": {
+   "es": "/es/blog/instagram-para-empresas",
+   "en": "/en/blog/instagram-for-business",
+   "fr": "/blog/instagram-pour-entreprise"
+  },
+  "ghostwriting-linkedin": {
+   "es": "/es/blog/ghostwriting-linkedin-redaccion",
+   "en": "/en/blog/linkedin-ghostwriting",
+   "fr": "/blog/ghostwriting-linkedin"
+  },
+  "deleguer-reseaux-sociaux": {
+   "es": "/es/blog/delegar-gestion-redes-sociales",
+   "en": "/en/blog/delegate-social-media-management",
+   "fr": "/blog/deleguer-reseaux-sociaux"
+  },
+  "banniere-linkedin": {
+   "es": "/es/blog/banner-linkedin-medidas-ejemplos-herramientas",
+   "en": "/en/blog/linkedin-banner-size-examples-tools",
+   "fr": "/blog/banniere-linkedin"
+  },
+  "taux-engagement-linkedin": {
+   "es": "/es/blog/tasa-engagement-linkedin",
+   "en": "/en/blog/linkedin-engagement-rate",
+   "fr": "/blog/taux-engagement-linkedin"
+  },
+  "strategie-linkedin-pme": {
+   "es": "/es/blog/estrategia-linkedin-pymes",
+   "en": "/en/blog/linkedin-strategy-for-smbs",
+   "fr": "/blog/strategie-linkedin-pme"
+  },
+  "reseaux-sociaux-pour-chef-d-entreprise": {
+   "es": "/es/blog/redes-sociales-para-directivos",
+   "en": "/en/blog/social-media-for-business-owners",
+   "fr": "/blog/reseaux-sociaux-pour-chef-d-entreprise"
+  },
+  "personal-branding-linkedin-guide-dirigeants": {
+   "es": "/es/blog/personal-branding-linkedin-guia-directivos",
+   "en": "/en/blog/linkedin-personal-branding-guide-executives",
+   "fr": "/blog/personal-branding-linkedin-guide-dirigeants"
+  },
+  "personal-branding-freelance": {
+   "es": "/es/blog/personal-branding-freelance-sin-presupuesto",
+   "en": "/en/blog/freelance-personal-branding",
+   "fr": "/blog/personal-branding-freelance"
+  },
+  "linkedin-pour-dirigeant": {
+   "es": "/es/blog/linkedin-para-directivos",
+   "en": "/en/blog/linkedin-for-executives",
+   "fr": "/blog/linkedin-pour-dirigeant"
+  },
+  "intelligence-artificielle-reseaux-sociaux-pme": {
+   "es": "/es/blog/inteligencia-artificial-redes-sociales-pymes",
+   "en": "/en/blog/ai-social-media-small-business",
+   "fr": "/blog/intelligence-artificielle-reseaux-sociaux-pme"
+  },
+  "developper-son-personal-branding": {
+   "es": "/es/blog/personal-branding-para-directivos",
+   "en": "/en/blog/personal-branding-for-business-owners",
+   "fr": "/blog/developper-son-personal-branding"
+  },
+  "calendrier-editorial-reseaux-sociaux": {
+   "es": "/es/blog/calendario-editorial-redes-sociales",
+   "en": "/en/blog/social-media-content-calendar",
+   "fr": "/blog/calendrier-editorial-reseaux-sociaux"
+  },
+  "automatisation-reseaux-sociaux": {
+   "es": "/es/blog/automatizacion-redes-sociales",
+   "en": "/en/blog/social-media-automation",
+   "fr": "/blog/automatisation-reseaux-sociaux"
+  },
+  "tarif-community-manager": {
+   "es": "/es/blog/tarifas-community-manager",
+   "en": "/en/blog/community-manager-rates",
+   "fr": "/blog/community-manager-freelance-tarif"
+  },
+  "logiciel-reseaux-sociaux": {
+   "es": "/es/blog/software-gestion-redes-sociales",
+   "en": "/en/blog/social-media-management-software",
+   "fr": "/blog/logiciel-gestion-reseaux-sociaux-petite-entreprise"
+  },
+  "gestion-deleguer-ou-pas": {
+   "es": "/es/blog/gestionar-redes-sociales-uno-mismo-o-delegar",
+   "en": "/en/blog/social-media-management-in-house-or-outsource",
+   "fr": "/blog/gestion-reseaux-sociaux-deleguer-ou-faire-soi-meme"
+  },
+  "automatiser-sans-perdre-sa-voix": {
+   "es": "/es/blog/automatizar-redes-sociales-sin-perder-tu-voz",
+   "en": "/en/blog/automate-social-media-without-losing-your-voice",
+   "fr": "/blog/automatiser-reseaux-sociaux-sans-perdre-sa-voix"
+  },
+  "ligne-editoriale": {
+   "es": "/es/blog/definir-tu-linea-editorial",
+   "en": "/en/blog/define-your-content-strategy",
+   "fr": "/blog/definir-sa-ligne-editoriale"
+  },
+  "frequence-publication": {
+   "es": "/es/blog/con-que-frecuencia-publicar-en-redes-sociales",
+   "en": "/en/blog/how-often-to-post-on-social-media",
+   "fr": "/blog/frequence-publication-reseaux-sociaux"
+  }
+ }
+}

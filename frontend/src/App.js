@@ -87,7 +87,14 @@ const routesPubliques = () => (
   </>
 );
 
-function App() {
+/** Pendant le chargement d'une page lazy : le HTML prerendu, sinon rien. */
+function Patience({ html }) {
+  if (!html) return null;
+  // eslint-disable-next-line react/no-danger
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
+function App({ htmlPrerendu = "" }) {
   // Un visiteur peut arriver par un lien d'affiliation sur n'importe quelle
   // page : on capte le code partout, pas seulement sur l'inscription.
   useAffiliateRef();
@@ -99,7 +106,7 @@ function App() {
         <PopupRdv />
         {/* L'adresse fait foi pour la langue, et pose canonical + hreflang. */}
         <LangueParUrl />
-        <Suspense fallback={null}>
+        <Suspense fallback={<Patience html={htmlPrerendu} />}>
           <Routes>
             {/* Francais : les adresses d'origine, inchangees. */}
             <Route path="/">{routesPubliques()}</Route>

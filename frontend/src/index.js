@@ -43,9 +43,16 @@ if (document.readyState === "complete") demarrerAnalytics();
 else window.addEventListener("load", demarrerAnalytics, { once: true });
 
 const conteneur = document.getElementById("root");
+
+// HTML prerendu de la page (scripts/prerendu.js), tel que le navigateur vient
+// de l'afficher. Les pages sont chargees en React.lazy : pendant que leur
+// morceau de JavaScript arrive, App l'affiche tel quel en guise de fallback
+// de <Suspense>, au lieu d'un ecran vide. Vide dans l'app native (voir plus bas).
+const htmlPrerendu = Capacitor.isNativePlatform() ? "" : conteneur.innerHTML;
+
 const arbre = (
   <React.StrictMode>
-    <App />
+    <App htmlPrerendu={htmlPrerendu} />
   </React.StrictMode>
 );
 
@@ -65,7 +72,14 @@ const arbre = (
 //
 // Le vidage sert aussi au natif : l'APK embarque le meme build, donc le meme
 // HTML prerendu, et l'accueil francais clignoterait avant l'ecran attendu.
-conteneur.innerHTML = "";
+// Octobre 2026 : sur le web, on ne vide PLUS le conteneur avant le rendu.
+// Le HTML prerendu reste affiche jusqu'a ce que React dessine le sien (React
+// remplace les enfants du conteneur au premier render) : le visiteur voit la
+// page des le premier octet au lieu d'un ecran vide pendant le telechargement
+// et l'execution du JavaScript. Lighthouse mesurait le LCP a l'apparition du
+// rendu React (plusieurs secondes sur mobile) ; il est maintenant mesure sur
+// le HTML prerendu. Le vidage reste necessaire dans l'APK (voir ci-dessus).
+if (Capacitor.isNativePlatform()) conteneur.innerHTML = "";
 const root = ReactDOM.createRoot(conteneur, optionsRacine);
 
 // Sur mobile : recharger le jeton depuis le stockage natif AVANT de rendre,

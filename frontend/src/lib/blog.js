@@ -1,4 +1,4 @@
-import donnees from '../generated/blog.json';
+import donnees from '../generated/blog-index.json';
 
 /**
  * Accès aux articles compilés par `scripts/blog.mjs`.
@@ -7,9 +7,11 @@ import donnees from '../generated/blog.json';
  * ni état de chargement. C'est ce qui permet au prérendu de produire des pages
  * complètes, donc lisibles par les robots qui n'exécutent pas JavaScript.
  *
- * Note pour plus tard : les articles voyagent aujourd'hui dans le paquet
- * principal. Passé une trentaine d'articles, il faudra séparer les métadonnées
- * (index) du corps des textes et charger ce dernier à la demande.
+ * Depuis octobre 2026 : seul l'INDEX (métadonnées) voyage dans le paquet
+ * principal. Le corps de chaque article (html + sommaire) est un fichier
+ * `public/blog-contenu/<langue>/<slug>.json` chargé à la lecture via
+ * `chargerContenu()`, soit 2 Mo de moins au démarrage de chaque page du site.
+ * Le prérendu attend ce chargement avant de figer la page.
  */
 const { articles, traductions } = donnees;
 
@@ -67,6 +69,32 @@ export function aLireAussi(article, combien = 2) {
 /** Toutes les adresses du blog : le prérendu et le plan du site s'en servent. */
 export function tousLesChemins() {
   return articles.map((a) => a.chemin);
+}
+
+// Corps des articles, chargés à la demande et gardés en mémoire.
+const contenus = new Map();
+const CONTENU_VIDE = { html: '', sommaire: [] };
+
+/** Le corps déjà chargé de cet article, ou `null` (rendu synchrone initial). */
+export function contenuEnCache(article) {
+  return (article && contenus.get(article.chemin)) || null;
+}
+
+/** Charge (une seule fois) le html + sommaire d'un article. */
+export async function chargerContenu(article) {
+  if (!article) return CONTENU_VIDE;
+  if (contenus.has(article.chemin)) return contenus.get(article.chemin);
+  try {
+    const r = await fetch(`/blog-contenu/${article.langue}/${article.slug}.json`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    const contenu = { html: data.html || '', sommaire: data.sommaire || [] };
+    contenus.set(article.chemin, contenu);
+    return contenu;
+  } catch (e) {
+    console.error('Contenu article introuvable :', article.chemin, e);
+    return CONTENU_VIDE;
+  }
 }
 
 /** La date, écrite dans la langue de la page. */

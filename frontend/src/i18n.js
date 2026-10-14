@@ -2,8 +2,6 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import fr from './locales/fr.json';
-import en from './locales/en.json';
-import es from './locales/es.json';
 import { estPageTraduite, langueDuChemin } from './lib/langues';
 
 const chemin = typeof window !== 'undefined' ? window.location.pathname : '/';
@@ -18,8 +16,26 @@ const chemin = typeof window !== 'undefined' ? window.location.pathname : '/';
 //
 // Le détecteur reste en place pour tout le reste — tableau de bord, et choix
 // vers lequel envoyer un visiteur arrivé sur une adresse sans préfixe.
+// Seul le francais (langue par defaut) voyage dans le paquet principal ;
+// l'anglais et l'espagnol (~180 Ko chacun) sont charges a la demande, en un
+// fichier separe, uniquement quand une page dans cette langue est affichee.
+const LANGUES_DIFFEREES = {
+  en: () => import('./locales/en.json'),
+  es: () => import('./locales/es.json'),
+};
+const chargeurDeLangues = {
+  type: 'backend',
+  init() {},
+  read(lng, ns, cb) {
+    const charger = LANGUES_DIFFEREES[lng];
+    if (!charger) return cb(null, {});
+    charger().then((m) => cb(null, m.default || m)).catch((e) => cb(e, null));
+  },
+};
+
 i18n
   .use(LanguageDetector)
+  .use(chargeurDeLangues)
   .use(initReactI18next)
   .init({
     // L'adresse ne decide QUE sur les pages traduites. Sur le tableau de bord,
@@ -27,7 +43,8 @@ i18n
     // quelqu'un qui vient de se connecter depuis /en/login. On laisse alors le
     // detecteur faire son travail : le choix memorise, puis le navigateur.
     ...(estPageTraduite(chemin) ? { lng: langueDuChemin(chemin) } : {}),
-    resources: { fr: { translation: fr }, en: { translation: en }, es: { translation: es } },
+    resources: { fr: { translation: fr } },
+    partialBundledLanguages: true,
     fallbackLng: 'fr',
     supportedLngs: ['fr', 'en', 'es'],
     nonExplicitSupportedLngs: true, // "en-US" → "en"

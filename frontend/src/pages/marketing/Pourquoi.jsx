@@ -50,7 +50,7 @@ const PAGE_CSS = `
 .lp .temps.apres-coup{background:var(--panel)}
 .lp .temps .rang{font-size:12px;font-weight:700;color:#8A6CFF;letter-spacing:.08em;text-transform:uppercase}
 .lp .temps.apres-coup .rang{color:var(--accent)}
-.lp .temps h3{font-family:Sora;font-weight:700;font-size:17px;margin-top:8px}
+.lp .temps h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:17px;margin-top:8px}
 .lp .temps p{margin-top:10px;color:var(--muted);font-size:14.5px;line-height:1.65}
 .lp .sortie{margin-top:24px;color:var(--muted);font-size:15px;line-height:1.7;max-width:640px}
 @media(hover:hover) and (pointer:fine){.lp .temps:hover{background:#111c30}}
@@ -59,7 +59,7 @@ const PAGE_CSS = `
 .lp .raison{display:grid;grid-template-columns:auto 1fr;gap:18px;padding:22px 4px;border-top:1px solid var(--line)}
 .lp .raison:last-of-type{border-bottom:1px solid var(--line)}
 .lp .puce{width:9px;height:9px;margin-top:7px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 0 4px rgba(58,255,163,.14);transition:box-shadow 200ms var(--ease)}
-.lp .raison h3{font-family:Sora;font-weight:700;font-size:16.5px}
+.lp .raison h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:16.5px}
 .lp .raison p{margin-top:7px;color:var(--muted);font-size:14.5px;line-height:1.7;max-width:680px}
 @media(hover:hover) and (pointer:fine){.lp .raison:hover .puce{box-shadow:0 0 0 5px rgba(58,255,163,.2)}}
 
@@ -69,7 +69,7 @@ const PAGE_CSS = `
 .lp .compte strong{color:var(--ink);font-weight:700}
 
 .lp .bande{border:1px solid var(--line2);border-radius:20px;background:linear-gradient(135deg,rgba(91,108,255,.15),rgba(58,255,163,.06));padding:36px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.lp .bande h3{font-family:Sora;font-weight:700;font-size:22px;letter-spacing:-.02em;max-width:24ch}
+.lp .bande h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:22px;letter-spacing:-.02em;max-width:24ch}
 .lp .bande .cta-row{margin-top:0;flex-direction:column;align-items:flex-start;gap:8px}
 
 .lp .fstep.cle{background:linear-gradient(160deg,rgba(58,255,163,.08),var(--card));border-color:rgba(58,255,163,.25)}

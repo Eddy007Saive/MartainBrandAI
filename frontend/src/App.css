@@ -1,14 +1,26 @@
+/* Polices de repli calibrees sur Sora / Inter (size-adjust + metriques), comme
+   le fait next/font : tant que le woff2 n'est pas arrive, le texte s'affiche en
+   Arial mis a l'echelle de la vraie police. Meme encombrement, memes retours a
+   la ligne -> pas de decalage (CLS) au swap, et un seul candidat LCP pour le
+   titre (Chrome re-enregistrait le h1 plus grand apres le swap, cf. prerendu.js).
+   Ratios mesures en octobre 2026 sur le texte du hero. */
+@font-face{font-family:"Sora Fallback";font-weight:400;src:local("Arial");size-adjust:113.92%;ascent-override:85.95%;descent-override:25.6%;line-gap-override:0%}
+@font-face{font-family:"Sora Fallback";font-weight:700;src:local("Arial");size-adjust:107.8%;ascent-override:90.83%;descent-override:27.06%;line-gap-override:0%}
+@font-face{font-family:"Sora Fallback";font-weight:800;src:local("Arial");size-adjust:93.36%;ascent-override:104.9%;descent-override:31.2%;line-gap-override:0%}
+@font-face{font-family:"Inter Fallback";font-weight:400;src:local("Arial");size-adjust:106.5%;ascent-override:91.94%;descent-override:23.47%;line-gap-override:0%}
+@font-face{font-family:"Inter Fallback";font-weight:500;src:local("Arial");size-adjust:107.58%;ascent-override:91.02%;descent-override:23.24%;line-gap-override:0%}
+@font-face{font-family:"Inter Fallback";font-weight:600;src:local("Arial");size-adjust:100.92%;ascent-override:97.03%;descent-override:24.77%;line-gap-override:0%}
 /* Polices Sora + Inter auto-hébergées : importées via @fontsource dans src/index.js
    (les anciens @import Google Fonts rendaient main.css dépendant de 2 requêtes tierces bloquantes). */
 /* Import Google Fonts */
 
 /* Font classes */
 .font-sora {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Sora','Sora Fallback', sans-serif;
 }
 
 .font-inter {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter','Inter Fallback', sans-serif;
 }
 
 /* Animations */
@@ -71,7 +83,7 @@ input[type="color"]::-webkit-color-swatch {
 
 /* Toast customization */
 [data-sonner-toast] {
-  font-family: 'Inter', sans-serif !important;
+  font-family: 'Inter','Inter Fallback', sans-serif !important;
 }
 
 /* Glass effect helpers */
