@@ -157,6 +157,16 @@ export default function StudioVideo() {
   const selMusic = options.music.find((m) => m.id === form.music) || null;  // piste choisie (menu musique)
 
   useEffect(() => {
+    if (contenuId) return;
+    let enCours = null;
+    try { enCours = JSON.parse(localStorage.getItem(CLE_AGENT_EN_COURS) || 'null'); } catch { /* rien à reprendre */ }
+    if (!enCours?.id) return;
+    setMode('agent'); setAgentSource(enCours.motion ? 'motion' : 'video'); setStep('processing');
+    suivreAgent(enCours.id, enCours.motion);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     videoService.getOptions().then(setOptions).catch(() => {});
     if (contenuId) {
       contenuService.getById(contenuId)
@@ -217,23 +227,29 @@ export default function StudioVideo() {
   };
 
   // Montage par l'agent IA : on suit l'état toutes les 10 s (15 à 25 min de montage).
-  const suivreAgent = (id) => {
+  // L'id est gardé dans le navigateur : en revenant sur la page, le suivi reprend.
+  const suivreAgent = (id, motion = motionActif) => {
     if (pollRef.current) clearInterval(pollRef.current);
+    try { localStorage.setItem(CLE_AGENT_EN_COURS, JSON.stringify({ id, motion })); } catch { /* navigation privée */ }
+    const oublier = () => { try { localStorage.removeItem(CLE_AGENT_EN_COURS); } catch { /* idem */ } };
     const tick = async () => {
       try {
         const e = await agentVideoService.etat(id);
         setAgentEtat(e);
         setMaintenant(Date.now());
         if (e.statut === 'termine') {
-          clearInterval(pollRef.current);
+          clearInterval(pollRef.current); oublier();
           setResult({
             id: e.contenu_id, travailId: e.id, video_url: e.video_url, video_preview_url: e.video_preview_url, titre: e.titre,
             resume: e.resume ? e.resume.replace(/\*\*|`/g, '') : null,
             version: e.version, gratuites: e.corrections_gratuites_restantes, correctionPossible: e.correction_possible, erreurCorrection: e.erreur_correction,
           });
           setStep('done');
-        } else if (e.statut === 'echec') { clearInterval(pollRef.current); setStep('error'); }
-      } catch { /* nouvel essai au prochain passage */ }
+        } else if (e.statut === 'echec') { clearInterval(pollRef.current); oublier(); setStep('error'); }
+      } catch (err) {
+        // Montage introuvable (supprimé, autre compte) : on arrête de le suivre
+        if (err?.response?.status === 404) { clearInterval(pollRef.current); oublier(); setStep('idle'); }
+      }
     };
     tick();
     pollRef.current = setInterval(tick, 10000);
@@ -493,6 +509,8 @@ export default function StudioVideo() {
             </button>
           </div>
         </div>
+      ) : (step === 'processing' && mode === 'agent') ? (
+        <SuiviAgent etat={agentEtat} motion={motionActif} uploadPct={uploadPct} maintenant={maintenant} navigate={navigate} />
       ) : (step === 'done' && result) ? (
         <ResultCard result={result} onReset={reset} navigate={navigate} onCorriger={result.travailId ? corriger : undefined}
           reseaux={reseaux} setReseaux={setReseaux} onPublish={publishMontaged} publishing={publishing} />
@@ -897,21 +915,6 @@ export default function StudioVideo() {
         </div>
       )}
 
-      {step === 'processing' && mode === 'agent' && (() => {
-        const envoi = uploadPct > 0 && uploadPct < 100;
-        const min = agentEtat?.debut ? Math.max(0, Math.floor((maintenant - new Date(agentEtat.debut).getTime()) / 60000)) : 0;
-        return (
-          <div className="rounded-2xl border border-[#8A6CFF]/25 bg-[#8A6CFF]/[0.06] p-5" data-testid="agent-video-attente">
-            <div className="flex items-center gap-3">
-              <Loader2 className="w-5 h-5 animate-spin text-[#8A6CFF] shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-white font-inter font-medium">{envoi ? t('video.agent.envoi', { pct: uploadPct }) : t('video.agent.enCours')}</p>
-                {!envoi && <p className="text-xs text-slate-400 font-inter">{agentEtat?.progression ? `${agentEtat.progression} · ` : ''}{t('video.agent.depuis', { min })}</p>}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
       {step === 'processing' && mode !== 'agent' && (() => { const p = progress(); return (
         <div className="rounded-2xl border border-[#5B6CFF]/25 bg-[#5B6CFF]/[0.06] p-5 space-y-3">
           <div className="flex items-center gap-3">
@@ -938,6 +941,71 @@ export default function StudioVideo() {
           <Button variant="ghost" onClick={reset} className="text-slate-300">{t('video.error.retry')}</Button>
         </div>
       )}
+    </div>
+  );
+}
+
+const CLE_AGENT_EN_COURS = 'postorico.agentVideoEnCours';
+
+/** Étape courante du montage par l'agent, d'après le statut et le texte de progression du serveur. */
+function etapeAgent(etat, motion, envoi) {
+  if (envoi) return 'envoi';
+  if (!etat) return motion ? 'voix' : 'transcription';
+  const p = String(etat.progression || '').toLowerCase();
+  if (etat.statut === 'termine') return 'fini';
+  if (p.includes('récupération')) return 'finalisation';
+  if (p.includes('illustration')) return 'illustrations';
+  if (motion && p.includes('voix off')) return 'voix';
+  if (p.includes('transcription')) return motion ? 'voix' : 'transcription';
+  if (etat.statut === 'preparation') return motion ? 'voix' : 'transcription';
+  return 'montage';
+}
+
+/** Écran de suivi du montage par l'agent IA : étapes, temps écoulé, détail du monteur. */
+function SuiviAgent({ etat, motion, uploadPct, maintenant, navigate }) {
+  const { t } = useTranslation();
+  const envoi = uploadPct > 0 && uploadPct < 100;
+  const etapes = motion ? ['voix', 'illustrations', 'montage', 'finalisation'] : ['envoi', 'transcription', 'illustrations', 'montage', 'finalisation'];
+  const courante = etapeAgent(etat, motion, envoi);
+  const rang = courante === 'fini' ? etapes.length : Math.max(0, etapes.indexOf(courante));
+  const min = etat?.debut ? Math.max(0, Math.floor((maintenant - new Date(etat.debut).getTime()) / 60000)) : 0;
+  const detail = courante === 'envoi' ? t('video.agent.envoi', { pct: uploadPct }) : etat?.progression;
+  return (
+    <div className="max-w-2xl mx-auto rounded-2xl border border-[#8A6CFF]/25 bg-[#0f172a] p-6 sm:p-8" data-testid="agent-video-attente">
+      <div className="flex items-center gap-4">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center shrink-0">
+          <Loader2 className="w-6 h-6 text-white animate-spin" />
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-lg font-bold font-sora text-white">{motion ? t('video.agent.suivi.titreMotion') : t('video.agent.suivi.titre')}</h2>
+          <p className="text-[13px] text-slate-400 font-inter">{t('video.agent.suivi.depuis', { min })}</p>
+        </div>
+      </div>
+
+      <ol className="mt-6 space-y-1">
+        {etapes.map((e, i) => {
+          const fait = i < rang;
+          const actif = i === rang;
+          return (
+            <li key={e} className={`flex items-start gap-3 rounded-xl px-3 py-2.5 border ${actif ? 'bg-[#8A6CFF]/10 border-[#8A6CFF]/25' : 'border-transparent'}`}>
+              <span className={`mt-0.5 w-6 h-6 rounded-full grid place-items-center shrink-0 ${fait ? 'bg-[#3AFFA3]/15 text-[#3AFFA3]' : actif ? 'bg-[#8A6CFF]/20 text-[#c4b5fd]' : 'bg-white/5 text-slate-600'}`}>
+                {fait ? <Check className="w-3.5 h-3.5" /> : actif ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span className="text-[11px] font-semibold tabular-nums">{i + 1}</span>}
+              </span>
+              <div className="min-w-0">
+                <p className={`text-[14px] font-inter font-medium ${fait ? 'text-slate-300' : actif ? 'text-white' : 'text-slate-500'}`}>{t(`video.agent.suivi.etapes.${e}`)}</p>
+                {actif && <p className="text-[12px] text-slate-400 font-inter mt-0.5 break-words">{detail || t(`video.agent.suivi.aide.${e}`)}</p>}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="mt-6 pt-5 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center gap-3">
+        <p className="flex-1 text-[12.5px] text-slate-400 font-inter">{t('video.agent.suivi.quitter')}</p>
+        <Button variant="outline" onClick={() => navigate('/dashboard/contenus')} className="border-white/10 text-slate-200 hover:text-white bg-transparent">
+          {t('video.agent.suivi.contenus')}<ArrowRight className="w-4 h-4 ml-1.5" />
+        </Button>
+      </div>
     </div>
   );
 }
