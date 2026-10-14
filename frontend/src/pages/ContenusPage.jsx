@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Palette, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload, Mic } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Palette, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload, Mic, Rocket } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
@@ -48,6 +48,7 @@ import { scheduleService } from '../services/scheduleService';
 import { track } from '../lib/analytics';
 import { manqueMedia, erreurLisible } from '../lib/publication';
 import OptionsPostGoogle from '../components/OptionsPostGoogle';
+import BoosterDialog from '../components/BoosterDialog';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '../components/ui/dropdown-menu';
 
 // Styles de rendu de l'image IA (mêmes clés que les miniatures des reels, côté serveur aussi).
@@ -491,6 +492,7 @@ export default function ContenusPage() {
     }).catch(() => {});
   }, []);
   const [editContenu, setEditContenu] = useState(null);
+  const [boostContenu, setBoostContenu] = useState(null);
   const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [serieActionLoading, setSerieActionLoading] = useState(null);
@@ -2085,12 +2087,18 @@ export default function ContenusPage() {
                         <Button size="sm" className="bg-transparent border border-white/[0.12] text-slate-300 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] transition-colors"><ExternalLink className="w-4 h-4 mr-1.5" />{t('contenus.actions.voirPublication')}</Button>
                       </a>
                     )}
+                    {selectedContenu.statut === 'Publie' && selectedContenu.late_post_id && ['Facebook', 'Instagram'].includes(selectedContenu.reseau_cible) && (
+                      <Button size="sm" onClick={() => setBoostContenu(selectedContenu)} data-testid="contenu-booster"
+                        className="bg-[#1877F2] hover:bg-[#1877F2]/90 text-white font-sora font-semibold rounded-[11px] transition-colors"><Rocket className="w-4 h-4 mr-1.5" />{t('publicite.boost.bouton')}</Button>
+                    )}
                   </div>
                 </div>
               </div>
             )}
           </DialogContent>
         </Dialog>
+
+        <BoosterDialog contenu={boostContenu} onClose={() => setBoostContenu(null)} />
 
         {/* Edit Dialog */}
         <Dialog open={!!editContenu} onOpenChange={() => setEditContenu(null)}>
