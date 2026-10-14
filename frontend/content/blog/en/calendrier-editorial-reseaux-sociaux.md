@@ -1,8 +1,9 @@
 ---
 slug: social-media-content-calendar
-titre: "Social media content calendar: a practical 2026 guide"
-description: Build an effective social media content calendar in under an hour. A step-by-step method, a concrete example and tips for time-strapped executives.
+titre: "Social media content calendar 2026: free template + guide"
+description: "Download a free social media content calendar template (Excel) and build yours in under an hour: a step-by-step method, a one-week example and tips for time-strapped executives."
 date: 2026-08-26
+maj: 2026-10-14
 auteur: The Postorico team
 tags: [strategy]
 pose: idee
@@ -10,10 +11,61 @@ pose: idee
 
 **TL;DR - what you should take away**
 
-- A social media content calendar comes down to 4 essential columns and 30 minutes of setup.
+- A ready-to-fill **content calendar template** saves you the most time: download ours (Excel, free) and adapt it in 30 minutes.
 - Consistency always beats volume: 1 post a week held over time is worth more than 5 posts in January followed by silence.
-- You don't need a complex tool to get started - a Notion board or Google Sheets is enough.
+- You don't need a complex tool to get started: a spreadsheet like our template, Notion or Google Sheets is enough.
 - Automating publishing is the only way to keep a social media schedule going over the long run without sacrificing your evenings.
+
+---
+
+## Download the social media content calendar template (Excel, free)
+
+Most people searching for a content calendar really want a **template to copy**, not one more essay. Here is ours, free and with no sign-up.
+
+**[➜ Download the social media content calendar template (.xlsx)](/social-media-content-calendar.xlsx)**
+
+This editorial calendar template has 12 ready-to-use columns, one example week to replace and a legend (statuses and content pillars). Open it in Excel, Google Sheets or LibreOffice, duplicate the tab for each month, and you have a working editorial plan for 2026.
+
+The rest of this guide explains how to fill in the template, shows an example social media content calendar for one week, then walks through the full method to keep your publishing rhythm going over time.
+
+---
+
+## How to use the template: the 12 columns explained
+
+The template holds everything an executive needs to steer their posts. Here is what each column contains.
+
+| Column | What it holds |
+|---|---|
+| **Date** | Planned publication day |
+| **Day** | The day of the week, handy to spot your rhythm |
+| **Time** | The targeted publishing time |
+| **Platform** | LinkedIn, Instagram, Facebook… |
+| **Format** | Text post, carousel, video, story, reel |
+| **Content pillar** | The recurring theme of the post (see below) |
+| **Topic / Hook** | The headline or the central idea of the content |
+| **Post copy** | The draft or the final text |
+| **Visual** | The associated visual asset (photo, carousel, none) |
+| **Hashtags** | The keywords of the post |
+| **Status** | To write / In progress / Approved / Scheduled / Published |
+| **Published link** | The URL once the post is live, for tracking |
+
+You don't have to fill everything in from the start. Six columns are enough to begin (Date, Platform, Format, Content pillar, Topic / Hook, Status); the others (Time, Post copy, Visual, Hashtags, Published link) become useful once you move to scheduling and tracking.
+
+---
+
+## Example of a social media content calendar for one week
+
+Here is the sample week shipped in the template: an example social media content calendar for an independent consultant or a B2B SME executive. It is also, concretely, a ready-to-duplicate social media publishing schedule.
+
+| Day | Platform | Format | Content pillar | Topic / Hook | Status |
+|---|---|---|---|---|---|
+| Monday | LinkedIn | Text post | Expertise | 3 mistakes my clients make before contacting me | To write |
+| Wednesday | Instagram | Carousel | Social proof | Before / after: a client project transformation | In progress |
+| Friday | LinkedIn | Short post | Point of view | My take on an industry trend | Approved |
+| Monday | LinkedIn | Carousel | Expertise | The 5 questions to ask before signing a contract | Scheduled |
+| Thursday | Facebook | Image post | Behind the scenes | Behind the scenes of our work week | Published |
+
+Five posts across three networks: a realistic, sustainable rhythm for an executive who manages their own communication. In the template, you get this week with the time, copy, visual and hashtags left to fill in.
 
 ---
 
@@ -35,41 +87,6 @@ Without a social media calendar, you publish under pressure, improvising the top
 
 ---
 
-## What a good content calendar should include
-
-### The essential columns
-
-You don't need 15 columns. An effective social media plan contains 6:
-
-| Column | What it holds |
-|---|---|
-| **Date** | Planned day and time of publication |
-| **Network** | LinkedIn, Instagram, Facebook… |
-| **Format** | Text post, carousel, video, story, reel |
-| **Topic / angle** | The headline or the central idea of the content |
-| **Objective** | Awareness, engagement, traffic, leads |
-| **Status** | To write / In progress / Approved / Scheduled |
-
-You can add a "CTA" (call to action) column and a "Visual" column if you work with a designer or a generative AI. But these 6 columns are enough to get started.
-
-### Example of a social media content calendar (a concrete 2-week table)
-
-Here is a sample social media content calendar for an independent consultant or a B2B SME executive:
-
-| Date | Network | Format | Topic / angle | Objective | Status |
-|---|---|---|---|---|---|
-| Mon. Feb. 3 | LinkedIn | Text post | 3 mistakes my clients make before contacting me | Awareness | To write |
-| Wed. Feb. 5 | Instagram | Carousel | Before / after: a client project transformation | Engagement | In progress |
-| Fri. Feb. 7 | LinkedIn | Short post | Quote + personal take on an industry trend | Engagement | Approved |
-| Mon. Feb. 10 | LinkedIn | Carousel | The 5 questions to ask before signing a contract | Leads | To write |
-| Tue. Feb. 11 | Instagram | Story | Poll: what's your biggest challenge right now? | Engagement | Scheduled |
-| Thu. Feb. 13 | Facebook | Image post | Client testimonial + measurable result | Trust | To approve |
-| Fri. Feb. 14 | LinkedIn | Text post | What I learned this week ("lesson" format) | Awareness | To write |
-
-This table covers two weeks with 7 posts across 3 networks. It's a realistic, sustainable rhythm for an executive who manages their own communication.
-
----
-
 ## Building your content calendar in 4 steps (even when you're short on time)
 
 ### Step 1 - Choose your networks and a realistic frequency
@@ -88,7 +105,7 @@ Don't try to be everywhere. Pick 1 or 2 networks and hold them well.
 
 ### Step 2 - Define your content pillars
 
-A content pillar is a recurring theme around which you build your posts. It saves you from starting from scratch with every publication.
+A content pillar is a recurring theme around which you build your posts. It's the "Content pillar" column of the template, and it saves you from starting from scratch with every publication.
 
 **Example of 4 pillars for a consulting firm:**
 
@@ -150,6 +167,7 @@ There are dozens of tools. Here is an honest selection, suited to executives and
 
 | Tool | Main use | Starting price | Who it's for |
 |---|---|---|---|
+| **Our Excel template** | Content calendar to fill in, offline | Free | Those who want to start right away without creating an account |
 | **Notion** | Content calendar, internal organization | Free (Free plan) | Those who want a flexible board without automatic publishing |
 | **Buffer** | Multi-network scheduling and publishing | Free (3 channels, 10 posts/channel) then $5/channel/month | Solo professionals and small teams on a tight budget |
 | **Later** | Visual planning, strong on Instagram and TikTok | ~$25/month | Content creators and visual brands |
@@ -158,17 +176,22 @@ There are dozens of tools. Here is an honest selection, suited to executives and
 
 **How to choose?**
 
-- You're starting out with little budget → **Buffer** (the free plan is enough for 1 to 2 networks).
+- You want to start today, for free → **our Excel template** (downloadable above).
+- You prefer an online, collaborative board → **Notion**.
+- You're starting out with little budget for scheduling → **Buffer** (the free plan is enough for 1 to 2 networks).
 - You're very active on Instagram → **Later** for its visual interface.
 - You manage several client accounts or a team → **Hootsuite**.
-- You want to organize your content without publishing directly → **Notion** alongside another tool.
 - You want AI to generate and schedule the content for you → a **dedicated AI tool** is the fastest solution.
 
-> **Tip:** Notion and Buffer complement each other. Notion to plan and approve, Buffer to schedule and publish. It's the most common duo among solo professionals managing their own communication.
+> **Tip:** The Excel template and a scheduling tool complement each other. The spreadsheet to plan and approve, a tool like Buffer to schedule and publish. It's the most common duo among solo professionals managing their own communication.
 
 ---
 
 ## FAQ
+
+**Where can I download a free content calendar template?**
+
+Right on this page: our [social media content calendar template in Excel format](/social-media-content-calendar.xlsx) is free, with no sign-up. It includes the 12 useful columns, a one-week example and a legend. You can open it in Excel, Google Sheets or LibreOffice.
 
 **What's the difference between a content calendar and a social media plan?**
 
@@ -176,7 +199,7 @@ The two terms often refer to the same tool. The "content calendar" is the generi
 
 **How long does it take to create your first social media content calendar?**
 
-Between 30 and 60 minutes for the first month. Once your content pillars are defined and your table is in place, the following months take 30 minutes to plan. The initial investment is minimal.
+Between 30 and 60 minutes for the first month if you start from a template. Once your content pillars are defined and your table is in place, the following months take 30 minutes to plan. The initial investment is minimal.
 
 **Do you have to post every day to be visible on social media?**
 

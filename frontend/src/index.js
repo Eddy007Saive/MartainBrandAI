@@ -38,7 +38,20 @@ if (Capacitor.isNativePlatform()) {
 // fenêtre la plus surveillée (LCP). Un report après le chargement complet ne
 // coûte rien à la mesure — quelques centaines de ms sur une session dure
 // souvent des minutes — et libère la bande passante initiale pour la page.
-const demarrerAnalytics = () => setTimeout(initAnalytics, 1000);
+//
+// Octobre 2026 : un simple délai fixe (1 s après « load ») ne suffisait pas,
+// Lighthouse voyait encore config.js de PostHog dans la chaîne de requêtes
+// critiques (~1 s) : sur mobile, React est encore en train de redessiner la
+// page à ce moment-là. On attend donc que le navigateur se déclare inactif
+// (requestIdleCallback, au plus tard 2,5 s après « load ») ; sans cette API
+// (Safari < 18), repli sur un délai fixe de 2,5 s.
+const demarrerAnalytics = () => {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => initAnalytics(), { timeout: 2500 });
+  } else {
+    setTimeout(initAnalytics, 2500);
+  }
+};
 if (document.readyState === "complete") demarrerAnalytics();
 else window.addEventListener("load", demarrerAnalytics, { once: true });
 

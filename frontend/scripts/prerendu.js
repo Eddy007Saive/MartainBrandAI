@@ -28,20 +28,35 @@ const puppeteer = require('puppeteer');
 // Chrome enregistrait alors un second candidat LCP, 1 a 10 s plus tard selon
 // le reseau. Les fichiers woff2 du premier ecran sont de plus precharges. Facultatif : s'il manque ou echoue, la page est ecrite
 // avec sa feuille de style classique.
-// Les polices du premier ecran (titres Sora 700/800, texte Inter 400) sont
-// declarees dans main.css, charge en differe depuis le passage au CSS critique :
-// sans preload, le navigateur ne les decouvre qu'apres la feuille complete
-// (chaine CSS -> woff2 de ~2,9 s dans Lighthouse). On les annonce dans <head>.
-const POLICES_PRIORITAIRES = ['sora-latin-700-normal', 'sora-latin-800-normal', 'inter-latin-400-normal'];
+// Les polices du premier ecran sont declarees dans main.css, charge en differe
+// depuis le passage au CSS critique : sans preload, le navigateur ne les
+// decouvre qu'apres la feuille complete (chaine CSS -> woff2 de ~2,9 s dans
+// Lighthouse), ou, pour celles dont le @font-face est inline (FACES_INLINE),
+// seulement au premier layout, apres le CSS critique (~1,1 a 1,5 s). On les
+// annonce dans <head>. Graisses relevees au premier ecran (octobre 2026,
+// accueil + blog + tarifs, 412x823 et 1350x940) :
+//   - Sora 700/800 : titres, logo, chiffres ;
+//   - Inter 400 : paragraphes ;
+//   - Inter 600 : selecteur de langue, kicker, boutons CTA, <b> du sous-titre ;
+//   - Inter 500 : liens de nav + tagline « Studio de contenu IA », visibles sur
+//     grand ecran seulement (masques <= 900 px par homeCine.css) : preload
+//     conditionne par media query, le mobile ne telecharge pas 24 Ko inutiles.
+// Sora 400 n'apparait qu'a ~2 700 px (h3 des comparatifs) : pas prechargee.
+// Total mobile : 4 fichiers (~78 Ko) ; grand ecran : 5 fichiers (~102 Ko).
+const POLICES_PRIORITAIRES = [
+  'sora-latin-700-normal', 'sora-latin-800-normal', 'inter-latin-400-normal', 'inter-latin-600-normal',
+  { nom: 'inter-latin-500-normal', media: '(min-width: 901px)' },
+];
 let preloadsPolices = null;
 function precharcherPolices(html) {
   if (preloadsPolices === null) {
-    const media = path.join(BUILD, 'static', 'media');
-    const fichiers = fs.existsSync(media) ? fs.readdirSync(media) : [];
+    const dossierMedia = path.join(BUILD, 'static', 'media');
+    const fichiers = fs.existsSync(dossierMedia) ? fs.readdirSync(dossierMedia) : [];
     preloadsPolices = POLICES_PRIORITAIRES
-      .map((nom) => fichiers.find((f) => f.startsWith(`${nom}.`) && f.endsWith('.woff2')))
-      .filter(Boolean)
-      .map((f) => `<link rel="preload" as="font" type="font/woff2" crossorigin href="/static/media/${f}">`)
+      .map((p) => (typeof p === 'string' ? { nom: p } : p))
+      .map(({ nom, media }) => ({ media, f: fichiers.find((f) => f.startsWith(`${nom}.`) && f.endsWith('.woff2')) }))
+      .filter(({ f }) => f)
+      .map(({ f, media }) => `<link rel="preload" as="font" type="font/woff2" crossorigin${media ? ` media="${media}"` : ''} href="/static/media/${f}">`)
       .join('');
   }
   if (!preloadsPolices || html.includes('as="font"')) return html;
@@ -50,8 +65,12 @@ function precharcherPolices(html) {
 
 // @font-face des polices du premier ecran, extraites de main.css : sous-ensemble
 // latin uniquement (les variantes latin-ext/cyrillic/grec/vietnamien restent
-// dans la feuille complete, chargee en differe).
-const FACES_INLINE = { Sora: ['400', '700', '800'], Inter: ['400', '500', '600'] };
+// dans la feuille complete, chargee en differe). Une face inline declenche le
+// telechargement des le premier layout pour tout texte qui l'utilise, meme
+// loin sous la ligne de flottaison : Sora 400 (h3 des comparatifs, ~2 700 px)
+// n'y figure donc plus, elle n'est decouverte qu'avec main.css et sort de la
+// chaine critique ; d'ici la, ces h3 s'affichent en « Sora Fallback » calibree.
+const FACES_INLINE = { Sora: ['700', '800'], Inter: ['400', '500', '600'] };
 let fontFacesInline = null;
 function inlinerFontFaces(html) {
   if (fontFacesInline === null) {

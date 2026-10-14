@@ -3,13 +3,22 @@
    Arial mis a l'echelle de la vraie police. Meme encombrement, memes retours a
    la ligne -> pas de decalage (CLS) au swap, et un seul candidat LCP pour le
    titre (Chrome re-enregistrait le h1 plus grand apres le swap, cf. prerendu.js).
-   Ratios mesures en octobre 2026 sur le texte du hero. */
+   Ratios mesures en octobre 2026 sur le texte du hero.
+   PIEGE : local("Arial") charge TOUJOURS Arial Regular, meme pour les graisses
+   700/800 (le navigateur ne synthetise pas le gras sur une face declaree 800).
+   Les ratios des graisses grasses doivent donc etre mesures contre Arial
+   Regular, pas Arial Bold : avec 93,36 % (calibre contre Arial Bold) le repli
+   Sora 800 etait 22 % trop etroit, le h1 passait de 3 a 4 lignes au swap et
+   decalait tout le hero (CLS 0,11 mesure sur mobile, 14/10/2026). Les
+   overrides verticaux sont exprimes par rapport a la taille APRES size-adjust :
+   ascent = 97,9 % / size-adjust, descent = 29,2 % / size-adjust (Sora) ;
+   97,9 % et 25,0 % (Inter). */
 @font-face{font-family:"Sora Fallback";font-weight:400;src:local("Arial");size-adjust:113.92%;ascent-override:85.95%;descent-override:25.6%;line-gap-override:0%}
 @font-face{font-family:"Sora Fallback";font-weight:700;src:local("Arial");size-adjust:107.8%;ascent-override:90.83%;descent-override:27.06%;line-gap-override:0%}
-@font-face{font-family:"Sora Fallback";font-weight:800;src:local("Arial");size-adjust:93.36%;ascent-override:104.9%;descent-override:31.2%;line-gap-override:0%}
+@font-face{font-family:"Sora Fallback";font-weight:800;src:local("Arial");size-adjust:114.5%;ascent-override:85.53%;descent-override:25.44%;line-gap-override:0%}
 @font-face{font-family:"Inter Fallback";font-weight:400;src:local("Arial");size-adjust:106.5%;ascent-override:91.94%;descent-override:23.47%;line-gap-override:0%}
-@font-face{font-family:"Inter Fallback";font-weight:500;src:local("Arial");size-adjust:107.58%;ascent-override:91.02%;descent-override:23.24%;line-gap-override:0%}
-@font-face{font-family:"Inter Fallback";font-weight:600;src:local("Arial");size-adjust:100.92%;ascent-override:97.03%;descent-override:24.77%;line-gap-override:0%}
+@font-face{font-family:"Inter Fallback";font-weight:500;src:local("Arial");size-adjust:106.7%;ascent-override:91.77%;descent-override:23.43%;line-gap-override:0%}
+@font-face{font-family:"Inter Fallback";font-weight:600;src:local("Arial");size-adjust:107.8%;ascent-override:90.84%;descent-override:23.19%;line-gap-override:0%}
 /* Polices Sora + Inter auto-hébergées : importées via @fontsource dans src/index.js
    (les anciens @import Google Fonts rendaient main.css dépendant de 2 requêtes tierces bloquantes). */
 /* Import Google Fonts */

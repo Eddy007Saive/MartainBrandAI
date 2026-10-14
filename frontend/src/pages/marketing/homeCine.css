@@ -139,7 +139,12 @@
   animation:gradDerive 7s ease-in-out infinite alternate}
 @keyframes motApparait{from{opacity:0;filter:blur(10px);transform:translateY(14px)}to{opacity:1;filter:blur(0);transform:none}}
 @media(prefers-reduced-motion:reduce){.cine h1 .mot,.cine h1 .g{animation:none}}
-.cine .hero-sub{color:var(--mut);font-size:15px;line-height:1.7;max-width:54ch;margin-top:18px}
+/* max-width en px et non en ch : le « ch » depend de la largeur du zero de la
+   police courante, et celui d'Inter est 6 % plus large que celui du repli
+   Arial mis a l'echelle. En 54ch le paragraphe (element LCP) passait de 481 a
+   511 px au swap de police et ses lignes se redistribuaient (CLS). 511px = la
+   valeur que donnait 54ch en Inter 15px. */
+.cine .hero-sub{color:var(--mut);font-size:15px;line-height:1.7;max-width:511px;margin-top:18px}
 .cine .hero-sub b{color:#dbe4f2;font-weight:600}
 .cine .nets{display:flex;gap:14px;margin-top:14px;font-size:12px;color:var(--dim);flex-wrap:wrap;align-items:center}
 .cine .nets b{color:#aab8d0;font-weight:600}
