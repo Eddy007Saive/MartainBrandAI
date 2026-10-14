@@ -42,6 +42,7 @@ import { appendFile, copyFile, mkdir, readdir, rename, rm, stat, writeFile } fro
 import http from 'node:http';
 import path from 'node:path';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
+import os from 'node:os';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
@@ -117,6 +118,84 @@ async function sonder(f) {
   const d = JSON.parse(r.out);
   const v = (d.streams || []).find((s) => s.codec_type === 'video');
   return { video: Boolean(v), son: (d.streams || []).some((s) => s.codec_type === 'audio'), largeur: v?.width || 0, hauteur: v?.height || 0, duree: Number(d.format?.duration || 0) };
+}
+
+// Ce que la machine offre (polices, modules Python, filtres ffmpeg), mesuré une seule fois et donné
+// à l'agent dans le brief : il n'a plus à fouiller la machine avant de monter (≈ 2 min gagnées).
+let environnementCache = null;
+async function environnement() {
+  if (environnementCache) return environnementCache;
+  const lignes = [`- Processeurs : ${os.cpus().length} cœurs (rendus ffmpeg : \`-threads 0\`).`];
+  const fc = await lancer('fc-list', [':', 'family', 'file'], { timeoutMs: 20_000 });
+  const familles = new Map();
+  for (const l of fc.code === 0 ? fc.out.split('\n') : []) {
+    const m = /^(.+?\.(?:ttf|otf|ttc)):\s*(.+)$/i.exec(l.trim());
+    if (!m) continue;
+    const nom = m[2].split(',')[0].trim();
+    if (!familles.has(nom)) familles.set(nom, []);
+    familles.get(nom).push(m[1]);
+  }
+  if (familles.size) {
+    lignes.push('- Polices installées (famille : fichiers) :');
+    for (const [nom, f] of [...familles].sort(([a], [b]) => a.localeCompare(b)).slice(0, 80))
+      lignes.push(`  - ${nom} : ${f.sort().slice(0, 8).map((x) => `\`${x}\``).join(', ')}`);
+  }
+  const py = await lancer('python3', ['-c', "import importlib.util as u, json; print(json.dumps({m: bool(u.find_spec(m)) for m in ['PIL', 'numpy', 'fontTools', 'cv2', 'scipy', 'moviepy']}))"], { timeoutMs: 20_000 });
+  try {
+    const mods = JSON.parse(py.out);
+    lignes.push(`- Modules Python disponibles : ${Object.keys(mods).filter((m) => mods[m]).join(', ') || 'aucun'} ; absents : ${Object.keys(mods).filter((m) => !mods[m]).join(', ') || 'aucun'}. N'installe rien.`);
+  } catch { /* python indisponible : l'agent le verra */ }
+  const filtres = await lancer('ffmpeg', ['-hide_banner', '-filters'], { timeoutMs: 20_000 });
+  if (filtres.code === 0) {
+    const voulus = ['ass', 'subtitles', 'drawtext', 'overlay', 'xfade', 'zoompan', 'gblur', 'boxblur', 'geq', 'colorkey', 'chromakey', 'loudnorm', 'amix', 'afade', 'sidechaincompress', 'alimiter'];
+    const presents = voulus.filter((f) => new RegExp(`^\\s*\\S+\\s+${f}\\s`, 'm').test(filtres.out));
+    lignes.push(`- Filtres ffmpeg présents : ${presents.join(', ')}${presents.length < voulus.length ? ` ; absents : ${voulus.filter((f) => !presents.includes(f)).join(', ')}` : ''}. Encodeurs : libx264, aac.`);
+  }
+  if (familles.size) environnementCache = lignes;
+  return lignes;
+}
+
+/** Durée, dimensions et son de chaque fichier de ./assets, pour que l'agent n'ait pas à les sonder. */
+async function mesurerAssets(entrees) {
+  const lignes = [];
+  for (const f of (await readdir(entrees).catch(() => [])).sort()) {
+    if (/\.json$/i.test(f)) continue;
+    try {
+      const m = await sonder(path.join(entrees, f));
+      const image = /\.(png|jpe?g|webp)$/i.test(f);
+      lignes.push(`- \`./assets/${f}\` : ${image ? `image ${m.largeur}x${m.hauteur}` : `${m.video ? `vidéo ${m.largeur}x${m.hauteur}, ` : 'audio, '}${m.duree.toFixed(2)} s${m.video ? (m.son ? ', avec son' : ', sans son') : ''}`}`);
+    } catch { /* fichier illisible : l'agent le verra */ }
+  }
+  return lignes;
+}
+
+/** Correction « musique seule » : remixe la bande son gardée sans musique avec la nouvelle piste (ou sans),
+ * sans relancer l'agent. Quelques secondes au lieu de plusieurs minutes. false si ce n'est pas possible. */
+async function remixerMusique(e, dossier, c, musique) {
+  const sortie = path.join(dossier, 'sortie');
+  const base = path.join(sortie, 'sans_musique.wav');
+  const video = path.join(sortie, `final_v${e.version - 1}.mp4`);
+  if (!existsSync(base) || !existsSync(video)) return false;
+  const { duree } = await sonder(video);
+  const final = path.join(sortie, 'final.mp4');
+  const args = ['-y', '-i', video, '-i', base];
+  if (c.sans_musique) {
+    args.push('-map', '0:v', '-map', '1:a');
+  } else {
+    const v = Math.max(0.05, Math.min(1, (Number(c.musique_volume) || 25) / 100));
+    const finFondu = Math.max(0, duree - 2).toFixed(2);
+    args.push('-stream_loop', '-1', '-i', path.join(dossier, 'assets', musique), '-filter_complex',
+      `[2:a]volume=${v},afade=t=in:d=1,afade=t=out:st=${finFondu}:d=2[m];[1:a][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.95[a]`,
+      '-map', '0:v', '-map', '[a]');
+  }
+  args.push('-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-t', duree.toFixed(3), '-movflags', '+faststart', final);
+  const r = await lancer('ffmpeg', args, { timeoutMs: 5 * 60_000 });
+  if (r.code !== 0 || !existsSync(final)) {
+    log(`montage ${e.id} : remixage direct impossible, l'agent prend la main (${r.err.slice(-200)})`);
+    await rm(final, { force: true });
+    return false;
+  }
+  return true;
 }
 
 /** Garde les morceaux [debut, fin] d'une vidéo et les recolle (image + son), en place. */
@@ -213,6 +292,8 @@ async function preparer(e, dossier, entrees, maj) {
 
   const pretraite = transcrits.length > 0;
   const [l, h] = RATIOS[e.demande.format] || RATIOS['9:16'];
+  const env = await environnement();
+  const mesures = await mesurerAssets(entrees);
   await writeFile(path.join(dossier, 'BRIEF.md'), [
     '# Brief de montage', '',
     `- Format : ${e.demande.format} (${l}x${h})`,
@@ -243,7 +324,12 @@ async function preparer(e, dossier, entrees, maj) {
       '  Mixe-la sur toute la vidéo (en boucle si elle est plus courte), avec un fondu à l\'entrée et à la sortie.', ''] : []),
     ...(!pretraite ? ['## Pas de transcription fournie', '',
       "La vidéo ne contient pas de parole exploitable : pas de sous-titres. Ne transcris pas l'audio toi-même.", ''] : []),
+    '## Environnement (déjà vérifié : ne le re-vérifie pas)', '',
+    "Tout ce qui suit a été mesuré pour toi : ne lance ni `fc-list`, ni `ffprobe` sur ces fichiers, ni test d'import Python.", '',
+    ...env, '',
+    '### Fichiers de ./assets', '', ...mesures, '',
     '## Livrable', '', 'Un seul fichier : ./sortie/final.mp4 (H.264 + AAC, yuv420p, faststart).',
+    'Et la bande son finale SANS la musique de fond (voix + effets, même durée) : ./sortie/sans_musique.wav (voir les règles).',
   ].join('\n'));
 }
 
@@ -308,6 +394,7 @@ async function monter(e) {
   const maj = async (champs) => { Object.assign(e, champs); await ecrireEtat(e); };
   const final = path.join(sortie, 'final.mp4');
   const correction = e.version > 1;
+  let direct = null;
   try {
     await maj({ statut: 'en_cours', debut: new Date().toISOString(), erreur: null });
     let consigne;
@@ -339,9 +426,17 @@ async function monter(e) {
         "Modifie seulement ce qui est demandé, garde tout le reste à l'identique, puis refais le rendu dans ./sortie/final.mp4.",
       ].join('\n'));
       consigne = `Le client demande une correction du montage : lis CORRECTION_v${e.version}.md, reprends ton script existant (./tmp), applique uniquement ce qui est demandé, puis refais le rendu dans ./sortie/final.mp4. Personne ne répondra à tes questions.`;
+      if (c.musique_seule && (musique || c.sans_musique)) {
+        await maj({ progression: 'Remplacement de la musique' });
+        if (await remixerMusique(e, dossier, c, musique)) {
+          direct = { r: { code: 0 }, etape: 0, minutes: 0,
+            res: { total_cost_usd: 0, result: c.sans_musique ? 'La musique de fond a été retirée, le reste de la vidéo est identique.' : 'La musique de fond a été remplacée, le reste de la vidéo est identique.' } };
+          log(`montage ${e.id} v${e.version} : musique remixée sans l'agent`);
+        }
+      }
     }
-    await maj({ progression: correction ? 'Correction par Claude Code' : 'Montage par Claude Code' });
-    const { r, res, etape, minutes } = await lancerAgent(e, dossier, consigne, maj);
+    if (!direct) await maj({ progression: correction ? 'Correction par Claude Code' : 'Montage par Claude Code' });
+    const { r, res, etape, minutes } = direct || await lancerAgent(e, dossier, consigne, maj);
     const cout = typeof res.total_cost_usd === 'number' ? res.total_cost_usd : null;
     if (!existsSync(final)) throw Object.assign(new Error(`Pas de sortie/final.mp4 (code ${r.code}). ${String(res.result || r.err || r.out).slice(0, 300)}`), { cout });
 
@@ -486,9 +581,13 @@ http.createServer(async (req, res) => {
       const consignes = String(d.consignes || '').trim().slice(0, 2000);
       if (!consignes) return repondre(res, 400, { erreur: 'Décris la correction voulue dans "consignes".' });
       e.version = (e.version || 1) + 1;
-      const musique = estHttps(d.musique_url)
-        ? { musique_url: d.musique_url, musique_volume: Math.max(5, Math.min(100, Math.round(Number(d.musique_volume) || 25))) }
-        : d.sans_musique === true ? { sans_musique: true } : {};
+      const musique = {
+        ...(estHttps(d.musique_url)
+          ? { musique_url: d.musique_url, musique_volume: Math.max(5, Math.min(100, Math.round(Number(d.musique_volume) || 25))) }
+          : d.sans_musique === true ? { sans_musique: true } : {}),
+        // Rien d'autre que la musique : le serveur remixe lui-même, sans l'agent
+        ...(d.musique_seule === true ? { musique_seule: true } : {}),
+      };
       e.corrections = [...(e.corrections || []), { version: e.version, consignes, images: lireImages(d.images), ...musique, demandee: new Date().toISOString() }];
       Object.assign(e, { statut: 'en_attente', progression: 'En attente', erreur: null, resume: null });
       await ecrireEtat(e);
