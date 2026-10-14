@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { initPush } from '../lib/push';
 import { openTawk, identifyTawk, hideTawk, resetTawk } from '../lib/tawk';
-import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, ShieldCheck, Package, Handshake, Clapperboard, Workflow, Bird, Store } from 'lucide-react';
+import { Home, FileText, MessageCircle, Calendar, CalendarDays, Settings, LogOut, Menu, X, Sparkles, LayoutGrid, Download, ArrowLeft, Eye, BarChart3, User, Megaphone, Plug, CreditCard, Palette, Video, ChevronLeft, ShieldCheck, Package, Handshake, Clapperboard, Workflow, Bird, Store, Rocket } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -47,6 +47,7 @@ const navGroupes = [
     items: [
       { path: '/dashboard/contenus', label: 'nav.contents', icon: FileText },
       { path: '/dashboard/planification', label: 'nav.planning', icon: Calendar },
+      { path: '/dashboard/publicite', label: 'nav.publicite', icon: Rocket },
     ],
   },
   {
