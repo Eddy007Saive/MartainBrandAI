@@ -55,6 +55,16 @@ let webpackConfig = {
       if (config.enableHealthCheck && healthPluginInstance) {
         webpackConfig.plugins.push(healthPluginInstance);
       }
+
+      // BUILD_LOW_MEM=1 : minification sans workers parallèles (Terser lance
+      // sinon cpus-1 processus de ~500 Mo chacun). Pour builder sur une machine
+      // avec peu de RAM libre ; n'a aucun effet sur le résultat, seulement sur
+      // la durée du build.
+      if (process.env.BUILD_LOW_MEM === '1' && webpackConfig.optimization?.minimizer) {
+        for (const minimizer of webpackConfig.optimization.minimizer) {
+          if (minimizer?.options && 'parallel' in minimizer.options) minimizer.options.parallel = 1;
+        }
+      }
       return webpackConfig;
     },
   },
