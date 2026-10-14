@@ -569,6 +569,8 @@ export default function ContenusPage() {
   // l'import du Studio Vidéo) : un reel Remotion s'ouvre dans le Studio Reel, une vidéo montée par
   // Studio Montage dans l'éditeur après rendu, une vidéo importée dans le Studio Vidéo.
   const ouvrirModificationVideo = (c) => {
+    // Vidéo montée par l'agent IA : retour au Studio Vidéo, sur son résultat (corrections possibles)
+    if (c.reel_data?.agent) { setSelectedContenu(null); navigate(`/dashboard/video?contenu_id=${c.id}`); return; }
     if (c.reel_data) { openSequenceRegen(c); return; }
     setSelectedContenu(null);
     if (c.submagic_project_id) navigate(`/dashboard/video/edition?contenu=${c.id}`);
