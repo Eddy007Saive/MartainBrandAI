@@ -1,6 +1,10 @@
 // PostHog — analytics produit + session replay.
 // Clé PUBLIQUE de projet (faite pour vivre dans le bundle front) ; surchargable via .env.
-import posthog from 'posthog-js';
+// posthog-js (~150 Ko + ses polyfills core-js, cf. audit Lighthouse "Ancien
+// JavaScript") est chargé à la demande dans initAnalytics() via import()
+// dynamique : il sort du bundle principal et n'est téléchargé qu'une fois la
+// page affichée (initAnalytics est déjà différée dans index.js).
+let posthog = null;
 import { Capacitor } from '@capacitor/core';
 
 // Plateforme de chaque événement : « android » / « ios » pour l'app (APK), « web » sinon.
@@ -17,9 +21,10 @@ let ready = false;
 // son identification en attente et on la rejoue dès que PostHog est prêt.
 let identificationEnAttente = null;
 
-export function initAnalytics() {
+export async function initAnalytics() {
   if (ready || !KEY) return;
   try {
+    posthog = (await import('posthog-js')).default;
     posthog.init(KEY, {
       api_host: HOST,
       capture_pageview: true,

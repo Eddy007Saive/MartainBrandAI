@@ -1,6 +1,15 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "@/index.css";
+// Polices auto-hébergées (remplacent le lien Google Fonts de public/index.html) :
+// mêmes graisses qu'avant, fichiers woff2 latin servis depuis /static/media.
+import "@fontsource/sora/400.css";
+import "@fontsource/sora/500.css";
+import "@fontsource/sora/600.css";
+import "@fontsource/sora/700.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
 import "@/i18n"; // langue de l'interface : localStorage → navigateur → fr
 import App from "@/App";
 import { hydrateAuth } from "@/lib/auth";
