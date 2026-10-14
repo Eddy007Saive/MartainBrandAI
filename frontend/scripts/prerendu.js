@@ -143,21 +143,44 @@ function servir() {
 // télécharge manque des libs système (libnspr4.so…) : on tente d'abord
 // @sparticuz/chromium (Chromium « serverless » livré avec ses libs), sinon on
 // retombe sur le puppeteer local (poste de dev).
+async function lancerChromiumPortable() {
+  // @sparticuz/chromium : un Chromium autonome (librairies incluses), concu
+  // pour les environnements minimaux (Lambda, conteneurs de build).
+  const chromium = require('@sparticuz/chromium');
+  const pc = require('puppeteer-core');
+  return pc.launch({
+    args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+  });
+}
+
 async function lancerNavigateur() {
+  // Octobre 2026 : sur Hostinger (deploiement git), ni VERCEL ni CI ne sont
+  // definis et le Chromium de puppeteer ne se lance pas (librairies systeme
+  // absentes) : le site etait servi SANS pages prerendues (index.html de
+  // 985 octets) alors que le sitemap et llms.txt, eux, etaient bien ecrits.
+  // On essaie donc TOUJOURS le Chromium portable si le navigateur de
+  // puppeteer echoue, quel que soit l'environnement.
   const surVercel = !!(process.env.VERCEL || process.env.CI);
-  if (surVercel) {
+  const essais = surVercel
+    ? [['@sparticuz/chromium', lancerChromiumPortable], ['puppeteer', lancerPuppeteer]]
+    : [['puppeteer', lancerPuppeteer], ['@sparticuz/chromium', lancerChromiumPortable]];
+  let derniere = null;
+  for (const [nom, lancer] of essais) {
     try {
-      const chromium = require('@sparticuz/chromium');
-      const pc = require('puppeteer-core');
-      return await pc.launch({
-        args: [...chromium.args, '--no-sandbox', '--disable-dev-shm-usage'],
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-      });
+      const navigateur = await lancer();
+      console.log(`  navigateur : ${nom}`);
+      return navigateur;
     } catch (e) {
-      console.warn(`  ⚠ @sparticuz/chromium indisponible (${e.message}) — repli sur puppeteer.`);
+      derniere = e;
+      console.warn(`  ⚠ ${nom} : ${String(e.message).split(String.fromCharCode(10))[0]}`);
     }
   }
+  throw derniere || new Error('aucun navigateur disponible');
+}
+
+function lancerPuppeteer() {
   return puppeteer.launch({ args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'] });
 }
 
