@@ -363,9 +363,12 @@ export default function StudioVideo() {
   };
 
   // Correction d'un montage de l'agent : même suivi que le montage, la nouvelle version remplace l'ancienne
-  const corriger = async (consignes, images) => {
+  const corriger = async (consignes, images, musique) => {
     try {
-      await agentVideoService.corriger(result.travailId, { consignes, images });
+      await agentVideoService.corriger(result.travailId, {
+        consignes: consignes || undefined, images,
+        ...(musique ? { musique: musique.id, musique_volume: musique.id !== 'none' ? musique.volume : undefined } : {}),
+      });
       const travailId = result.travailId;
       setAgentEtat(null); setResult(null); setUploadPct(0); setStep('processing');
       suivreAgent(travailId);
@@ -519,6 +522,7 @@ export default function StudioVideo() {
         <SuiviAgent etat={agentEtat} motion={motionActif} uploadPct={uploadPct} maintenant={maintenant} navigate={navigate} />
       ) : (step === 'done' && result) ? (
         <ResultCard result={result} onReset={reset} navigate={navigate} onCorriger={result.travailId ? corriger : undefined}
+          choixMusique={choixMusique} musique={{ id: form.music, volume: Math.max(5, volume) }}
           reseaux={reseaux} setReseaux={setReseaux} onPublish={publishMontaged} publishing={publishing} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -1023,54 +1027,78 @@ function SuiviAgent({ etat, motion, uploadPct, maintenant, navigate }) {
   );
 }
 
-function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish, publishing, onCorriger }) {
+/** Le résumé de l'agent parle de ses fichiers (./sortie/final.mp4…) : on retire ces chemins. */
+const nettoyerResume = (r) => String(r || '')
+  .replace(/\s*:?\s*`?\.\/[\w\-./]*?\.[a-z0-9]{2,4}`?(?![\w])/gi, '')
+  .replace(/\s*:?\s*`?\.\/[\w\-/]+`?/g, '')
+  .replace(/[ \t]+([.,;])/g, '$1')
+  .trim();
+
+function ResultCard({ result, onReset, navigate, reseaux, setReseaux, onPublish, publishing, onCorriger, choixMusique, musique }) {
   const { t } = useTranslation();
+  const [resumeOuvert, setResumeOuvert] = useState(false);
+  const resume = nettoyerResume(result.resume);
   return (
-    <div className="rounded-2xl border border-[#3AFFA3]/25 bg-[#3AFFA3]/[0.06] p-5 space-y-4">
-      <div className="flex items-center gap-2 text-[#3AFFA3]"><Check className="w-5 h-5" /><p className="font-semibold font-sora">{t('video.result.done')}</p></div>
-      <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4 items-start">
-        {result.video_url && <video src={result.video_url} controls className="w-full max-h-[420px] rounded-xl bg-black" />}
-        <div className="space-y-3">
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-[#3AFFA3]/20 bg-[#0f172a] p-5 sm:p-6">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="w-9 h-9 rounded-full bg-[#3AFFA3]/15 grid place-items-center"><Check className="w-5 h-5 text-[#3AFFA3]" /></span>
+          <h2 className="font-bold font-sora text-white text-lg flex-1">{t('video.result.done')}</h2>
           {result.version > 1 && (
-            <p className="text-[11px] font-semibold font-inter text-[#b9a6ff]">{t('video.agent.version', { v: result.version })}</p>
+            <span className="text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full border border-[#8A6CFF]/40 text-[#c4b5fd] bg-[#8A6CFF]/10">{t('video.agent.version', { v: result.version })}</span>
           )}
-          {result.erreurCorrection && (
-            <p className="text-[12px] text-amber-300 font-inter rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2">{t('video.agent.correctionRatee')} {result.erreurCorrection}</p>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] gap-6 items-start">
+          {result.video_url && (
+            <video src={result.video_url} controls playsInline className="w-full max-w-[300px] mx-auto md:max-w-none aspect-[9/16] max-h-[520px] rounded-xl bg-black object-contain" />
           )}
-          {result.resume && (
-            <div className="rounded-xl border border-white/[0.06] bg-[#0c111f] p-3.5">
-              <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-1">{t('video.agent.resume')}</p>
-              <p className="text-[12.5px] text-slate-300 font-inter leading-relaxed whitespace-pre-line max-h-40 overflow-y-auto">{result.resume}</p>
+          <div className="min-w-0 space-y-5">
+            {result.erreurCorrection && (
+              <p className="text-[12.5px] text-amber-200 font-inter rounded-xl border border-amber-400/30 bg-amber-400/10 px-3.5 py-2.5">{t('video.agent.correctionRatee')} {result.erreurCorrection}</p>
+            )}
+            {resume && (
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-1.5">{t('video.agent.resume')}</p>
+                <p className={`text-[13.5px] text-slate-300 font-inter leading-relaxed whitespace-pre-line break-words ${resumeOuvert ? '' : 'line-clamp-4'}`}>{resume}</p>
+                {resume.length > 260 && (
+                  <button type="button" onClick={() => setResumeOuvert((o) => !o)} className="mt-1 text-[12.5px] font-semibold text-[#a5b0ff] hover:text-white font-inter">
+                    {resumeOuvert ? t('video.agent.resumeReduire') : t('video.agent.resumeTout')}
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="rounded-xl border border-white/[0.06] bg-[#0c111f] p-4 space-y-3">
+              <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter">{t('video.result.publishOn')}</p>
+              <div className="flex gap-2 flex-wrap">
+                {RESEAUX.map((r) => {
+                  const on = reseaux.includes(r.id);
+                  return (
+                    <button key={r.id} type="button"
+                      onClick={() => setReseaux((p) => on ? (p.length > 1 ? p.filter((x) => x !== r.id) : p) : [...p, r.id])}
+                      className={`sv-chip ${on ? 'on' : ''}`}>{r.label}</button>
+                  );
+                })}
+              </div>
+              <Button onClick={onPublish} disabled={publishing || !reseaux.length}
+                className="w-full sm:w-auto bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2 disabled:opacity-50">
+                {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                {t('video.result.saveAndPublish')}
+              </Button>
+              <p className="text-[11.5px] text-slate-500 font-inter">{t('video.result.note1')} <b className="text-slate-300">{t('video.result.note2')}</b>.</p>
             </div>
-          )}
-          {/* Réseaux de publication (multi) */}
-          <div>
-            <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-1.5">{t('video.result.publishOn')}</p>
-            <div className="flex gap-2 flex-wrap">
-              {RESEAUX.map((r) => {
-                const on = reseaux.includes(r.id);
-                return (
-                  <button key={r.id} type="button"
-                    onClick={() => setReseaux((p) => on ? (p.length > 1 ? p.filter((x) => x !== r.id) : p) : [...p, r.id])}
-                    className={`sv-chip ${on ? 'on' : ''}`}>{r.label}</button>
-                );
-              })}
+
+            <div className="flex flex-wrap gap-x-1 gap-y-1 -ml-3">
+              <Button variant="ghost" onClick={() => navigate('/dashboard/contenus')} className="text-slate-300 hover:text-white">{t('video.result.seeContents')}</Button>
+              {result.video_preview_url && <a href={result.video_preview_url} target="_blank" rel="noreferrer"><Button variant="ghost" className="text-slate-300 hover:text-white">{t('video.result.preview')}</Button></a>}
+              {onReset && <Button variant="ghost" onClick={onReset} className="text-slate-400 hover:text-white">{t('video.result.newVideo')}</Button>}
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 pt-1">
-            <Button onClick={onPublish} disabled={publishing || !reseaux.length}
-              className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2 disabled:opacity-50">
-              {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-              {t('video.result.saveAndPublish')}
-            </Button>
-            <Button variant="ghost" onClick={() => navigate('/dashboard/contenus')} className="text-slate-300">{t('video.result.seeContents')}</Button>
-            {result.video_preview_url && <a href={result.video_preview_url} target="_blank" rel="noreferrer"><Button variant="ghost" className="text-slate-300">{t('video.result.preview')}</Button></a>}
-            {onReset && <Button variant="ghost" onClick={onReset} className="text-slate-400">{t('video.result.newVideo')}</Button>}
-          </div>
-          <p className="text-[11px] text-slate-500 font-inter">{t('video.result.note1')} <b className="text-slate-300">{t('video.result.note2')}</b>.</p>
-          {onCorriger && <CorrectionAgent result={result} onEnvoyer={onCorriger} />}
         </div>
       </div>
+
+      {onCorriger && <CorrectionAgent result={result} onEnvoyer={onCorriger} choixMusique={choixMusique} musique={musique} />}
     </div>
   );
 }
@@ -1174,33 +1202,54 @@ function ImagesBanque({ selection, onChange, max = 10 }) {
   );
 }
 
-/** Demande de correction d'un montage de l'agent : texte libre + photos éventuelles. */
-function CorrectionAgent({ result, onEnvoyer }) {
+function CorrectionAgent({ result, onEnvoyer, choixMusique, musique }) {
   const { t } = useTranslation();
   const [texte, setTexte] = useState('');
   const [images, setImages] = useState([]);
+  const [changerMusique, setChangerMusique] = useState(false);
   const [envoi, setEnvoi] = useState(false);
-  if (!result.correctionPossible) return <p className="text-[11.5px] text-slate-500 font-inter">{t('video.agent.correctionExpiree')}</p>;
+  if (!result.correctionPossible) return <p className="text-[12px] text-slate-500 font-inter px-1">{t('video.agent.correctionExpiree')}</p>;
+  const pret = texte.trim() || changerMusique;
   const envoyer = async () => {
-    if (!texte.trim()) return;
+    if (!pret) return;
     setEnvoi(true);
-    try { await onEnvoyer(texte.trim(), images); } finally { setEnvoi(false); }
+    try { await onEnvoyer(texte.trim(), images, changerMusique ? musique : null); } finally { setEnvoi(false); }
   };
   return (
-    <div className="rounded-xl border border-[#8A6CFF]/25 bg-[#8A6CFF]/[0.05] p-3.5 space-y-3" data-testid="agent-video-correction">
-      <div>
-        <p className="text-[13px] text-white font-sora font-semibold flex items-center gap-2"><PenLine className="w-4 h-4 text-[#b9a6ff]" />{t('video.agent.correctionTitre')}</p>
-        <p className="text-[11.5px] text-slate-400 font-inter mt-0.5">
-          {result.gratuites > 0 ? t('video.agent.correctionGratuites', { n: result.gratuites }) : t('video.agent.correctionPayante')}
-        </p>
+    <div className="rounded-2xl border border-[#8A6CFF]/25 bg-[#0f172a] p-5 sm:p-6 space-y-5" data-testid="agent-video-correction">
+      <div className="flex items-start gap-3">
+        <span className="w-9 h-9 rounded-full bg-[#8A6CFF]/15 grid place-items-center shrink-0"><PenLine className="w-4 h-4 text-[#c4b5fd]" /></span>
+        <div className="min-w-0">
+          <h3 className="text-[16px] text-white font-sora font-semibold">{t('video.agent.correctionTitre')}</h3>
+          <p className="text-[12.5px] text-slate-400 font-inter mt-0.5">
+            {result.gratuites > 0 ? t('video.agent.correctionGratuites', { n: result.gratuites }) : t('video.agent.correctionPayante')}
+          </p>
+        </div>
       </div>
+
       <textarea rows={3} maxLength={1500} value={texte} onChange={(e) => setTexte(e.target.value)} data-testid="agent-video-correction-texte"
         placeholder={t('video.agent.correctionPlaceholder')}
-        className="w-full bg-[#0c111f] border border-white/10 rounded-xl px-3.5 py-2.5 text-[13px] leading-relaxed text-white font-inter outline-none focus:border-[#8A6CFF]/50 resize-y" />
+        className="w-full bg-[#0c111f] border border-white/10 rounded-xl px-4 py-3 text-[13.5px] leading-relaxed text-white font-inter outline-none focus:border-[#8A6CFF]/50 resize-y" />
+
+      <div className="rounded-xl border border-white/[0.06] bg-[#0c111f] p-4">
+        <div className="flex items-center gap-3">
+          <Music className="w-4 h-4 text-[#8A6CFF] shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13.5px] text-white font-inter font-medium">{t('video.agent.correctionMusique')}</p>
+            <p className="text-[12px] text-slate-500 font-inter">{t('video.agent.correctionMusiqueAide')}</p>
+          </div>
+          <Switch on={changerMusique} onClick={() => setChangerMusique((v) => !v)} />
+        </div>
+        {changerMusique && <div className="mt-4 pt-4 border-t border-white/[0.06]">{choixMusique}</div>}
+      </div>
+
       <ImagesBanque selection={images} onChange={setImages} />
-      <Button onClick={envoyer} disabled={envoi || !texte.trim()} className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2 disabled:opacity-50">
-        {envoi ? <Loader2 className="w-4 h-4 animate-spin" /> : <PenLine className="w-4 h-4" />}{t('video.agent.correctionEnvoyer')}
-      </Button>
+
+      <div className="flex justify-end">
+        <Button onClick={envoyer} disabled={envoi || !pret} className="w-full sm:w-auto bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2 disabled:opacity-50">
+          {envoi ? <Loader2 className="w-4 h-4 animate-spin" /> : <PenLine className="w-4 h-4" />}{t('video.agent.correctionEnvoyer')}
+        </Button>
+      </div>
     </div>
   );
 }
