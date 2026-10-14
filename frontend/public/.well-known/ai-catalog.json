@@ -1,0 +1,349 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Postorico",
+    "identifier": "https://postorico.com",
+    "documentationUrl": "https://postorico.com/comment-ca-marche",
+    "logoUrl": "https://postorico.com/logo.png"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:postorico.com:docs:llms-txt",
+      "displayName": "Postorico - index llms.txt",
+      "type": "text/markdown",
+      "url": "https://postorico.com/llms.txt",
+      "description": "Index Markdown destiné aux agents IA : présentation de Postorico, studio de contenu IA pour les réseaux sociaux, et liste des articles du blog en français, anglais et espagnol.",
+      "tags": [
+        "llms.txt",
+        "documentation",
+        "postorico",
+        "réseaux sociaux",
+        "IA"
+      ],
+      "representativeQueries": [
+        "qu'est-ce que Postorico",
+        "quel outil IA pour créer du contenu pour les réseaux sociaux",
+        "liste des articles du blog Postorico"
+      ],
+      "metadata": {
+        "language": "fr",
+        "format": "llms.txt"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:sitemap",
+      "displayName": "Postorico - plan du site (sitemap.xml)",
+      "type": "application/xml",
+      "url": "https://postorico.com/sitemap.xml",
+      "description": "Sitemap XML de postorico.com : toutes les pages publiques en français, anglais et espagnol, avec leurs alternatives hreflang.",
+      "tags": [
+        "sitemap",
+        "urls",
+        "hreflang"
+      ],
+      "representativeQueries": [
+        "liste de toutes les pages du site Postorico",
+        "quelles sont les URL du blog Postorico en anglais et en espagnol"
+      ],
+      "metadata": {
+        "languages": "fr, en, es"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:accueil",
+      "displayName": "Postorico - studio de contenu IA pour les réseaux sociaux",
+      "type": "text/html",
+      "url": "https://postorico.com/",
+      "description": "Page d'accueil de Postorico, studio de contenu IA (SaaS) pour les réseaux sociaux. Disponible en français, anglais (/en) et espagnol (/es).",
+      "tags": [
+        "postorico",
+        "accueil",
+        "SaaS",
+        "réseaux sociaux",
+        "contenu IA"
+      ],
+      "representativeQueries": [
+        "Postorico c'est quoi",
+        "studio de contenu IA pour les réseaux sociaux",
+        "site officiel de Postorico"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en",
+        "alternateEs": "https://postorico.com/es"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:fonctionnalites",
+      "displayName": "Postorico - fonctionnalités",
+      "type": "text/html",
+      "url": "https://postorico.com/fonctionnalites",
+      "description": "Présentation des fonctionnalités du studio de contenu IA Postorico pour les réseaux sociaux.",
+      "tags": [
+        "fonctionnalités",
+        "produit"
+      ],
+      "representativeQueries": [
+        "quelles sont les fonctionnalités de Postorico",
+        "que permet de faire Postorico"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en/fonctionnalites",
+        "alternateEs": "https://postorico.com/es/fonctionnalites"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:comment-ca-marche",
+      "displayName": "Postorico - comment ça marche",
+      "type": "text/html",
+      "url": "https://postorico.com/comment-ca-marche",
+      "description": "Explication du fonctionnement de Postorico, de la prise en main à la publication du contenu sur les réseaux sociaux.",
+      "tags": [
+        "fonctionnement",
+        "guide",
+        "prise en main"
+      ],
+      "representativeQueries": [
+        "comment fonctionne Postorico",
+        "comment utiliser Postorico pour publier sur les réseaux sociaux"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en/comment-ca-marche",
+        "alternateEs": "https://postorico.com/es/comment-ca-marche"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:tarifs",
+      "displayName": "Postorico - tarifs",
+      "type": "text/html",
+      "url": "https://postorico.com/tarifs",
+      "description": "Page des tarifs et offres de Postorico.",
+      "tags": [
+        "tarifs",
+        "prix",
+        "abonnement"
+      ],
+      "representativeQueries": [
+        "combien coûte Postorico",
+        "quels sont les tarifs de Postorico",
+        "prix de l'abonnement Postorico"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en/tarifs",
+        "alternateEs": "https://postorico.com/es/tarifs"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:faq",
+      "displayName": "Postorico - questions fréquentes",
+      "type": "text/html",
+      "url": "https://postorico.com/faq",
+      "description": "Réponses aux questions fréquentes sur Postorico.",
+      "tags": [
+        "faq",
+        "questions",
+        "support"
+      ],
+      "representativeQueries": [
+        "questions fréquentes sur Postorico",
+        "Postorico FAQ"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en/faq",
+        "alternateEs": "https://postorico.com/es/faq"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:audit-marque",
+      "displayName": "Postorico - audit de marque",
+      "type": "text/html",
+      "url": "https://postorico.com/audit-marque",
+      "description": "Page de l'audit de marque proposé par Postorico.",
+      "tags": [
+        "audit",
+        "marque",
+        "branding"
+      ],
+      "representativeQueries": [
+        "audit de marque Postorico",
+        "faire auditer sa marque avec Postorico"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en/audit-marque",
+        "alternateEs": "https://postorico.com/es/audit-marque"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:blog:fr",
+      "displayName": "Blog Postorico (français)",
+      "type": "text/html",
+      "url": "https://postorico.com/blog",
+      "description": "Blog de Postorico en français : articles sur les réseaux sociaux, la création de contenu et l'IA. La liste complète des articles est dans https://postorico.com/llms.txt et https://postorico.com/sitemap.xml.",
+      "tags": [
+        "blog",
+        "articles",
+        "réseaux sociaux",
+        "contenu",
+        "IA"
+      ],
+      "representativeQueries": [
+        "articles de blog Postorico sur les réseaux sociaux",
+        "conseils pour créer du contenu pour les réseaux sociaux",
+        "blog Postorico en français"
+      ],
+      "metadata": {
+        "language": "fr"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:blog:en",
+      "displayName": "Postorico blog (English)",
+      "type": "text/html",
+      "url": "https://postorico.com/en/blog",
+      "description": "Postorico blog in English: articles about social media, content creation and AI.",
+      "tags": [
+        "blog",
+        "articles",
+        "social media",
+        "content",
+        "AI"
+      ],
+      "representativeQueries": [
+        "Postorico blog articles about social media",
+        "tips for creating social media content with AI"
+      ],
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:blog:es",
+      "displayName": "Blog de Postorico (español)",
+      "type": "text/html",
+      "url": "https://postorico.com/es/blog",
+      "description": "Blog de Postorico en español: artículos sobre redes sociales, creación de contenido e IA.",
+      "tags": [
+        "blog",
+        "artículos",
+        "redes sociales",
+        "contenido",
+        "IA"
+      ],
+      "representativeQueries": [
+        "artículos del blog de Postorico sobre redes sociales",
+        "consejos para crear contenido para redes sociales con IA"
+      ],
+      "metadata": {
+        "language": "es"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:accueil-en",
+      "displayName": "Postorico - AI content studio for social media (English)",
+      "type": "text/html",
+      "url": "https://postorico.com/en",
+      "description": "English version of the Postorico website: AI content studio (SaaS) for social media. Subpages: /en/fonctionnalites, /en/comment-ca-marche, /en/tarifs, /en/faq, /en/audit-marque.",
+      "tags": [
+        "postorico",
+        "english",
+        "SaaS",
+        "social media"
+      ],
+      "representativeQueries": [
+        "what is Postorico",
+        "AI content studio for social media"
+      ],
+      "metadata": {
+        "language": "en"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:site:accueil-es",
+      "displayName": "Postorico - estudio de contenido IA para redes sociales (español)",
+      "type": "text/html",
+      "url": "https://postorico.com/es",
+      "description": "Versión en español del sitio de Postorico: estudio de contenido IA (SaaS) para redes sociales. Subpáginas: /es/fonctionnalites, /es/comment-ca-marche, /es/tarifs, /es/faq, /es/audit-marque.",
+      "tags": [
+        "postorico",
+        "español",
+        "SaaS",
+        "redes sociales"
+      ],
+      "representativeQueries": [
+        "qué es Postorico",
+        "estudio de contenido IA para redes sociales"
+      ],
+      "metadata": {
+        "language": "es"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:legal:cgu",
+      "displayName": "Postorico - conditions générales d'utilisation",
+      "type": "text/html",
+      "url": "https://postorico.com/cgu",
+      "description": "Conditions générales d'utilisation du service Postorico.",
+      "tags": [
+        "cgu",
+        "conditions",
+        "juridique"
+      ],
+      "representativeQueries": [
+        "conditions générales d'utilisation de Postorico",
+        "CGU Postorico"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en/cgu",
+        "alternateEs": "https://postorico.com/es/cgu"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:legal:confidentialite",
+      "displayName": "Postorico - politique de confidentialité",
+      "type": "text/html",
+      "url": "https://postorico.com/confidentialite",
+      "description": "Politique de confidentialité et traitement des données personnelles de Postorico.",
+      "tags": [
+        "confidentialité",
+        "données personnelles",
+        "RGPD"
+      ],
+      "representativeQueries": [
+        "politique de confidentialité de Postorico",
+        "comment Postorico traite les données personnelles"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en/confidentialite",
+        "alternateEs": "https://postorico.com/es/confidentialite"
+      }
+    },
+    {
+      "identifier": "urn:air:postorico.com:legal:mentions-legales",
+      "displayName": "Postorico - mentions légales",
+      "type": "text/html",
+      "url": "https://postorico.com/mentions-legales",
+      "description": "Mentions légales de l'éditeur du site postorico.com.",
+      "tags": [
+        "mentions légales",
+        "éditeur",
+        "juridique"
+      ],
+      "representativeQueries": [
+        "qui édite le site Postorico",
+        "mentions légales Postorico"
+      ],
+      "metadata": {
+        "language": "fr",
+        "alternateEn": "https://postorico.com/en/mentions-legales",
+        "alternateEs": "https://postorico.com/es/mentions-legales"
+      }
+    }
+  ]
+}

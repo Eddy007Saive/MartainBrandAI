@@ -70,3 +70,7 @@ Disallow: /en/pourquoi
 Disallow: /es/pourquoi
 
 Sitemap: https://postorico.com/sitemap.xml
+
+# Catalogue de ressources pour les agents IA (spec ARD / ai-catalog, audit
+# Lighthouse "Agentic Browsing") : /.well-known/ard.json et /.well-known/ai-catalog.json.
+Agentmap: https://postorico.com/.well-known/ard.json
