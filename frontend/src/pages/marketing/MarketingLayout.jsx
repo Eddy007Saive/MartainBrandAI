@@ -68,7 +68,8 @@ export default function MarketingLayout() {
         <div className="nav-cta"><LangSwitcher /><Link className="login" to="/login">{t('lp.nav.login')}</Link><Link className="btn btn-grad sm" to="/register">{t('lp.nav.start')}</Link></div>
       </div></nav>
 
-      <div className="pagebody"><Outlet /></div>
+      {/* <main> = repere principal (audit Lighthouse), un seul par page publique */}
+      <main className="pagebody"><Outlet /></main>
 
       <Newsletter />
 

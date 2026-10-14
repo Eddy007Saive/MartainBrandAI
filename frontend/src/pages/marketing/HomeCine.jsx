@@ -566,7 +566,9 @@ export default function HomeCine() {
         )}
       </div>
 
-      <div className="page">
+      {/* <main> = repere principal demande par l'audit Lighthouse (accessibilite) ;
+          la classe .page est conservee, le CSS ne cible que la classe */}
+      <main className="page">
         {/* HERO */}
         <section className="hero">
           {/* Sur mobile, la vidéo/poster de fond est retirée (pas de Rico) :
@@ -691,7 +693,8 @@ export default function HomeCine() {
             {CMP.map((o) => (
               <div key={o.id} className={'cmpcard' + (o.win ? ' win' : '')}>
                 {o.win && <span className="badge">{t('lp.cmp.badge')}</span>}
-                <h4>{t(o.nameKey)}</h4>
+                {/* h3 et non h4 : la section est titree en h2, pas de saut de niveau (audit Lighthouse) */}
+                <h3>{t(o.nameKey)}</h3>
                 <div className="rows">
                   {o.valKeys.map((vk, i) => (
                     <div className="r" key={CRITERIA[i]}><span className="k">{t(CRITERIA[i])}</span><span className="v">{t(vk)}</span></div>
@@ -851,7 +854,7 @@ export default function HomeCine() {
             </div>
           </div>
         </div></section>
-      </div>
+      </main>
 
       {/* FOOTER */}
       <footer className="lfooter">
@@ -862,14 +865,15 @@ export default function HomeCine() {
             <p>{t('lp.footer.about')}</p>
             <div className="fnets">LinkedIn · Instagram · Facebook · TikTok · YouTube · Google Business</div>
           </div>
+          {/* titres de colonnes en h3 : dernier titre avant le footer = h2, pas de saut de niveau (audit Lighthouse) */}
           <div className="fcol">
-            <h4>{t('lp.footer.product')}</h4>
+            <h3>{t('lp.footer.product')}</h3>
             {NAV_LINKS.map(([labelKey, to]) => (
               <Link key={to} to={to}>{t(labelKey)}</Link>
             ))}
           </div>
           <div className="fcol">
-            <h4>{t('lp.footer.account')}</h4>
+            <h3>{t('lp.footer.account')}</h3>
             {connecte ? (
               <Link to={dashTo}>{t('lp.nav.dashboard')}</Link>
             ) : (
@@ -882,7 +886,7 @@ export default function HomeCine() {
             <a {...propsRdv()}>{t('lp.footer.book')}</a>
           </div>
           <div className="fcol">
-            <h4>{t('lp.footer.legal')}</h4>
+            <h3>{t('lp.footer.legal')}</h3>
             <Link to="/cgu">{t('lp.footer.cgu')}</Link>
             <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
             <Link to="/mentions-legales">{t('lp.footer.legalNotice')}</Link>

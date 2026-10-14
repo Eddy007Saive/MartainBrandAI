@@ -5,7 +5,7 @@
 /* Inter + Sora (dont 700/800) : auto-hébergées via @fontsource, voir src/index.js */
 
 .cine{--bg:#020617;--panel:#0b1322;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);
-      --ink:#e7ecf5;--mut:#8ea0bd;--dim:#5c6b86;--accent:#8A6CFF;--mint:#3AFFA3;
+      --ink:#e7ecf5;--mut:#8ea0bd;--dim:#7f8ca6;--accent:#8A6CFF;--mint:#3AFFA3;
       --grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--ease:cubic-bezier(.23,1,.32,1);
       background:var(--bg);color:var(--ink);font-family:Inter,"Inter Fallback",system-ui,sans-serif;
       -webkit-font-smoothing:antialiased;overflow-x:clip;min-height:100vh;text-align:left}
@@ -271,7 +271,7 @@
            transform:scale(.97);opacity:.82;filter:saturate(.85)}
 .cine .pscol.bad h3{color:#e9a1a1}
 .cine .pscol.bad .ps-ic{background:rgba(248,113,113,.12);color:#f87171}
-.cine .pscol.bad li{color:#7d8aa3}
+.cine .pscol.bad li{color:#9aa6bc}
 .cine .pscol.bad .mk{background:rgba(248,113,113,.1);color:#f87171}
 .cine .ps-arrow{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:19px;font-weight:700;color:#fff;
           background:var(--grad);box-shadow:0 0 0 6px rgba(91,108,255,.14),0 10px 30px rgba(91,108,255,.45);z-index:2}
@@ -292,7 +292,7 @@
 .cine .pscol li:nth-child(4){animation-delay:3s}
 .cine .pscol.bad li{animation-name:psLigneBad}
 .cine .pscol.good li{animation-name:psLigneGood}
-@keyframes psLigneBad{0%,20%{color:#f3c0c0;transform:translateX(5px)}25%,100%{color:#7d8aa3;transform:none}}
+@keyframes psLigneBad{0%,20%{color:#f3c0c0;transform:translateX(5px)}25%,100%{color:#9aa6bc;transform:none}}
 @keyframes psLigneGood{0%,20%{color:#fff;transform:translateX(5px)}25%,100%{color:#c6d2e4;transform:none}}
 .cine .pscol li .mk{animation-duration:4s;animation-timing-function:var(--ease);animation-iteration-count:infinite;animation-delay:inherit}
 .cine .pscol.bad li .mk{animation-name:psMkBad}
@@ -315,7 +315,7 @@
 .cine .cmpcard{position:relative;border-radius:18px;border:1px solid var(--line);background:rgba(11,19,34,.72);backdrop-filter:blur(10px);padding:20px}
 .cine .cmpcard.win{border-color:rgba(138,108,255,.55);box-shadow:0 20px 60px -20px rgba(91,108,255,.45)}
 .cine .cmpcard .badge{position:absolute;top:-11px;left:18px;background:var(--grad);font-size:10.5px;font-weight:700;border-radius:99px;padding:4px 10px}
-.cine .cmpcard h4{font-family:Sora,"Sora Fallback";font-size:15px;margin-bottom:10px}
+.cine .cmpcard h3{font-family:Sora,"Sora Fallback";font-size:15px;margin-bottom:10px}
 .cine .cmpcard .r{display:flex;flex-direction:column;padding:7px 0;border-top:1px solid var(--line)}
 .cine .cmpcard .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
 .cine .cmpcard .v{font-size:12.5px;color:#dbe4f2;margin-top:3px}
@@ -556,7 +556,7 @@
 .cine .lfooter .fb{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(40px,8vw,96px);color:rgba(255,255,255,.05);letter-spacing:-.03em;line-height:1;margin-bottom:48px;user-select:none;text-align:center}
 .cine .fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:34px;padding-top:38px;padding-bottom:38px;border-top:1px solid var(--line)}
 .cine .fcol{display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left}
-.cine .fcol h4{font-family:Sora,"Sora Fallback";font-weight:700;font-size:12.5px;color:#dbe4f2;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.cine .fcol h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:12.5px;color:#dbe4f2;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
 .cine .fcol a{color:var(--mut);font-size:13px;transition:color 150ms ease}
 @media(hover:hover){.cine .fcol a:hover{color:#fff}}
 .cine .fbrand-head{display:flex;align-items:center;gap:9px}
@@ -584,11 +584,17 @@
 .cine .avis-card .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5B6CFF,#8A6CFF);
                      color:#fff;font-weight:700;font-size:13.5px;display:grid;place-items:center}
 .cine .avis-card b{display:block;font-size:13px;color:#fff;text-align:left}
-.cine .avis-card small{color:#5c6b86;font-size:11.5px;display:block;text-align:left}
-.cine .avis-dots{display:flex;justify-content:center;gap:7px;padding:0 0 18px}
-.cine .avis-dots button{width:7px;height:7px;border-radius:999px;border:none;background:#2a3550;cursor:pointer;padding:0;
-                        transition:width 200ms ease,background 200ms ease}
-.cine .avis-dots button.on{width:22px;background:linear-gradient(135deg,#5B6CFF,#8A6CFF)}
+.cine .avis-card small{color:var(--dim);font-size:11.5px;display:block;text-align:left}
+/* Zones tactiles (audit Lighthouse) : chaque bouton fait 32x32px avec 8px d'ecart,
+   le point visible (7px, 22px actif) est dessine par ::before pour garder le meme rendu.
+   margin-top negatif sur le conteneur seulement (pas entre les boutons) : le point
+   reste a la meme hauteur qu'avant malgre le bouton plus haut */
+.cine .avis-dots{display:flex;justify-content:center;gap:8px;padding:0 0 6px;margin-top:-12px}
+.cine .avis-dots button{width:32px;height:32px;min-width:32px;min-height:32px;border:none;background:transparent;cursor:pointer;padding:0;
+                        display:grid;place-items:center;border-radius:999px}
+.cine .avis-dots button::before{content:"";width:7px;height:7px;border-radius:999px;background:#2a3550;
+                                transition:width 200ms ease,background 200ms ease}
+.cine .avis-dots button.on::before{width:22px;background:linear-gradient(135deg,#5B6CFF,#8A6CFF)}
 
 /* ===== Galerie mobile : carrousel de captures a balayage (snap) ===== */
 .cine .gallery-mob{padding:6vh 0}

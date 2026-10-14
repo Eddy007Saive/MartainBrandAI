@@ -134,7 +134,8 @@ export default function Pourquoi() {
         </div>
       </div></nav>
 
-      <div className="pagebody">
+      {/* <main> = repere principal (audit Lighthouse) */}
+      <main className="pagebody">
 
         <section className="hero"><div className="wrap">
           <div className="hero-grid">
@@ -279,7 +280,7 @@ export default function Pourquoi() {
           <p className="promesse">{t('pourquoi.final.promesse')}</p>
         </div></section>
 
-      </div>
+      </main>
 
       <footer><div className="wrap">
         <div className="brand">
