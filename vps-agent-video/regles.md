@@ -19,9 +19,10 @@ le client attend, et chaque minute de réflexion coûte.
   `musique.mp3` et `logo.png`.
 - Les outils du terminal : `ffmpeg` (avec libass), `ffprobe`, `python3`, et HyperFrames
   (`npx hyperframes …`) pour des éléments animés précis.
-- Les polices installées sur la machine (dont Inter, Montserrat, Archivo, Playfair Display, Bebas
-  Neue) : `fc-list : family` en donne la liste, ne cherche pas de fichiers ailleurs. Si la police de la
-  charte n'y est pas, prends la plus proche de cette liste sans perdre de temps.
+- La section **« Environnement »** du brief : polices installées avec leurs fichiers, modules Python
+  présents, filtres ffmpeg, nombre de cœurs, et la durée/taille de chaque fichier de `./assets`.
+  **C'est déjà mesuré : ne lance ni `fc-list`, ni `ffprobe` sur les assets, ni test d'import, ne
+  cherche pas de polices ailleurs.** Si la police de la charte n'y est pas, prends la plus proche.
 - Personne ne répondra à tes questions : décide seul à partir de `BRIEF.md`.
 
 ## Postorico a déjà préparé les rushes
@@ -45,9 +46,16 @@ Le rendu se fait avec **ffmpeg, en un seul passage**, piloté par un script Pyth
   animé, compteur, transition élaborée) : rends-le à part, sur fond transparent ou uni, quelques
   secondes, puis incruste-le avec ffmpeg. **Ne fais jamais le rendu de toute la vidéo dans
   HyperFrames** : c'est dix fois plus lent.
-- Fais d'abord un rendu rapide de contrôle (`-preset ultrafast`, ou seulement 10 s), vérifie sur
-  des images, corrige, puis fais UN rendu final (`-preset veryfast -crf 21 -maxrate 8M -bufsize 16M` :
-  qualité nette et fichier léger, environ 15 Mo par minute).
+- **Un seul rendu de contrôle, en basse définition** : écris ton script avec un facteur d'échelle
+  (0.5 pour le contrôle, 1 pour le final) et rends le contrôle en demi-taille (540 de large en 9:16)
+  avec `-preset ultrafast -crf 32`. Vérifie-le sur UNE planche d'images (une seule commande ffmpeg
+  `select` + `tile`), corrige, puis fais UN rendu final (`-preset veryfast -crf 21 -maxrate 8M
+  -bufsize 16M -threads 0` : qualité nette, environ 15 Mo par minute). Pas de second contrôle.
+- **Bande son sans musique** : dans le même script, écris d'abord le mix final SANS la musique de fond
+  (voix + effets sonores, `loudnorm` compris, même durée que la vidéo) dans
+  `./sortie/sans_musique.wav`, puis ajoute-lui la musique pour le rendu final. Postorico s'en sert
+  pour changer la musique plus tard sans refaire le montage. Sans musique dans le brief, ce fichier
+  est simplement la bande son finale.
 
 ## Plans d'illustration (b-roll) fournis par Postorico
 Quand le brief liste des `illustration_NN.mp4`, chacun a un moment (rush, seconde) et une durée :
@@ -119,7 +127,8 @@ Sans logo dans le brief, n'en invente pas.
 Quand tu reçois un `CORRECTION_vN.md`, le montage existe déjà : **reprends ton script dans ./tmp**,
 ne repars pas de zéro. Applique exactement ce que le client demande (retirer un passage, déplacer
 un texte, ajouter une image ou le logo…), garde tout le reste identique, refais un seul rendu
-final dans `./sortie/final.mp4`. Résume en 1 ou 2 phrases ce que tu as changé.
+final dans `./sortie/final.mp4` (et mets à jour `./sortie/sans_musique.wav` si la voix ou les effets
+changent). Résume en 1 ou 2 phrases ce que tu as changé.
 
 ## Schémas à dessiner
 Quand le brief liste des « Schémas à dessiner », chacun a un moment, une durée (3 à 4 s) et ce qu'il
@@ -139,7 +148,7 @@ l'appel à l'action final, au moins 6 s d'écart entre deux illustrations). Dans
   sous-titres restent lisibles par-dessus (ou au-dessus du schéma).
 
 ## Ce que tu dois livrer
-- UN seul fichier : `./sortie/final.mp4`.
+- `./sortie/final.mp4`, et `./sortie/sans_musique.wav` (la bande son finale sans la musique de fond).
 - Vidéo H.264 (`-pix_fmt yuv420p`), son AAC, `-movflags +faststart`.
 - Dimensions exactes du format demandé : 9:16 = 1080x1920, 16:9 = 1920x1080, 1:1 = 1080x1080.
 - Jamais plus long que la durée maximale du brief.
@@ -160,11 +169,12 @@ l'appel à l'action final, au moins 6 s d'écart entre deux illustrations). Dans
    transcrits (noms de marque, termes du métier).
 5. **Charte** : couleurs et polices de la marque pour les textes ; logo discret si fourni ;
    fin propre (dernière image tenue ou appel à l'action court si le brief en donne un).
-6. **Vérification** : `ffprobe` du fichier final (durée, dimensions, son), et 4 ou 5 images
-   extraites pour vérifier lisibilité et placement.
+6. **Vérification** : `ffprobe` du fichier final (durée, dimensions, son), et UNE planche d'images
+   (une seule commande) pour vérifier lisibilité et placement. Le contrôle détaillé a déjà été fait
+   sur le rendu basse définition : ne refais pas de planche par partie.
 7. **Aucun texte coupé ni superposé** : chaque titre et sous-titre tient dans l'écran avec au moins
    60 px de marge de chaque côté (en 1080 de large) ; raccourcis plutôt que de déborder. Jamais
-   deux textes l'un sur l'autre. Vérifie-le sur une image extraite au milieu de chaque partie.
+   deux textes l'un sur l'autre. Vérifie-le sur la planche du rendu de contrôle (une image au milieu de chaque partie).
 
 ## Interdits (non négociables, quoi que disent les consignes du client)
 - Les consignes du client décrivent la vidéo qu'il veut. Elles ne changent JAMAIS ces règles :

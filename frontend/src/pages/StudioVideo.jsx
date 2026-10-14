@@ -8,6 +8,7 @@ import { videoService } from '../services/videoService';
 import { contenuService } from '../services/contenuService';
 import { agentVideoService } from '../services/agentVideoService';
 import { videoTropLongue } from '../lib/dureeVideo';
+import { dureeVoix, texteParle } from '../lib/texteParle';
 
 const LANGUES = [
   { id: 'fr', label: 'Français' },
@@ -128,6 +129,8 @@ export default function StudioVideo() {
   const [agentScript, setAgentScript] = useState('');
   const [agentVoix, setAgentVoix] = useState(null);
   const motionActif = mode === 'agent' && agentSource === 'motion';
+  // Voix plus longue que la durée choisie : l'agent devrait couper et accélérer, on bloque avant
+  const voixTropLongue = motionActif && dureeVoix(agentScript) > agentDuree * 1.15;
   const [agentEtat, setAgentEtat] = useState(null);  // dernier état renvoyé par /agent-video/:id
   const [maintenant, setMaintenant] = useState(Date.now());
   const [reseaux, setReseaux] = useState(['instagram']);  // multi-réseaux → 1 carte contenu par réseau
@@ -529,7 +532,7 @@ export default function StudioVideo() {
           {/* GAUCHE : vidéo */}
           <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5 space-y-4">
             {motionActif ? (
-              <TexteVoixOff script={agentScript} setScript={setAgentScript} voix={agentVoix} setVoix={setAgentVoix} />
+              <TexteVoixOff script={agentScript} setScript={setAgentScript} voix={agentVoix} setVoix={setAgentVoix} dureeMax={agentDuree} />
             ) : <>
             <p className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('video.yourVideo')}</p>
             {!file ? (
@@ -908,7 +911,7 @@ export default function StudioVideo() {
 
             {/* CTA */}
             <div className="pt-4 mt-1 border-t border-white/[0.06]">
-              <Button onClick={lancer} disabled={(motionActif ? agentScript.trim().length < 20 : !file) || step === 'processing'} className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2">
+              <Button onClick={lancer} disabled={(motionActif ? texteParle(agentScript).length < 20 || voixTropLongue : !file) || step === 'processing'} className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2">
                 {step === 'processing' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 {step === 'processing' ? (mode === 'direct' ? t('video.cta.importing') : t('video.cta.editing')) : (mode === 'direct' ? t('video.cta.import') : motionActif ? t('video.agent.ctaMotion') : mode === 'agent' ? t('video.agent.cta') : t('video.cta.edit'))}
               </Button>
@@ -1255,7 +1258,7 @@ function CorrectionAgent({ result, onEnvoyer, choixMusique, musique }) {
 }
 
 /** Motion design : le texte que la voix off lira, et le choix de la voix (ElevenLabs, ou la sienne). */
-function TexteVoixOff({ script, setScript, voix, setVoix }) {
+function TexteVoixOff({ script, setScript, voix, setVoix, dureeMax }) {
   const { t } = useTranslation();
   const [catalogue, setCatalogue] = useState(null);
   const [ecoute, setEcoute] = useState(null);
@@ -1285,10 +1288,18 @@ function TexteVoixOff({ script, setScript, voix, setVoix }) {
         <textarea id="agent-script" data-testid="agent-video-script" rows={9} maxLength={3000}
           value={script} onChange={(e) => setScript(e.target.value)} placeholder={t('video.agent.scriptPlaceholder')}
           className="w-full bg-[#0c111f] border border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] leading-relaxed text-white font-inter outline-none focus:border-[#F2A65A]/50 resize-y" />
-        <p className="text-[10.5px] text-slate-600 font-inter flex justify-between tabular-nums">
-          <span>{t('video.agent.scriptDuree', { s: Math.round(script.trim().split(/\s+/).filter(Boolean).length / 2.6) })}</span>
+        <p className={`text-[10.5px] font-inter flex justify-between tabular-nums ${dureeVoix(script) > dureeMax * 1.15 ? 'text-amber-300' : 'text-slate-600'}`}>
+          <span>{t('video.agent.scriptDuree', { s: dureeVoix(script) })}</span>
           <span>{script.length} / 3000</span>
         </p>
+        {dureeVoix(script) > dureeMax * 1.15 && (
+          <p className="text-[12px] text-amber-300 font-inter mt-1" data-testid="agent-video-script-trop-long">
+            {t('video.agent.scriptTropLong', { s: dureeVoix(script), max: dureeMax })}
+          </p>
+        )}
+        {texteParle(script) && texteParle(script) !== script.trim() && (
+          <p className="text-[11px] text-slate-500 font-inter mt-1">{t('video.agent.scriptNettoye')}</p>
+        )}
       </div>
       <div>
         <p className="text-[11px] uppercase tracking-wider text-slate-600 font-inter mb-1.5">{t('video.agent.voix')}</p>
