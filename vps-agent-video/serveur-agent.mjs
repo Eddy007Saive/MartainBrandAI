@@ -15,7 +15,8 @@
  *                             + musique_url, musique_volume (%) : musique de fond mixée sous la voix
  *                             mode: "motion" + voix_url : vidéo animée SANS tournage, sur une voix off (pas de vidéos)
  *                             -> { id, statut: "en_attente" }
- *   POST /montages/:id/corrections { consignes, images? } -> nouvelle version du même montage : l'agent reprend
+ *   POST /montages/:id/corrections { consignes, images?, musique_url?, musique_volume?, sans_musique? }
+ *                             -> nouvelle version du même montage : l'agent reprend
  *                             son script et ses fichiers, applique la correction, refait le rendu
  *   GET  /montages/:id        -> { id, statut, version, progression, erreur, cout_usd, duree_s, resume }
  *   GET  /montages/:id/video  -> le MP4 de la dernière version (quand statut = termine)
@@ -319,12 +320,20 @@ async function monter(e) {
       const c = e.corrections[e.corrections.length - 1];
       await maj({ progression: 'Préparation de la correction' });
       const images = await telechargerImages(e, entrees, c.images || []);
+      let musique = '';
+      if (c.musique_url) {
+        const ext = (c.musique_url.match(/\.(mp3|m4a|aac|wav|ogg)(\?|$)/i)?.[1] || 'mp3').toLowerCase();
+        try { await telecharger(c.musique_url, path.join(entrees, `musique_v${e.version}.${ext}`)); musique = `musique_v${e.version}.${ext}`; } catch (err) { log(`montage ${e.id} : nouvelle musique ignorée (${err.message})`); }
+      }
       // La version précédente reste disponible, et la nouvelle repart d'un fichier final absent
       if (existsSync(final)) await rename(final, path.join(sortie, `final_v${e.version - 1}.mp4`));
       await writeFile(path.join(dossier, `CORRECTION_v${e.version}.md`), [
         `# Correction demandée par le client (version ${e.version})`, '',
         c.consignes, '',
         ...(images.length ? ['## Nouvelles images fournies', '', ...images.map((im) => `- \`./assets/${im.fichier}\``), ''] : []),
+        ...(musique ? ['## Nouvelle musique de fond', '',
+          `Remplace la musique de fond actuelle par \`./assets/${musique}\`, au volume de ${c.musique_volume} % par rapport à la voix (la voix reste toujours nettement au-dessus). Fondu d'entrée et de sortie, calée sur la durée de la vidéo.`, ''] : []),
+        ...(c.sans_musique ? ['## Musique de fond', '', 'Retire complètement la musique de fond : seules la voix et les effets sonores restent.', ''] : []),
         '## Rappel', '',
         `Le montage existe déjà (BRIEF.md, ton script dans ./tmp, ./sortie/final_v${e.version - 1}.mp4).`,
         "Modifie seulement ce qui est demandé, garde tout le reste à l'identique, puis refais le rendu dans ./sortie/final.mp4.",
@@ -477,7 +486,10 @@ http.createServer(async (req, res) => {
       const consignes = String(d.consignes || '').trim().slice(0, 2000);
       if (!consignes) return repondre(res, 400, { erreur: 'Décris la correction voulue dans "consignes".' });
       e.version = (e.version || 1) + 1;
-      e.corrections = [...(e.corrections || []), { version: e.version, consignes, images: lireImages(d.images), demandee: new Date().toISOString() }];
+      const musique = estHttps(d.musique_url)
+        ? { musique_url: d.musique_url, musique_volume: Math.max(5, Math.min(100, Math.round(Number(d.musique_volume) || 25))) }
+        : d.sans_musique === true ? { sans_musique: true } : {};
+      e.corrections = [...(e.corrections || []), { version: e.version, consignes, images: lireImages(d.images), ...musique, demandee: new Date().toISOString() }];
       Object.assign(e, { statut: 'en_attente', progression: 'En attente', erreur: null, resume: null });
       await ecrireEtat(e);
       file.push(e.id);
