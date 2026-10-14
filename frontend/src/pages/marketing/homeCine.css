@@ -2,7 +2,7 @@
    Home cinématique (landing intégrée) — TOUT est scopé sous .cine
    pour ne toucher ni au dashboard ni aux autres pages vitrine.
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@700;800&display=swap');
+/* Inter + Sora (dont 700/800) : auto-hébergées via @fontsource, voir src/index.js */
 
 .cine{--bg:#020617;--panel:#0b1322;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);
       --ink:#e7ecf5;--mut:#8ea0bd;--dim:#5c6b86;--accent:#8A6CFF;--mint:#3AFFA3;
