@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Volume2, VolumeX, Lock, Unlock, Type, Captions, Image as ImageIcon, Film, Music, Plus, ChevronDown } from 'lucide-react';
-import { fmtTemps, arrondi, aimants, aimanter, dureeProjet, chargerOnde } from './outils';
+import { fmtTemps, arrondi, aimants, aimanter, dureeProjet, chargerOnde, vignetteA } from './outils';
 
 /**
  * Timeline multipiste : règle, tête de lecture, un rang par piste, éléments déplaçables et
@@ -47,6 +47,28 @@ function FormeOnde({ el }) {
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none opacity-80 text-white/60">
       <polygon points={[...haut, ...bas].join(' ')} fill="currentColor" />
     </svg>
+  );
+}
+
+/** Bande de miniatures d'un plan vidéo (idée reprise d'OpenCut, licence MIT) : une image tous
+ * les ~60 px, prise à l'instant de la source réellement joué à cet endroit (décalage et vitesse
+ * compris), pour se repérer dans son montage sans lire la vidéo. Plafonnée à 40 images. */
+const L_VIGNETTE = 60;
+function BandeImages({ el, zoom }) {
+  const largeurPx = Math.max(6, el.duree * zoom);
+  const n = Math.min(40, Math.max(1, Math.ceil(largeurPx / L_VIGNETTE)));
+  const vitesse = el.vitesse || 1;
+  // Grille de la source selon le zoom : peu d'images distinctes, réutilisées d'un zoom à l'autre.
+  const grille = zoom >= 120 ? 0.5 : zoom >= 60 ? 1 : zoom >= 25 ? 2 : 5;
+  const images = Array.from({ length: n }, (_, i) => vignetteA(el.src, (el.decalage || 0) + ((i * L_VIGNETTE) / zoom) * vitesse, grille));
+  if (!images[0]) return null;
+  return (
+    <div className="absolute inset-0 flex pointer-events-none opacity-50">
+      {images.map((url, i) => (
+        <img key={i} src={url} alt="" loading="lazy" draggable={false}
+          className="h-full object-cover shrink-0" style={{ width: L_VIGNETTE }} onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
+      ))}
+    </div>
   );
 }
 
@@ -274,10 +296,11 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
                     className={`absolute top-1.5 bottom-1.5 rounded-md border bg-gradient-to-r ${COULEURS[el.type] || COULEURS.video} ${sel ? 'ring-2 ring-white shadow-[0_0_0_2px_rgba(58,255,163,.35)]' : 'hover:brightness-110'} cursor-grab active:cursor-grabbing overflow-hidden`}
                     style={{ left: el.debut * zoom, width: Math.max(6, el.duree * zoom) }}>
                     {el.type === 'audio' && el.src && <FormeOnde el={el} />}
+                    {el.type === 'video' && el.src && <BandeImages el={el} zoom={zoom} />}
                     {el.transition?.type && el.transition.type !== 'aucune' && (
                       <div className="absolute inset-y-0 left-0 bg-[repeating-linear-gradient(135deg,rgba(255,255,255,.35)_0_3px,transparent_3px_6px)] pointer-events-none" style={{ width: Math.max(4, (el.transition.duree || 0.5) * zoom) }} title={t(`editeur.transition.${el.transition.type}`)} />
                     )}
-                    <div className="px-2 h-full flex items-center text-[11px] text-white/95 font-inter truncate">{etiquette(el)}</div>
+                    <div className="relative px-2 h-full flex items-center text-[11px] text-white/95 font-inter truncate [text-shadow:0_1px_3px_rgba(0,0,0,.8)]">{etiquette(el)}</div>
                     {!p.verrou && (
                       <>
                         <div onPointerDown={(e) => commencer(e, el, 'gauche')} className="absolute inset-y-0 left-0 w-2 cursor-ew-resize bg-white/0 hover:bg-white/30" />

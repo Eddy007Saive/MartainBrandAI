@@ -116,6 +116,65 @@ export function couperElement(projet, id, t, nouveauId) {
   return { projet: { ...projet, elements: projet.elements.flatMap((x) => (x.id === id ? [avant, apres] : [x])) }, nouveau: apres.id };
 }
 
+/**
+ * Mode magnétique (idée reprise d'OpenCut, licence MIT) : décale vers la gauche, de `delta`
+ * secondes, les éléments de la piste qui commencent à partir de `depuis`. C'est ce qui referme
+ * le trou laissé par une suppression ou un rognage, au lieu d'un passage noir dans la vidéo.
+ * Seule la piste concernée bouge : les autres (textes, musique) restent où le client les a mis.
+ */
+export function recollerApres(projet, piste, depuis, delta) {
+  if (!(delta > 0)) return projet;
+  return {
+    ...projet,
+    elements: projet.elements.map((e) => (e.piste === piste && e.debut >= depuis - 0.001
+      ? { ...e, debut: arrondi(Math.max(0, e.debut - delta), 0.001) } : e)),
+  };
+}
+
+/** Supprime des éléments et referme le trou que chacun laisse sur sa piste. Du plus tardif au
+ * plus précoce : chaque décalage part ainsi des positions d'origine. */
+export function supprimerEtRecoller(projet, ids) {
+  const retires = projet.elements.filter((e) => ids.includes(e.id)).sort((a, b) => b.debut - a.debut);
+  let p = { ...projet, elements: projet.elements.filter((e) => !ids.includes(e.id)) };
+  retires.forEach((r) => { p = recollerApres(p, r.piste, r.debut + r.duree, r.duree); });
+  return p;
+}
+
+/** Garde ce qui est APRÈS l'instant t (supprime le début de l'élément). Avec `recoller`,
+ * l'élément et la suite de sa piste reculent pour ne pas laisser de trou. */
+export function rognerAvant(projet, id, t, recoller = false) {
+  const e = projet.elements.find((x) => x.id === id);
+  if (!e || t <= e.debut + 0.05 || t >= e.debut + e.duree - 0.05) return projet;
+  const delta = t - e.debut;
+  const extra = e.type === 'video' || e.type === 'audio' ? { decalage: arrondi((e.decalage || 0) + delta * (e.vitesse || 1), 0.001) } : {};
+  const p = majElement(projet, id, { ...extra, debut: arrondi(t, 0.001), duree: arrondi(e.duree - delta, 0.001) });
+  return recoller ? recollerApres(p, e.piste, t, delta) : p;
+}
+
+/** Garde ce qui est AVANT l'instant t (supprime la fin de l'élément). Avec `recoller`, la suite
+ * de la piste avance pour combler. */
+export function rognerApres(projet, id, t, recoller = false) {
+  const e = projet.elements.find((x) => x.id === id);
+  if (!e || t <= e.debut + 0.05 || t >= e.debut + e.duree - 0.05) return projet;
+  const fin = e.debut + e.duree;
+  const p = majElement(projet, id, { duree: arrondi(t - e.debut, 0.001) });
+  return recoller ? recollerApres(p, e.piste, fin, fin - t) : p;
+}
+
+/**
+ * Images d'un plan vidéo Cloudinary à un instant donné de la source (transformation `so_`) :
+ * de quoi dessiner une bande de miniatures sur la timeline, sans rien précalculer. L'instant
+ * est calé sur une grille fixe (`pas` secondes) : chaque image distincte est une transformation
+ * Cloudinary facturée, la grille fait resservir les mêmes d'un zoom à l'autre (et le cache).
+ */
+export function vignetteA(src, seconde, pas = 1, h = 84) {
+  if (!estClip(src)) return null;
+  const so = Math.max(0, Math.round(seconde / pas) * pas).toFixed(1);
+  return src
+    .replace('/video/upload/', `/video/upload/so_${so},h_${h},c_scale,q_auto/`)
+    .replace(/\.(mp4|mov|webm|m4v|avi)(\?.*)?$/i, '.jpg');
+}
+
 export function dupliquerElement(projet, id, nouveauId) {
   const e = projet.elements.find((x) => x.id === id);
   if (!e) return { projet, nouveau: null };

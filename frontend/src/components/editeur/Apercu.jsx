@@ -3,16 +3,40 @@ import { Player } from '@remotion/player';
 import { Montage } from '../../generated/montage/Montage.jsx';
 import { dureeEnFrames, elementsA } from '../../generated/montage/schema.js';
 
+/** Zones masquées par l'interface de chaque réseau, en % d'une vidéo verticale 9:16
+ * (approximatives : elles varient selon l'appareil et la longueur de la légende). Idée reprise
+ * d'OpenCut (licence MIT) : le client voit où ses textes risquent d'être cachés. */
+export const ZONES_RESEAUX = {
+  tiktok: [{ x: 0, y: 0, w: 100, h: 8 }, { x: 0, y: 80, w: 100, h: 20 }, { x: 87, y: 40, w: 13, h: 40 }],
+  reels: [{ x: 0, y: 0, w: 100, h: 11 }, { x: 0, y: 78, w: 100, h: 22 }, { x: 87, y: 46, w: 13, h: 32 }],
+  shorts: [{ x: 0, y: 0, w: 100, h: 10 }, { x: 0, y: 76, w: 100, h: 24 }, { x: 86, y: 44, w: 14, h: 32 }],
+};
+
+// Aimantation au centre et aux bords du cadre (en % du canevas), désactivée en tenant Alt.
+const TOLERANCE_AIMANT = 1.5;
+function aimanterCadre(c) {
+  const guides = [];
+  const caler = (pos, taille, axe) => {
+    const centre = pos + taille / 2;
+    if (Math.abs(centre - 50) < TOLERANCE_AIMANT) { guides.push(`${axe}50`); return 50 - taille / 2; }
+    if (Math.abs(pos) < TOLERANCE_AIMANT) { guides.push(`${axe}0`); return 0; }
+    if (Math.abs(pos + taille - 100) < TOLERANCE_AIMANT) { guides.push(`${axe}100`); return 100 - taille; }
+    return pos;
+  };
+  return { cadre: { ...c, x: caler(c.x, c.w, 'v'), y: caler(c.y, c.h, 'h') }, guides };
+}
+
 /**
  * Aperçu temps réel (@remotion/player, même composition que le rendu) + calque de
  * manipulation : l'élément sélectionné se déplace à la souris et se redimensionne par
  * ses coins ; les positions sont en % du canevas, donc indépendantes du format.
  */
-export default function Apercu({ projet, tete, onTete, lecture, onLecture, selection, onSelection, onChange, onFiger }) {
+export default function Apercu({ projet, tete, onTete, lecture, onLecture, selection, onSelection, onChange, onFiger, zones = 'aucune', t }) {
   const conteneur = useRef(null);
   const player = useRef(null);
   const [taille, setTaille] = useState({ w: 270, h: 480 });
   const [glisser, setGlisser] = useState(null);
+  const [guides, setGuides] = useState([]); // lignes d'aimantation affichées pendant un déplacement
   const fps = projet.fps || 30;
   // En pause, chaque élément est montré dans son état posé ; la lecture rejoue les animations.
   const entree = useMemo(() => ({ ...projet, __statique: !lecture }), [projet, lecture]);
@@ -71,16 +95,21 @@ export default function Apercu({ projet, tete, onTete, lecture, onLecture, selec
       const dy = ((e.clientY - glisser.y0) / taille.h) * 100;
       const o = glisser.orig;
       let c;
-      if (glisser.mode === 'deplacer') c = { ...o, x: o.x + dx, y: o.y + dy };
+      let g = [];
+      if (glisser.mode === 'deplacer') {
+        c = { ...o, x: o.x + dx, y: o.y + dy };
+        if (!e.altKey) ({ cadre: c, guides: g } = aimanterCadre(c));
+      }
       else if (glisser.mode === 'se') c = { ...o, w: Math.max(4, o.w + dx), h: Math.max(3, o.h + dy) };
       else if (glisser.mode === 'ne') c = { ...o, y: o.y + dy, w: Math.max(4, o.w + dx), h: Math.max(3, o.h - dy) };
       else if (glisser.mode === 'sw') c = { ...o, x: o.x + dx, w: Math.max(4, o.w - dx), h: Math.max(3, o.h + dy) };
       else c = { ...o, x: o.x + dx, y: o.y + dy, w: Math.max(4, o.w - dx), h: Math.max(3, o.h - dy) };
       const arr = (v) => Math.round(v * 10) / 10;
       c = { x: arr(c.x), y: arr(c.y), w: arr(c.w), h: arr(c.h) };
+      setGuides(g);
       onChange((p) => ({ ...p, elements: p.elements.map((x) => (x.id === glisser.id ? { ...x, cadre: c } : x)) }), { historique: false });
     };
-    const lacher = () => { setGlisser(null); onFiger(); };
+    const lacher = () => { setGlisser(null); setGuides([]); onFiger(); };
     window.addEventListener('pointermove', bouger);
     window.addEventListener('pointerup', lacher, { once: true });
     return () => { window.removeEventListener('pointermove', bouger); window.removeEventListener('pointerup', lacher); };
@@ -111,6 +140,21 @@ export default function Apercu({ projet, tete, onTete, lecture, onLecture, selec
           spaceKeyToPlayOrPause={false}
           acknowledgeRemotionLicense
         />
+        {/* Zones masquées par l'interface du réseau choisi (formats verticaux seulement) */}
+        {ZONES_RESEAUX[zones] && projet.hauteur > projet.largeur && (
+          <div className="absolute inset-0 pointer-events-none z-[1]" data-testid="editeur-zones-securite">
+            {ZONES_RESEAUX[zones].map((z, i) => (
+              <div key={i} className="absolute bg-[repeating-linear-gradient(135deg,rgba(248,113,113,.28)_0_6px,rgba(248,113,113,.1)_6px_12px)] border border-red-400/40"
+                style={{ left: `${z.x}%`, top: `${z.y}%`, width: `${z.w}%`, height: `${z.h}%` }} />
+            ))}
+            <span className="absolute left-1.5 bottom-1 text-[9px] font-inter font-semibold text-red-200/90 bg-black/40 px-1 rounded">{t?.('editeur.zones.masque')}</span>
+          </div>
+        )}
+        {/* Lignes d'aimantation (centre, bords) */}
+        {guides.map((g) => (
+          <div key={g} className="absolute pointer-events-none z-[2] bg-[#ff3fa4]"
+            style={g[0] === 'v' ? { left: `${g.slice(1)}%`, top: 0, bottom: 0, width: 1 } : { top: `${g.slice(1)}%`, left: 0, right: 0, height: 1 }} />
+        ))}
         {/* Calque : zones cliquables des éléments visibles, poignées sur la sélection */}
         <div className="absolute inset-0" onPointerDown={(e) => { if (e.target === e.currentTarget) onSelection(null); }}>
           {visibles.map((el) => {

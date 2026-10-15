@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Play, Pause, Scissors, Copy, Trash2, Undo2, Redo2, Loader2, Download, Check, ZoomIn, ZoomOut, Monitor, Image as ImageIcon,
-  Maximize2, Minimize2, ChevronLeft, ChevronRight,
+  Maximize2, Minimize2, ChevronLeft, ChevronRight, History, Magnet, ArrowLeftToLine, ArrowRightToLine,
 } from 'lucide-react';
+import { getToken } from '../lib/auth';
 import { editeurService } from '../services/editeurService';
 import { lienTelechargement } from '../lib/telechargement';
 import useProjet from '../components/editeur/useProjet';
@@ -15,6 +16,7 @@ import PanneauMedias from '../components/editeur/PanneauMedias';
 import PanneauProprietes from '../components/editeur/PanneauProprietes';
 import {
   fmtTemps, placerElement, nouvelElement, nouvelId, majElement, supprimerElement, couperElement, dupliquerElement, separerAudio, dureeProjet, dureeMedia,
+  supprimerEtRecoller, rognerAvant, rognerApres,
 } from '../components/editeur/outils';
 
 /**
@@ -24,6 +26,11 @@ import {
  * changement ; « Exporter » lance le rendu serveur (1 reel de quota) et la vidéo arrive dans Contenus.
  */
 const RESEAUX = ['Instagram', 'TikTok', 'Facebook', 'LinkedIn', 'YouTube'];
+const ZONES = ['aucune', 'tiktok', 'reels', 'shorts'];
+
+// Réglages d'écran retenus d'une session à l'autre (pas du contenu du projet).
+const lirePref = (cle, defaut) => { try { return localStorage.getItem(cle) ?? defaut; } catch { return defaut; } };
+const ecrirePref = (cle, v) => { try { localStorage.setItem(cle, v); } catch { /* stockage refusé */ } };
 
 export default function EditeurVideo() {
   const { t } = useTranslation();
@@ -50,6 +57,7 @@ export default function EditeurVideo() {
   const [transcription, setTranscription] = useState(null); // id du plan en cours de transcription
   const [silences, setSilences] = useState(null); // id du plan en cours de nettoyage des silences
   const premierChargement = useRef(true);
+  const aEnvoyer = useRef(null); // dernière version pas encore partie (sauvegarde différée de 1,5 s)
   const minuterie = useRef(null);
   const petitEcran = typeof window !== 'undefined' && window.innerWidth < 900;
   const racine = useRef(null);
@@ -60,6 +68,13 @@ export default function EditeurVideo() {
   const [panneauGauche, setPanneauGauche] = useState(true);
   const [panneauDroit, setPanneauDroit] = useState(true);
   const [hauteurTimeline, setHauteurTimeline] = useState(280);
+  // Mode magnétique : supprimer ou rogner referme le trou sur la piste (désactivé par défaut :
+  // il décale la suite de la piste, ce qui peut désynchroniser des textes posés ailleurs).
+  const [recoller, setRecoller] = useState(() => lirePref('editeur.recoller', '0') === '1');
+  const basculerRecoller = () => setRecoller((v) => { ecrirePref('editeur.recoller', v ? '0' : '1'); return !v; });
+  // Zones masquées par l'interface d'un réseau, affichées sur l'aperçu.
+  const [zones, setZones] = useState(() => lirePref('editeur.zones', 'aucune'));
+  const changerZones = (v) => { setZones(v); ecrirePref('editeur.zones', v); };
   const redimensionnerTimeline = (e) => {
     e.preventDefault();
     const depart = e.clientY, h0 = hauteurTimeline;
@@ -78,6 +93,20 @@ export default function EditeurVideo() {
   const basculerPleinEcran = () => {
     if (document.fullscreenElement) document.exitFullscreen();
     else racine.current?.requestFullscreen?.();
+  };
+
+  // L'enregistrement automatique écrase `projet` en continu : `projet_rendu` (posé au dernier
+  // export) est le seul filet de secours pour revenir à une version antérieure après un rechargement.
+  const restaurerVersionExportee = async () => {
+    if (!window.confirm(t('editeur.restaurer.confirmation'))) return;
+    try {
+      const m = await editeurService.restaurer(id);
+      charger(m.projet);
+      setMontage(m);
+      toast.success(t('editeur.restaurer.ok'));
+    } catch {
+      toast.error(t('editeur.restaurer.echec'));
+    }
   };
 
   // ---- chargement ----
@@ -101,9 +130,11 @@ export default function EditeurVideo() {
     if (!projet || !id) return undefined;
     if (premierChargement.current) { premierChargement.current = false; return undefined; }
     setSauvegarde('attente');
+    aEnvoyer.current = { projet, titre };
     clearTimeout(minuterie.current);
     minuterie.current = setTimeout(async () => {
       setSauvegarde('envoi');
+      aEnvoyer.current = null;
       try {
         const r = await editeurService.modifier(id, { projet, titre });
         setSauvegarde('ok');
@@ -113,6 +144,32 @@ export default function EditeurVideo() {
     return () => clearTimeout(minuterie.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projet, titre, id]);
+
+  // ---- sauvegarde au départ ----
+  // La sauvegarde attend 1,5 s : fermer l'onglet ou quitter l'éditeur juste après une
+  // modification la perdait. On l'envoie tout de suite en partant : requête `keepalive` à la
+  // fermeture de l'onglet (elle survit à la page), appel normal en quittant l'éditeur dans l'app.
+  useEffect(() => {
+    if (!id) return undefined;
+    const viderSiOnFerme = () => {
+      const corps = aEnvoyer.current;
+      if (!corps) return;
+      aEnvoyer.current = null;
+      const json = JSON.stringify(corps);
+      if (json.length > 60000) return; // au-delà, keepalive refuse : la sauvegarde normale a déjà essayé
+      fetch(`${process.env.REACT_APP_BACKEND_URL}/api/editeur/montages/${id}`, {
+        method: 'PUT', keepalive: true, body: json,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+      }).catch(() => {});
+    };
+    window.addEventListener('pagehide', viderSiOnFerme);
+    return () => {
+      window.removeEventListener('pagehide', viderSiOnFerme);
+      const corps = aEnvoyer.current;
+      aEnvoyer.current = null;
+      if (corps) { clearTimeout(minuterie.current); editeurService.modifier(id, corps).catch(() => {}); }
+    };
+  }, [id]);
 
   // ---- suivi du rendu ----
   useEffect(() => {
@@ -221,8 +278,12 @@ export default function EditeurVideo() {
   }, [tete, setProjet, t]);
   const supprimer = useCallback(() => {
     if (!selectionIds.length) return;
-    setProjet((p) => selectionIds.reduce((acc, sid) => supprimerElement(acc, sid), p)); setSelection(null);
-  }, [selectionIds, setProjet, setSelection]);
+    setProjet((p) => (recoller ? supprimerEtRecoller(p, selectionIds) : selectionIds.reduce((acc, sid) => supprimerElement(acc, sid), p)));
+    setSelection(null);
+  }, [selectionIds, setProjet, setSelection, recoller]);
+  // Q / W : supprime ce qui est avant / après la tête de lecture dans l'élément sélectionné.
+  const rognerGauche = useCallback(() => { if (selection) setProjet((p) => rognerAvant(p, selection, tete, recoller)); }, [selection, tete, recoller, setProjet]);
+  const rognerDroite = useCallback(() => { if (selection) setProjet((p) => rognerApres(p, selection, tete, recoller)); }, [selection, tete, recoller, setProjet]);
 
   // Copier / couper / coller : le collage se fait à la tête de lecture, en gardant l'écart entre les éléments.
   const copier = useCallback(() => {
@@ -262,6 +323,8 @@ export default function EditeurVideo() {
       else if (e.key === '-') { e.preventDefault(); changerZoom(0.8); }
       else if (e.key.toLowerCase() === 's' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); couper(); }
       else if (e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); dupliquer(); }
+      else if (e.key.toLowerCase() === 'q' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); rognerGauche(); }
+      else if (e.key.toLowerCase() === 'w' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); rognerDroite(); }
       else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); supprimer(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); annuler(); }
       else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) { e.preventDefault(); retablir(); }
@@ -270,7 +333,7 @@ export default function EditeurVideo() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [couper, dupliquer, supprimer, annuler, retablir, copier, couperPresse, coller, toutSelectionner, changerZoom, projet, setSelection]);
+  }, [couper, dupliquer, supprimer, annuler, retablir, copier, couperPresse, coller, toutSelectionner, changerZoom, projet, setSelection, rognerGauche, rognerDroite]);
 
   // « Générer les sous-titres » : le serveur transcrit le plan et renvoie le projet complété ;
   // il remplace le projet local (une entrée d'annulation), la sauvegarde auto suit.
@@ -354,6 +417,11 @@ export default function EditeurVideo() {
           <button type="button" onClick={basculerPleinEcran} title={t(pleinEcran ? 'editeur.pleinEcranQuitter' : 'editeur.pleinEcran')} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white" data-testid="editeur-plein-ecran">
             {pleinEcran ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
+          {montage?.projet_rendu && (
+            <button type="button" onClick={restaurerVersionExportee} title={t('editeur.restaurer.bouton')} className="w-9 h-9 grid place-items-center rounded-lg hover:bg-white/[0.06] text-slate-400 hover:text-white" data-testid="editeur-restaurer">
+              <History className="w-4 h-4" />
+            </button>
+          )}
           {montage?.statut === 'rendu' && montage.video_url && (
             <a href={lienTelechargement(montage.video_url, titre)} download
               className="inline-flex items-center gap-1.5 text-[12.5px] font-inter font-semibold text-slate-300 px-3 py-2 rounded-lg border border-white/15 hover:bg-white/[0.06] hover:text-white" data-testid="editeur-telecharger">
@@ -387,7 +455,7 @@ export default function EditeurVideo() {
         </div>
         <main className="flex-1 min-w-0 min-h-0 flex flex-col">
           <Apercu projet={projet} tete={tete} onTete={onTete} lecture={lecture} onLecture={onLecture}
-            selection={selection} onSelection={setSelection} onChange={setProjet} onFiger={figer} />
+            selection={selection} onSelection={setSelection} onChange={setProjet} onFiger={figer} zones={zones} t={t} />
         </main>
         <div className="relative shrink-0 flex">
           <button type="button" onClick={() => setPanneauDroit((v) => !v)} data-testid="editeur-repli-droit"
@@ -416,11 +484,26 @@ export default function EditeurVideo() {
         <div className="w-px h-6 bg-white/10 mx-1" />
         <Outil onClick={couper} disabled={!selection} icone={Scissors} label={t('editeur.couper')} testid="editeur-couper" />
         <Outil onClick={dupliquer} disabled={!selection} icone={Copy} label={t('editeur.dupliquer')} testid="editeur-dupliquer" />
+        <Outil onClick={rognerGauche} disabled={!selection} icone={ArrowLeftToLine} label={t('editeur.rognerGauche')} testid="editeur-rogner-gauche" compact />
+        <Outil onClick={rognerDroite} disabled={!selection} icone={ArrowRightToLine} label={t('editeur.rognerDroite')} testid="editeur-rogner-droite" compact />
         <Outil onClick={supprimer} disabled={!selection} icone={Trash2} label={t('editeur.supprimer')} testid="editeur-supprimer" danger />
+        <button type="button" onClick={basculerRecoller} title={t('editeur.recollerAide')} data-testid="editeur-recoller" aria-pressed={recoller}
+          className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[12px] font-inter font-semibold border ${recoller ? 'text-[#3AFFA3] border-[#3AFFA3]/50 bg-[#3AFFA3]/10' : 'text-slate-400 border-white/[0.08] hover:text-white hover:border-white/25'}`}>
+          <Magnet className="w-3.5 h-3.5" />{t('editeur.recoller')}
+        </button>
         {selectionIds.length > 1 && <span className="text-[11px] text-[#3AFFA3] font-inter ml-1" data-testid="editeur-n-selection">{t('editeur.nSelection', { count: selectionIds.length })}</span>}
         <div className="w-px h-6 bg-white/10 mx-1" />
         <Outil onClick={definirCouverture} icone={ImageIcon} label={projet.couverture != null ? t('editeur.couvertureActuelle', { t: projet.couverture.toFixed(1) }) : t('editeur.couverture')} testid="editeur-couverture" />
-        <div className="ml-auto flex items-center gap-1.5 text-slate-500">
+        {projet.hauteur > projet.largeur && (
+          <label className="ml-auto flex items-center gap-1.5 text-[11.5px] font-inter text-slate-500" title={t('editeur.zones.aide')}>
+            {t('editeur.zones.titre')}
+            <select value={zones} onChange={(e) => changerZones(e.target.value)} data-testid="editeur-zones"
+              className="bg-slate-950/60 border border-white/10 text-slate-200 text-[12px] rounded-md px-1.5 py-1 outline-none">
+              {ZONES.map((z) => <option key={z} value={z}>{t(`editeur.zones.${z}`)}</option>)}
+            </select>
+          </label>
+        )}
+        <div className={`${projet.hauteur > projet.largeur ? 'ml-3' : 'ml-auto'} flex items-center gap-1.5 text-slate-500`}>
           <ZoomOut className="w-3.5 h-3.5" />
           <input type="range" min={15} max={240} step={5} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-28 accent-[#3AFFA3]" data-testid="editeur-zoom" />
           <ZoomIn className="w-3.5 h-3.5" />
@@ -461,11 +544,12 @@ export default function EditeurVideo() {
   );
 }
 
-function Outil({ onClick, disabled, icone: Icone, label, testid, danger }) {
+function Outil({ onClick, disabled, icone: Icone, label, testid, danger, compact }) {
+  // `compact` : icône seule (libellé en infobulle), pour ne pas surcharger la barre.
   return (
-    <button type="button" onClick={onClick} disabled={disabled} title={label} data-testid={testid}
-      className={`inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-[12px] font-inter font-semibold border border-white/[0.08] ${danger ? 'text-slate-300 hover:text-red-300 hover:border-red-400/40' : 'text-slate-300 hover:text-white hover:border-white/25'} disabled:opacity-30 disabled:hover:border-white/[0.08]`}>
-      <Icone className="w-3.5 h-3.5" />{label}
+    <button type="button" onClick={onClick} disabled={disabled} title={label} aria-label={label} data-testid={testid}
+      className={`inline-flex items-center gap-1.5 h-8 ${compact ? 'w-8 justify-center' : 'px-2.5'} rounded-lg text-[12px] font-inter font-semibold border border-white/[0.08] ${danger ? 'text-slate-300 hover:text-red-300 hover:border-red-400/40' : 'text-slate-300 hover:text-white hover:border-white/25'} disabled:opacity-30 disabled:hover:border-white/[0.08]`}>
+      <Icone className="w-3.5 h-3.5" />{compact ? null : label}
     </button>
   );
 }
