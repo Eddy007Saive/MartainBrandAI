@@ -2,9 +2,10 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+import Metas from './Metas';
 import {
-  LANGUE_DEFAUT, PREFIXEES, cheminPourLangue, estPagePublique, estPageTraduite,
-  langueDuChemin,
+  LANGUE_DEFAUT, PREFIXEES, cheminPourLangue, cheminSansLangue, estPagePublique,
+  estPageTraduite, langueDuChemin,
 } from '../lib/langues';
 
 const SITE = 'https://postorico.com';
@@ -44,7 +45,7 @@ const nettoyer = () => {
 
 export default function LangueParUrl() {
   const { pathname } = useLocation();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   // L'accueil sans préfixe est en français. Avant, un visiteur au navigateur
@@ -93,5 +94,16 @@ export default function LangueParUrl() {
     });
   }, [pathname, i18n]);
 
-  return null;
+  // 4. Titre et description propres à chaque page publique. Sans eux, toutes
+  //    les pages du HTML prérendu portaient « Postorico » : identiques pour
+  //    les robots d'IA, qui ne lisent que ce fichier. Canonical et hreflang
+  //    restent posés plus haut : on ne passe ni `canonique` ni `alternatives`.
+  if (!estPagePublique(pathname)) return null;
+  const nu = cheminSansLangue(pathname);
+  const cle = nu === '/' ? 'accueil' : nu.slice(1);
+  if (!i18n.exists(`seo.${cle}.titre`)) return null;
+  return (
+    <Metas titre={t(`seo.${cle}.titre`)} description={t(`seo.${cle}.description`)}
+      langue={langueDuChemin(pathname)} />
+  );
 }
