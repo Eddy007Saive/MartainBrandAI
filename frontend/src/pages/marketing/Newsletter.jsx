@@ -9,7 +9,7 @@ import api from '../../lib/api';
  * répond « ok » sans rien changer, et l'on affiche le même message.
  */
 export default function Newsletter() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [email, setEmail] = useState('');
   const [etat, setEtat] = useState('idle');   // idle | envoi | ok | erreur
   const [erreur, setErreur] = useState('');
@@ -19,7 +19,9 @@ export default function Newsletter() {
     if (etat === 'envoi' || !email.trim()) return;
     setEtat('envoi'); setErreur('');
     try {
-      await api.post('/newsletter/abonner', { email: email.trim() });
+      // Langue de la page (/es, /en…) : la lettre arrivera dans cette langue.
+      const langue = (i18n.resolvedLanguage || 'fr').slice(0, 2);
+      await api.post('/newsletter/abonner', { email: email.trim(), langue });
       setEtat('ok'); setEmail('');
     } catch (err) {
       setErreur(err.response?.data?.detail || t('lp.newsletter.erreur'));
