@@ -72,11 +72,12 @@ function BandeImages({ el, zoom }) {
   );
 }
 
-export default function Timeline({ projet, tete, onTete, selection, selectionIds = [], onSelection, onBasculerSelection, onChange, onFiger, onDeposer, onZoom, zoom, t, onAjouterPiste }) {
+export default function Timeline({ projet, tete, onTete, selection, selectionIds = [], onSelection, onBasculerSelection, onChange, onFiger, onDeposer, onZoom, zoom, t, onAjouterPiste, aimantation = true }) {
   const zone = useRef(null);
   const etiquettes = useRef(null); // colonne des pistes : suit le défilement vertical de `zone`
   const [plusEnBas, setPlusEnBas] = useState(false); // des pistes restent cachées sous le bas visible (ex. Audio)
   const [glisser, setGlisser] = useState(null); // {mode, id, x0, orig}
+  const [ligneAimant, setLigneAimant] = useState(null); // instant où l'élément vient de s'aimanter (ligne affichée)
   const aBouge = useRef(false);                 // un simple clic (sans glisser) referme une sélection multiple sur l'élément cliqué
   const duree = dureeProjet(projet);
   const largeur = Math.max((duree + 6) * zoom, 800);
@@ -113,7 +114,7 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
 
   useEffect(() => {
     if (!glisser) return undefined;
-    const tol = TOLERANCE_PX / zoom;
+    const tol = aimantation ? TOLERANCE_PX / zoom : 0; // touche N : aimantation coupée
     const cibles = aimants(projet, glisser.id, tete);
     const bouger = (e) => {
       if (Math.abs(e.clientX - glisser.x0) > 3) aBouge.current = true;
@@ -122,11 +123,15 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
       // Écart du groupe : celui de l'élément saisi (aimanté), borné pour qu'aucun élément ne passe sous 0.
       let deltaGroupe = 0;
       let pisteCible = null;
+      let aimante = null;
       if (glisser.mode === 'deplacer') {
-        let debut = Math.max(0, o.debut + dt);
+        const brut = Math.max(0, o.debut + dt);
+        let debut = brut;
         const finAimantee = aimanter(debut + o.duree, cibles, tol);
         debut = aimanter(debut, cibles, tol);
-        if (debut === Math.max(0, o.debut + dt)) debut = Math.max(0, finAimantee - o.duree);
+        if (debut !== brut) aimante = debut;
+        else if (finAimantee !== brut + o.duree) { aimante = finAimantee; debut = Math.max(0, finAimantee - o.duree); }
+        if (debut === brut) debut = Math.max(0, finAimantee - o.duree);
         deltaGroupe = Math.max(-Math.min(...Object.values(glisser.origs)), debut - o.debut);
         // Glisser verticalement un SEUL élément vers une autre piste du même type -> superposition
         // (deux vidéos, deux textes en même temps) : chaque piste garde son rang dans l'empilement
@@ -138,6 +143,12 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
           const cible = projet.pistes[idx];
           if (cible && cible.type === o.type && !cible.verrou) pisteCible = cible.id;
         }
+      }
+      // Rognage : le bord tiré s'est-il calé ? (calculé ici, pas dans l'updater, que React peut différer)
+      if (glisser.mode === 'gauche' || glisser.mode === 'droite') {
+        const brut = glisser.mode === 'gauche' ? o.debut + dt : o.debut + o.duree + dt;
+        const v = aimanter(brut, cibles, tol);
+        if (v !== brut) aimante = v;
       }
       onChange((p) => ({
         ...p,
@@ -168,8 +179,10 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
           return { ...x, duree: arrondi(fin - o.debut, 0.001) };
         }),
       }), { historique: false });
+      setLigneAimant(aimante);
     };
     const lacher = () => {
+      setLigneAimant(null);
       if (!aBouge.current && glisser.mode === 'deplacer' && glisser.groupe.length > 1) onSelection(glisser.id);
       setGlisser(null); onFiger();
     };
@@ -177,7 +190,7 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
     window.addEventListener('pointerup', lacher, { once: true });
     return () => { window.removeEventListener('pointermove', bouger); window.removeEventListener('pointerup', lacher); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [glisser, zoom]);
+  }, [glisser, zoom, aimantation]);
 
   // Ctrl + molette : zoom de la timeline (écouteur natif, la molette React est passive).
   useEffect(() => {
@@ -312,6 +325,11 @@ export default function Timeline({ projet, tete, onTete, selection, selectionIds
               })}
             </div>
           ))}
+
+          {/* Ligne d'aimantation : l'élément glissé vient de se caler sur ce bord (idée OpenCut, MIT) */}
+          {ligneAimant != null && (
+            <div className="absolute top-0 bottom-0 w-px bg-[#ff3fa4] pointer-events-none z-[11] shadow-[0_0_6px_#ff3fa4]" style={{ left: ligneAimant * zoom }} data-testid="editeur-ligne-aimant" />
+          )}
 
           {/* Tête de lecture */}
           <div className="absolute top-0 bottom-0 w-px bg-[#3AFFA3] pointer-events-none z-10" style={{ left: tete * zoom }} data-testid="editeur-tete">

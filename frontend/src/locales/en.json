@@ -1751,6 +1751,10 @@
     "draftsCount": "{{count}} draft(s)"
   },
   "editeur": {
+    "aimantationOn": "Snapping on (N)",
+    "aimantationOff": "Snapping off (N)",
+    "srt": {"bouton": "Import subtitles (.srt, .vtt)", "aide": "Already have your subtitles? They land on the Subtitles track, at the right time.", "vide": "No readable subtitle in this file.", "remplacer_one": "The track already has {{count}} subtitle. Replace it with the file?", "remplacer_other": "The track already has {{count}} subtitles. Replace them with the file?", "ok_one": "{{count}} subtitle imported", "ok_other": "{{count}} subtitles imported"},
+    "raccourcis": {"titre": "Keyboard shortcuts", "fermer": "Close", "lecture": "Play / pause", "couper": "Split at the playhead", "rognerGauche": "Delete before the playhead", "rognerDroite": "Delete after the playhead", "dupliquer": "Duplicate", "supprimer": "Delete", "copier": "Copy", "couperPresse": "Cut (clipboard)", "coller": "Paste at the playhead", "tout": "Select all", "annuler": "Undo", "retablir": "Redo", "image": "Previous / next frame", "seconde": "One second back / forward", "debutFin": "Go to start / end", "zoom": "Zoom the timeline in / out", "aimant": "Turn snapping on / off", "libre": "Place freely in the preview (while dragging)", "deselectionner": "Deselect all", "aide": "Show this help", "touche": {"espace": "Space", "suppr": "Del", "maj": "Shift", "debut": "Home", "fin": "End", "echap": "Esc", "ctrl": "Ctrl"}},
     "recoller": "Magnetic",
     "recollerAide": "Magnetic mode: deleting or trimming a clip closes the gap on its track (the rest of the track moves back). Other tracks stay put.",
     "rognerGauche": "Delete before the playhead (Q)",

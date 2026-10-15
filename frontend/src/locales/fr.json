@@ -1751,6 +1751,10 @@
     "draftsCount": "{{count}} brouillon(s)"
   },
   "editeur": {
+    "aimantationOn": "Aimantation activée (N)",
+    "aimantationOff": "Aimantation coupée (N)",
+    "srt": {"bouton": "Importer des sous-titres (.srt, .vtt)", "aide": "Tu as déjà tes sous-titres ? Ils se posent sur la piste Sous-titres, au bon moment.", "vide": "Aucun sous-titre lisible dans ce fichier.", "remplacer_one": "La piste contient déjà {{count}} sous-titre. Le remplacer par ceux du fichier ?", "remplacer_other": "La piste contient déjà {{count}} sous-titres. Les remplacer par ceux du fichier ?", "ok_one": "{{count}} sous-titre importé", "ok_other": "{{count}} sous-titres importés"},
+    "raccourcis": {"titre": "Raccourcis clavier", "fermer": "Fermer", "lecture": "Lecture / pause", "couper": "Couper à la tête de lecture", "rognerGauche": "Supprimer avant la tête de lecture", "rognerDroite": "Supprimer après la tête de lecture", "dupliquer": "Dupliquer", "supprimer": "Supprimer", "copier": "Copier", "couperPresse": "Couper (presse-papiers)", "coller": "Coller à la tête de lecture", "tout": "Tout sélectionner", "annuler": "Annuler", "retablir": "Rétablir", "image": "Image précédente / suivante", "seconde": "Une seconde en arrière / en avant", "debutFin": "Aller au début / à la fin", "zoom": "Zoomer / dézoomer la timeline", "aimant": "Activer / couper l'aimantation", "libre": "Placer librement dans l'aperçu (en glissant)", "deselectionner": "Tout désélectionner", "aide": "Afficher cette aide", "touche": {"espace": "Espace", "suppr": "Suppr", "maj": "Maj", "debut": "Début", "fin": "Fin", "echap": "Échap", "ctrl": "Ctrl"}},
     "recoller": "Magnétique",
     "recollerAide": "Mode magnétique : supprimer ou rogner un plan referme le trou sur sa piste (la suite de la piste recule). Les autres pistes ne bougent pas.",
     "rognerGauche": "Supprimer avant la tête de lecture (Q)",

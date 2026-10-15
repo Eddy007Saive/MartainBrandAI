@@ -175,6 +175,43 @@ export function vignetteA(src, seconde, pas = 1, h = 84) {
     .replace(/\.(mp4|mov|webm|m4v|avi)(\?.*)?$/i, '.jpg');
 }
 
+/**
+ * Lit un fichier de sous-titres SRT ou WebVTT -> [{ debut, duree, texte }] (secondes).
+ * Accepte « 00:01:02,500 » et « 01:02.500 », ignore numéros, en-têtes, réglages de position
+ * et balises (<i>, {\an8}…). Les lignes d'un même bloc sont jointes par un espace.
+ */
+export function lireSousTitres(contenu) {
+  const enSec = (h) => {
+    const m = /(?:(\d+):)?(\d{1,2}):(\d{2})[,.](\d{1,3})/.exec(h);
+    if (!m) return null;
+    return (Number(m[1] || 0) * 3600) + Number(m[2]) * 60 + Number(m[3]) + Number(m[4].padEnd(3, '0')) / 1000;
+  };
+  const blocs = String(contenu || '').replace(/^﻿/, '').replace(/\r/g, '').split(/\n\s*\n/);
+  const out = [];
+  blocs.forEach((bloc) => {
+    const lignes = bloc.split('\n').map((l) => l.trim()).filter(Boolean);
+    const i = lignes.findIndex((l) => l.includes('-->'));
+    if (i < 0) return;
+    const [a, b] = lignes[i].split('-->');
+    const debut = enSec(a);
+    const fin = enSec(b);
+    const texte = lignes.slice(i + 1).join(' ').replace(/<[^>]+>/g, '').replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
+    if (debut == null || fin == null || fin <= debut || !texte) return;
+    out.push({ debut: arrondi(debut, 0.001), duree: arrondi(fin - debut, 0.001), texte: texte.slice(0, 600) });
+  });
+  return out.sort((x, y) => x.debut - y.debut);
+}
+
+/** Pose des sous-titres importés sur la piste Sous-titres ; `remplacer` retire d'abord ceux
+ * qui y sont (même usage que « Générer les sous-titres », qui refait la piste). */
+export function poserSousTitres(projet, lignes, ids, remplacer = true) {
+  const piste = projet.pistes.find((p) => p.type === 'soustitres');
+  if (!piste) return projet;
+  const gardes = remplacer ? projet.elements.filter((e) => e.type !== 'soustitre') : projet.elements;
+  const nouveaux = lignes.map((l, i) => ({ ...nouvelElement(projet, 'soustitre', { texte: l.texte }), id: ids[i], piste: piste.id, debut: l.debut, duree: l.duree }));
+  return { ...projet, elements: [...gardes, ...nouveaux] };
+}
+
 export function dupliquerElement(projet, id, nouveauId) {
   const e = projet.elements.find((x) => x.id === id);
   if (!e) return { projet, nouveau: null };

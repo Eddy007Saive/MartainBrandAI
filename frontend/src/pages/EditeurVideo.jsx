@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Play, Pause, Scissors, Copy, Trash2, Undo2, Redo2, Loader2, Download, Check, ZoomIn, ZoomOut, Monitor, Image as ImageIcon,
-  Maximize2, Minimize2, ChevronLeft, ChevronRight, History, Magnet, ArrowLeftToLine, ArrowRightToLine,
+  Maximize2, Minimize2, ChevronLeft, ChevronRight, History, Magnet, ArrowLeftToLine, ArrowRightToLine, Keyboard,
 } from 'lucide-react';
 import { getToken } from '../lib/auth';
 import { editeurService } from '../services/editeurService';
@@ -14,9 +14,10 @@ import Timeline from '../components/editeur/Timeline';
 import Apercu from '../components/editeur/Apercu';
 import PanneauMedias from '../components/editeur/PanneauMedias';
 import PanneauProprietes from '../components/editeur/PanneauProprietes';
+import AideRaccourcis from '../components/editeur/AideRaccourcis';
 import {
   fmtTemps, placerElement, nouvelElement, nouvelId, majElement, supprimerElement, couperElement, dupliquerElement, separerAudio, dureeProjet, dureeMedia,
-  supprimerEtRecoller, rognerAvant, rognerApres,
+  supprimerEtRecoller, rognerAvant, rognerApres, lireSousTitres, poserSousTitres,
 } from '../components/editeur/outils';
 
 /**
@@ -36,12 +37,18 @@ export default function EditeurVideo() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { projet, setProjet, figer, charger, annuler, retablir, peutAnnuler, peutRetablir } = useProjet(null);
+  // L'historique garde la sélection de chaque état : annuler resélectionne ce qui revient.
+  const selPourHistorique = useRef({ ids: [], ecrire: null });
+  const { projet, setProjet, figer, charger, annuler, retablir, peutAnnuler, peutRetablir } = useProjet(null, {
+    lire: () => selPourHistorique.current.ids,
+    ecrire: (ids) => selPourHistorique.current.ecrire?.(ids || []),
+  });
   const [montage, setMontage] = useState(null);
   const [titre, setTitre] = useState('');
   const [medias, setMedias] = useState(null);
   // Sélection multiple : `selection` est l'élément principal (le dernier), `selectionIds` le groupe.
   const [selectionIds, setSelectionIds] = useState([]);
+  selPourHistorique.current = { ids: selectionIds, ecrire: setSelectionIds };
   const selection = selectionIds.length ? selectionIds[selectionIds.length - 1] : null;
   const setSelection = useCallback((id) => setSelectionIds(id ? [id] : []), []);
   const basculerSelection = useCallback((id) => setSelectionIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])), []);
@@ -75,6 +82,14 @@ export default function EditeurVideo() {
   // Zones masquées par l'interface d'un réseau, affichées sur l'aperçu.
   const [zones, setZones] = useState(() => lirePref('editeur.zones', 'aucune'));
   const changerZones = (v) => { setZones(v); ecrirePref('editeur.zones', v); };
+  // Aimantation de la timeline (touche N), et fenêtre d'aide des raccourcis (touche « ? »).
+  const [aimantation, setAimantation] = useState(() => lirePref('editeur.aimantation', '1') === '1');
+  const basculerAimantation = useCallback(() => setAimantation((v) => {
+    ecrirePref('editeur.aimantation', v ? '0' : '1');
+    toast(t(v ? 'editeur.aimantationOff' : 'editeur.aimantationOn'));
+    return !v;
+  }), [t]);
+  const [aideOuverte, setAideOuverte] = useState(false);
   const redimensionnerTimeline = (e) => {
     e.preventDefault();
     const depart = e.clientY, h0 = hauteurTimeline;
@@ -316,13 +331,15 @@ export default function EditeurVideo() {
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x') { e.preventDefault(); couperPresse(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') { e.preventDefault(); coller(); }
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); toutSelectionner(); }
-      else if (e.key === 'Escape') { setSelection(null); }
+      else if (e.key === 'Escape') { setSelection(null); setAideOuverte(false); }
       else if (e.key === 'Home') { e.preventDefault(); setTete(0); }
       else if (e.key === 'End') { e.preventDefault(); setTete(dureeProjet(projet)); }
       else if (e.key === '+' || e.key === '=') { e.preventDefault(); changerZoom(1.25); }
       else if (e.key === '-') { e.preventDefault(); changerZoom(0.8); }
       else if (e.key.toLowerCase() === 's' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); couper(); }
       else if (e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); dupliquer(); }
+      else if (e.key === '?') { e.preventDefault(); setAideOuverte((v) => !v); }
+      else if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); basculerAimantation(); }
       else if (e.key.toLowerCase() === 'q' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); rognerGauche(); }
       else if (e.key.toLowerCase() === 'w' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); rognerDroite(); }
       else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); supprimer(); }
@@ -333,7 +350,20 @@ export default function EditeurVideo() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [couper, dupliquer, supprimer, annuler, retablir, copier, couperPresse, coller, toutSelectionner, changerZoom, projet, setSelection, rognerGauche, rognerDroite]);
+  }, [couper, dupliquer, supprimer, annuler, retablir, copier, couperPresse, coller, toutSelectionner, changerZoom, projet, setSelection, rognerGauche, rognerDroite, basculerAimantation]);
+
+  // Import d'un fichier .srt / .vtt : remplace la piste Sous-titres (après confirmation si elle
+  // en contient déjà), une seule entrée d'annulation.
+  const importerSousTitres = async (fichier) => {
+    if (!fichier || !projet) return;
+    const lignes = lireSousTitres(await fichier.text());
+    if (!lignes.length) { toast.error(t('editeur.srt.vide')); return; }
+    const existants = projet.elements.filter((e) => e.type === 'soustitre').length;
+    if (existants && !window.confirm(t('editeur.srt.remplacer', { count: existants }))) return;
+    const ids = lignes.map(() => nouvelId());
+    setProjet((p) => poserSousTitres(p, lignes, ids, true));
+    toast.success(t('editeur.srt.ok', { count: lignes.length }));
+  };
 
   // « Générer les sous-titres » : le serveur transcrit le plan et renvoie le projet complété ;
   // il remplace le projet local (une entrée d'annulation), la sauvegarde auto suit.
@@ -445,7 +475,7 @@ export default function EditeurVideo() {
       <div className="flex-1 min-h-0 flex">
         <div className="relative shrink-0 flex">
           <aside className={`border-r border-white/[0.08] bg-[#0a0f1c] min-h-0 overflow-hidden transition-[width] duration-150 ${panneauGauche ? 'w-[268px]' : 'w-0'}`}>
-            <div className="w-[268px] h-full"><PanneauMedias medias={medias} setMedias={setMedias} onAjouter={ajouter} onModele={appliquerModele} t={t} /></div>
+            <div className="w-[268px] h-full"><PanneauMedias medias={medias} setMedias={setMedias} onAjouter={ajouter} onModele={appliquerModele} onImporterSousTitres={importerSousTitres} t={t} /></div>
           </aside>
           <button type="button" onClick={() => setPanneauGauche((v) => !v)} data-testid="editeur-repli-gauche"
             title={t(panneauGauche ? 'editeur.reduirePanneau' : 'editeur.agrandirPanneau')}
@@ -503,7 +533,11 @@ export default function EditeurVideo() {
             </select>
           </label>
         )}
-        <div className={`${projet.hauteur > projet.largeur ? 'ml-3' : 'ml-auto'} flex items-center gap-1.5 text-slate-500`}>
+        <button type="button" onClick={() => setAideOuverte(true)} title={t('editeur.raccourcis.titre')} aria-label={t('editeur.raccourcis.titre')} data-testid="editeur-aide"
+          className={`${projet.hauteur > projet.largeur ? 'ml-3' : 'ml-auto'} w-8 h-8 grid place-items-center rounded-lg border border-white/[0.08] text-slate-400 hover:text-white hover:border-white/25`}>
+          <Keyboard className="w-4 h-4" />
+        </button>
+        <div className="ml-3 flex items-center gap-1.5 text-slate-500">
           <ZoomOut className="w-3.5 h-3.5" />
           <input type="range" min={15} max={240} step={5} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="w-28 accent-[#3AFFA3]" data-testid="editeur-zoom" />
           <ZoomIn className="w-3.5 h-3.5" />
@@ -515,8 +549,10 @@ export default function EditeurVideo() {
       <div style={{ height: hauteurTimeline }} className="shrink-0 min-h-0">
         <Timeline projet={projet} tete={tete} onTete={(v) => { setLecture(false); setTete(v); }} selection={selection} onSelection={setSelection}
           onChange={setProjet} onFiger={figer} onDeposer={deposer} zoom={zoom} t={t}
-          selectionIds={selectionIds} onBasculerSelection={basculerSelection} onZoom={changerZoom} onAjouterPiste={ajouterPiste} />
+          selectionIds={selectionIds} onBasculerSelection={basculerSelection} onZoom={changerZoom} onAjouterPiste={ajouterPiste} aimantation={aimantation} />
       </div>
+
+      {aideOuverte && <AideRaccourcis onClose={() => setAideOuverte(false)} t={t} />}
 
       {/* Export */}
       {exportOuvert && (

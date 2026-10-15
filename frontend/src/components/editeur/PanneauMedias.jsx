@@ -12,7 +12,8 @@ import { dureeMedia, estClip } from './outils';
  */
 const ONGLETS = ['modeles', 'medias', 'videos', 'musique', 'texte', 'voix'];
 
-export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, t }) {
+export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, onImporterSousTitres, t }) {
+  const fichierSrt = useRef(null);
   const [onglet, setOnglet] = useState('modeles');
   const [envoi, setEnvoi] = useState(false);
   const [occupe, setOccupe] = useState(null);
@@ -298,6 +299,17 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, 
                 }}>{t(`editeur.stylesTexte.${id}`)}</span>
               </button>
             ))}
+            {onImporterSousTitres && (
+              <div className="pt-2">
+                <input ref={fichierSrt} type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" className="hidden"
+                  onChange={(e) => { onImporterSousTitres(e.target.files?.[0]); e.target.value = ''; }} data-testid="medias-srt-input" />
+                <button type="button" onClick={() => fichierSrt.current?.click()} data-testid="medias-srt"
+                  className="w-full rounded-lg border border-dashed border-white/15 hover:border-[#f59e0b]/70 px-3 py-2.5 text-left text-[12.5px] text-slate-300 font-inter">
+                  {t('editeur.srt.bouton')}
+                  <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">{t('editeur.srt.aide')}</span>
+                </button>
+              </div>
+            )}
             <div className="flex items-center gap-2 text-[11px] text-slate-500 font-inter pt-2"><Type className="w-3.5 h-3.5" /> <ImageIcon className="w-3.5 h-3.5" /> <Film className="w-3.5 h-3.5" /> {t('editeur.medias.raccourcis')}</div>
           </div>
         )}
