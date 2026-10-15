@@ -125,10 +125,15 @@ const BUILD = path.resolve(__dirname, '..', 'build');
 // references aux fichiers hashes (main.js, main.css, polices) sont reecrites
 // d'apres asset-manifest.json, car les hashes du build distant different.
 const SNAP = path.resolve(__dirname, '..', 'prerendu');
+// Les instantanes sont d'abord ecrits dans un dossier temporaire et ne
+// remplacent SNAP qu'une fois le prerendu termine : un prerendu interrompu
+// (manque de memoire, Ctrl+C) ne doit jamais laisser un dossier a moitie vide
+// qui serait ensuite versionne et rejoue tel quel sur l'hote (arrive le 14/10).
+const SNAP_TMP = path.resolve(__dirname, '..', 'prerendu.tmp');
 
 function cheminInstantane(chemin) {
   const rel = chemin === '/' ? '' : chemin.replace(/^\//, '');
-  return path.join(SNAP, rel, 'index.html');
+  return path.join(SNAP_TMP, rel, 'index.html');
 }
 
 function enregistrerInstantane(chemin, html) {
@@ -298,9 +303,9 @@ async function principal() {
   let vides = 0;
 
   if (navigateur) {
-    // Repart d'un dossier propre : une page supprimee ne doit pas survivre.
-    fs.rmSync(SNAP, { recursive: true, force: true });
-    fs.mkdirSync(SNAP, { recursive: true });
+    // Dossier temporaire propre ; SNAP n'est touche qu'a la fin (voir plus bas).
+    fs.rmSync(SNAP_TMP, { recursive: true, force: true });
+    fs.mkdirSync(SNAP_TMP, { recursive: true });
   }
 
   const aVisiter = PREFIXES.flatMap((prefixe) => PAGES.map(
@@ -379,8 +384,15 @@ async function principal() {
     await navigateur.close();
     // Le manifeste du build dont proviennent les instantanes : indispensable
     // pour reecrire les hashes sur une autre machine.
-    fs.copyFileSync(path.join(BUILD, 'asset-manifest.json'), path.join(SNAP, 'asset-manifest.json'));
-    console.log(`  instantanes enregistres dans frontend/prerendu/ (${ecrits} pages) — a versionner.`);
+    fs.copyFileSync(path.join(BUILD, 'asset-manifest.json'), path.join(SNAP_TMP, 'asset-manifest.json'));
+    if (ecrits === aVisiter.length) {
+      // Tout est la : on remplace l'ancien jeu d'instantanes d'un coup.
+      fs.rmSync(SNAP, { recursive: true, force: true });
+      fs.renameSync(SNAP_TMP, SNAP);
+      console.log(`  instantanes enregistres dans frontend/prerendu/ (${ecrits} pages) — a versionner.`);
+    } else {
+      console.warn(`  ! prerendu incomplet (${ecrits}/${aVisiter.length}) : frontend/prerendu/ conserve tel quel, instantanes partiels dans prerendu.tmp/.`);
+    }
   } else {
     console.warn('  → pas de navigateur : rejeu des instantanes versionnes.');
     ecrits = appliquerInstantanes();
