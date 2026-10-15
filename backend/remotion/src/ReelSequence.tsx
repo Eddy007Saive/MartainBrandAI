@@ -24,6 +24,14 @@ type Brand = {
   logo?: string | null;
   police?: string | null;       // police de titre de la charte (typo_primaire)
   policeTexte?: string | null;  // police du texte courant (typo_secondaire)
+  langue?: string;              // langue du compte (fr/en/es) : textes fixes de la composition
+};
+
+// Badges du mode avant/après quand le scénario n'en donne pas, dans la langue du compte.
+const BADGES_AVANT_APRES: Record<string, [string, string]> = {
+  fr: ['AVANT', 'APRÈS'],
+  en: ['BEFORE', 'AFTER'],
+  es: ['ANTES', 'DESPUÉS'],
 };
 
 export type SequenceSegment = {
@@ -511,9 +519,10 @@ const SegImage: React.FC<{
   const bordure = mode === 'impact' ? `3px solid ${brand.accent}` : '1px solid rgba(255,255,255,0.12)';
   const persp = mode === 'odyssee';
   const rotX = persp ? interpolate(Math.min(1, enter), [0, 1], [16, 5]) : 0;
-  const badge = mode === 'avantapres' ? (seg.label || (imgNo % 2 === 0 ? 'AVANT' : 'APRÈS')) : null;
+  const [motAvant, motApres] = BADGES_AVANT_APRES[brand.langue || 'fr'] || BADGES_AVANT_APRES.fr;
+  const badge = mode === 'avantapres' ? (seg.label || (imgNo % 2 === 0 ? motAvant : motApres)) : null;
   // AVANT = badge sombre neutre ; tout le reste (APRÈS, RÉSULTAT…) = badge accent
-  const badgeApres = badge ? !/avant|before/i.test(badge) : false;
+  const badgeApres = badge ? !/avant|before|antes/i.test(badge) : false;
 
   const cadre = (
     <div style={{

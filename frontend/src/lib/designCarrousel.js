@@ -74,6 +74,16 @@ export const fondCss = (p) => (p?.degrade
 
 /** Premier design : couverture (accroche), une page par idée, page d'appel à l'action — aux
  * couleurs, polices et fonds du carrousel (apparence : p, s, a, font, fontBody, slidesHtml). */
+// Textes posés par défaut sur les pages exportées, dans la langue du compte (marque.langue).
+const TEXTES_DEFAUT = {
+  glisse: { fr: 'Glisse →', en: 'Swipe →', es: 'Desliza →' },
+  onEnParle: { fr: 'On en parle ?', en: "Let's talk?", es: '¿Hablamos?' },
+};
+const txt = (marque, cle) => {
+  const l = String(marque?.langue || 'fr').slice(0, 2).toLowerCase();
+  return TEXTES_DEFAUT[cle][l] || TEXTES_DEFAUT[cle].fr;
+};
+
 export function designInitial(carrousel, marque = {}, apparence = {}) {
   const fondDefaut = apparence.p || marque.couleur_principale || '#003D2E';
   const accentBrut = apparence.a || marque.couleur_accent || '#3AFFA3';
@@ -104,7 +114,7 @@ export function designInitial(carrousel, marque = {}, apparence = {}) {
     id: nouvelId(), fond: s0.fond, degrade: s0.degrade, fondImage: null,
     elements: [
       texte(c.hook || '', 380, 92, { police: titrePolice, gras: true, couleur: s0.encre }),
-      texte('Glisse →', HAUTEUR - 170, 36, { couleur: s0.accent, gras: true, align: 'right' }),
+      texte(txt(marque, 'glisse'), HAUTEUR - 170, 36, { couleur: s0.accent, gras: true, align: 'right' }),
       ...logo.map((l) => ({ ...l, id: nouvelId() })),
     ],
   });
@@ -125,7 +135,7 @@ export function designInitial(carrousel, marque = {}, apparence = {}) {
   pages.push({
     id: nouvelId(), fond: sc.fond, degrade: sc.degrade, fondImage: null,
     elements: [
-      texte(cta.titre || 'On en parle ?', 450, 84, { police: titrePolice, gras: true, couleur: sc.encre }),
+      texte(cta.titre || txt(marque, 'onEnParle'), 450, 84, { police: titrePolice, gras: true, couleur: sc.encre }),
       texte(cta.texte || '', 450 + lignes(cta.titre, 84, LARGEUR - 180) * 84 * 1.2 + 50, 44, { couleur: sc.encre }),
       ...logo.map((l) => ({ ...l, id: nouvelId() })),
     ],
