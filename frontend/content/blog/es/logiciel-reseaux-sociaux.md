@@ -1,8 +1,9 @@
 ---
 slug: software-gestion-redes-sociales
-titre: ¿Qué software de gestión de redes sociales para una pequeña empresa?
-description: Buffer, Hootsuite, Metricool, un comparativo honesto para una pyme o un autónomo, con los precios verificados, los límites reales y lo que ninguna herramienta hará.
+titre: "Mejores software de gestión de redes sociales en 2026: comparativa para pymes"
+description: Comparativa clasificada de los mejores software de gestión de redes sociales en 2026 para una pyme o autónomo: Metricool, Buffer, Publer, SocialPilot, Hootsuite y Sprout Social, con precios verificados, soporte en español y qué mirar.
 date: 2026-08-22
+maj: 2026-10-15
 auteur: El equipo Postorico
 tags: [herramientas, comparativa, planificacion]
 pose: pointe-haut
@@ -10,13 +11,27 @@ pose: pointe-haut
 
 ## Lo esencial
 
-- Un software de gestión de redes sociales planifica y publica tus posts. No crea el contenido y no define tu estrategia.
-- Buffer sigue siendo la opción más accesible, desde 5 $ por canal y por mes; Hootsuite es potente pero caro, 99 $ por mes como mínimo; Metricool ofrece el mejor equilibrio, con una versión gratuita realmente utilizable.
-- Si partes de cero, sin línea editorial ni contenido listo, una herramienta por sí sola no resolverá tu problema.
+- Un **software de gestión de redes sociales** planifica y publica tus posts desde un solo sitio. No crea el contenido ni define tu estrategia.
+- Clasificación rápida para una pyme o un autónomo en 2026: **Metricool** ofrece el mejor equilibrio (y soporte en español), **Buffer** es el más sencillo para empezar, **Publer** el más económico con plan gratuito, **SocialPilot** el mejor para volumen, **Hootsuite** y **Sprout Social** son potentes pero caros.
+- Si diriges tu empresa desde España, dos criterios pesan además del precio: el **soporte en castellano** y el **cumplimiento del RGPD**.
+- Si partes de cero, sin línea editorial ni contenido listo, ningún programa resolverá el problema por sí solo.
 
-## Lo que un software hace, y lo que no hace
+## Comparativa de un vistazo
 
-Un software de gestión de redes sociales es ante todo una herramienta de planificación. Preparas tus publicaciones por adelantado, las programas en un calendario, la herramienta las publica a la hora elegida. Eso es todo.
+Los precios se verificaron en las páginas oficiales de cada editor en octubre de 2026 y cambian a menudo. Comprueba siempre la tarifa actual antes de contratar.
+
+| Software | Precio de entrada | Plan gratis | Redes cubiertas | Mejor para |
+|---|---|---|---|---|
+| Metricool | desde 20 € al mes | Sí (utilizable) | IG, FB, X, LI, TikTok, YouTube, Pinterest, Twitch, Google Business | Pyme europea que quiere una herramienta completa |
+| Buffer | desde 6 $ por canal y mes | Sí (3 canales) | IG, FB, X, LI, TikTok, Pinterest, YouTube | Autónomo o directivo que empieza |
+| Publer | desde unos 5 $ al mes | Sí (3 cuentas) | Multi (X solo en los planes de pago) | Presupuesto ajustado, reciclaje de contenido |
+| SocialPilot | desde 30 $ al mes | No (prueba 14 días) | Multi | Volumen de publicaciones, pequeñas agencias |
+| Hootsuite | desde 99 $ por usuario y mes | No (prueba) | Multi completo | Pyme con presupuesto y necesidad de reporting |
+| Sprout Social | desde 199 $ por puesto y mes | No (prueba 30 días) | Multi completo | Equipos y necesidades avanzadas |
+
+## Qué es (y qué no es) un software de gestión de redes sociales
+
+Un programa de gestión de redes sociales es ante todo una herramienta de planificación. Preparas tus publicaciones por adelantado, las programas en un calendario y la herramienta las publica a la hora elegida.
 
 Lo que cambia en concreto:
 
@@ -27,126 +42,177 @@ Lo que cambia en concreto:
 Lo que no hace, y ahí es donde muchos directivos caen en la trampa:
 
 - **No crea el contenido.** Sigues redactando tus textos, preparando tus visuales, buscando tus ideas.
-- **No define tu estrategia.** ¿Qué red? ¿Qué frecuencia? ¿Qué tono? Esas preguntas siguen abiertas.
-- **No genera interacción.** Responder a los comentarios, dialogar con tu comunidad: eso es trabajo humano.
+- **No define tu estrategia.** Qué red, qué frecuencia, qué tono: esas preguntas siguen abiertas.
+- **No genera interacción.** Responder a los comentarios y dialogar con tu comunidad es trabajo humano.
 - **No mejora un contenido mediocre.** Publicar de forma automática posts sin interés es automatizar la ineficacia.
 
-La planificación es una ganancia real, siempre que tengas algo que planificar.
+La planificación es una ganancia real, siempre que tengas algo que planificar. Da igual cómo lo busques (software, programa o herramienta de gestión de redes sociales): designan la misma categoría de producto.
 
-## Las herramientas más usadas
+## Cómo elegir, y qué mirar si diriges desde España
 
-Los precios que siguen se tomaron de las páginas oficiales de los editores en agosto de 2026. Cambian con regularidad: verifica antes de suscribirte.
+Antes de fijarte en la lista de funciones, cruza cada herramienta con tu realidad. Estos son los criterios que de verdad cuentan para un directivo de pyme, no para una agencia.
 
-### Buffer
+- **Facilidad para empezar.** Si no puedes programar una publicación en menos de tres minutos sin formación, la herramienta te sobra.
+- **Cobertura de tus redes prioritarias.** Comprueba LinkedIn, Instagram, Facebook y TikTok antes de pagar, no después.
+- **Calendario editorial visual.** La vista mensual evita huecos y duplicados sin llevar un Excel en paralelo.
+- **Estadísticas legibles.** Necesitas saber dos cosas: si crece tu alcance y qué publicaciones funcionan. Nada más.
+- **Soporte en castellano.** Varias de estas herramientas tienen la interfaz y la atención en inglés. Para un equipo pequeño, el soporte en español ahorra horas.
+- **Cumplimiento del RGPD.** Si tratas datos de clientes europeos, prioriza editores con sede o representación en la UE y una política de datos clara.
 
-Buffer es el más sencillo de manejar. La interfaz es depurada, la curva de aprendizaje casi nula. En menos de una hora conectas tus cuentas y programas tus primeros posts.
+## Los mejores software de gestión de redes sociales en 2026
 
-- **Gratuito**: 3 canales, 10 posts programados por canal, 1 usuario.
-- **Essentials**: **5 $ por canal y por mes** con facturación anual (60 $ al año), un poco más al mes. Posts ilimitados, estadísticas avanzadas.
-- **Team**: 10 $ por canal y por mes en anual, con usuarios ilimitados y circuito de validación.
+Clasificación pensada para un directivo que gestiona solo o con un equipo pequeño, con un presupuesto razonable. No para un departamento de marketing de quince personas.
 
-Para una estructura pequeña con tres a cinco redes activas, cuenta con **15 a 25 $ por mes** en Essentials. Buffer cubre Instagram, Facebook, X, LinkedIn, TikTok, Pinterest y YouTube, con descuentos a partir de diez canales.
+### 1. Metricool: el mejor equilibrio (y español)
 
-**Su límite:** las estadísticas siguen siendo básicas, no hay escucha de marca ni gestión de comentarios integrada. Es una herramienta de publicación, no una suite completa.
+Metricool es la opción que más sentido tiene para una pyme europea. Es una empresa **española**, con interfaz y soporte en castellano, y su punto fuerte es una versión gratuita realmente utilizable.
+
+- **Gratis:** 1 marca, 20 contenidos programados al mes, 30 días de historial y análisis de 5 competidores. LinkedIn y X quedan fuera de esta fórmula.
+- **Starter:** desde 20 € al mes (unos 16 € con facturación anual), con publicaciones ilimitadas, acceso a LinkedIn y X, y más marcas.
+- **Planes para equipos:** parten de unos 50 € al mes y añaden roles y flujos de aprobación. Consulta su página de precios para la cifra exacta.
+
+Metricool cubre Instagram, Facebook, X, LinkedIn, TikTok, YouTube, Pinterest, Twitch y la **ficha de Google Business Profile**, una ventaja real para un comercio local, que a menudo es el primer sitio donde un cliente descubre una empresa.
+
+**Su límite:** la exclusión de LinkedIn en la versión gratuita es molesta si es tu red principal.
+
+**Para quién:** pymes que quieren una herramienta completa, en español, sin pagar el precio de las suites estadounidenses.
+
+### 2. Buffer: el más sencillo para empezar
+
+Buffer es el más fácil de manejar. La interfaz es depurada y la curva de aprendizaje casi nula: en menos de una hora conectas tus cuentas y programas tus primeros posts.
+
+- **Gratis:** 3 canales, 10 posts programados por canal y 1 usuario.
+- **Essentials:** desde 6 $ por canal y mes (unos 5 $ con facturación anual, 60 $ al año por canal). Posts ilimitados y estadísticas avanzadas.
+- **Team:** desde 12 $ por canal y mes, con usuarios ilimitados y circuito de validación.
+
+Buffer cubre Instagram, Facebook, X, LinkedIn, TikTok, Pinterest y YouTube, con tarifa decreciente a partir de diez canales.
+
+**Su límite:** las estadísticas siguen siendo básicas, sin escucha de marca ni gestión de comentarios integrada, y la interfaz está en inglés. Es una herramienta de publicación, no una suite completa.
 
 **Para quién:** autónomos y pymes que quieren programar sus posts sin pensar en ello.
 
-### Hootsuite
+### 3. Publer: el más económico con plan gratuito
 
-Hootsuite es la referencia histórica. Hace mucho más que Buffer: escucha, gestión de comentarios, paneles analíticos avanzados, múltiples integraciones.
+Publer es menos conocida pero sólida, sobre todo para reciclar contenido y republicar lo que mejor funcionó.
 
-- **Standard**: **99 $ por usuario y por mes** en anual, hasta 10 cuentas sociales.
-- **Professional**: 199 $ por usuario y por mes, cuentas ilimitadas.
-- **Advanced**: 399 $ por usuario y por mes.
-- **Ya no hay ninguna fórmula gratuita**: solo una prueba de 14 días.
+- **Gratis:** hasta 3 cuentas sociales (X queda excluida de la fórmula gratuita).
+- **Professional:** desde unos 5 $ al mes como precio base.
+- **Business:** desde unos 10 $ al mes, con analítica avanzada e informes descargables.
 
-Ahí es donde aprieta el zapato para una pequeña empresa. Noventa y nueve dólares al mes es un presupuesto de marketing por sí solo para un autónomo. Y la tarifa es **por usuario**: entre dos, se duplica.
+Las cuentas y usuarios adicionales se facturan aparte, así que la factura real depende de cuántos perfiles conectes. Interfaz en inglés.
 
-**Su límite:** tampoco crea contenido, y su complejidad desanima a quien no tiene bagaje de marketing. Cuenta con varios días de aprendizaje.
+**Su límite:** el precio de entrada es bajo porque arranca con una sola cuenta; al sumar perfiles sube.
 
-**Para quién:** pymes con un presupuesto dedicado y una verdadera necesidad de reporting. No es la primera opción para un artesano o un comercio local.
+**Para quién:** autónomos con presupuesto ajustado que publican en pocas redes y reutilizan mucho su contenido.
 
-### Metricool
+### 4. SocialPilot: pensado para el volumen
 
-Metricool es la alternativa que sube en Europa. Su punto fuerte: **una versión gratuita realmente utilizable**.
+SocialPilot ofrece una buena relación entre funciones y precio cuando publicas mucho o gestionas varias marcas.
 
-- **Gratuito**: 1 marca, 20 contenidos programados por mes, 30 días de historial, análisis de 5 competidores. LinkedIn y X quedan excluidos de esta fórmula.
-- **Starter**: desde **20 € por mes**, unos 15 € con facturación anual. Hasta 10 marcas, publicaciones ilimitadas, acceso a X, 100 competidores seguidos.
-- **Advanced**: desde 54 € por mes, para equipos, con validación de contenido.
+- **Essentials:** desde 30 $ al mes (unos 25,50 $ con facturación anual), 7 cuentas sociales y 1 usuario.
+- **Planes superiores:** suben hasta 50 $, 100 $ y 200 $ al mes según cuentas y usuarios.
+- Sin plan gratuito, pero con prueba de 14 días sin tarjeta.
 
-Metricool cubre Instagram, Facebook, X, LinkedIn, TikTok, YouTube, Pinterest, Twitch, y **la ficha de Google Business Profile**, lo que es una verdadera ventaja para un comercio local. Suele ser el primer lugar donde un cliente descubre una empresa, incluso antes que su web.
+Incluye programación masiva, asistente de IA para la redacción y calendario editorial completo.
 
-**Su límite:** la exclusión de LinkedIn en la versión gratuita es molesta si es tu red principal. Y, como las demás, no sustituye a una estrategia.
+**Su límite:** no cubre YouTube e interfaz en inglés.
 
-**Para quién:** pymes que quieren una herramienta completa sin pagar el precio de Hootsuite. Un buen punto de entrada para probar.
+**Para quién:** pymes y pequeñas agencias con un volumen de contenido regular en varias redes.
 
-### Las demás
+### 5. Hootsuite: el veterano potente, pero caro
 
-- **Later**: orientada a lo visual, apreciada para Instagram y TikTok. Pertinente si tu comunicación se apoya en la imagen.
-- **SocialPilot**: buena relación funcionalidades-precio para las pequeñas agencias que gestionan varios clientes.
-- **Publer**: menos conocida, sólida en el reciclaje de contenido.
+Hootsuite es la referencia histórica. Hace mucho más que publicar: escucha, gestión de comentarios, paneles analíticos avanzados y muchas integraciones.
 
-## Cómo elegir según tu situación real
+- **Standard:** desde 99 $ por usuario y mes con facturación anual, hasta 10 cuentas sociales.
+- **Planes superiores:** escala a 199 $ y 399 $ por usuario y mes según su página de precios.
+- Ya no hay fórmula gratuita, solo una prueba.
 
-### Ya tienes una estrategia y contenido listo
+Noventa y nueve dólares al mes es un presupuesto de marketing por sí solo para un autónomo, y la tarifa es **por usuario**: entre dos, se duplica.
 
-Es el caso ideal. Sabes qué publicar, dónde, con qué frecuencia. Solo buscas dejar de pensar en ello cada día.
+**Su límite:** tampoco crea contenido, y su complejidad desanima a quien no tiene bagaje de marketing.
 
-**Buffer o Metricool** bastan de sobra. Empieza por la fórmula gratuita de Metricool o el Essentials de Buffer, prueba un mes, mide el tiempo realmente ganado, y luego ajusta.
+**Para quién:** pymes con presupuesto dedicado y una necesidad real de reporting. No es la primera opción para un artesano o un comercio local.
+
+### 6. Sprout Social: la suite para equipos
+
+Sprout Social es la opción más avanzada del grupo, con una bandeja de entrada unificada muy pulida, escucha social e informes de nivel empresarial.
+
+- **Essentials:** desde 79 $ por puesto y mes.
+- **Standard:** desde 199 $ por puesto y mes con facturación anual.
+- **Planes superiores:** 299 $ y 399 $ por puesto y mes. Prueba gratuita de 30 días.
+
+**Su límite:** el precio la sitúa fuera del alcance de la mayoría de los autónomos y pymes pequeñas.
+
+**Para quién:** equipos de marketing que ya trabajan varias personas sobre las redes y necesitan reporting y colaboración serios.
+
+## Y Postorico, ¿dónde encaja?
+
+Postorico **no es** un software de planificación como los seis anteriores, y por eso no lo clasificamos entre ellos. Donde una herramienta de planificación te pide que llegues con el contenido ya escrito, Postorico cubre el paso anterior: el encuadre de la marca lo hacen humanos (tono, línea editorial, dirección artística) y después la plataforma produce las propuestas con esa voz, las planifica y las publica una vez que las has validado.
+
+No es el mismo gasto que una herramienta a 20 € al mes, y tampoco es el mismo trabajo. Si lo que buscas es solo programar un contenido que ya tienes, una de las herramientas de arriba te basta. Si el problema es que no tienes tiempo ni rutina para producir ese contenido, ahí es donde Postorico tiene sentido.
+
+## Cómo elegir según tu situación
+
+### Ya tienes estrategia y contenido listo
+
+Sabes qué publicar, dónde y con qué frecuencia. Solo quieres dejar de pensar en ello cada día. **Metricool o Buffer** bastan de sobra: empieza por la versión gratuita, prueba un mes y mide el tiempo realmente ganado.
 
 ### Partes de cero
 
-Sin línea editorial, sin contenido en reserva, sin rutina. Una herramienta de planificación no resolverá nada.
-
-Lo que necesitas primero: **definir tu posicionamiento**, elegir una o dos redes, no cinco, y fijar un ritmo sostenible. Dos posts por semana valen más que diez en enero y el silencio en febrero.
-
-La herramienta viene después. No antes.
+Sin línea editorial ni contenido en reserva, una herramienta de planificación no resolverá nada. Lo que necesitas primero es definir tu posicionamiento, elegir una o dos redes, no cinco, y fijar un ritmo sostenible. La herramienta viene después, no antes.
 
 ### Quieres delegar, no solo planificar
 
-Si tu objetivo es dejar de ocuparte de las redes por completo, ni estrategia, ni contenido, ni publicación, ningún software de planificación lo hará. Son dos oficios distintos: programar un post y escribirlo.
+Si tu objetivo es dejar de ocuparte de las redes por completo, ningún software de planificación lo hará: programar un post y escribirlo son dos oficios distintos. Tus opciones son entonces un freelance, una agencia o un servicio que combine el encuadre humano y la producción.
 
-Tus opciones son entonces un freelance, una agencia, o un servicio que combine el encuadre humano y la producción. La diferencia de precio entre esas tres vías es considerable, y ese es el tema de otro artículo.
+## Lo que ningún programa hará por ti
 
-## Lo que ninguna herramienta reemplazará
+- **Decidir tu posicionamiento.** Sobre qué te pronuncias, cuál es tu ángulo. Esas decisiones condicionan todo lo demás.
+- **Escribir algo que resuene.** Un post que funciona le habla a una persona real de un problema real.
+- **Mantener la relación con tu comunidad.** Responder, dialogar y tratar los mensajes privados no es automatizable sin perder aquello por lo que se publica.
+- **Interpretar las cifras.** Entender por qué un post funcionó y sacar una conclusión para el siguiente es una competencia.
 
-**Decidir tu posicionamiento.** ¿Sobre qué te pronuncias? ¿Cuál es tu ángulo? Esas decisiones condicionan todo lo demás.
-
-**Escribir algo que resuene.** Un post que funciona le habla a una persona real de un problema real. Eso exige conocer a tu audiencia, tiempo, y a menudo una buena pluma.
-
-**Mantener la relación con tu comunidad.** Responder, dialogar, tratar los mensajes privados: no automatizable sin perder aquello por lo que se publica.
-
-**Interpretar las cifras.** Las herramientas dan muchas. Entender por qué un post funcionó y sacar una conclusión para el siguiente es una competencia.
-
-Para una estructura pequeña sin equipo de marketing, gestionar sus redes en serio representa **tres a cinco horas por semana, incluso con la mejor herramienta del mundo**. Es la cifra que hay que tener en mente antes de suscribirse a lo que sea.
-
-## Lo que hay que recordar
-
-- Un software de planificación es útil si, y solo si, ya tienes contenido y una dirección.
-- **Buffer** es el más sencillo y el más barato para empezar. **Metricool** ofrece el mejor equilibrio, con una gratuidad utilizable. **Hootsuite** se justifica con un presupuesto y necesidades avanzadas.
-- Si buscas delegar el conjunto, una herramienta por sí sola no bastará.
-
-Es precisamente la brecha que Postorico busca cubrir: el encuadre de la marca lo hacen humanos, tono, línea editorial, dirección artística, y luego la plataforma produce las propuestas con esa voz, las planifica y las publica una vez que las has validado. No es el mismo gasto que una herramienta de planificación a 20 € por mes, y tampoco es el mismo trabajo.
+Para una estructura pequeña sin equipo de marketing, gestionar sus redes en serio representa **tres a cinco horas por semana, incluso con la mejor herramienta del mundo**. Es la cifra que hay que tener en mente antes de suscribirse a nada.
 
 ## Preguntas frecuentes
+
+**¿Cuál es el mejor software de gestión de redes sociales en 2026?**
+No hay uno mejor para todo el mundo. Para una pyme o un autónomo en Europa, Metricool suele ser la opción más equilibrada: versión gratuita utilizable, soporte en español y tarifas razonables. Buffer es el más sencillo para empezar y Publer el más económico. Hootsuite y Sprout Social solo se justifican con presupuesto y necesidades avanzadas.
+
+**¿Hay algún programa para gestionar redes sociales gratis?**
+Sí. Metricool, Buffer y Publer ofrecen un plan gratuito real (no una simple prueba), con límites de marcas, cuentas o número de publicaciones al mes. Es suficiente para empezar y comprobar si la herramienta encaja antes de pagar.
+
+**¿Qué diferencia hay entre un "programa administrador de redes sociales", un "software" y una "herramienta de gestión de redes sociales"?**
+Ninguna en la práctica: son tres formas de nombrar la misma categoría de producto. Las seis soluciones comparadas aquí responden exactamente a esas búsquedas. Si quieres el enfoque centrado en los criterios de elección para una pyme, consulta también [Herramienta de gestión de redes sociales: cuál elegir para una pyme](/es/blog/herramienta-gestion-redes-sociales-pyme).
+
+**¿Existe un software de gestión de redes sociales con soporte en español?**
+Sí. Metricool es español, con interfaz y atención en castellano. Es el criterio que más lo distingue de las suites estadounidenses como Buffer, Hootsuite o Sprout Social, cuya interfaz principal está en inglés.
 
 **¿Puede un software reemplazar a un community manager?**
 No. Automatiza la publicación de un contenido que tú has preparado. No reemplaza ni la reflexión estratégica, ni la escritura, ni la gestión de las interacciones. Una herramienta bien elegida hace ganar tiempo, pero hace falta alguien detrás.
 
-**¿Cuál es la mejor alternativa a Buffer o Hootsuite para una estructura pequeña?**
-Metricool, en la mayoría de los casos en Europa: versión gratuita funcional, tarifas razonables, y soporte de la ficha de Google Business Profile además de las redes clásicas. Later es preferible si tu comunicación es muy visual.
-
 **¿Cuánto tiempo hace falta para manejar estas herramientas?**
-Buffer: menos de una hora para lo básico. Metricool: media jornada para recorrerla. Hootsuite: varios días, y una verdadera formación para explotar los paneles. Para una pequeña empresa, la sencillez suele contar más que la riqueza funcional.
+Buffer o Publer: menos de una hora para lo básico. Metricool o SocialPilot: media jornada para recorrerlos. Hootsuite y Sprout Social: varios días y una verdadera formación para explotar los paneles. Para una pyme, la sencillez suele contar más que la riqueza funcional.
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ItemList","name":"Mejores software de gestión de redes sociales en 2026","itemListOrder":"https://schema.org/ItemListOrderAscending","itemListElement":[{"@type":"ListItem","position":1,"name":"Metricool"},{"@type":"ListItem","position":2,"name":"Buffer"},{"@type":"ListItem","position":3,"name":"Publer"},{"@type":"ListItem","position":4,"name":"SocialPilot"},{"@type":"ListItem","position":5,"name":"Hootsuite"},{"@type":"ListItem","position":6,"name":"Sprout Social"}]}
+</script>
 
 ## Para ir más lejos
 
+- [Herramienta de gestión de redes sociales: cuál elegir para una pyme](/es/blog/herramienta-gestion-redes-sociales-pyme)
 - [Google Business Profile para pymes: la guía completa para aparecer en búsquedas locales](/es/blog/google-business-profile-pymes)
 - [Crear contenido con IA: lo que cambia de verdad para una pyme](/es/blog/crear-contenido-con-ia-pme)
 - [Agencia de redes sociales, freelance o IA: lo que cuesta realmente cada opción](/es/blog/agencia-freelance-ia-redes-sociales-costes)
 - [Plantilla de calendario editorial para redes sociales: crear y completar el tuyo en 30 minutos](/es/blog/plantilla-calendario-editorial-redes-sociales)
+
 ## Fuentes
 
-- [Buffer: Tarifas oficiales](https://buffer.com/pricing)
-- [Hootsuite: Planes y tarifas](https://www.hootsuite.com/plans)
-- [Metricool: Nuestras tarifas](https://metricool.com/fr/nos-tarifs/)
+Precios verificados en las páginas oficiales en octubre de 2026. Cambian con regularidad: verifica antes de suscribirte.
+
+- [Metricool: precios](https://metricool.com/es/precios/)
+- [Buffer: pricing](https://buffer.com/pricing)
+- [Publer: plans](https://publer.com/plans)
+- [SocialPilot: plans](https://www.socialpilot.co/plans)
+- [Hootsuite: plans](https://www.hootsuite.com/plans)
+- [Sprout Social: pricing](https://sproutsocial.com/pricing/)
