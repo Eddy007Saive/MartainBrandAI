@@ -3240,6 +3240,7 @@
     "tarifs": "Voir les tarifs",
     "aide": "Une question ? La FAQ répond en 13 points"
   },
+  "demo": {"voir": "Voir la démo", "titre": "Démo de Postorico"},
   "demarrage": {
     "etape": "Étape {{n}}/{{total}}",
     "yAller": "Y aller",

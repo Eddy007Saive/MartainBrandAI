@@ -20,6 +20,7 @@ import NotificationsBell from '../components/NotificationsBell';
 import { notificationService } from '../services/notificationService';
 import LangSwitcher from '../components/LangSwitcher';
 import AccountSwitcher from '../components/AccountSwitcher';
+import BoutonDemo from '../components/LecteurDemo';
 import { APK_URL, downloadHidden, markDownloaded } from '../lib/appDownload';
 import { getVision, exitVision } from '../lib/vision';
 
@@ -335,6 +336,8 @@ function DashboardContent() {
       {/* Le retour vers l'administration, pour qui a les deux casquettes.
           Il n'existait pas : une fois dans son espace client, un
           administrateur devait se deconnecter pour revenir administrer. */}
+      {/* Toujours là, même quand la carte « Premiers pas » a disparu de l'Accueil. */}
+      <BoutonDemo variante="menu" />
       {isAdminAuthenticated() && (
         <button
           onClick={() => { memoriserEspace('admin'); navigate('/admin'); }}

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Check, ChevronRight, RotateCcw } from 'lucide-react';
 import { useDemarrage } from '../context/DemarrageContext';
 import { useUser } from '../context/UserContext';
+import BoutonDemo from './LecteurDemo';
 
 const LIENS = {
   profil: '/dashboard/parametres?s=marque',
@@ -40,10 +41,13 @@ export default function CartePremiersPas() {
           </p>
           <p className="text-slate-400 text-sm font-inter">{t('demarrage.carte.sous')}</p>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+        <BoutonDemo variante="carte" />
         <button type="button" onClick={reprendre} data-testid="accueil-reprendre-visite"
           className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl text-[13px] font-semibold text-white bg-white/[0.06] border border-white/10 hover:border-white/25">
           <RotateCcw className="w-3.5 h-3.5" /> {t('demarrage.carte.reprendre')}
         </button>
+        </div>
       </div>
       <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden">
         <div className="h-full rounded-full bg-gradient-to-r from-[#3AFFA3] to-[#5B6CFF] transition-all duration-700"
