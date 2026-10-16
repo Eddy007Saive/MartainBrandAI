@@ -125,8 +125,67 @@ function useTransition(transition) {
   if (type === 'glisser') return { transform: `translateX(${(1 - doux) * 100}%)` };
   if (type === 'zoom') return { opacity: Math.min(1, p * 2), transform: `scale(${1.25 - 0.25 * doux})` };
   if (type === 'volet') return { clipPath: `inset(0 ${(1 - doux) * 100}% 0 0)` };
+  // Transitions ajoutées le 2026-10-16 (idées tirées de Concat, réécrites ici en CSS : le plan
+  // entrant s'anime, le précédent reste prolongé dessous).
+  const vif = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; // ease-in-out
+  if (type === 'pousser') return { transform: `translateY(${(1 - doux) * 100}%)` };
+  if (type === 'panoramique') {
+    return { transform: `translateX(${(1 - vif) * -100}%)`, filter: p < 1 ? `blur(${Math.sin(p * Math.PI) * 24}px)` : undefined };
+  }
+  if (type === 'zoomflou') {
+    return { opacity: Math.min(1, p * 2), transform: `scale(${1.5 - 0.5 * doux})`, filter: p < 1 ? `blur(${(1 - doux) * 18}px)` : undefined };
+  }
+  if (type === 'flash') return { filter: p < 1 ? `brightness(${1 + (1 - doux) * 3})` : undefined, opacity: Math.min(1, p * 3) };
+  if (type === 'glitch') {
+    if (p >= 1) return {};
+    const k = Math.floor(frame / 2) % 4; // secousses franches, deux images par position
+    const dx = [0, -6, 5, -3][k] * (1 - p);
+    return {
+      opacity: Math.min(1, p * 2.5),
+      transform: `translateX(${dx}%)`,
+      filter: `hue-rotate(${[0, 90, -60, 30][k] * (1 - p)}deg) contrast(${1 + (1 - p) * 0.6}) saturate(${1 + (1 - p)})`,
+      clipPath: k % 2 ? `inset(${8 * (1 - p)}% 0 ${4 * (1 - p)}% 0)` : undefined,
+    };
+  }
+  if (type === 'iris') return p < 1 ? { clipPath: `circle(${doux * 75}% at 50% 50%)` } : {};
+  if (type === 'horloge') {
+    if (p >= 1) return {};
+    // Balayage d'une aiguille depuis midi : polygone centre -> midi -> ... -> angle courant
+    const angle = doux * 360;
+    const pts = ['50% 50%', '50% -50%'];
+    for (let a = 45; a < angle; a += 45) pts.push(pointHorloge(a));
+    pts.push(pointHorloge(angle));
+    return { clipPath: `polygon(${pts.join(', ')})` };
+  }
+  if (type === 'floufondu') return { opacity: p, filter: p < 1 ? `blur(${(1 - p) * 20}px)` : undefined };
   return {};
 }
+
+/** Point du bord (largement hors cadre) à `a` degrés depuis midi, sens des aiguilles d'une montre. */
+function pointHorloge(a) {
+  const r = (a * Math.PI) / 180;
+  return `${50 + Math.sin(r) * 150}% ${50 - Math.cos(r) * 150}%`;
+}
+
+/** Fondu d'entrée et de sortie d'un plan (image et son), en secondes. La sortie se cale sur la
+ * fin réelle du plan, pas sur sa prolongation sous une transition. */
+function useFondus(e, fps) {
+  const frame = useCurrentFrame();
+  const statique = useContext(StatiqueCtx);
+  const entree = Math.round((e.fondu?.entree || 0) * fps);
+  const sortie = Math.round((e.fondu?.sortie || 0) * fps);
+  if (statique || (!entree && !sortie)) return { image: 1, son: () => 1 };
+  const fin = Math.round((e.duree || 0) * fps);
+  const facteur = (f) => {
+    const a = entree ? interpolate(f, [0, entree], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 1;
+    const b = sortie ? interpolate(f, [fin - sortie, fin], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) : 1;
+    return Math.min(a, b);
+  };
+  return { image: facteur(frame), son: facteur };
+}
+
+/** Miroir horizontal / vertical, à combiner avec le zoom du recadrage. */
+const miroir = (e) => [e.miroir?.h ? 'scaleX(-1)' : '', e.miroir?.v ? 'scaleY(-1)' : ''].filter(Boolean).join(' ');
 
 /** Fondu au noir de SORTIE quand le plan suivant entre par « noir » : la composition passe `sortieNoir`. */
 function useSortieNoir(dureeFrames, sortieNoir) {
@@ -165,18 +224,21 @@ const Video = ({ e, projet, dureeFrames, sortieNoir }) => {
   const muet = piste?.muet || (e.volume ?? 1) === 0;
   const tr = useTransition(e.transition);
   const noir = useSortieNoir(dureeFrames, sortieNoir);
+  const fd = useFondus(e, fps);
   const rc = recadrage(e);
+  const vol = muet ? 0 : (e.volume ?? 1);
+  const transfo = [rc.zoom !== 1 ? `scale(${rc.zoom})` : '', miroir(e)].filter(Boolean).join(' ');
   return (
-    <div style={{ ...st, ...tr, opacity: (e.opacite ?? 1) * (tr.opacity ?? 1) * noir, overflow: 'hidden', borderRadius: e.rayon || 0,
+    <div style={{ ...st, ...tr, opacity: (e.opacite ?? 1) * (tr.opacity ?? 1) * noir * fd.image, overflow: 'hidden', borderRadius: e.rayon || 0,
       transform: [st.transform, tr.transform].filter(Boolean).join(' ') || undefined }}>
       <OffthreadVideo
         src={e.src}
         startFrom={Math.round((e.decalage || 0) * fps)}
         playbackRate={e.vitesse || 1}
-        volume={muet ? 0 : (e.volume ?? 1)}
+        volume={e.fondu?.entree || e.fondu?.sortie ? (f) => vol * fd.son(f) : vol}
         muted={muet}
         style={{ width: '100%', height: '100%', objectFit: e.ajustement || 'cover', objectPosition: rc.position,
-          transformOrigin: rc.position, transform: rc.zoom !== 1 ? `scale(${rc.zoom})` : undefined }}
+          transformOrigin: rc.position, transform: transfo || undefined }}
       />
     </div>
   );
@@ -184,6 +246,8 @@ const Video = ({ e, projet, dureeFrames, sortieNoir }) => {
 
 const Image = ({ e, projet, dureeFrames, sortieNoir }) => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const fd = useFondus(e, fps);
   const st = cadreStyle(e.cadre, projet.largeur, projet.hauteur, e.rotation);
   // Léger mouvement de caméra pour qu'une photo ne soit jamais figée (Ken Burns discret).
   const zoom = e.animation === 'zoom' ? interpolate(frame, [0, dureeFrames], [1, 1.08]) : 1;
@@ -192,10 +256,10 @@ const Image = ({ e, projet, dureeFrames, sortieNoir }) => {
   const noir = useSortieNoir(dureeFrames, sortieNoir);
   const rc = recadrage(e);
   return (
-    <div style={{ ...st, ...tr, opacity: (e.opacite ?? 1) * anim.opacity * (tr.opacity ?? 1) * noir, overflow: 'hidden', borderRadius: e.rayon || 0,
+    <div style={{ ...st, ...tr, opacity: (e.opacite ?? 1) * anim.opacity * (tr.opacity ?? 1) * noir * fd.image, overflow: 'hidden', borderRadius: e.rayon || 0,
       transform: [st.transform, tr.transform].filter(Boolean).join(' ') || undefined }}>
       <Img src={e.src} style={{ width: '100%', height: '100%', objectFit: e.ajustement || 'cover', objectPosition: rc.position,
-        transformOrigin: rc.position, transform: `scale(${zoom * rc.zoom})` }} />
+        transformOrigin: rc.position, transform: [`scale(${zoom * rc.zoom})`, miroir(e)].filter(Boolean).join(' ') }} />
     </div>
   );
 };

@@ -1751,10 +1751,11 @@
     "draftsCount": "{{count}} draft(s)"
   },
   "editeur": {
+    "figer": {"bouton": "Freeze frame (F)", "impossible": "Put the playhead inside a video clip to freeze the frame."},
     "aimantationOn": "Snapping on (N)",
     "aimantationOff": "Snapping off (N)",
     "srt": {"bouton": "Import subtitles (.srt, .vtt)", "aide": "Already have your subtitles? They land on the Subtitles track, at the right time.", "vide": "No readable subtitle in this file.", "remplacer_one": "The track already has {{count}} subtitle. Replace it with the file?", "remplacer_other": "The track already has {{count}} subtitles. Replace them with the file?", "ok_one": "{{count}} subtitle imported", "ok_other": "{{count}} subtitles imported"},
-    "raccourcis": {"titre": "Keyboard shortcuts", "fermer": "Close", "lecture": "Play / pause", "couper": "Split at the playhead", "rognerGauche": "Delete before the playhead", "rognerDroite": "Delete after the playhead", "dupliquer": "Duplicate", "supprimer": "Delete", "copier": "Copy", "couperPresse": "Cut (clipboard)", "coller": "Paste at the playhead", "tout": "Select all", "annuler": "Undo", "retablir": "Redo", "image": "Previous / next frame", "seconde": "One second back / forward", "debutFin": "Go to start / end", "zoom": "Zoom the timeline in / out", "aimant": "Turn snapping on / off", "libre": "Place freely in the preview (while dragging)", "deselectionner": "Deselect all", "aide": "Show this help", "touche": {"espace": "Space", "suppr": "Del", "maj": "Shift", "debut": "Home", "fin": "End", "echap": "Esc", "ctrl": "Ctrl"}},
+    "raccourcis": {"titre": "Keyboard shortcuts", "fermer": "Close", "lecture": "Play / pause", "couper": "Split at the playhead", "rognerGauche": "Delete before the playhead", "rognerDroite": "Delete after the playhead", "dupliquer": "Duplicate", "supprimer": "Delete", "copier": "Copy", "couperPresse": "Cut (clipboard)", "coller": "Paste at the playhead", "tout": "Select all", "annuler": "Undo", "retablir": "Redo", "image": "Previous / next frame", "seconde": "One second back / forward", "debutFin": "Go to start / end", "zoom": "Zoom the timeline in / out", "aimant": "Turn snapping on / off", "libre": "Place freely in the preview (while dragging)", "deselectionner": "Deselect all", "aide": "Show this help", "touche": {"espace": "Space", "suppr": "Del", "maj": "Shift", "debut": "Home", "fin": "End", "echap": "Esc", "ctrl": "Ctrl"}, "figer": "Freeze frame (2 s)"},
     "recoller": "Magnetic",
     "recollerAide": "Magnetic mode: deleting or trimming a clip closes the gap on its track (the rest of the track moves back). Other tracks stay put.",
     "rognerGauche": "Delete before the playhead (Q)",
@@ -1805,6 +1806,14 @@
       "erreur": "Not saved, check your connection"
     },
     "medias": {
+      "micDemarrer": "Record from microphone",
+      "micArreter": "Stop ({{duree}})",
+      "micEnvoi": "Uploading…",
+      "micAide": "The voice is placed at the playhead, on the Audio track.",
+      "micNom": "Mic voice",
+      "micOk": "Voice recorded",
+      "micRefuse": "Microphone access denied: allow it in your browser.",
+      "micIndisponible": "Your browser cannot record from the microphone.",
       "modeles": "Templates",
       "modelesAide": "Sets up video tracks for a common layout. Then drop your clips in: they land in the right spot right away.",
       "modelePlein": "Full screen",
@@ -1847,6 +1856,12 @@
       "discret": "Quiet note"
     },
     "prop": {
+      "fonduEntree": "Fade in",
+      "fonduSortieImage": "Fade out",
+      "miroir": "Mirror",
+      "miroir_h": "↔ Horizontal",
+      "miroir_v": "↕ Vertical",
+      "voix": {"titre": "Enhance voice", "niveau": "Social media level (-14 LUFS)", "appliquer": "Clean the voice", "enCours": "Cleaning…", "aide": "Removes hiss and background noise, softens harsh \"s\" sounds, evens out and sets the volume. Undo brings back the original sound.", "ok": "Voice cleaned", "echec": "Could not clean the voice."},
       "projet": "Project",
       "format": "Format",
       "fond": "Background color",
@@ -1916,7 +1931,7 @@
       "pleinEcran": "Reset to full frame",
       "position": "Subtitle height"
     },
-    "transition": {"aucune": "None", "fondu": "Fade", "glisser": "Slide", "zoom": "Zoom", "volet": "Wipe", "noir": "Through black"},
+    "transition": {"aucune": "None", "fondu": "Fade", "glisser": "Slide", "zoom": "Zoom", "volet": "Wipe", "noir": "Through black", "pousser": "Push", "panoramique": "Whip pan", "zoomflou": "Zoom blur", "flash": "Flash", "glitch": "Glitch", "iris": "Iris", "horloge": "Clock", "floufondu": "Blur dissolve"},
     "modeSt": {"phrase": "Sentence", "surligne": "Highlight", "apparition": "Word by word"},
     "intensiteSilence": {"naturel": "Natural", "rythme": "Punchy", "serre": "Tight"},
     "couverture": "Cover here",

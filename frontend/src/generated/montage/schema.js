@@ -52,7 +52,8 @@ export const RECADRE_DEFAUT = { zoom: 1, x: 50, y: 50 };
 
 /** Transitions d'ENTRÉE d'un plan image ou vidéo : le plan précédent de la même piste reste
  *  affiché dessous pendant la transition (il est prolongé d'autant par la composition). */
-export const TRANSITIONS = ['aucune', 'fondu', 'glisser', 'zoom', 'volet', 'noir'];
+export const TRANSITIONS = ['aucune', 'fondu', 'glisser', 'zoom', 'volet', 'noir',
+  'pousser', 'panoramique', 'zoomflou', 'flash', 'glitch', 'iris', 'horloge', 'floufondu'];
 export const TRANSITION_DUREE_DEFAUT = 0.5;
 
 /** Prolongation d'un plan : la durée de la transition du plan qui le suit sur la même piste,

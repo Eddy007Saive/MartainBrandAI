@@ -131,6 +131,36 @@ export function recollerApres(projet, piste, depuis, delta) {
   };
 }
 
+/**
+ * Arrêt sur image (idée tirée de Concat, réécrite) : à l'instant t, le plan vidéo est coupé, la
+ * suite de sa piste recule de `duree` secondes, et l'image de cet instant (extraite par
+ * Cloudinary, transformation `so_`) occupe le trou sur la piste Images, mêmes cadre et
+ * recadrage. Renvoie { projet, image } ; image null si ce n'est pas possible (plan non
+ * Cloudinary, instant hors du plan, aucune piste Images libre de verrou).
+ */
+export function figerImage(projet, id, t, ids, duree = 2) {
+  const e = projet.elements.find((x) => x.id === id);
+  const pisteImage = projet.pistes.find((p) => p.type === 'image' && !p.verrou);
+  if (!e || e.type !== 'video' || !estClip(e.src) || !pisteImage) return { projet, image: null };
+  if (t <= e.debut + 0.1 || t >= e.debut + e.duree - 0.1) return { projet, image: null }; // mêmes marges que couperElement
+  const seconde = (e.decalage || 0) + (t - e.debut) * (e.vitesse || 1);
+  const src = e.src
+    .replace('/video/upload/', `/video/upload/so_${Math.max(0, seconde).toFixed(2)}/`)
+    .replace(/\.(mp4|mov|webm|m4v|avi)(\?.*)?$/i, '.jpg');
+  const { projet: coupe } = couperElement(projet, id, t, ids.suite);
+  const decale = {
+    ...coupe,
+    elements: coupe.elements.map((x) => (x.piste === e.piste && x.debut >= t - 0.001 ? { ...x, debut: arrondi(x.debut + duree, 0.001) } : x)),
+  };
+  const image = {
+    id: ids.image, piste: pisteImage.id, type: 'image', debut: arrondi(t, 0.001), duree, src,
+    cadre: { ...(e.cadre || { x: 0, y: 0, w: 100, h: 100 }) }, ajustement: e.ajustement || 'cover', rotation: e.rotation || 0,
+    animation: 'aucune', opacite: e.opacite ?? 1,
+    ...(e.recadre ? { recadre: { ...e.recadre } } : {}), ...(e.miroir ? { miroir: { ...e.miroir } } : {}), ...(e.rayon ? { rayon: e.rayon } : {}),
+  };
+  return { projet: { ...decale, elements: [...decale.elements, image] }, image: image.id };
+}
+
 /** Supprime des éléments et referme le trou que chacun laisse sur sa piste. Du plus tardif au
  * plus précoce : chaque décalage part ainsi des positions d'origine. */
 export function supprimerEtRecoller(projet, ids) {

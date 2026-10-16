@@ -44,7 +44,10 @@ const Bascule = ({ label, valeur, onChange }) => (
     className={`text-[11.5px] font-inter font-semibold px-2.5 py-1.5 rounded-lg border ${valeur ? 'border-[#3AFFA3] text-[#3AFFA3] bg-[#3AFFA3]/10' : 'border-white/10 text-slate-400 hover:text-white'}`}>{label}</button>
 );
 
-export default function PanneauProprietes({ projet, element, onElement, onProjet, onTranscrire, transcription, onSilences, silences, onSeparerAudio, t }) {
+export default function PanneauProprietes({ projet, element, onElement, onProjet, onTranscrire, transcription, onSilences, silences, onSeparerAudio, onVoix, voixNette, t }) {
+  // « Améliorer la voix » : force du nettoyage et normalisation, réglages de session.
+  const [forceVoix, setForceVoix] = useState(60);
+  const [niveauVoix, setNiveauVoix] = useState(true);
   const majStyle = (k, v) => onElement((e) => ({ ...e, style: { ...(e.style || {}), [k]: v } }));
   const majCadre = (k, v) => onElement((e) => ({ ...e, cadre: { ...(e.cadre || { x: 0, y: 0, w: 100, h: 100 }), [k]: v } }));
   // Préférence d'intensité pour « Couper les silences » : réglage de session, pas une
@@ -210,6 +213,22 @@ export default function PanneauProprietes({ projet, element, onElement, onProjet
           <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1.5">{t('editeur.prop.silencesAide')}</p>
         </div>
       )}
+      {(e.type === 'video' || e.type === 'audio') && onVoix && (
+        <div className="rounded-lg border border-[#5B6CFF]/30 bg-[#5B6CFF]/[0.06] p-2.5" data-testid="prop-voix">
+          <div className="text-[10.5px] uppercase tracking-wide text-slate-500 font-inter mb-1.5">{t('editeur.prop.voix.titre')} · {forceVoix} %</div>
+          <Curseur valeur={forceVoix} onChange={(v) => setForceVoix(Math.round(v))} min={0} max={100} pas={10} />
+          <label className="flex items-center gap-2 mt-2 text-[12px] text-slate-300 font-inter">
+            <input type="checkbox" checked={niveauVoix} onChange={(ev) => setNiveauVoix(ev.target.checked)} className="accent-[#3AFFA3]" data-testid="prop-voix-niveau" />
+            {t('editeur.prop.voix.niveau')}
+          </label>
+          <button type="button" onClick={() => onVoix(e.id, forceVoix, niveauVoix)} disabled={!!voixNette} data-testid="prop-voix-appliquer"
+            className="mt-2 w-full h-9 inline-flex items-center justify-center gap-2 rounded-lg text-[12.5px] font-inter font-semibold text-white bg-[#5B6CFF]/80 hover:bg-[#5B6CFF] disabled:opacity-50">
+            {voixNette === e.id ? <span className="w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white animate-spin" /> : null}
+            {voixNette === e.id ? t('editeur.prop.voix.enCours') : t('editeur.prop.voix.appliquer')}
+          </button>
+          <p className="text-[11px] text-slate-500 font-inter leading-snug mt-1.5">{t('editeur.prop.voix.aide')}</p>
+        </div>
+      )}
       {e.type === 'video' && (
         <Champ label={t('editeur.prop.vitesse')}>
           <div className="grid grid-cols-4 gap-1">
@@ -224,6 +243,29 @@ export default function PanneauProprietes({ projet, element, onElement, onProjet
         <Champ label={t('editeur.prop.fonduSortie')}><Nombre valeur={e.fonduSortie || 0} onChange={(v) => onElement({ fonduSortie: Math.max(0, v) })} min={0} max={10} pas={0.5} suffixe="s" /></Champ>
       )}
 
+      {(e.type === 'video' || e.type === 'image') && (
+        <div className="grid grid-cols-2 gap-2" data-testid="prop-fondus">
+          <Champ label={t('editeur.prop.fonduEntree')}>
+            <Nombre valeur={e.fondu?.entree || 0} onChange={(v) => onElement({ fondu: { ...(e.fondu || {}), entree: Math.min(5, Math.max(0, v)) } })} min={0} max={5} pas={0.25} suffixe="s" />
+          </Champ>
+          <Champ label={t('editeur.prop.fonduSortieImage')}>
+            <Nombre valeur={e.fondu?.sortie || 0} onChange={(v) => onElement({ fondu: { ...(e.fondu || {}), sortie: Math.min(5, Math.max(0, v)) } })} min={0} max={5} pas={0.25} suffixe="s" />
+          </Champ>
+        </div>
+      )}
+      {(e.type === 'video' || e.type === 'image') && (
+        <Champ label={t('editeur.prop.miroir')}>
+          <div className="grid grid-cols-2 gap-1">
+            {['h', 'v'].map((axe) => (
+              <button key={axe} type="button" onClick={() => onElement({ miroir: { ...(e.miroir || {}), [axe]: !e.miroir?.[axe] } })} data-testid={`prop-miroir-${axe}`}
+                aria-pressed={!!e.miroir?.[axe]}
+                className={`text-[11.5px] font-inter py-1.5 rounded-lg border ${e.miroir?.[axe] ? 'border-[#3AFFA3] text-[#3AFFA3]' : 'border-white/10 text-slate-400 hover:text-white'}`}>
+                {t(`editeur.prop.miroir_${axe}`)}
+              </button>
+            ))}
+          </div>
+        </Champ>
+      )}
       {(e.type === 'video' || e.type === 'image') && (
         <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-2.5" data-testid="prop-transition">
           <div className="text-[10.5px] uppercase tracking-wide text-slate-500 font-inter mb-1.5">{t('editeur.prop.transition')}</div>

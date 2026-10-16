@@ -95,6 +95,58 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, 
     } finally { setEnvoiAudio(false); }
   };
 
+  // ---- Voix off au micro : enregistrée dans le navigateur, envoyée comme un import audio, posée à
+  // la tête de lecture. Le micro est relâché dès l'arrêt (le voyant du navigateur s'éteint).
+  const [micEtat, setMicEtat] = useState('repos'); // repos | enregistre | envoi
+  const [micDuree, setMicDuree] = useState(0);
+  const micRec = useRef(null);
+  const micMinuterie = useRef(null);
+  const micDureeRef = useRef(0); // durée lue par onstop (le state y serait figé à 0)
+  useEffect(() => () => {
+    clearInterval(micMinuterie.current);
+    const r = micRec.current;
+    if (r && r.state !== 'inactive') { r.onstop = null; r.stop(); }
+    r?.stream?.getTracks().forEach((piste) => piste.stop());
+  }, []);
+  const demarrerMicro = async () => {
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      toast.error(t('editeur.medias.micIndisponible')); return;
+    }
+    let flux;
+    try {
+      flux = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    } catch {
+      toast.error(t('editeur.medias.micRefuse')); return;
+    }
+    const morceaux = [];
+    const rec = new MediaRecorder(flux);
+    rec.ondataavailable = (ev) => { if (ev.data?.size) morceaux.push(ev.data); };
+    rec.onstop = async () => {
+      flux.getTracks().forEach((piste) => piste.stop());
+      clearInterval(micMinuterie.current);
+      const blob = new Blob(morceaux, { type: rec.mimeType || 'audio/webm' });
+      if (blob.size < 2000) { setMicEtat('repos'); return; }
+      setMicEtat('envoi');
+      try {
+        const ext = (rec.mimeType || '').includes('mp4') ? 'm4a' : 'webm';
+        const r = await editeurService.importerAudio(new File([blob], `voix-micro.${ext}`, { type: blob.type }));
+        const d = r.duree_s || await dureeMedia(r.url, 'audio');
+        const dur = d ? Math.round(d * 100) / 100 : Math.max(1, micDureeRef.current);
+        onAjouter('audio', { src: r.url, duree: dur, dureeSource: d ? dur : null, volume: 1, fonduSortie: 0, nom: t('editeur.medias.micNom') });
+        toast.success(t('editeur.medias.micOk'));
+      } catch (e) {
+        toast.error(e.response?.data?.detail || t('editeur.medias.audioImportEchec'));
+      } finally { setMicEtat('repos'); }
+    };
+    micRec.current = rec;
+    rec.stream = flux;
+    rec.start(250);
+    setMicDuree(0); micDureeRef.current = 0;
+    micMinuterie.current = setInterval(() => setMicDuree((v) => { micDureeRef.current = v + 1; return v + 1; }), 1000);
+    setMicEtat('enregistre');
+  };
+  const arreterMicro = () => { const r = micRec.current; if (r && r.state !== 'inactive') r.stop(); };
+
   // Glisser-déposer vers la timeline : la timeline lit ce paquet et pose l'élément à l'endroit lâché.
   const glisser = (e, donnees) => {
     e.dataTransfer.setData('application/x-postorico-media', JSON.stringify(donnees));
@@ -253,6 +305,16 @@ export default function PanneauMedias({ medias, setMedias, onAjouter, onModele, 
 
         {onglet === 'voix' && (
           <div className="space-y-3">
+            <button type="button" onClick={micEtat === 'enregistre' ? arreterMicro : demarrerMicro} disabled={micEtat === 'envoi'} data-testid="voix-micro"
+              aria-pressed={micEtat === 'enregistre'}
+              className={`w-full h-10 inline-flex items-center justify-center gap-2 rounded-[10px] text-[13px] font-inter font-semibold border ${micEtat === 'enregistre' ? 'text-white bg-red-500/80 border-red-400 animate-pulse' : 'text-slate-200 border-white/15 hover:border-white/30 hover:bg-white/[0.04]'} disabled:opacity-50`}>
+              {micEtat === 'envoi' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mic className="w-4 h-4" />}
+              {micEtat === 'enregistre'
+                ? t('editeur.medias.micArreter', { duree: `${Math.floor(micDuree / 60)}:${String(micDuree % 60).padStart(2, '0')}` })
+                : micEtat === 'envoi' ? t('editeur.medias.micEnvoi') : t('editeur.medias.micDemarrer')}
+            </button>
+            <p className="text-[11px] text-slate-500 font-inter leading-snug -mt-1">{t('editeur.medias.micAide')}</p>
+            <div className="h-px bg-white/[0.06]" />
             <p className="text-[11.5px] text-slate-500 font-inter leading-snug">{t('editeur.medias.voixOffAide')}</p>
             <textarea value={phraseVoix} onChange={(e) => setPhraseVoix(e.target.value)} rows={3} maxLength={500}
               placeholder={t('editeur.medias.voixOffPh')} data-testid="voix-off-texte"

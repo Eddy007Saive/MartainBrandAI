@@ -1751,10 +1751,11 @@
     "draftsCount": "{{count}} brouillon(s)"
   },
   "editeur": {
+    "figer": {"bouton": "Arrêt sur image (F)", "impossible": "Place la tête de lecture dans un plan vidéo pour figer l'image."},
     "aimantationOn": "Aimantation activée (N)",
     "aimantationOff": "Aimantation coupée (N)",
     "srt": {"bouton": "Importer des sous-titres (.srt, .vtt)", "aide": "Tu as déjà tes sous-titres ? Ils se posent sur la piste Sous-titres, au bon moment.", "vide": "Aucun sous-titre lisible dans ce fichier.", "remplacer_one": "La piste contient déjà {{count}} sous-titre. Le remplacer par ceux du fichier ?", "remplacer_other": "La piste contient déjà {{count}} sous-titres. Les remplacer par ceux du fichier ?", "ok_one": "{{count}} sous-titre importé", "ok_other": "{{count}} sous-titres importés"},
-    "raccourcis": {"titre": "Raccourcis clavier", "fermer": "Fermer", "lecture": "Lecture / pause", "couper": "Couper à la tête de lecture", "rognerGauche": "Supprimer avant la tête de lecture", "rognerDroite": "Supprimer après la tête de lecture", "dupliquer": "Dupliquer", "supprimer": "Supprimer", "copier": "Copier", "couperPresse": "Couper (presse-papiers)", "coller": "Coller à la tête de lecture", "tout": "Tout sélectionner", "annuler": "Annuler", "retablir": "Rétablir", "image": "Image précédente / suivante", "seconde": "Une seconde en arrière / en avant", "debutFin": "Aller au début / à la fin", "zoom": "Zoomer / dézoomer la timeline", "aimant": "Activer / couper l'aimantation", "libre": "Placer librement dans l'aperçu (en glissant)", "deselectionner": "Tout désélectionner", "aide": "Afficher cette aide", "touche": {"espace": "Espace", "suppr": "Suppr", "maj": "Maj", "debut": "Début", "fin": "Fin", "echap": "Échap", "ctrl": "Ctrl"}},
+    "raccourcis": {"titre": "Raccourcis clavier", "fermer": "Fermer", "lecture": "Lecture / pause", "couper": "Couper à la tête de lecture", "rognerGauche": "Supprimer avant la tête de lecture", "rognerDroite": "Supprimer après la tête de lecture", "dupliquer": "Dupliquer", "supprimer": "Supprimer", "copier": "Copier", "couperPresse": "Couper (presse-papiers)", "coller": "Coller à la tête de lecture", "tout": "Tout sélectionner", "annuler": "Annuler", "retablir": "Rétablir", "image": "Image précédente / suivante", "seconde": "Une seconde en arrière / en avant", "debutFin": "Aller au début / à la fin", "zoom": "Zoomer / dézoomer la timeline", "aimant": "Activer / couper l'aimantation", "libre": "Placer librement dans l'aperçu (en glissant)", "deselectionner": "Tout désélectionner", "aide": "Afficher cette aide", "touche": {"espace": "Espace", "suppr": "Suppr", "maj": "Maj", "debut": "Début", "fin": "Fin", "echap": "Échap", "ctrl": "Ctrl"}, "figer": "Arrêt sur image (2 s)"},
     "recoller": "Magnétique",
     "recollerAide": "Mode magnétique : supprimer ou rogner un plan referme le trou sur sa piste (la suite de la piste recule). Les autres pistes ne bougent pas.",
     "rognerGauche": "Supprimer avant la tête de lecture (Q)",
@@ -1805,6 +1806,14 @@
       "erreur": "Non enregistré, vérifie ta connexion"
     },
     "medias": {
+      "micDemarrer": "Enregistrer au micro",
+      "micArreter": "Arrêter ({{duree}})",
+      "micEnvoi": "Envoi…",
+      "micAide": "La voix est posée à la tête de lecture, sur la piste Audio.",
+      "micNom": "Voix au micro",
+      "micOk": "Voix enregistrée",
+      "micRefuse": "Accès au micro refusé : autorise-le dans ton navigateur.",
+      "micIndisponible": "Ton navigateur ne permet pas d'enregistrer le micro.",
       "modeles": "Modèles",
       "modelesAide": "Prépare les pistes vidéo pour une mise en page courante. Pose ensuite tes plans : ils se calent directement au bon endroit.",
       "modelePlein": "Plein écran",
@@ -1847,6 +1856,12 @@
       "discret": "Note discrète"
     },
     "prop": {
+      "fonduEntree": "Fondu d'entrée",
+      "fonduSortieImage": "Fondu de sortie",
+      "miroir": "Miroir",
+      "miroir_h": "↔ Horizontal",
+      "miroir_v": "↕ Vertical",
+      "voix": {"titre": "Améliorer la voix", "niveau": "Niveau des réseaux (-14 LUFS)", "appliquer": "Nettoyer la voix", "enCours": "Nettoyage…", "aide": "Retire le souffle et les bruits de fond, adoucit les « s », égalise et règle le volume. Annuler revient au son d'origine.", "ok": "Voix nettoyée", "echec": "Nettoyage de la voix impossible."},
       "projet": "Projet",
       "format": "Format",
       "fond": "Couleur de fond",
@@ -1916,7 +1931,7 @@
       "pleinEcran": "Remettre en plein cadre",
       "position": "Hauteur des sous-titres"
     },
-    "transition": {"aucune": "Aucune", "fondu": "Fondu", "glisser": "Glissé", "zoom": "Zoom", "volet": "Volet", "noir": "Par le noir"},
+    "transition": {"aucune": "Aucune", "fondu": "Fondu", "glisser": "Glissé", "zoom": "Zoom", "volet": "Volet", "noir": "Par le noir", "pousser": "Pousser", "panoramique": "Panoramique", "zoomflou": "Zoom flou", "flash": "Flash", "glitch": "Glitch", "iris": "Iris", "horloge": "Horloge", "floufondu": "Fondu flou"},
     "modeSt": {"phrase": "Phrase", "surligne": "Mot surligné", "apparition": "Mot à mot"},
     "intensiteSilence": {"naturel": "Naturel", "rythme": "Rythmé", "serre": "Serré"},
     "couverture": "Couverture ici",

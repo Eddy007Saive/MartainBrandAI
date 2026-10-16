@@ -1751,10 +1751,11 @@
     "draftsCount": "{{count}} borrador(es)"
   },
   "editeur": {
+    "figer": {"bouton": "Congelar imagen (F)", "impossible": "Coloca el cabezal dentro de un plano de vídeo para congelar la imagen."},
     "aimantationOn": "Imán activado (N)",
     "aimantationOff": "Imán desactivado (N)",
     "srt": {"bouton": "Importar subtítulos (.srt, .vtt)", "aide": "¿Ya tienes tus subtítulos? Se colocan en la pista de Subtítulos, en el momento justo.", "vide": "No hay ningún subtítulo legible en este archivo.", "remplacer_one": "La pista ya tiene {{count}} subtítulo. ¿Reemplazarlo por los del archivo?", "remplacer_other": "La pista ya tiene {{count}} subtítulos. ¿Reemplazarlos por los del archivo?", "ok_one": "{{count}} subtítulo importado", "ok_other": "{{count}} subtítulos importados"},
-    "raccourcis": {"titre": "Atajos de teclado", "fermer": "Cerrar", "lecture": "Reproducir / pausa", "couper": "Cortar en el cabezal", "rognerGauche": "Eliminar antes del cabezal", "rognerDroite": "Eliminar después del cabezal", "dupliquer": "Duplicar", "supprimer": "Eliminar", "copier": "Copiar", "couperPresse": "Cortar (portapapeles)", "coller": "Pegar en el cabezal", "tout": "Seleccionar todo", "annuler": "Deshacer", "retablir": "Rehacer", "image": "Fotograma anterior / siguiente", "seconde": "Un segundo atrás / adelante", "debutFin": "Ir al inicio / al final", "zoom": "Acercar / alejar la línea de tiempo", "aimant": "Activar / desactivar el imán", "libre": "Colocar libremente en la vista previa (al arrastrar)", "deselectionner": "Deseleccionar todo", "aide": "Mostrar esta ayuda", "touche": {"espace": "Espacio", "suppr": "Supr", "maj": "Mayús", "debut": "Inicio", "fin": "Fin", "echap": "Esc", "ctrl": "Ctrl"}},
+    "raccourcis": {"titre": "Atajos de teclado", "fermer": "Cerrar", "lecture": "Reproducir / pausa", "couper": "Cortar en el cabezal", "rognerGauche": "Eliminar antes del cabezal", "rognerDroite": "Eliminar después del cabezal", "dupliquer": "Duplicar", "supprimer": "Eliminar", "copier": "Copiar", "couperPresse": "Cortar (portapapeles)", "coller": "Pegar en el cabezal", "tout": "Seleccionar todo", "annuler": "Deshacer", "retablir": "Rehacer", "image": "Fotograma anterior / siguiente", "seconde": "Un segundo atrás / adelante", "debutFin": "Ir al inicio / al final", "zoom": "Acercar / alejar la línea de tiempo", "aimant": "Activar / desactivar el imán", "libre": "Colocar libremente en la vista previa (al arrastrar)", "deselectionner": "Deseleccionar todo", "aide": "Mostrar esta ayuda", "touche": {"espace": "Espacio", "suppr": "Supr", "maj": "Mayús", "debut": "Inicio", "fin": "Fin", "echap": "Esc", "ctrl": "Ctrl"}, "figer": "Congelar imagen (2 s)"},
     "recoller": "Magnético",
     "recollerAide": "Modo magnético: al eliminar o recortar un plano se cierra el hueco en su pista (el resto de la pista retrocede). Las demás pistas no se mueven.",
     "rognerGauche": "Eliminar antes del cabezal (Q)",
@@ -1805,6 +1806,14 @@
       "erreur": "No guardado, revisa tu conexión"
     },
     "medias": {
+      "micDemarrer": "Grabar con el micrófono",
+      "micArreter": "Detener ({{duree}})",
+      "micEnvoi": "Enviando…",
+      "micAide": "La voz se coloca en el cabezal, en la pista de Audio.",
+      "micNom": "Voz de micrófono",
+      "micOk": "Voz grabada",
+      "micRefuse": "Acceso al micrófono denegado: permítelo en tu navegador.",
+      "micIndisponible": "Tu navegador no puede grabar con el micrófono.",
       "modeles": "Plantillas",
       "modelesAide": "Prepara las pistas de vídeo para una disposición habitual. Luego suelta tus planos: caen directamente en el lugar correcto.",
       "modelePlein": "Pantalla completa",
@@ -1847,6 +1856,12 @@
       "discret": "Nota discreta"
     },
     "prop": {
+      "fonduEntree": "Fundido de entrada",
+      "fonduSortieImage": "Fundido de salida",
+      "miroir": "Espejo",
+      "miroir_h": "↔ Horizontal",
+      "miroir_v": "↕ Vertical",
+      "voix": {"titre": "Mejorar la voz", "niveau": "Nivel de redes (-14 LUFS)", "appliquer": "Limpiar la voz", "enCours": "Limpiando…", "aide": "Quita el soplido y el ruido de fondo, suaviza las «s», iguala y ajusta el volumen. Deshacer recupera el sonido original.", "ok": "Voz limpia", "echec": "No se pudo limpiar la voz."},
       "projet": "Proyecto",
       "format": "Formato",
       "fond": "Color de fondo",
@@ -1916,7 +1931,7 @@
       "pleinEcran": "Volver a cuadro completo",
       "position": "Altura de los subtítulos"
     },
-    "transition": {"aucune": "Ninguna", "fondu": "Fundido", "glisser": "Deslizar", "zoom": "Zoom", "volet": "Cortina", "noir": "Por negro"},
+    "transition": {"aucune": "Ninguna", "fondu": "Fundido", "glisser": "Deslizar", "zoom": "Zoom", "volet": "Cortina", "noir": "Por negro", "pousser": "Empujar", "panoramique": "Barrido", "zoomflou": "Zoom desenfocado", "flash": "Destello", "glitch": "Glitch", "iris": "Iris", "horloge": "Reloj", "floufondu": "Fundido desenfocado"},
     "modeSt": {"phrase": "Frase", "surligne": "Palabra resaltada", "apparition": "Palabra a palabra"},
     "intensiteSilence": {"naturel": "Natural", "rythme": "Rítmico", "serre": "Ajustado"},
     "couverture": "Portada aquí",

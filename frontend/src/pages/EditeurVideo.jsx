@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
   ArrowLeft, Play, Pause, Scissors, Copy, Trash2, Undo2, Redo2, Loader2, Download, Check, ZoomIn, ZoomOut, Monitor, Image as ImageIcon,
-  Maximize2, Minimize2, ChevronLeft, ChevronRight, History, Magnet, ArrowLeftToLine, ArrowRightToLine, Keyboard,
+  Maximize2, Minimize2, ChevronLeft, ChevronRight, History, Magnet, ArrowLeftToLine, ArrowRightToLine, Keyboard, Snowflake,
 } from 'lucide-react';
 import { getToken } from '../lib/auth';
 import { editeurService } from '../services/editeurService';
@@ -17,7 +17,7 @@ import PanneauProprietes from '../components/editeur/PanneauProprietes';
 import AideRaccourcis from '../components/editeur/AideRaccourcis';
 import {
   fmtTemps, placerElement, nouvelElement, nouvelId, majElement, supprimerElement, couperElement, dupliquerElement, separerAudio, dureeProjet, dureeMedia,
-  supprimerEtRecoller, rognerAvant, rognerApres, lireSousTitres, poserSousTitres,
+  supprimerEtRecoller, rognerAvant, rognerApres, lireSousTitres, poserSousTitres, figerImage,
 } from '../components/editeur/outils';
 
 /**
@@ -63,6 +63,7 @@ export default function EditeurVideo() {
   const [erreur, setErreur] = useState(null);
   const [transcription, setTranscription] = useState(null); // id du plan en cours de transcription
   const [silences, setSilences] = useState(null); // id du plan en cours de nettoyage des silences
+  const [voixNette, setVoixNette] = useState(null); // id du plan dont la voix est en cours de nettoyage
   const premierChargement = useRef(true);
   const aEnvoyer = useRef(null); // dernière version pas encore partie (sauvegarde différée de 1,5 s)
   const minuterie = useRef(null);
@@ -296,6 +297,15 @@ export default function EditeurVideo() {
     setProjet((p) => (recoller ? supprimerEtRecoller(p, selectionIds) : selectionIds.reduce((acc, sid) => supprimerElement(acc, sid), p)));
     setSelection(null);
   }, [selectionIds, setProjet, setSelection, recoller]);
+  // F : arrêt sur image de 2 s à la tête de lecture, dans le plan vidéo sélectionné.
+  const arretSurImage = useCallback(() => {
+    if (!projet || !selection) return;
+    const ids = { suite: nouvelId(), image: nouvelId() };
+    const r = figerImage(projet, selection, tete, ids, 2);
+    if (!r.image) { toast.error(t('editeur.figer.impossible')); return; }
+    setProjet(() => r.projet);
+    setSelection(r.image);
+  }, [projet, selection, tete, setProjet, setSelection, t]);
   // Q / W : supprime ce qui est avant / après la tête de lecture dans l'élément sélectionné.
   const rognerGauche = useCallback(() => { if (selection) setProjet((p) => rognerAvant(p, selection, tete, recoller)); }, [selection, tete, recoller, setProjet]);
   const rognerDroite = useCallback(() => { if (selection) setProjet((p) => rognerApres(p, selection, tete, recoller)); }, [selection, tete, recoller, setProjet]);
@@ -340,6 +350,7 @@ export default function EditeurVideo() {
       else if (e.key.toLowerCase() === 'd' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); dupliquer(); }
       else if (e.key === '?') { e.preventDefault(); setAideOuverte((v) => !v); }
       else if (e.key.toLowerCase() === 'n' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); basculerAimantation(); }
+      else if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); arretSurImage(); }
       else if (e.key.toLowerCase() === 'q' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); rognerGauche(); }
       else if (e.key.toLowerCase() === 'w' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); rognerDroite(); }
       else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); supprimer(); }
@@ -350,7 +361,7 @@ export default function EditeurVideo() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [couper, dupliquer, supprimer, annuler, retablir, copier, couperPresse, coller, toutSelectionner, changerZoom, projet, setSelection, rognerGauche, rognerDroite, basculerAimantation]);
+  }, [couper, dupliquer, supprimer, annuler, retablir, copier, couperPresse, coller, toutSelectionner, changerZoom, projet, setSelection, rognerGauche, rognerDroite, basculerAimantation, arretSurImage]);
 
   // Import d'un fichier .srt / .vtt : remplace la piste Sous-titres (après confirmation si elle
   // en contient déjà), une seule entrée d'annulation.
@@ -376,6 +387,19 @@ export default function EditeurVideo() {
     } catch (e) {
       toast.error(e.response?.data?.detail || t('editeur.prop.transcrireEchec'));
     } finally { setTranscription(null); }
+  };
+
+  // « Améliorer la voix » : le serveur retraite le son du plan et renvoie le projet (la source du
+  // plan change, une entrée d'annulation : « Annuler » revient au son d'origine).
+  const ameliorerVoix = async (elementId, force, niveau) => {
+    setVoixNette(elementId);
+    try {
+      const r = await editeurService.ameliorerVoix(id, elementId, force, niveau);
+      if (r.projet) setProjet(r.projet);
+      toast.success(t('editeur.prop.voix.ok'));
+    } catch (e) {
+      toast.error(e.response?.data?.detail || e.response?.data?.message || t('editeur.prop.voix.echec'));
+    } finally { setVoixNette(null); }
   };
 
   // « Couper les silences » : remplace le plan par ses sous-plans parlés, sélectionne le dernier.
@@ -499,7 +523,8 @@ export default function EditeurVideo() {
                 onElement={(maj) => setProjet((p) => majElement(p, selection, maj))}
                 onProjet={(maj) => setProjet(maj)}
                 onTranscrire={transcrire} transcription={transcription}
-                onSilences={couperSilences} silences={silences} onSeparerAudio={separerLAudio} />
+                onSilences={couperSilences} silences={silences} onSeparerAudio={separerLAudio}
+                onVoix={ameliorerVoix} voixNette={voixNette} />
             </div>
           </aside>
         </div>
@@ -514,6 +539,7 @@ export default function EditeurVideo() {
         <div className="w-px h-6 bg-white/10 mx-1" />
         <Outil onClick={couper} disabled={!selection} icone={Scissors} label={t('editeur.couper')} testid="editeur-couper" />
         <Outil onClick={dupliquer} disabled={!selection} icone={Copy} label={t('editeur.dupliquer')} testid="editeur-dupliquer" />
+        <Outil onClick={arretSurImage} disabled={element?.type !== 'video'} icone={Snowflake} label={t('editeur.figer.bouton')} testid="editeur-figer" compact />
         <Outil onClick={rognerGauche} disabled={!selection} icone={ArrowLeftToLine} label={t('editeur.rognerGauche')} testid="editeur-rogner-gauche" compact />
         <Outil onClick={rognerDroite} disabled={!selection} icone={ArrowRightToLine} label={t('editeur.rognerDroite')} testid="editeur-rogner-droite" compact />
         <Outil onClick={supprimer} disabled={!selection} icone={Trash2} label={t('editeur.supprimer')} testid="editeur-supprimer" danger />

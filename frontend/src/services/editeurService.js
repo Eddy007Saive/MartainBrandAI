@@ -15,6 +15,9 @@ export const editeurService = {
   // Coupe les silences d'un plan vidéo -> { projet, nb, gagne, premier_id, dernier_id }
   couperSilences: (id, elementId, intensite = 'naturel') =>
     api.post(`/editeur/montages/${id}/silences`, { element_id: elementId, intensite }, { timeout: 300000 }).then((r) => r.data),
+  // « Améliorer la voix » d'un plan vidéo ou audio -> { projet, element_id }
+  ameliorerVoix: (id, elementId, force = 60, normaliser = true) =>
+    api.post(`/editeur/montages/${id}/voix`, { element_id: elementId, force, normaliser }, { timeout: 600000 }).then((r) => r.data),
   // Voix off depuis un texte : { url, duree } prêt à poser sur la piste Audio (1 quota « voix »)
   genererVoixOff: (texte, voix) => api.post('/editeur/voix-off', { texte, voix }, { timeout: 60000 }).then((r) => r.data),
   // Ouvre un reel / une vidéo de Contenus dans l'éditeur -> { id, existant }

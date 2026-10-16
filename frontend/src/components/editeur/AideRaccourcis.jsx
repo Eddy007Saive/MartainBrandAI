@@ -14,6 +14,7 @@ const RACCOURCIS = [
   ['rognerGauche', ['Q']],
   ['rognerDroite', ['W']],
   ['dupliquer', ['D']],
+  ['figer', ['F']],
   ['supprimer', ['suppr']],
   ['copier', ['ctrl', 'C']],
   ['couperPresse', ['ctrl', 'X']],
