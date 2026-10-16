@@ -70,3 +70,9 @@ Disallow: /en/pourquoi
 Disallow: /es/pourquoi
 
 Sitemap: https://postorico.com/sitemap.xml
+
+# Catalogue de ressources pour les agents IA (spec ARD / ai-catalog) :
+# /.well-known/ard.json et /.well-known/ai-catalog.json, annonces par
+# <link rel="ard ai-catalog"> dans le HTML. Pas de directive "Agentmap:" ici :
+# Lighthouse (audit SEO "robots.txt valide", note) la compte comme directive
+# inconnue et fait echouer l'audit.

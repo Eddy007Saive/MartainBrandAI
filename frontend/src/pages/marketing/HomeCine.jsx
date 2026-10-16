@@ -268,15 +268,13 @@ export default function HomeCine() {
     // flux, puisque le score se base sur la position visuelle, pas le layout.
     // Sur le hero (entièrement au-dessus de la ligne de flottaison, vu à
     // chaque visite), ça pénalisait directement le score sans bénéfice réel.
-    if (!reduced) {
-      [...rootRef.current.querySelectorAll('.hero-copy > *')].forEach((el, i) => {
-        el.style.opacity = 0;
-        el.style.transition = `opacity 650ms cubic-bezier(.23,1,.32,1) ${i * 80}ms`;
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          el.style.opacity = 1;
-        }));
-      });
-    }
+    //
+    // Octobre 2026 : cascade SUPPRIMEE. La page est prerendue, le texte du hero
+    // est donc visible des le HTML ; ce fondu le masquait (opacity 0) jusqu'a
+    // l'execution du JavaScript puis le faisait reapparaitre. Lighthouse
+    // mesurait 2,9 s de « delai d'affichage » sur le sous-titre (element LCP)
+    // pour cette seule raison. Regle : ne jamais cacher par JavaScript un
+    // element deja peint au-dessus de la ligne de flottaison.
 
     // Impact : reveal mot à mot scrubé
     // (le h2 est remonté via key={lang} à chaque changement de langue -> on repart d'un texte propre)
@@ -346,6 +344,22 @@ export default function HomeCine() {
     };
     document.addEventListener('visibilitychange', onVis);
 
+    // ---- Geometrie partagee par les deux scenes scroll-liees (POUR QUI et
+    // ACCOMPAGNEMENT). Les dimensions de la fenetre et les largeurs du rail
+    // sont mesurees une fois (puis sur resize et apres chaque refresh
+    // ScrollTrigger), et les deux getBoundingClientRect sont faits ENSEMBLE en
+    // debut de frame, avant la moindre ecriture de style (voir onScrollFrame
+    // plus bas). Avant, chaque rendu lisait la geometrie APRES les ecritures du
+    // rendu precedent (et renderAcc lisait offsetWidth carte par carte entre
+    // deux ecritures de largeur) : un recalcul force de mise en page par frame
+    // de scroll, signale par Lighthouse (« ajustement force de la mise en
+    // page »). Le rendu visuel est strictement identique. ----
+    let vw = window.innerWidth;
+    let vh = window.innerHeight;
+    let renderPq = null;        // (rect de .pq-wrap) => void, null si reduced-motion
+    let renderAccFrame = null;  // (rect de .acc-stage, ou null en mobile/reduced) => void
+    let measureAcc = () => {};
+
     // ---- POUR QUI : empilement 3D scroll-scrubbé (prototype validé, voir
     // _design/landing-redesign/pour-qui-scroll.html) — chaque carte est une
     // fonction continue de la position de scroll (pas d'étapes qui "sautent").
@@ -368,9 +382,9 @@ export default function HomeCine() {
         ['Système Postorico', 'Le même résultat qu’une agence, sans la facture qui va avec.'],
       ];
 
-      const renderPourQui = () => {
-        const r = pqWrap.getBoundingClientRect();
-        const total = Math.max(1, r.height - window.innerHeight);
+      // `r` = rect de pqWrap, lu par onScrollFrame avant toute ecriture (jamais ici)
+      const renderPourQui = (r) => {
+        const total = Math.max(1, r.height - vh);
         const p = pqClamp(-r.top / total);
         const raw = p * (n - 0.001);
         const active = Math.min(n - 1, Math.floor(raw));
@@ -425,13 +439,8 @@ export default function HomeCine() {
       };
 
       if (!reduced) {
-        // Lenis.on() renvoie une fonction de désinscription (pas de .off() sur
-        // l'instance elle-même) — on la garde pour le cleanup.
-        let pqUnsubscribe = null;
-        if (lenis) pqUnsubscribe = lenis.on('scroll', renderPourQui);
-        else window.addEventListener('scroll', renderPourQui, { passive: true });
-        window.addEventListener('resize', renderPourQui);
-        renderPourQui();
+        // abonnement scroll/resize unique, partage avec ACCOMPAGNEMENT (onScrollFrame)
+        renderPq = renderPourQui;
 
         let pqPointerHandler = null;
         if (matchMedia('(hover:hover)').matches) {
@@ -443,9 +452,6 @@ export default function HomeCine() {
           pqCard.addEventListener('pointermove', pqPointerHandler);
         }
         pqCleanup = () => {
-          if (pqUnsubscribe) pqUnsubscribe();
-          else window.removeEventListener('scroll', renderPourQui);
-          window.removeEventListener('resize', renderPourQui);
           if (pqPointerHandler) pqCard.removeEventListener('pointermove', pqPointerHandler);
         };
       } else {
@@ -460,7 +466,6 @@ export default function HomeCine() {
     // la gauche ; chaque carte pivote (rotateY), recule (Z) et rétrécit selon
     // sa distance au centre du rail. Desktop seulement : sous 900px, la piste
     // défile en scroll horizontal natif. ----
-    let accCleanup = () => {};
     if (accStageRef.current) {
       const stage = accStageRef.current;
       const rail = stage.querySelector('.acc-rail');
@@ -469,46 +474,89 @@ export default function HomeCine() {
       const metric = stage.querySelector('.acc-metric-number');
       const clampA = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 
-      const renderAcc = () => {
-        if (window.innerWidth <= 900 || reduced) {
+      // Largeurs du rail et des cartes : lues au montage, sur resize et apres
+      // un refresh ScrollTrigger — jamais dans la boucle de rendu (offsetWidth
+      // apres une ecriture de largeur = recalcul force de mise en page).
+      let railW = 1;
+      let usable = 0;
+      let cardW = [];
+      measureAcc = () => {
+        railW = rail.clientWidth;
+        cardW = cards.map((c) => c.offsetWidth);
+        usable = Math.max(0, track.scrollWidth - railW + 90);
+      };
+
+      let accIdle = false; // etat « repos » (mobile / reduced-motion) deja applique
+      // `r` = rect de stage lu par onScrollFrame, ou null en mobile / reduced-motion
+      const renderAcc = (r) => {
+        if (!r) {
+          // rail en scroll horizontal natif : styles remis a zero UNE fois,
+          // pas a chaque evenement scroll
+          if (accIdle) return;
+          accIdle = true;
           track.style.transform = '';
           cards.forEach((c) => { c.style.transform = ''; c.style.opacity = ''; });
           return;
         }
-        const r = stage.getBoundingClientRect();
-        const p = clampA(-r.top / Math.max(1, r.height - window.innerHeight));
-        const usable = Math.max(0, track.scrollWidth - rail.clientWidth + 90);
+        accIdle = false;
+        const p = clampA(-r.top / Math.max(1, r.height - vh));
         const x = p * usable;
         track.style.transform = `translate3d(${-x}px,0,0)`;
-        const railCenter = rail.clientWidth / 2;
+        const railCenter = railW / 2;
         cards.forEach((card, i) => {
-          const center = i * (card.offsetWidth + 22) - x + 28 + card.offsetWidth / 2;
-          const d = (center - railCenter) / Math.max(rail.clientWidth * 0.65, 1);
+          const center = i * (cardW[i] + 22) - x + 28 + cardW[i] / 2;
+          const d = (center - railCenter) / Math.max(railW * 0.65, 1);
           card.style.transform = `translateZ(${-Math.min(1, Math.abs(d)) * 150}px) rotateY(${clampA(d, -1.3, 1.3) * -13}deg) scale(${1 - Math.min(0.08, Math.abs(d) * 0.055)})`;
           card.style.opacity = String(1 - Math.min(0.28, Math.abs(d) * 0.12));
           card.querySelector('.acc-progress i').style.width = `${clampA(1 - Math.abs(d)) * 100}%`;
         });
         if (metric) metric.textContent = String(Math.min(cards.length, Math.floor(p * cards.length) + 1)).padStart(2, '0');
       };
-
-      let accUnsub = null;
-      if (lenis) accUnsub = lenis.on('scroll', renderAcc);
-      else window.addEventListener('scroll', renderAcc, { passive: true });
-      window.addEventListener('resize', renderAcc);
-      renderAcc();
-      accCleanup = () => {
-        if (accUnsub) accUnsub();
-        else window.removeEventListener('scroll', renderAcc);
-        window.removeEventListener('resize', renderAcc);
-      };
+      renderAccFrame = renderAcc;
     }
+
+    // ---- Une seule frame de rendu pour les deux scenes : TOUTES les lectures
+    // de geometrie d'abord, puis les ecritures. ----
+    const onScrollFrame = () => {
+      const pqRect = renderPq ? pqWrapRef.current.getBoundingClientRect() : null;
+      const accRect = renderAccFrame && vw > 900 && !reduced ? accStageRef.current.getBoundingClientRect() : null;
+      if (renderPq) renderPq(pqRect);
+      if (renderAccFrame) renderAccFrame(accRect);
+    };
+    const onResize = () => {
+      vw = window.innerWidth;
+      vh = window.innerHeight;
+      measureAcc();
+      onScrollFrame();
+    };
+    let frameUnsub = null;
+    if (renderPq || renderAccFrame) {
+      // Lenis.on() renvoie une fonction de désinscription (pas de .off() sur
+      // l'instance elle-même) — on la garde pour le cleanup.
+      if (lenis) frameUnsub = lenis.on('scroll', onScrollFrame);
+      else window.addEventListener('scroll', onScrollFrame, { passive: true });
+      window.addEventListener('resize', onResize);
+      // Apres un refresh ScrollTrigger (load, resize : pin-spacer de « impact »
+      // recalcule), tout ce qui est sous le pin a bouge : on remesure et on
+      // rejoue une frame, au lieu d'attendre le prochain scroll.
+      ScrollTrigger.addEventListener('refresh', onResize);
+      measureAcc();
+      onScrollFrame();
+    }
+    const frameCleanup = () => {
+      if (!(renderPq || renderAccFrame)) return;
+      ScrollTrigger.removeEventListener('refresh', onResize);
+      if (frameUnsub) frameUnsub();
+      else window.removeEventListener('scroll', onScrollFrame);
+      window.removeEventListener('resize', onResize);
+    };
 
     return () => {
       st1.kill(); clipTriggers.forEach((tr) => tr.kill());
       ScrollTrigger.getAll().forEach((tr) => tr.kill());
       gsap.ticker.remove(raf);
       pqCleanup();
-      accCleanup();
+      frameCleanup();
       if (lenis) lenis.destroy();
       document.removeEventListener('visibilitychange', onVis);
     };
@@ -523,7 +571,7 @@ export default function HomeCine() {
           sinon chaque re-render React écrase le fondu en cours */}
       {!isTouch && BG_CLIPS.filter((c) => c.src).map((c, i) => (
         <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
-          muted loop playsInline preload={i === 0 ? 'auto' : 'metadata'}
+          muted loop playsInline preload={i === 0 ? 'auto' : 'none'}
           style={{ transition: 'opacity 700ms ease', ...(c.pos ? { objectPosition: c.pos } : {}), ...(c.transform ? { transform: c.transform } : {}) }} />
       ))}
       <div className="bg-tint" />
@@ -531,7 +579,7 @@ export default function HomeCine() {
 
       {/* Nav */}
       <nav className="lnav"><div className="wrap">
-        <Link className="brand" to="/"><img src="/logo.png" alt="Postorico" /><span className="bt"><b>Postorico</b><small>{t('lp.brand.tagline')}</small></span></Link>
+        <Link className="brand" to="/"><img src="/logo-72.png" srcSet="/logo-72.png 72w, /logo.png 120w" sizes="34px" width="34" height="34" alt="Postorico" /><span className="bt"><b>Postorico</b><small>{t('lp.brand.tagline')}</small></span></Link>
         <div className="nav-links">
           {NAV_LINKS.map(([labelKey, to]) => (
             <Link key={to} to={to}>{t(labelKey)}</Link>
@@ -568,7 +616,9 @@ export default function HomeCine() {
         )}
       </div>
 
-      <div className="page">
+      {/* <main> = repere principal demande par l'audit Lighthouse (accessibilite) ;
+          la classe .page est conservee, le CSS ne cible que la classe */}
+      <main className="page">
         {/* HERO */}
         <section className="hero">
           {/* Sur mobile, la vidéo/poster de fond est retirée (pas de Rico) :
@@ -661,7 +711,7 @@ export default function HomeCine() {
               <div className="pbar"><i /><i /><i /></div>
               <div className="shot">
                 <div className="sb">
-                  <div className="lg"><img src="/logo.png" alt="" /><b>Postorico</b></div>
+                  <div className="lg"><img src="/logo-72.png" srcSet="/logo-72.png 72w, /logo.png 120w" sizes="24px" width="24" height="24" alt="" /><b>Postorico</b></div>
                   {SCENES.map((s, i) => (
                     <div key={s.id} className={'it' + (i === scene ? ' on' : '')} onClick={() => setScene(i)}
                       role="button" tabIndex={0}><span className="ic" />{t(s.labelKey)}</div>
@@ -693,7 +743,8 @@ export default function HomeCine() {
             {CMP.map((o) => (
               <div key={o.id} className={'cmpcard' + (o.win ? ' win' : '')}>
                 {o.win && <span className="badge">{t('lp.cmp.badge')}</span>}
-                <h4>{t(o.nameKey)}</h4>
+                {/* h3 et non h4 : la section est titree en h2, pas de saut de niveau (audit Lighthouse) */}
+                <h3>{t(o.nameKey)}</h3>
                 <div className="rows">
                   {o.valKeys.map((vk, i) => (
                     <div className="r" key={CRITERIA[i]}><span className="k">{t(CRITERIA[i])}</span><span className="v">{t(vk)}</span></div>
@@ -744,9 +795,9 @@ export default function HomeCine() {
               <div className="pq-card-stage">
                 <div className="pq-card" ref={pqCardRef}>
                   <div className="pq-count">1 / 3</div>
-                  <img src="/images/pour-qui/calendrier.jpg" data-img="0" alt="Rico — calendrier" />
-                  <img src="/images/pour-qui/panneaux.jpg" data-img="1" alt="Rico — formats" />
-                  <img src="/images/pour-qui/confiant.jpg" data-img="2" alt="Rico — confiance" />
+                  <img src="/images/pour-qui/calendrier.jpg" data-img="0" alt="Rico — calendrier" loading="lazy" decoding="async" />
+                  <img src="/images/pour-qui/panneaux.jpg" data-img="1" alt="Rico — formats" loading="lazy" decoding="async" />
+                  <img src="/images/pour-qui/confiant.jpg" data-img="2" alt="Rico — confiance" loading="lazy" decoding="async" />
                   <span className="pq-sheen"></span>
                   <div className="pq-caption">
                     <b>Système Postorico</b>
@@ -853,25 +904,26 @@ export default function HomeCine() {
             </div>
           </div>
         </div></section>
-      </div>
+      </main>
 
       {/* FOOTER */}
       <footer className="lfooter">
         <div className="fb">POSTORICO</div>
         <div className="fgrid wrap">
           <div className="fcol fbrand">
-            <div className="fbrand-head"><img src="/logo.png" alt="" /><b>Postorico</b></div>
+            <div className="fbrand-head"><img src="/logo-72.png" srcSet="/logo-72.png 72w, /logo.png 120w" sizes="28px" width="28" height="28" alt="" /><b>Postorico</b></div>
             <p>{t('lp.footer.about')}</p>
             <div className="fnets">LinkedIn · Instagram · Facebook · TikTok · YouTube · Google Business</div>
           </div>
+          {/* titres de colonnes en h3 : dernier titre avant le footer = h2, pas de saut de niveau (audit Lighthouse) */}
           <div className="fcol">
-            <h4>{t('lp.footer.product')}</h4>
+            <h3>{t('lp.footer.product')}</h3>
             {NAV_LINKS.map(([labelKey, to]) => (
               <Link key={to} to={to}>{t(labelKey)}</Link>
             ))}
           </div>
           <div className="fcol">
-            <h4>{t('lp.footer.account')}</h4>
+            <h3>{t('lp.footer.account')}</h3>
             {connecte ? (
               <Link to={dashTo}>{t('lp.nav.dashboard')}</Link>
             ) : (
@@ -884,7 +936,7 @@ export default function HomeCine() {
             <a {...propsRdv()}>{t('lp.footer.book')}</a>
           </div>
           <div className="fcol">
-            <h4>{t('lp.footer.legal')}</h4>
+            <h3>{t('lp.footer.legal')}</h3>
             <Link to="/cgu">{t('lp.footer.cgu')}</Link>
             <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
             <Link to="/mentions-legales">{t('lp.footer.legalNotice')}</Link>

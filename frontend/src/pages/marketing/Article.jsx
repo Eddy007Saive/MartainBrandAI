@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -7,7 +7,7 @@ import Metas from '../../components/Metas';
 import NotFound from '../NotFound';
 import {
   aLireAussi, articleParChemin, dateLisible, languesDe, cheminDe,
-  ouverture, vignette,
+  ouverture, vignette, chargerContenu, contenuEnCache,
 } from '../../lib/blog';
 import { cheminPourLangue, langueDuChemin } from '../../lib/langues';
 import './blog.css';
@@ -32,6 +32,17 @@ export default function Article() {
   const navigate = useNavigate();
   const langue = langueDuChemin(pathname);
   const article = articleParChemin(pathname);
+
+  // Le corps (html + sommaire) n'est pas dans le paquet : il arrive par un
+  // petit fichier JSON propre a l'article. `data-article-pret` signale au
+  // prerendu (scripts/prerendu.js) que la page est complete.
+  const [contenu, setContenu] = useState(() => contenuEnCache(article));
+  useEffect(() => {
+    let actif = true;
+    setContenu(contenuEnCache(article));
+    if (article) chargerContenu(article).then((c) => { if (actif) setContenu(c); });
+    return () => { actif = false; };
+  }, [article]);
 
   const alternatives = useMemo(() => (article
     ? languesDe(article.id).map((l) => ({ langue: l, chemin: cheminDe(article.id, l) }))
@@ -100,7 +111,7 @@ export default function Article() {
       />
 
       <section><div className="wrap">
-        <article className="post">
+        <article className="post" data-article-pret={contenu ? 1 : undefined}>
           <nav className="fil" aria-label="fil d'Ariane">
             <Link to="/blog" data-testid="article-retour-blog">{t('lp.blog.head.title')}</Link>
             <span aria-hidden="true">/</span>
@@ -130,11 +141,11 @@ export default function Article() {
             <img className="bhero" src={ouverture(article)} alt="" aria-hidden="true" />
           )}
 
-          {article.sommaire.length >= 3 && (
+          {(contenu?.sommaire || []).length >= 3 && (
             <nav className="toc" aria-label={t('lp.blog.sommaire')}>
               <b>{t('lp.blog.sommaire')}</b>
               <ol>
-                {article.sommaire.map((h) => (
+                {contenu.sommaire.map((h) => (
                   <li key={h.id}><a href={`#${h.id}`}>{h.texte}</a></li>
                 ))}
               </ol>
@@ -144,7 +155,7 @@ export default function Article() {
           {/* Le HTML vient de nos propres fichiers Markdown, compilés au build :
               il n'y a pas d'entrée utilisateur ici, donc rien à assainir. */}
           <div className="prose" data-testid="article-corps" onClick={auClicDansLeTexte}
-            dangerouslySetInnerHTML={{ __html: article.html }} />
+            dangerouslySetInnerHTML={{ __html: contenu?.html || '' }} />
 
           {article.tags.length > 0 && (
             <div className="btags">

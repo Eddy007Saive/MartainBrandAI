@@ -1,8 +1,9 @@
 ---
 slug: calendario-editorial-redes-sociales
-titre: "Calendario editorial para redes sociales: guía práctica 2026"
-description: Crea un calendario editorial para redes sociales eficaz en menos de una hora. Método paso a paso, ejemplo concreto y consejos para directivos con poco tiempo.
+titre: "Calendario editorial redes sociales 2026: plantilla + guía"
+description: "Descarga una plantilla de calendario editorial para redes sociales (Excel, gratis) y crea el tuyo en menos de una hora: método paso a paso, ejemplo de una semana y consejos para directivos con poco tiempo."
 date: 2026-08-26
+maj: 2026-10-14
 auteur: El equipo Postorico
 tags: [estrategia]
 pose: idee
@@ -10,10 +11,61 @@ pose: idee
 
 **TL;DR - lo que vas a retener**
 
-- Un calendario editorial para redes sociales son 4 columnas esenciales y 30 minutos de preparación.
+- Una **plantilla de calendario editorial** lista para rellenar es lo que más tiempo te ahorra: descarga la nuestra (Excel, gratis) y adáptala en 30 minutos.
 - La constancia siempre gana al volumen: 1 publicación por semana mantenida vale más que 5 publicaciones en enero y luego el silencio.
-- No necesitas una herramienta compleja para empezar - una tabla de Notion o Google Sheets basta.
+- No necesitas una herramienta compleja para empezar: una hoja de cálculo como nuestra plantilla, Notion o Google Sheets basta.
 - Automatizar la publicación es la única forma de sostener una planificación en redes sociales a largo plazo sin sacrificar tus tardes.
+
+---
+
+## Descargar la plantilla de calendario editorial para redes sociales (Excel, gratis)
+
+La mayoría de las personas que buscan un calendario editorial quieren sobre todo una **plantilla para copiar**, no un artículo más. Aquí está la nuestra, gratis y sin registro.
+
+**[➜ Descargar la plantilla de calendario editorial para redes sociales (.xlsx)](/calendario-editorial-redes-sociales.xlsx)**
+
+Esta plantilla de calendario de contenidos tiene 12 columnas listas para usar, una semana de ejemplo para reemplazar y una leyenda (estados y pilares de contenido). Ábrela en Excel, Google Sheets o LibreOffice, duplica la pestaña cada mes y tendrás una planificación editorial operativa para 2026.
+
+El resto de esta guía explica cómo rellenar la plantilla, muestra un ejemplo de calendario editorial para redes sociales de una semana y luego desarrolla el método completo para mantener tu ritmo de publicación a lo largo del tiempo.
+
+---
+
+## Cómo usar la plantilla: las 12 columnas explicadas
+
+La plantilla recoge todo lo que un directivo necesita para pilotar sus publicaciones. Esto es lo que contiene cada columna.
+
+| Columna | Lo que contiene |
+|---|---|
+| **Fecha** | Día de publicación previsto |
+| **Día** | El día de la semana, útil para detectar tu ritmo |
+| **Hora** | La hora de publicación prevista |
+| **Plataforma** | LinkedIn, Instagram, Facebook… |
+| **Formato** | Publicación de texto, carrusel, vídeo, story, reel |
+| **Pilar de contenido** | La temática recurrente de la publicación (ver más abajo) |
+| **Tema / Gancho** | El titular o la idea central del contenido |
+| **Texto** | El borrador o el texto definitivo |
+| **Visual** | El recurso visual asociado (foto, carrusel, ninguno) |
+| **Hashtags** | Las palabras clave de la publicación |
+| **Estado** | Por redactar / En curso / Validado / Programado / Publicado |
+| **Enlace publicado** | La URL una vez la publicación está en línea, para el seguimiento |
+
+No tienes que rellenarlo todo desde el principio. Seis columnas bastan para empezar (Fecha, Plataforma, Formato, Pilar de contenido, Tema / Gancho, Estado); las demás (Hora, Texto, Visual, Hashtags, Enlace publicado) resultan útiles cuando pasas a la programación y al seguimiento.
+
+---
+
+## Ejemplo de calendario editorial para redes sociales de una semana
+
+Esta es la semana tipo que incluye la plantilla: un ejemplo de calendario editorial para redes sociales para un consultor independiente o un directivo de pyme en B2B. Es también, en concreto, un calendario de publicación en redes sociales listo para duplicar.
+
+| Día | Plataforma | Formato | Pilar de contenido | Tema / Gancho | Estado |
+|---|---|---|---|---|---|
+| Lunes | LinkedIn | Publicación de texto | Experiencia | 3 errores que cometen mis clientes antes de contactarme | Por redactar |
+| Miércoles | Instagram | Carrusel | Pruebas sociales | Antes / después: la transformación de un proyecto de cliente | En curso |
+| Viernes | LinkedIn | Publicación corta | Punto de vista | Mi opinión sobre una tendencia del sector | Validado |
+| Lunes | LinkedIn | Carrusel | Experiencia | Las 5 preguntas que hacer antes de firmar un contrato | Programado |
+| Jueves | Facebook | Publicación con imagen | Detrás de cámaras | Detrás de cámaras de nuestra semana de trabajo | Publicado |
+
+Cinco publicaciones en tres redes: un ritmo realista y sostenible para un directivo que gestiona su comunicación solo. En la plantilla, encuentras esta semana con la hora, el texto, el visual y los hashtags por completar.
 
 ---
 
@@ -35,41 +87,6 @@ Sin un calendario de redes sociales, publicas con prisas, improvisando el tema e
 
 ---
 
-## Lo que debe contener un buen calendario editorial
-
-### Las columnas imprescindibles
-
-No hacen falta 15 columnas. Una planificación de redes sociales eficaz contiene 6:
-
-| Columna | Lo que contiene |
-|---|---|
-| **Fecha** | Día y hora de publicación previstos |
-| **Red** | LinkedIn, Instagram, Facebook… |
-| **Formato** | Publicación de texto, carrusel, vídeo, story, reel |
-| **Tema / ángulo** | El titular o la idea central del contenido |
-| **Objetivo** | Notoriedad, interacción, tráfico, leads |
-| **Estado** | Por redactar / En curso / Validado / Programado |
-
-Puedes añadir una columna "CTA" (llamada a la acción) y una columna "Visual" si trabajas con un diseñador o una IA generativa. Pero estas 6 columnas bastan para empezar.
-
-### Ejemplo de calendario editorial para redes sociales (tabla concreta de 2 semanas)
-
-Este es un ejemplo de calendario editorial para redes sociales para un consultor independiente o un directivo de pyme en B2B:
-
-| Fecha | Red | Formato | Tema / ángulo | Objetivo | Estado |
-|---|---|---|---|---|---|
-| Lun. 3 feb. | LinkedIn | Publicación de texto | 3 errores que cometen mis clientes antes de contactarme | Notoriedad | Por redactar |
-| Mié. 5 feb. | Instagram | Carrusel | Antes / después: transformación de un proyecto de cliente | Interacción | En curso |
-| Vie. 7 feb. | LinkedIn | Publicación corta | Cita + opinión personal sobre una tendencia del sector | Interacción | Validado |
-| Lun. 10 feb. | LinkedIn | Carrusel | Las 5 preguntas que hacer antes de firmar un contrato | Leads | Por redactar |
-| Mar. 11 feb. | Instagram | Story | Encuesta: ¿cuál es tu mayor reto ahora mismo? | Interacción | Programado |
-| Jue. 13 feb. | Facebook | Publicación con imagen | Testimonio de cliente + resultado medible | Confianza | Por validar |
-| Vie. 14 feb. | LinkedIn | Publicación de texto | Lo que aprendí esta semana (formato "lección") | Notoriedad | Por redactar |
-
-Esta tabla cubre dos semanas con 7 publicaciones en 3 redes. Es un ritmo realista y sostenible para un directivo que gestiona su comunicación solo.
-
----
-
 ## Crear tu calendario editorial en 4 pasos (incluso cuando falta tiempo)
 
 ### Paso 1 - Elegir tus redes y una frecuencia realista
@@ -88,7 +105,7 @@ No intentes estar en todas partes. Elige 1 o 2 redes y mantenlas bien.
 
 ### Paso 2 - Definir tus pilares de contenido
 
-Un pilar de contenido es una temática recurrente en torno a la cual construyes tus publicaciones. Te evita partir de cero en cada publicación.
+Un pilar de contenido es una temática recurrente en torno a la cual construyes tus publicaciones. Es la columna "Pilar de contenido" de la plantilla, y te evita partir de cero en cada publicación.
 
 **Ejemplo de 4 pilares para una consultora:**
 
@@ -150,6 +167,7 @@ Existen decenas de herramientas. Esta es una selección honesta, adaptada a los 
 
 | Herramienta | Uso principal | Precio inicial | ¿Para quién? |
 |---|---|---|---|
+| **Nuestra plantilla Excel** | Calendario editorial para rellenar, sin conexión | Gratis | Quienes quieren empezar ya sin crear una cuenta |
 | **Notion** | Calendario editorial, organización interna | Gratis (plan Free) | Quienes quieren una tabla flexible sin publicación automática |
 | **Buffer** | Programación y publicación multirred | Gratis (3 canales, 10 posts/canal) y luego 5 $/canal/mes | Independientes y equipos pequeños con presupuesto ajustado |
 | **Later** | Planificación visual, fuerte en Instagram y TikTok | ~25 $/mes | Creadores de contenido y marcas visuales |
@@ -158,17 +176,22 @@ Existen decenas de herramientas. Esta es una selección honesta, adaptada a los 
 
 **¿Cómo elegir?**
 
-- Empiezas y tienes poco presupuesto → **Buffer** (el plan gratis basta para 1 o 2 redes).
+- Quieres empezar hoy, gratis → **nuestra plantilla Excel** (descargable más arriba).
+- Prefieres una tabla en línea y colaborativa → **Notion**.
+- Empiezas y tienes poco presupuesto para programar → **Buffer** (el plan gratis basta para 1 o 2 redes).
 - Eres muy activo en Instagram → **Later** por su interfaz visual.
 - Gestionas varias cuentas de clientes o un equipo → **Hootsuite**.
-- Quieres organizar tu contenido sin publicar directamente → **Notion** como complemento de otra herramienta.
 - Quieres que la IA genere y programe el contenido por ti → una **herramienta IA dedicada** es la solución más rápida.
 
-> **Consejo:** Notion y Buffer se complementan. Notion para planificar y validar, Buffer para programar y publicar. Es el dúo más habitual entre los independientes que gestionan su comunicación solos.
+> **Consejo:** La plantilla Excel y una herramienta de programación se complementan. La hoja de cálculo para planificar y validar, una herramienta como Buffer para programar y publicar. Es el dúo más habitual entre los independientes que gestionan su comunicación solos.
 
 ---
 
 ## FAQ
+
+**¿Dónde descargar una plantilla de calendario editorial gratis?**
+
+Directamente en esta página: nuestra [plantilla de calendario editorial para redes sociales en formato Excel](/calendario-editorial-redes-sociales.xlsx) es gratis, sin registro. Contiene las 12 columnas útiles, una semana de ejemplo y una leyenda. Puedes abrirla en Excel, Google Sheets o LibreOffice.
 
 **¿Cuál es la diferencia entre un calendario editorial y una planificación de redes sociales?**
 
@@ -176,7 +199,7 @@ Los dos términos designan a menudo la misma herramienta. El "calendario editori
 
 **¿Cuánto tiempo se tarda en crear el primer calendario editorial para redes sociales?**
 
-Entre 30 y 60 minutos para el primer mes. Una vez definidos tus pilares de contenido y montada tu tabla, los meses siguientes se planifican en 30 minutos. La inversión inicial es mínima.
+Entre 30 y 60 minutos para el primer mes si partes de una plantilla. Una vez definidos tus pilares de contenido y montada tu tabla, los meses siguientes se planifican en 30 minutos. La inversión inicial es mínima.
 
 **¿Hay que publicar todos los días para ser visible en redes sociales?**
 

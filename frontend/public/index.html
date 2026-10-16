@@ -8,15 +8,18 @@
     <meta name="description" content="Postorico - Gérez votre présence sur les réseaux sociaux" />
         <link rel="icon" href="%PUBLIC_URL%/logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <!-- Chargement non bloquant : le CSS des polices se charge en arrière-plan
-             (astuce media="print" + bascule au onload) au lieu de retarder le
-             premier rendu. font-display=swap affiche déjà la police de repli
-             entre-temps ; combiné, le texte s'affiche immédiatement. -->
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
-              media="print" onload="this.media='all'" />
-        <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" /></noscript>
+        <!-- Catalogue de ressources pour les agents IA (ARD / ai-catalog, cf. public/.well-known/) -->
+        <link rel="ard ai-catalog" href="/.well-known/ard.json" />
+        <!-- Polices Sora + Inter auto-hébergées (@fontsource, importées dans src/index.js) :
+             plus aucune requête vers fonts.googleapis.com / fonts.gstatic.com, qui
+             restaient des requêtes bloquantes tierces (~900 ms) d'après Lighthouse. -->
+        <!-- PostHog (src/lib/analytics.js) ne démarre qu'une fois la page chargée et
+             le navigateur inactif (src/index.js) : on résout seulement le DNS de ses
+             deux origines (scripts, puis API) à l'avance. Pas de preconnect : la
+             connexion ouverte pendant la fenêtre LCP serait inutilisée, et souvent
+             déjà fermée quand PostHog s'en servirait. -->
+        <link rel="dns-prefetch" href="https://us-assets.i.posthog.com" />
+        <link rel="dns-prefetch" href="https://us.i.posthog.com" />
         <title>Postorico</title>
     </head>
     <body>

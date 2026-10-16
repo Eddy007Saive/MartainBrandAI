@@ -62,7 +62,7 @@
 }
 .lp .bmeta .sep { opacity: .5; }
 .lp .bcard h3 {
-  font-family: Sora, sans-serif; font-weight: 700; font-size: 18px; line-height: 1.28;
+  font-family: Sora,"Sora Fallback", sans-serif; font-weight: 700; font-size: 18px; line-height: 1.28;
   letter-spacing: -.2px; color: var(--ink); margin: 9px 0 0;
 }
 .lp .bcard p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 10px 0 0; }
@@ -116,11 +116,11 @@
 .lp .prose > * { max-width: 68ch; }
 .lp .prose p { margin: 0 0 20px; }
 .lp .prose h2 {
-  font-family: Sora, sans-serif; font-weight: 700; font-size: 25px; line-height: 1.25;
+  font-family: Sora,"Sora Fallback", sans-serif; font-weight: 700; font-size: 25px; line-height: 1.25;
   letter-spacing: -.4px; color: var(--ink); margin: 46px 0 14px; scroll-margin-top: 92px;
 }
 .lp .prose h3 {
-  font-family: Sora, sans-serif; font-weight: 600; font-size: 18.5px; color: var(--ink);
+  font-family: Sora,"Sora Fallback", sans-serif; font-weight: 600; font-size: 18.5px; color: var(--ink);
   margin: 32px 0 10px; scroll-margin-top: 92px;
 }
 .lp .prose ul, .lp .prose ol { margin: 0 0 20px; padding-left: 22px; }
@@ -163,7 +163,7 @@
   background: linear-gradient(150deg, rgba(91, 108, 255, .16), rgba(58, 255, 163, .07));
   border: 1px solid var(--line2);
 }
-.lp .bfin h3 { font-family: Sora, sans-serif; font-size: 20px; font-weight: 700; margin: 0 0 8px; }
+.lp .bfin h3 { font-family: Sora,"Sora Fallback", sans-serif; font-size: 20px; font-weight: 700; margin: 0 0 8px; }
 .lp .bfin p { color: var(--muted); font-size: 14.5px; margin: 0 0 18px; max-width: 52ch; }
 
 @media (max-width: 760px) {
