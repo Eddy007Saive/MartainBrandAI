@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, Film, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors, Type, Smile, X, Clapperboard, ImagePlus, PenLine } from 'lucide-react';
+import ChoixMontage from '../components/ChoixMontage';
+import { Video, Upload, Loader2, Sparkles, Check, AlertCircle, Wand2, Music, ArrowRight, ScrollText, ChevronDown, Play, Pause, Info, Scissors, Type, Smile, X, Clapperboard, ImagePlus, PenLine } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
@@ -127,6 +128,13 @@ export default function StudioVideo() {
   const [agentImages, setAgentImages] = useState([]);  // photos de la banque : [{url, description}]
   const [agentSource, setAgentSource] = useState('video');  // 'video' (sa vidéo) | 'motion' (sans tournage)
   const [agentScript, setAgentScript] = useState('');
+  // Arrivée depuis la page Éditeur vidéo, carte « Vidéo animée » : pas de script de reel,
+  // on ouvre directement la vidéo animée (le texte s'écrit ici).
+  useEffect(() => {
+    if (params.get('mode') !== 'motion' || contenuId) return;
+    setChoix('motion'); setMode('agent'); setAgentSource('motion');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [agentVoix, setAgentVoix] = useState(null);
   const motionActif = mode === 'agent' && agentSource === 'motion';
   // Voix plus longue que la durée choisie : l'agent devrait couper et accélérer, on bloque avant
@@ -493,33 +501,12 @@ export default function StudioVideo() {
         <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5" data-testid="choix-montage">
           <h2 className="text-[17px] font-bold font-sora text-white">{t('video.choix.titre')}</h2>
           <p className="text-[13px] text-slate-500 font-inter mt-1">{t('video.choix.aide')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-            <button type="button" onClick={() => setChoix('facecam')} data-testid="choix-facecam"
-              className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#5B6CFF]/60 hover:bg-[#5B6CFF]/10 p-4 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center mb-3"><Video className="w-5 h-5 text-white" /></div>
-              <div className="font-sora font-semibold text-white text-[15px]">{t('video.choix.faceCam')}</div>
-              <p className="text-[12.5px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.choix.faceCamDesc')}</p>
-            </button>
-            <button type="button" onClick={() => navigate(`/dashboard/reel?contenu=${contenuId}`)} data-testid="choix-clips"
-              className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#3AFFA3]/60 hover:bg-[#3AFFA3]/[0.06] p-4 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-[#3AFFA3]/15 border border-[#3AFFA3]/30 grid place-items-center mb-3"><Film className="w-5 h-5 text-[#3AFFA3]" /></div>
-              <div className="font-sora font-semibold text-white text-[15px]">{t('video.choix.clips')}</div>
-              <p className="text-[12.5px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.choix.clipsDesc')}</p>
-            </button>
-            <button type="button" data-testid="choix-motion"
-              onClick={() => { setChoix('motion'); setMode('agent'); setAgentSource('motion'); setAgentScript(draft?.script || ''); }}
-              className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#F2A65A]/60 hover:bg-[#F2A65A]/[0.06] p-4 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-[#F2A65A]/15 border border-[#F2A65A]/30 grid place-items-center mb-3"><Wand2 className="w-5 h-5 text-[#F2A65A]" /></div>
-              <div className="font-sora font-semibold text-white text-[15px]">{t('video.choix.motion')}</div>
-              <p className="text-[12.5px] text-slate-400 font-inter mt-1 leading-relaxed">{t('video.choix.motionDesc')}</p>
-            </button>
-            <button type="button" onClick={() => navigate('/dashboard/editeur')} data-testid="choix-editeur"
-              className="text-left rounded-xl border border-white/10 bg-[#0c111f] hover:border-[#8A6CFF]/60 hover:bg-[#8A6CFF]/10 p-4 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-[#8A6CFF]/15 border border-[#8A6CFF]/30 grid place-items-center mb-3"><Clapperboard className="w-5 h-5 text-[#c4b5fd]" /></div>
-              <div className="font-sora font-semibold text-white text-[15px]">{t('editeur.monterMain')}</div>
-              <p className="text-[12.5px] text-slate-400 font-inter mt-1 leading-relaxed">{t('editeur.monterMainDesc')}</p>
-            </button>
-          </div>
+          <ChoixMontage
+            onFaceCam={() => setChoix('facecam')}
+            onClips={() => navigate(`/dashboard/reel?contenu=${contenuId}`)}
+            onMotion={() => { setChoix('motion'); setMode('agent'); setAgentSource('motion'); setAgentScript(draft?.script || ''); }}
+            onMain={() => navigate('/dashboard/editeur/nouveau')}
+          />
         </div>
       ) : (step === 'processing' && mode === 'agent') ? (
         <SuiviAgent etat={agentEtat} motion={motionActif} uploadPct={uploadPct} maintenant={maintenant} navigate={navigate} />

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Clapperboard, Plus, Trash2, Loader2, Film, FileText } from 'lucide-react';
+import { Clapperboard, Trash2, Loader2, Film, FileText } from 'lucide-react';
+import ChoixMontage from '../components/ChoixMontage';
 import { editeurService } from '../services/editeurService';
 import { contenuService } from '../services/contenuService';
 import { SocialIcon } from '../components/SocialIcon';
@@ -69,13 +70,25 @@ export default function MesMontages() {
           <Clapperboard className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-bold font-sora text-white">{t('editeur.liste.titre')}</h1>
-          <p className="text-sm text-slate-500 font-inter">{t('editeur.liste.sous')}</p>
+          <h1 className="text-xl font-bold font-sora text-white">{t('nav.editeur')}</h1>
         </div>
-        <button type="button" onClick={() => navigate('/dashboard/editeur/nouveau')} data-testid="montage-nouveau"
-          className="ml-auto inline-flex items-center gap-2 text-[13px] font-sora font-semibold text-white px-4 py-2.5 rounded-[10px] bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90">
-          <Plus className="w-4 h-4" />{t('editeur.liste.nouveau')}
-        </button>
+      </div>
+
+      {/* Nouvelle vidéo : les quatre façons, sans passer par un sujet de reel. */}
+      <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-5" data-testid="choix-montage-libre">
+        <h2 className="text-[17px] font-bold font-sora text-white">{t('video.choix.titreLibre')}</h2>
+        <p className="text-[13px] text-slate-500 font-inter mt-1">{t('video.choix.aideLibre')}</p>
+        <ChoixMontage libre
+          onFaceCam={() => navigate('/dashboard/video')}
+          onClips={() => navigate('/dashboard/reel')}
+          onMotion={() => navigate('/dashboard/video?mode=motion')}
+          onMain={() => navigate('/dashboard/editeur/nouveau')}
+        />
+      </div>
+
+      <div className="pt-1">
+        <h2 className="text-[15px] font-bold font-sora text-white">{t('editeur.liste.mesMontages')}</h2>
+        <p className="text-[13px] text-slate-500 font-inter mt-0.5">{t('editeur.liste.sous')}</p>
       </div>
 
       {montages === null ? (

@@ -461,6 +461,7 @@
     "postFallback": "Post"
   },
   "contenus": {
+    "description": {"generer": "Generate the description", "regenerer": "Regenerate", "enCours": "Writing…", "ok": "Description ready: read it, then save.", "echec": "The description could not be generated.", "vide": "No description yet: this is the text published with the video. Generate it from what the video says, or write it.", "ecrire": "Write it myself", "modifier": "Edit", "longue": "This can take a minute if the video has to be listened to first.", "aideEdition": "The AI writes it from what the video says and your brand.", "avertissement": "This video has no description: it would be published without text.", "validerQuandMeme": "Approve anyway"},
     "google": {"titre": "Google options", "type": {"STANDARD": "Update", "EVENT": "Event", "OFFER": "Offer"}, "titreEvenement": "Event title", "titreOffre": "Offer title", "debut": "Start", "fin": "End", "code": "Coupon code", "lienOffre": "Offer link", "conditions": "Terms", "bouton": "Call-to-action button", "lienBouton": "Button link", "boutons": {"AUCUN": "No button", "LEARN_MORE": "Learn more", "BOOK": "Book", "ORDER": "Order", "SHOP": "Shop", "SIGN_UP": "Sign up", "CALL": "Call"}, "aide": "Google shows only one photo per post and no video: for a reel or a carousel, the cover or first image is published. \"Call\" uses your profile's phone number."},
     "titre": "Content",
     "sousTitre": "Manage, approve and track your posts",
@@ -1937,7 +1938,7 @@
     "couverture": "Cover here",
     "couvertureActuelle": "Cover {{t}} s",
     "couvertureOk": "Cover set at {{t}} s: it will be the video thumbnail",
-    "liste": {"titre": "My edits", "sous": "Resume a draft or open an already exported edit.", "nouveau": "New edit", "vide": "No edits yet", "videAide": "Create an empty edit, or open a video from Content in the editor: it will show up here.", "statut": {"brouillon": "Draft", "rendu_en_cours": "Rendering", "rendu": "Exported", "echec": "Failed"}, "supprimerTitre": "Delete this edit?", "supprimerDesc": "“{{titre}}” will be deleted. The video already exported stays in Content.", "supprimerConfirm": "Delete", "supprime": "Edit deleted", "supprimerEchec": "Could not delete.", "voirSource": "View source post", "sourceTitre": "Source post", "sourceType": "Content", "sourceVide": "No text for this content.", "sourceEchec": "Could not load the source post."},
+    "liste": {"titre": "My edits", "sous": "Resume a draft or open an already exported edit.", "mesMontages": "My edits", "nouveau": "New edit", "vide": "No edits yet", "videAide": "Create an empty edit, or open a video from Content in the editor: it will show up here.", "statut": {"brouillon": "Draft", "rendu_en_cours": "Rendering", "rendu": "Exported", "echec": "Failed"}, "supprimerTitre": "Delete this edit?", "supprimerDesc": "“{{titre}}” will be deleted. The video already exported stays in Content.", "supprimerConfirm": "Delete", "supprime": "Edit deleted", "supprimerEchec": "Could not delete.", "voirSource": "View source post", "sourceTitre": "Source post", "sourceType": "Content", "sourceVide": "No text for this content.", "sourceEchec": "Could not load the source post."},
     "nSelection_one": "1 selected",
     "nSelection_other": "{{count}} selected",
     "anim": {
@@ -1977,6 +1978,10 @@
     "choix": {
       "titre": "What do you have for this script?",
       "aide": "Two ways to turn it into a video. Pick one, you can come back.",
+      "titreLibre": "New video",
+      "aideLibre": "No topic needed: choose how you want to make it.",
+      "faceCamLibre": "Upload a video shot on your phone: Postorico adds subtitles, cuts the silences, adds zooms and music.",
+      "motionLibre": "You write the text, an AI voice reads it and the AI animates the whole video: text, diagrams, photos.",
       "faceCam": "I talk to the camera",
       "faceCamDesc": "You film this script with your phone, Postorico adds captions, cuts silences, zooms and music.",
       "clips": "I have photos or clips, or nothing",
@@ -2187,7 +2192,9 @@
       "tagline": "AI content studio"
     },
     "cta": {
+      "maDemo": "Book my demo →",
       "call": "Book your setup call →",
+      "demo": "Book a demo →",
       "account": "Create my account",
       "apk": "↓ Android app"
     },
@@ -2376,6 +2383,7 @@
         "quote": "“Generation, scheduling and comment replies in one place. No more juggling ten different tools.”"
       }
     },
+    "demo": {"eyebrow": "Demo", "title": "Postorico in action", "lead": "From calibrating your voice to publishing on your networks: see how it works, end to end.", "play": "Play the demo video"},
     "final": {
       "title": "Ready to take back control of your presence?",
       "text": "Book your setup call. We study your business, we build your system, you run it."

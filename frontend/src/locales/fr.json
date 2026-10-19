@@ -461,6 +461,7 @@
     "postFallback": "Publication"
   },
   "contenus": {
+    "description": {"generer": "Générer la description", "regenerer": "Régénérer", "enCours": "Rédaction…", "ok": "Description proposée : relis-la, puis enregistre.", "echec": "La description n'a pas pu être générée.", "vide": "Pas encore de description : c'est le texte publié avec la vidéo. Génère-la à partir de ce que dit la vidéo, ou écris-la.", "ecrire": "L'écrire moi-même", "modifier": "Modifier", "longue": "Ça peut prendre une minute si la vidéo doit d'abord être écoutée.", "aideEdition": "L'IA l'écrit d'après ce que dit la vidéo et ta marque.", "avertissement": "Cette vidéo n'a pas de description : elle serait publiée sans texte.", "validerQuandMeme": "Valider quand même"},
     "google": {"titre": "Options Google", "type": {"STANDARD": "Nouveauté", "EVENT": "Événement", "OFFER": "Offre"}, "titreEvenement": "Titre de l'événement", "titreOffre": "Titre de l'offre", "debut": "Début", "fin": "Fin", "code": "Code promo", "lienOffre": "Lien de l'offre", "conditions": "Conditions", "bouton": "Bouton d'action", "lienBouton": "Lien du bouton", "boutons": {"AUCUN": "Aucun bouton", "LEARN_MORE": "En savoir plus", "BOOK": "Réserver", "ORDER": "Commander", "SHOP": "Acheter", "SIGN_UP": "S'inscrire", "CALL": "Appeler"}, "aide": "Google n'affiche qu'une photo par post, jamais de vidéo : pour un reel ou un carrousel, c'est la couverture ou la première image qui est publiée. « Appeler » utilise le numéro de ta fiche."},
     "titre": "Contenus",
     "sousTitre": "Gérez, validez et suivez vos publications",
@@ -1937,7 +1938,7 @@
     "couverture": "Couverture ici",
     "couvertureActuelle": "Couverture {{t}} s",
     "couvertureOk": "Couverture fixée à {{t}} s : ce sera la miniature de la vidéo",
-    "liste": {"titre": "Mes montages", "sous": "Reprends un brouillon ou ouvre un montage déjà exporté.", "nouveau": "Nouveau montage", "vide": "Aucun montage pour l'instant", "videAide": "Crée un montage vide, ou ouvre une vidéo de Contenus dans l'éditeur : elle apparaîtra ici.", "statut": {"brouillon": "Brouillon", "rendu_en_cours": "Rendu en cours", "rendu": "Exporté", "echec": "Échec"}, "supprimerTitre": "Supprimer ce montage ?", "supprimerDesc": "« {{titre}} » sera supprimé. La vidéo déjà exportée reste dans Contenus.", "supprimerConfirm": "Supprimer", "supprime": "Montage supprimé", "supprimerEchec": "Suppression impossible.", "voirSource": "Voir le post source", "sourceTitre": "Post source", "sourceType": "Contenu", "sourceVide": "Aucun texte pour ce contenu.", "sourceEchec": "Impossible de charger le post source."},
+    "liste": {"titre": "Mes montages", "sous": "Reprends un brouillon ou ouvre un montage déjà exporté.", "mesMontages": "Mes montages", "nouveau": "Nouveau montage", "vide": "Aucun montage pour l'instant", "videAide": "Crée un montage vide, ou ouvre une vidéo de Contenus dans l'éditeur : elle apparaîtra ici.", "statut": {"brouillon": "Brouillon", "rendu_en_cours": "Rendu en cours", "rendu": "Exporté", "echec": "Échec"}, "supprimerTitre": "Supprimer ce montage ?", "supprimerDesc": "« {{titre}} » sera supprimé. La vidéo déjà exportée reste dans Contenus.", "supprimerConfirm": "Supprimer", "supprime": "Montage supprimé", "supprimerEchec": "Suppression impossible.", "voirSource": "Voir le post source", "sourceTitre": "Post source", "sourceType": "Contenu", "sourceVide": "Aucun texte pour ce contenu.", "sourceEchec": "Impossible de charger le post source."},
     "nSelection_one": "1 sélectionné",
     "nSelection_other": "{{count}} sélectionnés",
     "anim": {
@@ -1977,6 +1978,10 @@
     "choix": {
       "titre": "Tu as quoi pour ce script ?",
       "aide": "Deux façons de le transformer en vidéo. Choisis, tu pourras revenir.",
+      "titreLibre": "Nouvelle vidéo",
+      "aideLibre": "Pas besoin de sujet : choisis comment tu veux la faire.",
+      "faceCamLibre": "Tu importes une vidéo filmée au téléphone : Postorico sous-titre, coupe les silences, ajoute zooms et musique.",
+      "motionLibre": "Tu écris le texte, une voix IA le lit et l'IA anime toute la vidéo : textes, schémas, photos.",
       "faceCam": "Je parle face caméra",
       "faceCamDesc": "Tu filmes ce script avec ton téléphone, Postorico sous-titre, coupe les silences, ajoute zooms et musique.",
       "clips": "J'ai des photos ou des clips, ou rien",
@@ -2187,7 +2192,9 @@
       "tagline": "Studio de contenu IA"
     },
     "cta": {
+      "maDemo": "Réserver ma démo →",
       "call": "Réserve ton call de setup →",
+      "demo": "Réserver une démo →",
       "account": "Créer mon compte",
       "apk": "↓ App Android"
     },
@@ -2376,6 +2383,7 @@
         "quote": "« Génération, planif et réponses aux commentaires au même endroit. Je ne jongle plus entre dix outils. »"
       }
     },
+    "demo": {"eyebrow": "Démo", "title": "Postorico en action", "lead": "Du calibrage de ta voix à la publication sur tes réseaux : regarde comment ça marche, de A à Z.", "play": "Lancer la vidéo de démonstration"},
     "final": {
       "title": "Prêt à reprendre le contrôle de ta présence ?",
       "text": "Réserve ton call de setup, on étudie ta boîte, on construit ton système, tu pilotes."

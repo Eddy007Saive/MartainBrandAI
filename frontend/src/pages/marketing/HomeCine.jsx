@@ -9,6 +9,7 @@ import { APK_URL } from '../../lib/appDownload';
 import { isAuthenticated, isAdminAuthenticated, espaceParDefaut } from '../../lib/auth';
 import LangSwitcher from '../../components/LangSwitcher';
 import { propsRdv } from './shared';
+import { idVideoDemo } from '../../components/LecteurDemo';
 import './homeCine.css';
 
 // Inclinaison 3D façon carte à jouer, au survol de la vitrine produit (desktop uniquement,
@@ -244,6 +245,9 @@ export default function HomeCine() {
   // Témoignage vidéo dans la langue du visiteur
   const { t, i18n } = useTranslation();
   const lang = (i18n.resolvedLanguage || 'fr').slice(0, 2);
+  // Démo vidéo : seulement dans les langues qui en ont une (même liste que le tableau de bord).
+  const idDemo = idVideoDemo(lang);
+  const [demoLancee, setDemoLancee] = useState(false);
   const testi = lang === 'es'
     ? { flag: '🇪🇸', label: 'Testimonio de cliente · Español', src: `${CLD}/q_auto/marketing/temoignage-es.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-es.jpg` }
     : { flag: '🇫🇷', label: 'Témoignage client · Français', src: `${CLD}/q_auto/marketing/temoignage-fr.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-fr.jpg` };
@@ -631,10 +635,10 @@ export default function HomeCine() {
             <h1 key={lang}><TitreAnime l1={t('lp.hero.title1')} l2={t('lp.hero.title2')} /></h1>
             <p className="hero-sub"><Trans i18nKey="lp.hero.sub" components={{ b: <b /> }} /></p>
             <div className="nets"><b>LinkedIn</b><i>·</i><b>Instagram</b><i>·</i><b>Facebook</b><i>·</i><b>TikTok</b><i>·</i><b>YouTube</b><i>·</i><b>Google Business</b></div>
+            {/* Deux appels à l'action seulement : la démo d'abord, le call de setup ensuite. */}
             <div className="cta-row">
-              <a className="btn grad" {...propsRdv()}>{t('lp.cta.call')}</a>
-              <Link className="btn ghost" to="/register">{t('lp.cta.account')}</Link>
-              <a className="btn apk" href={APK_URL}>{t('lp.cta.apk')}</a>
+              <a className="btn grad" {...propsRdv()} data-testid="hero-reserver-demo">{t('lp.cta.maDemo')}</a>
+              <a className="btn ghost" {...propsRdv()} data-testid="hero-call">{t('lp.cta.call')}</a>
             </div>
             <div className="hero-note">{t('lp.hero.note')}</div>
             <div className="hstats">
@@ -689,6 +693,45 @@ export default function HomeCine() {
             </div>
           </div>
         </div></section>
+
+        {/* DÉMO VIDÉO. Façade : miniature + bouton lecture, l'iframe YouTube (~1 Mo de
+            scripts) ne se charge qu'au clic, pour ne pas alourdir la page la plus visitée. */}
+        {idDemo && (
+          <section className="sec demo-sec" id="demo"><div className="wrap">
+            <div className="shead">
+              <div className="eyebrow">{t('lp.demo.eyebrow')}</div>
+              <h2>{t('lp.demo.title')}</h2>
+              <p className="lead">{t('lp.demo.lead')}</p>
+            </div>
+            <div className="demo-video">
+              {demoLancee ? (
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${idDemo}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                  title={t('lp.demo.title')}
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                />
+              ) : (
+                <button type="button" className="demo-play" onClick={() => setDemoLancee(true)}
+                  aria-label={t('lp.demo.play')} data-testid="home-demo-play">
+                  <img src={`https://i.ytimg.com/vi/${idDemo}/maxresdefault.jpg`} alt="" loading="lazy" width="1280" height="720" />
+                  <span className="demo-btn" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></span>
+                </button>
+              )}
+            </div>
+            {/* VideoObject : la vidéo peut sortir dans les résultats vidéo de Google et Bing. */}
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'VideoObject',
+              name: t('lp.demo.title'),
+              description: t('lp.demo.lead'),
+              thumbnailUrl: `https://i.ytimg.com/vi/${idDemo}/maxresdefault.jpg`,
+              uploadDate: '2026-10-16',
+              embedUrl: `https://www.youtube.com/embed/${idDemo}`,
+              contentUrl: `https://www.youtube.com/watch?v=${idDemo}`,
+              publisher: { '@type': 'Organization', name: 'Postorico', logo: { '@type': 'ImageObject', url: 'https://postorico.com/logo.png' } },
+            }) }} />
+          </div></section>
+        )}
 
         {/* GALERIE : shell d'app épinglé (desktop) / carrousel à balayage (mobile) */}
         {isTouch ? (
@@ -898,8 +941,9 @@ export default function HomeCine() {
             {!isTouch && <video className="mascot-wave" src={`${CLD}/q_auto/marketing/mascotte-wave.mp4`} autoPlay muted loop playsInline aria-hidden="true" />}
             <h2>{t('lp.final.title')}</h2>
             <p>{t('lp.final.text')}</p>
+            {/* Le bouton principal de la page : grand, seul sur sa ligne. */}
+            <a className="btn grad xl" {...propsRdv()} data-testid="home-reserver-demo">{t('lp.cta.demo')}</a>
             <div className="cta-row">
-              <a className="btn grad" {...propsRdv()}>{t('lp.cta.call')}</a>
               <Link className="btn ghost" to="/register">{t('lp.cta.account')}</Link>
             </div>
           </div>

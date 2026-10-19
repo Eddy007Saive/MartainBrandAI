@@ -553,7 +553,26 @@
 @media(max-width:900px){.cine .mascot-wave{display:none}}
 .cine .final h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(28px,3.8vw,44px);letter-spacing:-.02em;max-width:18ch;margin:0 auto}
 .cine .final p{color:var(--mut);font-size:15px;margin-top:16px}
-.cine .final .cta-row{justify-content:center}
+.cine .final .cta-row{justify-content:center;margin-top:18px}
+.cine .btn.xl{margin-top:34px;font-family:Sora,"Sora Fallback";font-weight:700;font-size:clamp(17px,1.9vw,21px);padding:20px 46px;border-radius:16px;
+         box-shadow:0 16px 48px rgba(91,108,255,.55)}
+@media(max-width:600px){.cine .btn.xl{display:flex;justify-content:center;width:100%;padding:18px 20px}}
+
+/* ===== Démo vidéo (façade YouTube) ===== */
+/* Fond plein : sans lui, les visuels fixes du hero passent derrière le titre et le rendent illisible. */
+.cine .demo-sec{position:relative;z-index:2;background:linear-gradient(to bottom,transparent,var(--bg) 14%,var(--bg) 86%,transparent)}
+.cine .demo-video{position:relative;max-width:960px;margin:36px auto 0;aspect-ratio:16/9;border-radius:20px;overflow:hidden;
+         border:1px solid rgba(138,108,255,.3);background:#000;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.cine .demo-video iframe,.cine .demo-play{position:absolute;inset:0;width:100%;height:100%;border:0}
+.cine .demo-play{padding:0;cursor:pointer;background:#000}
+.cine .demo-play img{width:100%;height:100%;object-fit:cover;transition:transform .4s var(--ease),opacity .3s ease}
+.cine .demo-btn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:84px;height:84px;border-radius:50%;
+         background:var(--grad);display:grid;place-items:center;box-shadow:0 12px 40px rgba(91,108,255,.55);transition:transform .2s var(--ease)}
+.cine .demo-btn svg{width:32px;height:32px;fill:#fff;margin-left:4px}
+.cine .demo-play:focus-visible{outline:3px solid var(--mint);outline-offset:-3px}
+@media(hover:hover){.cine .demo-play:hover img{transform:scale(1.02);opacity:.88}
+  .cine .demo-play:hover .demo-btn{transform:translate(-50%,-50%) scale(1.08)}}
+@media(max-width:600px){.cine .demo-video{border-radius:14px;margin-top:24px}.cine .demo-btn{width:64px;height:64px}.cine .demo-btn svg{width:24px;height:24px}}
 
 /* ===== Footer ===== */
 .cine .lfooter{position:relative;margin-top:16vh;padding:10vh 0 0;background:var(--bg);color:var(--dim);font-size:12.5px;z-index:10}

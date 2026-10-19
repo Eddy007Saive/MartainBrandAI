@@ -312,7 +312,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
                     <Clapperboard className="w-4 h-4 opacity-70" />{t('contenus.reel.generer')}
                   </DropdownMenuItem>
                 )}
-                {contenu.type === 'Reel' && contenu.video_status === 'ready' && onMiniature && (
+                {contenu.type === 'Reel' && ['ready', 'pret'].includes(contenu.video_status) && onMiniature && (
                   <DropdownMenuItem onClick={() => onMiniature(contenu)} data-testid={`contenu-miniature-${contenu.id}`} className="gap-2.5 focus:bg-white/[0.07]">
                     <ImageIcon className="w-4 h-4 opacity-70" />{t('contenus.miniature.action')}
                   </DropdownMenuItem>
@@ -1256,6 +1256,21 @@ export default function ContenusPage() {
   // opts.skipFetch/skipToast : utilisés en boucle pour une action de groupe
   // (story en série) — un seul fetch + un seul toast récapitulatif après la
   // boucle plutôt que N refetch et N toasts redondants.
+  const [descEnCours, setDescEnCours] = useState(null);   // id de la vidéo dont la description est en cours
+  const genererDescription = async (contenu, dansEdition = false) => {
+    if (!contenu?.id || descEnCours) return;
+    setDescEnCours(contenu.id);
+    try {
+      const r = await videoService.genererDescription(contenu.id);
+      if (dansEdition) setEditContenu((e) => (e && e.id === contenu.id ? { ...e, contenu: r.texte } : e));
+      else setEditContenu({ ...contenu, contenu: r.texte });
+      toast.success(t('contenus.description.ok'));
+    } catch (e) {
+      toast.error(e.response?.data?.detail || e.response?.data?.message || t('contenus.description.echec'));
+    } finally {
+      setDescEnCours(null);
+    }
+  };
   const handleUpdateStatut = async (id, newStatut, opts = {}, extra = {}) => {
     if (newStatut === 'Valider') {
       const cible = contenus.find((c) => c.id === id);
@@ -1405,7 +1420,19 @@ export default function ContenusPage() {
   // motif de refus optionnel, même logique sur les 3 chemins de refus.
   const [ressemblanceCible, setRessemblanceCible] = useState(null); // { id } | { serie: groupe } | null
   const [refusCible, setRefusCible] = useState(null); // { id } | { serie: groupe } | null
-  const demanderValidation = (id) => setRessemblanceCible({ id });
+  const demanderValidation = (id, forcer = false) => {
+    const cible = contenus.find((c) => c.id === id);
+    const video = cible && (cible.type === 'Reel' || cible.video_url || cible.video_status);
+    if (!forcer && video && cible.video_url && !(cible.contenu || '').trim()) {
+      toast.warning(t('contenus.description.avertissement'), {
+        duration: 10000,
+        action: { label: t('contenus.description.generer'), onClick: () => genererDescription(cible) },
+        cancel: { label: t('contenus.description.validerQuandMeme'), onClick: () => demanderValidation(id, true) },
+      });
+      return;
+    }
+    setRessemblanceCible({ id });
+  };
   const demanderValidationSerie = (groupe) => setRessemblanceCible({ serie: groupe });
   const demanderRefus = (id) => setRefusCible({ id });
   const demanderRefusSerie = (groupe) => setRefusCible({ serie: groupe });
@@ -2004,8 +2031,45 @@ export default function ContenusPage() {
                   <div className="flex flex-col min-h-0">
                     <div className="flex-1 overflow-y-auto p-5 space-y-4">
                       <div>
-                        <p className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold mb-2.5">{t('contenus.detail.textePost')}</p>
-                        <p className="text-slate-200 font-inter text-[14px] leading-relaxed whitespace-pre-wrap">{selectedContenu.contenu}</p>
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <p className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold">{t('contenus.detail.textePost')}</p>
+                          {selectedContenu.video_url && selectedContenu.statut !== 'Publie' && (
+                            <div className="ml-auto flex items-center gap-1.5">
+                              {selectedContenu.type === 'Reel' && ['ready', 'pret'].includes(selectedContenu.video_status) && (
+                                <button type="button" onClick={() => setMiniatureFor(selectedContenu)} data-testid="detail-miniature"
+                                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] font-inter font-medium text-slate-300 border border-white/10 hover:border-white/25 hover:text-white">
+                                  <ImageIcon className="w-3.5 h-3.5" />{t('contenus.miniature.action')}
+                                </button>
+                              )}
+                              {(selectedContenu.contenu || '').trim() && (
+                                <button type="button" onClick={() => setEditContenu(selectedContenu)} data-testid="detail-modifier-texte"
+                                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[12px] font-inter font-medium text-slate-300 border border-white/10 hover:border-white/25 hover:text-white">
+                                  <Edit2 className="w-3.5 h-3.5" />{t('contenus.description.modifier')}
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {(selectedContenu.contenu || '').trim() ? (
+                          <p className="text-slate-200 font-inter text-[14px] leading-relaxed whitespace-pre-wrap">{selectedContenu.contenu}</p>
+                        ) : selectedContenu.video_url ? (
+                          <div className="rounded-xl border border-dashed border-white/15 bg-white/[0.02] p-4" data-testid="detail-description-vide">
+                            <p className="text-[13px] text-slate-400 font-inter leading-relaxed">{t('contenus.description.vide')}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-3">
+                              <Button size="sm" onClick={() => genererDescription(selectedContenu)} disabled={descEnCours === selectedContenu.id} data-testid="detail-generer-description"
+                                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[10px]">
+                                {descEnCours === selectedContenu.id ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1.5" />}
+                                {descEnCours === selectedContenu.id ? t('contenus.description.enCours') : t('contenus.description.generer')}
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => setEditContenu(selectedContenu)} className="text-slate-300 font-inter">
+                                <Edit2 className="w-3.5 h-3.5 mr-1.5" />{t('contenus.description.ecrire')}
+                              </Button>
+                            </div>
+                            {descEnCours === selectedContenu.id && <p className="text-[11.5px] text-slate-500 font-inter mt-2">{t('contenus.description.longue')}</p>}
+                          </div>
+                        ) : (
+                          <p className="text-slate-200 font-inter text-[14px] leading-relaxed whitespace-pre-wrap">{selectedContenu.contenu}</p>
+                        )}
                       </div>
                       <div className="grid grid-cols-2 gap-2.5">
                         <div className="bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
@@ -2110,6 +2174,17 @@ export default function ContenusPage() {
             </DialogHeader>
             {editContenu && (
               <div className="space-y-4">
+                {editContenu.video_url && (
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[12px] text-slate-500 font-inter">{t('contenus.description.aideEdition')}</p>
+                    <Button size="sm" type="button" onClick={() => genererDescription(editContenu, true)} disabled={descEnCours === editContenu.id} data-testid="edition-generer-description"
+                      className="shrink-0 bg-[#5B6CFF]/15 border border-[#5B6CFF]/40 text-[#c7cdff] hover:bg-[#5B6CFF]/25 hover:text-white font-sora font-semibold rounded-[10px]">
+                      {descEnCours === editContenu.id ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1.5" />}
+                      {descEnCours === editContenu.id ? t('contenus.description.enCours')
+                        : (editContenu.contenu || '').trim() ? t('contenus.description.regenerer') : t('contenus.description.generer')}
+                    </Button>
+                  </div>
+                )}
                 <Textarea
                   value={editContenu.contenu || ''}
                   onChange={(e) => setEditContenu({ ...editContenu, contenu: e.target.value })}

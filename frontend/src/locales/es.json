@@ -461,6 +461,7 @@
     "postFallback": "Publicación"
   },
   "contenus": {
+    "description": {"generer": "Generar la descripción", "regenerer": "Regenerar", "enCours": "Redactando…", "ok": "Descripción lista: léela y guárdala.", "echec": "No se pudo generar la descripción.", "vide": "Aún no hay descripción: es el texto que se publica con el vídeo. Genérala a partir de lo que dice el vídeo, o escríbela.", "ecrire": "Escribirla yo", "modifier": "Editar", "longue": "Puede tardar un minuto si primero hay que escuchar el vídeo.", "aideEdition": "La IA la escribe a partir de lo que dice el vídeo y de tu marca.", "avertissement": "Este vídeo no tiene descripción: se publicaría sin texto.", "validerQuandMeme": "Validar igualmente"},
     "google": {"titre": "Opciones de Google", "type": {"STANDARD": "Novedad", "EVENT": "Evento", "OFFER": "Oferta"}, "titreEvenement": "Título del evento", "titreOffre": "Título de la oferta", "debut": "Inicio", "fin": "Fin", "code": "Código promocional", "lienOffre": "Enlace de la oferta", "conditions": "Condiciones", "bouton": "Botón de acción", "lienBouton": "Enlace del botón", "boutons": {"AUCUN": "Sin botón", "LEARN_MORE": "Más información", "BOOK": "Reservar", "ORDER": "Pedir", "SHOP": "Comprar", "SIGN_UP": "Registrarse", "CALL": "Llamar"}, "aide": "Google solo muestra una foto por publicación y ningún vídeo: para un reel o un carrusel se publica la portada o la primera imagen. «Llamar» usa el teléfono de tu ficha."},
     "titre": "Contenidos",
     "sousTitre": "Gestiona, valida y sigue tus publicaciones",
@@ -1937,7 +1938,7 @@
     "couverture": "Portada aquí",
     "couvertureActuelle": "Portada {{t}} s",
     "couvertureOk": "Portada fijada en {{t}} s: será la miniatura del vídeo",
-    "liste": {"titre": "Mis montajes", "sous": "Retoma un borrador o abre un montaje ya exportado.", "nouveau": "Nuevo montaje", "vide": "Aún no hay montajes", "videAide": "Crea un montaje vacío, o abre un vídeo de Contenidos en el editor: aparecerá aquí.", "statut": {"brouillon": "Borrador", "rendu_en_cours": "Renderizando", "rendu": "Exportado", "echec": "Error"}, "supprimerTitre": "¿Eliminar este montaje?", "supprimerDesc": "«{{titre}}» se eliminará. El vídeo ya exportado sigue en Contenidos.", "supprimerConfirm": "Eliminar", "supprime": "Montaje eliminado", "supprimerEchec": "No se pudo eliminar.", "voirSource": "Ver la publicación de origen", "sourceTitre": "Publicación de origen", "sourceType": "Contenido", "sourceVide": "No hay texto para este contenido.", "sourceEchec": "No se pudo cargar la publicación de origen."},
+    "liste": {"titre": "Mis montajes", "sous": "Retoma un borrador o abre un montaje ya exportado.", "mesMontages": "Mis montajes", "nouveau": "Nuevo montaje", "vide": "Aún no hay montajes", "videAide": "Crea un montaje vacío, o abre un vídeo de Contenidos en el editor: aparecerá aquí.", "statut": {"brouillon": "Borrador", "rendu_en_cours": "Renderizando", "rendu": "Exportado", "echec": "Error"}, "supprimerTitre": "¿Eliminar este montaje?", "supprimerDesc": "«{{titre}}» se eliminará. El vídeo ya exportado sigue en Contenidos.", "supprimerConfirm": "Eliminar", "supprime": "Montaje eliminado", "supprimerEchec": "No se pudo eliminar.", "voirSource": "Ver la publicación de origen", "sourceTitre": "Publicación de origen", "sourceType": "Contenido", "sourceVide": "No hay texto para este contenido.", "sourceEchec": "No se pudo cargar la publicación de origen."},
     "nSelection_one": "1 seleccionado",
     "nSelection_other": "{{count}} seleccionados",
     "anim": {
@@ -1977,6 +1978,10 @@
     "choix": {
       "titre": "¿Qué tienes para este guion?",
       "aide": "Dos formas de convertirlo en vídeo. Elige, podrás volver.",
+      "titreLibre": "Nuevo vídeo",
+      "aideLibre": "No hace falta un tema: elige cómo quieres hacerlo.",
+      "faceCamLibre": "Subes un vídeo grabado con el móvil: Postorico lo subtitula, corta los silencios, añade zooms y música.",
+      "motionLibre": "Escribes el texto, una voz IA lo lee y la IA anima todo el vídeo: textos, esquemas, fotos.",
       "faceCam": "Hablo a cámara",
       "faceCamDesc": "Grabas este guion con tu móvil, Postorico subtitula, corta los silencios, añade zooms y música.",
       "clips": "Tengo fotos o clips, o nada",
@@ -2187,7 +2192,9 @@
       "tagline": "Estudio de contenido IA"
     },
     "cta": {
+      "maDemo": "Reservar mi demo →",
       "call": "Reserva tu call de setup →",
+      "demo": "Reservar una demo →",
       "account": "Crear mi cuenta",
       "apk": "↓ App Android"
     },
@@ -2376,6 +2383,7 @@
         "quote": "« Generación, planificación y respuestas a comentarios en un mismo sitio. Ya no hago malabares con diez herramientas. »"
       }
     },
+    "demo": {"eyebrow": "Demo", "title": "Postorico en acción", "lead": "Desde calibrar tu voz hasta publicar en tus redes: mira cómo funciona, de principio a fin.", "play": "Reproducir el vídeo de demostración"},
     "final": {
       "title": "¿Listo para recuperar el control de tu presencia?",
       "text": "Reserva tu call de setup: estudiamos tu empresa, construimos tu sistema, tú pilotas."
