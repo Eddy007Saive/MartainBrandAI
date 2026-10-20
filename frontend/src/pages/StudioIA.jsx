@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
-  ChevronLeft, ChevronRight, X, ZoomIn, ArrowRight,
+  ChevronLeft, ChevronRight, ChevronDown, X, ArrowRight, Crown, Upload, Eye, Maximize2, Target, FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,6 @@ import { takePhoto, cameraAvailable } from '../lib/photo';
 import { useUser } from '../context/UserContext';
 import { useDemarrage } from '../context/DemarrageContext';
 import { track } from '../lib/analytics';
-import { PageHeader } from '../components/PageHeader';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import AideAccroche from '../components/AideAccroche';
@@ -94,6 +93,22 @@ const Pill = ({ active, onClick, children }) => (
     {children}
   </button>
 );
+
+
+// Titre de carte (icône dans un carré + titre + éléments à droite) et pastille de réseau social.
+const TeteCarte = ({ icon: Icon, titre, children }) => (
+  <div className="flex items-center gap-2.5 mb-2.5">
+    <span className="w-[30px] h-[30px] rounded-[9px] border border-white/15 grid place-items-center text-[#b6abff] flex-none"><Icon className="w-4 h-4" /></span>
+    <h2 className="font-sora font-bold text-[15.5px] text-white">{titre}</h2>
+    {children}
+  </div>
+);
+const Plateforme = ({ id, petit }) => {
+  const s = petit ? 'w-[22px] h-[22px] rounded-md text-[10px]' : 'w-[34px] h-[34px] rounded-[9px] text-[12px]';
+  const fond = { instagram: 'bg-[radial-gradient(circle_at_30%_110%,#feda75_0,#fa7e1e_25%,#d62976_50%,#962fbf_75%,#4f5bd5_100%)]', linkedin: 'bg-[#0a66c2]', facebook: 'bg-[#1877f2]', tiktok: 'bg-black border border-white/20', youtube: 'bg-[#ff0033]', googlebusiness: 'bg-white text-[#4285f4]', twitter: 'bg-black border border-white/20' }[id] || 'bg-[#1b2747]';
+  const lettre = { instagram: 'IG', linkedin: 'in', facebook: 'f', tiktok: 'TT', youtube: '▶', googlebusiness: 'G', twitter: 'X' }[id] || '•';
+  return <span className={`${s} ${fond} grid place-items-center font-sora font-extrabold text-white flex-none`} aria-hidden="true">{lettre}</span>;
+};
 
 // Valeurs de repli des dimensions si le fetch backend n'a pas (encore) répondu — garde le sélecteur utilisable.
 const DIM_FALLBACK = {
@@ -246,6 +261,19 @@ export default function StudioIA() {
   const [loadingSujets, setLoadingSujets] = useState(false);
   const [logIndex, setLogIndex] = useState(0);
   const [contenus, setContenus] = useState([]);
+  const [selId, setSelId] = useState(null);           // contenu affiché dans l'aperçu
+  const [onglet, setOnglet] = useState('texte');      // texte | accroche | verif
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [depotActif, setDepotActif] = useState(false); // glisser-déposer d'une photo
+  // Police manuscrite du slogan : chargée seulement sur cette page (le site public reste léger)
+  useEffect(() => {
+    if (document.getElementById('police-caveat')) return;
+    const l = document.createElement('link');
+    l.id = 'police-caveat';
+    l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap';
+    document.head.appendChild(l);
+  }, []);
   const draftsLoaded = useRef(false);
   const saveTimer = useRef(null);
 
@@ -411,6 +439,7 @@ export default function StudioIA() {
     const qualite = cfgQualite;
     const cardId = nextId();
     setContenus((prev) => [{ id: cardId, sujet: s.titre, sujetId: s.id, texte: '', statut: 'redaction', format: fmt, meta, reseau, extras, qualite }, ...prev]);
+    setSelId(cardId);
     setOpenId(null);
     // le sujet reste dispo tant que rien n'est validé : on peut le réutiliser pour un autre réseau
     // (il disparaît de la réserve seulement quand un contenu généré à partir de lui est validé — voir `valider`)
@@ -458,6 +487,7 @@ export default function StudioIA() {
     const cardId = nextId();
     const titre = txt.length > 80 ? txt.slice(0, 80) + '…' : txt;
     setContenus((prev) => [{ id: cardId, sujet: titre, promptFull: txt, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
+    setSelId(cardId);
     if (!force) {
       setBriefText('');
       setBriefOpen(false);
@@ -522,6 +552,7 @@ export default function StudioIA() {
     setPhotoLoading(true);
     const cardId = nextId();
     setContenus((prev) => [{ id: cardId, sujet: t('studio.postFromPhoto'), statut: 'redaction', format: 'photo', meta: photoReseau, qualite: photoQualite }, ...prev]);
+    setSelId(cardId);
     setPhotoOpen(false);
     try {
       const d = await agentService.redigerPhoto(file, photoReseau, photoQualite);
@@ -631,518 +662,535 @@ export default function StudioIA() {
     }
   };
 
+  // --- Affichage (maquette validée le 2026-10-20) ---
+  const sel = contenus.find((c) => c.id === selId) || contenus[0] || null;
+  useEffect(() => { setSlideIdx(0); }, [sel?.id]);
+  const jauge = usage?.gauges?.find((x) => x.action_type === 'subject');
+  const reste = sujetsReste();
+  const enCours = contenus.filter((c) => c.statut === 'redaction').length;
+  const filtresActifs = Object.values(filtres).filter(Boolean).length;
+  const reseauDe = (c) => (c.format === 'script' ? (c.reseau || '') : (c.meta || ''));
+  const libelleFormat = (c) => (c.format === 'script' ? t('studio.formatScript') : c.format === 'carrousel' ? t('studio.formatCarousel')
+    : c.format === 'story' ? t('studio.formatStory') : c.format === 'photo' ? t('studio.postFromPhoto') : t('studio.formatPost'));
+  const nomReseau = (id) => RESEAUX.find((r) => r.id === id)?.label || (id ? id.charAt(0).toUpperCase() + id.slice(1) : '');
+  const etatContenu = (c) => (c.statut === 'redaction'
+    ? (c.format === 'carrousel' ? t('studio.creatingCarousel') : c.format === 'photo' ? t('studio.analyzingPhoto') : c.format === 'script' ? t('studio.writingScript') : t('studio.writingPost'))
+    : c.statut === 'erreur' ? t('studio.generationErrorShort')
+    : c.format === 'carrousel' ? t('studio.statutEnregistre')
+    : c.format === 'photo' ? t('studio.statutEnregistre') : t('studio.statutPret'));
+  const LIMITE_CARACTERES = { linkedin: 3000, instagram: 2200, facebook: 5000, tiktok: 2200, googlebusiness: 1500, twitter: 280 };
+  const verifications = (c) => {
+    const texte = c.texte || '';
+    const max = LIMITE_CARACTERES[c.meta] || 3000;
+    const hashtags = (texte.match(/#[\p{L}\p{N}_]+/gu) || []).length;
+    const chiffres = c.accrocheAlerte || [];
+    return [
+      { ok: texte.length <= max, texte: t('studio.verifLongueur', { n: texte.length, max }) },
+      { ok: !chiffres.length, texte: chiffres.length ? t('studio.verifChiffres', { liste: chiffres.join(', ') }) : t('studio.verifChiffresOk') },
+      { ok: c.meta !== 'instagram' || (hashtags >= 3 && hashtags <= 8), texte: t('studio.verifHashtags', { n: hashtags }) },
+    ];
+  };
+  const champ = 'w-full rounded-[10px] bg-[#111b33] border border-white/[0.09] text-slate-100 text-[13.5px] px-3 py-2.5 outline-none focus:border-[#6f5cff]/70 font-inter';
+  const carte = 'bg-[#0b1326] border border-white/[0.08] rounded-2xl p-4 min-w-0';
+  const btnViolet = 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-95 shadow-[0_6px_18px_rgba(111,92,255,0.28)] disabled:opacity-40';
   return (
-    <div className="w-full space-y-6 pb-10">
-      <PageHeader
-        icon={Sparkles}
-        title={t('studio.pageTitle')}
-        subtitle={t('studio.pageSubtitle')}
-        actions={
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3AFFA3]" />
-            <span className="text-sm font-semibold text-white font-inter">{sujetsReste() ?? '—'}</span>
-            <span className="text-xs text-slate-400 font-inter">{t('studio.subjectsRemaining')}</span>
-          </div>
-        }
-      />
-
-      {/* Fil de progression */}
-      <div className="flex items-center max-w-2xl">
-        {STEPS.map((s, i) => {
-          const done = step > s.n;
-          const active = step === s.n;
-          const Icon = s.icon;
-          return (
-            <div key={s.n} className="flex items-center flex-1 last:flex-none">
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-inter transition-all duration-300 ${
-                  done ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                    : active ? 'bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] text-white'
-                    : 'bg-slate-800 text-slate-500 border border-white/10'
-                }`}>
-                  {done ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+    <div className="w-full space-y-4 pb-10">
+      {/* ─── En-tête : titre, étapes, bannière, quota ─── */}
+      <header className="relative overflow-hidden rounded-[18px] bg-[#0b1326] border border-white/[0.06] grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_300px] min-h-[170px]">
+        <div aria-hidden="true" className="absolute inset-0 bg-cover bg-[position:70%_55%]" style={{ backgroundImage: "url('/images/studio-banniere.jpg')" }} />
+        <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,#050b1a_0%,rgba(5,11,26,0.92)_26%,rgba(5,11,26,0.35)_46%,rgba(5,11,26,0)_62%,rgba(5,11,26,0.15)_80%,rgba(5,11,26,0.75)_100%)]" />
+        <div className="relative px-6 py-5 flex flex-col gap-1.5">
+          <h1 className="flex items-center gap-3 font-sora font-extrabold text-[34px] sm:text-[38px] leading-tight text-white tracking-tight">
+            <Sparkles className="w-7 h-7 text-[#a99cff]" />{t('studio.pageTitle')}
+          </h1>
+          <p className="text-[15px] text-slate-300 font-inter">{t('studio.pageSubtitle')}</p>
+          <div className="flex flex-wrap items-center gap-2.5 mt-auto pt-4">
+            {STEPS.map((s, i) => {
+              const done = step > s.n;
+              const active = step === s.n;
+              return (
+                <div key={s.n} className="flex items-center gap-2.5">
+                  <div className={`flex items-center gap-2 text-[13.5px] font-inter ${done ? 'text-[#3AFFA3]' : active ? 'text-white' : 'text-slate-400'}`}>
+                    <span className={`w-[30px] h-[30px] rounded-full grid place-items-center text-[13px] font-bold ${done ? 'bg-[#3AFFA3] text-[#03241a]' : active ? 'bg-[#6f5cff] text-white shadow-[0_0_0_4px_rgba(111,92,255,0.25)]' : 'border border-white/20 bg-[#0b1326]/80'}`}>
+                      {done ? <Check className="w-4 h-4" strokeWidth={3} /> : s.n}
+                    </span>
+                    {t(`studio.${s.labelKey}`)}
+                  </div>
+                  {i < STEPS.length - 1 && <span className="w-10 sm:w-12 h-px bg-white/20" />}
                 </div>
-                <span className={`text-xs font-inter font-medium hidden sm:block ${active || done ? 'text-slate-200' : 'text-slate-500'}`}>{t(`studio.${s.labelKey}`)}</span>
-              </div>
-              {i < STEPS.length - 1 && <div className={`flex-1 h-px mx-3 transition-all duration-300 ${step > s.n ? 'bg-emerald-500/40' : 'bg-white/10'}`} />}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Garde-fou */}
-      {!marqueOk && (
-        <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 animate-fade-in">
-          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm font-inter">
-            <p className="text-amber-300 font-medium">{t('studio.completeBrandFirst')}</p>
-            {champsManquants.length > 0 && (
-              <ul className="mt-1.5 flex flex-wrap gap-1.5" data-testid="studio-champs-manquants">
-                {champsManquants.map((c) => (
-                  <li key={c} className="text-[11.5px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-200 border border-amber-500/30">
-                    {t(`demarrage.champs.${c}`)}
-                  </li>
-                ))}
-              </ul>
+              );
+            })}
+          </div>
+        </div>
+        <div aria-hidden="true" className="hidden lg:block absolute right-[330px] bottom-6 font-['Caveat',cursive] font-bold text-[33px] leading-[1.05] text-white text-right -rotate-6 [text-shadow:0_2px_14px_rgba(0,0,0,0.45)]">
+          {t('studio.slogan1')}<br />{t('studio.slogan2')}
+        </div>
+        <div className="relative px-4 pb-4 md:p-4 md:pl-0 flex md:items-end">
+          <div className="w-full rounded-[14px] border border-[#6f5cff]/45 bg-[#0b1326]/90 backdrop-blur-sm px-4 py-3.5 grid grid-cols-[1fr_auto] gap-x-2.5 gap-y-1 items-center">
+            <span className="text-[13px] text-slate-400 font-inter">{t('studio.quotaLabel')}</span>
+            <span className="row-span-2 col-start-2 w-[38px] h-[38px] rounded-[10px] grid place-items-center bg-amber-400/10 text-amber-300"><Crown className="w-[18px] h-[18px]" /></span>
+            <b className="font-sora text-[26px] text-white tabular-nums">{reste ?? '—'}{jauge ? ` / ${jauge.limit}` : ''}</b>
+            {jauge && (
+              <span className="col-span-2 h-2 rounded-full bg-[#111b33] overflow-hidden">
+                <i className="block h-full rounded-full bg-gradient-to-r from-[#29d58f] to-[#3AFFA3]" style={{ width: `${Math.min(100, Math.round(((reste ?? 0) / Math.max(1, jauge.limit)) * 100))}%` }} />
+              </span>
             )}
-            <p className="text-amber-400/80 text-xs mt-1 leading-relaxed">
-              {t('studio.guardIntro')} <span className="font-medium">{t('studio.guardSector')}</span> {t('studio.guardIn')}{' '}
-              <Link to="/dashboard/parametres" className="underline text-amber-200 hover:text-white">{t('studio.settingsBrandVoice')}</Link>.
+          </div>
+        </div>
+        <span className="absolute right-3 top-1.5 text-[9.5px] text-white/40 font-inter">Photo : Positano, Wikimedia Commons (CC BY-SA 4.0)</span>
+      </header>
+
+      {/* ─── Marque incomplète ─── */}
+      {!marqueOk && (
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3.5 rounded-[14px] border border-orange-400/45 bg-gradient-to-r from-orange-400/15 to-orange-400/5 px-4 py-3 animate-fade-in">
+          <span className="w-[38px] h-[38px] rounded-[10px] bg-orange-400 grid place-items-center text-[#2a1600] flex-none"><AlertTriangle className="w-5 h-5" /></span>
+          <div className="min-w-0 font-inter">
+            <p className="text-[14.5px] font-semibold text-orange-200">{t('studio.completeBrandFirst')}</p>
+            <p className="text-[13px] text-slate-400" data-testid="studio-champs-manquants">
+              {champsManquants.length > 0
+                ? <>{t('studio.champsManquants')} <span className="text-orange-100">{champsManquants.map((c) => t(`demarrage.champs.${c}`)).join(', ')}.</span></>
+                : <>{t('studio.guardIntro')} {t('studio.guardSector')}.</>}
             </p>
           </div>
+          <Link to="/dashboard/parametres" className="sm:ml-auto text-[13px] font-semibold text-orange-100 border border-orange-400/40 rounded-[9px] px-3 py-2 whitespace-nowrap hover:bg-orange-400/10">{t('studio.allerParametres')} →</Link>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {/* ─── GAUCHE : Réserve de sujets ─── */}
-        <section className="bg-slate-900/60 border border-white/[0.06] rounded-2xl p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <Lightbulb className="w-4 h-4 text-amber-400" />
-            <h2 className="font-medium font-inter text-slate-200">{t('studio.subjectsReserveTitle')}</h2>
-          </div>
-
-          {/* Génération : nombre + bouton */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-inter">{t('studio.countLabel')}</span>
-            <input
-              type="number" min={1} max={12} value={nbSujets}
-              onChange={(e) => setNbSujets(Math.max(1, Math.min(12, parseInt(e.target.value, 10) || 1)))}
-              className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1.5 outline-none focus:border-[#5B6CFF]/50"
-            />
-            <Button onClick={proposerSujets} disabled={!marqueOk || loadingSujets} data-testid="studio-generer-sujets"
-              className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40 ml-auto">
-              {loadingSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              <span className="ml-2">{t('studio.generateSubjects')}</span>
-            </Button>
-          </div>
-
-          {/* Ciblage optionnel : impose une ou plusieurs dimensions à la génération (sinon l'IA varie) */}
-          {dims && (
-            <div className="rounded-xl border border-white/5 bg-slate-950/40">
-              <button onClick={() => setFiltresOpen((o) => !o)} data-testid="studio-filtres-toggle"
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-inter text-slate-300 hover:text-white transition-colors">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>{t('studio.targetSubjects')}</span>
-                {Object.values(filtres).filter(Boolean).length > 0 && (
-                  <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-[#5B6CFF]/20 text-[#c9d2ff]">
-                    {Object.values(filtres).filter(Boolean).length}
-                  </span>
-                )}
-                <span className="ml-auto text-xs text-slate-500">{filtresOpen ? '▲' : '▼'}</span>
-              </button>
-              {filtresOpen && (
-                <div className="px-4 pb-4 grid grid-cols-2 gap-3 animate-fade-in">
-                  {DIM_META.map(({ cle, emoji, label }) => (
-                    <label key={cle} className="flex flex-col gap-1">
-                      <span className="text-xs text-slate-500 font-inter">{emoji} {label}</span>
-                      <select
-                        value={filtres[cle] || ''}
-                        onChange={(e) => setFiltres((f) => ({ ...f, [cle]: e.target.value }))}
-                        data-testid={`studio-filtre-${cle}`}
-                        className="rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-2.5 py-1.5 outline-none focus:border-[#5B6CFF]/50">
-                        <option value="">{t('studio.filterAny')}</option>
-                        {(dims[cle] || []).map((v) => <option key={v} value={v}>{v}</option>)}
-                      </select>
-                    </label>
-                  ))}
-                  {dims?.offre?.length ? (
-                    <label className="flex flex-col gap-1">
-                      <span className="text-xs text-slate-500 font-inter">📦 Offre</span>
-                      <select
-                        value={filtres.offre || ''}
-                        onChange={(e) => setFiltres((f) => ({ ...f, offre: e.target.value }))}
-                        data-testid="studio-filtre-offre"
-                        className="rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-2.5 py-1.5 outline-none focus:border-[#5B6CFF]/50">
-                        <option value="">{t('studio.filterAny')}</option>
-                        {dims.offre.map((v) => <option key={v} value={v}>{v}</option>)}
-                      </select>
-                    </label>
-                  ) : null}
-                  {Object.values(filtres).filter(Boolean).length > 0 && (
-                    <button onClick={() => setFiltres({})}
-                      className="col-span-2 text-xs text-slate-500 hover:text-slate-300 transition-colors text-left">
-                      {t('studio.filterReset')}
-                    </button>
-                  )}
-                </div>
-              )}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)_minmax(0,1.25fr)] gap-4 items-start">
+        {/* ─── Colonne 1 : générer des sujets, brief, photo ─── */}
+        <div className="flex flex-col gap-4 min-w-0">
+          <section className={carte}>
+            <TeteCarte icon={Lightbulb} titre={t('studio.genererSujetsTitre')} />
+            <p className="text-[13px] text-slate-400 font-inter mb-3">{t('studio.genererSujetsAide')}</p>
+            <div className="flex items-end gap-2.5">
+              <label className="flex-1 min-w-0">
+                <span className="block text-[12.5px] text-slate-400 font-inter mb-1.5">{t('studio.countLabel')}</span>
+                <select id="studio-nb-sujets" value={nbSujets} onChange={(e) => setNbSujets(parseInt(e.target.value, 10))} className={champ}>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+              </label>
+              <Button onClick={proposerSujets} disabled={!marqueOk || loadingSujets} data-testid="studio-generer-sujets" className={`${btnViolet} h-[42px]`}>
+                {loadingSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                <span className="ml-2">{t('studio.generateSubjects')}</span>
+              </Button>
             </div>
-          )}
-
-          {/* Brief perso (sujet libre) */}
-          <div className="rounded-xl border border-white/5 bg-slate-950/40">
-            <button onClick={() => setBriefOpen((o) => !o)} data-testid="studio-brief-toggle"
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-inter text-slate-300 hover:text-white transition-colors">
-              <PenLine className="w-4 h-4 text-[#8A6CFF]" />
-              <span>{t('studio.writeOwnBrief')}</span>
-              <span className="ml-auto text-xs text-slate-500">{briefOpen ? '▲' : '▼'}</span>
-            </button>
-            {briefOpen && (
-              <div className="px-4 pb-4 space-y-3 animate-fade-in">
-                <Textarea
-                  value={briefText} onChange={(e) => setBriefText(e.target.value)} rows={3}
-                  data-testid="studio-brief-text"
-                  placeholder={t('studio.briefPlaceholder')}
-                  className="bg-slate-950/60 border-white/10 text-slate-100 font-inter resize-y text-sm"
-                />
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">{t('studio.formatLabel')}</span>
-                  {FORMATS.map((f) => {
-                    const Icon = f.icon;
-                    return (
-                      <Pill key={f.id} active={bFormat === f.id} onClick={() => {
-                        setBFormat(f.id);
-                        if (f.id === 'story') setBReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
-                      }}>
-                        <span className="inline-flex items-center gap-1.5"><Icon className="w-3.5 h-3.5" />{t(`studio.${f.labelKey}`)}</span>
-                      </Pill>
-                    );
-                  })}
+            {dims && (
+              <>
+                <div className="h-px bg-white/[0.08] my-3.5" />
+                <div className="flex items-center gap-2 text-[13.5px] font-semibold text-white font-inter mb-2.5">
+                  <Target className="w-4 h-4 text-slate-300" />{t('studio.ciblage')}<span className="font-normal text-slate-500">{t('studio.optionnel')}</span>
+                  <span className="ml-auto text-[12px] font-medium text-[#b6abff]">
+                    {t('studio.filtresActifs', { count: filtresActifs })}
+                    {filtresActifs > 0 && <button type="button" onClick={() => setFiltres({})} className="ml-2 underline hover:text-white">{t('studio.reinitialiser')}</button>}
+                  </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">{bFormat === 'script' ? t('studio.typeLabel') : t('studio.networksLabel')}</span>
-                  {bFormat !== 'script' && reseaux.length === 0
-                    ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
-                    : (bFormat === 'script' ? TYPES_VIDEO : reseauxPour(bFormat)).map((r) => (
-                    <Pill key={r.id}
-                      active={bFormat === 'script' ? bType === r.id : bReseaux.includes(r.id)}
-                      onClick={() => (bFormat === 'script' ? setBType(r.id) : toggleReseau(setBReseaux)(r.id))}>
-                      {bFormat !== 'script' && bReseaux.includes(r.id) ? '✓ ' : ''}{r.labelKey ? t(`studio.${r.labelKey}`) : r.label}
-                    </Pill>
+                <div className="grid grid-cols-2 gap-2">
+                  {[...DIM_META, ...(dims?.offre?.length ? [{ cle: 'offre', label: 'Offre' }] : [])].map(({ cle, label }) => (
+                    <label key={cle} className="relative rounded-[10px] border border-white/[0.09] bg-[#111b33] px-2.5 py-2">
+                      <span className="flex items-center gap-1 text-[12.5px] font-semibold text-white font-inter">{label}{cle === 'offre' && <Crown className="w-3 h-3 text-amber-300 ml-auto" />}</span>
+                      <select value={filtres[cle] || ''} onChange={(e) => setFiltres((f) => ({ ...f, [cle]: e.target.value }))}
+                        data-testid={`studio-filtre-${cle}`}
+                        className="w-full bg-transparent text-[11.5px] text-slate-400 outline-none font-inter cursor-pointer">
+                        <option value="" className="bg-[#0b1326]">{t('studio.filterAny')}</option>
+                        {((cle === 'offre' ? dims.offre : dims[cle]) || []).map((v) => <option key={v} value={v} className="bg-[#0b1326]">{v}</option>)}
+                      </select>
+                    </label>
                   ))}
-                  {bFormat !== 'script' && bReseaux.length > 1 && (
-                    <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: bReseaux.length })}</span>
-                  )}
                 </div>
-                {bFormat === 'carrousel' && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 font-inter">{t('studio.slidesLabel')}</span>
-                    <input type="number" min={3} max={10} value={nbSlides}
-                      onChange={(e) => setNbSlides(Math.max(3, Math.min(10, parseInt(e.target.value, 10) || 5)))}
-                      className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
-                  </div>
-                )}
-                <div className="flex items-center justify-end">
-                  <Button onClick={() => genererBrief()} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer"
-                    className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
-                    <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.writeButton')}</span>
-                  </Button>
-                </div>
-              </div>
+              </>
             )}
-          </div>
+          </section>
 
-          {/* Depuis une photo (vision) */}
-          <div className="rounded-xl border border-white/5 bg-slate-950/40">
-            <button onClick={() => setPhotoOpen((o) => !o)} data-testid="studio-photo-toggle"
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-inter text-slate-300 hover:text-white transition-colors">
-              <ImageIcon className="w-4 h-4 text-[#3AFFA3]" />
-              <span>{t('studio.generateFromPhoto')}</span>
-              <span className="ml-auto text-xs text-slate-500">{photoOpen ? '▲' : '▼'}</span>
-            </button>
-            {photoOpen && (
-              <div className="px-4 pb-4 space-y-3 animate-fade-in">
-                <p className="text-xs text-slate-500 font-inter">{t('studio.photoHint')}</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-slate-500 font-inter">{t('studio.networkLabel')}</span>
+          <section className={carte}>
+            <TeteCarte icon={PenLine} titre={t('studio.writeOwnBrief')} />
+            <p className="text-[13px] text-slate-400 font-inter mb-3">{t('studio.briefAide')}</p>
+            <Textarea value={briefText} onChange={(e) => setBriefText(e.target.value)} rows={3} data-testid="studio-brief-text"
+              placeholder={t('studio.briefPlaceholder')} className={`${champ} resize-y min-h-[72px]`} />
+            <div className="grid grid-cols-2 gap-2.5 mt-2.5">
+              <label className="min-w-0">
+                <span className="block text-[12.5px] text-slate-400 font-inter mb-1.5">{t('studio.formatLabel')}</span>
+                <select id="studio-brief-format" value={bFormat} className={champ} onChange={(e) => {
+                  const f = e.target.value;
+                  setBFormat(f);
+                  if (f === 'story') setBReseaux((arr) => { const ok = arr.filter((x) => RESEAUX_STORY.includes(x)); return ok.length ? ok : [reseauxPour('story')[0]?.id].filter(Boolean); });
+                }}>
+                  {FORMATS.map((f) => <option key={f.id} value={f.id}>{t(`studio.${f.labelKey}`)}</option>)}
+                </select>
+              </label>
+              {bFormat === 'script' ? (
+                <label className="min-w-0">
+                  <span className="block text-[12.5px] text-slate-400 font-inter mb-1.5">{t('studio.typeLabel')}</span>
+                  <select id="studio-brief-type" value={bType} onChange={(e) => setBType(e.target.value)} className={champ}>
+                    {TYPES_VIDEO.map((r) => <option key={r.id} value={r.id}>{t(`studio.${r.labelKey}`)}</option>)}
+                  </select>
+                </label>
+              ) : bFormat === 'carrousel' ? (
+                <label className="min-w-0">
+                  <span className="block text-[12.5px] text-slate-400 font-inter mb-1.5">{t('studio.slidesLabel')}</span>
+                  <select id="studio-brief-slides" value={nbSlides} onChange={(e) => setNbSlides(parseInt(e.target.value, 10))} className={champ}>
+                    {[3, 4, 5, 6, 7, 8, 9, 10].map((n) => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </label>
+              ) : <span />}
+            </div>
+            {bFormat !== 'script' && (
+              <div className="mt-2.5">
+                <span className="block text-[12.5px] text-slate-400 font-inter mb-1.5">{t('studio.networksLabel')}</span>
+                <div className="flex flex-wrap items-center gap-1.5">
                   {reseaux.length === 0
                     ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
-                    : reseaux.map((r) => <Pill key={r.id} active={photoReseau === r.id} onClick={() => setPhotoReseau(r.id)}>{r.label}</Pill>)}
-                </div>
-                <input ref={photoRef} type="file" accept="image/*" className="hidden" data-testid="studio-photo-input"
-                  onChange={(e) => genererPhoto(e.target.files?.[0])} />
-                <div className="flex items-center justify-end gap-2 flex-wrap">
-                  {cameraAvailable() && (
-                    <Button onClick={prendrePhoto} disabled={!marqueOk || photoLoading}
-                      className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10 disabled:opacity-40">
-                      <Camera className="w-4 h-4" />
-                      <span className="ml-2">{t('studio.takePhotoButton')}</span>
-                    </Button>
-                  )}
-                  <Button onClick={() => photoRef.current?.click()} disabled={!marqueOk || photoLoading}
-                    className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white disabled:opacity-40">
-                    {photoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                    <span className="ml-2">{cameraAvailable() ? t('studio.importButton') : t('studio.choosePhotoButton')}</span>
-                  </Button>
+                    : reseauxPour(bFormat).map((r) => (
+                      <Pill key={r.id} active={bReseaux.includes(r.id)} onClick={() => toggleReseau(setBReseaux)(r.id)}>
+                        {bReseaux.includes(r.id) ? '✓ ' : ''}{r.label}
+                      </Pill>
+                    ))}
+                  {bReseaux.length > 1 && <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: bReseaux.length })}</span>}
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Logs */}
-          {loadingSujets && (
-            <div className="space-y-2 rounded-xl bg-slate-950/50 border border-white/5 p-4 animate-fade-in">
-              {LOGS_SUJETS.map((log, i) => {
-                if (i > logIndex) return null;
-                const isCurrent = i === logIndex;
-                return (
-                  <div key={i} className="flex items-center gap-2 text-sm font-inter animate-fade-in">
-                    {isCurrent ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#5B6CFF]" /> : <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                    <span className={isCurrent ? 'text-slate-300' : 'text-slate-500'}>{t(`studio.${log}`)}</span>
-                  </div>
-                );
-              })}
+            <div className="flex justify-end mt-3">
+              <Button onClick={() => genererBrief()} disabled={!marqueOk || !briefText.trim()} data-testid="studio-brief-generer" className={btnViolet}>
+                <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.writeButton')}</span>
+              </Button>
             </div>
-          )}
+          </section>
 
-          {/* État vide */}
-          {!loadingSujets && sujets.length === 0 && (
-            <div className="flex flex-col items-center text-center gap-3 py-10 text-slate-500">
-              <div className="w-14 h-14 rounded-2xl bg-slate-800/60 flex items-center justify-center">
-                <Wand2 className="w-7 h-7 text-[#5B6CFF]" />
+          <section className={carte}>
+            <TeteCarte icon={ImageIcon} titre={t('studio.generateFromPhoto')} />
+            <p className="text-[13px] text-slate-400 font-inter mb-3">{t('studio.photoHint')}</p>
+            <input ref={photoRef} type="file" accept="image/*" className="hidden" data-testid="studio-photo-input"
+              onChange={(e) => genererPhoto(e.target.files?.[0])} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button type="button" onClick={() => photoRef.current?.click()} disabled={!marqueOk || photoLoading}
+                onDragOver={(e) => { e.preventDefault(); setDepotActif(true); }} onDragLeave={() => setDepotActif(false)}
+                onDrop={(e) => { e.preventDefault(); setDepotActif(false); genererPhoto(e.dataTransfer.files?.[0]); }}
+                className={`rounded-xl border-[1.5px] border-dashed min-h-[118px] flex flex-col items-center justify-center gap-1 px-3 text-center text-[12px] font-inter transition-colors disabled:opacity-40 ${depotActif ? 'border-[#6f5cff] bg-[#6f5cff]/10 text-white' : 'border-white/20 text-slate-400 hover:border-white/35'}`}>
+                {photoLoading ? <Loader2 className="w-5 h-5 animate-spin text-[#b6abff]" /> : <Upload className="w-5 h-5 text-[#b6abff]" />}
+                {t('studio.deposerPhoto')}
+                <span className="text-slate-500">{t('studio.formatsPhoto')}</span>
+              </button>
+              <div className="flex flex-col justify-end gap-2.5">
+                <label>
+                  <span className="block text-[12.5px] text-slate-400 font-inter mb-1.5">{t('studio.networkLabel')}</span>
+                  {reseaux.length === 0
+                    ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
+                    : (
+                      <select id="studio-photo-reseau" value={photoReseau} onChange={(e) => setPhotoReseau(e.target.value)} className={champ}>
+                        {reseaux.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+                      </select>
+                    )}
+                </label>
+                {cameraAvailable() && (
+                  <Button onClick={prendrePhoto} disabled={!marqueOk || photoLoading} className="bg-white/5 text-slate-200 hover:bg-white/10 border border-white/10 disabled:opacity-40">
+                    <Camera className="w-4 h-4" /><span className="ml-2">{t('studio.takePhotoButton')}</span>
+                  </Button>
+                )}
+                <Button onClick={() => photoRef.current?.click()} disabled={!marqueOk || photoLoading}
+                  className="bg-[#6f5cff]/15 text-[#d8d2ff] border border-[#6f5cff]/35 hover:bg-[#6f5cff]/25 disabled:opacity-40">
+                  {t('studio.analyserPhoto')}
+                </Button>
               </div>
-              <p className="text-sm font-inter max-w-xs">
-                {t('studio.emptySubjectsHint')}
-              </p>
             </div>
-          )}
+          </section>
+        </div>
 
-          {/* Liste des sujets — accordéon : n° + titre, clic pour déplier le brief (4 dimensions ⭐) */}
-          {sujets.length > 0 && (
-            <div className="space-y-2 animate-fade-in">
-              {sujets.map((s, i) => {
-                const open = openId === s.id;
-                const reco = s.dimensions_reco || s.dimensions || {}; // reco d'origine de l'IA (fige l'⭐)
-                const anyEdited = open && (DIM_META.some(({ cle }) => dimsEdit[cle] !== (reco[cle] || '')) || (dimsEdit.offre || '') !== (reco.offre || ''));
-                return (
-                  <div key={s.id} data-testid={`studio-sujet-${s.id}`}
-                    className={`rounded-xl border transition-all ${open ? 'relative z-10 border-[#5B6CFF]/40 bg-[#5B6CFF]/[0.06]' : 'overflow-hidden border-white/5 bg-slate-800/40 hover:border-white/15'}`}>
-                    {/* Ligne repliée : numéro + titre + tag format + corbeille + chevron.
-                        Sur mobile, badges et boutons passent SOUS le titre : sur une seule
-                        ligne ils lui laissaient trois centimètres et il se cassait mot par mot. */}
-                    {(() => {
-                      const badges = (
-                        <>
-                          {!open && s.dimensions?.format && (
-                            <span className="flex-none text-[10px] font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">{s.dimensions.format}</span>
-                          )}
-                          {!open && s.dimensions?.offre && (
-                            <span className="flex-none max-w-[160px] truncate text-[10px] font-semibold text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25 rounded-md px-1.5 py-0.5">📦 {s.dimensions.offre}</span>
-                          )}
-                        </>
-                      );
-                      const actions = (
-                        <>
-                          <button onClick={(e) => { e.stopPropagation(); supprimerSujet(s.id); }} title={t('studio.deleteTitle')}
-                            className="flex-none text-slate-500 hover:text-red-400 transition-colors p-1">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                          <span className={`flex-none text-[11px] transition-transform ${open ? 'rotate-180 text-[#8A6CFF]' : 'text-slate-500'}`}>▾</span>
-                        </>
-                      );
-                      return (
-                        <div onClick={() => (open ? setOpenId(null) : ouvrir(s))} className="px-3.5 py-3 cursor-pointer select-none">
-                          <div className="flex items-start sm:items-center gap-3">
-                            <span className={`flex-none w-6 h-6 rounded-lg grid place-items-center text-[11px] font-bold font-inter ${open ? 'text-white bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF]' : 'text-[#8A6CFF] bg-[#8A6CFF]/10 border border-[#8A6CFF]/25'}`}>
-                              {String(i + 1).padStart(2, '0')}
-                            </span>
-                            <span className={`flex-1 min-w-0 text-[13.5px] font-semibold leading-snug text-slate-100 font-inter ${open ? '' : 'line-clamp-2 sm:line-clamp-none'}`}>{s.titre}</span>
-                            <div className="hidden sm:flex items-center gap-2 flex-none">{badges}{actions}</div>
+        {/* ─── Colonne 2 : vos sujets + journal ─── */}
+        <div className="flex flex-col gap-4 min-w-0">
+          <section className={carte}>
+            <TeteCarte icon={FileText} titre={t('studio.vosSujets')}>
+              {sujets.length > 0 && <span className="ml-auto text-[12px] text-[#d8d2ff] bg-[#6f5cff]/20 border border-[#6f5cff]/35 rounded-full px-2.5 py-0.5 font-inter">{t('studio.nbSujets', { count: sujets.length })}</span>}
+            </TeteCarte>
+            {sujets.length === 0 ? (
+              <div className="flex flex-col items-center text-center gap-1.5 py-10 px-4 text-[13px] text-slate-400 font-inter">
+                <span className="w-[52px] h-[52px] rounded-full grid place-items-center bg-[radial-gradient(circle,rgba(111,92,255,0.35),transparent_70%)] text-[#b6abff]"><Lightbulb className="w-6 h-6" /></span>
+                <b className="font-sora text-[15px] text-white">{t('studio.videTitre')}</b>
+                {t('studio.videAide')}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {sujets.map((s, i) => {
+                  const open = openId === s.id;
+                  const reco = s.dimensions_reco || s.dimensions || {}; // reco d'origine de l'IA (fige l'⭐)
+                  const anyEdited = open && (DIM_META.some(({ cle }) => dimsEdit[cle] !== (reco[cle] || '')) || (dimsEdit.offre || '') !== (reco.offre || ''));
+                  return (
+                    <div key={s.id} data-testid={`studio-sujet-${s.id}`}
+                      className={`rounded-xl border transition-colors ${open ? 'relative z-10 border-[#6f5cff]/45 bg-[#6f5cff]/[0.07]' : 'border-white/[0.08] bg-[#111b33] hover:border-white/20'}`}>
+                      <div className="flex items-center">
+                        <button type="button" onClick={() => (open ? setOpenId(null) : ouvrir(s))} aria-expanded={open}
+                          className="flex-1 min-w-0 flex items-center gap-3 pl-3.5 pr-2 py-3 text-left">
+                          <span className={`flex-none font-sora font-bold text-[15px] w-5 ${open ? 'text-[#b6abff]' : 'text-slate-400'}`}>{i + 1}</span>
+                          <span className="min-w-0">
+                            <span className="block text-[13.5px] font-semibold text-slate-100 font-inter leading-snug">{s.titre}</span>
+                            {(s.dimensions?.format || s.dimensions?.offre) && (
+                              <span className="block text-[12px] text-slate-500 font-inter mt-0.5 truncate">
+                                {[s.dimensions?.format, s.dimensions?.offre].filter(Boolean).join(' · ')}
+                              </span>
+                            )}
+                          </span>
+                          <ChevronDown className={`ml-auto flex-none w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+                        </button>
+                        <button type="button" onClick={() => supprimerSujet(s.id)} title={t('studio.deleteTitle')} aria-label={t('studio.deleteTitle')}
+                          className="flex-none mr-2 p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-white/5">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {open && (
+                        <div className="px-3.5 pb-4 pt-1 space-y-3 animate-fade-in">
+                          <div className="grid grid-cols-2 gap-2">
+                            {DIM_META.map(({ cle, emoji, label }) => (
+                              <DimSelect key={cle} emoji={emoji} label={label}
+                                value={dimsEdit[cle]} reco={reco[cle]}
+                                options={(dims && dims[cle] && dims[cle].length) ? dims[cle] : DIM_FALLBACK[cle]}
+                                onChange={(v) => changeDim(cle, v)} />
+                            ))}
                           </div>
-                          <div className="sm:hidden flex items-center gap-1.5 mt-2 pl-9">
-                            {badges}
-                            <span className="ml-auto flex items-center gap-0.5">{actions}</span>
-                          </div>
-                        </div>
-                      );
-                    })()}
+                          {/* 5e dimension « Offre » (dynamique, optionnelle) — seulement si le compte a des offres */}
+                          {dims?.offre?.length ? (
+                            <DimSelect emoji="📦" label="Offre mise en avant"
+                              value={dimsEdit.offre || 'Aucune'} reco={reco.offre || 'Aucune'}
+                              options={['Aucune', ...dims.offre]}
+                              onChange={(v) => changeDim('offre', v === 'Aucune' ? '' : v)} />
+                          ) : null}
 
-                    {/* Corps déplié : brief (4 dimensions ⭐) + réseaux/type + Créer */}
-                    {open && (
-                      <div className="px-3.5 pb-4 pt-1 space-y-3 animate-fade-in">
-                        <div className="grid grid-cols-2 gap-2">
-                          {DIM_META.map(({ cle, emoji, label }) => (
-                            <DimSelect key={cle} emoji={emoji} label={label}
-                              value={dimsEdit[cle]} reco={reco[cle]}
-                              options={(dims && dims[cle] && dims[cle].length) ? dims[cle] : DIM_FALLBACK[cle]}
-                              onChange={(v) => changeDim(cle, v)} />
-                          ))}
-                        </div>
-                        {/* 5e dimension « Offre » (dynamique, optionnelle) — seulement si le compte a des offres */}
-                        {dims?.offre?.length ? (
-                          <DimSelect emoji="📦" label="Offre mise en avant"
-                            value={dimsEdit.offre || 'Aucune'} reco={reco.offre || 'Aucune'}
-                            options={['Aucune', ...dims.offre]}
-                            onChange={(v) => changeDim('offre', v === 'Aucune' ? '' : v)} />
-                        ) : null}
-
-                        {/* Le format vient de la dimension. Script vidéo = Type + Réseau ; sinon = Réseaux */}
-                        {cfgFormat === 'script' ? (
-                          <>
+                          {/* Le format vient de la dimension. Script vidéo = Type + Réseau ; sinon = Réseaux */}
+                          {cfgFormat === 'script' ? (
+                            <>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs text-slate-500 font-inter">{t('studio.typeLabel')}</span>
+                                {TYPES_VIDEO.map((r) => (
+                                  <Pill key={r.id} active={cfgType === r.id} onClick={() => setCfgType(r.id)}>{t(`studio.${r.labelKey}`)}</Pill>
+                                ))}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs text-slate-500 font-inter">{t('studio.networkLabel')}</span>
+                                {reseauxVideo(dimsEdit.format).length === 0
+                                  ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
+                                  : reseauxVideo(dimsEdit.format).map((r) => (
+                                    <Pill key={r.id} active={cfgReseaux[0] === r.id} onClick={() => setCfgReseaux([r.id])}>{r.label}</Pill>
+                                  ))}
+                              </div>
+                            </>
+                          ) : (
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-xs text-slate-500 font-inter">{t('studio.typeLabel')}</span>
-                              {TYPES_VIDEO.map((r) => (
-                                <Pill key={r.id} active={cfgType === r.id} onClick={() => setCfgType(r.id)}>
-                                  {t(`studio.${r.labelKey}`)}
-                                </Pill>
-                              ))}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-xs text-slate-500 font-inter">{t('studio.networkLabel')}</span>
-                              {reseauxVideo(dimsEdit.format).length === 0
+                              <span className="text-xs text-slate-500 font-inter">{t('studio.networksLabel')}</span>
+                              {reseaux.length === 0
                                 ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
-                                : reseauxVideo(dimsEdit.format).map((r) => (
-                                  <Pill key={r.id} active={cfgReseaux[0] === r.id} onClick={() => setCfgReseaux([r.id])}>
-                                    {r.label}
+                                : reseauxPour(cfgFormat).map((r) => (
+                                  <Pill key={r.id} active={cfgReseaux.includes(r.id)} onClick={() => toggleReseau(setCfgReseaux)(r.id)}>
+                                    {cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.label}
                                   </Pill>
                                 ))}
+                              {cfgReseaux.length > 1 && <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: cfgReseaux.length })}</span>}
                             </div>
-                          </>
-                        ) : (
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs text-slate-500 font-inter">{t('studio.networksLabel')}</span>
-                            {reseaux.length === 0
-                              ? <Link to="/dashboard/parametres" className="text-xs text-amber-400 hover:underline">{t('studio.connectNetworkFirst')}</Link>
-                              : reseauxPour(cfgFormat).map((r) => (
-                                <Pill key={r.id} active={cfgReseaux.includes(r.id)} onClick={() => toggleReseau(setCfgReseaux)(r.id)}>
-                                  {cfgReseaux.includes(r.id) ? '✓ ' : ''}{r.labelKey ? t(`studio.${r.labelKey}`) : r.label}
-                                </Pill>
-                              ))}
-                            {cfgReseaux.length > 1 && (
-                              <span className="text-[11px] text-[#3AFFA3] font-inter">{t('studio.onePostNNetworks', { n: cfgReseaux.length })}</span>
-                            )}
-                          </div>
-                        )}
-                        {cfgFormat === 'carrousel' && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-slate-500 font-inter">{t('studio.slidesLabel')}</span>
-                            <input type="number" min={3} max={10} value={nbSlides}
-                              onChange={(e) => setNbSlides(Math.max(3, Math.min(10, parseInt(e.target.value, 10) || 5)))}
-                              className="w-16 rounded-lg bg-slate-950/60 border border-white/10 text-slate-200 text-sm px-3 py-1 outline-none focus:border-[#5B6CFF]/50" />
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          {anyEdited && (
-                            <button onClick={() => revertDims(s)} className="text-[11px] text-slate-500 hover:text-[#3AFFA3] transition-colors inline-flex items-center gap-1">↺ {t('studio.resetReco')}</button>
                           )}
-                          <button onClick={() => setOpenId(null)} className="ml-auto text-xs text-slate-400 hover:text-white font-inter px-2">{t('studio.cancel')}</button>
-                          <Button onClick={() => genererContenu(s)} data-testid={`studio-generer-post-${s.id}`} className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white">
-                            <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.generateButton')}</span>
-                          </Button>
+                          {cfgFormat === 'carrousel' && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-slate-500 font-inter">{t('studio.slidesLabel')}</span>
+                              <select id={`studio-slides-${s.id}`} value={nbSlides} onChange={(e) => setNbSlides(parseInt(e.target.value, 10))}
+                                className="rounded-lg bg-[#0b1326] border border-white/10 text-slate-200 text-sm px-2.5 py-1 outline-none focus:border-[#6f5cff]/60">
+                                {[3, 4, 5, 6, 7, 8, 9, 10].map((n) => <option key={n} value={n}>{n}</option>)}
+                              </select>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            {anyEdited && (
+                              <button type="button" onClick={() => revertDims(s)} className="text-[11px] text-slate-500 hover:text-[#3AFFA3] transition-colors inline-flex items-center gap-1">↺ {t('studio.resetReco')}</button>
+                            )}
+                            <button type="button" onClick={() => setOpenId(null)} className="ml-auto text-xs text-slate-400 hover:text-white font-inter px-2">{t('studio.cancel')}</button>
+                            <Button onClick={() => genererContenu(s)} data-testid={`studio-generer-post-${s.id}`} className={btnViolet}>
+                              <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.generateButton')}</span>
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        {/* ─── DROITE : Contenus ─── */}
-        <section className="bg-slate-900/60 border border-white/[0.06] rounded-2xl p-5 space-y-4 min-h-[320px]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <PenLine className="w-4 h-4 text-[#3AFFA3]" />
-              <h2 className="font-medium font-inter text-slate-200">{t('studio.yourContentsTitle')}</h2>
-            </div>
-            {contenus.length > 0 && (
-              <span className="text-xs text-slate-500 font-inter">{t('studio.draftsCount', { count: contenus.length })}</span>
-            )}
-          </div>
-
-          {contenus.length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-center gap-3 py-16 text-slate-500">
-              <div className="w-12 h-12 rounded-2xl bg-slate-800/50 flex items-center justify-center">
-                <PenLine className="w-6 h-6 text-slate-600" />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <p className="text-sm font-inter max-w-[15rem]">
-                {t('studio.emptyContentsHint')}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {contenus.map((c) => (
-                <div key={c.id} data-testid={`studio-contenu-${c.id}`}
-                  className="rounded-xl border border-white/[0.06] bg-slate-950/40 p-4 space-y-3 transition-all duration-300 animate-fade-in">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-inter flex-shrink-0">
-                      {c.format === 'script' ? `🎬 ${typeVideoLabel(c.meta)}` : c.format === 'carrousel' ? `🖼 ${c.meta}` : c.format === 'photo' ? `📷 ${c.meta}` : c.meta}
-                    </span>
-                    <span className="text-xs font-medium text-slate-400 font-inter flex-1 truncate">{c.sujet}</span>
-                    <button onClick={() => supprimerContenu(c.id)} title={t('studio.removeTitle')} className="text-slate-500 hover:text-red-400 transition-colors flex-shrink-0">
-                      <Trash2 className="w-3.5 h-3.5" />
+            )}
+          </section>
+
+          <section className={carte}>
+            <TeteCarte icon={Sparkles} titre={t('studio.journalTitre')}>
+              <span className={`ml-auto text-[12px] rounded-full px-2.5 py-0.5 font-inter border ${loadingSujets || enCours ? 'text-[#d8d2ff] bg-[#6f5cff]/20 border-[#6f5cff]/35' : 'text-slate-400 border-white/10'}`}>
+                {loadingSujets || enCours ? t('studio.journalEnCours') : t('studio.journalAttente')}
+              </span>
+            </TeteCarte>
+            {loadingSujets ? (
+              <ol className="flex flex-col gap-2.5 text-[13px] font-inter" aria-live="polite">
+                {LOGS_SUJETS.map((log, i) => (
+                  <li key={log} className={`flex items-center gap-2.5 ${i < logIndex ? 'text-slate-100' : i === logIndex ? 'text-[#d8d2ff]' : 'text-slate-500'}`}>
+                    {i < logIndex ? <span className="w-2 h-2 rounded-full bg-[#3AFFA3]" />
+                      : i === logIndex ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#b6abff]" />
+                      : <span className="w-2 h-2 rounded-full border border-slate-500" />}
+                    {t(`studio.${log}`)}
+                  </li>
+                ))}
+              </ol>
+            ) : enCours ? (
+              <ol className="flex flex-col gap-2.5 text-[13px] font-inter" aria-live="polite">
+                {contenus.filter((c) => c.statut === 'redaction').map((c) => (
+                  <li key={c.id} className="flex items-center gap-2.5 text-[#d8d2ff]"><Loader2 className="w-3.5 h-3.5 animate-spin text-[#b6abff]" />{etatContenu(c)} <span className="text-slate-500 truncate">{c.sujet}</span></li>
+                ))}
+              </ol>
+            ) : (
+              <p className="text-[13px] text-slate-400 font-inter">{t('studio.journalVide')}</p>
+            )}
+          </section>
+        </div>
+
+        {/* ─── Colonne 3 : contenus générés + aperçu ─── */}
+        <div className="flex flex-col gap-4 min-w-0 md:col-span-2 xl:col-span-1">
+          <section className={carte}>
+            <TeteCarte icon={LayoutGrid} titre={t('studio.contenusGeneres')}>
+              {contenus.length > 0 && (
+                <span className="text-[12px] text-[#d8d2ff] bg-[#6f5cff]/20 border border-[#6f5cff]/35 rounded-full px-2.5 py-0.5 font-inter">
+                  {enCours ? t('studio.nbEnCours', { count: enCours }) : t('studio.draftsCount', { count: contenus.length })}
+                </span>
+              )}
+              <Link to="/dashboard/contenus" className="ml-auto text-[12.5px] font-semibold text-[#b6abff] hover:text-white font-inter">{t('studio.voirTout')} →</Link>
+            </TeteCarte>
+            {contenus.length === 0 ? (
+              <p className="text-[13px] text-slate-400 font-inter py-6 text-center">{t('studio.emptyContentsHint')}</p>
+            ) : (
+              <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-0.5">
+                {contenus.map((c) => (
+                  <div key={c.id} data-testid={`studio-contenu-${c.id}`}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors ${sel?.id === c.id ? 'border-[#6f5cff]/55 bg-[#6f5cff]/[0.08]' : 'border-white/[0.08] bg-[#111b33] hover:border-white/20'}`}>
+                    <button type="button" onClick={() => { setSelId(c.id); setOnglet('texte'); }} className="flex-1 min-w-0 flex items-center gap-3 text-left">
+                      <Plateforme id={reseauDe(c)} />
+                      <span className="min-w-0">
+                        <span className="block text-[13.5px] font-semibold text-white font-inter truncate">{libelleFormat(c)} {nomReseau(reseauDe(c)) || (c.format === 'script' ? typeVideoLabel(c.meta) : '')}</span>
+                        <span className={`flex items-center gap-1.5 text-[12px] font-inter ${c.statut === 'erreur' ? 'text-red-400' : 'text-[#3AFFA3]'}`}>
+                          {c.statut === 'redaction' && <Loader2 className="w-3 h-3 animate-spin" />}
+                          <span className="truncate">{etatContenu(c)}</span>
+                        </span>
+                      </span>
+                    </button>
+                    <button type="button" onClick={() => supprimerContenu(c.id)} title={t('studio.removeTitle')} aria-label={t('studio.removeTitle')}
+                      className="flex-none p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-white/5">
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
+                ))}
+              </div>
+            )}
+          </section>
 
-                  {c.statut === 'erreur' ? (
-                    <div className="flex flex-col items-center gap-2 text-center py-6">
-                      <p className="text-xs text-red-400 font-inter">
-                        {c.format === 'carrousel'
-                          ? t('studio.carouselGenerationErrorLong')
-                          : t('studio.generationErrorShort')}
-                      </p>
-                      <Button size="sm" variant="ghost" onClick={() => regenerer(c.id)} className="text-slate-400 hover:text-white">
-                        <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.retry')}</span>
-                      </Button>
-                    </div>
-                  ) : c.statut === 'redaction' ? (
-                    <div className="flex items-center gap-2 text-slate-400 py-8 justify-center">
-                      <Loader2 className="w-4 h-4 animate-spin text-[#5B6CFF]" />
-                      <span className="font-inter text-sm">{c.format === 'carrousel' ? t('studio.creatingCarousel') : c.format === 'photo' ? t('studio.analyzingPhoto') : c.format === 'script' ? t('studio.writingScript') : t('studio.writingPost')}</span>
-                    </div>
-                  ) : c.format === 'photo' ? (
-                    <div className="space-y-3">
-                      {c.image && <img src={c.image} alt="" className="w-full rounded-lg border border-white/10 max-h-60 object-cover" />}
-                      <p className="text-sm text-slate-200 font-inter whitespace-pre-wrap">{c.texte}</p>
-                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-inter">
-                        <Check className="w-3.5 h-3.5" /> {t('studio.photoSaved')}
-                      </div>
-                    </div>
-                  ) : c.format === 'carrousel' ? (
-                    // Carrousel déjà enregistré dans Contenus (« À valider ») : la carte se replie en une
-                    // ligne compacte avec une sortie claire, au lieu de la grille de slides qui restait là.
-                    <div className="flex items-center gap-3 flex-wrap">
-                      {c.images && c.images.length ? (
-                        <button type="button" onClick={() => setLightbox({ images: c.images, index: 0 })}
-                          className="flex -space-x-3 focus:outline-none focus:ring-2 focus:ring-indigo-400 rounded-md" title={t('studio.enlargeSlide', 'Agrandir')}>
-                          {c.images.slice(0, 4).map((u, i) => (
-                            <img key={i} src={u} alt={t('studio.slideAlt', { n: i + 1 })}
-                              className="w-10 h-[50px] object-cover rounded-md border-2 border-slate-950 shadow-md" style={{ zIndex: 10 - i }} />
-                          ))}
-                          {c.images.length > 4 && (
-                            <span className="w-10 h-[50px] rounded-md border-2 border-slate-950 bg-slate-800 text-[11px] text-slate-300 grid place-items-center">+{c.images.length - 4}</span>
-                          )}
-                        </button>
-                      ) : (
-                        <p className="text-xs text-amber-400 font-inter">{t('studio.noImagesGenerated')}</p>
-                      )}
-                      <div className="flex-1 min-w-[10rem] flex items-center gap-2 text-emerald-400 text-xs font-inter">
-                        <Check className="w-3.5 h-3.5 flex-shrink-0" /> {t('studio.carouselSaved')}
-                      </div>
-                      <Button size="sm" data-testid={`studio-carrousel-ouvrir-${c.id}`}
-                        onClick={() => { supprimerContenu(c.id); navigate(c.contenuId ? `/dashboard/contenus?ouvrir=${c.contenuId}` : '/dashboard/contenus'); }}
-                        className="bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30">
-                        {t('studio.openInContents')}<ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => supprimerContenu(c.id)} className="text-slate-400 hover:text-white">
-                        {t('studio.closeCard')}
-                      </Button>
-                    </div>
-                  ) : (
+          {sel && (
+            <section className={carte}>
+              <TeteCarte icon={Eye} titre={t('studio.apercuTitre')} />
+              <div className="flex items-center gap-2 text-[13px] text-slate-400 font-inter mb-2.5">
+                <Plateforme id={reseauDe(sel)} petit />
+                <b className="text-white">{libelleFormat(sel)}</b> {nomReseau(reseauDe(sel))}
+                {sel.format === 'carrousel' && sel.images?.length > 0 && (
+                  <span className="ml-auto flex items-center gap-2">
+                    <span className="tabular-nums">{slideIdx + 1}/{sel.images.length}</span>
+                    <button type="button" onClick={() => setSlideIdx((i) => (i - 1 + sel.images.length) % sel.images.length)} aria-label={t('studio.prevSlide', 'Précédent')} className="w-7 h-7 rounded-lg border border-white/10 grid place-items-center hover:text-white"><ChevronLeft className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => setSlideIdx((i) => (i + 1) % sel.images.length)} aria-label={t('studio.nextSlide', 'Suivant')} className="w-7 h-7 rounded-lg border border-white/10 grid place-items-center hover:text-white"><ChevronRight className="w-4 h-4" /></button>
+                  </span>
+                )}
+              </div>
+
+              {sel.statut === 'erreur' ? (
+                <div className="flex flex-col items-center gap-2 text-center py-8">
+                  <p className="text-xs text-red-400 font-inter">{sel.format === 'carrousel' ? t('studio.carouselGenerationErrorLong') : t('studio.generationErrorShort')}</p>
+                  <Button size="sm" variant="ghost" onClick={() => regenerer(sel.id)} className="text-slate-300 hover:text-white">
+                    <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.retry')}</span>
+                  </Button>
+                </div>
+              ) : sel.statut === 'redaction' ? (
+                <div className="flex items-center gap-2 text-slate-400 py-12 justify-center">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#6f5cff]" />
+                  <span className="font-inter text-sm">{etatContenu(sel)}</span>
+                </div>
+              ) : sel.format === 'photo' ? (
+                <div className="space-y-3">
+                  {sel.image && <img src={sel.image} alt="" className="w-full rounded-xl border border-white/10 max-h-72 object-cover" />}
+                  <p className="text-sm text-slate-200 font-inter whitespace-pre-wrap">{sel.texte}</p>
+                  <div className="flex items-center gap-2 text-emerald-400 text-xs font-inter"><Check className="w-3.5 h-3.5" /> {t('studio.photoSaved')}</div>
+                </div>
+              ) : sel.format === 'carrousel' ? (
+                <div className="space-y-3">
+                  {sel.images?.length ? (
                     <>
-                      <Textarea value={c.texte} onChange={(e) => editer(c.id, e.target.value)}
-                        rows={c.format === 'script' ? 12 : 9}
-                        className="bg-slate-950/60 border-white/10 text-slate-100 font-inter resize-y" />
-                      {c.format !== 'script' && (
-                        <AideAccroche texte={c.texte} reseau={c.meta} chiffresNonSources={c.accrocheAlerte} />
-                      )}
-                      <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" onClick={() => regenerer(c.id)} className="text-slate-400 hover:text-white">
-                          <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.regenerate')}</span>
-                        </Button>
-                        <Button data-testid={`studio-valider-${c.id}`} onClick={() => valider(c.id)} disabled={c.saving || !c.texte.trim()}
-                          className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/30">
-                          {c.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}<span className="ml-2">{t('studio.validate')}</span>
+                      <div className="grid grid-cols-[minmax(0,1fr)_108px] gap-2">
+                        <button type="button" onClick={() => setLightbox({ images: sel.images, index: slideIdx })} title={t('studio.enlargeSlide', 'Agrandir')}
+                          className="relative rounded-xl overflow-hidden bg-[#111b33] aspect-[4/5]">
+                          <img src={sel.images[slideIdx]} alt={t('studio.slideAlt', { n: slideIdx + 1 })} className="w-full h-full object-cover" />
+                          <span className="absolute right-2 top-2 text-[11px] bg-black/50 text-white rounded-md px-1.5">{slideIdx + 1}/{sel.images.length}</span>
+                        </button>
+                        {sel.images.length > 1 && (
+                          <button type="button" onClick={() => setSlideIdx((i) => (i + 1) % sel.images.length)} className="relative rounded-xl overflow-hidden bg-[#111b33] border border-white/[0.08]" aria-label={t('studio.nextSlide', 'Suivant')}>
+                            <img src={sel.images[(slideIdx + 1) % sel.images.length]} alt="" className="w-full h-full object-cover opacity-70" />
+                            <span className="absolute right-1.5 top-1.5 text-[11px] text-white/80">{((slideIdx + 1) % sel.images.length) + 1}/{sel.images.length}</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {sel.images.map((u, i) => (
+                          <button key={u} type="button" onClick={() => setSlideIdx(i)} aria-label={t('studio.slideAlt', { n: i + 1 })}
+                            className={`w-11 h-11 rounded-lg overflow-hidden border-2 ${i === slideIdx ? 'border-[#3AFFA3]' : 'border-transparent opacity-80 hover:opacity-100'}`}>
+                            <img src={u} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                        <Button size="sm" onClick={() => setLightbox({ images: sel.images, index: slideIdx })}
+                          className="ml-auto bg-[#6f5cff]/15 text-[#d8d2ff] border border-[#6f5cff]/35 hover:bg-[#6f5cff]/25">
+                          <Maximize2 className="w-3.5 h-3.5" /><span className="ml-1.5">{t('studio.pleinEcran')}</span>
                         </Button>
                       </div>
                     </>
+                  ) : (
+                    <p className="text-xs text-amber-400 font-inter">{t('studio.noImagesGenerated')}</p>
                   )}
+                  <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#6f5cff]/35 bg-[#6f5cff]/10 px-3 py-2.5 text-[13px] text-slate-200 font-inter">
+                    <Sparkles className="w-4 h-4 text-[#b6abff]" />
+                    <span className="flex-1 min-w-[10rem]">{t('studio.carouselSaved')}</span>
+                    <Button size="sm" data-testid={`studio-carrousel-ouvrir-${sel.id}`}
+                      onClick={() => { supprimerContenu(sel.id); navigate(sel.contenuId ? `/dashboard/contenus?ouvrir=${sel.contenuId}` : '/dashboard/contenus'); }}
+                      className="bg-transparent border border-white/15 text-white hover:bg-white/5">
+                      {t('studio.openInContents')}<ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => supprimerContenu(sel.id)} className="text-slate-400 hover:text-white">{t('studio.closeCard')}</Button>
+                  </div>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <>
+                  <div role="tablist" aria-label={t('studio.apercuTitre')} className="flex gap-1 border-b border-white/[0.08] mb-2.5">
+                    {[['texte', t('studio.ongletTexte')], ...(sel.format !== 'script' ? [['accroche', t('studio.ongletAccroche')], ['verif', t('studio.ongletVerif')]] : [])].map(([id, lib]) => (
+                      <button key={id} type="button" role="tab" aria-selected={onglet === id} onClick={() => setOnglet(id)}
+                        className={`px-3 py-2 text-[13px] font-inter -mb-px border-b-2 rounded-t-lg ${onglet === id ? 'text-white border-[#8A6CFF] bg-[#6f5cff]/10' : 'text-slate-400 border-transparent hover:text-white'}`}>{lib}</button>
+                    ))}
+                  </div>
+                  {onglet === 'accroche' && sel.format !== 'script' ? (
+                    <AideAccroche texte={sel.texte} reseau={sel.meta} chiffresNonSources={sel.accrocheAlerte} />
+                  ) : onglet === 'verif' && sel.format !== 'script' ? (
+                    <ul className="flex flex-col gap-2 text-[13px] font-inter py-1">
+                      {verifications(sel).map((v) => (
+                        <li key={v.texte} className="flex items-start gap-2 text-slate-200">
+                          <span className={`mt-1.5 w-2 h-2 rounded-full flex-none ${v.ok ? 'bg-[#3AFFA3]' : 'bg-orange-400'}`} />{v.texte}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <Textarea value={sel.texte} onChange={(e) => editer(sel.id, e.target.value)} rows={sel.format === 'script' ? 12 : 8}
+                      aria-label={t('studio.ongletTexte')} className={`${champ} resize-y`} />
+                  )}
+                  <div className="flex items-center justify-between gap-2.5 mt-3">
+                    <Button variant="ghost" onClick={() => regenerer(sel.id)} className="border border-white/15 text-slate-200 hover:text-white hover:bg-white/5 min-w-[140px]">
+                      <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.regenerate')}</span>
+                    </Button>
+                    <Button data-testid={`studio-valider-${sel.id}`} onClick={() => valider(sel.id)} disabled={sel.saving || !sel.texte.trim()}
+                      className="bg-[#3AFFA3] text-[#03241a] hover:bg-[#5effb6] min-w-[140px] disabled:opacity-50">
+                      {sel.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" strokeWidth={2.6} />}<span className="ml-2">{t('studio.validate')}</span>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </section>
           )}
-        </section>
+        </div>
       </div>
 
       {lightbox && (
