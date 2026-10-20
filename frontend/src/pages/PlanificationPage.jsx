@@ -1,11 +1,16 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send, Trash2, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Calendar, Loader2, ChevronLeft, ChevronRight, X, ExternalLink, Image as ImageIcon, Clock, Check, AlertTriangle, Ban, Send, Trash2, RefreshCw,
+  Target, TrendingUp, Users, Pencil, Plus, CalendarClock, Lightbulb, Rocket, ArrowRight,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { PageHeader } from '../components/PageHeader';
 import { contenuService } from '../services/contenuService';
+import { agentService } from '../services/agentService';
+import { analyticsService } from '../services/analyticsService';
 import { useUser } from '../context/UserContext';
-import { SocialIcon } from '../components/SocialIcon';
+import { LogoReseau } from '../components/LogoReseau';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
@@ -40,15 +45,15 @@ const STATUT = {
 const ST_DEFAUT = { labelKey: 'statutAucun', bg: 'rgba(148,163,184,.15)', co: '#cbd5e1', sw: '#94a3b8' };
 const stOf = (s) => STATUT[s] || ST_DEFAUT;
 
-// Réseaux -> pastille
-const NET = {
-  LinkedIn:  { s: 'in', style: { background: '#0a66c2' } },
-  Instagram: { s: '◎', style: { background: 'linear-gradient(135deg,#feda75,#d62976 45%,#962fbf)' } },
-  Facebook:  { s: 'f', style: { background: '#1877f2' } },
-  TikTok:    { s: '♪', style: { background: '#111', border: '1px solid #2b2b2b' } },
-  YouTube:   { s: '▶', style: { background: '#ff0000' } },
-};
-const netOf = (r) => NET[r] || { s: '•', style: { background: '#334155' } };
+// Réseau d'un contenu (« LinkedIn », « Google Business »…) -> id de logo
+const idReseau = (r) => (r || '').toLowerCase().replace(/\s+/g, '');
+const RESEAUX_IDS = ['instagram', 'linkedin', 'facebook', 'tiktok', 'youtube', 'googlebusiness', 'twitter'];
+// Couleurs des groupes de sujets (par objectif)
+const COULEURS_GROUPES = ['#8A6CFF', '#38bdf8', '#3AFFA3', '#f472b6', '#fbbf24'];
+// Hauteur d'une heure dans les vues semaine / jour
+const HAUTEUR_HEURE = 48;
+// Anneau de focus clavier commun
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]/70';
 
 // État de publication (Late) -> icône + couleur
 const PUB = {
@@ -62,12 +67,12 @@ const PUB = {
 const pubOf = (s) => PUB[s] || null;
 
 export default function PlanificationPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useUser();
   const [contenus, setContenus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(new Date());
-  const [view, setView] = useState('mois'); // mois | liste
+  const [view, setView] = useState('mois'); // mois | semaine | jour
   const [selected, setSelected] = useState(null);
   const [dateVal, setDateVal] = useState('');
   const [busy, setBusy] = useState(false);
@@ -265,11 +270,6 @@ export default function PlanificationPage() {
     .filter((c) => { if (!c.date_publication) return false; const d = new Date(c.date_publication); return d.getFullYear() === year && d.getMonth() === month; })
     .sort((a, b) => new Date(a.date_publication) - new Date(b.date_publication)), [contenus, year, month]);
 
-  const upcoming = useMemo(() => contenus
-    .filter((c) => c.date_publication && new Date(c.date_publication) >= new Date(today.getFullYear(), today.getMonth(), today.getDate()))
-    .sort((a, b) => new Date(a.date_publication) - new Date(b.date_publication))
-    .slice(0, 5), [contenus]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // Posts prêts mais pas encore envoyés à la publication (actionnables)
   const aProgrammer = useMemo(() => contenus
     .filter((c) => c.reseau_cible && c.statut !== 'Publie'
@@ -283,26 +283,120 @@ export default function PlanificationPage() {
     valid: moisContenus.filter((c) => c.statut === 'A valider').length,
   }), [moisContenus]);
 
-  const changeMonth = (d) => { setCurrent(new Date(year, month + d, 1)); };
-  const goToday = () => { setCurrent(new Date()); };
+  // Légende des états de publication
+  const Legende = () => (
+    <div className="mt-3.5 pt-3.5 border-t border-white/[0.07] flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span className="text-[12px] text-slate-400 font-inter">{t('planif.legendeEtat')}</span>
+      {Object.values(PUB).map((p) => (
+        <span key={p.labelKey} className="flex items-center gap-1.5 text-[12px] text-slate-300 font-inter">
+          <p.Icon className="w-3.5 h-3.5" style={{ color: p.color }} strokeWidth={2.5} aria-hidden="true" />{t(`planif.${p.labelKey}`)}
+        </span>
+      ))}
+    </div>
+  );
 
-  // Vignette : visuel du post si dispo, sinon icône du réseau social
-  const Thumb = ({ c, className = '' }) => {
-    const visual = c.lien_visuel || (Array.isArray(c.slides_images) && c.slides_images[0]);
-    const net = netOf(c.reseau_cible);
-    if (visual) return (
-      <span className={`relative rounded-lg overflow-hidden bg-cover bg-center shrink-0 ring-1 ring-white/10 ${className}`} style={{ backgroundImage: `url(${visual})` }}>
-        <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md grid place-items-center text-white ring-2 ring-[#0f172a]" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2 h-2" /></span>
-      </span>
-    );
-    return <span className={`rounded-lg grid place-items-center text-white shrink-0 ${className}`} style={net.style}><SocialIcon network={c.reseau_cible} className="w-1/2 h-1/2" /></span>;
+  // --- Période affichée (mois / semaine / jour) ---
+  const debutSemaine = useMemo(() => {
+    const d = new Date(current); d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    return d;
+  }, [current]);
+  const joursVue = useMemo(() => (view === 'jour'
+    ? [new Date(current.getFullYear(), current.getMonth(), current.getDate())]
+    : Array.from({ length: 7 }, (_, i) => { const d = new Date(debutSemaine); d.setDate(debutSemaine.getDate() + i); return d; })), [view, current, debutSemaine]);
+  const changePeriode = (dir) => {
+    if (view === 'mois') setCurrent(new Date(year, month + dir, 1));
+    else { const d = new Date(current); d.setDate(d.getDate() + dir * (view === 'semaine' ? 7 : 1)); setCurrent(d); }
+  };
+  const goToday = () => { setCurrent(new Date()); };
+  const langue = i18n.resolvedLanguage || i18n.language || 'fr';
+  const libellePeriode = view === 'mois'
+    ? <>{t(`planif.${MOIS_KEYS[month]}`)} <span className="text-slate-400 font-medium">{year}</span></>
+    : view === 'semaine'
+      ? t('planif.semaineDu', { date: debutSemaine.toLocaleDateString(langue, { day: 'numeric', month: 'long' }) })
+      : current.toLocaleDateString(langue, { weekday: 'long', day: 'numeric', month: 'long' });
+  const heureDe = (c) => (c.date_publication ? Number(utcToInput(c.date_publication, tz).split('T')[1].slice(0, 2)) : -1);
+  // Grille horaire : on fait défiler jusqu'à 7 h à l'ouverture (les heures de nuit restent accessibles)
+  const grilleRef = useRef(null);
+  useEffect(() => {
+    if ((view === 'semaine' || view === 'jour') && grilleRef.current) grilleRef.current.scrollTop = 7 * HAUTEUR_HEURE;
+  }, [view, loading]);
+
+  // --- Données des blocs (plan du mois, statistiques, sujets) ---
+  const [plan, setPlan] = useState([]);
+  const [insights, setInsights] = useState(null);
+  const [sujets, setSujets] = useState([]);
+  useEffect(() => {
+    agentService.plan(year, month + 1).then((d) => setPlan(d.plan || [])).catch(() => setPlan([]));
+  }, [year, month]);
+  useEffect(() => {
+    analyticsService.insights(30).then(setInsights).catch(() => setInsights(null));
+    agentService.sujetsList().then((d) => setSujets(d || [])).catch(() => {});
+  }, []);
+  const objectifs = useMemo(() => ({
+    needed: plan.reduce((a, p) => a + p.needed, 0),
+    filled: plan.reduce((a, p) => a + p.filled, 0),
+    done: plan.filter((p) => p.remaining === 0).length,
+  }), [plan]);
+  const reseauxConnectes = RESEAUX_IDS.filter((id) => !!user?.[`late_account_${id}`]);
+  const engagement = useMemo(() => {
+    if (!insights?.ok || !insights.connected || insights.addon_required) return null;
+    const tot = insights.comparaison?.totals || insights.kpis || {};
+    const prev = insights.comparaison?.previousTotals;
+    const taux = Number(tot.engagementRate || 0);
+    const variation = prev && Number(prev.engagementRate) ? Math.round(((taux - Number(prev.engagementRate)) / Number(prev.engagementRate)) * 100) : null;
+    const serie = (insights.serie || []).filter((r) => r.date).sort((a, b) => String(a.date).localeCompare(String(b.date)))
+      .map((r) => Number(r.engagement ?? ((r.likes || 0) + (r.comments || 0) + (r.shares || 0) + (r.saves || 0))) || 0);
+    return { taux, variation, serie };
+  }, [insights]);
+  const creneaux = (insights?.creneaux || []).slice(0, 3);
+  const groupesSujets = useMemo(() => {
+    const m = new Map();
+    for (const s of sujets) { const k = s.dimensions?.objectif || t('planif.autres'); m.set(k, (m.get(k) || 0) + 1); }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, [sujets, t]);
+  const prochains = useMemo(() => contenus
+    .filter((c) => c.date_publication && new Date(c.date_publication) >= new Date())
+    .sort((a, b) => new Date(a.date_publication) - new Date(b.date_publication))
+    .slice(0, 6), [contenus]);
+  const supprimerLigne = async (c) => {
+    if (!window.confirm(t('planif.confirmSuppression'))) return;
+    try {
+      await contenuService.remove(c.id);
+      setContenus((prev) => prev.filter((x) => x.id !== c.id));
+      toast.success(t('planif.postSupprime'));
+    } catch (e) { toast.error(e.response?.data?.detail || t('planif.echecSuppression')); }
   };
 
-  const Pill = ({ c }) => {
-    const { t } = useTranslation();
+  // Vignette : visuel du post si dispo, sinon logo du réseau
+  const Thumb = ({ c, className = '' }) => {
+    const visual = c.lien_visuel || (Array.isArray(c.slides_images) && c.slides_images[0]);
+    if (visual) return (
+      <span className={`relative rounded-lg overflow-hidden bg-cover bg-center shrink-0 ring-1 ring-white/10 ${className}`} style={{ backgroundImage: `url(${visual})` }}>
+        <LogoReseau id={idReseau(c.reseau_cible)} className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-[4px] ring-2 ring-[#0b1326]" />
+      </span>
+    );
+    return <LogoReseau id={idReseau(c.reseau_cible)} className={`rounded-lg ${className}`} />;
+  };
+  const formatDe = (c) => (c.type === 'Story' ? 'Story' : Array.isArray(c.slides_images) && c.slides_images.length ? t('planif.formatCarrousel')
+    : c.video_url || c.type === 'Reel' ? t('planif.formatVideo') : t('planif.formatPost'));
+  const EtatChip = ({ c }) => {
     const pub = pubOf(c.publish_status);
-    const net = netOf(c.reseau_cible);
+    if (pub) return (
+      <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ color: pub.color, background: `${pub.color}1f` }}>
+        <pub.Icon className="w-3 h-3" strokeWidth={2.5} aria-hidden="true" />{t(`planif.${pub.labelKey}`)}
+      </span>
+    );
+    const st = stOf(c.statut);
+    return <span className="text-[11.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: st.bg, color: st.co }}>{t(`planif.${st.labelKey}`)}</span>;
+  };
+
+  // Contenu déplaçable (glisser-déposer pour replanifier) — compact (mois) ou carte (semaine / jour)
+  const Pill = ({ c, carteHoraire = false }) => {
+    const pub = pubOf(c.publish_status);
     const justDragged = useRef(false);
+    const cible = (point) => document.elementFromPoint(point.x, point.y)?.closest('[data-cal-cle]');
+    const ouvrir = () => { if (!justDragged.current) openContenu(c); };
     return (
       <motion.div
         layout
@@ -312,245 +406,352 @@ export default function PlanificationPage() {
         dragSnapToOrigin
         dragElastic={0.18}
         dragMomentum={false}
-        whileDrag={{ scale: 1.1, zIndex: 60, boxShadow: '0 18px 44px rgba(0,0,0,.55)', cursor: 'grabbing' }}
-        onDrag={(e, info) => {
-          const el = document.elementFromPoint(info.point.x, info.point.y);
-          const cell = el?.closest('[data-cal-date]');
-          setHoverDate(cell?.getAttribute('data-cal-date') || null);
-        }}
+        whileDrag={{ scale: 1.06, zIndex: 60, boxShadow: '0 18px 44px rgba(0,0,0,.55)', cursor: 'grabbing' }}
+        onDrag={(e, info) => setHoverDate(cible(info.point)?.getAttribute('data-cal-cle') || null)}
         onDragEnd={(e, info) => {
           setHoverDate(null);
-          const moved = Math.hypot(info.offset.x, info.offset.y) > 6;
-          if (!moved) return;
+          if (Math.hypot(info.offset.x, info.offset.y) <= 6) return;
           justDragged.current = true;
           setTimeout(() => { justDragged.current = false; }, 250);
-          const el = document.elementFromPoint(info.point.x, info.point.y);
-          const cell = el?.closest('[data-cal-date]');
+          const cell = cible(info.point);
           const newDate = cell?.getAttribute('data-cal-date');
           if (!newDate) return;
+          const heureCase = cell.getAttribute('data-cal-heure');
+          const ancienne = c.date_publication ? utcToInput(c.date_publication, tz).split('T')[1] : '09:00';
+          const time = heureCase != null ? `${String(heureCase).padStart(2, '0')}:${ancienne.slice(3, 5)}` : ancienne;
           const curDate = c.date_publication ? format(new Date(c.date_publication), 'yyyy-MM-dd') : null;
-          if (newDate === curDate) return;
-          const time = c.date_publication ? utcToInput(c.date_publication, tz).split('T')[1] : '09:00';
+          if (newDate === curDate && time === ancienne) return;
           const x = Math.min(Math.max(info.point.x, 130), window.innerWidth - 130);
           const y = Math.min(info.point.y, window.innerHeight - 200);
           setDropPending({ contenu: c, dateStr: newDate, time, point: { x, y } });
         }}
-        onClick={(e) => { if (justDragged.current) return; e.stopPropagation(); openContenu(c); }}
+        onClick={(e) => { e.stopPropagation(); ouvrir(); }}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrir(); } }}
         role="button" tabIndex={0}
+        aria-label={`${c.titre || t('planif.sansTitre')} · ${c.reseau_cible || ''} · ${hhmm(c.date_publication)}`}
         title={`${c.titre || ''}${pub ? ` · ${t(`planif.${pub.labelKey}`)}` : ''} · ${t('planif.glisseReplanifier')}`}
-        className="w-full flex flex-col gap-1 px-1.5 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.08] transition-colors text-left cursor-grab active:cursor-grabbing"
+        className={`w-full flex flex-col gap-1 rounded-lg border text-left cursor-grab active:cursor-grabbing transition-colors ${FOCUS} ${carteHoraire ? 'px-2 py-1.5 border-white/[0.1] bg-[#16203a] hover:bg-[#1c2848]' : 'px-1.5 py-1.5 border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08]'}`}
       >
-        <div className="flex items-center gap-1.5">
-          <span className="w-[16px] h-[16px] rounded grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-2.5 h-2.5" /></span>
-          {c.type === 'Story' && (
-            <span className="text-[7.5px] font-bold uppercase tracking-wide px-1 py-px rounded bg-[#fbbf24]/15 text-[#fbbf24] shrink-0">Story</span>
-          )}
-          <span className="flex-1 text-[9px] text-slate-500 truncate">{hhmm(c.date_publication)}</span>
-          {pub ? <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} />
-               : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: stOf(c.statut).sw }} />}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <LogoReseau id={idReseau(c.reseau_cible)} className={carteHoraire ? 'w-[18px] h-[18px] rounded-[5px]' : 'w-4 h-4 rounded-[4px]'} />
+          <span className={`flex-1 min-w-0 truncate ${carteHoraire ? 'text-[11.5px] font-semibold text-white' : 'text-[10.5px] text-slate-300'}`}>{carteHoraire ? formatDe(c) : hhmm(c.date_publication)}</span>
+          {pub ? <pub.Icon className="w-3 h-3 shrink-0" style={{ color: pub.color }} strokeWidth={2.5} aria-hidden="true" />
+            : <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: stOf(c.statut).sw }} aria-hidden="true" />}
         </div>
-        <span className="text-[10px] leading-[1.22] font-medium text-slate-200 line-clamp-2">{c.titre || c.contenu?.slice(0, 40) || t('planif.sansTitre')}</span>
+        <span className={`leading-[1.25] text-slate-200 line-clamp-2 ${carteHoraire ? 'text-[11px]' : 'text-[10.5px] font-medium'}`}>{c.titre || c.contenu?.slice(0, 40) || t('planif.sansTitre')}</span>
       </motion.div>
     );
   };
 
+  const carte = 'rounded-2xl border border-white/[0.08] bg-[#0b1326]';
+  const lienCarte = `text-[12.5px] font-semibold text-[#c9c1ff] hover:text-white whitespace-nowrap rounded ${FOCUS}`;
+  const max = engagement?.serie?.length ? Math.max(...engagement.serie, 1) : 1;
+  const courbe = engagement?.serie?.length > 1
+    ? engagement.serie.map((v, i) => `${(i / (engagement.serie.length - 1)) * 96 + 2},${34 - (v / max) * 30}`).join(' ')
+    : null;
+
   return (
     <div className="w-full space-y-5 pb-10">
-      <PageHeader
-        icon={Calendar}
-        title={t('planif.titre')}
-        subtitle={t('planif.sousTitre')}
-      />
-
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <button onClick={() => changeMonth(-1)} className="w-9 h-9 rounded-lg border border-white/10 bg-white/[0.02] grid place-items-center hover:bg-white/[0.06] transition-colors"><ChevronLeft className="w-[18px] h-[18px]" /></button>
-          <div className="text-lg font-semibold font-sora min-w-[150px] text-center">{t(`planif.${MOIS_KEYS[month]}`)} <span className="text-slate-500 font-medium">{year}</span></div>
-          <button onClick={() => changeMonth(1)} className="w-9 h-9 rounded-lg border border-white/10 bg-white/[0.02] grid place-items-center hover:bg-white/[0.06] transition-colors"><ChevronRight className="w-[18px] h-[18px]" /></button>
-          <button onClick={goToday} className="px-3.5 py-2 rounded-lg border border-white/10 bg-white/[0.02] text-slate-400 hover:text-white hover:bg-white/[0.06] text-xs font-semibold font-inter transition-colors">{t('planif.aujourdhui')}</button>
+      {/* ─── En-tête ─── */}
+      <header className="flex flex-wrap items-center gap-4">
+        <span className="w-12 h-12 rounded-xl bg-[#5a4ae8] grid place-items-center text-white flex-none" aria-hidden="true"><Calendar className="w-6 h-6" /></span>
+        <div className="min-w-0">
+          <h1 className="font-sora font-extrabold text-[26px] sm:text-[30px] leading-tight text-white tracking-tight">{t('planif.titre')}</h1>
+          <p className="text-[14.5px] text-slate-300 font-inter">{t('planif.sousTitre')}</p>
         </div>
-        <div className="flex gap-0.5 p-0.5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
-          {[['mois', t('planif.vueMois')], ['liste', t('planif.vueListe')]].map(([id, lab]) => (
-            <button key={id} onClick={() => setView(id)} className={`px-3.5 py-1.5 rounded-lg text-[12.5px] font-semibold transition-all ${view === id ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'text-slate-400 hover:text-white'}`}>{lab}</button>
-          ))}
-        </div>
-      </div>
+      </header>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-24"><Loader2 className="w-8 h-8 animate-spin text-[#5B6CFF]" /></div>
-      ) : view === 'mois' ? (
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_322px] gap-5 items-start">
-          {/* CALENDRIER */}
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-3.5">
-            <div className="overflow-x-auto">
-              <div className="grid grid-cols-7 gap-2 mb-2 min-w-[640px]">
-                {JOURS_KEYS.map((j) => <div key={j} className="px-2.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-600 font-semibold font-inter">{t(`planif.${j}`)}</div>)}
-              </div>
-              <div className="grid grid-cols-7 gap-2 min-w-[640px]">
-                {days.map((d, i) => {
-                  const evs = d.out ? [] : forDate(d.date);
-                  const isToday = !d.out && d.date.toDateString() === today.toDateString();
-                  const cellDate = format(d.date, 'yyyy-MM-dd');
-                  const isDropHover = hoverDate === cellDate;
-                  return (
-                    <div key={i} data-cal-date={cellDate}
-                      className={`min-h-[116px] rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${d.out ? 'bg-white/[0.01] border-white/[0.04] opacity-40' : 'bg-[#0a1120] border-white/[0.06] hover:border-white/10'} ${isToday ? 'ring-1 ring-[#5B6CFF]/55 border-[#5B6CFF]/55' : ''} ${isDropHover ? 'ring-2 ring-[#3AFFA3] border-[#3AFFA3] bg-[#3AFFA3]/[0.06] scale-[1.02]' : ''}`}>
-                      <div className={`text-[12.5px] font-semibold font-inter ${isToday ? 'text-white' : 'text-slate-500'}`}>
-                        {isToday ? <span className="w-5 h-5 rounded-full bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center text-white text-[11px] inline-grid">{d.date.getDate()}</span> : d.date.getDate()}
-                      </div>
-                      {evs.slice(0, 3).map((c) => <Pill key={c.id} c={c} />)}
-                      {evs.length > 3 && <div className="text-[10.5px] text-slate-500 px-1.5 font-medium">{t('planif.autresPlus', { n: evs.length - 3 })}</div>}
-                    </div>
-                  );
-                })}
-              </div>
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
+        <div className="flex flex-col gap-5 min-w-0">
+          {/* ─── Barre d'outils ─── */}
+          <div className={`${carte} flex items-center gap-x-4 gap-y-3 flex-wrap px-4 py-3`}>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => changePeriode(-1)} aria-label={t('planif.precedent')} className={`w-9 h-9 rounded-lg border border-white/15 grid place-items-center hover:bg-white/[0.06] ${FOCUS}`}><ChevronLeft className="w-[18px] h-[18px]" /></button>
+              <h2 className="font-sora font-semibold text-[18px] text-white sm:min-w-[170px] text-center first-letter:uppercase" aria-live="polite">{libellePeriode}</h2>
+              <button type="button" onClick={() => changePeriode(1)} aria-label={t('planif.suivant')} className={`w-9 h-9 rounded-lg border border-white/15 grid place-items-center hover:bg-white/[0.06] ${FOCUS}`}><ChevronRight className="w-[18px] h-[18px]" /></button>
+              <button type="button" onClick={goToday} className={`px-3 py-2 rounded-lg border border-white/15 text-slate-200 hover:text-white hover:bg-white/[0.06] text-[12.5px] font-semibold font-inter ${FOCUS}`}>{t('planif.aujourdhui')}</button>
             </div>
-            {/* Légende publication */}
-            <div className="mt-3.5 pt-3.5 border-t border-white/[0.06] flex flex-wrap items-center gap-x-4 gap-y-2">
-              <span className="text-[10px] uppercase tracking-wide text-slate-600 font-inter">{t('planif.legendeEtat')}</span>
-              {Object.values(PUB).map((p) => (
-                <div key={p.labelKey} className="flex items-center gap-1.5 text-xs text-slate-400 font-inter">
-                  <p.Icon className="w-3.5 h-3.5" style={{ color: p.color }} strokeWidth={2.5} />{t(`planif.${p.labelKey}`)}
-                </div>
+            <p className="text-[12.5px] text-slate-300 font-inter">{t('planif.resumeMois', { prog: stats.prog, pub: stats.pub, valid: stats.valid })}</p>
+            <div className="ml-auto flex gap-0.5 p-0.5 rounded-xl bg-white/[0.04] border border-white/[0.08]" role="group" aria-label={t('planif.vue')}>
+              {[['mois', t('planif.vueMois')], ['semaine', t('planif.vueSemaine')], ['jour', t('planif.vueJour')]].map(([id, lab]) => (
+                <button key={id} type="button" onClick={() => setView(id)} aria-pressed={view === id}
+                  className={`px-3.5 py-1.5 rounded-lg text-[13px] font-semibold transition-colors ${FOCUS} ${view === id ? 'bg-[#5a4ae8] text-white' : 'text-slate-300 hover:text-white'}`}>{lab}</button>
               ))}
             </div>
           </div>
 
-          {/* SIDEBAR */}
-          <div className="space-y-4">
-            {/* Mini-stats */}
-            <div className="grid grid-cols-3 gap-2.5">
-              {[
-                { n: stats.prog, c: '#22d3ee', l: t('planif.statProgrammes') },
-                { n: stats.pub, c: '#34d399', l: t('planif.statPublies') },
-                { n: stats.valid, c: '#fbbf24', l: t('planif.statAValider') },
-              ].map((s) => (
-                <div key={s.l} className="rounded-xl border border-white/[0.06] bg-[#0f172a] px-3 py-3 text-center">
-                  <div className="text-xl font-bold font-sora leading-none" style={{ color: s.c }}>{s.n}</div>
-                  <div className="text-[10.5px] text-slate-500 mt-1.5 font-inter">{s.l}</div>
-                </div>
-              ))}
-            </div>
+          {/* ─── Chiffres du mois ─── */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Link to="/dashboard/plan" className={`${carte} p-4 flex gap-3 hover:border-white/20 transition-colors ${FOCUS}`}>
+              <span className="w-10 h-10 rounded-xl bg-[#3AFFA3]/12 grid place-items-center text-[#3AFFA3] flex-none" aria-hidden="true"><Target className="w-5 h-5" /></span>
+              <span className="min-w-0 flex-1 font-inter">
+                <span className="block text-[13px] text-slate-300">{t('planif.objectifsMois')}</span>
+                <span className="block text-[22px] font-bold font-sora text-white tabular-nums">{objectifs.filled}<span className="text-slate-400 text-[16px] font-medium"> / {objectifs.needed || 0}</span></span>
+                <span className="block h-1.5 mt-1 rounded-full bg-white/[0.08] overflow-hidden" aria-hidden="true"><span className="block h-full rounded-full bg-[#2fd393]" style={{ width: `${objectifs.needed ? Math.min(100, Math.round((objectifs.filled / objectifs.needed) * 100)) : 0}%` }} /></span>
+                <span className="block text-[12px] text-slate-400 mt-1.5">{t('planif.reseauxBouclesN', { done: objectifs.done, total: plan.length })}</span>
+              </span>
+            </Link>
+            <Link to="/dashboard/performance" className={`${carte} p-4 flex gap-3 hover:border-white/20 transition-colors ${FOCUS}`}>
+              <span className="w-10 h-10 rounded-xl bg-[#8A6CFF]/15 grid place-items-center text-[#c9c1ff] flex-none" aria-hidden="true"><TrendingUp className="w-5 h-5" /></span>
+              <span className="min-w-0 flex-1 font-inter">
+                <span className="block text-[13px] text-slate-300">{t('planif.engagement30j')}</span>
+                {engagement ? (
+                  <>
+                    <span className="flex items-end justify-between gap-2">
+                      <span className="text-[22px] font-bold font-sora text-white tabular-nums">{engagement.taux.toLocaleString(langue)} %</span>
+                      {courbe && <svg viewBox="0 0 100 36" className="w-[90px] h-[32px]" aria-hidden="true"><polyline points={courbe} fill="none" stroke="#3AFFA3" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" /></svg>}
+                    </span>
+                    <span className="block text-[12px] mt-1">
+                      {engagement.variation == null ? <span className="text-slate-400">{t('planif.pasDeComparaison')}</span>
+                        : <span className={engagement.variation >= 0 ? 'text-[#7ff5c4]' : 'text-red-300'}>{engagement.variation >= 0 ? '+' : ''}{engagement.variation} % <span className="text-slate-400">{t('planif.vsPeriodePrecedente')}</span></span>}
+                    </span>
+                  </>
+                ) : (
+                  <span className="block text-[12.5px] text-slate-300 mt-1">{t('planif.analyticsAConnecter')} <span className="text-[#c9c1ff]">→</span></span>
+                )}
+              </span>
+            </Link>
+            <Link to="/dashboard/parametres" className={`${carte} p-4 flex gap-3 hover:border-white/20 transition-colors ${FOCUS}`}>
+              <span className="w-10 h-10 rounded-xl bg-sky-400/12 grid place-items-center text-sky-300 flex-none" aria-hidden="true"><Users className="w-5 h-5" /></span>
+              <span className="min-w-0 flex-1 font-inter">
+                <span className="block text-[13px] text-slate-300">{t('planif.reseauxActifs')}</span>
+                <span className="flex flex-wrap gap-1.5 mt-1.5">
+                  {reseauxConnectes.length ? reseauxConnectes.map((id) => <LogoReseau key={id} id={id} className="w-7 h-7 rounded-lg" />)
+                    : <span className="text-[12.5px] text-amber-200">{t('planif.aucunReseau')}</span>}
+                </span>
+                <span className="block text-[12px] text-slate-400 mt-1.5">{t('planif.nReseauxConnectes', { count: reseauxConnectes.length })}</span>
+              </span>
+            </Link>
+          </div>
 
-            {/* À programmer */}
-            {aProgrammer.length > 0 && (
-              <div className="rounded-2xl border border-white/[0.06] bg-[#0b1322] p-4">
-                <h3 className="text-[13.5px] font-semibold font-sora flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-4 h-4 text-[#fbbf24]" />{t('planif.aProgrammer')}
-                  <span className="ml-auto text-[11px] text-slate-500 bg-white/[0.05] px-2 py-0.5 rounded-full">{aProgrammer.length}</span>
-                </h3>
-                <div className="divide-y divide-white/[0.06]">
-                  {aProgrammer.map((c) => (
-                    <div key={c.id} className="flex items-center gap-3 py-2.5 first:pt-0">
-                      <Thumb c={c} className="w-10 h-10" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12.5px] font-medium text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 40) || t('planif.sansTitre')}</div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">{c.reseau_cible || '—'}{c.date_publication ? ` · ${new Date(c.date_publication).getDate()} ${t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)}` : ` · ${t('planif.pasDeDate')}`}</div>
-                      </div>
-                      <button onClick={() => openContenu(c)} title={t('planif.programmer')} className="w-8 h-8 rounded-lg border border-white/10 text-cyan-400 hover:bg-cyan-500/15 grid place-items-center shrink-0">
-                        <Calendar className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+          {/* ─── Calendrier ─── */}
+          {loading ? (
+            <div className={`${carte} flex items-center justify-center py-24`}><Loader2 className="w-8 h-8 animate-spin text-[#8A6CFF]" /></div>
+          ) : view === 'mois' ? (
+            <div className={`${carte} p-3.5`}>
+              <div className="overflow-x-auto">
+                <div className="grid grid-cols-7 gap-2 mb-2 min-w-[640px]">
+                  {JOURS_KEYS.map((j) => <div key={j} className="px-2.5 py-0.5 text-[12px] text-slate-300 font-semibold font-inter">{t(`planif.${j}`)}</div>)}
                 </div>
-              </div>
-            )}
-
-            {/* Prochaines publications */}
-            <div className="rounded-2xl border border-white/[0.06] bg-[#0b1322] p-4">
-              <h3 className="text-[13.5px] font-semibold font-sora flex items-center gap-2 mb-3">
-                <Clock className="w-4 h-4 text-[#8A6CFF]" />{t('planif.prochaines')}
-                <span className="ml-auto text-[11px] text-slate-500 bg-white/[0.05] px-2 py-0.5 rounded-full">{upcoming.length}</span>
-              </h3>
-              {upcoming.length === 0 ? (
-                <p className="text-slate-500 font-inter text-[12.5px] py-3 text-center">{t('planif.aucunePubAVenir')}</p>
-              ) : (
-                <div className="divide-y divide-white/[0.06]">
-                  {upcoming.map((c) => {
-                    const pub = pubOf(c.publish_status);
+                <div className="grid grid-cols-7 gap-2 min-w-[640px]">
+                  {days.map((d, i) => {
+                    const evs = d.out ? [] : forDate(d.date);
+                    const isToday = !d.out && d.date.toDateString() === today.toDateString();
+                    const cellDate = format(d.date, 'yyyy-MM-dd');
+                    const isDropHover = hoverDate === cellDate;
                     return (
-                      <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-3 py-2.5 first:pt-0 cursor-pointer hover:opacity-80">
-                        <Thumb c={c} className="w-10 h-10" />
-                        <div className="flex-1 min-w-0">
-                          <div className="text-[12.5px] font-medium text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 40) || t('planif.sansTitre')}</div>
-                          <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
-                            {pub && <pub.Icon className="w-3 h-3" style={{ color: pub.color }} strokeWidth={2.5} />}
-                            {new Date(c.date_publication).getDate()} {t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)} · {hhmm(c.date_publication)} · {c.reseau_cible}
-                          </div>
+                      <div key={i} data-cal-date={cellDate} data-cal-cle={cellDate}
+                        className={`min-h-[116px] rounded-xl border p-2 flex flex-col gap-1.5 transition-colors ${d.out ? 'bg-white/[0.01] border-white/[0.04] opacity-40' : 'bg-[#0a1120] border-white/[0.07] hover:border-white/15'} ${isToday ? 'border-[#8A6CFF]/70' : ''} ${isDropHover ? 'ring-2 ring-[#3AFFA3] border-[#3AFFA3] bg-[#3AFFA3]/[0.06]' : ''}`}>
+                        <div className={`text-[12.5px] font-semibold font-inter ${isToday ? 'text-white' : 'text-slate-300'}`}>
+                          {isToday ? <span className="w-5 h-5 rounded-full bg-[#5a4ae8] text-white text-[11px] inline-grid place-items-center">{d.date.getDate()}</span> : d.date.getDate()}
                         </div>
+                        {evs.slice(0, 3).map((c) => <Pill key={c.id} c={c} />)}
+                        {evs.length > 3 && (
+                          <button type="button" onClick={() => { setCurrent(d.date); setView('jour'); }} className={`text-[11px] text-slate-300 hover:text-white px-1.5 font-medium text-left rounded ${FOCUS}`}>{t('planif.autresPlus', { n: evs.length - 3 })}</button>
+                        )}
                       </div>
                     );
                   })}
                 </div>
+              </div>
+              <Legende />
+            </div>
+          ) : (
+            <div className={`${carte} p-3.5`}>
+              <div className="overflow-x-auto">
+                <div className={view === 'semaine' ? 'min-w-[760px]' : ''}>
+                  <div className="grid gap-1.5 mb-1.5" style={{ gridTemplateColumns: `52px repeat(${joursVue.length}, minmax(0,1fr))` }}>
+                    <span />
+                    {joursVue.map((d) => {
+                      const auj = d.toDateString() === today.toDateString();
+                      return (
+                        <button key={d.toISOString()} type="button" onClick={() => { setCurrent(d); setView('jour'); }} disabled={view === 'jour'}
+                          className={`text-center rounded-lg py-1 font-inter ${FOCUS} ${auj ? 'bg-[#5a4ae8]/25' : ''}`}>
+                          <span className="block text-[12px] text-slate-300 capitalize">{d.toLocaleDateString(langue, { weekday: view === 'jour' ? 'long' : 'short' }).replace('.', '')}</span>
+                          <span className={`block text-[17px] font-semibold font-sora ${auj ? 'text-white' : 'text-slate-200'}`}>{d.getDate()}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div ref={grilleRef} className="max-h-[620px] overflow-y-auto overscroll-contain [scrollbar-width:thin] rounded-xl border border-white/[0.07]">
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <div key={h} className="grid gap-1.5 border-b border-white/[0.05] last:border-b-0" style={{ gridTemplateColumns: `52px repeat(${joursVue.length}, minmax(0,1fr))`, minHeight: HAUTEUR_HEURE }}>
+                        <span className="text-[11.5px] text-slate-400 font-inter tabular-nums pt-1.5 pl-2">{String(h).padStart(2, '0')}:00</span>
+                        {joursVue.map((d) => {
+                          const cellDate = format(d, 'yyyy-MM-dd');
+                          const cle = `${cellDate}@${h}`;
+                          const evs = forDate(d).filter((c) => heureDe(c) === h);
+                          return (
+                            <div key={cle} data-cal-date={cellDate} data-cal-heure={h} data-cal-cle={cle}
+                              className={`p-1 flex flex-col gap-1 border-l border-white/[0.05] transition-colors ${hoverDate === cle ? 'bg-[#3AFFA3]/[0.08] ring-1 ring-inset ring-[#3AFFA3]' : ''}`}>
+                              {evs.map((c) => <Pill key={c.id} c={c} carteHoraire />)}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Legende />
+            </div>
+          )}
+
+          {/* ─── Prochains contenus ─── */}
+          <section className={`${carte} p-4`} aria-labelledby="planif-prochains">
+            <div className="flex items-center gap-2 mb-3">
+              <h2 id="planif-prochains" className="font-sora font-bold text-[16px] text-white">{t('planif.prochainsContenus')}</h2>
+              <Link to="/dashboard/contenus" className={`ml-auto ${lienCarte}`}>{t('planif.voirTousContenus')} →</Link>
+            </div>
+            {prochains.length === 0 ? (
+              <p className="text-[13.5px] text-slate-300 font-inter py-4 text-center">{t('planif.aucunePubAVenir')}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[620px] text-left font-inter">
+                  <thead>
+                    <tr className="text-[12px] text-slate-400">
+                      <th scope="col" className="font-medium pb-2 pr-3">{t('planif.colDate')}</th>
+                      <th scope="col" className="font-medium pb-2 pr-3">{t('planif.colContenu')}</th>
+                      <th scope="col" className="font-medium pb-2 pr-3">{t('planif.colReseau')}</th>
+                      <th scope="col" className="font-medium pb-2 pr-3">{t('planif.colStatut')}</th>
+                      <th scope="col" className="font-medium pb-2 text-right">{t('planif.colActions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.06]">
+                    {prochains.map((c) => (
+                      <tr key={c.id} className="text-[13px]">
+                        <td className="py-2.5 pr-3 text-slate-200 whitespace-nowrap tabular-nums">{new Date(c.date_publication).toLocaleDateString(langue, { weekday: 'short', day: 'numeric', month: 'short' })} · {hhmm(c.date_publication)}</td>
+                        <td className="py-2.5 pr-3">
+                          <button type="button" onClick={() => openContenu(c)} className={`flex items-center gap-2.5 text-left rounded-lg min-w-0 ${FOCUS}`}>
+                            <Thumb c={c} className="w-9 h-9" />
+                            <span className="min-w-0">
+                              <span className="block text-white font-medium truncate max-w-[260px]">{c.titre || c.contenu?.slice(0, 50) || t('planif.sansTitre')}</span>
+                              <span className="block text-[12px] text-slate-400">{formatDe(c)}</span>
+                            </span>
+                          </button>
+                        </td>
+                        <td className="py-2.5 pr-3"><LogoReseau id={idReseau(c.reseau_cible)} className="w-7 h-7 rounded-lg" /></td>
+                        <td className="py-2.5 pr-3"><EtatChip c={c} /></td>
+                        <td className="py-2.5 text-right whitespace-nowrap">
+                          <button type="button" onClick={() => openContenu(c)} aria-label={`${t('planif.modifier')} : ${c.titre || ''}`} title={t('planif.modifier')}
+                            className={`p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 ${FOCUS}`}><Pencil className="w-4 h-4" /></button>
+                          <button type="button" onClick={() => supprimerLigne(c)} aria-label={`${t('planif.supprimerPost')} : ${c.titre || ''}`} title={t('planif.supprimerPost')}
+                            className={`p-2 rounded-lg text-slate-300 hover:text-red-300 hover:bg-white/5 ${FOCUS}`}><Trash2 className="w-4 h-4" /></button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* ─── Colonne droite ─── */}
+        <aside className="flex flex-col gap-4 min-w-0">
+          <Link to="/dashboard/studio" className={`flex items-center justify-center gap-2 h-12 rounded-xl bg-[#5a4ae8] hover:bg-[#6757f0] text-white font-semibold font-inter text-[14.5px] ${FOCUS}`}>
+            <Plus className="w-5 h-5" aria-hidden="true" />{t('planif.genererSujets')}
+          </Link>
+
+          <section className={`${carte} p-4 flex gap-3`} aria-labelledby="planif-creneaux">
+            <span className="w-10 h-10 rounded-xl bg-[#8A6CFF]/15 grid place-items-center text-[#c9c1ff] flex-none" aria-hidden="true"><CalendarClock className="w-5 h-5" /></span>
+            <div className="min-w-0 font-inter">
+              <h2 id="planif-creneaux" className="font-sora font-bold text-[14.5px] text-white">{t('planif.planifierFacilement')}</h2>
+              {creneaux.length ? (
+                <>
+                  <p className="text-[12.5px] text-slate-300 mt-0.5">{t('planif.meilleursCreneaux')}</p>
+                  <ul className="flex flex-wrap gap-1.5 mt-2">
+                    {creneaux.map((c) => (
+                      <li key={`${c.jour}-${c.heure}`} className="text-[12px] text-white bg-white/[0.07] rounded-md px-2 py-0.5 tabular-nums">
+                        {new Date(Date.UTC(2026, 0, 5 + c.jour)).toLocaleDateString(langue, { weekday: 'short', timeZone: 'UTC' }).replace('.', '')} {String(c.heure).padStart(2, '0')}h
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to="/dashboard/performance" className={`inline-block mt-2 ${lienCarte}`}>{t('planif.voirPerformances')} →</Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-[12.5px] text-slate-300 mt-0.5">{t('planif.creneauxCadence')}</p>
+                  <Link to="/dashboard/parametres" className={`inline-block mt-2 ${lienCarte}`}>{t('planif.reglerCreneaux')} →</Link>
+                </>
               )}
             </div>
-          </div>
-        </div>
-      ) : (
-        /* Vue liste */
-        <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-4 space-y-2.5">
-          {moisContenus.length === 0 ? (
-            <p className="text-center py-12 text-slate-500 font-inter text-sm">{t('planif.aucunContenuMois', { mois: t(`planif.${MOIS_KEYS[month]}`) })}</p>
-          ) : moisContenus.map((c) => {
-            const st = stOf(c.statut), net = netOf(c.reseau_cible);
-            return (
-              <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-4 p-3 rounded-xl border border-white/[0.06] bg-[#0a1120] cursor-pointer hover:border-white/[0.15] transition-colors">
-                <div className="text-center min-w-[46px]">
-                  <div className="text-xl font-bold font-sora leading-none">{new Date(c.date_publication).getDate()}</div>
-                  <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)}</div>
-                </div>
-                <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-4 h-4" /></div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] text-slate-200 truncate flex items-center gap-2">
-                    <span className="truncate">{c.titre || c.contenu?.slice(0, 50)}</span>
-                    {c.type === 'Story' && (
-                      <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[#fbbf24]/15 text-[#fbbf24] shrink-0">Story · 24h</span>
-                    )}
-                  </div>
-                  <div className="text-[11.5px] text-slate-500 mt-0.5">{c.reseau_cible || '—'} · {hhmm(c.date_publication)}</div>
-                </div>
-                {pubOf(c.publish_status) && (() => { const p = pubOf(c.publish_status); return (
-                  <span className="flex items-center gap-1 text-[10.5px] font-semibold px-2 py-1 rounded-full border shrink-0"
-                    style={{ color: p.color, borderColor: `${p.color}55`, background: `${p.color}14` }}>
-                    <p.Icon className="w-3 h-3" strokeWidth={2.5} />{t(`planif.${p.labelKey}`)}
-                  </span>); })()}
-                <span className="text-[10.5px] font-semibold px-2.5 py-1 rounded-full shrink-0" style={{ background: st.bg, color: st.co }}>{t(`planif.${st.labelKey}`)}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+          </section>
 
-      {/* Prochaines publications (vue liste uniquement — en mois c'est dans la sidebar) */}
-      {view === 'liste' && (
-      <div>
-        <h3 className="text-sm font-semibold font-sora mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-[#8A6CFF]" />{t('planif.prochainesPublications')}</h3>
-        {upcoming.length === 0 ? (
-          <p className="text-slate-500 font-inter text-sm">{t('planif.aucunePubPlanifiee')}</p>
-        ) : (
-          <div className="space-y-2.5">
-            {upcoming.map((c) => {
-              const st = stOf(c.statut), net = netOf(c.reseau_cible);
-              return (
-                <div key={c.id} onClick={() => openContenu(c)} className="flex items-center gap-4 p-3 rounded-2xl border border-white/[0.06] bg-[#0f172a] cursor-pointer hover:border-white/[0.15] transition-colors">
-                  <div className="text-center min-w-[46px]">
-                    <div className="text-xl font-bold font-sora leading-none">{new Date(c.date_publication).getDate()}</div>
-                    <div className="text-[10.5px] text-slate-500 uppercase mt-0.5">{t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)}</div>
-                  </div>
-                  <div className="w-[30px] h-[30px] rounded-lg grid place-items-center text-white shrink-0" style={net.style}><SocialIcon network={c.reseau_cible} className="w-4 h-4" /></div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13.5px] text-slate-200 truncate">{c.titre || c.contenu?.slice(0, 50)}</div>
-                    <div className="text-[11.5px] text-slate-500 mt-0.5">{c.reseau_cible || '—'} · {hhmm(c.date_publication)}</div>
-                  </div>
-                  <span className="text-[10.5px] font-semibold px-2.5 py-1 rounded-full" style={{ background: st.bg, color: st.co }}>{t(`planif.${st.labelKey}`)}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
+          {aProgrammer.length > 0 && (
+            <section className={`${carte} p-4`} aria-labelledby="planif-a-programmer">
+              <h2 id="planif-a-programmer" className="font-sora font-bold text-[14.5px] text-white flex items-center gap-2 mb-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-300" aria-hidden="true" />{t('planif.aProgrammer')}
+                <span className="ml-auto text-[12px] text-slate-200 bg-white/[0.07] px-2 py-0.5 rounded-full">{aProgrammer.length}</span>
+              </h2>
+              <ul className="divide-y divide-white/[0.06]">
+                {aProgrammer.map((c) => (
+                  <li key={c.id}>
+                    <button type="button" onClick={() => openContenu(c)} className={`w-full flex items-center gap-2.5 py-2 text-left rounded-lg hover:bg-white/[0.03] ${FOCUS}`}>
+                      <Thumb c={c} className="w-9 h-9" />
+                      <span className="flex-1 min-w-0 font-inter">
+                        <span className="block text-[13px] text-white truncate">{c.titre || c.contenu?.slice(0, 40) || t('planif.sansTitre')}</span>
+                        <span className="block text-[12px] text-slate-400">{c.date_publication ? `${new Date(c.date_publication).getDate()} ${t(`planif.${MOIS_COURT_KEYS[new Date(c.date_publication).getMonth()]}`)}` : t('planif.pasDeDate')}{c.publish_status === 'échec' ? ` · ${t('planif.pubEchec')}` : ''}</span>
+                      </span>
+                      <span className="text-[12px] font-semibold text-[#c9c1ff] flex-none">{t('planif.programmer')}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section className={`${carte} p-4`} aria-labelledby="planif-sujets">
+            <div className="flex items-center gap-2 mb-2">
+              <Lightbulb className="w-4 h-4 text-amber-300" aria-hidden="true" />
+              <h2 id="planif-sujets" className="font-sora font-bold text-[14.5px] text-white">{t('planif.sujetsATraiter')}</h2>
+              <Link to="/dashboard/studio" className={`ml-auto ${lienCarte}`}>{t('planif.voirTout')} →</Link>
+            </div>
+            {groupesSujets.length === 0 ? (
+              <p className="text-[12.5px] text-slate-300 font-inter">{t('planif.aucunSujetReserve')} <Link to="/dashboard/studio" className="text-[#c9c1ff] hover:text-white underline">{t('planif.genererSujets')}</Link></p>
+            ) : (
+              <ul className="flex flex-col gap-1.5 font-inter">
+                {groupesSujets.map(([nom, n], i) => (
+                  <li key={nom} className="flex items-center gap-2.5 text-[13px]">
+                    <span className="w-2.5 h-2.5 rounded-full flex-none" style={{ background: COULEURS_GROUPES[i % COULEURS_GROUPES.length] }} aria-hidden="true" />
+                    <span className="text-slate-100 truncate">{nom}</span>
+                    <span className="ml-auto text-slate-400 tabular-nums">{t('planif.nSujets', { count: n })}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {plan.length > 0 && (
+            <section className={`${carte} p-4`} aria-labelledby="planif-reseaux">
+              <div className="flex items-center gap-2 mb-2.5">
+                <h2 id="planif-reseaux" className="font-sora font-bold text-[14.5px] text-white">{t('planif.reseauxTitre')}</h2>
+                <Link to="/dashboard/plan" className={`ml-auto ${lienCarte}`}>{t('planif.voirTout')} →</Link>
+              </div>
+              <ul className="flex flex-col gap-2.5">
+                {plan.map((p) => (
+                  <li key={p.platform} className="flex items-center gap-2.5 font-inter">
+                    <LogoReseau id={p.platform} className="w-7 h-7 rounded-lg" />
+                    <span className="flex-1 h-2 rounded-full bg-white/[0.08] overflow-hidden" role="progressbar" aria-label={p.label} aria-valuemin={0} aria-valuemax={p.needed} aria-valuenow={p.filled}>
+                      <span className={`block h-full rounded-full ${p.remaining === 0 ? 'bg-[#3AFFA3]' : 'bg-[#8A6CFF]'}`} style={{ width: `${p.needed ? Math.min(100, Math.round((p.filled / p.needed) * 100)) : 0}%` }} />
+                    </span>
+                    <span className="text-[12.5px] text-slate-200 tabular-nums w-11 text-right">{p.filled}/{p.needed}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <section className={`${carte} p-4 flex gap-3`} aria-labelledby="planif-evenement">
+            <span className="w-10 h-10 rounded-xl bg-[#5a4ae8]/30 grid place-items-center text-[#c9c1ff] flex-none" aria-hidden="true"><Rocket className="w-5 h-5" /></span>
+            <div className="min-w-0 font-inter">
+              <h2 id="planif-evenement" className="font-sora font-bold text-[14.5px] text-white">{t('planif.evenementTitre')}</h2>
+              <p className="text-[12.5px] text-slate-300 mt-0.5">{t('planif.evenementTexte')}</p>
+              <Link to="/dashboard/coach" className={`inline-flex items-center gap-1.5 mt-2.5 text-[13px] font-semibold text-white bg-[#5a4ae8] hover:bg-[#6757f0] rounded-lg px-3 py-1.5 ${FOCUS}`}>{t('planif.evenementBouton')}<ArrowRight className="w-3.5 h-3.5" aria-hidden="true" /></Link>
+            </div>
+          </section>
+        </aside>
       </div>
-      )}
 
       {/* Sélecteur d'heure — apparaît à l'endroit du drop après un glisser-déposer sur le calendrier */}
       <AnimatePresence>
@@ -631,7 +832,7 @@ export default function PlanificationPage() {
               {/* Infos + actions */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-md grid place-items-center text-white" style={netOf(selected.reseau_cible).style}><SocialIcon network={selected.reseau_cible} className="w-3.5 h-3.5" /></span>
+                  <LogoReseau id={idReseau(selected.reseau_cible)} className="w-6 h-6 rounded-md" />
                   <span className="text-sm text-slate-300 font-inter">{selected.reseau_cible || '—'}</span>
                   {PUBLISH_BADGE[selected.publish_status] && (
                     <span className={`ml-auto text-[11px] font-medium px-2 py-0.5 rounded-full border ${PUBLISH_BADGE[selected.publish_status].cls}`}>{t(`planif.${PUBLISH_BADGE[selected.publish_status].labelKey}`)}</span>
