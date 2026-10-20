@@ -1479,6 +1479,7 @@
     }
   },
   "plan": {
+    "aucunSujetAide": "Generate a batch of ideas to start your month.",
     "planificationLien": "Scheduling",
     "contenusIllimites": "Unlimited content",
     "moisPrecedent": "Previous month",

@@ -1479,6 +1479,7 @@
     }
   },
   "plan": {
+    "aucunSujetAide": "Genera un lote de ideas para empezar tu mes.",
     "planificationLien": "Planificación",
     "contenusIllimites": "Contenidos ilimitados",
     "moisPrecedent": "Mes anterior",

@@ -410,7 +410,7 @@ export default function PlanEditorial() {
               <div className={`${carte} flex flex-col items-center text-center gap-1.5 py-10 px-6 font-inter`}>
                 <Lightbulb className="w-6 h-6 text-amber-300 mb-1" aria-hidden="true" />
                 <b className="font-sora text-[15px] text-white">{t('plan.aucunSujetTitre')}</b>
-                <span className="text-[13.5px] text-slate-300 max-w-[46ch]">{t('plan.aucunSujet')}</span>
+                <span className="text-[13.5px] text-slate-300 max-w-[46ch]">{t('plan.aucunSujetAide')}</span>
               </div>
             ) : (
               <ul className="flex flex-col gap-2.5">
@@ -502,7 +502,8 @@ export default function PlanEditorial() {
         {/* ─── Colonne droite : Rico, prochains contenus, semaine ─── */}
         <aside className="flex flex-col gap-4 min-w-0 xl:sticky xl:top-4">
           <section className={`${carte} p-4 flex items-center gap-3`} aria-labelledby="plan-rico">
-            <img src="/images/mascotte.png" alt="" className="w-[88px] h-[88px] object-contain flex-none -my-2" />
+            <img src="https://res.cloudinary.com/dy9gp5pim/image/upload/w_240,q_auto,f_auto/brand/rico-v4/idee.png" alt="" aria-hidden="true"
+              className="w-[112px] h-[112px] object-contain flex-none -my-3 -ml-2" />
             <div className="min-w-0 font-inter">
               <h2 id="plan-rico" className="font-sora font-bold text-[15.5px] text-white">{t('plan.ricoTitre')}</h2>
               <p className="text-[12.5px] text-slate-300 mt-0.5">{t('plan.ricoTexte')}</p>
