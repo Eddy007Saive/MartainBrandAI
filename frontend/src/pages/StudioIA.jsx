@@ -806,7 +806,7 @@ export default function StudioIA() {
   ) : null);
 
   return (
-    <div className="w-full space-y-4 pb-10">
+    <div className="w-full space-y-4 pb-10 xl:pb-0">
       {/* ─── En-tête : titre et étapes (photo de bannière sur grand écran seulement) ─── */}
       <header className="relative overflow-hidden rounded-[18px] bg-[#0b1326] border border-white/[0.06] lg:min-h-[150px]">
         <div aria-hidden="true" className="hidden lg:block absolute inset-0 bg-cover bg-[position:70%_55%]" style={{ backgroundImage: "url('/images/studio-banniere.jpg')" }} />
@@ -858,8 +858,8 @@ export default function StudioIA() {
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,400px)_minmax(0,1fr)] gap-4 items-start">
         {/* ─── Zone gauche : créer + réserve de sujets ─── */}
-        <div className={`flex flex-col gap-4 min-w-0 ${contenus.length ? 'order-2 xl:order-none' : ''}`}>
-          <section className={carte} aria-labelledby="studio-creer-titre">
+        <div className={`flex flex-col gap-4 min-w-0 xl:sticky xl:top-4 xl:max-h-[calc(100vh-4rem)] xl:overflow-y-auto xl:overscroll-contain xl:pr-1 [scrollbar-width:thin] ${contenus.length ? 'order-2 xl:order-none' : ''}`}>
+          <section className={`${carte} flex-none`} aria-labelledby="studio-creer-titre">
             <h2 id="studio-creer-titre" className="font-sora font-bold text-[15.5px] text-white mb-2">{t('studio.creerTitre')}</h2>
             <Onglets id="studio-creer" label={t('studio.creerTitre')} valeur={modeCreation} onChange={setModeCreation}
               items={[['sujets', t('studio.ongletSujetsIA'), Lightbulb], ['brief', t('studio.ongletBrief'), PenLine], ['photo', t('studio.ongletPhoto'), ImageIcon]]} />
@@ -976,7 +976,7 @@ export default function StudioIA() {
               onChange={(e) => genererPhoto(e.target.files?.[0])} />
           </section>
 
-          <section className={carte} aria-labelledby="studio-sujets-titre">
+          <section className={`${carte} xl:flex xl:flex-col xl:flex-1 xl:min-h-[260px]`} aria-labelledby="studio-sujets-titre">
             <div className="flex items-center gap-2.5 mb-2.5">
               <h2 id="studio-sujets-titre" className="font-sora font-bold text-[15.5px] text-white">{t('studio.vosSujets')}</h2>
               {sujets.length > 0 && <span className="ml-auto text-[12px] text-[#d8d2ff] bg-[#6f5cff]/20 rounded-full px-2.5 py-0.5 font-inter">{t('studio.nbSujets', { count: sujets.length })}</span>}
@@ -988,7 +988,7 @@ export default function StudioIA() {
                 {t('studio.videAide')}
               </div>
             ) : (
-              <ul className="flex flex-col divide-y divide-white/[0.07]">
+              <ul className="flex flex-col divide-y divide-white/[0.07] xl:flex-1 xl:min-h-0 xl:overflow-y-auto xl:overscroll-contain xl:-mr-2 xl:pr-2 [scrollbar-width:thin]">
                 {sujets.map((s, i) => {
                   const open = openId === s.id;
                   const reco = s.dimensions_reco || s.dimensions || {}; // reco d'origine de l'IA
@@ -1097,12 +1097,12 @@ export default function StudioIA() {
         </div>
 
         {/* ─── Zone droite : activité de l'IA + atelier « À valider » ─── */}
-        <div className={`flex flex-col gap-4 min-w-0 ${contenus.length ? 'order-1 xl:order-none' : ''}`}>
-          <section aria-labelledby="studio-journal-titre" className="rounded-2xl border border-white/[0.08] bg-[#0b1326] px-4 py-3">
+        <div className={`flex flex-col gap-4 min-w-0 xl:sticky xl:top-4 xl:max-h-[calc(100vh-4rem)] ${contenus.length ? 'order-1 xl:order-none' : ''}`}>
+          <section aria-labelledby="studio-journal-titre" className="flex-none rounded-2xl border border-white/[0.08] bg-[#0b1326] px-4 py-3 xl:max-h-[180px] xl:overflow-y-auto">
             <div className="flex items-center gap-2.5">
               {loadingSujets || enCours ? <Loader2 className="w-4 h-4 animate-spin text-[#c9c1ff]" aria-hidden="true" /> : <Activity className="w-4 h-4 text-slate-400" aria-hidden="true" />}
               <h2 id="studio-journal-titre" className="font-sora font-semibold text-[14px] text-white">{t('studio.journalTitre')}</h2>
-              <span className={`ml-auto text-[12px] rounded-full px-2.5 py-0.5 font-inter ${loadingSujets || enCours ? 'text-[#d8d2ff] bg-[#6f5cff]/20' : 'text-slate-300 bg-white/5'}`}>
+              <span className={`ml-auto xl:mr-12 text-[12px] rounded-full px-2.5 py-0.5 font-inter ${loadingSujets || enCours ? 'text-[#d8d2ff] bg-[#6f5cff]/20' : 'text-slate-300 bg-white/5'}`}>
                 {loadingSujets || enCours ? t('studio.journalEnCours') : t('studio.journalAttente')}
               </span>
             </div>
@@ -1130,8 +1130,8 @@ export default function StudioIA() {
             </div>
           </section>
 
-          <section className="bg-[#0b1326] border border-white/[0.08] rounded-2xl min-w-0" aria-labelledby="studio-atelier-titre">
-            <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-white/[0.08]">
+          <section className="bg-[#0b1326] border border-white/[0.08] rounded-2xl min-w-0 xl:flex xl:flex-col xl:min-h-0 xl:flex-1" aria-labelledby="studio-atelier-titre">
+            <div className="flex-none flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-white/[0.08]">
               <h2 id="studio-atelier-titre" className="font-sora font-bold text-[15.5px] text-white">{t('studio.atelierTitre')}</h2>
               {aValider > 0 && <span className="text-[12px] text-[#d8d2ff] bg-[#6f5cff]/20 rounded-full px-2.5 py-0.5 font-inter whitespace-nowrap">{enCours ? t('studio.nbEnCours', { count: enCours }) : aValider}</span>}
               <Link to="/dashboard/contenus" className={`ml-auto text-[13px] font-semibold text-[#c9c1ff] hover:text-white font-inter whitespace-nowrap rounded ${FOCUS}`}>{t('studio.voirTout')} →</Link>
@@ -1144,8 +1144,8 @@ export default function StudioIA() {
                 <span className="max-w-[46ch]">{t('studio.emptyContentsHint')}</span>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,250px)_minmax(0,1fr)]">
-                <ul className="flex flex-col p-2 gap-0.5 max-h-[260px] md:max-h-[640px] overflow-y-auto border-b md:border-b-0 md:border-r border-white/[0.08]" aria-label={t('studio.contenusGeneres')}>
+              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,250px)_minmax(0,1fr)] xl:flex-1 xl:min-h-0 xl:grid-rows-[minmax(0,1fr)]">
+                <ul className="flex flex-col p-2 gap-0.5 max-h-[260px] md:max-h-[640px] xl:max-h-none xl:min-h-0 overflow-y-auto overscroll-contain [scrollbar-width:thin] border-b md:border-b-0 md:border-r border-white/[0.08]" aria-label={t('studio.contenusGeneres')}>
                   {contenus.map((c) => (
                     <li key={c.id} data-testid={`studio-contenu-${c.id}`}
                       className={`group flex items-center gap-1 rounded-xl transition-colors ${sel?.id === c.id ? 'bg-[#6f5cff]/[0.14]' : 'hover:bg-white/[0.04]'}`}>
@@ -1169,7 +1169,7 @@ export default function StudioIA() {
                 </ul>
 
                 {sel && (
-                  <div className="p-4 min-w-0">
+                  <div className="p-4 min-w-0 xl:min-h-0 xl:overflow-y-auto xl:overscroll-contain [scrollbar-width:thin]">
                     <h3 className="font-sora font-bold text-[15.5px] text-white leading-snug [text-wrap:balance]">{sel.sujet || libelleFormat(sel)}</h3>
                     <div className="flex items-center gap-2 text-[13px] text-slate-300 font-inter mt-1 mb-3">
                       <Plateforme id={reseauDe(sel)} petit />
