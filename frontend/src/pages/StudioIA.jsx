@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Sparkles, Loader2, Lightbulb, PenLine, Check, CheckCircle2,
+  Loader2, Lightbulb, PenLine, Check, CheckCircle2, Clock, CircleDot,
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
   ChevronLeft, ChevronRight, ChevronDown, X, ArrowRight, Upload, Eye, Maximize2, Target, Activity,
 } from 'lucide-react';
@@ -679,15 +679,30 @@ export default function StudioIA() {
     editer(id, card.precedent);
     setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, precedent: actuel } : c)));
   };
+  // Retouche du texte : enregistrée en base après 0,9 s ; l'état (en cours / enregistré) est affiché
   const editer = (id, texte) => {
-    setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte } : c)));
     const card = contenus.find((c) => c.id === id);
-    if (card?.brouillon && card.contenuId) {
+    const enBase = !!(card?.brouillon && card.contenuId);
+    setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, ...(enBase ? { sauvegarde: 'encours' } : {}) } : c)));
+    if (enBase) {
       clearTimeout(majTimers.current[id]);
       majTimers.current[id] = setTimeout(() => {
-        (card.format === 'script' ? agentService.majBrouillonScript(card.contenuId, texte) : agentService.majBrouillon(card.contenuId, texte)).catch(() => {});
+        (card.format === 'script' ? agentService.majBrouillonScript(card.contenuId, texte) : agentService.majBrouillon(card.contenuId, texte))
+          .then(() => setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, sauvegarde: 'ok' } : c))))
+          .catch(() => setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, sauvegarde: 'echec' } : c))));
       }, 900);
     }
+  };
+  // Après une validation : on ouvre le contenu suivant encore à relire et on y place le focus
+  const titreApercuRef = useRef(null);
+  const [focusApercu, setFocusApercu] = useState(0);
+  useEffect(() => { if (focusApercu) titreApercuRef.current?.focus(); }, [focusApercu]);
+  const passerAuSuivant = (id) => {
+    const suivant = contenus.find((c) => c.id !== id && c.statut === 'pret');
+    if (!suivant) return;
+    setSelId(suivant.id);
+    setOnglet('texte');
+    setFocusApercu((n) => n + 1);
   };
 
   const valider = async (id) => {
@@ -702,6 +717,7 @@ export default function StudioIA() {
           ...(card.brouillon && card.contenuId ? { contenu_id: card.contenuId } : {}) });
         setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false, statut: 'valide', valideId: d?.contenu_id || card.contenuId || null } : c)));
         if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
+        passerAuSuivant(id);
         toast.success(t('studio.scriptReady'), {
           action: d?.contenu_id ? { label: t('studio.editVideoAction'), onClick: () => navigate(`/dashboard/video?contenu_id=${d.contenu_id}`) } : undefined,
         });
@@ -717,7 +733,10 @@ export default function StudioIA() {
       // Validé : la carte reste affichée (« Validé ») avec le lien vers la fiche et l'état par réseau
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false, statut: 'valide', valideId: d?.contenu_id || card.contenuId || null } : c)));
       if (card.sujetId) supprimerSujet(card.sujetId); // le sujet est traité → sort de la réserve
-      toast.success(card.format === 'story' ? t('studio.storyValidated') : t('studio.postValidated'));
+      passerAuSuivant(id);
+      toast.success(card.format === 'story' ? t('studio.storyValidated') : t('studio.postValidated'), {
+        action: { label: t('studio.openInContents'), onClick: () => navigate(d?.contenu_id || card.contenuId ? `/dashboard/contenus?ouvrir=${d?.contenu_id || card.contenuId}` : '/dashboard/contenus') },
+      });
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, saving: false } : c)));
       toast.error(e.response?.data?.detail || t('studio.validationError'));
@@ -725,10 +744,12 @@ export default function StudioIA() {
   };
 
   // --- Affichage (maquette validée le 2026-10-20, revue critique du 2026-10-20) ---
-  const sel = contenus.find((c) => c.id === selId) || contenus[0] || null;
+  const aRelire = contenus.filter((c) => c.statut !== 'valide');
+  const valides = contenus.filter((c) => c.statut === 'valide');
+  const sel = contenus.find((c) => c.id === selId) || aRelire[0] || contenus[0] || null;
   useEffect(() => { setSlideIdx(0); }, [sel?.id]);
   const enCours = contenus.filter((c) => c.statut === 'redaction').length;
-  const aValider = contenus.filter((c) => c.statut !== 'valide').length;
+  const nbARelire = contenus.filter((c) => c.statut === 'pret').length;
   const filtresActifs = Object.values(filtres).filter(Boolean).length;
   const reseauDe = (c) => (c.format === 'script' ? (c.reseau || '') : (c.meta || ''));
   const libelleFormat = (c) => (c.format === 'script' ? t('studio.formatScript') : c.format === 'carrousel' ? t('studio.formatCarousel')
@@ -740,11 +761,15 @@ export default function StudioIA() {
     : c.statut === 'valide' ? t('studio.statutValide')
     : c.format === 'carrousel' ? t('studio.statutEnregistre')
     : c.format === 'photo' ? t('studio.statutEnregistre') : t('studio.statutPret'));
-  // Couleur + icône par état (jamais la couleur seule : le texte de l'état est toujours affiché)
-  const tonEtat = (c) => (c.statut === 'erreur' ? 'text-red-300' : c.statut === 'redaction' ? 'text-[#c9c1ff]' : 'text-[#7ff5c4]');
+  // Un état = une couleur + une icône + un texte (jamais la couleur seule)
+  //   à relire (violet) · à finaliser dans Contenus (ambre : carrousel, photo) · validé (vert)
+  const tonEtat = (c) => (c.statut === 'erreur' ? 'text-red-300' : c.statut === 'valide' ? 'text-[#7ff5c4]'
+    : c.statut === 'carrousel' || c.statut === 'photo' ? 'text-amber-200' : 'text-[#c9c1ff]');
   const IconeEtat = ({ c }) => (c.statut === 'redaction' ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
     : c.statut === 'erreur' ? <AlertTriangle className="w-3 h-3" aria-hidden="true" />
-    : <CheckCircle2 className="w-3 h-3" aria-hidden="true" />);
+    : c.statut === 'valide' ? <CheckCircle2 className="w-3 h-3" aria-hidden="true" />
+    : c.statut === 'carrousel' || c.statut === 'photo' ? <Clock className="w-3 h-3" aria-hidden="true" />
+    : <CircleDot className="w-3 h-3" aria-hidden="true" />);
   const LIMITE_CARACTERES = { linkedin: 3000, instagram: 2200, facebook: 5000, tiktok: 2200, googlebusiness: 1500, twitter: 280 };
   const verifications = (c) => {
     const texte = c.texte || '';
@@ -754,11 +779,20 @@ export default function StudioIA() {
     return [
       { ok: texte.length <= max, texte: t('studio.verifLongueur', { n: texte.length, max }) },
       { ok: !chiffres.length, texte: chiffres.length ? t('studio.verifChiffres', { liste: chiffres.join(', ') }) : t('studio.verifChiffresOk') },
-      { ok: c.meta !== 'instagram' || (hashtags >= 3 && hashtags <= 8), texte: t('studio.verifHashtags', { n: hashtags }) },
+      c.meta === 'linkedin'
+        ? { ok: hashtags <= 5, texte: t('studio.verifHashtagsLinkedin', { n: hashtags }) }
+        : { ok: c.meta !== 'instagram' || (hashtags >= 3 && hashtags <= 8), texte: t('studio.verifHashtags', { n: hashtags }) },
     ];
   };
-  // Étapes pilotées par l'état réel : 3 = un contenu prêt est ouvert dans l'aperçu
-  const step = sel && ['pret', 'photo', 'carrousel', 'valide'].includes(sel.statut) ? 3 : contenus.length ? 2 : 1;
+  // Étapes pilotées par la progression réelle : 3 = il y a des contenus à relire, 4 = tout est validé
+  const step = !contenus.length ? 1
+    : contenus.every((c) => c.statut === 'valide') ? 4
+      : contenus.some((c) => ['pret', 'photo', 'carrousel'].includes(c.statut)) ? 3 : 2;
+  // En-tête compact dès qu'il y a quelque chose à relire : l'atelier passe avant le décor
+  const enteteCompact = aRelire.length > 0;
+  const [validesOuverts, setValidesOuverts] = useState(false);
+  const [reglagesOuverts, setReglagesOuverts] = useState(false);
+  useEffect(() => { setReglagesOuverts(false); }, [openId]);
   const champ = `w-full rounded-[10px] bg-[#111b33] border border-white/[0.09] text-slate-100 text-[13.5px] px-3 py-2.5 outline-none focus:border-[#8A6CFF]/70 font-inter ${FOCUS}`;
   const carte = 'bg-[#0b1326] border border-white/[0.08] rounded-2xl p-4 min-w-0';
   // Bouton principal : violet uni (contraste du texte blanc ≥ 5:1), sans halo
@@ -806,17 +840,17 @@ export default function StudioIA() {
   ) : null);
 
   return (
-    <div className="w-full space-y-4 pb-10 xl:pb-0">
+    <div className="w-full space-y-4 pb-28 md:pb-10 xl:pb-0">
       {/* ─── En-tête : titre et étapes (photo de bannière sur grand écran seulement) ─── */}
-      <header className="relative overflow-hidden rounded-[18px] bg-[#0b1326] border border-white/[0.06] lg:min-h-[150px]">
-        <div aria-hidden="true" className="hidden lg:block absolute inset-0 bg-cover bg-[position:70%_55%]" style={{ backgroundImage: "url('/images/studio-banniere.jpg')" }} />
-        <div aria-hidden="true" className="hidden lg:block absolute inset-0 bg-[linear-gradient(90deg,#050b1a_0%,rgba(5,11,26,0.92)_30%,rgba(5,11,26,0.4)_50%,rgba(5,11,26,0.05)_64%,rgba(5,11,26,0.2)_80%,rgba(5,11,26,0.75)_100%)]" />
-        <div className="relative px-5 py-4 sm:px-6 sm:py-5 flex flex-col gap-1">
-          <h1 className="flex items-center gap-2.5 font-sora font-extrabold text-[26px] sm:text-[32px] leading-tight text-white tracking-tight">
-            <Sparkles className="w-6 h-6 text-[#a99cff]" aria-hidden="true" />{t('studio.pageTitle')}
-          </h1>
-          <p className="text-[14.5px] text-slate-300 font-inter">{t('studio.pageSubtitle')}</p>
-          <ol className="flex flex-wrap items-center gap-x-2.5 gap-y-2 pt-3" aria-label={t('studio.etapesLabel')}>
+      <header className={`relative overflow-hidden rounded-[18px] bg-[#0b1326] border border-white/[0.06] ${enteteCompact ? '' : 'lg:min-h-[150px]'}`}>
+        <div aria-hidden="true" className={`${enteteCompact ? 'hidden' : 'hidden lg:block'} absolute inset-0 bg-cover bg-[position:70%_55%]`} style={{ backgroundImage: "url('/images/studio-banniere.jpg')" }} />
+        <div aria-hidden="true" className={`${enteteCompact ? 'hidden' : 'hidden lg:block'} absolute inset-0 bg-[linear-gradient(90deg,#050b1a_0%,rgba(5,11,26,0.92)_30%,rgba(5,11,26,0.4)_50%,rgba(5,11,26,0.05)_64%,rgba(5,11,26,0.2)_80%,rgba(5,11,26,0.75)_100%)]`} />
+        <div className={`relative px-5 sm:px-6 flex ${enteteCompact ? 'py-3 flex-row flex-wrap items-center gap-x-6 gap-y-2' : 'py-4 sm:py-5 flex-col gap-1'}`}>
+          <div className="min-w-0">
+            <h1 className={`font-sora font-extrabold leading-tight text-white tracking-tight ${enteteCompact ? 'text-[22px] sm:text-[24px]' : 'text-[26px] sm:text-[32px]'}`}>{t('studio.pageTitle')}</h1>
+            {!enteteCompact && <p className="text-[14.5px] text-slate-300 font-inter">{t('studio.pageSubtitle')}</p>}
+          </div>
+          <ol className={`flex flex-wrap items-center gap-x-2.5 gap-y-2 ${enteteCompact ? 'md:ml-auto' : 'pt-3'}`} aria-label={t('studio.etapesLabel')}>
             {STEPS.map((s, i) => {
               const done = step > s.n;
               const active = step === s.n;
@@ -834,10 +868,10 @@ export default function StudioIA() {
             })}
           </ol>
         </div>
-        <div aria-hidden="true" className="hidden lg:block absolute right-16 bottom-12 font-['Caveat',cursive] font-bold text-[31px] leading-[1.05] text-white text-right -rotate-6 [text-shadow:0_2px_14px_rgba(0,0,0,0.45)]">
+        <div aria-hidden="true" className={`${enteteCompact ? 'hidden' : 'hidden lg:block'} absolute right-16 bottom-12 font-['Caveat',cursive] font-bold text-[31px] leading-[1.05] text-white text-right -rotate-6 [text-shadow:0_2px_14px_rgba(0,0,0,0.45)]`}>
           {t('studio.slogan1')}<br />{t('studio.slogan2')}
         </div>
-        <span className="hidden lg:block absolute right-4 bottom-1.5 text-[11px] text-white/60 font-inter">Photo : Positano, Wikimedia Commons (CC BY-SA 4.0)</span>
+        {!enteteCompact && <span className="hidden lg:block absolute right-3 bottom-1.5 text-[12px] text-white/80 font-inter bg-black/45 rounded px-1.5">{t('studio.creditPhoto')}</span>}
       </header>
 
       {/* ─── Marque incomplète ─── */}
@@ -846,7 +880,7 @@ export default function StudioIA() {
           <span className="w-[38px] h-[38px] rounded-[10px] bg-orange-400 grid place-items-center text-[#2a1600] flex-none"><AlertTriangle className="w-5 h-5" aria-hidden="true" /></span>
           <div className="min-w-0 font-inter">
             <p className="text-[14.5px] font-semibold text-orange-200">{t('studio.completeBrandFirst')}</p>
-            <p className="text-[13px] text-slate-300" data-testid="studio-champs-manquants">
+            <p id="studio-raison-blocage" className="text-[13px] text-slate-300" data-testid="studio-champs-manquants">
               {champsManquants.length > 0
                 ? <>{t('studio.champsManquants')} <span className="text-orange-100">{champsManquants.map((c) => t(`demarrage.champs.${c}`)).join(', ')}.</span></>
                 : <>{t('studio.guardIntro')} {t('studio.guardSector')}.</>}
@@ -874,7 +908,7 @@ export default function StudioIA() {
                         {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}
                       </select>
                     </label>
-                    <Button onClick={proposerSujets} disabled={!marqueOk || loadingSujets} data-testid="studio-generer-sujets" className={`${btnViolet} h-[42px] flex-1 min-w-0`}>
+                    <Button onClick={proposerSujets} disabled={!marqueOk || loadingSujets} aria-describedby={!marqueOk ? 'studio-raison-blocage' : undefined} data-testid="studio-generer-sujets" className={`${btnViolet} h-[42px] flex-1 min-w-0`}>
                       {loadingSujets ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lightbulb className="w-4 h-4" />}
                       <span className="ml-2">{t('studio.generateSubjects')}</span>
                     </Button>
@@ -1018,6 +1052,15 @@ export default function StudioIA() {
 
                       {open && (
                         <div className="pl-8 pr-1 pb-4 pt-0.5 space-y-3 animate-fade-in">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] font-inter">
+                            <span className="text-slate-100">{[dimsEdit.objectif, dimsEdit.angle, dimsEdit.cible, dimsEdit.format, dimsEdit.offre].filter(Boolean).join(' · ') || t('studio.dimAide')}</span>
+                            <button type="button" onClick={() => setReglagesOuverts((o) => !o)} aria-expanded={reglagesOuverts} aria-controls={`studio-reglages-${s.id}`}
+                              className={`text-[#c9c1ff] hover:text-white underline underline-offset-2 rounded ${FOCUS}`}>
+                              {reglagesOuverts ? t('studio.reglagesMasquer') : t('studio.reglagesModifier')}
+                            </button>
+                          </div>
+                          {reglagesOuverts && (
+                          <div id={`studio-reglages-${s.id}`} className="space-y-3">
                           <p className="text-[12.5px] text-slate-300 font-inter">{t('studio.dimAide')}</p>
                           <div className="grid grid-cols-2 gap-2.5">
                             {DIM_META.map(({ cle, labelKey }) => (
@@ -1034,6 +1077,8 @@ export default function StudioIA() {
                               options={[AUCUNE, ...dims.offre]} libelle={(v) => (v === AUCUNE ? t('studio.aucuneOffre') : v)}
                               onChange={(v) => changeDim('offre', v === AUCUNE ? '' : v)} />
                           ) : null}
+                          </div>
+                          )}
 
                           {/* Le format vient de la dimension. Script vidéo = Type + Réseau ; sinon = Réseaux */}
                           {cfgFormat === 'script' ? (
@@ -1081,7 +1126,7 @@ export default function StudioIA() {
                                 <RefreshCw className="w-3 h-3" aria-hidden="true" />{t('studio.retablirReco')}
                               </button>
                             )}
-                            <button type="button" onClick={() => setOpenId(null)} className={`ml-auto text-[13px] text-slate-300 hover:text-white font-inter px-2 py-1 rounded ${FOCUS}`}>{t('studio.cancel')}</button>
+                            <button type="button" onClick={() => setOpenId(null)} className={`ml-auto text-[13px] text-slate-300 hover:text-white font-inter px-2 py-1 rounded ${FOCUS}`}>{t('studio.fermer')}</button>
                             <Button onClick={() => genererContenu(s)} data-testid={`studio-generer-post-${s.id}`} className={btnViolet}>
                               <Wand2 className="w-4 h-4" /><span className="ml-2">{t('studio.generateButton')}</span>
                             </Button>
@@ -1098,6 +1143,7 @@ export default function StudioIA() {
 
         {/* ─── Zone droite : activité de l'IA + atelier « À valider » ─── */}
         <div className={`flex flex-col gap-4 min-w-0 xl:sticky xl:top-4 xl:max-h-[calc(100vh-4rem)] ${contenus.length ? 'order-1 xl:order-none' : ''}`}>
+          {(loadingSujets || enCours > 0) && (
           <section aria-labelledby="studio-journal-titre" className="flex-none rounded-2xl border border-white/[0.08] bg-[#0b1326] px-4 py-3 xl:max-h-[180px] xl:overflow-y-auto">
             <div className="flex items-center gap-2.5">
               {loadingSujets || enCours ? <Loader2 className="w-4 h-4 animate-spin text-[#c9c1ff]" aria-hidden="true" /> : <Activity className="w-4 h-4 text-slate-400" aria-hidden="true" />}
@@ -1129,12 +1175,13 @@ export default function StudioIA() {
               )}
             </div>
           </section>
+          )}
 
           <section className="bg-[#0b1326] border border-white/[0.08] rounded-2xl min-w-0 xl:flex xl:flex-col xl:min-h-0 xl:flex-1" aria-labelledby="studio-atelier-titre">
             <div className="flex-none flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-white/[0.08]">
               <h2 id="studio-atelier-titre" className="font-sora font-bold text-[15.5px] text-white">{t('studio.atelierTitre')}</h2>
-              {aValider > 0 && <span className="text-[12px] text-[#d8d2ff] bg-[#6f5cff]/20 rounded-full px-2.5 py-0.5 font-inter whitespace-nowrap">{enCours ? t('studio.nbEnCours', { count: enCours }) : aValider}</span>}
-              <Link to="/dashboard/contenus" className={`ml-auto text-[13px] font-semibold text-[#c9c1ff] hover:text-white font-inter whitespace-nowrap rounded ${FOCUS}`}>{t('studio.voirTout')} →</Link>
+              {(nbARelire > 0 || enCours > 0) && <span className="text-[12px] text-[#d8d2ff] bg-[#6f5cff]/20 rounded-full px-2.5 py-0.5 font-inter whitespace-nowrap">{enCours ? t('studio.nbEnCours', { count: enCours }) : t('studio.nbARelire', { count: nbARelire })}</span>}
+              <Link to="/dashboard/contenus" className={`ml-auto text-[13px] font-semibold text-[#c9c1ff] hover:text-white font-inter whitespace-nowrap rounded ${FOCUS}`}>{t('studio.tousContenus')} →</Link>
             </div>
 
             {contenus.length === 0 ? (
@@ -1146,14 +1193,15 @@ export default function StudioIA() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-[minmax(0,250px)_minmax(0,1fr)] xl:flex-1 xl:min-h-0 xl:grid-rows-[minmax(0,1fr)]">
                 <ul className="flex flex-col p-2 gap-0.5 max-h-[260px] md:max-h-[640px] xl:max-h-none xl:min-h-0 overflow-y-auto overscroll-contain [scrollbar-width:thin] border-b md:border-b-0 md:border-r border-white/[0.08]" aria-label={t('studio.contenusGeneres')}>
-                  {contenus.map((c) => (
+                  {[...aRelire, ...(validesOuverts ? valides : [])].map((c, i) => (
                     <li key={c.id} data-testid={`studio-contenu-${c.id}`}
+                      style={i === aRelire.length && i > 0 ? { marginTop: 6 } : undefined}
                       className={`group flex items-center gap-1 rounded-xl transition-colors ${sel?.id === c.id ? 'bg-[#6f5cff]/[0.14]' : 'hover:bg-white/[0.04]'}`}>
                       <button type="button" onClick={() => { setSelId(c.id); setOnglet('texte'); }} aria-current={sel?.id === c.id ? 'true' : undefined}
                         className={`flex-1 min-w-0 flex items-center gap-2.5 text-left px-2 py-2 rounded-xl ${FOCUS}`}>
                         <Plateforme id={reseauDe(c)} petit />
                         <span className="min-w-0">
-                          <span className="block text-[13px] font-semibold text-white font-inter truncate">{c.sujet || libelleFormat(c)}</span>
+                          <span className="block text-[13px] font-semibold text-white font-inter line-clamp-2 leading-snug">{c.sujet || libelleFormat(c)}</span>
                           <span className="flex flex-wrap items-center gap-x-1.5 text-[12px] font-inter min-w-0">
                             <span className="text-slate-300">{libelleFormat(c)}</span>
                             <span className={`flex items-center gap-1 flex-none ${tonEtat(c)}`}><IconeEtat c={c} />{etatContenu(c)}</span>
@@ -1166,11 +1214,20 @@ export default function StudioIA() {
                       </button>
                     </li>
                   ))}
+                  {valides.length > 0 && (
+                    <li>
+                      <button type="button" onClick={() => setValidesOuverts((o) => !o)} aria-expanded={validesOuverts}
+                        className={`w-full flex items-center gap-2 px-2 py-2 mt-1 rounded-xl text-[12.5px] text-[#7ff5c4] font-inter hover:bg-white/[0.04] ${FOCUS}`}>
+                        <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />{t('studio.validesTitre', { count: valides.length })}
+                        <ChevronDown className={`ml-auto w-3.5 h-3.5 transition-transform ${validesOuverts ? 'rotate-180' : ''}`} aria-hidden="true" />
+                      </button>
+                    </li>
+                  )}
                 </ul>
 
                 {sel && (
                   <div className="p-4 min-w-0 xl:min-h-0 xl:overflow-y-auto xl:overscroll-contain [scrollbar-width:thin]">
-                    <h3 className="font-sora font-bold text-[15.5px] text-white leading-snug [text-wrap:balance]">{sel.sujet || libelleFormat(sel)}</h3>
+                    <h3 ref={titreApercuRef} tabIndex={-1} className="font-sora font-bold text-[15.5px] text-white leading-snug [text-wrap:balance] outline-none">{sel.sujet || libelleFormat(sel)}</h3>
                     <div className="flex items-center gap-2 text-[13px] text-slate-300 font-inter mt-1 mb-3">
                       <Plateforme id={reseauDe(sel)} petit />
                       <span>{libelleFormat(sel)}{nomReseau(reseauDe(sel)) ? ` · ${nomReseau(reseauDe(sel))}` : ''}</span>
@@ -1220,8 +1277,8 @@ export default function StudioIA() {
                       <div className="space-y-3">
                         {sel.image && <img src={sel.image} alt="" className="w-full rounded-xl border border-white/10 max-h-80 object-cover" />}
                         <p className="text-[14px] text-slate-100 font-inter whitespace-pre-wrap leading-relaxed">{sel.texte}</p>
-                        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#3AFFA3]/30 bg-[#3AFFA3]/[0.06] px-3 py-2.5 text-[13px] text-slate-100 font-inter">
-                          <CheckCircle2 className="w-4 h-4 text-[#3AFFA3]" aria-hidden="true" />
+                        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-300/30 bg-amber-300/[0.06] px-3 py-2.5 text-[13px] text-slate-100 font-inter">
+                          <Clock className="w-4 h-4 text-amber-200" aria-hidden="true" />
                           <span className="flex-1 min-w-[10rem]">{t('studio.photoSaved')}</span>
                           <Button size="sm" variant="ghost" onClick={() => retirerCarte(sel.id)} className={`text-slate-300 hover:text-white ${FOCUS}`}>{t('studio.closeCard')}</Button>
                         </div>
@@ -1257,8 +1314,8 @@ export default function StudioIA() {
                         ) : (
                           <p className="text-[13px] text-amber-300 font-inter">{t('studio.noImagesGenerated')}</p>
                         )}
-                        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[13px] text-slate-100 font-inter">
-                          <CheckCircle2 className="w-4 h-4 text-[#3AFFA3]" aria-hidden="true" />
+                        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-300/30 bg-amber-300/[0.06] px-3 py-2.5 text-[13px] text-slate-100 font-inter">
+                          <Clock className="w-4 h-4 text-amber-200" aria-hidden="true" />
                           <span className="flex-1 min-w-[10rem]">{t('studio.carouselSaved')}</span>
                           <Button size="sm" data-testid={`studio-carrousel-ouvrir-${sel.id}`}
                             onClick={() => { retirerCarte(sel.id); navigate(sel.contenuId ? `/dashboard/contenus?ouvrir=${sel.contenuId}` : '/dashboard/contenus'); }}
@@ -1290,11 +1347,16 @@ export default function StudioIA() {
                             <>
                               <Textarea value={sel.texte} onChange={(e) => editer(sel.id, e.target.value)} rows={sel.format === 'script' ? 14 : 11}
                                 aria-label={t('studio.ongletTexte')} className={`${champ} resize-y text-[14px] leading-relaxed`} />
-                              {sel.format !== 'script' && (
-                                <p className={`mt-1 text-right text-[12px] font-inter tabular-nums ${(sel.texte || '').length > (LIMITE_CARACTERES[sel.meta] || 3000) ? 'text-orange-300' : 'text-slate-400'}`}>
-                                  {t('studio.caracteres', { n: (sel.texte || '').length, max: LIMITE_CARACTERES[sel.meta] || 3000 })}
-                                </p>
-                              )}
+                              <p className="mt-1 flex items-center gap-3 text-[12px] font-inter tabular-nums">
+                                <span aria-live="polite" className={sel.sauvegarde === 'echec' ? 'text-red-300' : 'text-slate-400'}>
+                                  {sel.sauvegarde === 'encours' ? t('studio.sauvegardeEnCours') : sel.sauvegarde === 'ok' ? t('studio.sauvegardeOk') : sel.sauvegarde === 'echec' ? t('studio.sauvegardeEchec') : ''}
+                                </span>
+                                {sel.format !== 'script' && (
+                                  <span className={`ml-auto ${(sel.texte || '').length > (LIMITE_CARACTERES[sel.meta] || 3000) ? 'text-orange-300' : 'text-slate-400'}`}>
+                                    {t('studio.caracteres', { n: (sel.texte || '').length, max: LIMITE_CARACTERES[sel.meta] || 3000 })}
+                                  </span>
+                                )}
+                              </p>
                             </>
                           )}
                         </div>
@@ -1303,12 +1365,17 @@ export default function StudioIA() {
                             <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />{t('studio.versionPrecedente')}
                           </button>
                         )}
-                        <div className="flex flex-wrap items-center justify-between gap-2.5 mt-3">
-                          <Button variant="ghost" onClick={() => regenerer(sel.id)} className={`${btnSecondaire} min-w-[140px]`}>
+                        {sel.format !== 'script' && verifications(sel).some((v) => !v.ok) && (
+                          <button type="button" onClick={() => setOnglet('verif')} className={`mt-2 inline-flex items-center gap-1.5 text-[12.5px] text-amber-100 hover:text-white rounded ${FOCUS}`}>
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-300" aria-hidden="true" />{t('studio.pointsARevoir', { count: verifications(sel).filter((v) => !v.ok).length })}
+                          </button>
+                        )}
+                        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#090d18]/95 px-4 py-3 flex items-center justify-between gap-2.5 md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:mt-3 md:flex-wrap">
+                          <Button variant="ghost" onClick={() => regenerer(sel.id)} className={`${btnSecondaire} md:min-w-[140px]`}>
                             <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.regenerate')}</span>
                           </Button>
                           <Button data-testid={`studio-valider-${sel.id}`} onClick={() => valider(sel.id)} disabled={sel.saving || !sel.texte.trim()}
-                            className={`bg-[#3AFFA3] text-[#03241a] font-semibold hover:bg-[#5effb6] min-w-[160px] disabled:opacity-50 ${FOCUS}`}>
+                            className={`flex-1 md:flex-none bg-[#3AFFA3] text-[#03241a] font-semibold hover:bg-[#5effb6] md:min-w-[160px] disabled:opacity-50 ${FOCUS}`}>
                             {sel.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" strokeWidth={2.6} />}<span className="ml-2">{t('studio.validerVersContenus')}</span>
                           </Button>
                         </div>
