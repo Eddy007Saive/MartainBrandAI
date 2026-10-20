@@ -1420,6 +1420,8 @@ export default function ContenusPage() {
   // motif de refus optionnel, même logique sur les 3 chemins de refus.
   const [ressemblanceCible, setRessemblanceCible] = useState(null); // { id } | { serie: groupe } | null
   const [refusCible, setRefusCible] = useState(null); // { id } | { serie: groupe } | null
+  // Script « À tourner », ou reel dont la vidéo n'est pas encore montée : rien à programmer.
+  const videoAttendue = (c) => c?.statut === 'A tourner' || ((c?.type === 'Reel' || c?.video_status) && !c?.video_url);
   const demanderValidation = (id, forcer = false) => {
     const cible = contenus.find((c) => c.id === id);
     const video = cible && (cible.type === 'Reel' || cible.video_url || cible.video_status);
@@ -2126,7 +2128,7 @@ export default function ContenusPage() {
                             : <>{(actionLoading === selectedContenu.id || czRBusy) ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Check className="w-4 h-4 mr-1.5" />}{t('contenus.actions.validerProgrammer')}</>}</Button>
                       </>
                     )}
-                    {selectedContenu.statut !== 'Publie' && selectedContenu.statut !== 'A valider' && selectedContenu.reseau_cible
+                    {selectedContenu.statut !== 'Publie' && selectedContenu.statut !== 'A valider' && selectedContenu.reseau_cible && !videoAttendue(selectedContenu)
                       && ['', null, undefined, 'échec', 'annulé'].includes(selectedContenu.publish_status) && (
                       <Button size="sm" onClick={() => programmerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
                         title={selectedContenu.publish_status === 'échec' ? selectedContenu.publish_error : t('contenus.detail.envoyerFile')}
@@ -2134,7 +2136,7 @@ export default function ContenusPage() {
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
                         {selectedContenu.publish_status === 'échec' ? t('contenus.actions.reessayer') : t('contenus.actions.programmer')}</Button>
                     )}
-                    {selectedContenu.statut !== 'Publie' && selectedContenu.statut !== 'A valider' && selectedContenu.reseau_cible
+                    {selectedContenu.statut !== 'Publie' && selectedContenu.statut !== 'A valider' && selectedContenu.reseau_cible && !videoAttendue(selectedContenu)
                       && selectedContenu.publish_status !== 'publié' && (
                       <Button size="sm" onClick={() => replanifierPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
                         title={t('contenus.detail.replanifierTitle')}
