@@ -5,6 +5,7 @@ import {
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
   ChevronLeft, ChevronRight, ChevronDown, X, ArrowRight, Crown, Upload, Eye, Maximize2, Target, FileText,
 } from 'lucide-react';
+import { LogoReseau } from '../components/LogoReseau';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { agentService } from '../services/agentService';
@@ -99,16 +100,13 @@ const Pill = ({ active, onClick, children }) => (
 const TeteCarte = ({ icon: Icon, titre, children }) => (
   <div className="flex items-center gap-2.5 mb-2.5">
     <span className="w-[30px] h-[30px] rounded-[9px] border border-white/15 grid place-items-center text-[#b6abff] flex-none"><Icon className="w-4 h-4" /></span>
-    <h2 className="font-sora font-bold text-[15.5px] text-white">{titre}</h2>
+    <h2 className="font-sora font-bold text-[15.5px] text-white truncate min-w-0">{titre}</h2>
     {children}
   </div>
 );
-const Plateforme = ({ id, petit }) => {
-  const s = petit ? 'w-[22px] h-[22px] rounded-md text-[10px]' : 'w-[34px] h-[34px] rounded-[9px] text-[12px]';
-  const fond = { instagram: 'bg-[radial-gradient(circle_at_30%_110%,#feda75_0,#fa7e1e_25%,#d62976_50%,#962fbf_75%,#4f5bd5_100%)]', linkedin: 'bg-[#0a66c2]', facebook: 'bg-[#1877f2]', tiktok: 'bg-black border border-white/20', youtube: 'bg-[#ff0033]', googlebusiness: 'bg-white text-[#4285f4]', twitter: 'bg-black border border-white/20' }[id] || 'bg-[#1b2747]';
-  const lettre = { instagram: 'IG', linkedin: 'in', facebook: 'f', tiktok: 'TT', youtube: '▶', googlebusiness: 'G', twitter: 'X' }[id] || '•';
-  return <span className={`${s} ${fond} grid place-items-center font-sora font-extrabold text-white flex-none`} aria-hidden="true">{lettre}</span>;
-};
+const Plateforme = ({ id, petit }) => (
+  <LogoReseau id={id} className={petit ? 'w-[22px] h-[22px] rounded-md' : 'w-[34px] h-[34px] rounded-[9px]'} />
+);
 
 // Valeurs de repli des dimensions si le fetch backend n'a pas (encore) répondu — garde le sélecteur utilisable.
 const DIM_FALLBACK = {
@@ -172,13 +170,9 @@ export default function StudioIA() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, updateUser } = useUser();
-  const [usage, setUsage] = useState(null);
+  const [, setUsage] = useState(null);
   const refreshUsage = () => agentService.usage().then(setUsage).catch(() => {});
   useEffect(() => { refreshUsage(); }, []);
-  const sujetsReste = () => {
-    const g = usage?.gauges?.find((x) => x.action_type === 'subject');
-    return g ? Math.max(0, g.limit - g.used) : null;
-  };
   // Profil minimum (secteur, voix, audience, piliers) + réseau + carte : l'état
   // vient du serveur (démarrage guidé). Repli sur l'ancien test si pas encore chargé.
   const { etat: demarrage } = useDemarrage();
@@ -665,8 +659,6 @@ export default function StudioIA() {
   // --- Affichage (maquette validée le 2026-10-20) ---
   const sel = contenus.find((c) => c.id === selId) || contenus[0] || null;
   useEffect(() => { setSlideIdx(0); }, [sel?.id]);
-  const jauge = usage?.gauges?.find((x) => x.action_type === 'subject');
-  const reste = sujetsReste();
   const enCours = contenus.filter((c) => c.statut === 'redaction').length;
   const filtresActifs = Object.values(filtres).filter(Boolean).length;
   const reseauDe = (c) => (c.format === 'script' ? (c.reseau || '') : (c.meta || ''));
@@ -696,7 +688,7 @@ export default function StudioIA() {
   return (
     <div className="w-full space-y-4 pb-10">
       {/* ─── En-tête : titre, étapes, bannière, quota ─── */}
-      <header className="relative overflow-hidden rounded-[18px] bg-[#0b1326] border border-white/[0.06] grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_300px] min-h-[170px]">
+      <header className="relative overflow-hidden rounded-[18px] bg-[#0b1326] border border-white/[0.06] min-h-[170px]">
         <div aria-hidden="true" className="absolute inset-0 bg-cover bg-[position:70%_55%]" style={{ backgroundImage: "url('/images/studio-banniere.jpg')" }} />
         <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(90deg,#050b1a_0%,rgba(5,11,26,0.92)_26%,rgba(5,11,26,0.35)_46%,rgba(5,11,26,0)_62%,rgba(5,11,26,0.15)_80%,rgba(5,11,26,0.75)_100%)]" />
         <div className="relative px-6 py-5 flex flex-col gap-1.5">
@@ -722,22 +714,10 @@ export default function StudioIA() {
             })}
           </div>
         </div>
-        <div aria-hidden="true" className="hidden lg:block absolute right-[330px] bottom-6 font-['Caveat',cursive] font-bold text-[33px] leading-[1.05] text-white text-right -rotate-6 [text-shadow:0_2px_14px_rgba(0,0,0,0.45)]">
+        <div aria-hidden="true" className="hidden lg:block absolute right-16 bottom-10 font-['Caveat',cursive] font-bold text-[33px] leading-[1.05] text-white text-right -rotate-6 [text-shadow:0_2px_14px_rgba(0,0,0,0.45)]">
           {t('studio.slogan1')}<br />{t('studio.slogan2')}
         </div>
-        <div className="relative px-4 pb-4 md:p-4 md:pl-0 flex md:items-end">
-          <div className="w-full rounded-[14px] border border-[#6f5cff]/45 bg-[#0b1326]/90 backdrop-blur-sm px-4 py-3.5 grid grid-cols-[1fr_auto] gap-x-2.5 gap-y-1 items-center">
-            <span className="text-[13px] text-slate-400 font-inter">{t('studio.quotaLabel')}</span>
-            <span className="row-span-2 col-start-2 w-[38px] h-[38px] rounded-[10px] grid place-items-center bg-amber-400/10 text-amber-300"><Crown className="w-[18px] h-[18px]" /></span>
-            <b className="font-sora text-[26px] text-white tabular-nums">{reste ?? '—'}{jauge ? ` / ${jauge.limit}` : ''}</b>
-            {jauge && (
-              <span className="col-span-2 h-2 rounded-full bg-[#111b33] overflow-hidden">
-                <i className="block h-full rounded-full bg-gradient-to-r from-[#29d58f] to-[#3AFFA3]" style={{ width: `${Math.min(100, Math.round(((reste ?? 0) / Math.max(1, jauge.limit)) * 100))}%` }} />
-              </span>
-            )}
-          </div>
-        </div>
-        <span className="absolute right-3 top-1.5 text-[9.5px] text-white/40 font-inter">Photo : Positano, Wikimedia Commons (CC BY-SA 4.0)</span>
+        <span className="absolute right-4 bottom-1.5 text-[9.5px] text-white/40 font-inter">Photo : Positano, Wikimedia Commons (CC BY-SA 4.0)</span>
       </header>
 
       {/* ─── Marque incomplète ─── */}
@@ -786,14 +766,15 @@ export default function StudioIA() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {[...DIM_META, ...(dims?.offre?.length ? [{ cle: 'offre', label: 'Offre' }] : [])].map(({ cle, label }) => (
-                    <label key={cle} className="relative rounded-[10px] border border-white/[0.09] bg-[#111b33] px-2.5 py-2">
+                    <label key={cle} className="relative min-w-0 rounded-[10px] border border-white/[0.09] bg-[#111b33] px-2.5 py-2 hover:border-white/20 transition-colors">
                       <span className="flex items-center gap-1 text-[12.5px] font-semibold text-white font-inter">{label}{cle === 'offre' && <Crown className="w-3 h-3 text-amber-300 ml-auto" />}</span>
                       <select value={filtres[cle] || ''} onChange={(e) => setFiltres((f) => ({ ...f, [cle]: e.target.value }))}
                         data-testid={`studio-filtre-${cle}`}
-                        className="w-full bg-transparent text-[11.5px] text-slate-400 outline-none font-inter cursor-pointer">
-                        <option value="" className="bg-[#0b1326]">{t('studio.filterAny')}</option>
+                        className={`w-full appearance-none truncate bg-transparent pr-4 text-[12px] outline-none font-inter cursor-pointer ${filtres[cle] ? 'text-[#c9c1ff] font-medium' : 'text-slate-300'}`}>
+                        <option value="" className="bg-[#0b1326]">{t('studio.filtreAuto')}</option>
                         {((cle === 'offre' ? dims.offre : dims[cle]) || []).map((v) => <option key={v} value={v} className="bg-[#0b1326]">{v}</option>)}
                       </select>
+                      <ChevronDown className="pointer-events-none absolute right-2 bottom-2.5 w-3.5 h-3.5 text-slate-400" />
                     </label>
                   ))}
                 </div>
@@ -1045,11 +1026,11 @@ export default function StudioIA() {
           <section className={carte}>
             <TeteCarte icon={LayoutGrid} titre={t('studio.contenusGeneres')}>
               {contenus.length > 0 && (
-                <span className="text-[12px] text-[#d8d2ff] bg-[#6f5cff]/20 border border-[#6f5cff]/35 rounded-full px-2.5 py-0.5 font-inter">
+                <span className="text-[12px] text-[#d8d2ff] bg-[#6f5cff]/20 border border-[#6f5cff]/35 rounded-full px-2.5 py-0.5 font-inter whitespace-nowrap flex-none">
                   {enCours ? t('studio.nbEnCours', { count: enCours }) : t('studio.draftsCount', { count: contenus.length })}
                 </span>
               )}
-              <Link to="/dashboard/contenus" className="ml-auto text-[12.5px] font-semibold text-[#b6abff] hover:text-white font-inter">{t('studio.voirTout')} →</Link>
+              <Link to="/dashboard/contenus" className="ml-auto text-[12.5px] font-semibold text-[#b6abff] hover:text-white font-inter whitespace-nowrap flex-none">{t('studio.voirTout')} →</Link>
             </TeteCarte>
             {contenus.length === 0 ? (
               <p className="text-[13px] text-slate-400 font-inter py-6 text-center">{t('studio.emptyContentsHint')}</p>

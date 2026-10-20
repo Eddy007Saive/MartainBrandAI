@@ -1662,6 +1662,7 @@
     "echecSuppression": "Error al eliminar"
   },
   "studio": {
+    "filtreAuto": "Elige la IA",
     "videAide": "Elegirás el formato y la red al transformar cada tema.",
     "slogan1": "De buenas ideas",
     "slogan2": "¡a grandes contenidos!",
