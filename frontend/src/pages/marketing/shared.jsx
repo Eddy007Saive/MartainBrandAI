@@ -76,16 +76,17 @@ export const GOODTIME = {
 // La prise de rendez-vous vit dans lib/rdv.js : le popup s'en sert aussi.
 export { BOOKING_URL, propsRdv } from '../../lib/rdv';
 
-// Coordonnées de l'éditeur (à compléter par Martin)
+// Éditeur de Postorico (mentions légales du 20/10/2026, validées par Martin).
 export const LEGAL = {
-  societe: 'GoodTime BNB',
-  statut: '[FORME JURIDIQUE – ex. SAS / auto-entrepreneur]',
-  siret: '[SIRET]',
-  adresse: '[ADRESSE POSTALE]',
-  email: 'martindumoulin88@gmail.com',
-  directeur: '[DIRECTEUR DE LA PUBLICATION]',
-  hebergeur: 'Railway (Railway Corp., 548 Market St, San Francisco, CA, USA) : frontend/back-end ; Supabase (bases de données)',
-  maj: '24 juin 2026',
+  societe: 'Kraemer Ventures EOOD',
+  statut: 'société unipersonnelle à responsabilité limitée de droit bulgare (ЕООД)',
+  capital: '1,02 € (2 BGN)',
+  adresse: '78 boulevard Vitosha, 1463 Sofia, Bulgarie',
+  eik: '207893855',
+  tva: 'BG207893855',
+  email: 'contact@postorico.com',
+  directeur: 'Martin Kraemer',
+  maj: '20 octobre 2026',
 };
 
 // Bandeau pour valeur à compléter

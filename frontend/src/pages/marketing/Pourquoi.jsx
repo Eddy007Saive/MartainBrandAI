@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import Link from '../../components/LienLangue';
 import Metas from '../../components/Metas';
 import FondHexagones from '../../components/FondHexagones';
-import { CSS, propsRdv, GOODTIME } from './shared';
+import { CSS, propsRdv, LEGAL } from './shared';
 
 // Page de démarchage : envoyée en lien direct (mail, LinkedIn), jamais depuis
 // le menu du site. Header réduit au strict minimum — logo + un seul bouton —
@@ -285,7 +285,7 @@ export default function Pourquoi() {
       <footer><div className="wrap">
         <div className="brand">
           <img src="/logo.png" alt="" style={{ width: 30, height: 30 }} />
-          <div><b>Postorico</b><small>Un produit <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a> · © 2026</small></div>
+          <div><b>Postorico</b><small>Un produit {LEGAL.societe} · © 2026</small></div>
         </div>
         <div className="flinks">
           <Link to="/cgu">CGU</Link>

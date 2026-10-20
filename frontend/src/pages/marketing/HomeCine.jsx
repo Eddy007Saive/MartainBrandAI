@@ -984,7 +984,6 @@ export default function HomeCine() {
             <Link to="/cgu">{t('lp.footer.cgu')}</Link>
             <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
             <Link to="/mentions-legales">{t('lp.footer.legalNotice')}</Link>
-            <a href="https://gt-bnb.com" target="_blank" rel="noopener noreferrer">GoodTime BNB ↗</a>
           </div>
         </div>
         <div className="fbottom wrap">

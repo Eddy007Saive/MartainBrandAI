@@ -5,7 +5,7 @@ import Link, { NavLienLangue as NavLink } from '../../components/LienLangue';
 import { isAuthenticated, isAdminAuthenticated, espaceParDefaut } from '../../lib/auth';
 import { isNativeApp } from '../../lib/appDownload';
 import LangSwitcher from '../../components/LangSwitcher';
-import { CSS, GOODTIME } from './shared';
+import { CSS, LEGAL } from './shared';
 import Newsletter from './Newsletter';
 import FondHexagones from '../../components/FondHexagones';
 
@@ -78,7 +78,7 @@ export default function MarketingLayout() {
           <img src="/logo.png" alt="" style={{ width: 30, height: 30 }} />
           <div>
             <b>Postorico</b>
-            <small>{t('lp.footer.productOf')} <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a> · © 2026</small>
+            <small>{t('lp.footer.productOf')} {LEGAL.societe} · © 2026</small>
           </div>
         </div>
         <div className="flinks">
@@ -88,7 +88,6 @@ export default function MarketingLayout() {
           <Link to="/cgu">{t('lp.footer.cgu')}</Link>
           <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
           <Link to="/mentions-legales">{t('lp.footer.legal')}</Link>
-          <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">{GOODTIME.name} ↗</a>
         </div>
       </div></footer>
     </div>

@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { LegalPage, LEGAL, Ph } from './shared';
+import { LegalPage, LEGAL } from './shared';
 
 export default function Confidentialite() {
   return (
     <LegalPage title="Politique de confidentialité">
       <p>
         Cette politique explique quelles données personnelles <b>Postorico</b> collecte, pourquoi, et
-        quels sont tes droits. Le responsable de traitement est <Ph>{LEGAL.societe}</Ph>
+        quels sont tes droits. Le responsable de traitement est {LEGAL.societe}
         {' '}(contact : <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>).
       </p>
 

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { LegalPage, LEGAL, Ph } from './shared';
+import { LegalPage, LEGAL } from './shared';
 
 export default function Cgu() {
   return (
@@ -8,7 +8,7 @@ export default function Cgu() {
       <p>
         Les présentes conditions régissent l'utilisation de <b>Postorico</b>, une plateforme de
         création, planification et publication de contenus pour les réseaux sociaux, assistée par
-        intelligence artificielle, éditée par <Ph>{LEGAL.societe}</Ph>. En créant un compte, tu acceptes
+        intelligence artificielle, éditée par {LEGAL.societe}. En créant un compte, tu acceptes
         ces conditions.
       </p>
 
