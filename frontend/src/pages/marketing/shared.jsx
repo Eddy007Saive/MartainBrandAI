@@ -66,13 +66,6 @@ export const FAQ = [
   ['lp.faq.list.13.q', 'lp.faq.list.13.a'],
 ];
 
-// Éditeur : GoodTime BNB (gt-bnb.com)
-export const GOODTIME = {
-  name: 'GoodTime BNB',
-  url: 'https://gt-bnb.com',
-  tagline: "L'OS de la location courte durée",
-};
-
 // La prise de rendez-vous vit dans lib/rdv.js : le popup s'en sert aussi.
 export { BOOKING_URL, propsRdv } from '../../lib/rdv';
 
@@ -419,12 +412,6 @@ export const CSS = `
 .lp .tcard .av{width:40px;height:40px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:700;flex-shrink:0}
 .lp .tcard .who b{font-size:13.5px;display:block}
 .lp .tcard .who small{font-size:12px;color:var(--dim)}
-/* Bandeau éditeur GoodTime */
-.lp .gtband{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 26px}
-.lp .gtband .gt-t{color:var(--muted);font-size:14px}
-.lp .gtband .gt-t b{color:var(--ink)}
-.lp .gtband a{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--accent);background:rgba(58,255,163,.08);border:1px solid rgba(58,255,163,.25);padding:8px 15px;border-radius:10px}
-.lp .gtband a:hover{background:rgba(58,255,163,.16)}
 /* Bandeau newsletter « La lettre de Rico » (au-dessus du pied de page) */
 .lp .nl-band{border-top:1px solid var(--line);background:var(--panel)}
 .lp .nl-inner{max-width:820px;margin:0 auto;padding:46px 20px;text-align:center}

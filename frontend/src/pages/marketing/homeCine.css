@@ -258,7 +258,7 @@
 .cine .shead h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(24px,3.2vw,36px);letter-spacing:-.02em;margin-top:12px}
 .cine .shead .lead{color:var(--mut);font-size:14.5px;line-height:1.65;margin-top:12px}
 .cine .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.2em;font-weight:600;color:#b9a6ff;text-align:center}
-.cine .pscol,.cine .cmpcard,.cine .acard,.cine .fstep,.cine .tcard,.cine .gtband,.cine .vcard{transition:transform 220ms var(--ease),border-color 220ms var(--ease),box-shadow 220ms var(--ease)}
+.cine .pscol,.cine .cmpcard,.cine .acard,.cine .fstep,.cine .tcard,.cine .vcard{transition:transform 220ms var(--ease),border-color 220ms var(--ease),box-shadow 220ms var(--ease)}
 @media(hover:hover){
   .cine .cmpcard:hover,.cine .acard:hover,.cine .fstep:hover,.cine .tcard:hover{transform:translateY(-6px);border-color:rgba(138,108,255,.4);box-shadow:0 18px 50px -22px rgba(91,108,255,.5)}
 }
@@ -484,12 +484,6 @@
 .cine .roles p{color:var(--mut);font-size:13px;line-height:1.65;margin-top:6px}
 .cine .center{justify-content:center}
 @media(max-width:860px){.cine .flow{grid-template-columns:1fr}}
-
-/* ===== GoodTime ===== */
-.cine .gtband{display:flex;align-items:center;justify-content:space-between;gap:18px;border-radius:18px;border:1px solid var(--line);
-        background:rgba(11,19,34,.72);backdrop-filter:blur(10px);padding:18px 22px;flex-wrap:wrap}
-.cine .gtband span{font-size:13px;color:var(--mut);line-height:1.6;max-width:70ch}
-.cine .gtband a{color:#b9a6ff;font-size:13px;font-weight:600;white-space:nowrap}
 
 /* ===== Galerie shell d'app ===== */
 .cine .gallery{position:relative;padding:10vh 0;display:flex;justify-content:center}

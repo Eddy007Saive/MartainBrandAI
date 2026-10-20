@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { APK_URL } from '../../lib/appDownload';
 import HeroPreview from './HeroPreview';
-import { SectionHead, GOODTIME, propsRdv } from './shared';
+import { SectionHead, propsRdv } from './shared';
 
 const STATS = [
   ['5', 'réseaux connectés'],
@@ -216,14 +216,6 @@ export default function Home() {
               <div className="who"><span className="av">{av}</span><div><b>{name}</b><small>{role}</small></div></div>
             </div>
           ))}
-        </div>
-      </div></section>
-
-      {/* Édité par GoodTime */}
-      <section style={{ paddingTop: 0 }}><div className="wrap">
-        <div className="gtband">
-          <span className="gt-t">Postorico est un produit <b>{GOODTIME.name}</b>, l’équipe derrière l’OS de la location courte durée. On construit des outils qui font gagner du temps aux pros.</span>
-          <a href={GOODTIME.url} target="_blank" rel="noopener noreferrer">Découvrir GoodTime ↗</a>
         </div>
       </div></section>
 
