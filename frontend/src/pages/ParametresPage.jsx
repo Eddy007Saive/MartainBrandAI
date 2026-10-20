@@ -367,6 +367,24 @@ export default function ParametresPage() {
     }
   };
 
+  // Note d'utilisation d'un template : visible sous le template et modifiable sur place.
+  const [tplEdit, setTplEdit] = useState(null); // { id, note }
+  const [tplEditSaving, setTplEditSaving] = useState(false);
+  const enregistrerNoteTemplate = async () => {
+    if (!tplEdit) return;
+    setTplEditSaving(true);
+    try {
+      const maj = await templateService.update(tplEdit.id, { note: tplEdit.note });
+      setTemplates((p) => p.map((x) => (x.id === tplEdit.id ? { ...x, note: maj?.note ?? (tplEdit.note.trim() || null) } : x)));
+      setTplEdit(null);
+      toast.success(t('params.style.tplNoteEnregistree'));
+    } catch (err) {
+      toast.error(t('params.style.tplNoteEchec'));
+    } finally {
+      setTplEditSaving(false);
+    }
+  };
+
   const handleDeleteTemplate = async (id) => {
     try {
       await templateService.remove(id);
@@ -1521,7 +1539,30 @@ export default function ParametresPage() {
                       {tpl.images?.[0]
                         ? <img src={tpl.images[0]} alt="" className="w-full object-cover rounded-[10px] border border-white/[0.07]" style={{ aspectRatio: '4 / 5' }} />
                         : <div className="w-full rounded-[10px] border border-white/[0.07] bg-slate-800 grid place-items-center" style={{ aspectRatio: '4 / 5' }}><ImageIcon className="w-5 h-5 text-slate-600" /></div>}
-                      <figcaption className="text-[11px] text-slate-300 font-medium font-inter text-center truncate" title={tpl.note || tpl.nom}>{tpl.nom}</figcaption>
+                      <figcaption className="text-[11px] text-slate-300 font-medium font-inter text-center truncate" title={tpl.nom}>{tpl.nom}</figcaption>
+                      {tplEdit?.id === tpl.id ? (
+                        <div className="grid gap-1.5" data-testid={`template-note-edition-${tpl.id}`}>
+                          <Textarea value={tplEdit.note} onChange={(e) => setTplEdit({ ...tplEdit, note: e.target.value })} rows={3} autoFocus maxLength={1000}
+                            placeholder={t('params.style.tplNotePlaceholder')}
+                            className="bg-[#0c1322] border-white/[0.08] text-slate-200 text-[11.5px] leading-snug font-inter rounded-lg p-2 min-h-0" />
+                          <div className="flex gap-1">
+                            <Button size="sm" onClick={enregistrerNoteTemplate} disabled={tplEditSaving}
+                              className="h-7 flex-1 px-2 text-[11px] bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter">
+                              {tplEditSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => setTplEdit(null)} className="h-7 px-2 text-[11px] text-slate-400 font-inter">
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => setTplEdit({ id: tpl.id, note: tpl.note || '' })} data-testid={`template-note-${tpl.id}`}
+                          title={tpl.note ? t('params.style.tplNoteModifier') : t('params.style.tplNoteAjouter')}
+                          className={`group/note flex items-start gap-1 text-left text-[11px] leading-snug font-inter rounded-md px-1 py-0.5 hover:bg-white/[0.05] ${tpl.note ? 'text-slate-400' : 'text-slate-600 italic'}`}>
+                          <span className="line-clamp-3 flex-1 min-w-0">{tpl.note || t('params.style.tplNoteAjouter')}</span>
+                          <Pencil className="w-3 h-3 shrink-0 mt-0.5 opacity-50 group-hover/note:opacity-100" />
+                        </button>
+                      )}
                       <button type="button" onClick={() => handleDeleteTemplate(tpl.id)} title={t('params.commun.supprimer')}
                         className="absolute top-1 right-1 w-6 h-6 rounded-md bg-black/60 text-white opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity grid place-items-center hover:bg-red-500/80">
                         <Trash2 className="w-3.5 h-3.5" />
