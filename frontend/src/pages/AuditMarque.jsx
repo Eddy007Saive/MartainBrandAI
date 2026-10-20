@@ -21,6 +21,9 @@ const MAX_FILE_MB = 5;
 const MAX_IMAGES = 6;
 const TURNSTILE_SITE_KEY = process.env.REACT_APP_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
 const CLE = 'postorico-audit-marque';
+// Une seule analyse de site par visiteur (chaque analyse coûte un appel IA) : le serveur limite
+// aussi par adresse IP. Cette clé survit à « Recommencer ».
+const CLE_ANALYSE = 'postorico-audit-analyse-faite';
 const TABS = ['LinkedIn', 'Instagram', 'Facebook', 'TikTok'];
 const LETTRES = 'ABCDEFGHIJ';
 
@@ -222,6 +225,7 @@ export default function AuditMarque() {
   const [siteMsg, setSiteMsg] = useState('');
   const [trouves, setTrouves] = useState(() => sauve?.trouves || []); // ids lus sur le site (dans l'ordre)
   const [email, setEmail] = useState(() => sauve?.email || '');
+  const [dejaAnalyse, setDejaAnalyse] = useState(() => { try { return !!localStorage.getItem(CLE_ANALYSE); } catch (e) { return false; } });
   const [repriseA] = useState(() => (typeof sauve?.step === 'number' ? sauve.step : -1));
   const [cur, setCur] = useState(-1);          // -1 accueil, 0..N-1 étapes, N confirmation
   const [sens, setSens] = useState(1);
@@ -309,10 +313,12 @@ export default function AuditMarque() {
   };
 
   /* ---------- lecture du site ---------- */
+  const marquerAnalyse = () => { setDejaAnalyse(true); try { localStorage.setItem(CLE_ANALYSE, '1'); } catch (e) { /* noop */ } };
   const hote = () => (val('site') || '').replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
   const analyser = async () => {
     const url = val('site');
     if (!url) { setErrs({ site: Date.now() }); return; }
+    if (dejaAnalyse) return;
     if (!tsSite) { toast.error(t('audit.ui.robot')); return; }
     setSite('scanning'); setSiteMsg(''); setTrouves([]);
     try {
@@ -333,12 +339,14 @@ export default function AuditMarque() {
       setAnswers((a) => ({ ...a, ...maj, ...(r?.url ? { site: r.url } : {}) }));
       setPre((p) => ({ ...p, ...Object.fromEntries(appliques.map((id) => [id, true])) }));
       setTrouves(appliques);
+      marquerAnalyse();
       setSite(appliques.length ? 'done' : 'error');
       if (!appliques.length) setSiteMsg(tc('ui.rienTrouve'));
     } catch (e) {
       const st = e?.response?.status;
       const msg = e?.response?.data?.message || e?.response?.data?.detail;
       setSite('error');
+      if (st === 429 || st === 422) marquerAnalyse();
       setSiteMsg(st === 403 ? t('audit.ui.antibot') : st === 429 ? t('audit.ui.trop429')
         : (st === 400 || st === 422) ? (typeof msg === 'string' ? msg : tc('ui.rienTrouve')) : tc('ui.analyseEchec'));
     } finally {
@@ -428,7 +436,7 @@ export default function AuditMarque() {
     const st = STEPS[cur];
     if (st.special === 'prefill') {
       if (site === 'scanning') return;
-      if (val('site') && site !== 'done' && site !== 'error') return analyser();
+      if (val('site') && site !== 'done' && site !== 'error' && !dejaAnalyse) return analyser();
     }
     if (st.special === 'envoi') return envoyer();
     if (!valider(st)) return;
@@ -455,7 +463,7 @@ export default function AuditMarque() {
       if (tag === 'TEXTAREA' && !cible.dataset.single && !(e.ctrlKey || e.metaKey)) return;
       if (cur === N) return;
       e.preventDefault();
-      if (cible.dataset.q === 'site') { if (val('site') && site !== 'done') analyser(); else suivant(); return; }
+      if (cible.dataset.q === 'site') { if (val('site') && site !== 'done' && !dejaAnalyse) analyser(); else suivant(); return; }
       if (saisie && !(e.ctrlKey || e.metaKey) && vpRef.current) {
         const champs = Array.from(vpRef.current.querySelectorAll('.inp'));
         const prochain = champs.slice(champs.indexOf(cible) + 1).find((c) => !c.value.trim() && !c.dataset.hex);
@@ -697,13 +705,16 @@ export default function AuditMarque() {
               placeholder={f.ph ? t('audit.f.site.ph') : ''} value={answers.site || ''} disabled={enCours}
               onChange={(e) => { setVal('site', e.target.value); if (site !== 'scanning') { setSite('idle'); setSiteMsg(''); } }} />
           </div>
-          <button className="btn btn-p" type="button" onClick={fait ? () => setSite('idle') : analyser} disabled={enCours || !val('site')}>
-            {enCours ? tc('ui.analyseEnCours') : fait ? tc('ui.relancer') : tc('ui.analyser')}
-          </button>
+          {!fait && !(dejaAnalyse && !enCours) && (
+            <button className="btn btn-p" type="button" onClick={analyser} disabled={enCours || !val('site')}>
+              {enCours ? tc('ui.analyseEnCours') : tc('ui.analyser')}
+            </button>
+          )}
         </div>
         {/* Anti-robot avant l'analyse seulement ; « Relancer » le fait réapparaître. */}
-        {!enCours && !fait && <div className="ts-wrap rise" style={{ '--d': 3 }}><Turnstile key={tsSiteCle} onToken={setTsSite} /></div>}
-        {!montrerZone && site !== 'error' && (
+        {!enCours && !fait && !dejaAnalyse && <div className="ts-wrap rise" style={{ '--d': 3 }}><Turnstile key={tsSiteCle} onToken={setTsSite} /></div>}
+        {dejaAnalyse && !fait && !enCours && site !== 'error' && <p className="found-note rise" style={{ maxWidth: 760, margin: '22px auto 0' }}>{tc('ui.dejaAnalyse')}</p>}
+        {!montrerZone && site !== 'error' && !dejaAnalyse && (
           <button className="skip-site rise" style={{ '--d': 3 }} type="button" onClick={() => { setVal('site', ''); aller(cur + 1, 1); }}>{tc('ui.pasDeSite')}</button>
         )}
         {site === 'error' && <p className="found-note err rise" role="alert">{siteMsg}</p>}
@@ -846,7 +857,7 @@ export default function AuditMarque() {
   if (st?.special === 'prefill') {
     if (site === 'scanning') { libelleSuivant = tc('ui.analyseEnCours'); suivantDesactive = true; }
     else if (site === 'done') libelleSuivant = tc('ui.verifier');
-    else if (val('site') && site !== 'error') libelleSuivant = tc('ui.analyser');
+    else if (val('site') && site !== 'error' && !dejaAnalyse) libelleSuivant = tc('ui.analyser');
   }
   if (st?.special === 'envoi') { libelleSuivant = envoi ? t('audit.ui.envoi') : t('audit.ui.envoyer'); suivantDesactive = envoi; }
   else if (retourRecap) libelleSuivant = tc('ui.retourRecap');
