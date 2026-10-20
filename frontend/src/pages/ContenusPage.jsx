@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Palette, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload, Mic, Rocket } from 'lucide-react';
+import { Check, X, Edit2, Trash2, Loader2, ExternalLink, FileText, Clock, ChevronRight, Search, RefreshCw, Calendar, Sparkles, ScrollText, Video, Image as ImageIcon, Palette, Wand2, LayoutGrid, Plus, Repeat2, Clapperboard, MoreHorizontal, PenLine, ChevronLeft, Download, ZoomIn, Layers, Pin, Smartphone, Scissors, Upload, Mic, Rocket, AlertTriangle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
-import { SocialIcon } from '../components/SocialIcon';
+import { LogoReseau } from '../components/LogoReseau';
 import PostManuelDialog from '../components/PostManuelDialog';
 import StoryDialog from '../components/StoryDialog';
 import MiniatureDialog from '../components/MiniatureDialog';
@@ -18,16 +18,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../components/ui/alert-dialog';
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -125,27 +115,38 @@ const RESEAU_CONFIG = {
   'Twitter': { label: 'Twitter/X', color: 'from-gray-800 to-black', short: 'X' },
 };
 
+// Statut toujours affiché avec son icône ET son texte (jamais la couleur seule)
 function StatusBadge({ statut }) {
   const { t } = useTranslation();
   const config = STATUT_CONFIG[statut] || STATUT_DEFAUT;
+  const Icone = config.icon;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter ${config.bg} ${config.text} border ${config.border}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter bg-[#0b1326]/90 ${config.text} border ${config.border}`}>
+      <Icone className="w-3.5 h-3.5" strokeWidth={2.4} aria-hidden="true" />
       {config.labelKey ? t(config.labelKey) : statut}
     </span>
   );
 }
 
+// Réseau : vrai logo + nom, sur fond sombre lisible par-dessus un visuel
+const idReseau = (r) => String(r || '').toLowerCase().replace(/\s+/g, '');
 function ReseauBadge({ reseau }) {
-  const config = RESEAU_CONFIG[reseau];
-  if (!config) return <span className="text-xs text-slate-500">{reseau}</span>;
+  const config = RESEAU_CONFIG[reseau] || RESEAU_CONFIG[idReseau(reseau)];
+  if (!config) return <span className="text-xs text-slate-300">{reseau}</span>;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold font-inter text-white bg-gradient-to-r ${config.color}`}>
-      <SocialIcon network={config.label} className="w-3 h-3" />
+    <span className="inline-flex items-center gap-1.5 pl-0.5 pr-2 py-0.5 rounded-md text-[11.5px] font-semibold font-inter text-white bg-[#0b1326]/90 border border-white/15">
+      <LogoReseau id={idReseau(reseau)} className="w-[18px] h-[18px] rounded-[4px]" />
       {config.label}
     </span>
   );
 }
+
+// Dates : langue de l'utilisateur, jamais « Invalid Date », jamais de secondes
+const dateValide = (iso) => { if (!iso) return null; const d = new Date(iso); return Number.isNaN(d.getTime()) ? null : d; };
+const dateCourte = (iso, langue) => dateValide(iso)?.toLocaleDateString(langue, { day: 'numeric', month: 'short' }) || '';
+const dateLongue = (iso, langue) => dateValide(iso)?.toLocaleString(langue, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) || '';
+// Échec dû à la connexion du compte (jeton expiré, compte introuvable) : la bonne action est de reconnecter
+const erreurDeConnexion = (msg) => { const m = String(msg || '').toLowerCase(); return (m.includes('token') && (m.includes('expired') || m.includes('invalid'))) || m.includes('account not found') || m.includes('do not belong') || m.includes('expir') || m.includes('reconnect'); };
 
 function CardAction({ title, onClick, children, className = '' }) {
   return (
@@ -157,17 +158,18 @@ function CardAction({ title, onClick, children, className = '' }) {
 }
 
 function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoading, onEdit, onDelete, onValidate, onRefuse, onRecycle, onStory, dejaDecline, onReel, reelLoading, actionLoading, onRenderSlides, renderLoading, onMiniature }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const langue = i18n.resolvedLanguage || i18n.language || 'fr';
   const isLoading = actionLoading === contenu.id;
   const isCarrousel = contenu.type === 'Carrousel' || (Array.isArray(contenu.slides_images) && contenu.slides_images.length > 0);
   const isVideo = contenu.type === 'Reel' || !!contenu.video_url || !!contenu.video_status;
   const regenLoading = carrouselLoading === contenu.id;
-  const date = contenu.date_publication
-    ? new Date(contenu.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-    : new Date(contenu.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  const date = contenu.date_publication ? dateCourte(contenu.date_publication, langue) : dateCourte(contenu.created_at, langue);
 
   return (
-    <div onClick={() => onView(contenu)}
+    <div onClick={() => onView(contenu)} role="button" tabIndex={0}
+      aria-label={`${contenu.titre || t('contenus.detail.titre')} · ${contenu.reseau_cible || ''}`}
+      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onView(contenu); } }}
       className="group flex flex-col rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden hover:border-white/[0.12] hover:bg-[#111c33] transition-all cursor-pointer">
       {/* Visuel */}
       <div className="relative aspect-[16/10] bg-[#0a1120] overflow-hidden">
@@ -199,8 +201,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           <div className="absolute inset-0 grid place-items-center text-slate-700"><Video className="w-8 h-8" /></div>
         ) : (
           /* V3 : pas de visuel = appel à l'action directement sur la carte */
-          <div className="absolute inset-0 grid place-items-center border-b border-dashed border-[#5B6CFF]/25"
-            style={{ background: 'repeating-linear-gradient(45deg, rgba(91,108,255,0.045) 0 10px, transparent 10px 20px)' }}>
+          <div className="absolute inset-0 grid place-items-center border-b border-dashed border-white/15 bg-white/[0.02]">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -219,21 +220,21 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
         <span className="absolute top-2.5 right-2.5">
           {contenu.publish_status === 'échec' ? (
             <span title={erreurLisible(contenu.publish_error, t)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter bg-red-500/15 text-red-400 border border-red-500/25">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium font-inter bg-[#0b1326]/90 text-red-200 border border-red-400/40">
+              <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
               {t('contenus.carte.echecPublication')}
             </span>
           ) : <StatusBadge statut={contenu.statut} />}
         </span>
         {contenu.type === 'Story' && (
-          <span className="absolute bottom-2.5 left-2.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
+          <span className="absolute bottom-2.5 left-2.5 text-[11.5px] font-semibold font-inter px-2 py-0.5 rounded-full bg-[#5a4ae8] text-white">
             {t('contenus.carte.story24h')}
           </span>
         )}
         {/* Rendu vidéo en arrière-plan (story animée / reel) : la carte le montre, pas
             seulement le dialog de détail. */}
         {contenu.video_status === 'en_traitement' && (
-          <div className="absolute inset-0 grid place-items-center bg-black/45 backdrop-blur-[1px]">
+          <div className="absolute inset-0 grid place-items-center bg-black/35">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold font-inter bg-[#0f172a]/90 text-[#a5b0ff] border border-[#5B6CFF]/40">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />{t('contenus.carte.renduEnCours')}
             </span>
@@ -242,7 +243,7 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
         {contenu.video_status === 'echec' && (
           <span className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium font-inter bg-red-500/15 text-red-400 border border-red-500/25"
             title={contenu.render_job?.erreur || ''}>
-            <span className="w-1.5 h-1.5 rounded-full bg-red-400" />{t('contenus.carte.renduEchoue')}
+            <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />{t('contenus.carte.renduEchoue')}
           </span>
         )}
       </div>
@@ -261,42 +262,42 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
         )}
         {/* Contrôle segmenté : max 3 cibles (✓ valider · action du format · ⋯ menu) */}
         <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]" onClick={(e) => e.stopPropagation()}>
-          <span className="text-[11px] text-slate-500 font-inter mr-auto inline-flex items-center gap-1">
-            {contenu.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
+          <span className="text-[11px] text-slate-400 font-inter mr-auto inline-flex items-center gap-1">
+            {contenu.date_publication ? <Clock className="w-3 h-3" aria-hidden="true" /> : <Calendar className="w-3 h-3" aria-hidden="true" />}{date ? `${contenu.date_publication ? t('contenus.carte.prevuLe') : t('contenus.carte.creeLe')} ${date}` : ''}
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
             {['A valider', 'Brouillon'].includes(contenu.statut) && (
-              <button title={manqueMedia(contenu) ? t('publication.ajouteVisuel') : t('contenus.actions.validerProgrammer')}
+              <button aria-label={manqueMedia(contenu) ? t('publication.ajouteVisuel') : t('contenus.actions.validerProgrammer')} title={manqueMedia(contenu) ? t('publication.ajouteVisuel') : t('contenus.actions.validerProgrammer')}
                 onClick={() => !manqueMedia(contenu) && onValidate(contenu.id)} disabled={isLoading || manqueMedia(contenu)}
                 data-testid={`contenu-valider-${contenu.id}`}
-                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-[#6f5cff]/20 hover:bg-[#6f5cff]/35 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               </button>
             )}
             {isCarrousel ? (
-              <button title={t('contenus.carte.regenererCarrousel')} onClick={() => onRegenCarrousel(contenu)}
+              <button aria-label={t('contenus.carte.regenererCarrousel')} title={t('contenus.carte.regenererCarrousel')} onClick={() => onRegenCarrousel(contenu)}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
                 {regenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LayoutGrid className="w-4 h-4" />}
               </button>
             ) : isVideo ? (
-              <button title={t('contenus.carte.modifierTexte')} onClick={() => onEdit(contenu)}
+              <button aria-label={t('contenus.carte.modifierTexte')} title={t('contenus.carte.modifierTexte')} onClick={() => onEdit(contenu)}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
                 <Edit2 className="w-3.5 h-3.5" />
               </button>
             ) : (
-              <button title={contenu.lien_visuel ? t('contenus.carte.visuelModifier') : t('contenus.carte.creerVisuel')} onClick={() => onImage(contenu)}
+              <button aria-label={contenu.lien_visuel ? t('contenus.carte.visuelModifier') : t('contenus.carte.creerVisuel')} title={contenu.lien_visuel ? t('contenus.carte.visuelModifier') : t('contenus.carte.creerVisuel')} onClick={() => onImage(contenu)}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08] first:border-l-0">
                 <ImageIcon className="w-4 h-4" />
               </button>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button title={t('contenus.carte.plusActions')}
+                <button aria-label={t('contenus.carte.plusActions')} title={t('contenus.carte.plusActions')}
                   className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08]">
                   {reelLoading === contenu.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[210px] bg-[#111c33]/95 backdrop-blur-xl border-white/10 text-slate-200 font-inter">
+              <DropdownMenuContent align="end" className="min-w-[210px] bg-[#111c33]/95 border-white/10 text-slate-200 font-inter">
                 {['A valider', 'Brouillon'].includes(contenu.statut) && (
                   <DropdownMenuItem onClick={() => onRefuse(contenu.id)} className="gap-2.5 focus:bg-white/[0.07]">
                     <X className="w-4 h-4 opacity-70" />{t('contenus.actions.refuser')}
@@ -348,7 +349,8 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
 // vignette reste individuellement cliquable (ouvre le détail de CET écran),
 // et trois actions de groupe en pied de carte plutôt qu'un menu "..." par écran.
 function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDeleteSerie, loading }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const langue = i18n.resolvedLanguage || i18n.language || 'fr';
   const items = groupe.items;
   const images = items.map((c) => c.lien_visuel).filter(Boolean);
   const premier = items[0];
@@ -361,9 +363,7 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
   const sansMedia = items.some((c) => manqueMedia(c));
   const bloqueValidation = enRendu > 0 || sansMedia || items.some((c) => c.video_status && !c.video_url);
   const titre = (premier.titre || '').replace(/ — écran \d+\/\d+$/, '');
-  const date = premier.date_publication
-    ? new Date(premier.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-    : new Date(premier.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  const date = premier.date_publication ? dateCourte(premier.date_publication, langue) : dateCourte(premier.created_at, langue);
 
   return (
     <div className="group flex flex-col rounded-2xl border border-white/[0.06] bg-[#0f172a] overflow-hidden hover:border-white/[0.12] hover:bg-[#111c33] transition-all">
@@ -393,16 +393,16 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
         ))}
         <span className="absolute top-2.5 left-2.5 pointer-events-none"><ReseauBadge reseau={premier.reseau_cible} /></span>
         <span className="absolute top-2.5 right-2.5 pointer-events-none"><StatusBadge statut={premier.statut} /></span>
-        <span className="absolute bottom-2.5 left-2.5 pointer-events-none inline-flex items-center gap-1 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-gradient-to-r from-[#5B6CFF]/80 to-[#8A6CFF]/80 text-white">
+        <span className="absolute bottom-2.5 left-2.5 pointer-events-none inline-flex items-center gap-1 text-[11.5px] font-semibold font-inter px-2 py-0.5 rounded-full bg-[#5a4ae8] text-white">
           <Layers className="w-3 h-3" />{t('contenus.carte.nEcrans', { n: items.length })}
         </span>
         {enRendu > 0 && (
-          <span className="absolute bottom-2.5 right-2.5 pointer-events-none inline-flex items-center gap-1.5 text-[10px] font-semibold font-inter px-2 py-0.5 rounded-full bg-[#0f172a]/90 text-[#a5b0ff] border border-[#5B6CFF]/40">
+          <span className="absolute bottom-2.5 right-2.5 pointer-events-none inline-flex items-center gap-1.5 text-[11.5px] font-semibold font-inter px-2 py-0.5 rounded-full bg-[#0f172a]/90 text-[#a5b0ff] border border-[#5B6CFF]/40">
             <Loader2 className="w-3 h-3 animate-spin" />{t('contenus.carte.renduEnCours')} {items.length - enRendu}/{items.length}
           </span>
         )}
         {enRendu === 0 && enEchec > 0 && (
-          <span className="absolute bottom-2.5 right-2.5 pointer-events-none inline-flex items-center gap-1.5 text-[10px] font-medium font-inter px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/25">
+          <span className="absolute bottom-2.5 right-2.5 pointer-events-none inline-flex items-center gap-1.5 text-[11.5px] font-medium font-inter px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/25">
             {t('contenus.carte.renduEchoue')} {enEchec}/{items.length}
           </span>
         )}
@@ -416,24 +416,24 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
         </div>
 
         <div className="flex items-center gap-1 mt-auto pt-3 border-t border-white/[0.06]">
-          <span className="text-[11px] text-slate-500 font-inter mr-auto inline-flex items-center gap-1">
-            {premier.date_publication ? <Clock className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}{date}
+          <span className="text-[11px] text-slate-400 font-inter mr-auto inline-flex items-center gap-1">
+            {premier.date_publication ? <Clock className="w-3 h-3" aria-hidden="true" /> : <Calendar className="w-3 h-3" aria-hidden="true" />}{date ? `${premier.date_publication ? t('contenus.carte.prevuLe') : t('contenus.carte.creeLe')} ${date}` : ''}
           </span>
           <div className="inline-flex items-stretch rounded-[10px] border border-white/[0.08] bg-white/[0.02] overflow-hidden">
             {['A valider', 'Brouillon'].includes(premier.statut) && (
-              <button title={sansMedia ? t('publication.ajouteVisuel') : (bloqueValidation ? t('contenus.toast.attendsRendu') : t('contenus.carte.validerTout', { n: items.length }))}
+              <button aria-label={sansMedia ? t('publication.ajouteVisuel') : (bloqueValidation ? t('contenus.toast.attendsRendu') : t('contenus.carte.validerTout', { n: items.length }))} title={sansMedia ? t('publication.ajouteVisuel') : (bloqueValidation ? t('contenus.toast.attendsRendu') : t('contenus.carte.validerTout', { n: items.length }))}
                 onClick={() => !bloqueValidation && onValiderSerie(groupe)} disabled={isLoading || bloqueValidation}
-                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-gradient-to-r from-[#5B6CFF]/[0.18] to-[#8A6CFF]/[0.18] hover:from-[#5B6CFF]/[0.35] hover:to-[#8A6CFF]/[0.35] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                className="w-9 h-8 grid place-items-center text-[#a5b0ff] bg-[#6f5cff]/20 hover:bg-[#6f5cff]/35 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               </button>
             )}
             {['A valider', 'Brouillon'].includes(premier.statut) && (
-              <button title={t('contenus.carte.refuserTout', { n: items.length })} onClick={() => onRefuserSerie(groupe)} disabled={isLoading}
+              <button aria-label={t('contenus.carte.refuserTout', { n: items.length })} title={t('contenus.carte.refuserTout', { n: items.length })} onClick={() => onRefuserSerie(groupe)} disabled={isLoading}
                 className="w-9 h-8 grid place-items-center text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors border-l border-white/[0.08]">
                 <X className="w-4 h-4" />
               </button>
             )}
-            <button title={t('contenus.carte.supprimerTout', { n: items.length })} onClick={() => onDeleteSerie(groupe)} disabled={isLoading}
+            <button aria-label={t('contenus.carte.supprimerTout', { n: items.length })} title={t('contenus.carte.supprimerTout', { n: items.length })} onClick={() => onDeleteSerie(groupe)} disabled={isLoading}
               className="w-9 h-8 grid place-items-center text-slate-400 hover:text-red-300 hover:bg-red-500/10 transition-colors border-l border-white/[0.08] first:border-l-0">
               <Trash2 className="w-4 h-4" />
             </button>
@@ -445,7 +445,8 @@ function SerieCard({ groupe, onEnlarge, onValiderSerie, onRefuserSerie, onDelete
 }
 
 export default function ContenusPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const langueUI = i18n.resolvedLanguage || i18n.language || 'fr';
   const navigate = useNavigate();
   const [contenus, setContenus] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -493,7 +494,6 @@ export default function ContenusPage() {
   }, []);
   const [editContenu, setEditContenu] = useState(null);
   const [boostContenu, setBoostContenu] = useState(null);
-  const [deleteContenu, setDeleteContenu] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
   const [serieActionLoading, setSerieActionLoading] = useState(null);
   const [carrouselLoading, setCarrouselLoading] = useState(null);
@@ -1100,7 +1100,7 @@ export default function ContenusPage() {
       const patch = { date_publication: d.date_publication, publish_status: d.publish_status, publish_error: d.error || null };
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, ...patch } : c)));
       setSelectedContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, ...patch } : prev));
-      const dt = d.date_publication ? new Date(d.date_publication).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      const dt = dateLongue(d.date_publication, langueUI);
       if (d.publish_status === 'envoi') toast.success(t('contenus.toast.replanifie', { date: dt }));
       else toast.error(d.error || t('contenus.toast.replanifieEchecEnvoi'));
     } catch (e) {
@@ -1312,15 +1312,18 @@ export default function ContenusPage() {
 
       // Validation -> programmation automatique (push vers Late dans la foulée)
       if (newStatut === 'Valider') {
-        const datePlanif = data?.date_publication
-          ? new Date(data.date_publication).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })
-          : null;
+        const datePlanif = dateLongue(data?.date_publication, langueUI) || null;
         try {
           const pub = await contenuService.publier(id);
           const patch = { statut: 'Valider', date_publication: data.date_publication, publish_status: pub.publish_status, late_post_id: pub.late_post_id, publish_error: null };
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
           track('post_valide', { reseau: (contenus.find((c) => c.id === id)?.reseau_cible || '').toLowerCase() });
-          if (!opts.skipToast) toast.success(datePlanif ? t('contenus.toast.valideProgrammeDate', { date: datePlanif }) : t('contenus.toast.valideProgramme'));
+          if (!opts.skipToast) {
+            toast.success(datePlanif ? t('contenus.toast.valideProgrammeDate', { date: datePlanif }) : t('contenus.toast.valideProgramme'), {
+              duration: 7000,
+              action: { label: t('contenus.actions.annuler'), onClick: () => annulerValidation(id) },
+            });
+          }
         } catch (e) {
           const msg = e.response?.data?.detail || t('contenus.toast.valideProgrammationEchec');
           setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'Valider', date_publication: data.date_publication, publish_status: 'échec', publish_error: msg } : c)));
@@ -1338,6 +1341,18 @@ export default function ContenusPage() {
       if (!opts.skipToast) toast.error(t('contenus.toast.majErreur'));
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  // « Annuler » juste après une validation : on retire l'envoi programmé et le contenu revient « À valider »
+  const annulerValidation = async (id) => {
+    try {
+      await contenuService.annuler(id).catch(() => {});
+      await contenuService.update(id, { statut: 'A valider' });
+      toast.success(t('contenus.toast.validationAnnulee'));
+      fetchContenus({ silencieux: true });
+    } catch (e) {
+      toast.error(e.response?.data?.detail || t('contenus.toast.annulationEchec'));
     }
   };
 
@@ -1362,33 +1377,35 @@ export default function ContenusPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteContenu) return;
-    if (deleteContenu.isGroup) {
-      setSerieActionLoading(deleteContenu.serie_id);
-      try {
-        for (const c of deleteContenu.items) await contenuService.remove(c.id);
-        toast.success(t('contenus.toast.contenuSupprime'));
-        fetchContenus();
-        setDeleteContenu(null);
-      } catch (error) {
-        toast.error(t('contenus.toast.suppressionErreur'));
-      } finally {
-        setSerieActionLoading(null);
-      }
-      return;
-    }
-    setActionLoading(deleteContenu.id);
-    try {
-      await contenuService.remove(deleteContenu.id);
-      toast.success(t('contenus.toast.contenuSupprime'));
-      fetchContenus();
-      setDeleteContenu(null);
-    } catch (error) {
-      toast.error(t('contenus.toast.suppressionErreur'));
-    } finally {
-      setActionLoading(null);
-    }
+  // Suppression avec « Annuler » : la carte disparaît tout de suite, la suppression réelle
+  // a lieu après 5 s (ou en quittant la page) si l'utilisateur n'a pas annulé.
+  const suppressions = useRef({});
+  useEffect(() => () => {
+    Object.values(suppressions.current).forEach(({ timer, definitif }) => { clearTimeout(timer); definitif(); });
+  }, []);
+  const supprimerAvecAnnuler = (cible) => {
+    if (!cible) return;
+    const items = cible.isGroup ? cible.items : [cible];
+    const ids = new Set(items.map((c) => c.id));
+    const cle = cible.isGroup ? `s-${cible.serie_id}` : `c-${cible.id}`;
+    if (selectedContenu && ids.has(selectedContenu.id)) setSelectedContenu(null);
+    setContenus((prev) => prev.filter((c) => !ids.has(c.id)));
+    const definitif = async () => {
+      try { for (const c of items) await contenuService.remove(c.id); }
+      catch (error) { toast.error(t('contenus.toast.suppressionErreur')); fetchContenus({ silencieux: true }); }
+    };
+    const timer = setTimeout(() => { delete suppressions.current[cle]; definitif(); }, 5000);
+    suppressions.current[cle] = { timer, definitif };
+    toast(t(items.some((c) => ['envoi', 'programmé'].includes(c.publish_status)) ? 'contenus.toast.contenuSupprimeProgramme' : 'contenus.toast.contenuSupprime'), {
+      duration: 5000,
+      action: {
+        label: t('contenus.actions.annuler'),
+        onClick: () => {
+          clearTimeout(timer); delete suppressions.current[cle];
+          setContenus((prev) => [...items.filter((c) => !prev.some((x) => x.id === c.id)), ...prev]);
+        },
+      },
+    });
   };
 
   // Actions de groupe (story en série) : boucle l'action mono-contenu sur
@@ -1471,9 +1488,9 @@ export default function ContenusPage() {
 
   // Pastilles de filtre : le chiffre EST le filtre (remplace stats + menu deroulant)
   const FILTRES = [
+    { id: 'A valider', label: t('contenus.filtres.aValider'), n: stats.aValider, dot: '#fbbf24' },
     { id: 'all', label: t('contenus.filtres.tous'), n: stats.total, dot: null },
     { id: 'Brouillon', label: t('contenus.filtres.brouillons'), n: stats.brouillons, dot: '#cbd5e1' },
-    { id: 'A valider', label: t('contenus.filtres.aValider'), n: stats.aValider, dot: '#fbbf24' },
     { id: 'Valider', label: t('contenus.filtres.valides'), n: stats.valides, dot: '#a5b0ff' },
     { id: 'Planifie', label: t('contenus.filtres.planifies'), n: stats.planifies, dot: '#c084fc' },
     { id: 'Publie', label: t('contenus.filtres.publies'), n: stats.publies, dot: '#60a5fa' },
@@ -1481,7 +1498,7 @@ export default function ContenusPage() {
   ];
 
   return (
-    <div>
+    <div className="page-contenus">
       <div className="w-full space-y-6">
 
         {/* Header */}
@@ -1492,7 +1509,7 @@ export default function ContenusPage() {
               {t('contenus.sousTitre')}
             </p>
           </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
             <Button
               size="sm"
               onClick={() => setPostManuelOpen(true)}
@@ -1534,17 +1551,18 @@ export default function ContenusPage() {
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => { setActiveTab(tab.id); setSearchQuery(''); setFilterStatut('all'); }}
+              onClick={() => { setActiveTab(tab.id); setSearchQuery(''); }}
+              aria-pressed={activeTab === tab.id}
               className={`flex-none sm:flex-1 sm:min-w-0 flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-lg text-[13px] sm:text-sm font-inter font-medium whitespace-nowrap transition-all ${
                 activeTab === tab.id
-                  ? 'bg-[#5B6CFF]/20 text-white shadow-[0_0_10px_rgba(91,108,255,0.1)]'
-                  : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+                  ? 'bg-[#5B6CFF]/20 text-white'
+                  : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
               }`}
             >
               <tab.icon className="w-4 h-4 shrink-0" />
               <span>{tab.label}</span>
-              <span className={`hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded-full ${
-                activeTab === tab.id ? 'bg-[#5B6CFF]/30 text-white' : 'bg-slate-800 text-slate-500'
+              <span className={`hidden sm:inline-block text-[11.5px] px-1.5 py-0.5 rounded-full ${
+                activeTab === tab.id ? 'bg-[#5B6CFF]/30 text-white' : 'bg-slate-800 text-slate-400'
               }`}>
                 {tab.count}
               </span>
@@ -1556,30 +1574,31 @@ export default function ContenusPage() {
         <div className="flex flex-col lg:flex-row lg:items-center gap-3">
           <div className="flex flex-nowrap sm:flex-wrap items-center gap-2 overflow-x-auto sm:overflow-visible -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {FILTRES.map((f) => (
-              <button key={f.id} onClick={() => setFilterStatut(f.id)}
+              <button key={f.id} onClick={() => setFilterStatut(f.id)} aria-pressed={filterStatut === f.id}
                 className={`inline-flex shrink-0 items-center gap-2 px-3.5 py-2 rounded-full text-[12.5px] font-semibold font-inter border whitespace-nowrap transition-all active:scale-[0.97] ${
                   filterStatut === f.id
-                    ? 'bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-[#5B6CFF]/45'
+                    ? 'bg-[#6f5cff]/20 text-white border-[#5B6CFF]/45'
                     : 'bg-white/[0.02] text-slate-400 border-white/[0.07] hover:text-white hover:border-white/[0.18]'
                 }`}>
                 {f.dot && <span className="w-1.5 h-1.5 rounded-full" style={{ background: f.dot }} />}
                 {f.label}
                 {f.n !== null && (
-                  <span className={`text-[10.5px] px-1.5 py-px rounded-full ${
-                    filterStatut === f.id ? 'bg-[#5B6CFF]/35 text-white' : 'bg-white/[0.07] text-slate-500'
+                  <span className={`text-[12px] px-1.5 py-px rounded-full ${
+                    filterStatut === f.id ? 'bg-[#5B6CFF]/35 text-white' : 'bg-white/[0.07] text-slate-400'
                   }`}>{f.n}</span>
                 )}
               </button>
             ))}
           </div>
           <div className="relative lg:ml-auto lg:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder={t('contenus.recherche.placeholder')}
+              aria-label={t('contenus.recherche.placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-full bg-slate-900/60 border border-white/[0.06] text-slate-200 text-sm font-inter placeholder:text-slate-600 focus:outline-none focus:border-[#5B6CFF]/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-full bg-slate-900/60 border border-white/[0.06] text-slate-200 text-sm font-inter placeholder:text-slate-400 focus:outline-none focus:border-[#5B6CFF]/50 transition-colors"
             />
           </div>
         </div>
@@ -1588,7 +1607,7 @@ export default function ContenusPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#5B6CFF]" />
-            <p className="text-sm text-slate-500 font-inter">{t('contenus.etat.chargement')}</p>
+            <p className="text-sm text-slate-400 font-inter">{t('contenus.etat.chargement')}</p>
           </div>
         ) : filteredContenus.length === 0 && filterStatut === 'A valider' && !searchQuery && stats.total > 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 bg-slate-900/30 border border-white/[0.04] rounded-2xl">
@@ -1597,7 +1616,7 @@ export default function ContenusPage() {
             </div>
             <div className="text-center">
               <p className="text-slate-200 font-inter font-medium">{t('contenus.etat.rienAValider')}</p>
-              <p className="text-slate-500 font-inter text-sm mt-1">{t('contenus.etat.rienAValiderSous')}</p>
+              <p className="text-slate-400 font-inter text-sm mt-1">{t('contenus.etat.rienAValiderSous')}</p>
             </div>
             <button onClick={() => setFilterStatut('all')}
               className="text-[13px] font-semibold font-inter text-[#a5b0ff] border border-[#5B6CFF]/40 bg-[#5B6CFF]/10 hover:bg-[#5B6CFF]/25 hover:text-white px-4 py-2 rounded-full transition-colors active:scale-[0.97]">
@@ -1607,20 +1626,26 @@ export default function ContenusPage() {
         ) : filteredContenus.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 bg-slate-900/30 border border-white/[0.04] rounded-2xl">
             <div className="w-14 h-14 rounded-2xl bg-slate-800/50 flex items-center justify-center">
-              <FileText className="w-7 h-7 text-slate-600" />
+              <FileText className="w-7 h-7 text-slate-400" />
             </div>
             <div className="text-center">
               <p className="text-slate-400 font-inter font-medium">
                 {activeTab === 'scripts' ? t('contenus.etat.aucunScript') : activeTab === 'videos' ? t('contenus.etat.aucuneVideo') : activeTab === 'story' ? t('contenus.etat.aucuneStory') : activeTab === 'posts' ? t('contenus.etat.aucunPost') : t('contenus.etat.aucunContenu')}
               </p>
-              <p className="text-slate-600 font-inter text-sm mt-1">
+              <p className="text-slate-400 font-inter text-sm mt-1">
                 {searchQuery ? t('contenus.etat.essayezAutresTermes') : activeTab === 'scripts' ? t('contenus.etat.scriptsIci') : activeTab === 'videos' ? t('contenus.etat.videosIci') : activeTab === 'story' ? t('contenus.etat.storiesIci') : activeTab === 'posts' ? t('contenus.etat.postsIci') : t('contenus.etat.contenusIci')}
               </p>
             </div>
+            {!searchQuery && (
+              <button onClick={() => navigate('/dashboard/studio')}
+                className="text-[13px] font-semibold font-inter text-white bg-[#5a4ae8] hover:bg-[#6757f0] px-4 py-2 rounded-full transition-colors">
+                {t('contenus.etat.creerStudio')}
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-xs text-slate-500 font-inter">{groupedContenus.length > 1 ? t('contenus.compteur.contenusPluriel', { n: groupedContenus.length }) : t('contenus.compteur.contenus', { n: groupedContenus.length })}{pageCount > 1 ? t('contenus.compteur.page', { page: pageSafe, total: pageCount }) : ''}</p>
+            <p className="text-xs text-slate-400 font-inter">{groupedContenus.length > 1 ? t('contenus.compteur.contenusPluriel', { n: groupedContenus.length }) : t('contenus.compteur.contenus', { n: groupedContenus.length })}{pageCount > 1 ? t('contenus.compteur.page', { page: pageSafe, total: pageCount }) : ''}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {pagedContenus.map((contenu) => (
                 contenu.isGroup ? (
@@ -1630,7 +1655,7 @@ export default function ContenusPage() {
                     onEnlarge={(images, index) => setLightbox({ images, index: Math.max(0, index) })}
                     onValiderSerie={demanderValidationSerie}
                     onRefuserSerie={demanderRefusSerie}
-                    onDeleteSerie={setDeleteContenu}
+                    onDeleteSerie={supprimerAvecAnnuler}
                     loading={serieActionLoading}
                   />
                 ) : (
@@ -1642,7 +1667,7 @@ export default function ContenusPage() {
                     onRegenCarrousel={regenererCarrousel}
                     carrouselLoading={carrouselLoading}
                     onEdit={setEditContenu}
-                    onDelete={setDeleteContenu}
+                    onDelete={supprimerAvecAnnuler}
                     onValidate={demanderValidation}
                     onRefuse={demanderRefus}
                     onRecycle={openRecycle}
@@ -1666,7 +1691,7 @@ export default function ContenusPage() {
                 </button>
                 {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
                   <button key={n} onClick={() => setPage(n)}
-                    className={`h-9 w-9 rounded-lg text-sm font-semibold font-inter transition-colors ${n === pageSafe ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white' : 'border border-white/[0.08] bg-slate-900/60 text-slate-400 hover:bg-white/[0.06]'}`}>
+                    className={`h-9 w-9 rounded-lg text-sm font-semibold font-inter transition-colors ${n === pageSafe ? 'bg-[#5a4ae8] hover:bg-[#6757f0] text-white' : 'border border-white/[0.08] bg-slate-900/60 text-slate-400 hover:bg-white/[0.06]'}`}>
                     {n}
                   </button>
                 ))}
@@ -1696,7 +1721,7 @@ export default function ContenusPage() {
                       <StatusBadge statut={selectedContenu.statut} />
                       {selectedContenu.reseau_cible && <ReseauBadge reseau={selectedContenu.reseau_cible} />}
                       {selectedContenu.type && (
-                        <span className="text-[10px] text-slate-500 font-inter bg-slate-800/80 px-2 py-1 rounded-md border border-white/5">{selectedContenu.type}</span>
+                        <span className="text-[12px] text-slate-200 font-inter bg-slate-800/80 px-2 py-1 rounded-md border border-white/10">{t(`contenus.type.${selectedContenu.type}`, selectedContenu.type)}</span>
                       )}
                       {PUBLISH_BADGE[selectedContenu.publish_status] && (
                         <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium font-inter border ${PUBLISH_BADGE[selectedContenu.publish_status].cls}`}>
@@ -1710,17 +1735,16 @@ export default function ContenusPage() {
                 {/* BODY 2 panneaux */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 min-h-0 overflow-hidden">
                   {/* GAUCHE : aperçu + retouche */}
-                  <div className="p-4 border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto min-h-0 space-y-3"
-                    style={{ background: 'radial-gradient(120% 70% at 20% 0%, rgba(91,108,255,.05), transparent 55%)' }}>
+                  <div className="p-4 border-b md:border-b-0 md:border-r border-white/10 overflow-y-auto min-h-0 space-y-3">
                   {selectedContenu.statut === 'A tourner' ? (
                     // Script prêt : à filmer + monter → Studio Vidéo
                     <div className="flex flex-col gap-4 py-1">
                       <div className="rounded-xl bg-[#0c111f] border border-white/5 p-4">
-                        <p className="text-[11px] uppercase tracking-wider text-slate-500 font-inter mb-2 flex items-center gap-1.5"><ScrollText className="w-3.5 h-3.5" />{t('contenus.detail.tonScript')}</p>
+                        <p className="text-[11px] text-slate-400 font-inter mb-2 flex items-center gap-1.5"><ScrollText className="w-3.5 h-3.5" />{t('contenus.detail.tonScript')}</p>
                         <pre className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-300 font-inter max-h-[44vh] overflow-y-auto">{selectedContenu.script || '—'}</pre>
                       </div>
                       <button onClick={() => navigate(`/dashboard/video?contenu_id=${selectedContenu.id}`)}
-                        className="w-full rounded-xl py-3 font-sora font-semibold text-white bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 flex items-center justify-center gap-2 transition-opacity">
+                        className="w-full rounded-xl py-3 font-sora font-semibold text-white bg-[#5a4ae8] hover:bg-[#6757f0] hover:opacity-90 flex items-center justify-center gap-2 transition-opacity">
                         <Video className="w-4 h-4" /> {t('contenus.detail.monterVideo')}
                       </button>
                     </div>
@@ -1783,7 +1807,7 @@ export default function ContenusPage() {
                               className="group relative mx-auto block rounded-xl overflow-hidden ring-1 ring-white/10 shadow-xl cursor-zoom-in focus:outline-none focus:ring-2 focus:ring-[#5B6CFF]" style={{ width: 220, height: 275 }}>
                               <div className="origin-top-left" style={{ transform: 'scale(1.1)', width: 200, height: 250 }} dangerouslySetInnerHTML={{ __html: slides[idx] || '' }} />
                               <span className="absolute inset-0 flex items-center justify-center bg-slate-950/0 group-hover:bg-slate-950/40 transition-colors">
-                                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity" />
                               </span>
                             </button>
                             <div className="flex gap-1.5 justify-center flex-wrap">
@@ -1816,10 +1840,10 @@ export default function ContenusPage() {
                             className="block w-full">
                             <img src={u} alt={t('contenus.detail.slide', { n: i + 1 })} className="w-full object-cover group-hover:scale-[1.03] transition-transform" />
                           </button>
-                          <span className="absolute bottom-1 right-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-black/60 text-white/90">{i + 1}/{selectedContenu.slides_images.length}</span>
+                          <span className="absolute bottom-1 right-1 text-[11.5px] font-medium px-1.5 py-0.5 rounded bg-black/60 text-white/90">{i + 1}/{selectedContenu.slides_images.length}</span>
                           <a href={lienTelechargement(u, `${selectedContenu.titre || 'slide'}-${i + 1}`)}
                             onClick={(e) => e.stopPropagation()}
-                            className="absolute top-1 right-1 w-7 h-7 rounded-lg bg-black/70 border border-white/20 grid place-items-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 w-7 h-7 rounded-lg bg-black/70 border border-white/20 grid place-items-center text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity"
                             title={t('contenus.image.telecharger')} aria-label={t('contenus.image.telecharger')}>
                             <Download className="w-3.5 h-3.5" />
                           </a>
@@ -1843,19 +1867,19 @@ export default function ContenusPage() {
                           className="w-full max-h-[360px] rounded-xl object-contain bg-slate-950/40 ring-1 ring-white/10 mx-auto"
                         />
                         <span className="absolute inset-0 flex items-center justify-center bg-slate-950/0 group-hover:bg-slate-950/40 transition-colors rounded-xl">
-                          <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity" />
                         </span>
                       </button>
                       <a href={lienTelechargement(selectedContenu.lien_visuel, selectedContenu.titre)}
                         onClick={(e) => e.stopPropagation()}
-                        className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-black/70 border border-white/20 grid place-items-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 w-8 h-8 rounded-lg bg-black/70 border border-white/20 grid place-items-center text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity"
                         title={t('contenus.image.telecharger')} aria-label={t('contenus.image.telecharger')}>
                         <Download className="w-4 h-4" />
                       </a>
                     </div>
                     </>
                   ) : (
-                    <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-600">
+                    <div className="w-full aspect-square rounded-xl bg-slate-800/40 border border-dashed border-white/10 flex flex-col items-center justify-center gap-2 text-slate-400">
                       <ImageIcon className="w-10 h-10" />
                       <span className="text-xs font-inter">{t('contenus.detail.aucunVisuel')}</span>
                     </div>
@@ -1882,7 +1906,7 @@ export default function ContenusPage() {
                             {t('contenus.detail.retoucherAnnuler')}
                           </Button>
                           <Button size="sm" disabled={!retoucheInstr.trim() || retoucheLoading} onClick={retoucherImage}
-                            className="flex-1 bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px]">
+                            className="flex-1 bg-[#5a4ae8] hover:bg-[#6757f0] text-white font-sora font-semibold rounded-[11px]">
                             {retoucheLoading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Scissors className="w-4 h-4 mr-1.5" />}
                             {t('contenus.detail.retoucherAppliquer')}
                           </Button>
@@ -1901,7 +1925,7 @@ export default function ContenusPage() {
                     && !selectedContenu.carrousel_pdf && !selectedContenu.video_url
                     && selectedContenu.type !== 'Reel' && selectedContenu.type !== 'Video' && (
                     <Button size="sm" onClick={() => { const c = selectedContenu; setSelectedContenu(null); openImage(c); }}
-                      className="w-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] hover:-translate-y-px transition-all">
+                      className="w-full bg-[#5a4ae8] hover:bg-[#6757f0] text-white font-sora font-semibold rounded-[11px] transition-all">
                       <Wand2 className="w-4 h-4 mr-1.5" />{selectedContenu.lien_visuel ? t('contenus.detail.changerVisuel') : t('contenus.detail.genererImage')}
                     </Button>
                   )}
@@ -1910,14 +1934,14 @@ export default function ContenusPage() {
                   {czR && (
                     <div className="rounded-xl border border-white/10 bg-slate-950/40 p-3 space-y-2.5">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('contenus.retouche.titre')}</span>
-                        <span className="text-[10.5px] text-[#3AFFA3] font-semibold">{t('contenus.retouche.apercuInstantane')}</span>
+                        <span className="text-[11px] font-semibold text-slate-400">{t('contenus.retouche.titre')}</span>
+                        <span className="text-[12px] text-[#3AFFA3] font-semibold">{t('contenus.retouche.apercuInstantane')}</span>
                       </div>
                       {/* Style : par défaut celui du réseau (cohérence du feed), modifiable
                           pour CE carrousel seulement — sans toucher au réglage du réseau. */}
                       {czStyles.length > 1 && (
                         <div>
-                          <label className="block text-[10.5px] text-slate-500 font-inter mb-1">{t('contenus.retouche.style')}</label>
+                          <label className="block text-[12px] text-slate-400 font-inter mb-1">{t('contenus.retouche.style')}</label>
                           <select value={czR.tpl || czTemplates[(selectedContenu.reseau_cible || '').toLowerCase()] || 'creme'}
                             onChange={(e) => setCzR((p) => ({ ...p, tpl: e.target.value }))}
                             data-testid="retouche-style"
@@ -1933,18 +1957,18 @@ export default function ContenusPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-[10.5px] text-slate-500 mb-1">{t('carrousels.policeDesTitres')}</label>
+                          <label className="block text-[12px] text-slate-400 mb-1">{t('carrousels.policeDesTitres')}</label>
                           <FontPicker value={czR.font || ''} onChange={(v) => setCzRColor('font', v)} options={CAROUSEL_FONTS} />
                         </div>
                         <div>
-                          <label className="block text-[10.5px] text-slate-500 mb-1">{t('carrousels.policeDuTexte')}</label>
+                          <label className="block text-[12px] text-slate-400 mb-1">{t('carrousels.policeDuTexte')}</label>
                           <FontPicker value={czR.fontBody || ''} onChange={(v) => setCzRColor('fontBody', v)} options={CAROUSEL_BODY_FONTS} />
                         </div>
                       </div>
                       {/* Texte des slides : retouche à la main, jamais régénéré par l'IA (gratuit) */}
                       <div className="pt-1">
                         <button type="button" onClick={() => setCzTextOpen((o) => !o)} data-testid="retouche-texte-toggle"
-                          className="w-full flex items-center justify-between text-[11px] font-semibold tracking-wide uppercase text-slate-500 hover:text-slate-300 transition-colors">
+                          className="w-full flex items-center justify-between text-[11px] font-semibold text-slate-400 hover:text-slate-300 transition-colors">
                           <span>{t('contenus.retouche.texteSlides')}{czTextChanged() ? <span className="ml-1.5 text-[#3AFFA3] normal-case tracking-normal font-medium">{t('contenus.retouche.modifie')}</span> : null}</span>
                           <span className="text-[11px] normal-case tracking-normal font-semibold text-[#a5b0ff]">{czTextOpen ? t('contenus.retouche.fermerTexte') : t('contenus.retouche.modifierTexte')}</span>
                         </button>
@@ -1954,12 +1978,12 @@ export default function ContenusPage() {
                           return (
                             <div className="mt-2 space-y-2.5 max-h-[46vh] overflow-y-auto pr-1">
                               <div>
-                                <label className="block text-[10.5px] text-slate-500 font-inter mb-1">{t('contenus.retouche.accroche')}</label>
+                                <label className="block text-[12px] text-slate-400 font-inter mb-1">{t('contenus.retouche.accroche')}</label>
                                 <Textarea rows={2} value={c.hook || ''} onChange={(e) => setCzTextField('hook', e.target.value)} className={cls} data-testid="retouche-hook" />
                               </div>
                               {(c.slides || []).map((sl, i) => (
                                 <div key={i} className="rounded-lg border border-white/10 p-2 space-y-1.5">
-                                  <div className="text-[10.5px] text-slate-400 font-semibold">{t('contenus.retouche.slideN', { n: i + 1 })}</div>
+                                  <div className="text-[12px] text-slate-400 font-semibold">{t('contenus.retouche.slideN', { n: i + 1 })}</div>
                                   <input value={sl.titre || ''} onChange={(e) => setCzSlideField(i, 'titre', e.target.value)} placeholder={t('contenus.retouche.titre')} className={cls} data-testid={`retouche-slide-titre-${i}`} />
                                   <Textarea rows={3} value={sl.texte || ''} onChange={(e) => setCzSlideField(i, 'texte', e.target.value)} placeholder={t('contenus.retouche.texte')} className={cls} data-testid={`retouche-slide-texte-${i}`} />
                                   <input value={Array.isArray(sl.pills) ? sl.pills.join(', ') : (sl.pills || '')} onChange={(e) => setCzSlideField(i, 'pills', e.target.value)} placeholder={t('contenus.retouche.puces')} className={cls} />
@@ -1979,7 +2003,7 @@ export default function ContenusPage() {
                         {czRBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                         {czRBusy ? t('contenus.retouche.appliquerEnCours') : t('contenus.retouche.appliquer')}
                       </button>
-                      <p className="text-[11px] text-slate-600 font-inter">{t('contenus.retouche.noteAvant')}<b className="text-slate-400">{t('contenus.retouche.noteValidation')}</b>{t('contenus.retouche.noteApres')}</p>
+                      <p className="text-[11px] text-slate-400 font-inter">{t('contenus.retouche.noteAvant')}<b className="text-slate-400">{t('contenus.retouche.noteValidation')}</b>{t('contenus.retouche.noteApres')}</p>
                     </div>
                   )}
 
@@ -1988,7 +2012,7 @@ export default function ContenusPage() {
                     <a href={selectedContenu.carrousel_pdf} target="_blank" rel="noopener noreferrer" download
                       className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-slate-200 text-sm font-inter py-2.5 transition-colors">
                       <FileText className="w-4 h-4 text-[#5B6CFF]" />
-                      {t('contenus.detail.telechargerPdf')} <span className="text-slate-500">{t('contenus.detail.documentLinkedin')}</span>
+                      {t('contenus.detail.telechargerPdf')} <span className="text-slate-400">{t('contenus.detail.documentLinkedin')}</span>
                     </a>
                   )}
 
@@ -2036,7 +2060,7 @@ export default function ContenusPage() {
                     <div className="flex-1 overflow-y-auto p-5 space-y-4">
                       <div>
                         <div className="flex items-center gap-2 mb-2.5">
-                          <p className="text-[10.5px] uppercase tracking-[0.16em] text-slate-500 font-semibold">{t('contenus.detail.textePost')}</p>
+                          <p className="text-[12px] text-slate-400 font-semibold">{t('contenus.detail.textePost')}</p>
                           {selectedContenu.video_url && selectedContenu.statut !== 'Publie' && (
                             <div className="ml-auto flex items-center gap-1.5">
                               {selectedContenu.type === 'Reel' && ['ready', 'pret'].includes(selectedContenu.video_status) && (
@@ -2061,7 +2085,7 @@ export default function ContenusPage() {
                             <p className="text-[13px] text-slate-400 font-inter leading-relaxed">{t('contenus.description.vide')}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-3">
                               <Button size="sm" onClick={() => genererDescription(selectedContenu)} disabled={descEnCours === selectedContenu.id} data-testid="detail-generer-description"
-                                className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[10px]">
+                                className="bg-[#5a4ae8] hover:bg-[#6757f0] text-white font-sora font-semibold rounded-[10px]">
                                 {descEnCours === selectedContenu.id ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1.5" />}
                                 {descEnCours === selectedContenu.id ? t('contenus.description.enCours') : t('contenus.description.generer')}
                               </Button>
@@ -2069,28 +2093,49 @@ export default function ContenusPage() {
                                 <Edit2 className="w-3.5 h-3.5 mr-1.5" />{t('contenus.description.ecrire')}
                               </Button>
                             </div>
-                            {descEnCours === selectedContenu.id && <p className="text-[11.5px] text-slate-500 font-inter mt-2">{t('contenus.description.longue')}</p>}
+                            {descEnCours === selectedContenu.id && <p className="text-[11.5px] text-slate-400 font-inter mt-2">{t('contenus.description.longue')}</p>}
                           </div>
                         ) : (
                           <p className="text-slate-200 font-inter text-[14px] leading-relaxed whitespace-pre-wrap">{selectedContenu.contenu}</p>
                         )}
                       </div>
                       <div className="grid grid-cols-2 gap-2.5">
-                        <div className="bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
-                          <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">{t('contenus.detail.creeLe')}</p>
-                          <p className="text-slate-300 text-[13px] font-inter tabular-nums">{new Date(selectedContenu.created_at).toLocaleString('fr-FR')}</p>
-                        </div>
-                        {selectedContenu.date_publication && (
+                        {dateValide(selectedContenu.created_at) && (
                           <div className="bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-600 font-inter mb-1">{t('contenus.detail.publication')}</p>
-                            <p className="text-[#3AFFA3] text-[13px] font-inter tabular-nums">{new Date(selectedContenu.date_publication).toLocaleString('fr-FR')}</p>
+                            <p className="text-[12px] text-slate-400 font-inter mb-1">{t('contenus.detail.creeLe')}</p>
+                            <p className="text-slate-200 text-[13px] font-inter tabular-nums">{dateLongue(selectedContenu.created_at, langueUI)}</p>
+                          </div>
+                        )}
+                        {dateValide(selectedContenu.date_publication) && (
+                          <div className="bg-[#0a0f1c] rounded-lg p-3 border border-white/[0.08]">
+                            <p className="text-[12px] text-slate-400 font-inter mb-1">{t('contenus.detail.publication')}</p>
+                            <p className="text-white text-[13px] font-inter tabular-nums">{dateLongue(selectedContenu.date_publication, langueUI)}</p>
                           </div>
                         )}
                       </div>
+                      {/* Ce que fera la validation, dit avant le clic */}
+                      {selectedContenu.statut === 'A valider' && selectedContenu.reseau_cible && (
+                        <div className="flex gap-2.5 items-start p-3 rounded-lg bg-[#6f5cff]/10 border border-[#8A6CFF]/30" data-testid="contenu-consequence-validation">
+                          <Calendar className="w-4 h-4 text-[#c9c1ff] shrink-0 mt-0.5" aria-hidden="true" />
+                          <p className="text-[12.5px] text-slate-100 leading-relaxed">
+                            {dateValide(selectedContenu.date_publication) && new Date(selectedContenu.date_publication).getTime() > Date.now()
+                              ? t('contenus.detail.consequenceDate', { reseau: (RESEAU_CONFIG[selectedContenu.reseau_cible] || RESEAU_CONFIG[idReseau(selectedContenu.reseau_cible)])?.label || selectedContenu.reseau_cible, date: dateLongue(selectedContenu.date_publication, langueUI) })
+                              : t('contenus.detail.consequenceCreneau', { reseau: (RESEAU_CONFIG[selectedContenu.reseau_cible] || RESEAU_CONFIG[idReseau(selectedContenu.reseau_cible)])?.label || selectedContenu.reseau_cible })}
+                          </p>
+                        </div>
+                      )}
                       {selectedContenu.publish_status === 'échec' && selectedContenu.publish_error && (
                         <div className="flex gap-2.5 items-start p-3 rounded-lg bg-red-500/[0.07] border border-red-500/20">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
-                          <p className="text-[12px] text-red-300/90 leading-relaxed"><b className="text-red-200">{t('contenus.detail.publicationEchecLabel')}</b> {erreurLisible(selectedContenu.publish_error, t)}</p>
+                          <div className="text-[12.5px] text-red-100 leading-relaxed space-y-1.5">
+                            <p><b className="text-red-50">{t('contenus.detail.publicationEchecLabel')}</b> {erreurLisible(selectedContenu.publish_error, t)}</p>
+                            <p className="text-slate-200">{t('contenus.detail.rienPublie')}</p>
+                            {erreurDeConnexion(selectedContenu.publish_error) && (
+                              <button type="button" onClick={() => navigate('/dashboard/parametres')} className="inline-flex items-center gap-1 font-semibold text-white underline underline-offset-2">
+                                {t('contenus.detail.reconnecter', { reseau: (RESEAU_CONFIG[selectedContenu.reseau_cible] || RESEAU_CONFIG[idReseau(selectedContenu.reseau_cible)])?.label || selectedContenu.reseau_cible })} →
+                              </button>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -2099,10 +2144,10 @@ export default function ContenusPage() {
 
                 {/* FOOTER : Supprimer discret à GAUCHE, actions d'état à droite (CTA dégradé unique) */}
                 <div className="px-5 py-3 border-t border-white/10 flex items-center gap-3 bg-[#0a0f1c]">
-                  <Button size="sm" onClick={() => { const c = selectedContenu; setSelectedContenu(null); setDeleteContenu(c); }}
-                    className="bg-transparent text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent font-inter shrink-0 px-2.5">
+                  <Button size="sm" onClick={() => supprimerAvecAnnuler(selectedContenu)}
+                    className="bg-transparent text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent font-inter shrink-0 px-2.5">
                     <Trash2 className="w-4 h-4 mr-1.5" />{t('contenus.actions.supprimer')}</Button>
-                  <span className="hidden sm:block text-[11.5px] text-slate-600 font-inter truncate">
+                  <span className="hidden sm:block text-[11.5px] text-slate-400 font-inter truncate">
                     {czR ? t('contenus.detail.imagesFinalesValidation') : ''}
                   </span>
                   <div className="flex items-center gap-2 flex-wrap justify-end ml-auto">
@@ -2124,7 +2169,7 @@ export default function ContenusPage() {
                         <Button size="sm" onClick={() => validerContenu(selectedContenu.id)} data-testid="contenu-valider-detail"
                           disabled={actionLoading === selectedContenu.id || czRBusy || manqueMedia(selectedContenu) || ((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)}
                           title={manqueMedia(selectedContenu) ? t('publication.ajouteVisuel') : (((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url) ? t('contenus.detail.attendsMontage') : undefined)}
-                          className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] px-5 shadow-[0_8px_24px_rgba(91,108,255,0.35)] hover:-translate-y-px hover:shadow-[0_12px_30px_rgba(91,108,255,0.45)] transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none">
+                          className="bg-[#5a4ae8] hover:bg-[#6757f0] text-white font-sora font-semibold rounded-[11px] px-5 transition-all disabled:opacity-50">
                           {((selectedContenu.type === 'Reel' || selectedContenu.video_status) && !selectedContenu.video_url)
                             ? <><Loader2 className="w-4 h-4 animate-spin mr-1.5" />{t('contenus.detail.montageEnCours')}</>
                             : <>{(actionLoading === selectedContenu.id || czRBusy) ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Check className="w-4 h-4 mr-1.5" />}{t('contenus.actions.validerProgrammer')}</>}</Button>
@@ -2134,7 +2179,7 @@ export default function ContenusPage() {
                       && ['', null, undefined, 'échec', 'annulé'].includes(selectedContenu.publish_status) && (
                       <Button size="sm" onClick={() => programmerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
                         title={selectedContenu.publish_status === 'échec' ? selectedContenu.publish_error : t('contenus.detail.envoyerFile')}
-                        className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px] px-4 shadow-[0_8px_24px_rgba(91,108,255,0.35)] hover:-translate-y-px hover:shadow-[0_12px_30px_rgba(91,108,255,0.45)] transition-all">
+                        className="bg-[#5a4ae8] hover:bg-[#6757f0] text-white font-sora font-semibold rounded-[11px] px-4 transition-all">
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Calendar className="w-4 h-4 mr-1.5" />}
                         {selectedContenu.publish_status === 'échec' ? t('contenus.actions.reessayer') : t('contenus.actions.programmer')}</Button>
                     )}
@@ -2145,7 +2190,7 @@ export default function ContenusPage() {
                         data-testid="replanifier-btn"
                         className="bg-transparent border border-white/[0.12] text-slate-300 hover:text-white hover:border-white/25 font-sora font-semibold rounded-[11px] transition-colors">
                         {publishLoading === selectedContenu.id ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <RefreshCw className="w-4 h-4 mr-1.5" />}
-                        {t('contenus.actions.replanifier')}</Button>
+                        {t('contenus.actions.prochainCreneau')}</Button>
                     )}
                     {['envoi', 'programmé'].includes(selectedContenu.publish_status) && (
                       <Button size="sm" onClick={() => annulerPublication(selectedContenu)} disabled={publishLoading === selectedContenu.id}
@@ -2180,7 +2225,7 @@ export default function ContenusPage() {
               <div className="space-y-4">
                 {editContenu.video_url && (
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-[12px] text-slate-500 font-inter">{t('contenus.description.aideEdition')}</p>
+                    <p className="text-[12px] text-slate-400 font-inter">{t('contenus.description.aideEdition')}</p>
                     <Button size="sm" type="button" onClick={() => genererDescription(editContenu, true)} disabled={descEnCours === editContenu.id} data-testid="edition-generer-description"
                       className="shrink-0 bg-[#5B6CFF]/15 border border-[#5B6CFF]/40 text-[#c7cdff] hover:bg-[#5B6CFF]/25 hover:text-white font-sora font-semibold rounded-[10px]">
                       {descEnCours === editContenu.id ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1.5" />}
@@ -2203,7 +2248,7 @@ export default function ContenusPage() {
                   const n = (editContenu.contenu || '').length;
                   const over = n > lim;
                   return (
-                    <p className={`text-[11.5px] font-inter text-right ${over ? 'text-red-400 font-semibold' : n > lim * 0.9 ? 'text-amber-400' : 'text-slate-500'}`}>
+                    <p className={`text-[11.5px] font-inter text-right ${over ? 'text-red-400 font-semibold' : n > lim * 0.9 ? 'text-amber-400' : 'text-slate-400'}`}>
                       {t('contenus.edition.compteur', { n: n.toLocaleString('fr-FR'), lim: lim.toLocaleString('fr-FR') })}{over ? t('contenus.edition.tropLong') : ''}
                     </p>
                   );
@@ -2260,7 +2305,7 @@ export default function ContenusPage() {
                     })}
                 </div>
                 {!connectedNets.filter((p) => p.id !== (recycleFor.reseau_cible || '').toLowerCase()).length && (
-                  <p className="text-xs text-slate-500 font-inter">{t('contenus.recyclage.aucunReseau')}</p>
+                  <p className="text-xs text-slate-400 font-inter">{t('contenus.recyclage.aucunReseau')}</p>
                 )}
               </div>
             )}
@@ -2313,7 +2358,7 @@ export default function ContenusPage() {
                           <div className="flex items-center justify-between gap-2">
                             <span className="font-sora font-bold text-white flex items-center gap-2 min-w-0">
                               <span className="truncate">{tpl.label}</span>
-                              {reco && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#3AFFA3]/15 text-[#3AFFA3] border border-[#3AFFA3]/40 shrink-0">★ {t('contenus.reel.recommande')}</span>}
+                              {reco && <span className="text-[11.5px] font-semibold px-1.5 py-0.5 rounded-full bg-[#3AFFA3]/15 text-[#3AFFA3] border border-[#3AFFA3]/40 shrink-0">★ {t('contenus.reel.recommande')}</span>}
                             </span>
                             <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 shrink-0">{tpl.groupe && nbStyles > 1 ? t('contenus.reel.seq.nbStyles', { n: nbStyles }) : `${tpl.duree} s`}</span>
                           </div>
@@ -2321,7 +2366,7 @@ export default function ContenusPage() {
                           {reco && reelReco?.raison && <p className="text-[11px] text-[#3AFFA3]/80 font-inter mt-1.5">→ {reelReco.raison}</p>}
                           {(tpl.tags || []).length > 0 && (
                             <div className="flex gap-1.5 mt-2 flex-wrap">
-                              {tpl.tags.map((tag) => <span key={tag} className="text-[10px] font-inter text-slate-500 border border-white/10 rounded-full px-2 py-0.5">{tag}</span>)}
+                              {tpl.tags.map((tag) => <span key={tag} className="text-[11.5px] font-inter text-slate-400 border border-white/10 rounded-full px-2 py-0.5">{tag}</span>)}
                             </div>
                           )}
                         </div>
@@ -2343,26 +2388,6 @@ export default function ContenusPage() {
             : t('contenus.reel.fab.pillSlides')}
         />
 
-        {/* Delete Confirmation */}
-        <AlertDialog open={!!deleteContenu} onOpenChange={() => setDeleteContenu(null)}>
-          <AlertDialogContent className="bg-[#0f172a] border-slate-800">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-white font-sora">{t('contenus.suppression.titre')}</AlertDialogTitle>
-              <AlertDialogDescription className="text-slate-400 font-inter">
-                {deleteContenu?.isGroup ? t('contenus.suppression.descriptionSerie', { n: deleteContenu.items.length }) : t('contenus.suppression.description')}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700 font-inter">
-                {t('contenus.actions.annuler')}
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600 font-inter">
-                {t('contenus.actions.supprimer')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
         {/* Image Dialog */}
         <Dialog open={!!imageContenu} onOpenChange={() => setImageContenu(null)}>
           <DialogContent className="bg-[#0b1120] border-white/10 p-0 gap-0 w-[95vw] max-w-[920px] max-h-[90vh] overflow-hidden">
@@ -2372,7 +2397,7 @@ export default function ContenusPage() {
                 <div className="md:w-[44%] p-5 flex flex-col gap-3 border-b md:border-b-0 md:border-r border-white/10"
                   style={{ background: 'radial-gradient(120% 90% at 30% 0%, rgba(91,108,255,.08), transparent 55%), #0b1120' }}>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10.5px] tracking-[0.18em] uppercase text-slate-500 font-semibold">{t('contenus.image.apercu')}</span>
+                    <span className="text-[12px] text-slate-400 font-semibold">{t('contenus.image.apercu')}</span>
                     {imageContenu.lien_visuel && (
                       <div className="flex items-center gap-1.5">
                         <a href={lienTelechargement(imageContenu.lien_visuel, imageContenu.titre)}
@@ -2393,7 +2418,7 @@ export default function ContenusPage() {
                       <img src={imageContenu.lien_visuel} alt="" className="w-full max-w-[320px] aspect-square object-cover rounded-2xl ring-1 ring-white/10 shadow-2xl" />
                     ) : (
                       <div className="w-full max-w-[300px] aspect-square rounded-2xl border border-dashed border-white/15 grid place-items-center text-center px-8">
-                        <p className="text-slate-500 text-sm font-inter leading-relaxed">
+                        <p className="text-slate-400 text-sm font-inter leading-relaxed">
                           <ImageIcon className="w-7 h-7 mx-auto mb-2.5 opacity-40" />
                           {t('contenus.image.placeholderLigne1')}<br />{t('contenus.image.placeholderLigne2')}
                         </p>
@@ -2406,7 +2431,7 @@ export default function ContenusPage() {
                 <div className="flex-1 md:w-[56%] flex flex-col min-h-0">
                   <DialogHeader className="px-5 pt-5 pb-3 border-b border-white/10 space-y-0 text-left">
                     <DialogTitle className="text-white font-sora text-[17px]">{t('contenus.carte.creerVisuel')}</DialogTitle>
-                    <p className="text-[12px] text-slate-500 font-inter">{user?.nom || t('contenus.image.taMarque')} · {t('contenus.image.feedCoherent')}</p>
+                    <p className="text-[12px] text-slate-400 font-inter">{user?.nom || t('contenus.image.taMarque')} · {t('contenus.image.feedCoherent')}</p>
                   </DialogHeader>
 
                   <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
@@ -2423,7 +2448,7 @@ export default function ContenusPage() {
                     {/* MODE GABARIT */}
                     {imgMode === 'gabarit' && (
                       <div className="space-y-2.5">
-                        <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.miseEnPage')}</p>
+                        <p className="text-[11px] text-slate-400 font-semibold">{t('contenus.image.miseEnPage')}</p>
                         <div className="grid grid-cols-3 gap-2">
                           {gabarits.map((g) => (
                             <button key={g} onClick={() => setSelectedGabarit(g)} title={gabLabels[g] || g}
@@ -2435,17 +2460,17 @@ export default function ContenusPage() {
                                 {gabaritBusy === g && <div className="absolute inset-0 grid place-items-center bg-black/55"><Loader2 className="w-5 h-5 animate-spin text-[#3AFFA3]" /></div>}
                                 {selectedGabarit === g && <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#3AFFA3] grid place-items-center"><Check className="w-3 h-3 text-[#04130c]" strokeWidth={3} /></span>}
                               </div>
-                              <div className="px-1.5 py-1 text-[10.5px] font-medium text-white bg-black/40 truncate">{gabLabels[g] || g}</div>
+                              <div className="px-1.5 py-1 text-[12px] font-medium text-white bg-black/40 truncate">{gabLabels[g] || g}</div>
                             </button>
                           ))}
                         </div>
-                        <p className="text-[11.5px] text-slate-500 font-inter flex items-center gap-1.5"><Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" />{t('contenus.image.iaEcritTexte')}</p>
+                        <p className="text-[11.5px] text-slate-400 font-inter flex items-center gap-1.5"><Wand2 className="w-3 h-3 text-[#3AFFA3] shrink-0" />{t('contenus.image.iaEcritTexte')}</p>
 
                         {/* Photo — uniquement pour les gabarits qui ont une zone photo */}
                         {selectedGabarit && gabPhoto.includes(selectedGabarit) && (
                         <div className="space-y-2 pt-1">
                           <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.photo')} <span className="normal-case tracking-normal text-slate-600">{t('contenus.image.optionnel')}</span></label>
+                            <label className="text-[11px] text-slate-400 font-semibold">{t('contenus.image.photo')} <span className="normal-case tracking-normal text-slate-400">{t('contenus.image.optionnel')}</span></label>
                             <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
                             <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
                               className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
@@ -2453,11 +2478,11 @@ export default function ContenusPage() {
                             </button>
                           </div>
                           {inspirations.length === 0 ? (
-                            <p className="text-xs text-slate-600 font-inter">{t('contenus.image.importePhotoZone')}</p>
+                            <p className="text-xs text-slate-400 font-inter">{t('contenus.image.importePhotoZone')}</p>
                           ) : (
                             <div className="flex flex-wrap gap-2">
                               <button onClick={() => setTemplateBg(null)} title={t('contenus.image.pasDePhoto')}
-                                className={`w-12 h-12 rounded-lg border-2 grid place-items-center text-[10px] font-medium transition-all ${!templateBg ? 'border-[#3AFFA3] text-[#3AFFA3]' : 'border-white/10 text-slate-500 hover:text-white'}`}>
+                                className={`w-12 h-12 rounded-lg border-2 grid place-items-center text-[11.5px] font-medium transition-all ${!templateBg ? 'border-[#3AFFA3] text-[#3AFFA3]' : 'border-white/10 text-slate-400 hover:text-white'}`}>
                                 {t('contenus.image.aucune')}
                               </button>
                               {inspirations.map((url) => {
@@ -2466,7 +2491,7 @@ export default function ContenusPage() {
                                   <button key={url} onClick={() => setTemplateBg(on ? null : url)} title={on ? t('contenus.image.photoSelectionnee') : t('contenus.image.utiliserPhoto')}
                                     className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-60 hover:opacity-90'}`}>
                                     <img src={url} alt="" className="w-full h-full object-cover" />
-                                    {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                                    {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[11.5px] font-bold">✓</span>}
                                   </button>
                                 );
                               })}
@@ -2482,8 +2507,8 @@ export default function ContenusPage() {
                           {/* Décris la photo -> générée automatiquement au clic sur le bouton principal en bas */}
                           <input value={photoDesc} onChange={(e) => setPhotoDesc(e.target.value)}
                             placeholder={t('contenus.image.decrisPhotoPlaceholder')}
-                            className="w-full bg-[#0a0f1c] border border-white/10 rounded-lg text-slate-200 text-[13px] px-3 py-2 outline-none focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
-                          <p className="text-[11px] text-slate-600 font-inter">{t('contenus.image.photoAutoNote')}</p>
+                            className="w-full bg-[#0a0f1c] border border-white/10 rounded-lg text-slate-200 text-[13px] px-3 py-2 outline-none focus:border-[#5B6CFF]/50 placeholder:text-slate-400" />
+                          <p className="text-[11px] text-slate-400 font-inter">{t('contenus.image.photoAutoNote')}</p>
                         </div>
                         )}
                       </div>
@@ -2493,11 +2518,11 @@ export default function ContenusPage() {
                     {imgMode === 'template' && (
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.tesTemplates')}</p>
+                          <p className="text-[11px] text-slate-400 font-semibold">{t('contenus.image.tesTemplates')}</p>
                           <a href="/dashboard/parametres" className="text-[11.5px] text-[#3AFFA3] hover:underline inline-flex items-center gap-1"><Plus className="w-3 h-3" />{t('contenus.image.nouveau')}</a>
                         </div>
                         {templates.length === 0 ? (
-                          <p className="text-xs text-slate-600 font-inter">{t('contenus.image.aucunTemplate')}</p>
+                          <p className="text-xs text-slate-400 font-inter">{t('contenus.image.aucunTemplate')}</p>
                         ) : (
                           <div className="grid grid-cols-3 gap-2">
                             {templates.map((t) => {
@@ -2508,10 +2533,10 @@ export default function ContenusPage() {
                                   <div className="relative aspect-square bg-[#07070e]">
                                     {t.images?.[0]
                                       ? <img src={t.images[0]} alt={t.nom} className="absolute inset-0 w-full h-full object-cover" />
-                                      : <div className="absolute inset-0 grid place-items-center text-slate-600"><ImageIcon className="w-5 h-5" /></div>}
+                                      : <div className="absolute inset-0 grid place-items-center text-slate-400"><ImageIcon className="w-5 h-5" /></div>}
                                     {sel && <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#3AFFA3] grid place-items-center"><Check className="w-3 h-3 text-[#04130c]" strokeWidth={3} /></span>}
                                   </div>
-                                  <div className="px-1.5 py-1 text-[10.5px] font-medium text-white bg-black/40 truncate">{t.nom}</div>
+                                  <div className="px-1.5 py-1 text-[12px] font-medium text-white bg-black/40 truncate">{t.nom}</div>
                                 </button>
                               );
                             })}
@@ -2519,18 +2544,18 @@ export default function ContenusPage() {
                         )}
                         {activeTemplate && (
                           <div className="space-y-1.5 pt-1">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.instructionsOptionnel')}</label>
+                            <label className="text-[11px] text-slate-400 font-semibold">{t('contenus.image.instructionsOptionnel')}</label>
                             <Textarea value={tplInstr} onChange={(e) => setTplInstr(e.target.value)} rows={2} data-testid="image-template-instructions"
                               placeholder={t('contenus.image.instructionsPlaceholder')}
-                              className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50 placeholder:text-slate-600" />
-                            <p className="text-[11px] text-slate-600 font-inter">{t('contenus.image.laisseVide')}</p>
+                              className="bg-[#0a0f1c] border-white/10 text-slate-200 text-sm rounded-xl focus:border-[#5B6CFF]/50 placeholder:text-slate-400" />
+                            <p className="text-[11px] text-slate-400 font-inter">{t('contenus.image.laisseVide')}</p>
                           </div>
                         )}
                         {activeTemplate && (
                           <div className="space-y-2 pt-1">
                             <div className="flex items-center justify-between gap-2">
-                              <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">
-                                {t('contenus.image.imagesReference')} <span className="text-slate-600 normal-case tracking-normal">{selectedRefs.filter((u) => inspirations.includes(u)).length > 1 ? t('contenus.image.choisies', { n: selectedRefs.filter((u) => inspirations.includes(u)).length }) : t('contenus.image.choisie', { n: selectedRefs.filter((u) => inspirations.includes(u)).length })}</span>
+                              <label className="text-[11px] text-slate-400 font-semibold">
+                                {t('contenus.image.imagesReference')} <span className="text-slate-400 normal-case tracking-normal">{selectedRefs.filter((u) => inspirations.includes(u)).length > 1 ? t('contenus.image.choisies', { n: selectedRefs.filter((u) => inspirations.includes(u)).length }) : t('contenus.image.choisie', { n: selectedRefs.filter((u) => inspirations.includes(u)).length })}</span>
                               </label>
                               <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
                               <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
@@ -2539,7 +2564,7 @@ export default function ContenusPage() {
                               </button>
                             </div>
                             {inspirations.length === 0 ? (
-                              <p className="text-xs text-slate-600 font-inter">{t('contenus.image.aucuneImageInstructions')}</p>
+                              <p className="text-xs text-slate-400 font-inter">{t('contenus.image.aucuneImageInstructions')}</p>
                             ) : (
                               <div className="flex flex-wrap gap-2">
                                 {inspirations.map((url) => {
@@ -2548,9 +2573,9 @@ export default function ContenusPage() {
                                     <div key={url} onClick={() => toggleRef(url, true)} title={on ? t('contenus.image.utilisee') : t('contenus.image.nonUtilisee')}
                                       className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
                                       <img src={url} alt="" className="w-full h-full object-cover" />
-                                      {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                                      {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[11.5px] font-bold">✓</span>}
                                       <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title={t('contenus.image.agrandir')}
-                                        className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity">
                                         <Search className="w-2.5 h-2.5" />
                                       </button>
                                     </div>
@@ -2558,7 +2583,7 @@ export default function ContenusPage() {
                                 })}
                               </div>
                             )}
-                            <p className="text-[11px] text-slate-600 font-inter">{t('contenus.image.selectionneImageNote')}</p>
+                            <p className="text-[11px] text-slate-400 font-inter">{t('contenus.image.selectionneImageNote')}</p>
                           </div>
                         )}
                       </div>
@@ -2569,7 +2594,7 @@ export default function ContenusPage() {
                       <>
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.descriptionImage')}</label>
+                            <label className="text-[11px] text-slate-400 font-semibold">{t('contenus.image.descriptionImage')}</label>
                             <button onClick={() => chargerPrompt(imageContenu)} disabled={imgLoadingPrompt}
                               className="text-xs text-[#8A6CFF] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
                               <Wand2 className="w-3 h-3" /> {t('contenus.image.proposerDescription')}
@@ -2585,7 +2610,7 @@ export default function ContenusPage() {
                         {/* Style de rendu : réaliste par défaut, ou illustration, 3D, néon… Le garde-fou
                             « photo réaliste » ne s'applique qu'aux styles photo. */}
                         <div className="space-y-1.5">
-                          <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.style')}</label>
+                          <label className="text-[11px] text-slate-400 font-semibold">{t('contenus.image.style')}</label>
                           <div className="flex flex-wrap gap-1.5">
                             {IMAGE_STYLES.map((st) => (
                               <button key={st} type="button" data-testid={`image-style-${st}`}
@@ -2596,12 +2621,12 @@ export default function ContenusPage() {
                               </button>
                             ))}
                           </div>
-                          <p className="text-[11px] text-slate-600 font-inter">{imgStyle === 'auto' ? t('contenus.image.styleAutoDesc') : t(`contenus.miniature.styles.${imgStyle}Desc`)}</p>
+                          <p className="text-[11px] text-slate-400 font-inter">{imgStyle === 'auto' ? t('contenus.image.styleAutoDesc') : t(`contenus.miniature.styles.${imgStyle}Desc`)}</p>
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-lg bg-[#0a0f1c] border border-white/10">
                           <div>
                             <span className="text-sm text-slate-300 font-inter">{t('contenus.image.inclureMaPhoto')}</span>
-                            <p className="text-[11px] text-slate-500 font-inter mt-0.5">
+                            <p className="text-[11px] text-slate-400 font-inter mt-0.5">
                               {user?.photo_url
                                 ? t('contenus.image.decocheNote')
                                 : t('contenus.image.ajoutePhotoProfil')}
@@ -2620,7 +2645,7 @@ export default function ContenusPage() {
                         </div>
                         <div className="space-y-2">
                           <div className="flex items-center justify-between gap-2">
-                            <label className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.imagesReference')} <span className="text-slate-600 normal-case tracking-normal">{selectedRefs.length > 1 ? t('contenus.image.choisies', { n: selectedRefs.length }) : t('contenus.image.choisie', { n: selectedRefs.length })}</span></label>
+                            <label className="text-[11px] text-slate-400 font-semibold">{t('contenus.image.imagesReference')} <span className="text-slate-400 normal-case tracking-normal">{selectedRefs.length > 1 ? t('contenus.image.choisies', { n: selectedRefs.length }) : t('contenus.image.choisie', { n: selectedRefs.length })}</span></label>
                             <input ref={refInputRef} type="file" accept="image/*" onChange={importerRef} className="hidden" />
                             <button onClick={() => refInputRef.current?.click()} disabled={refImporting}
                               className="text-xs text-[#3AFFA3] hover:text-white font-inter inline-flex items-center gap-1 disabled:opacity-50">
@@ -2628,7 +2653,7 @@ export default function ContenusPage() {
                             </button>
                           </div>
                           {inspirations.length === 0 ? (
-                            <p className="text-xs text-slate-600 font-inter">{t('contenus.image.aucuneImageStyle')}</p>
+                            <p className="text-xs text-slate-400 font-inter">{t('contenus.image.aucuneImageStyle')}</p>
                           ) : (
                             <div className="flex flex-wrap gap-2">
                               {inspirations.map((url) => {
@@ -2639,19 +2664,19 @@ export default function ContenusPage() {
                                   <div key={url} onClick={() => toggleRef(url)} title={on ? t('contenus.image.utilisee') : t('contenus.image.nonUtilisee')}
                                     className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 cursor-pointer group transition-all ${on ? 'border-[#3AFFA3]' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
                                     <img src={url} alt="" className="w-full h-full object-cover" />
-                                    {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[10px] font-bold">✓</span>}
+                                    {on && <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#3AFFA3] text-[#0b1322] grid place-items-center text-[11.5px] font-bold">✓</span>}
                                     <button type="button" onClick={(e) => toggleIntegrate(url, e)}
                                       title={pinned ? t('contenus.image.toujoursIntegree') : t('contenus.image.toujoursIntegrer')}
-                                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded grid place-items-center transition-opacity ${pinned ? 'bg-[#5B6CFF] text-white opacity-100' : 'bg-black/70 text-white opacity-0 group-hover:opacity-100'}`}>
+                                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded grid place-items-center transition-opacity ${pinned ? 'bg-[#5B6CFF] text-white opacity-100' : 'bg-black/70 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100'}`}>
                                       <Pin className="w-2.5 h-2.5" fill={pinned ? 'currentColor' : 'none'} />
                                     </button>
                                     <button type="button" onClick={(e) => toggleRole(url, 'ecran', e)} data-testid="ref-role-ecran"
                                       title={ecran ? t('contenus.image.ecranReproduit') : t('contenus.image.ecranReproduire')}
-                                      className={`absolute top-0.5 left-5 w-4 h-4 rounded grid place-items-center transition-opacity ${ecran ? 'bg-[#3AFFA3] text-[#0b1322] opacity-100' : 'bg-black/70 text-white opacity-0 group-hover:opacity-100'}`}>
+                                      className={`absolute top-0.5 left-5 w-4 h-4 rounded grid place-items-center transition-opacity ${ecran ? 'bg-[#3AFFA3] text-[#0b1322] opacity-100' : 'bg-black/70 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100'}`}>
                                       <Smartphone className="w-2.5 h-2.5" />
                                     </button>
                                     <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox({ images: [url], index: 0 }); }} title={t('contenus.image.agrandir')}
-                                      className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                      className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/70 text-white grid place-items-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity">
                                       <Search className="w-2.5 h-2.5" />
                                     </button>
                                   </div>
@@ -2666,13 +2691,13 @@ export default function ContenusPage() {
                     {/* MODE IMPORTER : dépose directement un fichier, aucun appel IA, gratuit */}
                     {imgMode === 'importer' && (
                       <div className="flex flex-col items-center justify-center gap-3 py-10 px-6 rounded-xl border-2 border-dashed border-white/10 text-center">
-                        <Upload className="w-8 h-8 text-slate-500" />
+                        <Upload className="w-8 h-8 text-slate-400" />
                         <div>
                           <p className="text-[13.5px] text-slate-200 font-inter font-medium">{t('contenus.image.importerTitre')}</p>
-                          <p className="text-[12px] text-slate-500 font-inter mt-1 max-w-xs">{t('contenus.image.importerTexte')}</p>
+                          <p className="text-[12px] text-slate-400 font-inter mt-1 max-w-xs">{t('contenus.image.importerTexte')}</p>
                         </div>
                         <Button size="sm" onClick={() => imgImportRef.current?.click()} disabled={imgImporting}
-                          className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-sora font-semibold rounded-[11px]">
+                          className="bg-[#5a4ae8] hover:bg-[#6757f0] text-white font-sora font-semibold rounded-[11px]">
                           {imgImporting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Upload className="w-4 h-4 mr-1.5" />}
                           {t('contenus.image.importerChoisir')}
                         </Button>
@@ -2683,11 +2708,11 @@ export default function ContenusPage() {
                     {/* Qualité (modèle) — Image IA ET Template : choix HD / standard */}
                     {imgMode !== 'gabarit' && imgMode !== 'importer' && (
                       <div className="space-y-2">
-                        <p className="text-[11px] tracking-[0.14em] uppercase text-slate-500 font-semibold">{t('contenus.image.qualite')}</p>
+                        <p className="text-[11px] text-slate-400 font-semibold">{t('contenus.image.qualite')}</p>
                         <div className="grid grid-cols-2 gap-2">
                           {IMAGE_MODELES.map((m) => (
                             <button key={m.id} onClick={() => setImgModele(m.id)}
-                              className={`px-3 py-2 rounded-lg text-[13px] font-medium font-inter border transition-all ${imgModele === m.id ? 'bg-gradient-to-r from-[#5B6CFF]/20 to-[#8A6CFF]/20 text-white border-[#5B6CFF]/50' : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'}`}>
+                              className={`px-3 py-2 rounded-lg text-[13px] font-medium font-inter border transition-all ${imgModele === m.id ? 'bg-[#6f5cff]/20 text-white border-[#5B6CFF]/50' : 'text-slate-400 border-white/10 hover:text-white hover:border-white/20'}`}>
                               {m.id === 'nano3' ? t('contenus.image.imageHd') : t('contenus.image.imageStandard')}
                             </button>
                           ))}
@@ -2715,7 +2740,7 @@ export default function ContenusPage() {
                       <Button variant="ghost" onClick={() => setImageContenu(null)} className="text-slate-400 font-inter">{t('contenus.actions.fermer')}</Button>
                       {imgMode !== 'importer' && (
                         <Button onClick={onGenerate} disabled={genDisabled}
-                          className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 font-inter shadow-lg shadow-[#5B6CFF]/30">
+                          className="bg-[#5a4ae8] hover:bg-[#6757f0] text-white hover:opacity-90 font-inter">
                           {genBusy ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
                           {imageContenu.lien_visuel ? t('contenus.actions.regenerer') : t('contenus.carte.genererVisuel')}
                         </Button>
@@ -2824,7 +2849,7 @@ export default function ContenusPage() {
         <MiniatureDialog contenu={miniatureFor} onClose={() => setMiniatureFor(null)} onDone={() => fetchContenus({ silencieux: true })} />
       )}
 
-      <PopupRessemblance open={!!ressemblanceCible} onAnswer={confirmerRessemblance} />
+      <PopupRessemblance open={!!ressemblanceCible} onAnswer={confirmerRessemblance} onCancel={() => setRessemblanceCible(null)} />
       <PopupMotifRefus open={!!refusCible} onConfirm={confirmerRefus} />
     </div>
   );

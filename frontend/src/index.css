@@ -157,3 +157,12 @@ html, body, #root {
 .toast-danger [data-button][data-action] {
   background: linear-gradient(90deg, #ef4444, #f43f5e) !important;
 }
+
+/* Focus clavier visible sur la page Contenus et dans les fenêtres / menus (portails Radix) */
+.page-contenus :focus-visible,
+[role="dialog"] :focus-visible,
+[role="alertdialog"] :focus-visible,
+[role="menu"] :focus-visible {
+  outline: 2px solid rgba(138, 108, 255, 0.85) !important;
+  outline-offset: 2px;
+}
