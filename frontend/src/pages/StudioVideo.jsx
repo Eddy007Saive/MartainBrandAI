@@ -1200,6 +1200,9 @@ function CorrectionAgent({ result, onEnvoyer, choixMusique, musique }) {
   const [envoi, setEnvoi] = useState(false);
   if (!result.correctionPossible) return <p className="text-[12px] text-slate-500 font-inter px-1">{t('video.agent.correctionExpiree')}</p>;
   const pret = texte.trim() || changerMusique;
+  // « Aucune » retire la musique : sur une vidéo qui n'en avait pas, ça ne change rien. On le dit
+  // clairement (20/10/2026 : un client voulait en ajouter une, la correction l'a « retirée »).
+  const retireMusique = changerMusique && musique?.id === 'none';
   const envoyer = async () => {
     if (!pret) return;
     setEnvoi(true);
@@ -1231,13 +1234,19 @@ function CorrectionAgent({ result, onEnvoyer, choixMusique, musique }) {
           <Switch on={changerMusique} onClick={() => setChangerMusique((v) => !v)} />
         </div>
         {changerMusique && <div className="mt-4 pt-4 border-t border-white/[0.06]">{choixMusique}</div>}
+        {retireMusique && (
+          <p className="mt-3 text-[12.5px] text-amber-300 font-inter leading-relaxed" data-testid="agent-video-correction-aucune">
+            {t('video.agent.correctionAucune')}
+          </p>
+        )}
       </div>
 
       <ImagesBanque selection={images} onChange={setImages} />
 
       <div className="flex justify-end">
         <Button onClick={envoyer} disabled={envoi || !pret} className="w-full sm:w-auto bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:opacity-90 gap-2 disabled:opacity-50">
-          {envoi ? <Loader2 className="w-4 h-4 animate-spin" /> : <PenLine className="w-4 h-4" />}{t('video.agent.correctionEnvoyer')}
+          {envoi ? <Loader2 className="w-4 h-4 animate-spin" /> : <PenLine className="w-4 h-4" />}
+          {retireMusique && !texte.trim() && !images.length ? t('video.agent.correctionRetirer') : t('video.agent.correctionEnvoyer')}
         </Button>
       </div>
     </div>
