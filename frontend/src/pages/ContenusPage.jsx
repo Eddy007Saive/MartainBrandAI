@@ -1681,7 +1681,9 @@ export default function ContenusPage() {
 
         {/* View Dialog — refonte 2 panneaux */}
         <Dialog open={!!selectedContenu} onOpenChange={() => setSelectedContenu(null)}>
-          <DialogContent className="bg-[#0b1120] border-white/10 p-0 gap-0 w-[95vw] max-w-[1000px] max-h-[90vh] overflow-hidden">
+          <DialogContent className="bg-[#0b1120] border-white/10 p-0 gap-0 w-[95vw] max-w-[1000px] max-h-[90vh] overflow-hidden"
+            onPointerDownOutside={(e) => { if (czBig || lightbox) e.preventDefault(); }}
+            onInteractOutside={(e) => { if (czBig || lightbox) e.preventDefault(); }}>
             {selectedContenu && (
               <div className="flex flex-col max-h-[90vh]">
                 {/* HEADER */}
@@ -2736,6 +2738,7 @@ export default function ContenusPage() {
         ), document.body)}
         {lightbox && createPortal((
           <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+            style={{ pointerEvents: 'auto' }} onPointerDown={(e) => e.stopPropagation()}
             onClick={() => setLightbox(null)}>
             <a href={lienTelechargement(lightbox.images[lightbox.index], `visuel-${lightbox.index + 1}`)}
               onClick={(e) => e.stopPropagation()} title={t('contenus.image.telecharger')} aria-label={t('contenus.image.telecharger')}
@@ -2773,8 +2776,13 @@ export default function ContenusPage() {
           const slides = czPreviewSlides() || [];
           if (!slides.length) return null;
           const idx = Math.min(czSlide, slides.length - 1);
+          // La slide fait 200x250 : on l'agrandit pour tenir dans l'écran (avant : 600x750 fixes,
+          // coupée en haut et en bas sur un écran de portable).
+          const hauteur = Math.min(750, Math.round(window.innerHeight * 0.8));
+          const echelle = hauteur / 250;
           return (
             <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+              style={{ pointerEvents: 'auto' }} onPointerDown={(e) => e.stopPropagation()}
               onClick={() => setCzBig(false)}>
               <style dangerouslySetInnerHTML={{ __html: SLIDE_CSS }} />
               <button onClick={() => setCzBig(false)} title={t('contenus.actions.fermer')}
@@ -2789,8 +2797,8 @@ export default function ContenusPage() {
                 </button>
               )}
               <div className="flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
-                <div className="rounded-2xl overflow-hidden ring-1 ring-white/15 shadow-2xl" style={{ width: 600, height: 750 }}>
-                  <div className="origin-top-left" style={{ transform: 'scale(3)', width: 200, height: 250 }}
+                <div className="rounded-2xl overflow-hidden ring-1 ring-white/15 shadow-2xl" style={{ width: hauteur * 0.8, height: hauteur }}>
+                  <div className="origin-top-left" style={{ transform: `scale(${echelle})`, width: 200, height: 250 }}
                     dangerouslySetInnerHTML={{ __html: slides[idx] || '' }} />
                 </div>
                 <span className="text-sm text-white/70 font-inter">{idx + 1} / {slides.length}</span>
