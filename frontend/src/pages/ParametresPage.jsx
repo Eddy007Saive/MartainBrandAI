@@ -1105,7 +1105,7 @@ export default function ParametresPage() {
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <button type="button" data-testid={`disconnect-${platform.id}`} aria-label={t('params.reseaux.deconnecter')} title={t('params.reseaux.deconnecter')}
-          className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium font-inter text-slate-400 border border-transparent transition-colors duration-150 hover:text-white hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]">
+          className={`${iconeSeuleMobile ? 'w-11 sm:w-auto' : 'flex-1'} sm:flex-none inline-flex items-center justify-center gap-1.5 h-11 sm:h-9 px-3 sm:-mr-3 rounded-lg text-[13px] font-medium font-inter text-slate-400 border border-transparent transition-colors duration-150 hover:text-white hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]`}>
           <Unplug className="w-3.5 h-3.5" /><span className={iconeSeuleMobile ? 'hidden sm:inline' : ''}>{t('params.reseaux.deconnecter')}</span>
         </button>
       </AlertDialogTrigger>
@@ -1123,15 +1123,18 @@ export default function ParametresPage() {
   );
 
   // Logo du réseau dans sa couleur, sur une tuile neutre (même gabarit partout).
-  const logoReseau = (platform) => (
-    <span className="w-9 h-9 rounded-lg grid place-items-center shrink-0 bg-[#0a1120] border border-white/[0.07]" style={{ color: platform.brand }} aria-hidden="true">
+  // Une couleur de marque noire (X) disparaîtrait sur la tuile sombre : on la passe en blanc.
+  const logoReseau = (platform, attenue = false) => (
+    <span className={`w-9 h-9 rounded-lg grid place-items-center shrink-0 bg-[#0a1120] border border-white/[0.07] ${attenue ? 'opacity-60' : ''}`} style={{ color: platform.brand === '#000000' ? '#F0F2F5' : platform.brand }} aria-hidden="true">
       <platform.icon className="w-[18px] h-[18px] block" />
     </span>
   );
 
   const renderConnections = () => {
     const total = SOCIAL_PLATFORMS.length;
-    const connectes = SOCIAL_PLATFORMS.filter((p) => !!user?.[p.field]);
+    // Un compte à reconnecter est la seule ligne qui demande une action : il passe en tête.
+    const connectes = SOCIAL_PLATFORMS.filter((p) => !!user?.[p.field])
+      .sort((a, b) => (socialMeta[b.id]?.is_active === false) - (socialMeta[a.id]?.is_active === false));
     const aConnecter = SOCIAL_PLATFORMS.filter((p) => !user?.[p.field]);
     return (
     <div className="space-y-6" data-testid="section-connections">
@@ -1145,7 +1148,7 @@ export default function ParametresPage() {
       {connectes.length > 0 && (
         <section aria-labelledby="reseaux-connectes">
           <h3 id="reseaux-connectes" className="text-[13px] font-semibold font-inter text-slate-300 mb-2">{t('params.reseaux.groupeConnectes')}</h3>
-          <ul className="rounded-xl border border-white/[0.07] bg-[#0f172a] divide-y divide-white/[0.06] overflow-hidden">
+          <ul className="-mx-3 sm:-mx-4 border-y border-white/[0.06] divide-y divide-white/[0.06]">
             {connectes.map((platform) => {
               const meta = socialMeta[platform.id] || {};
               // Zernio signale un token expiré/révoqué via is_active=false : le compte doit être RECONNECTÉ
@@ -1154,7 +1157,7 @@ export default function ParametresPage() {
               const abonnes = meta.followers != null ? Math.round(meta.followers) : null;
               return (
                 <li key={platform.id} data-testid={`connect-card-${platform.id}`}
-                  className={`flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-3 px-4 py-3.5 ${needsReconnect ? 'bg-amber-500/[0.07]' : ''}`}>
+                  className={`flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-3 px-3 sm:px-4 py-3.5 ${needsReconnect ? 'bg-amber-500/[0.07]' : ''}`}>
                   {logoReseau(platform)}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -1174,8 +1177,8 @@ export default function ParametresPage() {
                       <span className="min-w-0 break-words sm:truncate">
                         {meta.name || t('params.reseaux.compteConnecte')}
                         {meta.username && <> · {meta.url
-                          ? <a href={meta.url} target="_blank" rel="noopener noreferrer" className="hover:text-white underline-offset-2 hover:underline">@{meta.username}</a>
-                          : `@${meta.username}`}</>}
+                          ? <a href={meta.url} target="_blank" rel="noopener noreferrer" className="whitespace-nowrap hover:text-white underline-offset-2 hover:underline">@{meta.username}</a>
+                          : <span className="whitespace-nowrap">@{meta.username}</span>}</>}
                         {abonnes != null && <span className="tabular-nums"> · {abonnes.toLocaleString(i18n.language)} {t('params.reseaux.abonnes', { count: abonnes })}</span>}
                       </span>
                     </div>
@@ -1185,7 +1188,7 @@ export default function ParametresPage() {
                   <div className={`${needsReconnect ? 'w-full sm:w-auto' : 'ml-auto'} flex items-center gap-2 shrink-0`}>
                     {needsReconnect && (
                       <button type="button" disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`reconnect-${platform.id}`}
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-amber-400 text-[#1a1305] text-[13px] font-semibold font-inter transition-colors duration-150 hover:bg-amber-300 active:scale-[0.98] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-11 sm:h-9 px-4 rounded-lg bg-amber-400 text-[#1a1305] text-[13px] font-semibold font-inter transition-colors duration-150 hover:bg-amber-300 active:scale-[0.98] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">
                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
                         {t('params.reseaux.reconnecter')}
                       </button>
@@ -1207,7 +1210,7 @@ export default function ParametresPage() {
               <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />{t('params.reseaux.essaiUnSeul')}
             </p>
           )}
-          <ul className="rounded-xl border border-white/[0.07] bg-[#0f172a] divide-y divide-white/[0.06] overflow-hidden">
+          <ul className="-mx-3 sm:-mx-4 border-y border-white/[0.06] divide-y divide-white/[0.06]">
             {aConnecter.map((platform) => {
               // Pendant l'essai : un seul réseau. Les autres se grisent dès qu'un est connecté et
               // se débloquent au premier prélèvement (le serveur applique la même règle).
@@ -1216,21 +1219,26 @@ export default function ParametresPage() {
               const hint = CONNECT_HINTS[platform.id] ? t(CONNECT_HINTS[platform.id]) : t('params.reseaux.hintDefault');
               return (
                 <li key={platform.id} data-testid={`connect-card-${platform.id}`}
-                  className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-3 px-4 py-3.5">
-                  {logoReseau(platform)}
+                  className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-3 px-3 sm:px-4 py-3.5">
+                  {logoReseau(platform, bloqueParEssai)}
                   <div className="min-w-0 flex-1">
                     <span className="block font-inter font-semibold text-[14px] text-white">{platform.name}</span>
                     <span className="block text-[12.5px] font-inter text-slate-400 mt-0.5">{hint}</span>
                   </div>
-                  <button type="button" disabled={isLoading || bloqueParEssai} onClick={() => handleConnect(platform.id)}
-                    data-testid={bloqueParEssai ? `connect-${platform.id}-essai` : `connect-${platform.id}`}
-                    className={`w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-[13px] font-medium font-inter transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF] ${
-                      bloqueParEssai
-                        ? 'bg-white/[0.04] text-slate-400 border border-white/[0.07] cursor-not-allowed'
-                        : 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white active:scale-[0.98] disabled:opacity-60'}`}>
-                    {bloqueParEssai ? <Lock className="w-3.5 h-3.5" /> : isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-                    {bloqueParEssai ? t('params.reseaux.essaiVerrouille') : t('params.reseaux.connecter')}
-                  </button>
+                  {bloqueParEssai ? (
+                    // La phrase au-dessus de la liste explique le verrou : ici, un simple cadenas suffit.
+                    <button type="button" disabled data-testid={`connect-${platform.id}-essai`}
+                      aria-label={t('params.reseaux.essaiVerrouille')} title={t('params.reseaux.essaiVerrouille')}
+                      className="ml-auto shrink-0 grid place-items-center w-11 h-11 sm:w-9 sm:h-9 rounded-lg text-slate-500 cursor-not-allowed">
+                      <Lock className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <button type="button" disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`connect-${platform.id}`}
+                      className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 h-11 sm:h-9 px-4 rounded-lg bg-[#e7ecf5] text-[#0b1322] text-[13px] font-medium font-inter transition-colors duration-150 hover:bg-white active:scale-[0.98] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]">
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+                      {t('params.reseaux.connecter')}
+                    </button>
+                  )}
                 </li>
               );
             })}
