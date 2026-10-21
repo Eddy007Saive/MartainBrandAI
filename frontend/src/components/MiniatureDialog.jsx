@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { X, Loader2, Sparkles, Check, Type, User } from 'lucide-react';
+import { X, Loader2, Sparkles, Check, Type, User, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { contenuService } from '../services/contenuService';
 import { userService } from '../services/userService';
@@ -73,6 +73,11 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
   const [chargement, setChargement] = useState(true);
   const [generation, setGeneration] = useState(null);   // 'fond' | 'texte' | null
   const [mini, setMini] = useState(contenu?.reel_data?.miniature || null);
+  // Créer un sujet (mascotte, personnage, objet) : décrit, généré, rangé dans la banque.
+  const [creation, setCreation] = useState(false);
+  const [description, setDescription] = useState('');
+  const [styleSujet, setStyleSujet] = useState('3d');
+  const [sujetEnCours, setSujetEnCours] = useState(false);
 
   useEffect(() => {
     if (!contenu) return undefined;
@@ -131,10 +136,26 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
   };
   const terminer = () => { onDone?.(mini); onClose(); };
 
+  const creerSujet = async () => {
+    if (!description.trim()) return;
+    setSujetEnCours(true);
+    try {
+      const { url } = await contenuService.miniatureSujet({ description: description.trim(), style: styleSujet });
+      const insp = await userService.listInspirations().catch(() => null);
+      const liste = Array.isArray(insp) ? insp : (insp?.images || []);
+      setInspirations(liste.includes(url) ? liste : [url, ...liste]);
+      setRefUrl(url);
+      setCreation(false); setDescription('');
+      toast.success(t('contenus.miniature.sujetCree'));
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.message || e.response?.data?.detail || t('contenus.miniature.sujetEchec'));
+    } finally { setSujetEnCours(false); }
+  };
+
   const onglets = ONGLETS.filter((o) => o !== 'police' || polices.length > 0);
 
   return (
-    <Dialog open={!!contenu} onOpenChange={(o) => { if (!o && !generation) onClose(); }}>
+    <Dialog open={!!contenu} onOpenChange={(o) => { if (!o && !generation && !sujetEnCours) onClose(); }}>
       <DialogContent sansFermeture data-testid="miniature-dialog" surcoucheClassName="bg-[#020617]/90"
         className="flex flex-col gap-0 p-0 w-[calc(100vw-1.5rem)] max-w-[1040px] h-[min(92dvh,820px)] rounded-2xl border-white/10 bg-[#0f172a] overflow-hidden">
         {/* En-tête */}
@@ -233,9 +254,44 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
                       </button>
                     );
                   })}
-                  {/* Pas d'upload direct ici : on renvoie vers la banque (Studio Reel/Paramètres),
-                      source unique déjà utilisée ailleurs. */}
+                  {/* Créer une image : décrite ici, générée par l'IA, rangée dans la banque. */}
+                  <button type="button" onClick={() => setCreation((v) => !v)} aria-expanded={creation} disabled={sujetEnCours}
+                    data-testid="miniature-sujet-creer" aria-label={t('contenus.miniature.sujetCreerAide')} className={`group text-center rounded-lg ${FOCUS}`}>
+                    <div className={`relative aspect-[9/16] rounded-lg border-[1.5px] border-dashed grid place-items-center transition-colors duration-150 ${creation ? 'border-[#8A6CFF] bg-[#8A6CFF]/10' : 'border-white/20 group-hover:border-white/40'}`}>
+                      {sujetEnCours ? <Loader2 className="w-5 h-5 animate-spin text-slate-300" aria-hidden="true" /> : <Plus className="w-5 h-5 text-slate-300" aria-hidden="true" />}
+                    </div>
+                    <div className={`mt-1.5 text-[12px] font-inter font-semibold truncate ${LEGENDE(creation)}`}>{t('contenus.miniature.sujetCreer')}</div>
+                  </button>
                 </div>
+
+                {creation && (
+                  <div className="mt-4 max-w-[560px] rounded-xl border border-white/10 bg-white/[0.02] p-4" data-testid="miniature-sujet-form">
+                    <label htmlFor="miniature-sujet-desc" className="block text-[13px] font-medium text-slate-200 font-inter">{t('contenus.miniature.sujetDecris')}</label>
+                    <textarea id="miniature-sujet-desc" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300} rows={3}
+                      placeholder={t('contenus.miniature.sujetExemple')} disabled={sujetEnCours} data-testid="miniature-sujet-description"
+                      className={`mt-1.5 w-full resize-none bg-slate-950/60 border border-white/10 text-slate-100 text-[13.5px] font-inter rounded-lg px-3 py-2 outline-none focus:border-[#8A6CFF]/60 placeholder:text-slate-500 ${FOCUS}`} />
+                    <fieldset className="mt-3">
+                      <legend className="text-[13px] font-medium text-slate-300 font-inter mb-1.5">{t('contenus.miniature.sujetStyle')}</legend>
+                      <div className="flex flex-wrap gap-2">
+                        {styles.map((st) => (
+                          <button key={st.id} type="button" onClick={() => setStyleSujet(st.id)} aria-pressed={styleSujet === st.id} disabled={sujetEnCours}
+                            data-testid={`miniature-sujet-style-${st.id}`}
+                            className={`h-9 px-3 rounded-lg text-[12.5px] font-inter font-semibold border transition-colors duration-150 ${FOCUS} ${styleSujet === st.id ? 'border-[#8A6CFF] text-white bg-[#8A6CFF]/10' : 'border-white/10 text-slate-300 hover:border-white/30'}`}>
+                            {t(`contenus.miniature.styles.${st.id}`)}
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <button type="button" onClick={creerSujet} disabled={sujetEnCours || !description.trim()} data-testid="miniature-sujet-generer" className={`${BTN} border border-[#8A6CFF]/60 bg-[#8A6CFF]/15 text-white hover:bg-[#8A6CFF]/25`}>
+                        {sujetEnCours ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Sparkles className="w-4 h-4" aria-hidden="true" />}
+                        {sujetEnCours ? t('contenus.miniature.sujetEnCours') : t('contenus.miniature.sujetGenerer')}
+                      </button>
+                      <p className="text-[12px] text-slate-400 font-inter">{t('contenus.miniature.sujetCout')}</p>
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-[12.5px] text-slate-400 font-inter mt-4 max-w-[480px] leading-relaxed">
                   {inspirations.length > 0 ? t('contenus.miniature.sujetAide') : t('contenus.miniature.sujetAideVide')}
                 </p>
