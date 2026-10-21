@@ -15,6 +15,7 @@ export const Field = ({
   readOnly = false,
   hasValue = false,
   hint,
+  aide,
   className,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -54,6 +55,7 @@ export const Field = ({
           placeholder={displayPlaceholder}
           readOnly={readOnly}
           data-testid={`field-${name}`}
+          aria-describedby={aide ? `${name}-aide` : undefined}
           className={cn(
             "bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] focus:ring-1 focus:ring-[#5B6CFF] text-slate-200 placeholder:text-slate-500 font-inter",
             readOnly && "opacity-60 cursor-not-allowed",
@@ -71,6 +73,8 @@ export const Field = ({
           </button>
         )}
       </div>
+      {/* Aide visible, sous le champ : préférée à l'infobulle quand l'explication sert à remplir. */}
+      {aide && <p id={`${name}-aide`} className="text-[12px] text-slate-400 font-inter leading-snug">{aide}</p>}
     </div>
   );
 };

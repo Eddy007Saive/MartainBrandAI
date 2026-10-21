@@ -759,153 +759,205 @@ export default function ParametresPage() {
   }
 
   // --- Section renderers ---
+  const BOUTON_IMAGE = `inline-flex items-center justify-center gap-1.5 h-11 sm:h-9 px-3.5 rounded-lg border border-white/10 text-[13px] font-medium font-inter text-slate-200 transition-colors duration-150 hover:bg-white/[0.06] hover:text-white disabled:opacity-50 ${FOCUS}`;
+  const SELECT_IDENTITE = 'bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200 h-9';
+
+  // Une image du profil : aperçu, ce qu'elle est, puis l'action. Sur téléphone, l'action passe sous le texte.
+  const ligneImage = ({ apercu, titre, desc, actions }) => (
+    <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] items-center gap-x-4 gap-y-3 py-4">
+      {apercu}
+      <div className="min-w-0">
+        <p className="text-[14px] font-semibold text-white font-inter">{titre}</p>
+        <p className="text-[12.5px] text-slate-400 font-inter mt-0.5 leading-snug">{desc}</p>
+      </div>
+      <div className="col-start-2 sm:col-start-3 flex items-center gap-2 justify-self-start sm:justify-self-end">{actions}</div>
+    </div>
+  );
+
+  const titreGroupe = (id, texte) => <h3 id={id} className="text-[14px] font-semibold font-sora text-white">{texte}</h3>;
+
   const renderIdentity = () => (
-    <div className="space-y-5">
-      {/* ---- MÉDIAS : avatar, photo, logo ---- */}
-      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40">
-        <div className="px-5 pt-4 pb-1 text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter">{t('params.identite.medias')}</div>
-        <div className="px-5 divide-y divide-white/[0.06]">
-          {/* Avatar (menu) */}
-          <div className="flex items-center gap-4 py-4">
-            <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center flex-shrink-0 ring-1 ring-white/15">
+    <div className="divide-y divide-white/[0.06] -my-2">
+      {/* ---- PROFIL : qui tu es dans Postorico ---- */}
+      <section aria-labelledby="identite-profil" className="pb-7 pt-2">
+        {titreGroupe('identite-profil', t('params.identite.groupeProfil'))}
+        {ligneImage({
+          apercu: (
+            <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] grid place-items-center ring-1 ring-white/15">
               {user?.avatar_url
                 ? <img src={user.avatar_url} alt={t('params.identite.avatarAlt')} className="w-full h-full object-cover" />
                 : <span className="text-white text-lg font-semibold font-sora">{(user?.nom || user?.username || 'U').charAt(0).toUpperCase()}</span>}
               {uploadingAvatar && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13.5px] font-medium text-white font-sora">{t('params.identite.avatar')}</p>
-              <p className="text-[11.5px] text-slate-500 font-inter">{t('params.identite.avatarDesc')}</p>
-            </div>
-            <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-            <Button type="button" size="sm" onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar}
-              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter shrink-0">
-              <Upload className="w-4 h-4 mr-1.5" />{user?.avatar_url ? t('params.commun.changer') : t('params.commun.importer')}
-            </Button>
-          </div>
+          ),
+          titre: t('params.identite.photoCompte'),
+          desc: t('params.identite.avatarDesc'),
+          actions: (
+            <>
+              <input ref={avatarInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+              <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={uploadingAvatar} className={BOUTON_IMAGE}>
+                <Upload className="w-4 h-4" />{user?.avatar_url ? t('params.commun.changer') : t('params.commun.importer')}
+              </button>
+            </>
+          ),
+        })}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5 pt-2">
+          <Field label={t('params.identite.nom')} name="nom" value={user?.nom} onChange={handleChange} aide={t('params.identite.nomHint')} />
+          <Field label={t('params.identite.nomAffiche')} name="user_name" value={user?.user_name} onChange={handleChange} aide={t('params.identite.nomAfficheHint')} />
+          <Field label={t('params.identite.username')} name="username" value={user?.username} onChange={handleChange} aide={t('params.identite.usernameHint')} />
+          <Field label={t('params.identite.email')} name="email" value={user?.email} onChange={handleChange} readOnly aide={t('params.identite.emailHint')} />
+        </div>
+      </section>
 
-          {/* Photo de profil + toggle */}
-          <div className="flex items-center gap-4 py-4 flex-wrap">
-            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-800/60 border border-white/10 grid place-items-center flex-shrink-0">
-              {user?.photo_url ? <img src={user.photo_url} alt={t('params.identite.photoProfil')} className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-slate-600" />}
-              {uploadingPhoto && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
-            </div>
-            <div className="flex-1 min-w-[180px]">
-              <p className="text-[13.5px] font-medium text-white font-sora">{t('params.identite.photoProfil')}</p>
-              <p className="text-[11.5px] text-slate-500 font-inter">{t('params.identite.photoProfilDesc')}</p>
-            </div>
-            <div className="flex items-center gap-2 mr-1">
-              <Label className="text-[12.5px] font-medium text-slate-400 font-inter">{t('params.identite.utiliser')}</Label>
-              <Switch checked={user?.use_photo || false} onCheckedChange={(c) => handleChange('use_photo', c)} data-testid="toggle-use-photo" />
-            </div>
-            <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" data-testid="input-photo" />
-            <Button type="button" size="sm" onClick={() => photoInputRef.current?.click()} disabled={uploadingPhoto}
-              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter shrink-0">
-              <Upload className="w-4 h-4 mr-1.5" />{user?.photo_url ? t('params.commun.changer') : t('params.commun.importer')}
-            </Button>
-          </div>
+      {/* ---- DANS TES VISUELS : logo, et ta photo si tu le veux ---- */}
+      <section aria-labelledby="identite-visuels" className="py-7">
+        {titreGroupe('identite-visuels', t('params.identite.groupeVisuels'))}
+        <div className="divide-y divide-white/[0.06]">
+          {ligneImage({
+            apercu: (
+              <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-white/90 border border-white/10 grid place-items-center">
+                {user?.logo_url ? <img src={user.logo_url} alt={t('params.identite.logoAlt')} className="w-full h-full object-contain p-1.5" /> : <span className="text-[10px] font-semibold text-slate-500 font-sora">LOGO</span>}
+                {uploadingLogo && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
+              </div>
+            ),
+            titre: t('params.identite.logoMarque'),
+            desc: t('params.identite.logoMarqueDesc'),
+            actions: (
+              <>
+                {user?.logo_url && (
+                  <button type="button" onClick={handleLogoDelete} disabled={uploadingLogo}
+                    className={`h-11 sm:h-9 px-2.5 rounded-lg text-[13px] font-inter text-slate-400 hover:text-rose-300 transition-colors duration-150 ${FOCUS}`}>{t('params.commun.retirer')}</button>
+                )}
+                <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" data-testid="input-logo" />
+                <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className={BOUTON_IMAGE}>
+                  <Upload className="w-4 h-4" />{user?.logo_url ? t('params.commun.changer') : t('params.commun.importer')}
+                </button>
+              </>
+            ),
+          })}
 
-          {/* Logo de marque */}
-          <div className="flex items-center gap-4 py-4 flex-wrap">
-            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-white/90 border border-white/10 grid place-items-center flex-shrink-0">
-              {user?.logo_url ? <img src={user.logo_url} alt={t('params.identite.logoAlt')} className="w-full h-full object-contain p-1.5" /> : <span className="text-[10px] font-semibold text-slate-400 font-sora">LOGO</span>}
-              {uploadingLogo && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
-            </div>
-            <div className="flex-1 min-w-[180px]">
-              <p className="text-[13.5px] font-medium text-white font-sora">{t('params.identite.logoMarque')}</p>
-              <p className="text-[11.5px] text-slate-500 font-inter">{t('params.identite.logoMarqueDesc')}</p>
-            </div>
-            {user?.logo_url && (
-              <button type="button" onClick={handleLogoDelete} disabled={uploadingLogo}
-                className="text-[12px] text-slate-500 hover:text-red-400 font-inter transition-colors shrink-0">{t('params.commun.retirer')}</button>
+          <div className="py-4">
+            <label className="flex items-start justify-between gap-4 cursor-pointer">
+              <span className="min-w-0">
+                <span className="block text-[14px] font-semibold text-white font-inter">{t('params.identite.usePhotoLabel')}</span>
+                <span className="block text-[12.5px] text-slate-400 font-inter mt-0.5 leading-snug">{t('params.identite.usePhotoDesc')}</span>
+              </span>
+              <Switch checked={user?.use_photo || false} onCheckedChange={(c) => handleChange('use_photo', c)} data-testid="toggle-use-photo" className="mt-0.5 shrink-0" />
+            </label>
+
+            {/* Photo, sexe et style ne servent (et ne sont demandés) que si la photo est utilisée. */}
+            {user?.use_photo && (
+              <div className="mt-4 rounded-xl bg-white/[0.025] px-4 pb-4">
+                {ligneImage({
+                  apercu: (
+                    <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-slate-800/60 border border-white/10 grid place-items-center">
+                      {user?.photo_url ? <img src={user.photo_url} alt={t('params.identite.photoProfil')} className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-slate-500" />}
+                      {uploadingPhoto && <div className="absolute inset-0 bg-black/60 grid place-items-center"><Loader2 className="w-5 h-5 animate-spin text-white" /></div>}
+                    </div>
+                  ),
+                  titre: t('params.identite.photoProfil'),
+                  desc: t('params.identite.photoProfilDesc'),
+                  actions: (
+                    <>
+                      <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" data-testid="input-photo" />
+                      <button type="button" onClick={() => photoInputRef.current?.click()} disabled={uploadingPhoto} className={BOUTON_IMAGE}>
+                        <Upload className="w-4 h-4" />{user?.photo_url ? t('params.commun.changer') : t('params.commun.importer')}
+                      </button>
+                    </>
+                  ),
+                })}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5"><Label htmlFor="field-sexe" className="text-sm font-medium text-slate-300 font-inter">{t('params.identite.sexe')}</Label></div>
+                    <Select value={user?.sexe || ''} onValueChange={(v) => handleChange('sexe', v)}>
+                      <SelectTrigger id="field-sexe" data-testid="field-sexe" className={SELECT_IDENTITE}>
+                        <SelectValue placeholder={t('params.identite.selectionner')} />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-800">
+                        <SelectItem value="homme" className="text-slate-200 focus:bg-slate-800">{t('params.identite.homme')}</SelectItem>
+                        <SelectItem value="femme" className="text-slate-200 focus:bg-slate-800">{t('params.identite.femme')}</SelectItem>
+                        <SelectItem value="autre" className="text-slate-200 focus:bg-slate-800">{t('params.identite.autre')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[12px] text-slate-400 font-inter leading-snug">{t('params.identite.sexeHint')}</p>
+                  </div>
+                  <Field label={t('params.identite.styleVestimentaire')} name="style_vestimentaire" value={user?.style_vestimentaire} onChange={handleChange}
+                    placeholder={t('params.identite.styleVestimentairePlaceholder')} aide={t('params.identite.styleVestimentaireHint')} />
+                </div>
+              </div>
             )}
-            <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" data-testid="input-logo" />
-            <Button type="button" size="sm" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}
-              className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter shrink-0">
-              <Upload className="w-4 h-4 mr-1.5" />{user?.logo_url ? t('params.commun.changer') : t('params.commun.importer')}
-            </Button>
           </div>
         </div>
       </section>
 
-      {/* ---- INFORMATIONS ---- */}
-      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter mb-4">{t('params.identite.informations')}</div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-5 gap-y-4">
-          <Field label={t('params.identite.nom')} name="nom" value={user?.nom} onChange={handleChange}
-            hint={t('params.identite.nomHint')} />
-          <Field label={t('params.identite.username')} name="username" value={user?.username} onChange={handleChange}
-            hint={t('params.identite.usernameHint')} />
-          <Field label={t('params.identite.email')} name="email" value={user?.email} onChange={handleChange} readOnly />
-          <Field label={t('params.identite.nomAffiche')} name="user_name" value={user?.user_name} onChange={handleChange}
-            hint={t('params.identite.nomAfficheHint')} />
+      {/* ---- PUBLICATION : quand et dans quelle langue ---- */}
+      <section aria-labelledby="identite-publication" className="py-7">
+        {titreGroupe('identite-publication', t('params.identite.groupePublication'))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5 mt-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-slate-300 font-inter">{t('params.identite.sexe')}</Label>
-            <Select value={user?.sexe || ''} onValueChange={(v) => handleChange('sexe', v)}>
-              <SelectTrigger data-testid="field-sexe" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
-                <SelectValue placeholder={t('params.identite.selectionner')} />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800">
-                <SelectItem value="homme" className="text-slate-200 focus:bg-slate-800">{t('params.identite.homme')}</SelectItem>
-                <SelectItem value="femme" className="text-slate-200 focus:bg-slate-800">{t('params.identite.femme')}</SelectItem>
-                <SelectItem value="autre" className="text-slate-200 focus:bg-slate-800">{t('params.identite.autre')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Field label={t('params.identite.styleVestimentaire')} name="style_vestimentaire" value={user?.style_vestimentaire} onChange={handleChange}
-            hint={t('params.identite.styleVestimentaireHint')} />
-          <div className="space-y-2">
-            <Label className="text-sm font-medium text-slate-300 font-inter">{t('params.identite.fuseau')}</Label>
+            <Label htmlFor="field-timezone" className="text-sm font-medium text-slate-300 font-inter">{t('params.identite.fuseau')}</Label>
             <Select value={user?.timezone || 'Europe/Paris'} onValueChange={(v) => handleChange('timezone', v)}>
-              <SelectTrigger data-testid="field-timezone" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
+              <SelectTrigger id="field-timezone" data-testid="field-timezone" className={SELECT_IDENTITE}>
                 <SelectValue placeholder={t('params.identite.selectionner')} />
               </SelectTrigger>
               <SelectContent className="bg-slate-900 border-slate-800 max-h-72">
-                {COMMON_TIMEZONES.map((t) => (
-                  <SelectItem key={t.value} value={t.value} className="text-slate-200 focus:bg-slate-800">{t.label}</SelectItem>
+                {COMMON_TIMEZONES.map((tz) => (
+                  <SelectItem key={tz.value} value={tz.value} className="text-slate-200 focus:bg-slate-800">{tz.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-[11px] text-slate-500 font-inter">{t('params.identite.fuseauHint')}</p>
+            <p className="text-[12px] text-slate-400 font-inter leading-snug">{t('params.identite.fuseauHint')}</p>
           </div>
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-slate-300 font-inter">{t('params.identite.langueContenu')}</Label>
+            <Label htmlFor="field-langue" className="text-sm font-medium text-slate-300 font-inter">{t('params.identite.langueContenu')}</Label>
             <Select value={user?.langue || 'fr'} onValueChange={(v) => handleChange('langue', v)}>
-              <SelectTrigger data-testid="field-langue" className="bg-slate-950/50 border-slate-800 focus:border-[#5B6CFF] text-slate-200">
+              <SelectTrigger id="field-langue" data-testid="field-langue" className={SELECT_IDENTITE}>
                 <SelectValue placeholder={t('params.identite.selectionner')} />
               </SelectTrigger>
               <SelectContent className="bg-slate-900 border-slate-800">
-                <SelectItem value="fr" className="text-slate-200 focus:bg-slate-800">🇫🇷 Français</SelectItem>
-                <SelectItem value="en" className="text-slate-200 focus:bg-slate-800">🇬🇧 English</SelectItem>
-                <SelectItem value="es" className="text-slate-200 focus:bg-slate-800">🇪🇸 Español</SelectItem>
+                <SelectItem value="fr" className="text-slate-200 focus:bg-slate-800">Français</SelectItem>
+                <SelectItem value="en" className="text-slate-200 focus:bg-slate-800">English</SelectItem>
+                <SelectItem value="es" className="text-slate-200 focus:bg-slate-800">Español</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-[11px] text-slate-500 font-inter">{t('params.identite.langueContenuHint')}</p>
+            <p className="text-[12px] text-slate-400 font-inter leading-snug">{t('params.identite.langueContenuHint')}</p>
           </div>
         </div>
       </section>
 
       {/* ---- SÉCURITÉ ---- */}
-      <section className="rounded-2xl border border-white/[0.07] bg-slate-950/40 p-5 space-y-3">
-        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500 font-semibold font-inter">{t('params.identite.securite')}</div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input type="password" value={pwdOld} onChange={(e) => setPwdOld(e.target.value)} placeholder={t('params.identite.mdpActuel')}
-            className="bg-slate-950/50 border-slate-800 text-slate-200 focus:border-[#5B6CFF]" />
-          <Input type="password" value={pwdNew} onChange={(e) => setPwdNew(e.target.value)} placeholder={t('params.identite.mdpNouveau')}
-            className="bg-slate-950/50 border-slate-800 text-slate-200 focus:border-[#5B6CFF]" />
-        </div>
-        <div className="flex justify-end">
-          <Button size="sm" onClick={handleChangePassword} disabled={changingPwd || !pwdOld || !pwdNew}
-            className="bg-[#5B6CFF]/15 text-[#8A6CFF] hover:bg-[#5B6CFF]/25 border border-[#5B6CFF]/30 font-inter">
-            {changingPwd ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}{t('params.identite.changerMdp')}
-          </Button>
-        </div>
-        <div className="pt-3 mt-1 border-t border-white/[0.06] flex justify-end">
+      <section aria-labelledby="identite-securite" className="pt-7 pb-2">
+        {titreGroupe('identite-securite', t('params.identite.securite'))}
+        <form className="mt-4" onSubmit={(e) => { e.preventDefault(); handleChangePassword(); }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="mdp-actuel" className="text-sm font-medium text-slate-300 font-inter">{t('params.identite.mdpActuel')}</Label>
+              <Input id="mdp-actuel" type="password" autoComplete="current-password" value={pwdOld} onChange={(e) => setPwdOld(e.target.value)}
+                className="bg-slate-950/50 border-slate-800 text-slate-200 focus:border-[#5B6CFF] h-9" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mdp-nouveau" className="text-sm font-medium text-slate-300 font-inter">{t('params.identite.mdpNouveauLabel')}</Label>
+              <Input id="mdp-nouveau" type="password" autoComplete="new-password" minLength={6} value={pwdNew} onChange={(e) => setPwdNew(e.target.value)}
+                className="bg-slate-950/50 border-slate-800 text-slate-200 focus:border-[#5B6CFF] h-9" />
+              <p className="text-[12px] text-slate-400 font-inter leading-snug">{t('params.identite.mdpAide')}</p>
+            </div>
+          </div>
+          <button type="submit" disabled={changingPwd || !pwdOld || !pwdNew} className={`${BOUTON_IMAGE} mt-4`}>
+            {changingPwd ? <Loader2 className="w-4 h-4 animate-spin" /> : null}{t('params.identite.changerMdp')}
+          </button>
+        </form>
+
+        <div className="mt-8 pt-5 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+          <div className="min-w-0">
+            <p className="text-[14px] font-semibold text-white font-inter">{t('params.entete.supprimerCompteTitre')}</p>
+            <p className="text-[12.5px] text-slate-400 font-inter mt-0.5">{t('params.identite.supprimerCompteAide')}</p>
+          </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" data-testid="delete-account-btn" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-inter text-xs">
-                <Trash2 className="w-3.5 h-3.5 mr-1" />{t('params.entete.supprimerCompteTitre')}
-              </Button>
+              <button type="button" data-testid="delete-account-btn"
+                className={`inline-flex items-center gap-1.5 h-11 sm:h-9 px-3.5 rounded-lg border border-rose-500/30 text-[13px] font-medium font-inter text-rose-300 transition-colors duration-150 hover:bg-rose-500/10 ${FOCUS}`}>
+                <Trash2 className="w-4 h-4" />{t('params.identite.supprimerCompteBouton')}
+              </button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-slate-900 border-slate-800">
               <AlertDialogHeader>
