@@ -2847,7 +2847,14 @@ export default function ContenusPage() {
         <StoryDialog contenu={storyFor} onClose={() => setStoryFor(null)} onCreated={fetchContenus} />
       )}
       {miniatureFor && (
-        <MiniatureDialog contenu={miniatureFor} onClose={() => setMiniatureFor(null)} onDone={() => fetchContenus({ silencieux: true })} />
+        <MiniatureDialog contenu={miniatureFor} onClose={() => setMiniatureFor(null)} onDone={() => fetchContenus({ silencieux: true })}
+          onGeneree={(m) => {
+            // Reportée tout de suite dans la fiche et la liste : rouvrir la boîte retrouve la
+            // miniature (sinon elle reproposait « Générer », et reconsommait une image du quota).
+            const avec = (c) => (c && c.id === miniatureFor?.id ? { ...c, reel_data: { ...(c.reel_data || {}), miniature: m } } : c);
+            setSelectedContenu(avec);
+            setContenus((cs) => cs.map(avec));
+          }} />
       )}
 
       <PopupRessemblance open={!!ressemblanceCible} onAnswer={confirmerRessemblance} onCancel={() => setRessemblanceCible(null)} />
