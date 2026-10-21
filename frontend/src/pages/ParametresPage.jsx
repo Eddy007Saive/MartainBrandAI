@@ -57,6 +57,17 @@ const REQUIRED_FIELDS = {
 // seule la photo optionnelle manquait).
 const CHAMPS_PHOTO = ['photo_url', 'sexe', 'style_vestimentaire'];
 
+// Champs de la fiche de marque (enregistrés automatiquement, voir plus bas).
+const CHAMPS_MARQUE = ['secteur', 'audience', 'voix_marque', 'a_eviter',
+  'piliers', 'hooks', 'ctas', 'regles'];
+const estChampMarque = (k) => CHAMPS_MARQUE.includes(k) || k.startsWith('exemples_');
+const vide = (v) => v === null || v === undefined || v === '';
+// Clés dont la valeur diffère entre deux états du profil ('' et null valent pareil :
+// l'ordre des clés ne compte pas, contrairement à une comparaison de JSON entier).
+const champsModifies = (a, b) => [...new Set([...Object.keys(a || {}), ...Object.keys(b || {})])]
+  .filter((k) => !(vide(a?.[k]) && vide(b?.[k])) && JSON.stringify(a?.[k]) !== JSON.stringify(b?.[k]));
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]/70';
+
 // Avatar vidéo IA (HeyGen) désactivé pour l'instant -> affiché « à venir ».
 // Passer à true pour réactiver toute la section.
 const HEYGEN_AVATAR_ENABLED = false;
@@ -135,17 +146,15 @@ function FileDropZone({ label, description, accept, file, onFileChange, id }) {
   );
 }
 
-// Carte de section. Le liseré de lumière en haut est ce qui souleve une
-// surface sombre : une ombre noire sur un fond noir ne se voit pas.
+// Carte de section : surface pleine et bordure, sans halo. « phare » la distingue
+// par la couleur de sa bordure seulement.
 function Bloc({ titre, sous, phare, children }) {
   return (
-    <section className={`relative rounded-2xl border p-5 ${phare
-      ? 'border-[#5B6CFF]/[0.28] bg-gradient-to-b from-[#5B6CFF]/[0.06] to-[#5B6CFF]/[0.02] shadow-[inset_0_1px_0_rgba(160,175,255,0.1),0_1px_2px_rgba(0,0,0,0.35),0_16px_40px_-14px_rgba(91,108,255,0.28)]'
-      : 'border-white/[0.07] bg-[#0f172a] shadow-[inset_0_1px_0_rgba(255,255,255,0.045),0_1px_2px_rgba(0,0,0,0.35),0_6px_18px_-6px_rgba(0,0,0,0.5)]'}`}>
+    <section className={`relative rounded-2xl border p-5 bg-[#0b1326] ${phare ? 'border-[#8A6CFF]/40' : 'border-white/[0.08]'}`}>
       {titre && (
         <div className="mb-4">
-          <div className="font-sora text-[14px] font-bold text-white">{titre}</div>
-          {sous && <p className="text-[12.5px] text-slate-500 font-inter mt-1 max-w-[56ch]">{sous}</p>}
+          <h3 className="font-sora text-[15px] font-bold text-white">{titre}</h3>
+          {sous && <p className="text-[13px] text-slate-300 font-inter mt-1 max-w-[62ch]">{sous}</p>}
         </div>
       )}
       {children}
@@ -194,12 +203,50 @@ export default function ParametresPage() {
     }
   }, [activeSection, offresLoaded]);
   // Reference du dernier etat enregistre : sert a savoir s'il reste quelque
-  // chose a sauvegarder, et donc a afficher la barre du bas.
+  // chose a sauvegarder (barre du bas, avertissement avant de quitter).
   const [refSauve, setRefSauve] = useState(null);
   useEffect(() => {
-    if (user && refSauve === null) setRefSauve(JSON.stringify(user));
+    if (user && refSauve === null) setRefSauve(user);
   }, [user, refSauve]);
-  const nonEnregistre = refSauve !== null && !!user && JSON.stringify(user) !== refSauve;
+  const nonEnregistre = refSauve !== null && !!user && champsModifies(user, refSauve).length > 0;
+
+  // La voix de marque s'enregistre toute seule : c'est la que le client colle de longs
+  // textes (regles, exemples de posts), les perdre en changeant de page serait le pire.
+  const [autoEtat, setAutoEtat] = useState({ etat: 'repos', a: null }); // repos | encours | ok | echec
+  const aEnvoyer = useRef(null);
+  const enregistrerMarque = useCallback(async () => {
+    const envoi = aEnvoyer.current;
+    aEnvoyer.current = null;
+    if (!envoi || !Object.keys(envoi).length) return;
+    setAutoEtat({ etat: 'encours', a: null });
+    try {
+      await userService.updateMe(envoi);
+      setRefSauve((r) => ({ ...(r || {}), ...envoi }));
+      setAutoEtat({ etat: 'ok', a: new Date() });
+    } catch (e) {
+      aEnvoyer.current = { ...envoi, ...(aEnvoyer.current || {}) };
+      setAutoEtat({ etat: 'echec', a: null });
+    }
+  }, []);
+  const preparerMarque = useCallback(() => {
+    if (!user || refSauve === null) return false;
+    const modifies = champsModifies(user, refSauve).filter(estChampMarque);
+    aEnvoyer.current = modifies.length ? Object.fromEntries(modifies.map((k) => [k, user[k] ?? ''])) : null;
+    return modifies.length > 0;
+  }, [user, refSauve]);
+  useEffect(() => {
+    if (activeSection !== 'marque' || !preparerMarque()) return undefined;
+    const minuterie = setTimeout(enregistrerMarque, 1200);
+    return () => clearTimeout(minuterie);
+  }, [activeSection, preparerMarque, enregistrerMarque]);
+  // Changer de section ou quitter la page avant la fin du delai : on enregistre tout de suite.
+  useEffect(() => () => { enregistrerMarque(); }, [activeSection, enregistrerMarque]);
+  useEffect(() => {
+    if (!nonEnregistre) return undefined;
+    const avertir = (e) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', avertir);
+    return () => window.removeEventListener('beforeunload', avertir);
+  }, [nonEnregistre]);
 
   // Schedules
   const connectedPlatforms = SOCIAL_PLATFORMS.filter(p => user?.[p.field]);
@@ -624,7 +671,7 @@ export default function ParametresPage() {
     try {
       const data = await userService.updateMe(user);
       setUser(data);
-      setRefSauve(JSON.stringify(data));
+      setRefSauve(data);
       toast.success(t('params.entete.profilMisAJour'));
     } catch (error) {
       toast.error(t('params.entete.erreurSauvegarde'));
@@ -853,14 +900,29 @@ export default function ParametresPage() {
             {changingPwd ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}{t('params.identite.changerMdp')}
           </Button>
         </div>
+        <div className="pt-3 mt-1 border-t border-white/[0.06] flex justify-end">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" data-testid="delete-account-btn" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-inter text-xs">
+                <Trash2 className="w-3.5 h-3.5 mr-1" />{t('params.entete.supprimerCompteTitre')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-slate-900 border-slate-800">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-white font-sora">{t('params.entete.supprimerCompteTitre')}</AlertDialogTitle>
+                <AlertDialogDescription className="text-slate-400 font-inter">{t('params.entete.supprimerCompteDesc')}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">{t('params.commun.annuler')}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAccount} data-testid="confirm-delete-account-btn" className="bg-red-600 hover:bg-red-700 text-white font-inter">{t('params.commun.supprimer')}</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </section>
     </div>
   );
 
-  // Ce qui compte pour la jauge : les huit champs de fond, plus « au moins un
-  // exemple de post » — quatre reseaux remplis ne valent pas huit fois mieux.
-  const CHAMPS_MARQUE = ['secteur', 'audience', 'voix_marque', 'a_eviter',
-    'piliers', 'hooks', 'ctas', 'regles'];
   const RESEAUX_EX = [
     { id: 'linkedin', label: 'LinkedIn' },
     { id: 'instagram', label: 'Instagram' },
@@ -871,34 +933,81 @@ export default function ParametresPage() {
   ];
 
   const renderMarque = () => {
-    const remplis = CHAMPS_MARQUE.filter((c) => String(user?.[c] || '').trim()).length
-      + (RESEAUX_EX.some((r) => String(user?.[`exemples_${r.id}`] || '').trim()) ? 1 : 0);
-    const total = CHAMPS_MARQUE.length + 1;
+    // Avancement calculé sur ce qui est ENREGISTRÉ : une jauge qui compte une saisie
+    // perdue au rechargement mentirait.
+    const base = refSauve || user;
+    const essentiels = REQUIRED_FIELDS.marque;
+    const enPlus = [...CHAMPS_MARQUE.filter((c) => !essentiels.includes(c)), 'exemples'];
+    const estRempli = (c) => (c === 'exemples'
+      ? RESEAUX_EX.some((r) => String(base?.[`exemples_${r.id}`] || '').trim())
+      : !!String(base?.[c] || '').trim());
+    const nEss = essentiels.filter(estRempli).length;
+    const nPlus = enPlus.filter(estRempli).length;
+
+    // Onglets d'exemples : les réseaux connectés (et ceux déjà remplis) d'abord ;
+    // sans réseau connecté, tous.
+    const champReseau = (id) => SOCIAL_PLATFORMS.find((x) => x.id === id)?.field;
+    let onglets = RESEAUX_EX.filter((r) => (champReseau(r.id) && user?.[champReseau(r.id)])
+      || String(user?.[`exemples_${r.id}`] || '').trim());
+    if (!onglets.length) onglets = RESEAUX_EX;
+    const actifEx = onglets.find((r) => r.id === exReseau) || onglets[0];
+    const clavierOnglets = (e, i) => {
+      const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!dir) return;
+      e.preventDefault();
+      const suivant = onglets[(i + dir + onglets.length) % onglets.length];
+      setExReseau(suivant.id);
+      requestAnimationFrame(() => document.querySelector(`[data-testid="exemples-tab-${suivant.id}"]`)?.focus());
+    };
+
+    const heure = autoEtat.a ? autoEtat.a.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '';
+    const Jauge = ({ n, total, label, couleur }) => (
+      <div className="min-w-0">
+        <div className="flex items-baseline justify-between gap-3 text-[13px] font-inter">
+          <span className="text-slate-200">{label}</span>
+          <span className="text-white font-semibold tabular-nums">{n}/{total}</span>
+        </div>
+        <div className="mt-1.5 h-1.5 rounded-full bg-white/[0.08] overflow-hidden" role="progressbar"
+          aria-label={label} aria-valuemin={0} aria-valuemax={total} aria-valuenow={n}>
+          <div className="h-full w-full rounded-full origin-left transition-transform [transition-duration:420ms] ease-out-strong"
+            style={{ background: couleur, transform: `scaleX(${total ? n / total : 0})` }} />
+        </div>
+      </div>
+    );
 
     return (
-      <div className="space-y-3.5" data-testid="section-marque">
-        {/* L'avancement : une fiche de marque se remplit en plusieurs fois, il
-            faut pouvoir savoir ou on en est sans tout relire. */}
-        <div className="flex items-end justify-between gap-5">
-          <p className="text-[13px] text-slate-400 font-inter max-w-[52ch]">
-            <Trans i18nKey="params.marque.intro" components={{ studio: <span className="text-white font-medium" /> }} />
-          </p>
-          <div className="text-right flex-shrink-0">
-            <b className="font-sora text-[15px] text-white font-bold tabular-nums">{remplis}</b>
-            <span className="block text-[12px] text-slate-500 font-inter">{t('params.marque.surTotal', { total })}</span>
+      <div className="space-y-4" data-testid="section-marque">
+        {/* L'avancement en deux temps : ce qui est indispensable pour générer, puis
+            ce qui affine. Et l'état de l'enregistrement automatique, toujours visible. */}
+        <div className="rounded-2xl border border-white/[0.08] bg-[#0b1326] p-5">
+          <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+            <p className="text-[13.5px] text-slate-300 font-inter max-w-[60ch]">
+              <Trans i18nKey="params.marque.intro" components={{ studio: <span className="text-white font-medium" /> }} />
+            </p>
+            <p className="text-[13px] font-inter flex items-center gap-1.5" aria-live="polite" data-testid="marque-enregistrement">
+              {autoEtat.etat === 'encours' && <><Loader2 className="w-3.5 h-3.5 animate-spin text-slate-300" aria-hidden="true" /><span className="text-slate-300">{t('params.marque.enregistrement')}</span></>}
+              {autoEtat.etat === 'ok' && <><Check className="w-3.5 h-3.5 text-[#3AFFA3]" aria-hidden="true" /><span className="text-slate-200">{t('params.marque.enregistreA', { heure })}</span></>}
+              {autoEtat.etat === 'echec' && (
+                <>
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-300" aria-hidden="true" />
+                  <span className="text-red-200">{t('params.marque.echecEnregistrement')}</span>
+                  <button type="button" onClick={() => { if (preparerMarque()) enregistrerMarque(); }}
+                    className={`font-semibold text-white underline underline-offset-2 rounded ${FOCUS}`}>{t('params.marque.reessayer')}</button>
+                </>
+              )}
+              {autoEtat.etat === 'repos' && <span className="text-slate-400">{t('params.marque.autoSave')}</span>}
+            </p>
+          </div>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+            <Jauge n={nEss} total={essentiels.length} label={t('params.marque.jaugeEssentiel')} couleur="#2fd393" />
+            <Jauge n={nPlus} total={enPlus.length} label={t('params.marque.jaugePlus')} couleur="#8A6CFF" />
           </div>
         </div>
-        <div className="h-[3px] rounded-full bg-white/[0.07] overflow-hidden">
-          <div className="h-full rounded-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]
-                          transition-[width] [transition-duration:420ms] ease-out-strong"
-            style={{ width: `${Math.round((remplis / total) * 100)}%` }} />
-        </div>
-
 
         {/* POSITIONNEMENT */}
         <Bloc titre={t('params.marque.positionnement')} sous={t('params.marque.positionnementSous')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ChampMarque multi={false} label={t('params.marque.secteur')} name="secteur"
+            <ChampMarque multi={false} essentiel label={t('params.marque.secteur')} name="secteur"
               value={user?.secteur} onChange={handleChange} hint={t('params.marque.secteurHint')}
               placeholder={t('params.marque.secteurPlaceholder')} />
             <ChampMarque multi={false} label={t('params.marque.audience')} name="audience"
@@ -909,8 +1018,8 @@ export default function ParametresPage() {
 
         {/* VOIX & TON */}
         <Bloc titre={t('params.marque.voixContenu')} sous={t('params.marque.voixContenuSous')}>
-          <div className="space-y-4">
-            <ChampMarque label={t('params.marque.voixTon')} name="voix_marque" lignes={3}
+          <div className="space-y-5">
+            <ChampMarque essentiel label={t('params.marque.voixTon')} name="voix_marque" lignes={3}
               value={user?.voix_marque} onChange={handleChange} hint={t('params.marque.voixTonHint')}
               placeholder={t('params.marque.voixTonPlaceholder')} />
             <ChampMarque label={t('params.marque.aEviter')} name="a_eviter" lignes={2}
@@ -919,8 +1028,36 @@ export default function ParametresPage() {
           </div>
         </Bloc>
 
-        {/* MA VOIX — clone de la voix du client pour la voix off des reels */}
-        <MaVoix />
+        {/* EXEMPLES PAR RESEAU : ce qui fait le plus de différence, donc tôt dans la page */}
+        <Bloc titre={t('params.marque.exemplesTitre')} sous={t('params.marque.exemplesIntroCourt')}>
+          <div className="flex flex-wrap gap-[7px] mb-3" role="tablist" aria-label={t('params.marque.exemplesTitre')}>
+            {onglets.map((r, i) => {
+              const actif = actifEx.id === r.id;
+              const rempli = !!String(user?.[`exemples_${r.id}`] || '').trim();
+              return (
+                <button key={r.id} type="button" onClick={() => setExReseau(r.id)} onKeyDown={(e) => clavierOnglets(e, i)}
+                  role="tab" aria-selected={actif} aria-controls="panneau-exemples" id={`onglet-exemples-${r.id}`}
+                  tabIndex={actif ? 0 : -1} data-testid={`exemples-tab-${r.id}`}
+                  className={`inline-flex items-center gap-1.5 rounded-[9px] border px-3 py-1.5 text-[13px]
+                              font-medium font-inter active:scale-[0.97]
+                              transition-[color,border-color,background-color,transform]
+                              duration-150 ease-out-strong ${FOCUS} ${actif
+                    ? 'bg-[#8A6CFF]/[0.16] border-[#8A6CFF]/60 text-white'
+                    : 'border-white/[0.1] text-slate-300 hover:text-white hover:border-white/[0.2]'}`}>
+                  {r.label}
+                  {/* Une coche sur l'onglet rempli : on voit ce qui reste sans cliquer. */}
+                  {rempli && <><Check className="w-3.5 h-3.5 text-[#3AFFA3]" aria-hidden="true" /><span className="sr-only">{t('params.marque.renseigne')}</span></>}
+                </button>
+              );
+            })}
+          </div>
+          <div id="panneau-exemples" role="tabpanel" aria-labelledby={`onglet-exemples-${actifEx.id}`}>
+            <ChampMarque name={`exemples_${actifEx.id}`} lignes={6}
+              ariaLabel={t('params.marque.exemplesChamp', { reseau: actifEx.label })}
+              value={user?.[`exemples_${actifEx.id}`]} onChange={handleChange}
+              placeholder={t('params.marque.exemplesPlaceholder', { reseau: actifEx.label })} />
+          </div>
+        </Bloc>
 
         {/* MATIERE A ECRIRE — trois listes, une idee par ligne */}
         <Bloc titre={t('params.marque.matiere')} sous={t('params.marque.matiereSous')}>
@@ -928,52 +1065,27 @@ export default function ParametresPage() {
             <ChampListe label={t('params.marque.piliers')} name="piliers" value={user?.piliers}
               onChange={handleChange} hint={t('params.marque.piliersHint')}
               placeholders={t('params.marque.piliersEx', { returnObjects: true })}
-              ajouter={{ label: t('params.marque.ajouterPilier'), retirer: t('params.commun.supprimer') }} />
+              ajouter={{ label: t('params.marque.ajouterPilier') }} />
             <ChampListe label={t('params.marque.hooks')} name="hooks" value={user?.hooks}
               onChange={handleChange} hint={t('params.marque.hooksHint')}
               placeholders={t('params.marque.hooksEx', { returnObjects: true })}
-              ajouter={{ label: t('params.marque.ajouterHook'), retirer: t('params.commun.supprimer') }} />
+              ajouter={{ label: t('params.marque.ajouterHook') }} />
             <ChampListe label={t('params.marque.ctas')} name="ctas" value={user?.ctas}
               onChange={handleChange} hint={t('params.marque.ctasHint')}
               placeholders={t('params.marque.ctasEx', { returnObjects: true })}
-              ajouter={{ label: t('params.marque.ajouterCta'), retirer: t('params.commun.supprimer') }} />
+              ajouter={{ label: t('params.marque.ajouterCta') }} />
           </div>
         </Bloc>
 
-        {/* REGLES EDITORIALES — la bible. Ombre teintee plutot que plus forte :
-            la couleur suffit a la faire ressortir sans la faire flotter. */}
+        {/* REGLES EDITORIALES — la bible, pour qui en a une */}
         <Bloc phare titre={t('params.marque.regles')} sous={t('params.marque.reglesHint')}>
           <ChampMarque name="regles" lignes={6} value={user?.regles} onChange={handleChange}
-            placeholder={t('params.marque.reglesPlaceholder')} />
+            ariaLabel={t('params.marque.regles')} placeholder={t('params.marque.reglesPlaceholder')} />
         </Bloc>
 
-        {/* EXEMPLES PAR RESEAU */}
-        <Bloc titre={t('params.marque.exemplesTitre')} sous={t('params.marque.exemplesIntroCourt')}>
-          <div className="flex flex-wrap gap-[7px] mb-3">
-            {RESEAUX_EX.map((r) => {
-              const actif = exReseau === r.id;
-              return (
-                <button key={r.id} type="button" onClick={() => setExReseau(r.id)}
-                  role="tab" aria-selected={actif} data-testid={`exemples-tab-${r.id}`}
-                  className={`inline-flex items-center gap-1.5 rounded-[9px] border px-3 py-1.5 text-[12.5px]
-                              font-medium font-inter active:scale-[0.97]
-                              transition-[color,border-color,background-color,transform,box-shadow]
-                              duration-150 ease-out-strong ${actif
-                    ? 'bg-[#5B6CFF]/[0.14] border-[#5B6CFF]/50 text-white shadow-[inset_0_1px_0_rgba(160,175,255,0.16),0_4px_12px_-4px_rgba(91,108,255,0.4)]'
-                    : 'border-white/[0.07] text-slate-400 hover:text-white hover:border-white/[0.14]'}`}>
-                  {r.label}
-                  {/* Une pastille sur l'onglet rempli : on voit ce qui reste sans cliquer. */}
-                  {!!String(user?.[`exemples_${r.id}`] || '').trim()
-                    && <span className="w-[5px] h-[5px] rounded-full bg-[#3AFFA3]" />}
-                </button>
-              );
-            })}
-          </div>
-          <ChampMarque name={`exemples_${exReseau}`} lignes={6}
-            value={user?.[`exemples_${exReseau}`]} onChange={handleChange}
-            placeholder={t('params.marque.exemplesPlaceholder', {
-              reseau: RESEAUX_EX.find((r) => r.id === exReseau)?.label || exReseau })} />
-        </Bloc>
+        {/* MA VOIX — clone de la voix du client pour la voix off des reels : en dernier,
+            c'est une option (Pro), pas une étape de la fiche */}
+        <MaVoix />
       </div>
     );
   };
@@ -2018,60 +2130,23 @@ export default function ParametresPage() {
         icon={Settings}
         title={t('params.entete.titre')}
         subtitle={t('params.entete.sousTitre')}
-        actions={
-          <>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" data-testid="delete-account-btn" className="text-red-400 hover:text-red-300 hover:bg-red-500/10 font-inter text-xs">
-                  <Trash2 className="w-3.5 h-3.5 mr-1" />{t('params.commun.supprimer')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-slate-900 border-slate-800">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-white font-sora">{t('params.entete.supprimerCompteTitre')}</AlertDialogTitle>
-                  <AlertDialogDescription className="text-slate-400 font-inter">{t('params.entete.supprimerCompteDesc')}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">{t('params.commun.annuler')}</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteAccount} data-testid="confirm-delete-account-btn" className="bg-red-600 hover:bg-red-700 text-white font-inter">{t('params.commun.supprimer')}</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <Button onClick={handleSave} disabled={saving} size="sm" data-testid="save-btn"
-              className="bg-[#e7ecf5] text-[#0b1322] hover:bg-white font-inter text-xs">
-              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
-              {t('params.commun.sauvegarder')}
-            </Button>
-          </>
-        }
       />
 
-      {/* Tant qu'il n'y a rien a enregistrer, un bouton ne fait qu'occuper
-          l'ecran : la barre ne monte qu'une fois quelque chose modifie. */}
-      <div data-testid="barre-enregistrer"
-        className={`fixed left-0 right-0 bottom-0 z-40 border-t border-white/[0.07] bg-[#020617]/[0.88]
-                    backdrop-blur-xl shadow-[0_-1px_0_rgba(255,255,255,0.04),0_-18px_44px_rgba(0,0,0,0.55)]
-                    transition-transform [transition-duration:260ms] ease-out-strong
-                    ${nonEnregistre ? 'translate-y-0' : 'translate-y-full'}`}>
-        <div className="max-w-[900px] mx-auto px-5 py-3 flex items-center justify-between gap-4">
-          <span className="text-[12.5px] text-slate-400 font-inter">{t('params.commun.nonEnregistre')}</span>
-          <Button onClick={handleSave} disabled={saving} size="sm" data-testid="save-btn-barre"
-            className="bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white font-inter text-[13px]
-                       active:scale-[0.97] transition-transform duration-150 ease-out-strong">
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
-            {t('params.commun.sauvegarder')}
-          </Button>
-        </div>
-      </div>
-
       {/* Profile incomplete warning */}
-      {!isProfileComplete && (
-        <div className="mb-4 flex items-start gap-3 p-3 rounded-xl border border-orange-500/30 bg-orange-500/10">
-          <AlertTriangle className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-orange-300 font-inter">{t('params.entete.profilIncomplet')}</p>
-            <p className="text-xs text-orange-400/80 mt-0.5 font-inter">{t('params.entete.profilIncompletDesc')}</p>
-          </div>
+      {/* La section ouverte marque déjà ses champs essentiels : le bandeau ne cite que les autres. */}
+      {incompleteSections.some((x) => x !== activeSection) && (
+        <div className="mb-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 px-3.5 py-2.5 rounded-xl border border-amber-300/30 bg-amber-300/10 font-inter" data-testid="bandeau-incomplet">
+          <AlertTriangle className="w-4 h-4 text-amber-300 flex-shrink-0" aria-hidden="true" />
+          <span className="text-[13.5px] text-amber-50">{t('params.entete.manque')}</span>
+          {incompleteSections.filter((x) => x !== activeSection).map((x) => {
+            const sec = SETTINGS_SECTIONS.find((y) => y.id === x);
+            return (
+              <button key={x} type="button" onClick={() => setActiveSection(x)}
+                className={`text-[13.5px] font-semibold text-white underline underline-offset-2 decoration-amber-300/60 hover:decoration-white rounded ${FOCUS}`}>
+                {sec ? t(sec.titleKey) : x}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -2096,9 +2171,9 @@ export default function ParametresPage() {
 
         {/* Panneau de contenu */}
         <div className="min-w-0">
-          <div className="rounded-2xl border border-white/[0.06] bg-[#0f172a] p-6 md:p-7">
+          <div className={activeSection === 'marque' ? '' : 'rounded-2xl border border-white/[0.06] bg-[#0f172a] p-6 md:p-7'}>
             {/* Section title */}
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/[0.06]">
+            <div className={`flex items-center gap-3 border-b border-white/[0.06] ${activeSection === 'marque' ? 'mb-4 pb-3' : 'mb-6 pb-4'}`}>
               {currentSection && (
                 <>
                   <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-[#5B6CFF]/20 to-[#8A6CFF]/20 border border-[#5B6CFF]/20">
@@ -2118,6 +2193,23 @@ export default function ParametresPage() {
           </div>
         </div>
       </div>
+
+      {/* Tant qu'il n'y a rien a enregistrer, un bouton ne fait qu'occuper l'ecran :
+          la barre n'apparait qu'une fois quelque chose modifie (sauf voix de marque,
+          enregistree automatiquement). Collee au bas de la colonne de contenu. */}
+      {nonEnregistre && activeSection !== 'marque' && (
+        <div data-testid="barre-enregistrer"
+          className="sticky bottom-0 z-40 mt-4 -mx-1 rounded-t-xl border border-b-0 border-white/[0.08] bg-[#0b1326]">
+          <div className="px-5 py-3 flex items-center justify-between gap-4">
+            <span className="text-[13px] text-slate-300 font-inter" role="status">{t('params.commun.nonEnregistre')}</span>
+            <Button onClick={handleSave} disabled={saving} size="sm" data-testid="save-btn-barre"
+              className="bg-[#5a4ae8] hover:bg-[#6757f0] text-white font-inter text-[13px] active:scale-[0.97] transition-transform duration-150 ease-out-strong">
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Save className="w-3.5 h-3.5 mr-1.5" />}
+              {t('params.commun.sauvegarder')}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

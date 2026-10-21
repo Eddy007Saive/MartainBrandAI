@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Check, Loader2, Mic, Pause, Play, Square, Upload } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from './ui/alert-dialog';
 import { useUser } from '../context/UserContext';
 
 /**
@@ -31,13 +35,13 @@ function TexteALire({ ouvertParDefaut = false }) {
   return (
     <div className="mt-3.5 rounded-xl border border-white/[0.08] bg-slate-950/40" data-testid="ma-voix-texte">
       <button type="button" onClick={() => setOuvert((o) => !o)} className="w-full flex items-center justify-between px-3.5 py-2.5 text-left">
-        <span className="text-[11px] font-semibold tracking-wide text-slate-500 uppercase">{t('maVoix.lecture.titre')}</span>
+        <span className="text-[12.5px] font-semibold text-slate-300">{t('maVoix.lecture.titre')}</span>
         <span className="text-[12px] text-[#a5b0ff] font-inter">{ouvert ? t('maVoix.lecture.masquer') : t('maVoix.lecture.voir')}</span>
       </button>
       {ouvert && (
         <div className="px-4 pb-4">
           <p className="font-sora text-[17px] sm:text-[19px] leading-[1.55] text-white/95">{texte}</p>
-          <p className="mt-2.5 text-[12px] text-slate-500 font-inter">{t('maVoix.lecture.aide')}</p>
+          <p className="mt-2.5 text-[12px] text-slate-400 font-inter">{t('maVoix.lecture.aide')}</p>
         </div>
       )}
     </div>
@@ -52,6 +56,7 @@ export default function MaVoix() {
   const [fichier, setFichier] = useState(null);      // Blob/File prêt à envoyer
   const [secondes, setSecondes] = useState(0);
   const [joue, setJoue] = useState(false);
+  const [confirmer, setConfirmer] = useState(false);
   const rec = useRef(null); const morceaux = useRef([]); const timer = useRef(null); const audio = useRef(null);
 
   const charger = () => contenuService.reelVoix().then((c) => {
@@ -103,7 +108,7 @@ export default function MaVoix() {
     }
   };
   const supprimer = async () => {
-    if (!window.confirm(t('maVoix.confirmerSuppression'))) return;
+    setConfirmer(false);
     try {
       const s = await contenuService.reelVoixSupprimer();
       setCat((c) => ({ ...c, clone: s })); setEtat('aucune'); toast.success(t('maVoix.supprimee'));
@@ -118,20 +123,27 @@ export default function MaVoix() {
 
   const pose = etat === 'prete' ? 'pouce-leve' : etat === 'analyse' ? 'idee' : 'annonce';
 
-  return (
-    <div data-testid="ma-voix" className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-[#0b1222]">
-      <div className="p-5 pr-5 md:pr-[190px]">
-        <h3 className="font-sora text-[16px] font-bold text-white flex items-center gap-2.5 flex-wrap">
+  // Sans droit au clone (ou service indisponible) : une ligne d'information, pas un studio.
+  if (!migration || (!autorise && etat !== 'prete')) {
+    return (
+      <div data-testid="ma-voix" className="rounded-2xl border border-white/[0.08] bg-[#0b1326] px-5 py-4">
+        <p className="font-sora text-[15px] font-bold text-white flex items-center gap-2 flex-wrap">
           {t('maVoix.titre')}
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#8A6CFF]/15 text-[#c4b5fd] border border-[#8A6CFF]/30 font-bold tracking-wide">PRO</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#3AFFA3]/10 text-[#3AFFA3] border border-[#3AFFA3]/25 font-bold tracking-wide uppercase">{t('voixOff.nouveau')}</span>
-        </h3>
-        <p className="mt-1 text-[13px] text-slate-400 font-inter max-w-[56ch]">{t('maVoix.sous')}</p>
+          <span className="text-[11px] px-2 py-px rounded-full bg-[#8A6CFF]/15 text-[#c9c1ff] border border-[#8A6CFF]/30 font-semibold font-inter">{t('maVoix.offrePro')}</span>
+        </p>
+        <p className="mt-1 text-[13px] text-slate-300 font-inter max-w-[62ch]">{!migration ? t('maVoix.indisponible') : t('maVoix.reserveePro')}</p>
+      </div>
+    );
+  }
 
-        {!migration && <p className="mt-4 text-[12.5px] text-amber-300/90 font-inter">{t('maVoix.indisponible')}</p>}
-        {migration && !autorise && etat !== 'prete' && (
-          <p className="mt-4 text-[12.5px] text-slate-400 font-inter">{t('maVoix.reserveePro')}</p>
-        )}
+  return (
+    <div data-testid="ma-voix" className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0b1326]">
+      <div className="p-5 pr-5 md:pr-[190px]">
+        <h3 className="font-sora text-[15px] font-bold text-white flex items-center gap-2 flex-wrap">
+          {t('maVoix.titre')}
+          <span className="text-[11px] px-2 py-px rounded-full bg-[#8A6CFF]/15 text-[#c9c1ff] border border-[#8A6CFF]/30 font-semibold font-inter">{t('maVoix.offrePro')}</span>
+        </h3>
+        <p className="mt-1 text-[13px] text-slate-300 font-inter max-w-[62ch]">{t('maVoix.sous')}</p>
 
         {migration && autorise && etat === 'aucune' && (
           <div className="mt-4">
@@ -143,7 +155,7 @@ export default function MaVoix() {
                 </button>
                 <p className="text-[12.5px] text-slate-400 font-inter"><b className="text-white">{t('maVoix.enregistrer')}</b><br />{t('maVoix.enregistrerSous')}</p>
               </div>
-              <span className="text-[11px] uppercase tracking-[0.1em] text-slate-600 text-center">{t('maVoix.ou')}</span>
+              <span className="text-[12px] text-slate-400 text-center">{t('maVoix.ou')}</span>
               <div className="flex flex-col items-center gap-2 text-center">
                 <label className="w-14 h-14 rounded-full grid place-items-center border border-white/15 text-white hover:bg-white/[0.06] cursor-pointer active:scale-95 transition-all" data-testid="ma-voix-deposer">
                   <input type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.webm" className="hidden"
@@ -156,7 +168,7 @@ export default function MaVoix() {
             {fichier && (
               <p className="mt-3 text-[12.5px] text-[#3AFFA3] font-inter flex items-center gap-2" data-testid="ma-voix-fichier">
                 <Check className="w-3.5 h-3.5" /> {t('maVoix.fichierPret', { nom: fichier.name, taille: Math.max(1, Math.round(fichier.size / 1024)) })}
-                <button type="button" onClick={() => setFichier(null)} className="text-slate-500 hover:text-white">{t('maVoix.retirer')}</button>
+                <button type="button" onClick={() => setFichier(null)} className="text-slate-400 hover:text-white">{t('maVoix.retirer')}</button>
               </p>
             )}
             <ul className="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px] text-slate-400 font-inter">
@@ -170,7 +182,7 @@ export default function MaVoix() {
               <span>{t('maVoix.consentement')}</span>
             </label>
             <button type="button" onClick={creer} disabled={!fichier || !consent} data-testid="ma-voix-creer"
-              className="mt-3 w-full h-11 rounded-xl text-[14px] font-semibold text-white bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] disabled:opacity-50 hover:opacity-90 active:scale-[0.98]">
+              className="mt-3 w-full h-11 rounded-xl text-[14px] font-semibold text-white bg-[#5a4ae8] hover:bg-[#6757f0] disabled:opacity-50 active:scale-[0.98]">
               {t('maVoix.creer')}
             </button>
           </div>
@@ -182,7 +194,7 @@ export default function MaVoix() {
             <div className="flex-1 min-w-0">
               <b className="text-white font-inter">{t('maVoix.enCours')} <span className="font-sora tabular-nums">{fmt(secondes)}</span></b>
               <div className="h-1.5 rounded-full bg-white/10 mt-2 overflow-hidden"><i className="block h-full rounded-full bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF]" style={{ width: `${Math.min(100, (secondes / 120) * 100)}%` }} /></div>
-              <p className="text-[11.5px] text-slate-500 font-inter mt-1.5">
+              <p className="text-[12px] text-slate-400 font-inter mt-1.5">
                 {secondes < MIN_S ? t('maVoix.encore', { s: MIN_S - secondes }) : secondes < CIBLE_S ? t('maVoix.presque') : t('maVoix.assez')}
               </p>
             </div>
@@ -216,14 +228,26 @@ export default function MaVoix() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-4 text-[12.5px] font-inter">
               <button type="button" onClick={() => { setEtat('aucune'); }} className="font-semibold text-[#a5b0ff] hover:underline">{t('maVoix.reenregistrer')}</button>
-              <button type="button" onClick={supprimer} className="font-semibold text-red-300 hover:underline" data-testid="ma-voix-supprimer">{t('maVoix.supprimer')}</button>
-              <span className="ml-auto text-slate-600">{t('maVoix.consentementLe', { date: clone.consentement_le ? new Date(clone.consentement_le).toLocaleDateString('fr-FR') : '' })}</span>
+              <button type="button" onClick={() => setConfirmer(true)} className="font-semibold text-red-300 hover:underline" data-testid="ma-voix-supprimer">{t('maVoix.supprimer')}</button>
+              <span className="ml-auto text-slate-400">{t('maVoix.consentementLe', { date: clone.consentement_le ? new Date(clone.consentement_le).toLocaleDateString('fr-FR') : '' })}</span>
             </div>
           </div>
         )}
       </div>
       <img src={`${RICO}${pose}.png`} alt="" aria-hidden="true"
         className="hidden md:block absolute right-3 bottom-0 h-[150px] pointer-events-none drop-shadow-[0_14px_22px_rgba(0,0,0,.5)]" />
+      <AlertDialog open={confirmer} onOpenChange={setConfirmer}>
+        <AlertDialogContent className="bg-slate-900 border-slate-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white font-sora">{t('maVoix.supprimer')}</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-300 font-inter">{t('maVoix.confirmerSuppression')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 font-inter">{t('params.commun.annuler')}</AlertDialogCancel>
+            <AlertDialogAction onClick={supprimer} className="bg-red-600 hover:bg-red-700 text-white font-inter">{t('maVoix.supprimer')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
