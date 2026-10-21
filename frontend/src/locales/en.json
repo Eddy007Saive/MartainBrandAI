@@ -1276,6 +1276,11 @@
     },
     "reseaux": {
       "intro": "Connect your accounts to schedule and publish automatically, all from one place.",
+      "resume_one": "{{count}} of {{total}} networks connected",
+      "resume_other": "{{count}} of {{total}} networks connected",
+      "groupeConnectes": "Connected",
+      "groupeAConnecter": "Available to connect",
+      "expireAide": "The connection expired: reconnect this account so your posts keep going out.",
       "connectes_one": "connected",
       "connectes_other": "connected",
       "disponibles_one": "available",

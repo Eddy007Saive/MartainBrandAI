@@ -1276,6 +1276,11 @@
     },
     "reseaux": {
       "intro": "Conecta tus cuentas para programar y publicar automáticamente, desde un solo lugar.",
+      "resume_one": "{{count}} red conectada de {{total}}",
+      "resume_other": "{{count}} redes conectadas de {{total}}",
+      "groupeConnectes": "Conectadas",
+      "groupeAConnecter": "Por conectar",
+      "expireAide": "La conexión ha caducado: vuelve a conectar esta cuenta para que tus publicaciones sigan saliendo.",
       "connectes_one": "conectada",
       "connectes_other": "conectadas",
       "disponibles_one": "disponible",

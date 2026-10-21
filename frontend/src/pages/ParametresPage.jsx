@@ -176,7 +176,7 @@ function Champ({ label, hint, children }) {
 }
 
 export default function ParametresPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, setUser, refetchUser } = useUser();
   // L'abonnement reel (Stripe), pas la colonne `plan` qui n'existe plus.
@@ -1100,168 +1100,143 @@ export default function ParametresPage() {
     twitter: 'params.reseaux.hintTwitter',
   };
 
+  // Bouton « Déconnecter » + confirmation : action secondaire, jamais le bouton principal d'une ligne.
+  const boutonDeconnecter = (platform, iconeSeuleMobile = false) => (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <button type="button" data-testid={`disconnect-${platform.id}`} aria-label={t('params.reseaux.deconnecter')} title={t('params.reseaux.deconnecter')}
+          className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-[13px] font-medium font-inter text-slate-400 border border-transparent transition-colors duration-150 hover:text-white hover:bg-white/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]">
+          <Unplug className="w-3.5 h-3.5" /><span className={iconeSeuleMobile ? 'hidden sm:inline' : ''}>{t('params.reseaux.deconnecter')}</span>
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent className="bg-slate-900 border-slate-800">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-white font-sora">{t('params.reseaux.deconnecterTitre', { platform: platform.name })}</AlertDialogTitle>
+          <AlertDialogDescription className="text-slate-400 font-inter">{t('params.reseaux.deconnecterDesc')}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">{t('params.commun.annuler')}</AlertDialogCancel>
+          <AlertDialogAction onClick={() => handleDisconnect(platform.id)} data-testid={`confirm-disconnect-${platform.id}`} className="bg-red-600 hover:bg-red-700 text-white font-inter">{t('params.reseaux.deconnecter')}</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
+  // Logo du réseau dans sa couleur, sur une tuile neutre (même gabarit partout).
+  const logoReseau = (platform) => (
+    <span className="w-9 h-9 rounded-lg grid place-items-center shrink-0 bg-[#0a1120] border border-white/[0.07]" style={{ color: platform.brand }} aria-hidden="true">
+      <platform.icon className="w-[18px] h-[18px] block" />
+    </span>
+  );
+
   const renderConnections = () => {
     const total = SOCIAL_PLATFORMS.length;
-    const nb = connectedPlatforms.length;
+    const connectes = SOCIAL_PLATFORMS.filter((p) => !!user?.[p.field]);
+    const aConnecter = SOCIAL_PLATFORMS.filter((p) => !user?.[p.field]);
     return (
-    <div className="space-y-5" data-testid="section-connections">
-      {/* En-tête + récap de connexion segmenté */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <p className="text-sm text-slate-400 font-inter max-w-md leading-relaxed">
-          {t('params.reseaux.intro')}
+    <div className="space-y-6" data-testid="section-connections">
+      <div className="flex items-baseline justify-between gap-x-6 gap-y-1 flex-wrap">
+        <p className="text-sm text-slate-400 font-inter max-w-xl leading-relaxed">{t('params.reseaux.intro')}</p>
+        <p className="text-[13px] text-slate-300 font-inter tabular-nums" data-testid="reseaux-resume">
+          {t('params.reseaux.resume', { count: connectes.length, total })}
         </p>
-        <div className="text-right shrink-0">
-          <div className="text-[13px] font-sora font-semibold text-slate-200">
-            <span className="text-[#3AFFA3]">{nb}</span> {t('params.reseaux.connectes', { count: nb })}
-            <span className="text-slate-600"> · {total - nb} {t('params.reseaux.disponibles', { count: total - nb })}</span>
-          </div>
-          <div className="flex gap-1 mt-2 justify-end">
-            {SOCIAL_PLATFORMS.map((p) => {
-              const on = !!user?.[p.field];
-              return <span key={p.id} className="h-1 w-5 rounded-full"
-                style={{ background: on ? '#3AFFA3' : 'rgba(255,255,255,.09)', boxShadow: on ? '0 0 9px rgba(58,255,163,.5)' : 'none' }} />;
-            })}
-          </div>
-        </div>
       </div>
 
-      {/* Grille de cards — une carte par réseau */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {SOCIAL_PLATFORMS.map((platform) => {
-          const isConnected = !!user?.[platform.field];
-          // Pendant l'essai : un seul réseau. Les autres se grisent dès qu'un
-          // est connecté, et se débloquent au premier prélèvement. Le serveur
-          // applique la même règle — griser un bouton n'empêche personne
-          // d'appeler l'API, ceci n'est que la politesse de le dire avant.
-          const bloqueParEssai = essaiUnSeulReseau && !isConnected;
-          const isLoading = connecting === platform.id;
-          const meta = socialMeta[platform.id] || {};
-          // Zernio signale un token expiré/révoqué via is_active=false -> le compte doit être RECONNECTÉ
-          const needsReconnect = isConnected && meta.is_active === false;
-          const hint = CONNECT_HINTS[platform.id] ? t(CONNECT_HINTS[platform.id]) : t('params.reseaux.hintDefault');
-          return (
-            <div key={platform.id} data-testid={`connect-card-${platform.id}`}
-              className={`group relative overflow-hidden rounded-2xl border bg-[#0f172a] p-5 flex flex-col gap-4 transition-all duration-300 ease-out-strong hover:-translate-y-0.5 hover:border-white/[0.14] hover:shadow-[0_14px_34px_rgba(0,0,0,0.4)] ${needsReconnect ? 'border-amber-500/30' : isConnected ? 'border-[#3AFFA3]/20' : 'border-white/[0.07]'}`}>
-              {/* Barre d'accent marque */}
-              <span className="absolute inset-x-0 top-0 h-[3px]" style={{ background: platform.brand }} />
-
-              {/* En-tête carte : logo + nom + statut */}
-              <div className="flex items-center gap-3">
-                <span className="w-[46px] h-[46px] rounded-[13px] grid place-items-center shrink-0 bg-[#0a1120] border border-white/[0.07]" style={{ color: platform.brand }}>
-                  <platform.icon className="w-[23px] h-[23px] block" />
-                </span>
-                <div className="font-sora font-semibold text-[15.5px] text-white tracking-tight min-w-0 truncate">{platform.name}</div>
-                {needsReconnect ? (
-                  <span className="ml-auto shrink-0 inline-flex items-center gap-1.5 text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full bg-amber-500/[0.12] text-amber-400 border border-amber-500/30">
-                    <AlertTriangle className="w-3 h-3" />
-                    {t('params.reseaux.reconnexionRequise')}
-                  </span>
-                ) : isConnected ? (
-                  <span className="ml-auto shrink-0 inline-flex items-center gap-1.5 text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full bg-[#3AFFA3]/[0.12] text-[#3AFFA3] border border-[#3AFFA3]/25">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3AFFA3] opacity-60" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3AFFA3]" />
-                    </span>
-                    {t('params.reseaux.connecte')}
-                  </span>
-                ) : (
-                  <span className="ml-auto shrink-0 text-[11px] font-semibold font-inter px-2.5 py-1 rounded-full bg-white/[0.05] text-slate-500 border border-white/[0.07]">{t('params.reseaux.nonConnecte')}</span>
-                )}
-              </div>
-
-              {/* Corps */}
-              {isConnected ? (
-                <div className="flex items-center gap-3 p-3 rounded-[13px] bg-[#0a1120] border border-white/[0.07]">
-                  {meta.avatar
-                    ? <img src={meta.avatar} alt="" className="w-[42px] h-[42px] rounded-[11px] object-cover shrink-0 border border-white/[0.07]" />
-                    : <span className="w-[42px] h-[42px] rounded-[11px] grid place-items-center shrink-0 border border-white/[0.07] font-sora font-semibold text-sm" style={{ background: `${platform.brand}22`, color: platform.brand }}>{(meta.name || platform.name).charAt(0)}</span>}
-                  <div className="min-w-0">
-                    <span className="block font-sora font-semibold text-[13.5px] text-white truncate">{meta.name || t('params.reseaux.compteConnecte')}</span>
-                    {meta.username && (
-                      <span className="block text-[12px] text-slate-500 font-inter truncate mt-0.5">
-                        {meta.url
-                          ? <a href={meta.url} target="_blank" rel="noopener noreferrer" className="hover:text-slate-300">@{meta.username}</a>
-                          : <>@{meta.username}</>}
-                      </span>
-                    )}
-                  </div>
-                  {meta.followers != null && (
-                    <div className="ml-auto text-right shrink-0">
-                      <span className="block font-sora text-sm text-white tabular-nums">{Math.round(meta.followers).toLocaleString('fr-FR')}</span>
-                      <span className="block text-[10.5px] text-slate-500 font-inter">{t('params.reseaux.abonnes', { count: meta.followers })}</span>
+      {connectes.length > 0 && (
+        <section aria-labelledby="reseaux-connectes">
+          <h3 id="reseaux-connectes" className="text-[13px] font-semibold font-inter text-slate-300 mb-2">{t('params.reseaux.groupeConnectes')}</h3>
+          <ul className="rounded-xl border border-white/[0.07] bg-[#0f172a] divide-y divide-white/[0.06] overflow-hidden">
+            {connectes.map((platform) => {
+              const meta = socialMeta[platform.id] || {};
+              // Zernio signale un token expiré/révoqué via is_active=false : le compte doit être RECONNECTÉ
+              const needsReconnect = meta.is_active === false;
+              const isLoading = connecting === platform.id;
+              const abonnes = meta.followers != null ? Math.round(meta.followers) : null;
+              return (
+                <li key={platform.id} data-testid={`connect-card-${platform.id}`}
+                  className={`flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-3 px-4 py-3.5 ${needsReconnect ? 'bg-amber-500/[0.07]' : ''}`}>
+                  {logoReseau(platform)}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-inter font-semibold text-[14px] text-white">{platform.name}</span>
+                      {needsReconnect ? (
+                        <span className="inline-flex items-center gap-1 text-[11.5px] font-medium font-inter text-amber-300">
+                          <AlertTriangle className="w-3.5 h-3.5" />{t('params.reseaux.reconnexionRequise')}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[11.5px] font-medium font-inter text-[#3AFFA3]">
+                          <Check className="w-3.5 h-3.5" />{t('params.reseaux.connecte')}
+                        </span>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-[12.5px] text-slate-400 font-inter leading-relaxed">{hint}</p>
-              )}
-
-              {/* Action */}
-              <div className="mt-auto">
-                {needsReconnect ? (
-                  <div className="flex gap-2">
-                    <button disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`reconnect-${platform.id}`}
-                      className="flex-1 inline-flex items-center justify-center gap-2 bg-amber-500/90 text-[#0b1322] font-inter font-semibold text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-out-strong active:scale-[0.97] hover:bg-amber-400 disabled:opacity-60 disabled:active:scale-100">
-                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
-                      {t('params.reseaux.reconnecter')}
-                    </button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <button data-testid={`disconnect-${platform.id}`} title={t('params.reseaux.deconnecter')}
-                          className="shrink-0 inline-flex items-center justify-center w-[42px] rounded-xl border border-white/[0.07] text-slate-400 transition-all duration-150 ease-out-strong active:scale-[0.97] hover:text-white hover:border-white/20">
-                          <Unplug className="w-4 h-4" />
-                        </button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-slate-900 border-slate-800">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-white font-sora">{t('params.reseaux.deconnecterTitre', { platform: platform.name })}</AlertDialogTitle>
-                          <AlertDialogDescription className="text-slate-400 font-inter">{t('params.reseaux.deconnecterDesc')}</AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">{t('params.commun.annuler')}</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDisconnect(platform.id)} data-testid={`confirm-disconnect-${platform.id}`} className="bg-red-600 hover:bg-red-700 text-white font-inter">{t('params.reseaux.deconnecter')}</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <div className="flex items-start sm:items-center gap-1.5 mt-0.5 min-w-0 text-[12.5px] font-inter text-slate-400">
+                      {meta.avatar && <img src={meta.avatar} alt="" className="w-4 h-4 rounded-full object-cover shrink-0 mt-px sm:mt-0" />}
+                      <span className="min-w-0 break-words sm:truncate">
+                        {meta.name || t('params.reseaux.compteConnecte')}
+                        {meta.username && <> · {meta.url
+                          ? <a href={meta.url} target="_blank" rel="noopener noreferrer" className="hover:text-white underline-offset-2 hover:underline">@{meta.username}</a>
+                          : `@${meta.username}`}</>}
+                        {abonnes != null && <span className="tabular-nums"> · {abonnes.toLocaleString(i18n.language)} {t('params.reseaux.abonnes', { count: abonnes })}</span>}
+                      </span>
+                    </div>
+                    {needsReconnect && <p className="text-[12.5px] font-inter text-amber-100/90 mt-1.5 max-w-prose">{t('params.reseaux.expireAide')}</p>}
                   </div>
-                ) : isConnected ? (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button data-testid={`disconnect-${platform.id}`}
-                        className="w-full inline-flex items-center justify-center gap-1.5 text-[13px] font-medium text-slate-400 rounded-xl px-4 py-2.5 border border-white/[0.07] bg-transparent transition-all duration-150 ease-out-strong active:scale-[0.97] hover:text-white hover:border-white/20 font-inter">
-                        <Unplug className="w-3.5 h-3.5" />{t('params.reseaux.deconnecter')}
+                  {/* Sur téléphone : « Reconnecter » prend la ligne ; « Déconnecter » seul reste à droite. */}
+                  <div className={`${needsReconnect ? 'w-full sm:w-auto' : 'ml-auto'} flex items-center gap-2 shrink-0`}>
+                    {needsReconnect && (
+                      <button type="button" disabled={isLoading} onClick={() => handleConnect(platform.id)} data-testid={`reconnect-${platform.id}`}
+                        className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-amber-400 text-[#1a1305] text-[13px] font-semibold font-inter transition-colors duration-150 hover:bg-amber-300 active:scale-[0.98] disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200">
+                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+                        {t('params.reseaux.reconnecter')}
                       </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-slate-900 border-slate-800">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="text-white font-sora">{t('params.reseaux.deconnecterTitre', { platform: platform.name })}</AlertDialogTitle>
-                        <AlertDialogDescription className="text-slate-400 font-inter">{t('params.reseaux.deconnecterDesc')}</AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 font-inter">{t('params.commun.annuler')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDisconnect(platform.id)} data-testid={`confirm-disconnect-${platform.id}`} className="bg-red-600 hover:bg-red-700 text-white font-inter">{t('params.reseaux.deconnecter')}</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                ) : (
-                  <button disabled={isLoading || bloqueParEssai} onClick={() => handleConnect(platform.id)}
+                    )}
+                    {boutonDeconnecter(platform, !needsReconnect)}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {aConnecter.length > 0 && (
+        <section aria-labelledby="reseaux-a-connecter">
+          <h3 id="reseaux-a-connecter" className="text-[13px] font-semibold font-inter text-slate-300 mb-2">{t('params.reseaux.groupeAConnecter')}</h3>
+          {essaiUnSeulReseau && (
+            <p className="flex items-start gap-2 text-[12.5px] font-inter text-slate-300 mb-3" data-testid="reseaux-essai-info">
+              <Lock className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" aria-hidden="true" />{t('params.reseaux.essaiUnSeul')}
+            </p>
+          )}
+          <ul className="rounded-xl border border-white/[0.07] bg-[#0f172a] divide-y divide-white/[0.06] overflow-hidden">
+            {aConnecter.map((platform) => {
+              // Pendant l'essai : un seul réseau. Les autres se grisent dès qu'un est connecté et
+              // se débloquent au premier prélèvement (le serveur applique la même règle).
+              const bloqueParEssai = essaiUnSeulReseau;
+              const isLoading = connecting === platform.id;
+              const hint = CONNECT_HINTS[platform.id] ? t(CONNECT_HINTS[platform.id]) : t('params.reseaux.hintDefault');
+              return (
+                <li key={platform.id} data-testid={`connect-card-${platform.id}`}
+                  className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-3 px-4 py-3.5">
+                  {logoReseau(platform)}
+                  <div className="min-w-0 flex-1">
+                    <span className="block font-inter font-semibold text-[14px] text-white">{platform.name}</span>
+                    <span className="block text-[12.5px] font-inter text-slate-400 mt-0.5">{hint}</span>
+                  </div>
+                  <button type="button" disabled={isLoading || bloqueParEssai} onClick={() => handleConnect(platform.id)}
                     data-testid={bloqueParEssai ? `connect-${platform.id}-essai` : `connect-${platform.id}`}
-                    title={bloqueParEssai ? t('params.reseaux.essaiUnSeul') : undefined}
-                    className={`w-full inline-flex items-center justify-center gap-2 font-inter font-medium text-[13px] rounded-xl px-4 py-2.5 transition-all duration-150 ease-out-strong disabled:active:scale-100 ${
+                    className={`w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-[13px] font-medium font-inter transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF] ${
                       bloqueParEssai
-                        ? 'bg-white/[0.04] text-slate-600 border border-white/[0.06] cursor-not-allowed'
-                        : 'bg-[#e7ecf5] text-[#0b1322] active:scale-[0.97] hover:bg-white disabled:opacity-60'}`}>
-                    {bloqueParEssai ? <Lock className="w-3.5 h-3.5" />
-                      : isLoading ? <Loader2 className="w-4 h-4 animate-spin" />
-                      : <ExternalLink className="w-4 h-4" />}
+                        ? 'bg-white/[0.04] text-slate-400 border border-white/[0.07] cursor-not-allowed'
+                        : 'bg-[#e7ecf5] text-[#0b1322] hover:bg-white active:scale-[0.98] disabled:opacity-60'}`}>
+                    {bloqueParEssai ? <Lock className="w-3.5 h-3.5" /> : isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
                     {bloqueParEssai ? t('params.reseaux.essaiVerrouille') : t('params.reseaux.connecter')}
                   </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </div>
     );
   };
