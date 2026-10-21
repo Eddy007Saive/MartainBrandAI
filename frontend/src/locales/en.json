@@ -4229,6 +4229,8 @@
   },
   "coach": {
     "erreur": "Your plan can't be loaded right now. Try again in a few minutes.",
+    "reessayer": "Try again",
+    "chargement": "Loading your plan",
     "vide": {
       "titre": "Your first plan is on its way",
       "texte": "At the start of each month, I read last month's numbers and prepare an action plan for you. Your networks need to be connected, with at least one month of posts. Come back after the 3rd."
@@ -4274,6 +4276,7 @@
       "fiche_google_entretien": "Keep your Google profile alive",
       "top_post": "Do another post in the same vein",
       "creneau": "Post on {{jour}} around {{heure}}:00",
+      "creneauSansJour": "Post in your best slot, around {{heure}}:00",
       "connecter_reseaux": "Connect your networks"
     },
     "formats": {
@@ -4338,7 +4341,8 @@
       "postsAvant_one": "1 the month before",
       "postsAvant_other": "{{count}} the month before",
       "regularite": "Consistency in {{mois}}",
-      "semaines": "{{actives}} active week(s) out of {{total}} · longest silence: {{silence}} days",
+      "semaines_one": "{{count}} active week out of {{total}} · longest silence: {{silence}} days",
+      "semaines_other": "{{count}} active weeks out of {{total}} · longest silence: {{silence}} days",
       "creneaux": "Your best time slots",
       "posts_one": "1 post",
       "posts_other": "{{count}} posts",

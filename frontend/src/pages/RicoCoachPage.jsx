@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Loader2 } from 'lucide-react';
+import { RotateCw } from 'lucide-react';
+import { SocialIcon } from '../components/SocialIcon';
 import { coachService } from '../services/coachService';
 import MiniGraphe from '../components/coach/MiniGraphe';
 
@@ -28,10 +29,10 @@ const VERS_STUDIO = {
 };
 
 function Bouton({ children, onClick, variante = 'plein', testid }) {
-  const base = 'rounded-[9px] px-3 py-1.5 text-[12.5px] font-semibold font-inter whitespace-nowrap transition-transform duration-150 active:scale-[0.97]';
+  const base = 'inline-flex items-center justify-center h-10 sm:h-8 rounded-[9px] px-3 text-[12.5px] font-semibold font-inter whitespace-nowrap transition-[transform,background-color] duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]';
   const style = variante === 'plein'
     ? 'bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] text-white hover:brightness-110'
-    : 'border border-white/[0.12] text-slate-100 hover:bg-white/[0.04]';
+    : 'border border-white/[0.14] text-slate-100 hover:bg-white/[0.06]';
   return <button type="button" onClick={onClick} data-testid={testid} className={`${base} ${style}`}>{children}</button>;
 }
 
@@ -45,9 +46,12 @@ export default function RicoCoachPage() {
   const [donnees, setDonnees] = useState(null);
   const [erreur, setErreur] = useState(false);
 
-  useEffect(() => {
+  const charger = () => {
+    setErreur(false);
+    setDonnees(null);
     coachService.ecran().then(setDonnees).catch(() => setErreur(true));
-  }, []);
+  };
+  useEffect(charger, []);
 
   const langue = i18n.language || 'fr';
   const nf = useMemo(() => new Intl.NumberFormat(langue, { maximumFractionDigits: 2 }), [langue]);
@@ -57,8 +61,28 @@ export default function RicoCoachPage() {
 
   const generer = (liste) => navigate('/dashboard/studio', { state: { coach: liste } });
 
-  if (erreur) return <p className="text-slate-400 font-inter">{t('coach.erreur')}</p>;
-  if (!donnees) return <div className="flex justify-center py-24"><Loader2 className="w-6 h-6 animate-spin text-slate-500" /></div>;
+  if (erreur) {
+    return (
+      <Carte className="flex flex-wrap items-center gap-4 px-6 py-5 max-w-[720px]">
+        <img src={`${RICO}/lit-tablette.png`} alt="" className="w-14 h-14 object-contain shrink-0" />
+        <p className="flex-1 min-w-[220px] text-slate-200 font-inter m-0" role="alert">{t('coach.erreur')}</p>
+        <Bouton variante="contour" onClick={charger} testid="coach-reessayer"><RotateCw className="w-3.5 h-3.5 mr-1.5" />{t('coach.reessayer')}</Bouton>
+      </Carte>
+    );
+  }
+  // Squelette : la forme de la page (Rico + plan, puis les actions), sans spinner au milieu.
+  if (!donnees) {
+    const bloc = 'rounded-2xl bg-white/[0.04] animate-pulse motion-reduce:animate-none';
+    return (
+      <div className="max-w-[1320px] space-y-7" aria-busy="true" aria-label={t('coach.chargement')}>
+        <div className={`${bloc} h-[200px]`} />
+        <div className="grid gap-7 lg:grid-cols-[minmax(0,1.75fr)_minmax(300px,1fr)]">
+          <div className="space-y-3.5">{[0, 1, 2].map((i) => <div key={i} className={`${bloc} h-[180px]`} />)}</div>
+          <div className={`${bloc} h-[420px] hidden lg:block`} />
+        </div>
+      </div>
+    );
+  }
 
   const { plan, diagnostic: d, serie } = donnees;
 
@@ -83,12 +107,14 @@ export default function RicoCoachPage() {
   const reseaux = evo.filter((e) => e.reseau !== 'tous');
   const postsFenetre = serie.slice(-3).reduce((s, m) => s + m.posts, 0);
   const moisPrecedent = new Date(Date.UTC(Number(moisDiag.slice(0, 4)), Number(moisDiag.slice(5, 7)) - 2, 1)).toISOString();
-  // Le créneau garde le nom du jour dans ses chiffres (plans récents) ; sinon celui du diagnostic.
-  const jourCreneau = (r) => r.chiffres?.jour || JOURS[d?.creneaux?.[0]?.jour] || '';
+  // Le jour du créneau vient du plan lui-même : ses chiffres (plans récents), sinon son texte.
+  // Jamais du diagnostic, qui peut avoir été recalculé depuis et désigner un autre jour.
+  const jourCreneau = (r) => r.chiffres?.jour || JOURS.find((j) => (r.texte || '').toLowerCase().includes(j)) || '';
 
   const titreReco = (r) => {
     const fmtNom = t(`coach.formats.${(d?.formats || []).find((f) => f.reseau === r.reseau)?.meilleur?.format || 'image'}`);
-    return t(`coach.titres.${r.type}`, { reseau: NOM_RESEAU[r.reseau] || r.reseau, format: fmtNom, jour: jour(jourCreneau(r)), heure: r.chiffres?.heure });
+    const cle = r.type === 'creneau' && !jourCreneau(r) ? 'creneauSansJour' : r.type;
+    return t(`coach.titres.${cle}`, { reseau: NOM_RESEAU[r.reseau] || r.reseau, format: fmtNom, jour: jour(jourCreneau(r)), heure: r.chiffres?.heure });
   };
 
   const chiffreReco = (r) => {
@@ -98,9 +124,9 @@ export default function RicoCoachPage() {
       case 'volume_reprise': return <>{fmt(c.cible)}<span className="text-base text-slate-400"> /{t('coach.semaineCourt')}</span></>;
       case 'cadence': return <>{fmt(c.actuel)} <span className="text-[#3AFFA3]">→</span> {fmt(c.cible)}</>;
       case 'regularite': return <>{fmt(c.silence)} {t('coach.joursCourt')}</>;
-      case 'format': return <span className="bg-gradient-to-r from-[#3AFFA3] to-[#9dffd1] bg-clip-text text-transparent">×{fmt(c.ratio)}</span>;
+      case 'format': return <span className="text-[#3AFFA3]">×{fmt(c.ratio)}</span>;
       case 'top_post': return <>{fmt(c.taux)} %</>;
-      case 'creneau': return <>{jour(jourCreneau(r)).slice(0, 3)}. {c.heure} h</>;
+      case 'creneau': return jourCreneau(r) ? <>{jour(jourCreneau(r)).slice(0, 3)}. {c.heure} h</> : <>{c.heure} h</>;
       case 'fiche_google_baisse': return <span className="text-rose-400">−{fmt(c.baisse)} %</span>;
       case 'fiche_google_entretien': return <>{fmt(c.appels)}</>;
       default: return null;
@@ -131,8 +157,8 @@ export default function RicoCoachPage() {
       const p = d?.top_posts?.meilleurs?.[0];
       if (!p?.titre) return null;
       return (
-        <blockquote className="mt-3.5 rounded-xl border border-white/[0.07] bg-[#111b30] px-4 py-3.5 font-sora font-medium text-[14.5px] leading-snug text-slate-100">
-          « {p.titre} »
+        <blockquote className="mt-3.5 rounded-xl bg-white/[0.035] px-4 py-3.5 font-sora font-medium text-[14.5px] leading-snug text-slate-100 [text-wrap:pretty]">
+          «&nbsp;{p.titre}&nbsp;»
           <small className="block font-inter font-normal text-xs text-slate-500 mt-2">
             {NOM_RESEAU[p.reseau] || p.reseau} · {new Date(p.publie_le).toLocaleDateString(langue, { day: 'numeric', month: 'long' })} · {fmt(p.impressions || p.vues)} {t('coach.impressions')} · {fmt(p.taux_engagement)} % {t('coach.dEngagement')}
           </small>
@@ -216,7 +242,7 @@ export default function RicoCoachPage() {
                 <Carte key={r.id} className="p-4 sm:px-[22px] sm:py-5 grid grid-cols-[30px_minmax(0,1fr)] sm:grid-cols-[36px_minmax(0,1fr)_auto] gap-x-4 gap-y-1" >
                   <div className={`w-[30px] h-[30px] rounded-[9px] grid place-items-center font-sora font-bold text-[13px] ${i === 0 ? 'bg-gradient-to-br from-[#5B6CFF] to-[#8A6CFF] text-white' : 'bg-white/5 text-slate-400 border border-white/[0.07]'}`}>{i + 1}</div>
                   <div className="min-w-0">
-                    <div className="text-[11px] tracking-[0.1em] uppercase text-slate-500 font-semibold font-inter">{t(`coach.types.${r.type}`)}</div>
+                    <div className="text-[12px] text-slate-400 font-medium font-inter">{t(`coach.types.${r.type}`)}</div>
                     <h3 className="font-sora text-base font-semibold text-white mt-0.5 mb-1.5">{titreReco(r)}</h3>
                     <p className="text-slate-300 font-inter m-0 max-w-[64ch]">{r.texte}</p>
                     {extraReco(r)}
@@ -233,14 +259,14 @@ export default function RicoCoachPage() {
                             <em className="not-italic text-[11px] text-slate-400 border border-white/[0.12] rounded-md px-2 py-0.5 whitespace-nowrap">
                               {t(`coach.genres.${genre}`)}{b.reseau && genre !== 'actualite_google' ? ` · ${NOM_RESEAU[b.reseau] || b.reseau}` : ''}
                             </em>
-                            <span className="ml-auto sm:ml-0"><Bouton onClick={() => generer([b])} testid={`coach-generer-${r.id}-${k}`}>{t('coach.generer')}</Bouton></span>
+                            <span className="ml-auto sm:ml-0"><Bouton variante={briefs.length > 1 ? 'contour' : 'plein'} onClick={() => generer([b])} testid={`coach-generer-${r.id}-${k}`}>{t('coach.generer')}</Bouton></span>
                           </li>
                         ))}
                       </ul>
                     )}
                     {(briefs.length > 1 || actionsReco(r)) && (
                       <div className="flex flex-wrap items-center gap-2.5 mt-3.5">
-                        {briefs.length > 1 && <Bouton variante="contour" onClick={() => generer(briefs)} testid={`coach-generer-tous-${r.id}`}>{t('coach.genererTous', { count: briefs.length })}</Bouton>}
+                        {briefs.length > 1 && <Bouton onClick={() => generer(briefs)} testid={`coach-generer-tous-${r.id}`}>{t('coach.genererTous', { count: briefs.length })}</Bouton>}
                         {briefs.length > 1 && <small className="text-xs text-slate-500 font-inter">{t('coach.quota')}</small>}
                         {actionsReco(r)}
                       </div>
@@ -291,11 +317,11 @@ export default function RicoCoachPage() {
 
             {reseaux.length > 0 && (
               <div className="px-5 py-4 border-b border-white/[0.07]">
-                <h3 className="text-xs uppercase tracking-[0.1em] text-slate-500 font-semibold font-inter mb-3">{t('coach.diag.parReseau')}</h3>
+                <h3 className="text-[13px] text-slate-300 font-semibold font-inter mb-3">{t('coach.diag.parReseau')}</h3>
                 <div className="grid gap-2.5 font-inter tabular-nums">
                   {reseaux.map((e) => (
                     <div key={e.reseau} className="grid grid-cols-[20px_minmax(0,1fr)_auto] gap-2.5 items-center">
-                      <span className="w-5 h-5 rounded-[5px] grid place-items-center text-[10px] font-bold text-white" style={{ background: COULEUR_RESEAU[e.reseau] || '#334155' }}>{(NOM_RESEAU[e.reseau] || e.reseau).slice(0, 2)}</span>
+                      <span className="w-5 h-5 rounded-[5px] grid place-items-center text-white" style={{ background: COULEUR_RESEAU[e.reseau] || '#334155' }} aria-hidden="true"><SocialIcon network={e.reseau} className="w-3 h-3" /></span>
                       <p className="m-0 text-slate-100">{NOM_RESEAU[e.reseau] || e.reseau} <small className="text-slate-500">· {e.actuel.posts ? t('coach.diag.ligneReseau', { count: e.actuel.posts, impressions: fmt(e.actuel.impressions || e.actuel.vues) }) : t('coach.diag.aucunPost')}</small></p>
                       <small className="text-slate-500">{e.precedent ? t('coach.diag.postsAvant', { count: e.precedent.posts }) : ''}</small>
                     </div>
@@ -306,19 +332,19 @@ export default function RicoCoachPage() {
 
             {d.volume && (
               <div className="px-5 py-4 border-b border-white/[0.07]">
-                <h3 className="text-xs uppercase tracking-[0.1em] text-slate-500 font-semibold font-inter mb-3">{t('coach.diag.regularite', { mois: nomMois(moisDiag) })}</h3>
+                <h3 className="text-[13px] text-slate-300 font-semibold font-inter mb-3">{t('coach.diag.regularite', { mois: nomMois(moisDiag) })}</h3>
                 {Array.isArray(d.volume.semaines_liste) && <SemainesActives volume={d.volume} />}
-                <p className="m-0 text-[12.5px] text-slate-400 font-inter">{t('coach.diag.semaines', { actives: d.volume.semaines_actives, total: d.volume.semaines_du_mois, silence: d.volume.plus_long_silence_jours })}</p>
+                <p className="m-0 text-[12.5px] text-slate-400 font-inter">{t('coach.diag.semaines', { count: d.volume.semaines_actives, total: d.volume.semaines_du_mois, silence: d.volume.plus_long_silence_jours })}</p>
               </div>
             )}
 
             {d.creneaux?.length > 0 && (
               <div className="px-5 py-4 border-b border-white/[0.07]">
-                <h3 className="text-xs uppercase tracking-[0.1em] text-slate-500 font-semibold font-inter mb-3">{t('coach.diag.creneaux')}</h3>
+                <h3 className="text-[13px] text-slate-300 font-semibold font-inter mb-3">{t('coach.diag.creneaux')}</h3>
                 <ul className="m-0 p-0 list-none grid gap-2 font-inter tabular-nums">
                   {d.creneaux.map((c, k) => (
                     <li key={k} className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 items-center">
-                      <span className="text-slate-100 capitalize">{jour(JOURS[c.jour])}, {c.heure} h <small className="text-slate-500 normal-case">· {t('coach.diag.posts', { count: c.posts })}</small></span>
+                      <span className="text-slate-100">{majuscule(jour(JOURS[c.jour]))}, {c.heure} h <small className="text-slate-500">· {t('coach.diag.posts', { count: c.posts })}</small></span>
                       <b className={k === 0 ? 'text-[#3AFFA3]' : 'text-slate-100'}>{fmt(c.engagement)} %</b>
                     </li>
                   ))}
@@ -327,7 +353,7 @@ export default function RicoCoachPage() {
             )}
 
             <div className="px-5 py-4 border-b border-white/[0.07]">
-              <h3 className="text-xs uppercase tracking-[0.1em] text-slate-500 font-semibold font-inter mb-3">{t('coach.diag.fiche')}</h3>
+              <h3 className="text-[13px] text-slate-300 font-semibold font-inter mb-3">{t('coach.diag.fiche')}</h3>
               {d.fiche_google ? (
                 <dl className="grid grid-cols-[minmax(0,1fr)_auto] gap-y-1.5 gap-x-3 m-0 font-inter tabular-nums">
                   {['appels', 'itineraires', 'clics_site', 'vues_recherche', 'vues_maps'].map((k) => (

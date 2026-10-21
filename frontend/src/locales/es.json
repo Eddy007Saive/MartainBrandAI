@@ -4229,6 +4229,8 @@
   },
   "coach": {
     "erreur": "No se puede cargar tu plan ahora mismo. Vuelve a intentarlo en unos minutos.",
+    "reessayer": "Reintentar",
+    "chargement": "Cargando tu plan",
     "vide": {
       "titre": "Tu primer plan llega pronto",
       "texte": "A principios de cada mes leo tus cifras del mes anterior y te preparo un plan de acción. Tus redes tienen que estar conectadas y con al menos un mes de publicaciones. Vuelve después del día 3."
@@ -4274,6 +4276,7 @@
       "fiche_google_entretien": "Mantén viva tu ficha de Google",
       "top_post": "Haz otra publicación en la misma línea",
       "creneau": "Publica el {{jour}} hacia las {{heure}} h",
+      "creneauSansJour": "Publica en tu mejor franja, hacia las {{heure}} h",
       "connecter_reseaux": "Conecta tus redes"
     },
     "formats": {
@@ -4338,7 +4341,8 @@
       "postsAvant_one": "1 el mes anterior",
       "postsAvant_other": "{{count}} el mes anterior",
       "regularite": "Regularidad en {{mois}}",
-      "semaines": "{{actives}} semana(s) activa(s) de {{total}} · silencio más largo: {{silence}} días",
+      "semaines_one": "{{count}} semana activa de {{total}} · silencio más largo: {{silence}} días",
+      "semaines_other": "{{count}} semanas activas de {{total}} · silencio más largo: {{silence}} días",
       "creneaux": "Tus mejores franjas",
       "posts_one": "1 post",
       "posts_other": "{{count}} posts",

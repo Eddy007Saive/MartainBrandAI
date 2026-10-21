@@ -4229,6 +4229,8 @@
   },
   "coach": {
     "erreur": "Impossible de charger ton plan pour le moment. Réessaie dans quelques minutes.",
+    "reessayer": "Réessayer",
+    "chargement": "Chargement de ton plan",
     "vide": {
       "titre": "Ton premier plan arrive bientôt",
       "texte": "Au début de chaque mois, je lis tes chiffres du mois précédent et je te prépare un plan d'action. Il faut que tes réseaux soient connectés et qu'il y ait eu au moins un mois de publications. Reviens après le 3 du mois."
@@ -4274,6 +4276,7 @@
       "fiche_google_entretien": "Entretiens ta fiche Google",
       "top_post": "Refais un post dans la même veine",
       "creneau": "Publie le {{jour}} vers {{heure}} h",
+      "creneauSansJour": "Publie sur ton meilleur créneau, vers {{heure}} h",
       "connecter_reseaux": "Connecte tes réseaux"
     },
     "formats": {
@@ -4338,7 +4341,8 @@
       "postsAvant_one": "1 le mois d'avant",
       "postsAvant_other": "{{count}} le mois d'avant",
       "regularite": "Régularité en {{mois}}",
-      "semaines": "{{actives}} semaine(s) active(s) sur {{total}} · plus long silence : {{silence}} jours",
+      "semaines_one": "{{count}} semaine active sur {{total}} · plus long silence : {{silence}} jours",
+      "semaines_other": "{{count}} semaines actives sur {{total}} · plus long silence : {{silence}} jours",
       "creneaux": "Tes meilleurs créneaux",
       "posts_one": "1 post",
       "posts_other": "{{count}} posts",
