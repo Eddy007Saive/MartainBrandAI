@@ -27,3 +27,11 @@ export function erreurLisible(msg, t) {
   if (low.includes('rate limit') || low.includes('too many')) return t('publication.erreur.limite');
   return m;
 }
+
+/** L'échec vient du compte connecté (jeton expiré, compte introuvable) : il faut reconnecter
+ * le réseau, relancer ne servirait à rien. */
+export function erreurDeConnexion(msg) {
+  const low = String(msg || '').toLowerCase();
+  return low.includes('do not belong') || low.includes('account not found') || low.includes('not found for this user')
+    || low.includes('reconnect') || low.includes('reconnecte') || (low.includes('token') && (low.includes('expired') || low.includes('invalid')));
+}

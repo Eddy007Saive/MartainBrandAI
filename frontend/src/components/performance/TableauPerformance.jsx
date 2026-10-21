@@ -405,7 +405,7 @@ export function FrequenceConseillee({ data }) {
 /** Bandeau de l'accueil : 4 chiffres sur 30 jours + accès à l'onglet Performance.
  * Lit le cache des insights (aucun appel Zernio en direct). Sans réseau connecté ou sans
  * add-on, affiche `repli` (les anciennes cartes de l'accueil). */
-export function ResumePerformance({ repli = null }) {
+export function ResumePerformance({ repli = null, prevus = null }) {
   const { t } = useTranslation();
   const [data, setData] = useState(undefined);
   useEffect(() => {
@@ -413,7 +413,8 @@ export function ResumePerformance({ repli = null }) {
     analyticsService.insights(30).then((d) => vivant && setData(d)).catch(() => vivant && setData(null));
     return () => { vivant = false; };
   }, []);
-  if (data === undefined) return null;
+  // Hauteur réservée pendant le chargement : la page ne saute pas quand les chiffres arrivent
+  if (data === undefined) return <div className="h-[178px] rounded-2xl border border-white/[0.08] bg-[#0b1326] animate-pulse" aria-hidden="true" />;
   if (!data?.ok || !data?.connected || data?.addon_required) return repli;
   const cmp = data.comparaison;
   const tot = cmp?.totals || data.kpis || {};
@@ -424,10 +425,12 @@ export function ResumePerformance({ repli = null }) {
     { k: 'reach', label: t('perf.kpiReach'), val: fmt(tot.reach), v: prev ? variation(tot.reach, prev.reach) : null },
     ab ? { k: 'abo', label: t('perf.dash.abonnes'), val: fmt(ab.current), negatif: ab.gained < 0, sous: t('perf.dash.abonnesGagnes', { n: (ab.gained >= 0 ? '+' : '') + fmt(ab.gained) }) }
       : { k: 'impr', label: t('perf.kpiImpressions'), val: fmt(tot.impressions), v: prev ? variation(tot.impressions, prev.impressions) : null },
-    { k: 'posts', label: t('perf.dash.publications'), val: String((data.posts || []).length) },
+    prevus
+      ? { k: 'posts', label: t('perf.dash.publies'), val: `${(data.posts || []).length} / ${prevus}` }
+      : { k: 'posts', label: t('perf.dash.publications'), val: String((data.posts || []).length) },
   ];
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-slate-900/40 p-5" data-testid="accueil-resume-performance">
+    <section className="rounded-2xl border border-white/[0.08] bg-[#0b1326] p-5" data-testid="accueil-resume-performance">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div>
           <h2 className="text-lg font-semibold font-sora text-white">{t('perf.dash.resumeTitre')}</h2>
@@ -437,9 +440,9 @@ export function ResumePerformance({ repli = null }) {
           <span className="hidden sm:inline">{t('perf.dash.voirTout')}</span> <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-5 gap-y-4">
         {tuiles.map((m) => (
-          <div key={m.k} className="rounded-xl bg-white/[0.02] border border-white/[0.04] p-3.5 min-w-0">
+          <div key={m.k} className="min-w-0 border-l border-white/[0.08] pl-4">
             <div className="text-[12px] text-slate-400 font-inter truncate">{m.label}</div>
             <div className="text-2xl font-bold font-sora text-white mt-1">{m.val}</div>
             <div className="min-h-[16px] text-[11.5px]">
@@ -448,6 +451,6 @@ export function ResumePerformance({ repli = null }) {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Check, ChevronRight, RotateCcw } from 'lucide-react';
+import { Check, ChevronRight, RotateCcw, ArrowRight } from 'lucide-react';
 import { useDemarrage } from '../context/DemarrageContext';
 import { useUser } from '../context/UserContext';
 import BoutonDemo from './LecteurDemo';
@@ -25,6 +25,7 @@ export default function CartePremiersPas() {
   if (!etat || etat.termine) return null;
   const etapes = etat.etapes || [];
   const faites = etapes.filter((e) => e.fait === true).length;
+  const suivante = etapes.find((e) => e.id === etat.courante) || etapes.find((e) => e.fait !== true);
 
   const reprendre = () => {
     try { sessionStorage.removeItem(`postorico_visite_plus_tard_${user?.telegram_id || 'anon'}`); } catch (e) { /* ignore */ }
@@ -44,7 +45,7 @@ export default function CartePremiersPas() {
         <div className="flex items-center gap-2 flex-wrap">
         <BoutonDemo variante="carte" />
         <button type="button" onClick={reprendre} data-testid="accueil-reprendre-visite"
-          className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl text-[13px] font-semibold text-white bg-white/[0.06] border border-white/10 hover:border-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]/70">
+          className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl text-[13px] font-semibold text-slate-200 hover:text-white border border-white/10 hover:border-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]/70">
           <RotateCcw className="w-3.5 h-3.5" /> {t('demarrage.carte.reprendre')}
         </button>
         </div>
@@ -53,6 +54,18 @@ export default function CartePremiersPas() {
         <div className="h-full rounded-full bg-[#2fd393] transition-[width] duration-700"
           style={{ width: `${Math.round((faites / Math.max(1, etapes.length)) * 100)}%` }} />
       </div>
+      {suivante && (
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-[#8A6CFF]/40 bg-[#6f5cff]/10 p-4" data-testid="premiers-pas-suivante">
+          <div className="min-w-0 flex-1 font-inter">
+            <p className="text-[12.5px] text-[#c9c1ff] font-semibold">{t('demarrage.carte.prochaine')}</p>
+            <p className="text-[15px] text-white font-semibold mt-0.5">{t(`demarrage.etapes.${suivante.id}.titre`)}</p>
+            <p className="text-[13px] text-slate-300 mt-0.5">{t(`demarrage.etapes.${suivante.id}.texte`)}</p>
+          </div>
+          <Link to={LIENS[suivante.id] || '/dashboard'} className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-[#5a4ae8] hover:bg-[#6757f0] text-white text-[13.5px] font-semibold font-inter shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]/70">
+            {t('demarrage.carte.commencer')} <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </Link>
+        </div>
+      )}
       <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
         {etapes.map((e, i) => {
           const fait = e.fait === true;

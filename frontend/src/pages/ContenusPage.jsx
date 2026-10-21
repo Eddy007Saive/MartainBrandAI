@@ -453,7 +453,8 @@ export default function ContenusPage() {
   const [activeTab, setActiveTab] = useState('all');
   // Par défaut on montre ce qui ATTEND le client : les contenus à valider.
   // Les autres statuts (planifiés, publiés…) sont à un clic via les pastilles.
-  const [filterStatut, setFilterStatut] = useState('A valider');
+  // ?filtre=echec (depuis l'Accueil) choisit la pastille de départ.
+  const [filterStatut, setFilterStatut] = useState(() => new URLSearchParams(window.location.search).get('filtre') || 'A valider');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedContenu, setSelectedContenu] = useState(null);
