@@ -322,8 +322,9 @@ export default function AccueilPage() {
                               <span className="sr-only">{nomReseau(c.reseau_cible)} · </span>
                               <Clock className="w-3.5 h-3.5" aria-hidden="true" />{quand(c.date_publication)}
                             </span>
-                            <span className={`block font-semibold text-white mt-0.5 line-clamp-2 ${grand ? 'text-[15px]' : 'text-[13.5px]'}`}>{c.titre || (c.contenu || '').slice(0, 80)}</span>
-                            {grand && c.contenu && <span className="block text-[13px] text-slate-400 mt-0.5 line-clamp-2">{c.contenu}</span>}
+                            {/* Le titre seul : la description (texte complet du post) prenait toute la carte. Sans
+                                « block », que line-clamp écrasait (il lui faut display:-webkit-box). */}
+                            <span className={`font-semibold text-white mt-0.5 line-clamp-2 ${grand ? 'text-[15px]' : 'text-[13.5px]'}`}>{c.titre || (c.contenu || '').slice(0, 80)}</span>
                           </span>
                         </Link>
                       </li>
