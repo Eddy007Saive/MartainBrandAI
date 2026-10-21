@@ -5,8 +5,8 @@
 /* Inter + Sora (dont 700/800) : auto-hébergées via @fontsource, voir src/index.js */
 
 .cine{--bg:#020617;--panel:#0b1322;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);
-      --ink:#e7ecf5;--mut:#8ea0bd;--dim:#7f8ca6;--accent:#8A6CFF;--mint:#3AFFA3;
-      --grad:linear-gradient(135deg,#5B6CFF,#8A6CFF);--ease:cubic-bezier(.23,1,.32,1);
+      --ink:#e7ecf5;--mut:#a3b2cb;--dim:#8b9bb8;--accent:#8A6CFF;--mint:#3AFFA3;
+      --cta:#5a4ae8;--cta-hover:#6757f0;--grad:var(--cta);--ease:cubic-bezier(.23,1,.32,1);
       background:var(--bg);color:var(--ink);font-family:Inter,"Inter Fallback",system-ui,sans-serif;
       -webkit-font-smoothing:antialiased;overflow-x:clip;min-height:100vh;text-align:left}
 .cine *{box-sizing:border-box;margin:0;padding:0}
@@ -47,11 +47,10 @@
   .cine .hero .cta-row{flex-direction:column;align-items:stretch;gap:10px;max-width:420px;margin-left:auto;margin-right:auto}
   .cine .hero .cta-row .btn{width:100%;justify-content:center;padding:15px 20px}
   .cine .hero-note{text-align:center}
-  .cine .nets{justify-content:center}
 }
 
 /* ===== Nav ===== */
-.cine .lnav{position:fixed;top:0;left:0;right:0;z-index:50;background:linear-gradient(to bottom,rgba(2,6,23,.82),rgba(2,6,23,.25) 80%,transparent);padding:14px 0}
+.cine .lnav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(2,6,23,.94);border-bottom:1px solid var(--line);padding:12px 0}
 .cine .lnav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px}
 .cine .brand{display:flex;align-items:center;gap:10px;color:#fff}
 .cine .brand img{width:34px;height:34px}
@@ -66,9 +65,9 @@
 @media(hover:hover){.cine .nav-link:hover{color:#fff}}
 .cine .nav-cta{font-size:13px;font-weight:600;color:#fff;border-radius:99px;padding:10px 20px;
          transition:background 150ms ease,transform 150ms var(--ease),box-shadow 200ms var(--ease)}
-.cine .nav-cta.grad{background:var(--grad);box-shadow:0 6px 20px rgba(91,108,255,.35)}
+.cine .nav-cta.grad{background:var(--cta)}
 .cine .nav-cta:active{transform:scale(.97)}
-@media(hover:hover){.cine .nav-cta.grad:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(91,108,255,.5)}}
+@media(hover:hover){.cine .nav-cta.grad:hover{background:var(--cta-hover)}}
 @media(max-width:900px){.cine .nav-links{display:none}.cine .nav-link{display:none}}
 /* En dessous de ~430px, logo + sélecteur de langue + CTA + burger ne tiennent
    plus sur une ligne : le burger se retrouvait poussé hors de l'écran (donc
@@ -82,7 +81,7 @@
 
 /* ===== Burger menu (mobile) ===== */
 .cine .burger{display:none;width:42px;height:42px;border-radius:11px;border:1px solid rgba(255,255,255,.13);
-              background:rgba(255,255,255,.05);backdrop-filter:blur(8px);cursor:pointer;place-items:center;
+              background:rgba(255,255,255,.05);cursor:pointer;place-items:center;
               flex-direction:column;gap:5px;transition:transform 150ms cubic-bezier(.23,1,.32,1)}
 .cine .burger:active{transform:scale(.94)}
 .cine .burger i{display:block;width:18px;height:2px;border-radius:2px;background:#fff;transition:transform 250ms cubic-bezier(.23,1,.32,1),opacity 200ms ease}
@@ -100,16 +99,13 @@
 .cine .mmenu.open a{opacity:1;transform:none}
 .cine .mmenu a:active{transform:scale(.97)}
 .cine .mmenu .sep{width:44px;height:1px;background:rgba(255,255,255,.14);margin:14px 0}
-.cine .mmenu .cta{background:linear-gradient(135deg,#5B6CFF,#8A6CFF);border-radius:99px;color:#fff;font-size:18px;
-                  padding:14px 34px;box-shadow:0 10px 30px rgba(91,108,255,.4)}
+.cine .mmenu .cta{background:var(--cta);border-radius:99px;color:#fff;font-size:18px;padding:14px 34px}
 .cine .mmenu .ghost{font-size:16px;color:#cbd5e1;font-family:Inter,"Inter Fallback",sans-serif;font-weight:500}
 
 /* ===== Hero (grille 2 colonnes) ===== */
 .cine .hero{position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(480px,620px) 1fr;align-items:center;
       max-width:1240px;margin:0 auto;padding:92px 32px 40px}
-.cine .hero-copy{display:flex;flex-direction:column;align-items:flex-start;position:relative;z-index:1}
-/* Halo qui suit le curseur (HeroGlow) : au-dessus de la vidéo, sous le texte, jamais cliquable. */
-.cine .hero-glow{position:absolute;inset:0;pointer-events:none;z-index:0;mix-blend-mode:screen;will-change:background}
+.cine .hero-copy{display:flex;flex-direction:column;align-items:flex-start;position:relative;z-index:1;max-width:540px}
 /* Apparition en cascade des éléments du hero (kicker -> titre -> texte -> réseaux -> boutons -> note -> chiffres),
    inspirée des heros 21st.dev : ease-out franc, 90 ms entre chaque élément, rien si reduced-motion. */
 /* Octobre 2026 : cascade retiree. Le hero est l'element LCP ; une animation
@@ -117,26 +113,19 @@
    premiere image visible mesuree par Lighthouse, et le translateY comptait
    comme decalage de mise en page. Le texte s'affiche tel quel. */
 @keyframes cineAppear{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){.cine .hero-copy>*{animation:none}.cine .hero-glow{display:none}}
+@media(prefers-reduced-motion:reduce){.cine .hero-copy>*{animation:none}}
 .cine .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--mint);
         border:1px solid rgba(58,255,163,.25);background:rgba(58,255,163,.06);border-radius:99px;padding:8px 15px;white-space:nowrap}
-.cine .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px rgba(58,255,163,.8)}
-.cine h1{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(30px,min(3.6vw,7.2vh),52px);line-height:1.08;letter-spacing:-.02em;
+.cine .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--mint)}
+.cine h1{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(30px,min(3.3vw,6.6vh),46px);line-height:1.08;letter-spacing:-.02em;
    margin-top:20px;text-wrap:balance}
-.cine h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
-  background-size:220% 100%}
-@keyframes gradDerive{from{background-position:0% 50%}to{background-position:100% 50%}}
+.cine h1 .g{color:#b3a6ff}
 /* Révélation du titre mot à mot : flou -> net en montant, 70 ms entre chaque mot, après le
-   fondu du bloc (cascade .hero-copy). Les mots du dégradé héritent du clip-text du parent. */
+   fondu du bloc (cascade .hero-copy). */
 /* Octobre 2026 : apparition mot a mot (motApparait, flou + translateY, jusqu'a 0,9 s)
    retiree du h1 : c'est l'element LCP, chaque rendu rejouait l'animation et
-   repoussait d'autant la mesure Lighthouse. La derive du degrade est conservee. */
+   repoussait d'autant la mesure Lighthouse. La 2e ligne est en couleur pleine (.g). */
 .cine h1 .mot{display:inline-block}
-/* Chaque mot de la ligne violette porte son propre clip-text (un inline-block animé forme son
-   propre calque : le clip du parent ne le traverse pas) ; la dérive est synchronisée entre
-   les mots, donc la ligne respire d'un seul mouvement. */
-.cine h1 .g .mot{background:var(--grad);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
-  animation:gradDerive 7s ease-in-out infinite alternate}
 @keyframes motApparait{from{opacity:0;filter:blur(10px);transform:translateY(14px)}to{opacity:1;filter:blur(0);transform:none}}
 @media(prefers-reduced-motion:reduce){.cine h1 .mot,.cine h1 .g{animation:none}}
 /* max-width en px et non en ch : le « ch » depend de la largeur du zero de la
@@ -146,77 +135,21 @@
    valeur que donnait 54ch en Inter 15px. */
 .cine .hero-sub{color:var(--mut);font-size:15px;line-height:1.7;max-width:511px;margin-top:18px}
 .cine .hero-sub b{color:#dbe4f2;font-weight:600}
-.cine .nets{display:flex;gap:14px;margin-top:14px;font-size:12px;color:var(--dim);flex-wrap:wrap;align-items:center}
-.cine .nets b{color:#aab8d0;font-weight:600}
-.cine .nets i{font-style:normal;color:#3c4a63}
+.cine .nets{margin-top:14px;font-size:13px;font-weight:500;color:#b8c5da;line-height:1.6}
 .cine .cta-row{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
 .cine .btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;border-radius:12px;padding:13px 22px;color:#fff;
      transition:transform 150ms var(--ease),box-shadow 200ms var(--ease),background 150ms ease}
 .cine .btn:active{transform:scale(.97)}
-.cine .btn.grad{background:var(--grad);box-shadow:0 10px 30px rgba(91,108,255,.4)}
-@media(hover:hover){.cine .btn.grad:hover{transform:translateY(-1px);box-shadow:0 14px 38px rgba(91,108,255,.5)}}
-.cine .btn.ghost{border:1px solid var(--line2);color:#dbe4f2;background:rgba(11,19,34,.4);backdrop-filter:blur(6px)}
+.cine .btn.grad{background:var(--cta)}
+@media(hover:hover){.cine .btn.grad:hover{background:var(--cta-hover)}}
+.cine .btn.ghost{border:1px solid rgba(255,255,255,.22);color:#e7ecf5;background:rgba(2,6,23,.6)}
 @media(hover:hover){.cine .btn.ghost:hover{background:rgba(255,255,255,.08)}}
-.cine .btn.apk{border:1px solid rgba(58,255,163,.35);color:var(--mint);background:rgba(11,19,34,.4);backdrop-filter:blur(6px)}
-@media(hover:hover){.cine .btn.apk:hover{background:rgba(58,255,163,.08)}}
-.cine .hero-note{color:var(--dim);font-size:12px;margin-top:13px}
-/* Une ligne de faits, pas une carte de dashboard IA : chiffres au naturel (pas de vert néon),
-   pas de boîte ni de fond flouté — juste un fin séparateur au-dessus. */
-.cine .hstats{display:flex;gap:0;margin-top:34px;padding-top:18px;border-top:1px solid var(--line)}
-.cine .hstat{padding:0 22px;text-align:left}
-.cine .hstat+.hstat{border-left:1px solid var(--line);padding-left:22px}
-.cine .hstat b{display:block;font-family:Sora,"Sora Fallback";font-weight:700;font-size:19px;color:var(--ink)}
-.cine .hstat span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
-.cine .scroll-cue{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);color:var(--dim);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
-            animation:cineCue 2.2s var(--ease) infinite}
-@keyframes cineCue{0%,100%{transform:translate(-50%,0);opacity:.7}50%{transform:translate(-50%,7px);opacity:1}}
+.cine .hero-note{color:var(--mut);font-size:13px;margin-top:13px}
 @media(max-width:1000px){
   .cine .hero{grid-template-columns:1fr;text-align:center;padding-top:110px}
   .cine .hero-copy{align-items:center}
-  .cine .hstats{flex-wrap:wrap;justify-content:center}
-  .cine .hstat{flex:1 1 40%}
-  .cine .nets{justify-content:center}
+  .cine .hero-copy{max-width:none}
 }
-
-/* ===== Bulles de logos qui montent depuis l'écran ===== */
-/* Point de depart cale sur l'ecran du laptop de la planche v4.
-   Calcul, et non tatonnement : le capot occupe x 614-763 et son bord haut
-   y 295 dans la source 1024x448 ; avec « cover » et object-position 72% 32%,
-   cela tombe a 65% de la largeur et 34vh du bas — verifie identique a
-   1280x800, 1440x900 et 1920x1080, la hauteur commandant le cadrage dans les
-   trois cas. A refaire si le cadrage du clip change. */
-/* bottom:22vh et non 34 : a 34 les bulles naissaient AU-DESSUS du capot, donc
-   sur le plastron de la mascotte, et rien ne les rattachait a l'ecran. A 22
-   elles apparaissent au milieu de la dalle et montent jusqu'a son bord haut —
-   elles en sortent, ce qui etait tout l'objet. */
-.cine .rise{position:absolute;left:65%;bottom:22vh;width:0;height:0;pointer-events:none;z-index:4}
-.cine .rlogo{position:absolute;left:0;bottom:0;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;
-       background:rgba(15,23,42,.82);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);
-       box-shadow:0 0 20px rgba(138,108,255,.35),0 8px 22px rgba(0,0,0,.4);
-       opacity:0;will-change:transform,opacity;animation:cineRise 8.4s linear infinite}
-.cine .rlogo svg{width:17px;height:17px;fill:currentColor}
-.cine .rlogo.li{color:#61a8f0;animation-delay:0s;margin-left:-96px}
-.cine .rlogo.ig{color:#ff5c8a;animation-delay:1.2s;margin-left:-40px}
-.cine .rlogo.fb{color:#7aa7ff;animation-delay:2.4s;margin-left:16px}
-.cine .rlogo.tk{color:#e7ecf5;animation-delay:3.6s;margin-left:72px}
-.cine .rlogo.yt{color:#ff6b6b;animation-delay:4.8s;margin-left:-68px}
-.cine .rlogo.gb{color:#7ab8ff;animation-delay:6s;margin-left:44px}
-.cine .rlogo.x{color:#e7ecf5;animation-delay:7.2s;margin-left:-12px}
-/* Derive vers la DROITE : elles sortent de l'ecran du laptop, qui se trouve
-   juste sous le bec de la mascotte. En montant tout droit elles lui passaient
-   en plein visage ; en s'ecartant, elles rejoignent la zone vide. */
-/* Le corps de la mascotte se trouve JUSTE au-dessus du laptop : tout ce qui
-   monte lui passe sur le torse. A -44vh puis -28vh les bulles finissaient sur
-   son plastron et l'on ne comprenait plus d'ou elles venaient. A -11vh elles
-   effleurent l'ecran et s'eteignent aussitot : c'est court, et c'est ce qui
-   les rattache au laptop. */
-@keyframes cineRise{
-  0%{transform:translate(0,0) scale(.4);opacity:0}
-  18%{transform:translate(.2vw,-4vh) scale(1);opacity:1}
-  60%{opacity:.85}
-  100%{transform:translate(1.4vw,-11vh) scale(.8);opacity:0}
-}
-@media(max-width:1000px),(prefers-reduced-motion:reduce){.cine .rise{display:none}}
 
 /* ===== Hexagones flottants du bas de page =====================
    Meme forme que la page de connexion et que le decor des clips : c'est le
@@ -246,107 +179,24 @@
   .cine .hexf:nth-child(n+5){display:none}
 }
 
-/* ===== Impact ===== */
-.cine .impact{height:100vh;display:flex;align-items:center}
-.cine .impact h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(30px,4.4vw,54px);line-height:1.12;letter-spacing:-.02em;max-width:17ch}
-.cine .impact .word{display:inline-block;will-change:transform,filter,opacity}
-.cine .impact .word--accent{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-
 /* ===== Sections communes ===== */
 .cine .sec{padding:10vh 0}
 .cine .shead{text-align:center;max-width:62ch;margin:0 auto}
 .cine .shead h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(24px,3.2vw,36px);letter-spacing:-.02em;margin-top:12px}
-.cine .shead .lead{color:var(--mut);font-size:14.5px;line-height:1.65;margin-top:12px}
-.cine .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.2em;font-weight:600;color:#b9a6ff;text-align:center}
-.cine .pscol,.cine .cmpcard,.cine .acard,.cine .fstep,.cine .tcard,.cine .vcard{transition:transform 220ms var(--ease),border-color 220ms var(--ease),box-shadow 220ms var(--ease)}
+.cine .shead .lead{color:var(--mut);font-size:15px;line-height:1.65;margin-top:12px}
 @media(hover:hover){
   .cine .cmpcard:hover,.cine .acard:hover,.cine .fstep:hover,.cine .tcard:hover{transform:translateY(-6px);border-color:rgba(138,108,255,.4);box-shadow:0 18px 50px -22px rgba(91,108,255,.5)}
 }
 
-/* ===== Problème -> Solution (duel) ===== */
-.cine .ps{display:grid;grid-template-columns:1fr auto 1.06fr;gap:18px;margin-top:48px;align-items:center}
-.cine .pscol{position:relative;border-radius:20px;padding:26px}
-.cine .pscol h3{font-family:Sora,"Sora Fallback";font-size:16.5px}
-.cine .pscol ul{list-style:none;margin-top:14px}
-.cine .pscol li{display:flex;gap:11px;font-size:13.5px;line-height:1.6;padding:8px 0}
-.cine .pscol .mk{flex:0 0 auto;font-weight:700;font-size:12px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;margin-top:1px}
-.cine .ps-head{display:flex;align-items:center;gap:11px}
-.cine .ps-ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:15px}
-.cine .pscol.bad{border:1px solid rgba(248,113,113,.16);background:rgba(11,19,34,.5);backdrop-filter:blur(8px);
-           transform:scale(.97);opacity:.82;filter:saturate(.85)}
-.cine .pscol.bad h3{color:#e9a1a1}
-.cine .pscol.bad .ps-ic{background:rgba(248,113,113,.12);color:#f87171}
-.cine .pscol.bad li{color:#9aa6bc}
-.cine .pscol.bad .mk{background:rgba(248,113,113,.1);color:#f87171}
-.cine .ps-arrow{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:19px;font-weight:700;color:#fff;
-          background:var(--grad);box-shadow:0 0 0 6px rgba(91,108,255,.14),0 10px 30px rgba(91,108,255,.45);z-index:2}
-.cine .pscol.good{background:linear-gradient(rgba(11,19,34,.9),rgba(11,19,34,.9)) padding-box,
-            linear-gradient(135deg,#5B6CFF,#8A6CFF 55%,#3AFFA3) border-box;
-            border:1.5px solid transparent;backdrop-filter:blur(12px);
-            box-shadow:0 30px 90px -30px rgba(91,108,255,.55)}
-.cine .pscol.good h3{color:#fff}
-.cine .pscol.good .ps-ic{background:rgba(58,255,163,.14);color:var(--mint);box-shadow:0 0 18px rgba(58,255,163,.25)}
-.cine .pscol.good li{color:#c6d2e4}
-.cine .pscol.good .mk{background:rgba(58,255,163,.14);color:var(--mint)}
-/* Animation en boucle du comparatif, cadence 1 s : les 4 lignes de chaque colonne s'allument
-   à tour de rôle (cycle de 4 s, 1 s par ligne) — la croix tremble à gauche, la coche « pop » à
-   droite — et la flèche de bascule pulse chaque seconde. Rien si prefers-reduced-motion. */
-.cine .pscol li{animation-duration:4s;animation-timing-function:var(--ease);animation-iteration-count:infinite}
-.cine .pscol li:nth-child(2){animation-delay:1s}
-.cine .pscol li:nth-child(3){animation-delay:2s}
-.cine .pscol li:nth-child(4){animation-delay:3s}
-.cine .pscol.bad li{animation-name:psLigneBad}
-.cine .pscol.good li{animation-name:psLigneGood}
-@keyframes psLigneBad{0%,20%{color:#f3c0c0;transform:translateX(5px)}25%,100%{color:#9aa6bc;transform:none}}
-@keyframes psLigneGood{0%,20%{color:#fff;transform:translateX(5px)}25%,100%{color:#c6d2e4;transform:none}}
-.cine .pscol li .mk{animation-duration:4s;animation-timing-function:var(--ease);animation-iteration-count:infinite;animation-delay:inherit}
-.cine .pscol.bad li .mk{animation-name:psMkBad}
-.cine .pscol.good li .mk{animation-name:psMkGood}
-@keyframes psMkBad{0%{transform:none;background:rgba(248,113,113,.1)}3%{transform:translateX(-3px) rotate(-8deg)}6%{transform:translateX(3px) rotate(8deg)}9%{transform:translateX(-2px)}12%{transform:none;background:rgba(248,113,113,.35);box-shadow:0 0 14px rgba(248,113,113,.45)}22%{background:rgba(248,113,113,.35);box-shadow:0 0 14px rgba(248,113,113,.45)}25%,100%{transform:none;background:rgba(248,113,113,.1);box-shadow:none}}
-@keyframes psMkGood{0%{transform:scale(1)}6%{transform:scale(1.45);background:rgba(58,255,163,.4);box-shadow:0 0 18px rgba(58,255,163,.7)}14%{transform:scale(1.05)}20%{transform:scale(1.1);background:rgba(58,255,163,.4);box-shadow:0 0 18px rgba(58,255,163,.7)}25%,100%{transform:scale(1);background:rgba(58,255,163,.14);box-shadow:none}}
-.cine .ps-arrow{animation:psFleche 1s ease-in-out infinite}
-@keyframes psFleche{0%,100%{transform:scale(1)}50%{transform:scale(1.14) translateX(4px);box-shadow:0 0 26px rgba(138,108,255,.6)}}
-@media(prefers-reduced-motion:reduce){.cine .pscol li,.cine .pscol li .mk,.cine .ps-arrow{animation:none}}
-.cine .ps-badge{position:absolute;top:-11px;right:20px;background:var(--grad);font-size:10.5px;font-weight:700;letter-spacing:.06em;
-          text-transform:uppercase;border-radius:99px;padding:4px 12px;color:#fff}
-@media(max-width:860px){
-  .cine .ps{grid-template-columns:1fr}
-  .cine .ps-arrow{margin:0 auto;transform:rotate(90deg)}
-  .cine .pscol.bad{transform:none}
-}
-
 /* ===== Comparatif ===== */
 .cine .cmp{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:44px}
-.cine .cmpcard{position:relative;border-radius:18px;border:1px solid var(--line);background:rgba(11,19,34,.72);backdrop-filter:blur(10px);padding:20px}
-.cine .cmpcard.win{border-color:rgba(138,108,255,.55);box-shadow:0 20px 60px -20px rgba(91,108,255,.45)}
-.cine .cmpcard .badge{position:absolute;top:-11px;left:18px;background:var(--grad);font-size:10.5px;font-weight:700;border-radius:99px;padding:4px 10px}
-.cine .cmpcard h3{font-family:Sora,"Sora Fallback";font-size:15px;margin-bottom:10px}
-.cine .cmpcard .r{display:flex;flex-direction:column;padding:7px 0;border-top:1px solid var(--line)}
-.cine .cmpcard .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--dim)}
-.cine .cmpcard .v{font-size:12.5px;color:#dbe4f2;margin-top:3px}
+.cine .cmpcard{position:relative;border-radius:16px;border:1px solid var(--line2);background:#0b1326;padding:20px}
+.cine .cmpcard.win{border-color:rgba(138,108,255,.6);background:#120f33}
+.cine .cmpcard h3{font-family:Sora;font-size:15.5px;margin-bottom:10px}
+.cine .cmpcard .r{display:flex;flex-direction:column;padding:8px 0;border-top:1px solid var(--line)}
+.cine .cmpcard .k{font-size:12px;font-weight:600;color:var(--mut)}
+.cine .cmpcard .v{font-size:13.5px;color:#dbe4f2;margin-top:3px}
 .cine .cmpcard.win .v{color:#fff}
-/* Comparatif animé, cadence 1 s : les 6 critères s'allument à tour de rôle sur les 4 cartes à la
-   fois (cycle 6 s, 1 s par critère). Sur la carte Postorico la valeur passe en vert et glisse ;
-   sur les trois autres elle s'assombrit — le « gagnant » saute aux yeux ligne après ligne.
-   Le badge « Le bon choix » pulse chaque seconde. Rien si prefers-reduced-motion. */
-.cine .cmpcard .r{animation-duration:6s;animation-timing-function:var(--ease);animation-iteration-count:infinite}
-.cine .cmpcard .r:nth-child(2){animation-delay:1s}
-.cine .cmpcard .r:nth-child(3){animation-delay:2s}
-.cine .cmpcard .r:nth-child(4){animation-delay:3s}
-.cine .cmpcard .r:nth-child(5){animation-delay:4s}
-.cine .cmpcard .r:nth-child(6){animation-delay:5s}
-.cine .cmpcard .r{animation-name:cmpRow}
-.cine .cmpcard.win .r{animation-name:cmpRowWin}
-@keyframes cmpRow{0%,13%{background:rgba(248,113,113,.06);box-shadow:inset 3px 0 0 rgba(248,113,113,.45)}17%,100%{background:transparent;box-shadow:inset 3px 0 0 transparent}}
-@keyframes cmpRowWin{0%,13%{background:rgba(58,255,163,.08);box-shadow:inset 3px 0 0 var(--mint)}17%,100%{background:transparent;box-shadow:inset 3px 0 0 transparent}}
-.cine .cmpcard .r .v{animation-duration:6s;animation-timing-function:var(--ease);animation-iteration-count:infinite;animation-delay:inherit;animation-name:cmpVal}
-.cine .cmpcard.win .r .v{animation-name:cmpValWin}
-@keyframes cmpVal{0%,13%{color:#8a94a8;transform:translateX(6px)}17%,100%{color:#dbe4f2;transform:none}}
-@keyframes cmpValWin{0%{transform:translateX(6px) scale(1)}4%{transform:translateX(6px) scale(1.06)}13%{color:var(--mint);transform:translateX(6px);text-shadow:0 0 14px rgba(58,255,163,.55)}17%,100%{color:#fff;transform:none;text-shadow:none}}
-.cine .cmpcard .r{padding-left:8px;margin-left:-8px;border-radius:6px}
-.cine .cmpcard.win .badge{animation:cmpBadge 1s ease-in-out infinite}
-@keyframes cmpBadge{0%,100%{transform:scale(1)}50%{transform:scale(1.08);box-shadow:0 0 18px rgba(138,108,255,.7)}}
-@media(prefers-reduced-motion:reduce){.cine .cmpcard .r,.cine .cmpcard .r .v,.cine .cmpcard.win .badge{animation:none}}
 @media(max-width:1000px){.cine .cmp{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.cine .cmp{grid-template-columns:1fr}}
 
@@ -374,23 +224,19 @@
 .cine .pq-inner{width:100%;max-width:1280px;margin:0 auto;padding:44px 34px 30px;display:grid;grid-template-columns:minmax(0,1fr) 500px;grid-template-rows:auto 1fr;column-gap:76px;row-gap:28px;align-items:center}
 .cine .pq-head{grid-column:1/-1;grid-row:1;width:min(900px,100%);margin:0 auto;text-align:center;transform:translateZ(70px)}
 .cine .pq-left{position:relative;z-index:5;grid-column:1;grid-row:2;transform-style:preserve-3d;min-width:0}
-.cine .pq-eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
-.cine .pq-title{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(34px,4.4vw,58px);line-height:1.04;letter-spacing:-.045em;margin:10px auto 13px;max-width:18ch}
+.cine .pq-title{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(34px,4.4vw,58px);line-height:1.04;letter-spacing:-.03em;margin:0 auto 13px;max-width:18ch}
 .cine .pq-lead{color:var(--mut);font-size:15px;line-height:1.65;max-width:62ch;margin:0 auto}
 .cine .pq-steps{position:relative;height:405px;perspective:1400px;transform-style:preserve-3d;overflow:visible}
 .cine .pq-step{position:absolute;left:0;right:0;top:0;max-width:650px;min-height:250px;padding:28px 30px 25px;border-radius:24px;border:1px solid rgba(255,255,255,.10);
   background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.018)),rgba(7,12,28,.84);
-  box-shadow:0 24px 70px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.055);backdrop-filter:blur(12px);
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
   opacity:0;visibility:hidden;pointer-events:none;transform:translate3d(0,150px,-220px) rotateX(8deg) scale(.94);transform-origin:center center;will-change:transform,opacity;overflow:hidden}
-.cine .pq-step::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--accent),var(--mint));opacity:.35}
 .cine .pq-step::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:var(--completion,0%);background:linear-gradient(90deg,var(--accent),var(--mint));box-shadow:0 0 18px rgba(58,255,163,.32);transition:width .08s linear}
 .cine .pq-step.is-active{pointer-events:auto}
-.cine .pq-num{display:inline-flex;align-items:center;gap:7px;font-family:Sora,"Sora Fallback";font-weight:800;font-size:11px;color:var(--mint);letter-spacing:.10em;text-transform:uppercase;padding:6px 9px;border:1px solid rgba(58,255,163,.18);border-radius:999px;background:rgba(58,255,163,.055)}
-.cine .pq-num::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px rgba(58,255,163,.7)}
-.cine .pq-quote{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(23px,2.5vw,31px);letter-spacing:-.03em;margin:14px 0 11px;line-height:1.2}
+.cine .pq-quote{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(23px,2.5vw,31px);letter-spacing:-.03em;margin:0 0 11px;line-height:1.2}
 .cine .pq-desc{color:var(--mut);font-size:15px;line-height:1.58;max-width:58ch;margin:0 0 18px}
 .cine .pq-tags{display:flex;gap:8px;flex-wrap:wrap}
-.cine .pq-tag{font-size:11.5px;font-weight:600;color:var(--ink);background:rgba(255,255,255,.05);border:1px solid var(--line2);padding:7px 12px;border-radius:999px;backdrop-filter:blur(8px)}
+.cine .pq-tag{font-size:12.5px;font-weight:600;color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--line2);padding:7px 12px;border-radius:999px}
 .cine .pq-progress{display:flex;gap:7px;margin-top:14px;padding-left:8px}
 .cine .pq-dot{height:3px;flex:0 0 46px;background:var(--line2);border-radius:3px;overflow:hidden}
 .cine .pq-dot i{display:block;height:100%;width:0;background:var(--grad);transform-origin:left center}
@@ -402,11 +248,10 @@
 .cine .pq-card img{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;opacity:0;visibility:hidden;transform:translate3d(80px,20px,70px) rotateY(7deg) scale(1.08);will-change:transform,opacity;filter:saturate(1.03) contrast(1.02)}
 .cine .pq-sheen{position:absolute;inset:0;z-index:5;pointer-events:none;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.18),transparent 42%);opacity:0;transition:opacity .25s ease}
 .cine .pq-card:hover .pq-sheen{opacity:1}
-.cine .pq-count{position:absolute;top:16px;right:18px;z-index:7;font-family:Sora,"Sora Fallback";font-size:12px;font-weight:700;color:var(--mut);background:rgba(2,6,23,.52);border:1px solid var(--line2);padding:5px 10px;border-radius:999px;backdrop-filter:blur(8px)}
+.cine .pq-count{position:absolute;top:16px;right:18px;z-index:7;font-family:Sora,"Sora Fallback";font-size:12px;font-weight:700;color:var(--ink);background:rgba(2,6,23,.8);border:1px solid var(--line2);padding:5px 10px;border-radius:999px}
 .cine .pq-caption{position:absolute;left:20px;right:20px;bottom:18px;z-index:7;transform:translateZ(80px)}
-.cine .pq-caption b{display:block;font-family:Sora,"Sora Fallback";font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--mint)}
-.cine .pq-caption p{margin:6px 0 0;font-size:13.5px;color:var(--ink);line-height:1.45;max-width:34ch}
-.cine .pq-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);color:var(--dim);font-size:10px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;z-index:8}
+.cine .pq-caption p{margin:0;font-size:13.5px;color:var(--ink);line-height:1.45;max-width:34ch}
+.cine .pq-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);color:var(--mut);font-size:12.5px;white-space:nowrap;z-index:8}
 @media(max-width:980px){.cine .pq-inner{grid-template-columns:minmax(0,1fr) 420px;column-gap:38px}.cine .pq-card-stage{height:460px}}
 @media(max-width:820px){
   .cine .pq-wrap{height:360vh}
@@ -435,37 +280,29 @@
     radial-gradient(circle at 87% 72%,#4FF3B0 0 1px,transparent 2px),radial-gradient(circle at 93% 22%,#F4F1FA 0 1px,transparent 2px)}
 .cine .acc-layout{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:34% 66%}
 .cine .acc-intro{height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:42px 28px 36px 34px;border-right:1px solid rgba(244,241,250,.06)}
-.cine .acc-eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#4FF3B0;font-weight:700}
-.cine .acc-intro h2{font-family:Sora,"Sora Fallback";font-weight:800;max-width:500px;margin:14px 0 0;font-size:clamp(28px,3.2vw,50px);line-height:1;letter-spacing:-.045em}
-.cine .acc-intro p{max-width:340px;color:rgba(244,241,250,.62);font-size:14px;line-height:1.65;margin-top:16px}
-.cine .acc-metric-label{font-size:10px;letter-spacing:.16em;color:rgba(244,241,250,.5);text-transform:uppercase}
-.cine .acc-metric-number{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(68px,8vw,120px);line-height:.85;letter-spacing:-.06em;color:#4FF3B0;text-shadow:0 0 35px rgba(79,243,176,.18)}
-.cine .acc-metric-sub{font-size:10px;letter-spacing:.18em;color:#F4F1FA;opacity:.65;margin-top:6px}
+.cine .acc-intro h2{font-family:Sora,"Sora Fallback";font-weight:800;max-width:500px;margin:0;font-size:clamp(28px,3.2vw,46px);line-height:1.05;letter-spacing:-.03em}
+.cine .acc-intro p{max-width:340px;color:rgba(244,241,250,.78);font-size:15px;line-height:1.65;margin-top:16px}
 .cine .acc-rail{position:relative;height:100%;overflow:hidden;perspective:1400px;display:flex;align-items:center}
 .cine .acc-track{height:100%;display:flex;align-items:center;gap:22px;padding:0 0 0 28px;transform-style:preserve-3d;will-change:transform}
 .cine .acc-card{flex:0 0 min(370px,42vw);height:min(560px,calc(100vh - 200px));min-height:430px;position:relative;overflow:hidden;border-radius:24px;
   background:rgba(20,12,55,.92);box-shadow:0 30px 60px rgba(0,0,0,.35);transform-style:preserve-3d;will-change:transform,opacity}
 .cine .acc-card-index{position:absolute;top:22px;right:24px;z-index:6;font-family:Sora,"Sora Fallback";font-size:64px;font-weight:300;line-height:1;color:#4FF3B0;opacity:.9;text-shadow:0 2px 12px rgba(0,0,0,.5)}
-.cine .acc-pill{position:absolute;top:18px;left:18px;z-index:7;padding:6px 10px;border-radius:999px;background:rgba(15,9,45,.75);border:1px solid rgba(79,243,176,.25);
-  color:#4FF3B0;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(6px)}
-.cine .acc-card-content{position:absolute;left:28px;right:28px;top:110px;bottom:34px;z-index:7;display:flex;flex-direction:column}
-.cine .acc-card-kicker{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#4FF3B0;font-weight:700}
+.cine .acc-card-content{position:absolute;left:28px;right:28px;top:100px;bottom:34px;z-index:7;display:flex;flex-direction:column}
+.cine .acc-card-kicker{font-size:13px;color:#4FF3B0;font-weight:700}
 .cine .acc-card h3{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(24px,2.3vw,32px);line-height:1.08;letter-spacing:-.03em;margin:10px 0 16px}
-.cine .acc-card p{font-size:15px;line-height:1.6;color:rgba(244,241,250,.72);margin:0}
+.cine .acc-card p{font-size:15px;line-height:1.6;color:rgba(244,241,250,.8);margin:0}
 .cine .acc-card p b{color:#F4F1FA}
-.cine .acc-card-tags{display:flex;gap:7px;margin-top:auto;padding-top:16px;flex-wrap:wrap}
-.cine .acc-tag{font-size:10.5px;padding:6px 9px;border-radius:999px;background:rgba(244,241,250,.06);color:rgba(244,241,250,.75)}
 .cine .acc-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(244,241,250,.08);z-index:9}
-.cine .acc-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#4B2E91,#4FF3B0);box-shadow:0 0 14px rgba(79,243,176,.55)}
-.cine .acc-hint{position:absolute;bottom:20px;right:35px;z-index:12;display:flex;align-items:center;gap:10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,241,250,.48)}
+.cine .acc-progress i{display:block;width:0;height:100%;background:#4FF3B0}
+.cine .acc-hint{position:absolute;bottom:20px;right:35px;z-index:12;display:flex;align-items:center;gap:10px;font-size:12.5px;color:rgba(244,241,250,.7)}
 .cine .acc-hint span{width:42px;height:1px;background:#4FF3B0}
 .cine .acc-cta{position:absolute;left:50%;bottom:22px;z-index:25;transform:translateX(-50%);display:inline-flex;padding:14px 24px;border-radius:13px;
-  background:var(--grad);color:#fff;text-decoration:none;font-size:14px;font-weight:700;box-shadow:0 12px 35px rgba(91,108,255,.35)}
+  background:var(--cta);color:#fff;text-decoration:none;font-size:14px;font-weight:700}
 @media(max-width:900px){
   .cine .acc-stage{height:auto;min-height:0;padding:40px 16px}
   .cine .acc-scene{position:relative;top:auto;height:auto;min-height:0}
   .cine .acc-layout{position:relative;grid-template-columns:1fr}
-  .cine .acc-intro{border-right:0;border-bottom:1px solid rgba(244,241,250,.06);gap:28px;padding:32px 22px}
+  .cine .acc-intro{border-right:0;border-bottom:1px solid rgba(244,241,250,.06);padding:32px 22px}
   .cine .acc-rail{height:auto;overflow-x:auto;scroll-snap-type:x mandatory;padding:24px 0 90px}
   .cine .acc-track{height:auto;padding:0 22px}
   .cine .acc-card{flex-basis:78vw;height:520px;scroll-snap-align:center}
@@ -492,8 +329,7 @@
    via Motion) + un reflet qui glisse dessus (preview-sheen, positionné par --mx/--my posées en JS) —
    même traitement que la galerie du prototype HTML validé. */
 .cine .preview{width:min(1020px,88vw);position:relative;transform-style:preserve-3d;will-change:transform;
-         border-radius:20px;border:1px solid var(--line2);background:linear-gradient(180deg,rgba(15,23,42,.92),rgba(11,19,34,.92));
-         backdrop-filter:blur(10px);padding:12px;box-shadow:0 40px 120px -30px rgba(91,108,255,.4)}
+         border-radius:16px;border:1px solid var(--line2);background:#0b1326;padding:12px}
 .cine .preview-sheen{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;border-radius:20px;
          transition:opacity .3s ease;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.14),transparent 55%)}
 .cine .preview:hover .preview-sheen{opacity:1}
@@ -505,7 +341,7 @@
 .cine .sb .lg{display:flex;align-items:center;gap:8px;margin-bottom:20px}
 .cine .sb .lg img{width:24px;height:24px}
 .cine .sb .lg b{font-family:Sora,"Sora Fallback";font-weight:800;font-size:12.5px}
-.cine .sb .it{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;font-size:12px;color:var(--mut);margin-bottom:3px;
+.cine .sb .it{display:flex;width:100%;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;font-size:12.5px;color:var(--mut);margin-bottom:3px;border:0;background:none;font-family:inherit;text-align:left;
         transition:background 200ms ease,color 200ms ease}
 .cine .sb .it.on{background:rgba(255,255,255,.06);color:#fff}
 .cine .sb .it .ic{width:14px;height:14px;border-radius:4px;background:#2a3550;transition:background 200ms ease}
@@ -514,8 +350,8 @@
 .cine .pmain img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:left top;opacity:0;transition:opacity 420ms var(--ease)}
 .cine .pmain img.on{opacity:1}
 .cine .hp-dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:7px;z-index:2}
-.cine .hp-dots i{width:7px;height:7px;border-radius:999px;background:#2a3550;transition:width 200ms ease,background 200ms ease}
-.cine .hp-dots i.on{width:22px;background:var(--grad)}
+.cine .hp-dots button{width:8px;height:8px;border-radius:999px;border:0;padding:0;background:#3a4767;transition:width 200ms ease,background 200ms ease}
+.cine .hp-dots button.on{width:22px;background:var(--cta)}
 .cine .pcap{margin-top:12px;padding:0 6px 4px;font-size:13px;color:var(--mut);transition:opacity 250ms ease}
 .cine .pcap b{font-family:Sora,"Sora Fallback";color:#fff;font-size:14px}
 .cine .pcap em{font-style:normal;color:var(--mint)}
@@ -527,7 +363,7 @@
 .cine .tgrid{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-top:44px;align-items:stretch}
 /* vidéo seule, centrée (sans les cartes de citations) */
 .cine .tgrid--solo{grid-template-columns:1fr;max-width:680px;margin-left:auto;margin-right:auto}
-.cine .vcard{border-radius:18px;overflow:hidden;border:1px solid var(--line2);background:rgba(11,19,34,.72);backdrop-filter:blur(10px);margin:0}
+.cine .vcard{border-radius:16px;overflow:hidden;border:1px solid var(--line2);background:#0b1326;margin:0}
 .cine .vcard video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#0a1120}
 .cine .vcard figcaption{display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:12.5px;font-weight:500;color:var(--mut);border-top:1px solid var(--line)}
 .cine .quotes{display:flex;flex-direction:column;gap:16px}
@@ -539,10 +375,20 @@
 .cine .who b{display:block;font-size:13px}.cine .who small{color:var(--dim);font-size:11.5px}
 @media(max-width:860px){.cine .tgrid{grid-template-columns:1fr}}
 
+/* ===== Prix ===== */
+.cine .prix-sec{padding:6vh 0 0}
+.cine .prix{display:flex;align-items:center;justify-content:space-between;gap:28px 40px;flex-wrap:wrap;border:1px solid var(--line2);border-radius:16px;background:#0b1326;padding:30px 32px}
+.cine .prix h2{font-family:Sora;font-weight:800;font-size:clamp(22px,2.6vw,30px);letter-spacing:-.02em;text-wrap:balance}
+.cine .prix p{color:var(--mut);font-size:15px;line-height:1.65;margin-top:10px;max-width:56ch}
+.cine .prix-montant{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.cine .prix-montant b{font-family:Sora;font-weight:800;font-size:clamp(28px,3.4vw,38px);color:#fff;letter-spacing:-.02em}
+.cine .prix-montant span{color:var(--mut);font-size:13.5px}
+.cine .prix-montant a{margin-top:8px;color:#c9c1ff;font-weight:600;font-size:14px;text-decoration:underline;text-underline-offset:3px}
+@media(hover:hover){.cine .prix-montant a:hover{color:#fff}}
+
 /* ===== CTA final ===== */
-.cine .final{padding:10vh 0 16vh;text-align:center}
-.cine .ctaband{position:relative;overflow:hidden;border:1px solid rgba(138,108,255,.3);border-radius:24px;padding:64px 32px;
-         background:radial-gradient(600px 240px at 50% 0%,rgba(91,108,255,.16),transparent),#0b1322}
+.cine .final{padding:10vh 0 6vh;text-align:center}
+.cine .ctaband{position:relative;overflow:hidden;border:1px solid rgba(138,108,255,.35);border-radius:16px;padding:64px 32px;background:#120f33}
 .cine .mascot-wave{position:absolute;right:12px;bottom:-10px;height:250px;aspect-ratio:1/1;object-fit:cover;pointer-events:none;mix-blend-mode:lighten}
 @media(max-width:900px){.cine .mascot-wave{display:none}}
 .cine .final h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(28px,3.8vw,44px);letter-spacing:-.02em;max-width:18ch;margin:0 auto}
@@ -569,40 +415,32 @@
 @media(max-width:600px){.cine .demo-video{border-radius:14px;margin-top:24px}.cine .demo-btn{width:64px;height:64px}.cine .demo-btn svg{width:24px;height:24px}}
 
 /* ===== Footer ===== */
-.cine .lfooter{position:relative;margin-top:16vh;padding:10vh 0 0;background:var(--bg);color:var(--dim);font-size:12.5px;z-index:10}
-.cine .lfooter::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:42vh;background:linear-gradient(to bottom,transparent,var(--bg));pointer-events:none}
-.cine .lfooter .fb{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(40px,8vw,96px);color:rgba(255,255,255,.05);letter-spacing:-.03em;line-height:1;margin-bottom:48px;user-select:none;text-align:center}
+.cine .lfooter{position:relative;padding:4vh 0 0;background:var(--bg);color:var(--mut);font-size:13px;z-index:10}
 .cine .fgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:34px;padding-top:38px;padding-bottom:38px;border-top:1px solid var(--line)}
 .cine .fcol{display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left}
-.cine .fcol h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:12.5px;color:#dbe4f2;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.cine .fcol h3{font-family:Sora,"Sora Fallback";font-weight:700;font-size:13.5px;color:#dbe4f2;margin-bottom:4px}
 .cine .fcol a{color:var(--mut);font-size:13px;transition:color 150ms ease}
 @media(hover:hover){.cine .fcol a:hover{color:#fff}}
 .cine .fbrand-head{display:flex;align-items:center;gap:9px}
 .cine .fbrand-head img{width:28px;height:28px}
 .cine .fbrand-head b{font-family:Sora,"Sora Fallback";font-weight:800;font-size:15px;color:#fff}
 .cine .fbrand p{color:var(--mut);font-size:12.5px;line-height:1.65;max-width:34ch}
-.cine .fnets{font-size:11px;color:var(--dim);letter-spacing:.02em}
-.cine .fbottom{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:18px;padding-bottom:26px;border-top:1px solid var(--line);color:var(--dim)}
-.cine .fmade{color:#3c4a63}
+.cine .fnets{font-size:12.5px;color:var(--mut)}
+.cine .fbottom{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:18px;padding-bottom:26px;border-top:1px solid var(--line);color:var(--mut)}
 @media(max-width:860px){.cine .fgrid{grid-template-columns:1fr 1fr}.cine .fbottom{justify-content:center;text-align:center}}
 
-@media (prefers-reduced-motion:reduce){
-  .cine .scroll-cue{animation:none}
-  .cine .impact .word{opacity:1!important;filter:none!important;transform:none!important}
-}
 
 /* ===== Carrousel d'avis (remplace la bande GoodTime) ===== */
-.cine .avis{max-width:640px;margin:0 auto;overflow:hidden;border-radius:20px;border:1px solid rgba(255,255,255,.1);
-            background:rgba(11,19,34,.72);backdrop-filter:blur(10px)}
+.cine .avis{max-width:640px;margin:0 auto;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:#0b1326}
 .cine .avis-track{display:flex;transition:transform 600ms cubic-bezier(.23,1,.32,1)}
 .cine .avis-card{flex:0 0 100%;margin:0;padding:34px 38px 26px;text-align:center}
 .cine .avis-card .stars{color:#fbbf24;font-size:13px;letter-spacing:3px}
 .cine .avis-card blockquote{font-size:15.5px;line-height:1.7;color:#dbe4f2;margin:14px 0 18px;font-family:Inter,"Inter Fallback",sans-serif}
 .cine .avis-card figcaption{display:flex;align-items:center;justify-content:center;gap:10px}
-.cine .avis-card .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5B6CFF,#8A6CFF);
+.cine .avis-card .av{width:34px;height:34px;border-radius:50%;background:var(--cta);
                      color:#fff;font-weight:700;font-size:13.5px;display:grid;place-items:center}
 .cine .avis-card b{display:block;font-size:13px;color:#fff;text-align:left}
-.cine .avis-card small{color:var(--dim);font-size:11.5px;display:block;text-align:left}
+.cine .avis-card small{color:var(--mut);font-size:12.5px;display:block;text-align:left}
 /* Zones tactiles (audit Lighthouse) : chaque bouton fait 32x32px avec 8px d'ecart,
    le point visible (7px, 22px actif) est dessine par ::before pour garder le meme rendu.
    margin-top negatif sur le conteneur seulement (pas entre les boutons) : le point
@@ -612,7 +450,7 @@
                         display:grid;place-items:center;border-radius:999px}
 .cine .avis-dots button::before{content:"";width:7px;height:7px;border-radius:999px;background:#2a3550;
                                 transition:width 200ms ease,background 200ms ease}
-.cine .avis-dots button.on::before{width:22px;background:linear-gradient(135deg,#5B6CFF,#8A6CFF)}
+.cine .avis-dots button.on::before{width:22px;background:var(--cta)}
 
 /* ===== Galerie mobile : carrousel de captures a balayage (snap) ===== */
 .cine .gallery-mob{padding:6vh 0}
@@ -622,13 +460,14 @@
 .cine .mgal-card{flex:0 0 86%;scroll-snap-align:center;margin:0;border-radius:16px;overflow:hidden;
                  border:1px solid rgba(255,255,255,.1);background:rgba(11,19,34,.85)}
 .cine .mgal-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;object-position:left top}
-.cine .mgal-card figcaption{padding:12px 14px;font-size:12.5px;line-height:1.55;color:#8ea0bd;font-family:Inter,"Inter Fallback",sans-serif}
+.cine .mgal-card figcaption{padding:12px 14px;font-size:13px;line-height:1.55;color:var(--mut);font-family:Inter,"Inter Fallback",sans-serif}
 .cine .mgal-card figcaption b{color:#fff;font-family:Sora,"Sora Fallback",sans-serif}
 .cine .mgal-card figcaption em{font-style:normal;color:#3AFFA3}
 
 /* Galerie carrousel : sidebar et points cliquables */
 .cine .sb .it{cursor:pointer}
-.cine .hp-dots i{cursor:pointer}
+.cine .hp-dots button{cursor:pointer}
+.cine .sb .it:focus-visible,.cine .hp-dots button:focus-visible,.cine .btn:focus-visible,.cine .nav-cta:focus-visible{outline:2px solid #b3a6ff;outline-offset:2px}
 
 /* Sélecteur de langue : le reset `.cine *{padding:0}` en haut de ce fichier écrase les
    paddings Tailwind du composant — on les restaure ici (sinon FR/EN/ES sont collés). */

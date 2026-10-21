@@ -4,7 +4,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import { animate, motion, useMotionTemplate, useMotionValue } from 'motion/react';
+import { animate } from 'motion/react';
 import { APK_URL } from '../../lib/appDownload';
 import { isAuthenticated, isAdminAuthenticated, espaceParDefaut } from '../../lib/auth';
 import LangSwitcher from '../../components/LangSwitcher';
@@ -121,17 +121,6 @@ function SceneCap({ scene }) {
   );
 }
 
-// Icônes réseaux (bulles qui montent depuis l'écran du laptop)
-const RISE_LOGOS = [
-  ['li', 'M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45z'],
-  ['ig', 'M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16zm0 3.68a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.4-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z'],
-  ['fb', 'M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.09 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.09 24 18.1 24 12.07z'],
-  ['tk', 'M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z'],
-  ['yt', 'M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.88.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z'],
-  ['gb', 'M21.6 9.22H12.2v3.72h5.41c-.5 2.47-2.6 3.89-5.41 3.89a5.96 5.96 0 0 1 0-11.92c1.52 0 2.9.56 3.98 1.47l2.8-2.8A9.93 9.93 0 0 0 12.2 1.2C6.71 1.2 2.28 5.63 2.28 11.12s4.43 9.92 9.92 9.92c4.96 0 9.47-3.6 9.47-9.92 0-.65-.03-1.28-.07-1.9z'],
-  ['x', 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.451-6.231zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644z'],
-];
-
 const CMP = [
   { id: 'nothing', nameKey: 'lp.cmp.nothing.name', valKeys: ['lp.cmp.nothing.v1', 'lp.cmp.nothing.v2', 'lp.cmp.nothing.v3', 'lp.cmp.nothing.v4', 'lp.cmp.nothing.v5', 'lp.cmp.nothing.v6'] },
   { id: 'intern', nameKey: 'lp.cmp.intern.name', valKeys: ['lp.cmp.intern.v1', 'lp.cmp.intern.v2', 'lp.cmp.intern.v3', 'lp.cmp.intern.v4', 'lp.cmp.intern.v5', 'lp.cmp.intern.v6'] },
@@ -157,30 +146,6 @@ const NAV_LINKS = [
   ['lp.nav.faq', '/faq'],
 ];
 
-// Halo violet qui suit le curseur sur le hero (inspiration : « Toolkit Hero Section », 21st.dev).
-// Écoute le mousemove du parent (la section hero) ; inactif sur tactile et si prefers-reduced-motion.
-// pointer-events:none et mix-blend-mode:screen : il éclaire le fond vidéo sans gêner les clics.
-function HeroGlow() {
-  const ref = useRef(null);
-  const x = useMotionValue(-1000);
-  const y = useMotionValue(-1000);
-  useEffect(() => {
-    const host = ref.current?.parentElement;
-    if (!host || matchMedia('(hover: none)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
-    const onMove = (e) => {
-      const r = host.getBoundingClientRect();
-      x.set(e.clientX - r.left);
-      y.set(e.clientY - r.top);
-    };
-    const onLeave = () => { x.set(-1000); y.set(-1000); };
-    host.addEventListener('mousemove', onMove, { passive: true });
-    host.addEventListener('mouseleave', onLeave);
-    return () => { host.removeEventListener('mousemove', onMove); host.removeEventListener('mouseleave', onLeave); };
-  }, [x, y]);
-  const background = useMotionTemplate`radial-gradient(520px circle at ${x}px ${y}px, rgba(138,108,255,.22), rgba(91,108,255,.08) 45%, transparent 75%)`;
-  return <motion.div ref={ref} className="hero-glow" aria-hidden="true" style={{ background }} />;
-}
-
 // Titre du hero mot à mot : chaque mot est un <span class="mot"> avec son rang (--i) pour une
 // révélation en cascade (flou -> net) ; la 2e ligne garde le dégradé .g (dérive animée en CSS).
 function TitreAnime({ l1, l2 }) {
@@ -200,7 +165,6 @@ function TitreAnime({ l1, l2 }) {
 export default function HomeCine() {
   const rootRef = useRef(null);
   const videoRef = useRef(null);
-  const impactRef = useRef(null);
   const pqWrapRef = useRef(null);
   const pqCardRef = useRef(null);
   const accStageRef = useRef(null);
@@ -249,8 +213,8 @@ export default function HomeCine() {
   const idDemo = idVideoDemo(lang);
   const [demoLancee, setDemoLancee] = useState(false);
   const testi = lang === 'es'
-    ? { flag: '🇪🇸', label: 'Testimonio de cliente · Español', src: `${CLD}/q_auto/marketing/temoignage-es.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-es.jpg` }
-    : { flag: '🇫🇷', label: 'Témoignage client · Français', src: `${CLD}/q_auto/marketing/temoignage-fr.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-fr.jpg` };
+    ? { label: 'Testimonio de cliente · Español', src: `${CLD}/q_auto/marketing/temoignage-es.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-es.jpg` }
+    : { label: 'Témoignage client · Français', src: `${CLD}/q_auto/marketing/temoignage-fr.mp4`, poster: `${CLD}/so_2,q_auto/marketing/temoignage-fr.jpg` };
 
   useEffect(() => {
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -280,35 +244,6 @@ export default function HomeCine() {
     // pour cette seule raison. Regle : ne jamais cacher par JavaScript un
     // element deja peint au-dessus de la ligne de flottaison.
 
-    // Impact : reveal mot à mot scrubé
-    // (le h2 est remonté via key={lang} à chaque changement de langue -> on repart d'un texte propre)
-    const H = impactRef.current;
-    // Découpe MOT à MOT (l'ancien `[^\S ]+` ne coupait que sur les retours à la ligne :
-    // un seul span, et les § restaient visibles à l'écran).
-    // Le texte source est mémorisé : au 2e passage de l'effet (StrictMode, ou re-render)
-    // le DOM ne contient plus les § et les mots accentués seraient perdus.
-    const src = H.dataset.raw || (H.dataset.raw = H.textContent.trim());
-    H.innerHTML = src.split(/\s+/).map((w) => {
-      const acc = w.startsWith('§');
-      return `<span class="word${acc ? ' word--accent' : ''}">${w.replace(/§/g, '')}</span>`;
-    }).join(' ');
-    const words = [...H.querySelectorAll('.word')];
-    const clamp = (v) => Math.max(0, Math.min(1, v));
-    const renderImpact = (p) => {
-      const N = words.length;
-      words.forEach((el, i) => {
-        // lisible dès l'arrivée (base 0.4), révélation complète sur la 1re moitié du pin
-        const o = clamp((p * 2 - (i / N) * 0.6) / 0.14);
-        el.style.opacity = 0.4 + o * 0.6;
-        el.style.filter = `blur(${(1 - o) * 4}px)`;
-        el.style.transform = `translateY(${(1 - o) * 12}px)`;
-      });
-    };
-    renderImpact(0);
-    const st1 = ScrollTrigger.create({
-      trigger: '.cine .impact', start: 'top top', end: () => '+=' + window.innerHeight * 0.7,
-      pin: true, scrub: 1, onUpdate: (s) => renderImpact(s.progress),
-    });
 
     // Galerie : la scène active suit le scroll
     // (galerie : carrousel autonome — plus de pin ScrollTrigger)
@@ -380,11 +315,7 @@ export default function HomeCine() {
       const pqCaption = pqWrap.querySelector('.pq-caption');
       const n = pqSteps.length;
       const pqClamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-      const pqCaptions = [
-        ['Système Postorico', 'Le calendrier du mois, prêt avant même que tu y penses.'],
-        ['Système Postorico', 'Écrit dans ta voix. Tu relis, tu valides en un clic.'],
-        ['Système Postorico', 'Le même résultat qu’une agence, sans la facture qui va avec.'],
-      ];
+      const pqCaptions = [1, 2, 3].map((k) => t(`lp.aud.caption.${k}`));
 
       // `r` = rect de pqWrap, lu par onScrollFrame avant toute ecriture (jamais ici)
       const renderPourQui = (r) => {
@@ -397,11 +328,12 @@ export default function HomeCine() {
         pqSteps.forEach((step, i) => {
           let d = i - raw;
           if (i === n - 1) d = Math.max(d, 0); // dernière carte : jamais "sortie"
-          const y = d > 0 ? d * 300 : d * 150; // sortie plus courte que l'entrée (ne recouvre pas le titre)
+          // Sortie très courte vers le haut : une carte qui remonte de 150 px passait sur le titre.
+          const y = d > 0 ? d * 300 : d * 40;
           const z = -Math.abs(d) * 180;
           const rotateX = d * -7;
           const scale = 1 - Math.min(0.12, Math.abs(d) * 0.055);
-          let opacity = 1 - Math.min(1, Math.abs(d) * 0.95);
+          let opacity = 1 - Math.min(1, Math.abs(d) * (d < 0 ? 1.6 : 0.95));
           if (Math.abs(d) > 1.15) opacity = 0;
           if (i === active) opacity = 1;
           if (i === active + 1) opacity = Math.max(opacity, local);
@@ -424,8 +356,7 @@ export default function HomeCine() {
 
         if (pqCount) pqCount.textContent = `${active + 1} / ${n}`;
         if (pqCaption) {
-          pqCaption.querySelector('b').textContent = pqCaptions[active][0];
-          pqCaption.querySelector('p').textContent = pqCaptions[active][1];
+          pqCaption.querySelector('p').textContent = pqCaptions[active];
         }
 
         const wave = Math.sin(local * Math.PI);
@@ -475,7 +406,6 @@ export default function HomeCine() {
       const rail = stage.querySelector('.acc-rail');
       const track = stage.querySelector('.acc-track');
       const cards = Array.from(stage.querySelectorAll('.acc-card'));
-      const metric = stage.querySelector('.acc-metric-number');
       const clampA = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 
       // Largeurs du rail et des cartes : lues au montage, sur resize et apres
@@ -514,7 +444,6 @@ export default function HomeCine() {
           card.style.opacity = String(1 - Math.min(0.28, Math.abs(d) * 0.12));
           card.querySelector('.acc-progress i').style.width = `${clampA(1 - Math.abs(d)) * 100}%`;
         });
-        if (metric) metric.textContent = String(Math.min(cards.length, Math.floor(p * cards.length) + 1)).padStart(2, '0');
       };
       renderAccFrame = renderAcc;
     }
@@ -556,7 +485,7 @@ export default function HomeCine() {
     };
 
     return () => {
-      st1.kill(); clipTriggers.forEach((tr) => tr.kill());
+      clipTriggers.forEach((tr) => tr.kill());
       ScrollTrigger.getAll().forEach((tr) => tr.kill());
       gsap.ticker.remove(raf);
       pqCleanup();
@@ -564,9 +493,9 @@ export default function HomeCine() {
       if (lenis) lenis.destroy();
       document.removeEventListener('visibilitychange', onVis);
     };
-    // re-cable tout (pins, triggers, stack video) quand on bascule mobile <-> desktop
-    // ou quand la langue change (le titre « impact » est re-decoupe mot a mot)
-  }, [isTouch, lang]);
+    // re-cable tout (triggers, stack video) quand on bascule mobile <-> desktop
+    // ou quand la langue change (légendes de « Pour qui »)
+  }, [isTouch, lang, t]);
 
   return (
     <div className="cine" ref={rootRef}>
@@ -596,7 +525,7 @@ export default function HomeCine() {
           ) : (
             <>
               <Link className="nav-link" to="/login">{t('lp.nav.login')}</Link>
-              <Link className="nav-cta grad" to="/register">{t('lp.nav.start')}</Link>
+              <a className="nav-cta grad" {...propsRdv()}>{t('lp.cta.maDemo')}</a>
             </>
           )}
           <button className={`burger${menuOpen ? ' open' : ''}`} aria-label={t('lp.nav.menu')} aria-expanded={menuOpen}
@@ -615,7 +544,8 @@ export default function HomeCine() {
         ) : (
           <>
             <Link className="ghost" to="/login" style={{ transitionDelay: menuOpen ? '300ms' : '0ms' }}>{t('lp.nav.login')}</Link>
-            <Link className="cta" to="/register" style={{ transitionDelay: menuOpen ? '350ms' : '0ms' }}>{t('lp.nav.start')}</Link>
+            <Link className="ghost" to="/register" style={{ transitionDelay: menuOpen ? '325ms' : '0ms' }}>{t('lp.cta.account')}</Link>
+            <a className="cta" {...propsRdv()} style={{ transitionDelay: menuOpen ? '350ms' : '0ms' }}>{t('lp.cta.maDemo')}</a>
           </>
         )}
       </div>
@@ -629,77 +559,26 @@ export default function HomeCine() {
               les hexagones flottants — déjà utilisés plus bas sur cette page
               et sur le reste du site — comblent le fond, sinon plat et vide. */}
           {isTouch && <FondHexagones />}
-          {!isTouch && <HeroGlow />}
           <div className="hero-copy">
             <span className="kicker"><span className="dot" />{t('lp.hero.kicker')}</span>
             <h1 key={lang}><TitreAnime l1={t('lp.hero.title1')} l2={t('lp.hero.title2')} /></h1>
             <p className="hero-sub"><Trans i18nKey="lp.hero.sub" components={{ b: <b /> }} /></p>
-            <div className="nets"><b>LinkedIn</b><i>·</i><b>Instagram</b><i>·</i><b>Facebook</b><i>·</i><b>TikTok</b><i>·</i><b>YouTube</b><i>·</i><b>Google Business</b></div>
+            <p className="nets">LinkedIn · Instagram · Facebook · TikTok · YouTube · Google Business</p>
             {/* Deux appels à l'action seulement : la démo d'abord, le call de setup ensuite. */}
             <div className="cta-row">
               <a className="btn grad" {...propsRdv()} data-testid="hero-reserver-demo">{t('lp.cta.maDemo')}</a>
               <a className="btn ghost" {...propsRdv()} data-testid="hero-call">{t('lp.cta.call')}</a>
             </div>
-            <div className="hero-note">{t('lp.hero.note')}</div>
-            <div className="hstats">
-              <div className="hstat"><b>{t('lp.hero.stat1.v')}</b><span>{t('lp.hero.stat1.l')}</span></div>
-              <div className="hstat"><b>{t('lp.hero.stat2.v')}</b><span>{t('lp.hero.stat2.l')}</span></div>
-              <div className="hstat"><b>{t('lp.hero.stat3.v')}</b><span>{t('lp.hero.stat3.l')}</span></div>
-              <div className="hstat"><b>{t('lp.hero.stat4.v')}</b><span>{t('lp.hero.stat4.l')}</span></div>
-            </div>
+            <p className="hero-note">{t('lp.hero.note')}</p>
           </div>
           <div />
-          {/* Bulles de logos qui montent depuis l'écran du laptop */}
-          <div className="rise" aria-hidden="true">
-            {RISE_LOGOS.map(([k, d]) => (
-              <span key={k} className={`rlogo ${k}`}><svg viewBox="0 0 24 24"><path d={d} /></svg></span>
-            ))}
-          </div>
-          <div className="scroll-cue">{t('lp.hero.scroll')}</div>
         </section>
-
-        {/* IMPACT */}
-        <section className="impact"><div className="wrap">
-          <h2 key={lang} ref={impactRef}>{t('lp.impact.title')}</h2>
-        </div></section>
-
-        {/* PROBLÈME -> SOLUTION */}
-        <section className="sec"><div className="wrap">
-          <div className="shead">
-            <div className="eyebrow">{t('lp.ps.eyebrow')}</div>
-            <h2>{t('lp.ps.title')}</h2>
-            <p className="lead">{t('lp.ps.lead')}</p>
-          </div>
-          <div className="ps">
-            <div className="pscol bad">
-              <div className="ps-head"><span className="ps-ic">✗</span><h3>{t('lp.ps.bad.title')}</h3></div>
-              <ul>
-                <li><span className="mk">✗</span>{t('lp.ps.bad.1')}</li>
-                <li><span className="mk">✗</span>{t('lp.ps.bad.2')}</li>
-                <li><span className="mk">✗</span>{t('lp.ps.bad.3')}</li>
-                <li><span className="mk">✗</span>{t('lp.ps.bad.4')}</li>
-              </ul>
-            </div>
-            <div className="ps-arrow" aria-hidden="true">→</div>
-            <div className="pscol good">
-              <span className="ps-badge">{t('lp.ps.good.badge')}</span>
-              <div className="ps-head"><span className="ps-ic">✓</span><h3>{t('lp.ps.good.title')}</h3></div>
-              <ul>
-                <li><span className="mk">✓</span>{t('lp.ps.good.1')}</li>
-                <li><span className="mk">✓</span>{t('lp.ps.good.2')}</li>
-                <li><span className="mk">✓</span>{t('lp.ps.good.3')}</li>
-                <li><span className="mk">✓</span>{t('lp.ps.good.4')}</li>
-              </ul>
-            </div>
-          </div>
-        </div></section>
 
         {/* DÉMO VIDÉO. Façade : miniature + bouton lecture, l'iframe YouTube (~1 Mo de
             scripts) ne se charge qu'au clic, pour ne pas alourdir la page la plus visitée. */}
         {idDemo && (
           <section className="sec demo-sec" id="demo"><div className="wrap">
             <div className="shead">
-              <div className="eyebrow">{t('lp.demo.eyebrow')}</div>
               <h2>{t('lp.demo.title')}</h2>
               <p className="lead">{t('lp.demo.lead')}</p>
             </div>
@@ -756,8 +635,8 @@ export default function HomeCine() {
                 <div className="sb">
                   <div className="lg"><img src="/logo-72.png" srcSet="/logo-72.png 72w, /logo.png 120w" sizes="24px" width="24" height="24" alt="" /><b>Postorico</b></div>
                   {SCENES.map((s, i) => (
-                    <div key={s.id} className={'it' + (i === scene ? ' on' : '')} onClick={() => setScene(i)}
-                      role="button" tabIndex={0}><span className="ic" />{t(s.labelKey)}</div>
+                    <button type="button" key={s.id} className={'it' + (i === scene ? ' on' : '')} onClick={() => setScene(i)}
+                      aria-pressed={i === scene}><span className="ic" aria-hidden="true" />{t(s.labelKey)}</button>
                   ))}
                 </div>
                 <div className="pmain">
@@ -766,7 +645,8 @@ export default function HomeCine() {
                   ))}
                   <div className="hp-dots">
                     {SCENES.map((s, i) => (
-                      <i key={s.id} className={i === scene ? 'on' : ''} onClick={() => setScene(i)} role="button" />
+                      <button type="button" key={s.id} className={i === scene ? 'on' : ''} onClick={() => setScene(i)}
+                        aria-label={t(s.labelKey)} aria-pressed={i === scene} />
                     ))}
                   </div>
                 </div>
@@ -779,13 +659,11 @@ export default function HomeCine() {
         {/* PLUTÔT QUE… */}
         <section className="sec sec-cmp"><div className="wrap">
           <div className="shead">
-            <div className="eyebrow">{t('lp.cmp.eyebrow')}</div>
             <h2>{t('lp.cmp.title')}</h2>
           </div>
           <div className="cmp">
             {CMP.map((o) => (
               <div key={o.id} className={'cmpcard' + (o.win ? ' win' : '')}>
-                {o.win && <span className="badge">{t('lp.cmp.badge')}</span>}
                 {/* h3 et non h4 : la section est titree en h2, pas de saut de niveau (audit Lighthouse) */}
                 <h3>{t(o.nameKey)}</h3>
                 <div className="rows">
@@ -806,7 +684,6 @@ export default function HomeCine() {
             <div className="pq-inner">
 
               <div className="pq-head">
-                <div className="pq-eyebrow">{t('lp.aud.eyebrow')}</div>
                 <h2 className="pq-title">{t('lp.aud.title')}</h2>
                 <p className="pq-lead">{t('lp.aud.lead')}</p>
               </div>
@@ -814,22 +691,19 @@ export default function HomeCine() {
               <div className="pq-left">
                 <div className="pq-steps">
                   <article className="pq-step" data-step="0">
-                    <div className="pq-num">01 / 03</div>
                     <h3 className="pq-quote">{t('lp.aud.1.title')}</h3>
                     <p className="pq-desc">{t('lp.aud.1.text')}</p>
-                    <div className="pq-tags"><span className="pq-tag">2-3h / mois</span><span className="pq-tag">Zéro recrutement</span></div>
+                    <div className="pq-tags"><span className="pq-tag">{t('lp.aud.tags.1a')}</span><span className="pq-tag">{t('lp.aud.tags.1b')}</span></div>
                   </article>
                   <article className="pq-step" data-step="1">
-                    <div className="pq-num">02 / 03</div>
                     <h3 className="pq-quote">{t('lp.aud.2.title')}</h3>
                     <p className="pq-desc">{t('lp.aud.2.text')}</p>
-                    <div className="pq-tags"><span className="pq-tag">Ta voix, pas un ton générique</span><span className="pq-tag">Validation en 1 clic</span></div>
+                    <div className="pq-tags"><span className="pq-tag">{t('lp.aud.tags.2a')}</span><span className="pq-tag">{t('lp.aud.tags.2b')}</span></div>
                   </article>
                   <article className="pq-step" data-step="2">
-                    <div className="pq-num">03 / 03</div>
                     <h3 className="pq-quote">{t('lp.aud.3.title')}</h3>
                     <p className="pq-desc">{t('lp.aud.3.text')}</p>
-                    <div className="pq-tags"><span className="pq-tag">Pas de forfait limité</span><span className="pq-tag">10× moins cher</span></div>
+                    <div className="pq-tags"><span className="pq-tag">{t('lp.aud.tags.3a')}</span><span className="pq-tag">{t('lp.aud.tags.3b')}</span></div>
                   </article>
                 </div>
                 <div className="pq-progress"><div className="pq-dot"><i></i></div><div className="pq-dot"><i></i></div><div className="pq-dot"><i></i></div></div>
@@ -838,19 +712,18 @@ export default function HomeCine() {
               <div className="pq-card-stage">
                 <div className="pq-card" ref={pqCardRef}>
                   <div className="pq-count">1 / 3</div>
-                  <img src="/images/pour-qui/calendrier.jpg" data-img="0" alt="Rico — calendrier" loading="lazy" decoding="async" />
-                  <img src="/images/pour-qui/panneaux.jpg" data-img="1" alt="Rico — formats" loading="lazy" decoding="async" />
-                  <img src="/images/pour-qui/confiant.jpg" data-img="2" alt="Rico — confiance" loading="lazy" decoding="async" />
+                  <img src="/images/pour-qui/calendrier.jpg" data-img="0" alt={t('lp.aud.alt.1')} loading="lazy" decoding="async" />
+                  <img src="/images/pour-qui/panneaux.jpg" data-img="1" alt={t('lp.aud.alt.2')} loading="lazy" decoding="async" />
+                  <img src="/images/pour-qui/confiant.jpg" data-img="2" alt={t('lp.aud.alt.3')} loading="lazy" decoding="async" />
                   <span className="pq-sheen"></span>
                   <div className="pq-caption">
-                    <b>Système Postorico</b>
-                    <p>Le calendrier du mois, prêt avant même que tu y penses.</p>
+                    <p>{t('lp.aud.caption.1')}</p>
                   </div>
                 </div>
               </div>
 
             </div>
-            <div className="pq-hint">continue à scroller ↓</div>
+            <div className="pq-hint">{t('lp.aud.hint')}</div>
           </div>
         </div></section>
 
@@ -864,38 +737,30 @@ export default function HomeCine() {
             <div className="acc-layout">
               <aside className="acc-intro">
                 <div>
-                  <div className="acc-eyebrow">{t('lp.flow.eyebrow')}</div>
                   <h2>{t('lp.flow.title')}</h2>
                   <p>{t('lp.flow.lead')}</p>
-                </div>
-                <div className="acc-metric">
-                  <div className="acc-metric-label">Ton système</div>
-                  <div className="acc-metric-number">01</div>
-                  <div className="acc-metric-sub">étudier · construire · piloter</div>
                 </div>
               </aside>
               <div className="acc-rail">
                 <div className="acc-track">
                   {[
-                    { pill: 'Étape 01', idx: '1', kicker: 'Audit', title: t('lp.flow.1.title'), text: t('lp.flow.1.text'), tags: ['Audit', 'Positionnement'] },
-                    { pill: 'Étape 02', idx: '2', kicker: 'Construction', title: t('lp.flow.2.title'), text: t('lp.flow.2.text'), tags: ['Système', 'Calendrier'] },
-                    { pill: 'Étape 03', idx: '3', kicker: 'Pilotage', title: t('lp.flow.3.title'), text: t('lp.flow.3.text'), tags: ['Contrôle', '~2 h / mois'] },
-                    { pill: 'Résultat', idx: '✓', kicker: 'Système installé', title: t('lp.flow.roles.title'), text: <Trans i18nKey="lp.flow.roles.text" components={{ b: <b /> }} />, tags: ['Prêt à utiliser', 'Tu gardes le contrôle'] },
+                    { id: 'audit', idx: '1', kicker: t('lp.flow.1.kicker'), title: t('lp.flow.1.title'), text: t('lp.flow.1.text') },
+                    { id: 'construction', idx: '2', kicker: t('lp.flow.2.kicker'), title: t('lp.flow.2.title'), text: t('lp.flow.2.text') },
+                    { id: 'pilotage', idx: '3', kicker: t('lp.flow.3.kicker'), title: t('lp.flow.3.title'), text: t('lp.flow.3.text') },
+                    { id: 'resultat', idx: '✓', kicker: t('lp.flow.roles.kicker'), title: t('lp.flow.roles.title'), text: <Trans i18nKey="lp.flow.roles.text" components={{ b: <b /> }} /> },
                   ].map((c) => (
-                    <article className="acc-card" key={c.pill}>
-                      <div className="acc-pill">{c.pill}</div>
-                      <div className="acc-card-index">{c.idx}</div>
+                    <article className="acc-card" key={c.id}>
+                      <div className="acc-card-index" aria-hidden="true">{c.idx}</div>
                       <div className="acc-card-content">
                         <div className="acc-card-kicker">{c.kicker}</div>
                         <h3>{c.title}</h3>
                         <p>{c.text}</p>
-                        <div className="acc-card-tags">{c.tags.map((tg) => <span className="acc-tag" key={tg}>{tg}</span>)}</div>
                       </div>
                       <div className="acc-progress"><i /></div>
                     </article>
                   ))}
                 </div>
-                <div className="acc-hint"><span />Continue à scroller</div>
+                <div className="acc-hint"><span />{t('lp.flow.hint')}</div>
               </div>
             </div>
             <a className="acc-cta" {...propsRdv()}>{t('lp.cta.call')}</a>
@@ -904,12 +769,11 @@ export default function HomeCine() {
 
         {/* TÉMOIGNAGES */}
         <section className="testi"><FondHexagones /><div className="wrap">
-          <div className="eyebrow">{t('lp.testi.eyebrow')}</div>
           <h2>{t('lp.testi.title')}</h2>
           <div className="tgrid tgrid--solo">
             <figure className="vcard">
               <video src={testi.src} poster={testi.poster} controls preload="metadata" playsInline />
-              <figcaption>{testi.flag} {testi.label}</figcaption>
+              <figcaption>{testi.label}</figcaption>
             </figure>
           </div>
         </div></section>
@@ -935,6 +799,21 @@ export default function HomeCine() {
           </div>
         </div></section>
 
+        {/* PRIX : la question que tout dirigeant se pose, avant l'appel final */}
+        <section className="sec prix-sec"><div className="wrap">
+          <div className="prix">
+            <div>
+              <h2>{t('lp.prix.title')}</h2>
+              <p>{t('lp.prix.text')}</p>
+            </div>
+            <div className="prix-montant">
+              <b>{t('lp.prix.montant')}</b>
+              <span>{t('lp.prix.detail')}</span>
+              <Link to="/tarifs">{t('lp.prix.lien')}</Link>
+            </div>
+          </div>
+        </div></section>
+
         {/* CTA FINAL */}
         <section className="final"><FondHexagones /><div className="wrap">
           <div className="ctaband">
@@ -952,7 +831,6 @@ export default function HomeCine() {
 
       {/* FOOTER */}
       <footer className="lfooter">
-        <div className="fb">POSTORICO</div>
         <div className="fgrid wrap">
           <div className="fcol fbrand">
             <div className="fbrand-head"><img src="/logo-72.png" srcSet="/logo-72.png 72w, /logo.png 120w" sizes="28px" width="28" height="28" alt="" /><b>Postorico</b></div>
@@ -988,7 +866,6 @@ export default function HomeCine() {
         </div>
         <div className="fbottom wrap">
           <span>{t('lp.footer.copy')}</span>
-          <span className="fmade">{t('lp.footer.made')}</span>
         </div>
       </footer>
     </div>

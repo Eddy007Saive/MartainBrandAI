@@ -2499,6 +2499,7 @@
     }
   },
   "lp": {
+    "prix": {"title": "Combien ça coûte ?", "text": "Un abonnement tout compris : la création de tes contenus, la publication sur 6 réseaux et ta fiche Google. Tu commences par 14 jours d’essai, sans carte bancaire.", "montant": "279 € / mois", "detail": "Sans engagement · Essai gratuit 14 jours", "lien": "Voir le détail des tarifs"},
     "nav": {
       "features": "Fonctionnalités",
       "how": "Comment ça marche",
@@ -2527,7 +2528,7 @@
       "title1": "On installe ton système marketing.",
       "title2": "Tu le pilotes en 2 h par mois.",
       "sub": "Nos experts étudient ta boîte et bâtissent ton studio de contenu <b>calibré sur ta voix</b>. Ensuite c'est toi aux commandes : tu génères, tu valides, tu publies. <b>La régularité d'une agence, sans la facture.</b>",
-      "note": "Échange gratuit · On étudie ta boîte avant tout",
+      "note": "Appel gratuit de 30 min · Essai 14 jours sans carte · Sans engagement",
       "scroll": "↓ scrolle",
       "stat1": {
         "v": "2 h",
@@ -2618,10 +2619,10 @@
         "name": "Ne rien faire",
         "v1": "0 € (réseaux morts)",
         "v2": "Nul",
-        "v3": "—",
+        "v3": "Absente",
         "v4": "Nulle",
-        "v5": "—",
-        "v6": "—"
+        "v5": "Aucun",
+        "v6": "Rien à lancer… ni à publier"
       },
       "intern": {
         "name": "Un stagiaire / alternant",
@@ -2643,15 +2644,19 @@
       },
       "postorico": {
         "name": "Postorico",
-        "v1": "À partir de 0 €",
-        "v2": "Illimité, tous réseaux",
+        "v1": "279 €/mois, sans engagement",
+        "v2": "Quotas généreux par type, tous réseaux",
         "v3": "Calibrée sur ta marque",
         "v4": "Automatique",
         "v5": "Tu valides en 1 clic",
-        "v6": "2 minutes"
+        "v6": "Un appel, puis quelques jours de calibrage"
       }
     },
     "aud": {
+      "tags": {"1a": "2 à 3 h par mois", "1b": "Zéro recrutement", "2a": "Ta voix, pas un ton générique", "2b": "Validation en 1 clic", "3a": "Tous les réseaux", "3b": "Sans engagement"},
+      "caption": {"1": "Le calendrier du mois, prêt avant même que tu y penses.", "2": "Écrit dans ta voix. Tu relis, tu valides en un clic.", "3": "La régularité d’une agence, sans la facture qui va avec."},
+      "alt": {"1": "Rico devant le calendrier de publication du mois", "2": "Rico entouré des formats générés : posts, carrousels, vidéos", "3": "Rico, confiant, les bras croisés"},
+      "hint": "Continue à faire défiler ↓",
       "eyebrow": "Pour qui",
       "title": "Tu te reconnais dans une de ces situations ?",
       "lead": "On ne s'adresse pas à un secteur, mais à une réalité de dirigeant.",
@@ -2665,26 +2670,31 @@
       },
       "3": {
         "title": "« Je paie une agence »",
-        "text": "Pas de forfait limité, ni de facture à 3 000 € par mois. Publie autant que tu veux, sur tous les réseaux, et développe ta présence en ligne pour 10× moins cher."
+        "text": "Pas de forfait à 8 posts ni de facture à 3 000 € par mois : tous les réseaux, des quotas généreux, pour une fraction du prix d’une agence."
       }
     },
     "flow": {
+      "hint": "Continue à faire défiler",
       "eyebrow": "Accompagnement",
       "title": "Tu n'as pas le temps ? On construit ton système à ta place.",
       "lead": "Nos experts marketing étudient ta marque et bâtissent ton studio sur-mesure. Tu n'as plus qu'à valider et publier.",
       "1": {
+        "kicker": "Audit",
         "title": "On étudie ta boîte",
         "text": "Positionnement, offres, cibles, ton de marque, concurrents. Un vrai audit, pas un formulaire."
       },
       "2": {
+        "kicker": "Construction",
         "title": "On construit ton système",
         "text": "Lignes éditoriales, angles, calendrier, calibrage de l'IA sur ta voix, et des propositions concrètes de posts et formats vidéo à ton image."
       },
       "3": {
-        "title": "Tu pilotes, en ~2 h/mois",
+        "kicker": "Pilotage",
+        "title": "Tu pilotes, en 2 h par mois",
         "text": "Le système est prêt : tu génères tes sujets, tu valides, tu produis tes visuels et vidéos, tu programmes. Rien ne sort sans toi."
       },
       "roles": {
+        "kicker": "Système installé",
         "title": "On installe. Tu pilotes.",
         "text": "<b>Nous :</b> on étudie ta marque, on paramètre tout, on crée tes modèles de visuels. <b>Toi :</b> ~2 h par mois pour générer, valider et publier. Tu gardes le contrôle, on porte la complexité."
       }

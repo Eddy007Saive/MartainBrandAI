@@ -2499,6 +2499,7 @@
     }
   },
   "lp": {
+    "prix": {"title": "¿Cuánto cuesta?", "text": "Una suscripción todo incluido: la creación de tus contenidos, la publicación en 6 redes y tu ficha de Google. Empiezas con 14 días de prueba, sin tarjeta.", "montant": "279 € / mes", "detail": "Sin permanencia · Prueba gratuita de 14 días", "lien": "Ver el detalle de precios"},
     "nav": {
       "features": "Funcionalidades",
       "how": "Cómo funciona",
@@ -2527,7 +2528,7 @@
       "title1": "Instalamos tu sistema de marketing.",
       "title2": "Tú lo pilotas en 2 h al mes.",
       "sub": "Nuestros expertos estudian tu empresa y construyen tu estudio de contenido <b>calibrado con tu voz</b>. Después mandas tú: generas, validas, publicas. <b>La constancia de una agencia, sin la factura.</b>",
-      "note": "Llamada gratuita · Estudiamos tu empresa antes de nada",
+      "note": "Llamada gratuita de 30 min · Prueba de 14 días sin tarjeta · Sin permanencia",
       "scroll": "↓ desliza",
       "stat1": {
         "v": "2 h",
@@ -2618,10 +2619,10 @@
         "name": "No hacer nada",
         "v1": "0 € (redes muertas)",
         "v2": "Ninguno",
-        "v3": "—",
+        "v3": "Ausente",
         "v4": "Ninguna",
-        "v5": "—",
-        "v6": "—"
+        "v5": "Ninguno",
+        "v6": "Nada que lanzar… ni que publicar"
       },
       "intern": {
         "name": "Un becario / aprendiz",
@@ -2643,15 +2644,19 @@
       },
       "postorico": {
         "name": "Postorico",
-        "v1": "Desde 0 €",
-        "v2": "Ilimitado, todas las redes",
+        "v1": "279 €/mes, sin permanencia",
+        "v2": "Cuotas generosas por tipo, todas las redes",
         "v3": "Calibrada con tu marca",
         "v4": "Automática",
         "v5": "Validas en 1 clic",
-        "v6": "2 minutos"
+        "v6": "Una llamada y unos días de calibración"
       }
     },
     "aud": {
+      "tags": {"1a": "2 a 3 h al mes", "1b": "Cero contrataciones", "2a": "Tu voz, no un tono genérico", "2b": "Validación en 1 clic", "3a": "Todas las redes", "3b": "Sin permanencia"},
+      "caption": {"1": "El calendario del mes, listo antes de que lo pienses.", "2": "Escrito con tu voz. Lo relees y lo validas en un clic.", "3": "La regularidad de una agencia, sin su factura."},
+      "alt": {"1": "Rico frente al calendario de publicación del mes", "2": "Rico rodeado de los formatos generados: publicaciones, carruseles, vídeos", "3": "Rico, seguro de sí, con los brazos cruzados"},
+      "hint": "Sigue desplazándote ↓",
       "eyebrow": "Para quién",
       "title": "¿Te reconoces en alguna de estas situaciones?",
       "lead": "No nos dirigimos a un sector, sino a la realidad de quien dirige una empresa.",
@@ -2665,26 +2670,31 @@
       },
       "3": {
         "title": "«Pago a una agencia»",
-        "text": "Sin planes limitados ni facturas de 3.000 € al mes. Publica todo lo que quieras, en todas las redes, y haz crecer tu presencia online por 10× menos."
+        "text": "Ni paquetes de 8 publicaciones ni facturas de 3.000 € al mes: todas las redes, cuotas generosas, por una fracción del precio de una agencia."
       }
     },
     "flow": {
+      "hint": "Sigue desplazándote",
       "eyebrow": "Acompañamiento",
       "title": "¿No tienes tiempo? Construimos tu sistema por ti.",
       "lead": "Nuestros expertos en marketing estudian tu marca y construyen tu estudio a medida. Tú solo tienes que validar y publicar.",
       "1": {
+        "kicker": "Auditoría",
         "title": "Estudiamos tu empresa",
         "text": "Posicionamiento, ofertas, públicos, tono de marca, competencia. Una auditoría de verdad, no un formulario."
       },
       "2": {
+        "kicker": "Construcción",
         "title": "Construimos tu sistema",
         "text": "Líneas editoriales, ángulos, calendario, calibrado de la IA con tu voz, y propuestas concretas de posts y formatos de vídeo a tu imagen."
       },
       "3": {
-        "title": "Tú pilotas: en ~2 h/mes",
+        "kicker": "Pilotaje",
+        "title": "Tú pilotas, en 2 h al mes",
         "text": "El sistema está listo: generas tus temas, validas, produces tus visuales y vídeos, programas. Nada sale sin ti."
       },
       "roles": {
+        "kicker": "Sistema instalado",
         "title": "Nosotros instalamos. Tú pilotas.",
         "text": "<b>Nosotros:</b> estudiamos tu marca, lo configuramos todo y creamos tus plantillas de visuales. <b>Tú:</b> ~2 h al mes para generar, validar y publicar. Tú mantienes el control, nosotros cargamos con la complejidad."
       }

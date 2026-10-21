@@ -2499,6 +2499,7 @@
     }
   },
   "lp": {
+    "prix": {"title": "How much does it cost?", "text": "One all-inclusive subscription: your content created, published on 6 networks, plus your Google listing. You start with a 14-day trial, no credit card.", "montant": "€279 / month", "detail": "No commitment · 14-day free trial", "lien": "See pricing details"},
     "nav": {
       "features": "Features",
       "how": "How it works",
@@ -2525,9 +2526,9 @@
     "hero": {
       "kicker": "Set up by experts · Run by you",
       "title1": "We build your marketing system.",
-      "title2": "You run it in 2 hrs a month.",
+      "title2": "You run it in 2 hrs a month.",
       "sub": "Our experts study your business and build a content studio <b>tuned to your voice</b>. Then you take the wheel: generate, approve, publish. <b>An agency's consistency, without the invoice.</b>",
-      "note": "Free call · We study your business first",
+      "note": "Free 30-min call · 14-day trial, no card · No commitment",
       "scroll": "↓ scroll",
       "stat1": {
         "v": "2 hrs",
@@ -2618,10 +2619,10 @@
         "name": "Doing nothing",
         "v1": "€0 (dead accounts)",
         "v2": "None",
-        "v3": "—",
+        "v3": "Missing",
         "v4": "None",
-        "v5": "—",
-        "v6": "—"
+        "v5": "None",
+        "v6": "Nothing to launch… or publish"
       },
       "intern": {
         "name": "An intern / apprentice",
@@ -2643,15 +2644,19 @@
       },
       "postorico": {
         "name": "Postorico",
-        "v1": "From €0",
-        "v2": "Unlimited, every network",
+        "v1": "€279/month, no commitment",
+        "v2": "Generous quotas per type, every network",
         "v3": "Tuned to your brand",
         "v4": "Automatic",
         "v5": "You approve in 1 click",
-        "v6": "2 minutes"
+        "v6": "One call, then a few days of tuning"
       }
     },
     "aud": {
+      "tags": {"1a": "2 to 3 hrs a month", "1b": "No hiring", "2a": "Your voice, not a generic tone", "2b": "1-click approval", "3a": "Every network", "3b": "No commitment"},
+      "caption": {"1": "The month’s calendar, ready before you even think about it.", "2": "Written in your voice. You read it, you approve in one click.", "3": "The consistency of an agency, without the invoice."},
+      "alt": {"1": "Rico in front of the month’s publishing calendar", "2": "Rico surrounded by generated formats: posts, carousels, videos", "3": "Rico, confident, arms crossed"},
+      "hint": "Keep scrolling ↓",
       "eyebrow": "Who it's for",
       "title": "Does one of these sound like you?",
       "lead": "We're not built for one industry. We're built for the reality of running a company.",
@@ -2665,26 +2670,31 @@
       },
       "3": {
         "title": "\"I'm paying an agency\"",
-        "text": "No capped plan, no €3,000 invoice every month. Publish as much as you want, on every network, and grow your presence for 10× less."
+        "text": "No 8-post package, no €3,000 monthly invoice: every network, generous quotas, for a fraction of an agency’s price."
       }
     },
     "flow": {
+      "hint": "Keep scrolling",
       "eyebrow": "Done-for-you setup",
       "title": "Short on time? We build your system for you.",
       "lead": "Our marketing experts study your brand and build your studio from scratch. All that's left for you: approve and publish.",
       "1": {
+        "kicker": "Audit",
         "title": "We study your business",
         "text": "Positioning, offers, audiences, brand tone, competitors. A real audit, not a form."
       },
       "2": {
+        "kicker": "Build",
         "title": "We build your system",
         "text": "Editorial pillars, angles, calendar, AI tuned to your voice, plus concrete post and video ideas that look like you."
       },
       "3": {
-        "title": "You run it: in ~2 hrs/month",
+        "kicker": "Running it",
+        "title": "You run it, in 2 hrs a month",
         "text": "The system is ready: you generate topics, approve them, produce your visuals and videos, and schedule. Nothing goes out without you."
       },
       "roles": {
+        "kicker": "System installed",
         "title": "We set it up. You run it.",
         "text": "<b>Us:</b> we study your brand, configure everything, and build your visual templates. <b>You:</b> ~2 hours a month to generate, approve and publish. You keep control, we carry the complexity."
       }
@@ -2722,7 +2732,7 @@
       "legalNotice": "Legal notice",
       "apk": "Android app",
       "book": "Book a call",
-      "copy": "© 2026 Postorico · A product by Kraemer Ventures EOOD",
+      "copy": "© 2026 Postorico · A Kraemer Ventures EOOD product",
       "made": "Made with 🐓 in France",
       "productOf": "A product by",
       "pricing": "Pricing",

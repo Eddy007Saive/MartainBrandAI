@@ -5,7 +5,7 @@
 // bouton mort. Attention, les variables REACT_APP_ sont figées dans le paquet
 // à la compilation : en production, il faut reconstruire, pas redémarrer.
 export const BOOKING_URL = process.env.REACT_APP_BOOKING_URL
-  || 'mailto:martindumoulin88@gmail.com?subject=Call%20setup%20Presence%20OS';
+  || 'mailto:contact@postorico.com?subject=Appel%20de%20d%C3%A9marrage%20Postorico';
 
 /** Attributs d'un lien de rendez-vous.
  *  Un agenda s'ouvre dans un onglet neuf — on ne fait pas quitter le site à
