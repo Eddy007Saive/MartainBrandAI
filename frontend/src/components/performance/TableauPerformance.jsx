@@ -21,11 +21,12 @@ const NET_NOM = { linkedin: 'LinkedIn', instagram: 'Instagram', facebook: 'Faceb
 export const normPlat = (p) => (p || '').toString().toLowerCase().split('.').pop();
 export const nomReseau = (p) => NET_NOM[normPlat(p)] || p;
 
+// Nombres compacts dans la langue de l'interface (31,9 k en français, 31.9K en anglais)
 export const fmt = (n) => {
   n = Number(n) || 0;
-  if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(1).replace('.0', '') + 'M';
-  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(1).replace('.0', '') + 'k';
-  return String(Math.round(n));
+  let langue = 'fr';
+  try { langue = document.documentElement.lang || navigator.language || 'fr'; } catch (e) { /* hors navigateur */ }
+  try { return new Intl.NumberFormat(langue, { notation: 'compact', maximumFractionDigits: 1 }).format(n); } catch (e) { return String(Math.round(n)); }
 };
 const pct = (n) => `${String(Math.round((Number(n) || 0) * 10) / 10).replace('.', ',')} %`;
 
@@ -421,7 +422,7 @@ export function ResumePerformance({ repli = null }) {
   const tuiles = [
     { k: 'eng', label: t('perf.kpiEngagement'), val: pct(tot.engagementRate), v: prev ? variation(tot.engagementRate, prev.engagementRate) : null },
     { k: 'reach', label: t('perf.kpiReach'), val: fmt(tot.reach), v: prev ? variation(tot.reach, prev.reach) : null },
-    ab ? { k: 'abo', label: t('perf.dash.abonnes'), val: fmt(ab.current), sous: t('perf.dash.abonnesGagnes', { n: (ab.gained >= 0 ? '+' : '') + fmt(ab.gained) }) }
+    ab ? { k: 'abo', label: t('perf.dash.abonnes'), val: fmt(ab.current), negatif: ab.gained < 0, sous: t('perf.dash.abonnesGagnes', { n: (ab.gained >= 0 ? '+' : '') + fmt(ab.gained) }) }
       : { k: 'impr', label: t('perf.kpiImpressions'), val: fmt(tot.impressions), v: prev ? variation(tot.impressions, prev.impressions) : null },
     { k: 'posts', label: t('perf.dash.publications'), val: String((data.posts || []).length) },
   ];
@@ -430,9 +431,9 @@ export function ResumePerformance({ repli = null }) {
       <div className="flex items-center justify-between gap-3 mb-4">
         <div>
           <h2 className="text-lg font-semibold font-sora text-white">{t('perf.dash.resumeTitre')}</h2>
-          <p className="text-[12.5px] text-slate-500 font-inter">{t('perf.dash.resumeSous')}</p>
+          <p className="text-[12.5px] text-slate-300 font-inter">{t('perf.dash.resumeSous')}</p>
         </div>
-        <Link to="/dashboard/performance" className="flex items-center gap-1.5 text-[#8A6CFF] text-sm font-medium font-inter hover:gap-2.5 transition-all shrink-0">
+        <Link to="/dashboard/performance" aria-label={t('perf.dash.voirTout')} className="flex items-center gap-1.5 text-[#c9c1ff] hover:text-white text-sm font-semibold font-inter shrink-0 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF]/70">
           <span className="hidden sm:inline">{t('perf.dash.voirTout')}</span> <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
@@ -442,7 +443,7 @@ export function ResumePerformance({ repli = null }) {
             <div className="text-[12px] text-slate-400 font-inter truncate">{m.label}</div>
             <div className="text-2xl font-bold font-sora text-white mt-1">{m.val}</div>
             <div className="min-h-[16px] text-[11.5px]">
-              {m.sous ? <span className="text-[#3AFFA3] font-semibold">{m.sous}</span> : <VariationBadge valeur={m.v} />}
+              {m.sous ? <span className={`font-semibold ${m.negatif ? 'text-red-300' : 'text-[#7ff5c4]'}`}>{m.sous}</span> : <VariationBadge valeur={m.v} />}
             </div>
           </div>
         ))}

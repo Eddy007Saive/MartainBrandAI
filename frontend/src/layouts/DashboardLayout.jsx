@@ -458,7 +458,7 @@ function DashboardContent() {
       <main className="flex-1 overflow-y-auto relative z-10 pt-16 md:pt-0">
         <div className="p-5 md:p-8 w-full min-h-full">
           {showDl && (
-            <div className="mb-5 flex items-center gap-3 p-3 rounded-xl border border-[#3AFFA3]/25 bg-[#3AFFA3]/[0.06]">
+            <div className="mb-5 flex md:hidden items-center gap-3 p-3 rounded-xl border border-[#3AFFA3]/25 bg-[#3AFFA3]/[0.06]">
               <Download className="w-5 h-5 text-[#3AFFA3] shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white font-inter">{t('app.appTitre')}</p>
