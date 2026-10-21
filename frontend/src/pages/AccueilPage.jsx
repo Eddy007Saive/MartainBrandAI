@@ -72,13 +72,32 @@ export default function AccueilPage() {
   const nouveauCompte = !!demarrage && !demarrage.termine;
 
   const echecs = useMemo(() => (contenus || []).filter((c) => c.publish_status === 'échec'), [contenus]);
+  // Un échec « compte non reconnu » ne dit pas que le réseau EST déconnecté : il peut dater d'avant
+  // une reconnexion (21/10/2026 : échecs de septembre, Instagram publiait encore la veille). On ne
+  // le signale que si le réseau n'est plus connecté, ou si l'échec est récent (7 jours) et postérieur
+  // à la dernière publication réussie sur ce réseau.
+  const derniereReussite = useMemo(() => {
+    const m = {};
+    (contenus || []).forEach((c) => {
+      if (c.publish_status !== 'publié' || !c.date_publication) return;
+      const r = idReseau(c.reseau_cible); const d = new Date(c.date_publication).getTime();
+      if (!m[r] || d > m[r]) m[r] = d;
+    });
+    return m;
+  }, [contenus]);
+  const connexionDouteuse = useCallback((c) => {
+    const r = idReseau(c.reseau_cible);
+    if (!user?.[`late_account_${r}`]) return true;
+    const d = new Date(c.date_publication || c.updated_at || 0).getTime();
+    return Date.now() - d < 7 * 86400000 && d > (derniereReussite[r] || 0);
+  }, [user, derniereReussite]);
   const { urgent, plusTard } = useMemo(() => {
     if (!contenus) return { urgent: [], plusTard: [] };
     const u = [];
     const p = [];
     // Réseaux à reconnecter : déduits des échecs dus à la connexion du compte
     // (un seul échec : sa carte propose déjà « Reconnecter », pas de doublon)
-    const aReconnecter = echecs.length > 1 ? [...new Set(echecs.filter((c) => erreurDeConnexion(c.publish_error)).map((c) => idReseau(c.reseau_cible)))] : [];
+    const aReconnecter = echecs.length > 1 ? [...new Set(echecs.filter((c) => erreurDeConnexion(c.publish_error) && connexionDouteuse(c)).map((c) => idReseau(c.reseau_cible)))] : [];
     aReconnecter.forEach((r) => u.push({ cle: `reco-${r}`, ton: 'danger', Icon: Link2Off, texte: t('accueil.tacheReconnexion', { reseau: nomReseau(r) }), action: t('accueil.actionReconnecter'), to: '/dashboard/parametres?s=connections' }));
     if (echecs.length > 1) u.push({ cle: 'echecs', ton: 'danger', Icon: AlertTriangle, texte: t('accueil.tacheEchecs', { count: echecs.length }), action: t('accueil.actionVoir'), to: '/dashboard/contenus?filtre=echec' });
     const rendus = contenus.filter((c) => c.video_status === 'echec');
@@ -106,7 +125,7 @@ export default function AccueilPage() {
     const filled = plan.reduce((a, x) => a + (x.filled || 0), 0);
     if (needed > filled) p.push({ cle: 'plan', ton: 'neutre', Icon: PenLine, texte: t('accueil.tachePlan', { mois: t(`plan.${MOIS_KEYS[new Date().getMonth()]}`), filled, needed }), action: t('accueil.actionCompleter'), to: '/dashboard/plan', progression: needed ? filled / needed : 0 });
     return { urgent: u, plusTard: p };
-  }, [contenus, echecs, stats, plan, usage, t, langue]);
+  }, [contenus, echecs, stats, plan, usage, t, langue, connexionDouteuse]);
 
   const nbUrgent = urgent.length + (echecs.length === 1 ? 1 : 0);
   const aVenir = useMemo(() => {
@@ -168,7 +187,7 @@ export default function AccueilPage() {
   const CarteEchec = () => {
     const c = echecUnique;
     const visuel = c.lien_visuel || (Array.isArray(c.slides_images) && c.slides_images[0]);
-    const connexion = erreurDeConnexion(c.publish_error);
+    const connexion = erreurDeConnexion(c.publish_error) && connexionDouteuse(c);
     return (
       <li className="rounded-xl border border-red-400/40 bg-red-400/10 p-3.5 font-inter" data-testid="accueil-echec-unique">
         <p className="flex items-center gap-2 text-[14.5px] font-semibold text-red-100">
