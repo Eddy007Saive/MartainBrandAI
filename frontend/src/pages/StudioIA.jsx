@@ -1370,16 +1370,21 @@ export default function StudioIA() {
                             <AlertTriangle className="w-3.5 h-3.5 text-amber-300" aria-hidden="true" />{t('studio.pointsARevoir', { count: verifications(sel).filter((v) => !v.ok).length })}
                           </button>
                         )}
-                        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#090d18]/95 px-4 py-3 flex items-center justify-between gap-2.5 md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:mt-3 md:flex-wrap">
-                          <Button variant="ghost" onClick={() => regenerer(sel.id)} className={`${btnSecondaire} md:min-w-[140px]`}>
-                            <RefreshCw className="w-4 h-4" /><span className="ml-2">{t('studio.regenerate')}</span>
+                        {/* Actions du contenu : groupées à droite, l'action principale au bout. Le violet est
+                            le bouton principal du Studio ; le vert y marque seulement une étape terminée. */}
+                        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#090d18]/95 px-4 py-3 flex items-center gap-2.5 md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:mt-4 md:justify-end">
+                          <Button variant="ghost" onClick={() => regenerer(sel.id)} disabled={sel.saving}
+                            className={`${btnSecondaire} h-11 md:h-10 px-4 rounded-[10px] font-medium`}>
+                            <RefreshCw className="w-4 h-4" aria-hidden="true" /><span className="ml-2">{t('studio.regenerate')}</span>
                           </Button>
                           <Button data-testid={`studio-valider-${sel.id}`} onClick={() => valider(sel.id)} disabled={sel.saving || !sel.texte.trim()}
-                            className={`flex-1 md:flex-none bg-[#3AFFA3] text-[#03241a] font-semibold hover:bg-[#5effb6] md:min-w-[160px] disabled:opacity-50 ${FOCUS}`}>
-                            {sel.saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" strokeWidth={2.6} />}<span className="ml-2">{t('studio.validerVersContenus')}</span>
+                            aria-describedby={`studio-valider-aide-${sel.id}`}
+                            className={`${btnViolet} flex-1 md:flex-none h-11 md:h-10 px-5 rounded-[10px] font-semibold active:scale-[0.98] transition-[transform,background-color] duration-150`}>
+                            {sel.saving ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Check className="w-4 h-4" strokeWidth={2.6} aria-hidden="true" />}
+                            <span className="ml-2">{t(sel.format === 'script' ? 'studio.validerScript' : 'studio.validerPost')}</span>
                           </Button>
                         </div>
-                        <p className="mt-2 text-[12.5px] text-slate-300 font-inter text-right">{t('studio.rienPublie')}</p>
+                        <p id={`studio-valider-aide-${sel.id}`} className="mt-2 text-[12.5px] text-slate-300 font-inter md:text-right md:ml-auto md:max-w-[52ch] [text-wrap:balance]">{t('studio.rienPublie')}</p>
                         {extrasDe(sel).length > 0 && (
                           <p className="mt-1 text-[12.5px] text-amber-100 font-inter text-right">{t('studio.extrasApresImage', { liste: extrasDe(sel).join(', ') })}</p>
                         )}
