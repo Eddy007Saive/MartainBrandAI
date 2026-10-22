@@ -30,7 +30,13 @@
    object-position ne la deplace plus, et les cartes qui apparaissent pendant la boucle
    passaient sous le titre. On la pousse vers la droite : son bord gauche est sombre et
    fondu par le masque, le raccord ne se voit pas. */
-@media (min-aspect-ratio:16/9){.cine .bg-video--hero{transform:translateX(7vw)}}
+.cine .bg-video--hero{transform:scale(.8);transform-origin:88% 92%;
+  /* reduite, la video ne couvre plus l'ecran : ses quatre bords se fondent dans le fond */
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 14%,#000 86%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 84%,transparent);
+  -webkit-mask-composite:source-in;
+  mask-image:linear-gradient(to right,transparent,#000 14%,#000 86%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 84%,transparent);
+  mask-composite:intersect}
+@media (min-aspect-ratio:16/9){.cine .bg-video--hero{transform:translateX(5vw) scale(.8)}}
 .cine .bg-tint{position:fixed;inset:0;z-index:1;pointer-events:none;
          background:linear-gradient(to right, rgba(2,6,23,.82) 0%, rgba(2,6,23,.55) 38%, rgba(2,6,23,.12) 58%, rgba(2,6,23,0) 75%)}
 .cine .grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;
