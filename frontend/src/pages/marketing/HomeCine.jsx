@@ -329,9 +329,16 @@ export default function HomeCine() {
       const renderPourQui = (r) => {
         const total = Math.max(1, r.height - vh);
         const p = pqClamp(-r.top / total);
-        const raw = p * (n - 0.001);
-        const active = Math.min(n - 1, Math.floor(raw));
-        const local = pqClamp(raw - active);
+        const brut = p * (n - 0.001);
+        const active = Math.min(n - 1, Math.floor(brut));
+        // Chaque situation reste POSEE (texte et image centres ensemble) pendant 60 % de
+        // son passage ; la bascule vers la suivante se fait sur les 40 % restants, en
+        // douceur. Avant, texte et image n'etaient centres qu'a un instant precis.
+        const t = pqClamp((brut - active - 0.6) / 0.4);
+        const local = t * t * (3 - 2 * t);
+        const raw = active + local;
+        const affiche = Math.min(n - 1, Math.round(raw));
+        const avance = pqClamp(brut - active); // progression reelle (barres), meme pendant la pose
 
         pqSteps.forEach((step, i) => {
           let d = i - raw;
@@ -345,26 +352,29 @@ export default function HomeCine() {
           if (Math.abs(d) > 1.15) opacity = 0;
           if (i === active) opacity = 1;
           if (i === active + 1) opacity = Math.max(opacity, local);
-          if (i === active - 1) opacity = Math.max(opacity, 1 - local);
+          // (plus de regle pour la carte precedente : elle a fini de s'effacer pendant la
+          // bascule, elle ne doit pas revenir en fantome derriere la carte posee)
           step.style.visibility = opacity > 0.015 ? 'visible' : 'hidden';
           step.style.opacity = opacity;
-          step.style.setProperty('--completion', `${i < active ? 100 : i === active ? local * 100 : 0}%`);
+          step.style.setProperty('--completion', `${i < active ? 100 : i === active ? avance * 100 : 0}%`);
           step.style.transform = `translate3d(0,${y}px,${z}px) rotateX(${rotateX}deg) scale(${scale})`;
           step.classList.toggle('is-active', i === active);
         });
 
+        // Image : fondu enchaine SUR PLACE avec un leger zoom, jamais de glissement ni de
+        // rotation (ils decouvraient le bord de la carte, l'image ne la couvrait plus).
         pqImgs.forEach((img, i) => {
           let d = i - raw;
           if (i === n - 1) d = Math.max(d, 0);
-          const opacity = Math.max(0, 1 - Math.abs(d) * 1.25);
+          const opacity = Math.max(0, 1 - Math.abs(d));
           img.style.visibility = opacity > 0.01 ? 'visible' : 'hidden';
           img.style.opacity = opacity;
-          img.style.transform = `translate3d(${d * 110}px,${d * -18}px,${-Math.abs(d) * 170}px) rotateY(${d * -9}deg) scale(${1 - Math.min(0.08, Math.abs(d) * 0.035)})`;
+          img.style.transform = `scale(${1 + Math.min(1, Math.abs(d)) * 0.05})`;
         });
 
-        if (pqCount) pqCount.textContent = `${active + 1} / ${n}`;
+        if (pqCount) pqCount.textContent = `${affiche + 1} / ${n}`;
         if (pqCaption) {
-          pqCaption.querySelector('p').textContent = pqCaptions[active];
+          pqCaption.querySelector('p').textContent = pqCaptions[affiche];
         }
 
         const wave = Math.sin(local * Math.PI);
@@ -377,7 +387,7 @@ export default function HomeCine() {
 
         pqDots.forEach((dot, i) => {
           const fill = dot.querySelector('i');
-          fill.style.width = i < active ? '100%' : i === active ? `${local * 100}%` : '0%';
+          fill.style.width = i < active ? '100%' : i === active ? `${avance * 100}%` : '0%';
         });
       };
 
