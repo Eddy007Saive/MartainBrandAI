@@ -2676,8 +2676,8 @@
     },
     "aud": {
       "tags": {"1a": "2 to 3 hrs a month", "1b": "No hiring", "2a": "Your voice, not a generic tone", "2b": "1-click approval", "3a": "Every network", "3b": "No commitment"},
-      "caption": {"1": "The month’s calendar, ready before you even think about it.", "2": "Written in your voice. You read it, you approve in one click.", "3": "The consistency of an agency, without the invoice."},
-      "alt": {"1": "Rico in front of the month’s publishing calendar", "2": "Rico surrounded by generated formats: posts, carousels, videos", "3": "Rico, confident, arms crossed"},
+      "caption": {"1": "Topic, script, visual, scheduling: everything is ready, you just approve.", "2": "The month’s calendar, written in your voice. You read it, you approve in one click.", "3": "The consistency of an agency, without the invoice."},
+      "alt": {"1": "Rico in front of a generated post, carousel and video, with the completed steps checked", "2": "Rico presents the month’s editorial calendar, filled with scheduled posts", "3": "Rico, confident, arms crossed"},
       "hint": "Keep scrolling ↓",
       "eyebrow": "Who it's for",
       "title": "Does one of these sound like you?",

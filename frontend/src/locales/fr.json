@@ -2676,8 +2676,8 @@
     },
     "aud": {
       "tags": {"1a": "2 à 3 h par mois", "1b": "Zéro recrutement", "2a": "Ta voix, pas un ton générique", "2b": "Validation en 1 clic", "3a": "Tous les réseaux", "3b": "Sans engagement"},
-      "caption": {"1": "Le calendrier du mois, prêt avant même que tu y penses.", "2": "Écrit dans ta voix. Tu relis, tu valides en un clic.", "3": "La régularité d’une agence, sans la facture qui va avec."},
-      "alt": {"1": "Rico devant le calendrier de publication du mois", "2": "Rico entouré des formats générés : posts, carrousels, vidéos", "3": "Rico, confiant, les bras croisés"},
+      "caption": {"1": "Sujet, script, visuel, programmation : tout est prêt, tu n’as plus qu’à valider.", "2": "Le calendrier du mois, écrit dans ta voix. Tu relis, tu valides en un clic.", "3": "La régularité d’une agence, sans la facture qui va avec."},
+      "alt": {"1": "Rico devant un post, un carrousel et une vidéo générés, avec la liste des étapes cochées", "2": "Rico présente le calendrier éditorial du mois, rempli de posts programmés", "3": "Rico, confiant, les bras croisés"},
       "hint": "Continue à faire défiler ↓",
       "eyebrow": "Pour qui",
       "title": "Tu te reconnais dans une de ces situations ?",
