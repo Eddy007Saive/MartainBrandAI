@@ -400,7 +400,7 @@
 /* ===== CTA final ===== */
 .cine .final{padding:10vh 0 6vh;text-align:center}
 .cine .ctaband{position:relative;overflow:hidden;border:1px solid rgba(138,108,255,.35);border-radius:16px;padding:64px 32px;background:#120f33}
-.cine .mascot-wave{position:absolute;right:12px;bottom:-10px;height:250px;aspect-ratio:1/1;object-fit:cover;pointer-events:none;mix-blend-mode:lighten}
+.cine .mascot-wave{position:absolute;right:28px;bottom:0;height:300px;aspect-ratio:9/16;object-fit:contain;pointer-events:none}
 @media(max-width:900px){.cine .mascot-wave{display:none}}
 .cine .final h2{font-family:Sora,"Sora Fallback";font-weight:800;font-size:clamp(28px,3.8vw,44px);letter-spacing:-.02em;max-width:18ch;margin:0 auto}
 .cine .final p{color:var(--mut);font-size:15px;margin-top:16px}

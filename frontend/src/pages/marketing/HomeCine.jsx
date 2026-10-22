@@ -835,7 +835,14 @@ export default function HomeCine() {
         {/* CTA FINAL */}
         <section className="final"><FondHexagones /><div className="wrap">
           <div className="ctaband">
-            {!isTouch && <video ref={couperSon} className="mascot-wave" src={`${CLD}/q_auto,ac_none/marketing/mascotte-wave.mp4`} autoPlay muted loop playsInline aria-hidden="true" />}
+            {/* Rico qui salue : WebM transparent (Chrome, Firefox, Edge) ; MP4 deja compose sur la
+                couleur du bandeau pour Safari, qui ne lit pas la transparence video. */}
+            {!isTouch && (
+              <video ref={couperSon} className="mascot-wave" autoPlay muted loop playsInline aria-hidden="true">
+                <source src="/videos/rico-salut.webm" type='video/webm; codecs="vp9"' />
+                <source src="/videos/rico-salut.mp4" type="video/mp4" />
+              </video>
+            )}
             <h2>{t('lp.final.title')}</h2>
             <p>{t('lp.final.text')}</p>
             {/* Le bouton principal de la page : grand, seul sur sa ligne. */}
