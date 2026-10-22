@@ -38,7 +38,9 @@ const BG_CLIPS = [
   // via `pos` — ne pas lui laisser l'objet-position globale de .bg-video
   // (72% 32%), calee sur l'ancienne source 1024x448, qui pousse l'image vers
   // le bas/le bord sur ces nouvelles compositions differentes.
-  { src: '/videos/hero-bg.mp4' },  // hero : Rico presente les formats generes (cadrage global, deja bon)
+  // hero : Rico valide un post (clip « Valider », 1280x720). Cale a gauche : sur un ecran 16:10
+  // le recadrage « cover » rogne les cotes, et a 72 % les cartes qui apparaissent passaient sous le titre.
+  { src: '/videos/hero-bg.mp4', pos: '0% 32%' },
   // `sel` pointe sur le wrapper <section> (sec-cmp/sec-aud/sec-flow), pas sur la
   // grille de cartes a l'interieur : la grille arrive visuellement APRES le
   // titre+texte de la section, donc un trigger cale dessus declenchait le fond
@@ -509,7 +511,7 @@ export default function HomeCine() {
       {/* opacité pilotée UNIQUEMENT en impératif (showClip) — pas dans le style JSX,
           sinon chaque re-render React écrase le fondu en cours */}
       {!isTouch && BG_CLIPS.filter((c) => c.src).map((c, i) => (
-        <video key={c.src} ref={(el) => { couperSon(el); if (i === 0) videoRef.current = el; }} className="bg-video" src={c.src}
+        <video key={c.src} ref={(el) => { couperSon(el); if (i === 0) videoRef.current = el; }} className={`bg-video${i === 0 ? ' bg-video--hero' : ''}`} src={c.src}
           muted loop playsInline preload={i === 0 ? 'auto' : 'none'}
           style={{ transition: 'opacity 700ms ease', ...(c.pos ? { objectPosition: c.pos } : {}), ...(c.transform ? { transform: c.transform } : {}) }} />
       ))}

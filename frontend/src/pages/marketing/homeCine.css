@@ -26,6 +26,11 @@
           transform-origin:70% 85%;
           -webkit-mask-image:radial-gradient(125% 125% at 62% 52%, #000 82%, transparent 100%);
           mask-image:radial-gradient(125% 125% at 62% 52%, #000 82%, transparent 100%)}
+/* Clip du hero sur ecran large (16:9 et plus) : l'image n'y est plus rognee, donc
+   object-position ne la deplace plus, et les cartes qui apparaissent pendant la boucle
+   passaient sous le titre. On la pousse vers la droite : son bord gauche est sombre et
+   fondu par le masque, le raccord ne se voit pas. */
+@media (min-aspect-ratio:16/9){.cine .bg-video--hero{transform:translateX(7vw)}}
 .cine .bg-tint{position:fixed;inset:0;z-index:1;pointer-events:none;
          background:linear-gradient(to right, rgba(2,6,23,.82) 0%, rgba(2,6,23,.55) 38%, rgba(2,6,23,.12) 58%, rgba(2,6,23,0) 75%)}
 .cine .grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.05;
