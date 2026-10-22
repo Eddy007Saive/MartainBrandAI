@@ -217,6 +217,12 @@ function ContentCard({ contenu, onView, onImage, onRegenCarrousel, carrouselLoad
           </div>
         )}
         {contenu.reseau_cible && <span className="absolute top-2.5 left-2.5"><ReseauBadge reseau={contenu.reseau_cible} /></span>}
+        {/* Test A/B : les reels du moteur B sont repérables d'un coup d'œil pour la comparaison. */}
+        {contenu.reel_data?.moteur === 'b' && (
+          <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md text-[11px] font-semibold font-inter bg-amber-400 text-[#1a1305]" data-testid={`badge-moteur-b-${contenu.id}`}>
+            {t('contenus.reel.moteurB.badge')}
+          </span>
+        )}
         <span className="absolute top-2.5 right-2.5">
           {contenu.publish_status === 'échec' ? (
             <span title={erreurLisible(contenu.publish_error, t)}

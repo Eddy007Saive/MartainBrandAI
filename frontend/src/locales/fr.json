@@ -663,6 +663,7 @@
       "description": "Le post est transformé en vidéo verticale animée à ta charte. Choisis le template :",
       "nouveau": "Nouveau",
       "voix": {"refaire": "Refaire la voix", "enCours": "Voix off relancée : le reel sera remonté avec la voix dans quelques instants.", "echec": "Impossible de relancer la voix, réessaie.", "sansVoix": "La voix off a échoué lors du montage : ce reel est sans voix. Relance-la, le script et les images restent les mêmes."},
+      "moteurB": {"titre": "Moteur de rendu", "postorico": "Postorico", "b": "Moteur B (test)", "aide": "Test : le moteur B écrit le texte depuis ton sujet, choisit ses propres plans vidéo, fait la voix et les sous-titres. Tes visuels, le style, la musique et la voix choisis ici ne sont pas utilisés. Le reel arrive dans Contenus, marqué « Moteur B ».", "badge": "Moteur B"},
       "seq": {
         "depuisPost": "Reel à partir de ton post",
         "descriptionDepuisPost": "L'IA écrit le scénario à partir du post. Choisis un style, des visuels, une musique et une voix ; ajoute des consignes si tu veux.",

@@ -80,6 +80,9 @@ export const contenuService = {
   // Refait seulement la voix off (même scénario, mêmes images) : seul le quota voix compte.
   refaireVoixReel: (id, voix) => api.post('/reels/voix', { reel_id: id, ...(voix ? { voix } : {}) }).then(r => r.data),
   creerReel: (extra = {}) => api.post('/reels/creer', extra).then(r => r.data),
+  // Moteur B (test A/B, comptes choisis) : MoneyPrinterTurbo sur le VPS
+  moteurBStatut: () => api.get('/reels/moteur-b').then(r => r.data),
+  moteurBLancer: (payload) => api.post('/reels/moteur-b', payload).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data),   // {templates, musiques, categories}
   reelRecommander: (id) => api.get(`/reels/recommander/${id}`).then(r => r.data),
   // Voix off : catalogue (extraits), clone du client, voix par défaut

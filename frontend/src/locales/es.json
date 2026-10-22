@@ -663,6 +663,7 @@
       "description": "El post se transforma en un vídeo vertical animado con tu identidad. Elige la plantilla:",
       "nouveau": "Nuevo",
       "voix": {"refaire": "Rehacer la voz", "enCours": "Voz en off relanzada: el reel se volverá a montar con la voz en unos instantes.", "echec": "No se pudo relanzar la voz, inténtalo de nuevo.", "sansVoix": "La voz en off falló durante el montaje: este reel no tiene voz. Relánzala; el guion y las imágenes no cambian."},
+      "moteurB": {"titre": "Motor de render", "postorico": "Postorico", "b": "Motor B (prueba)", "aide": "Prueba: el motor B escribe el texto a partir de tu tema, elige sus propios planos de vídeo, hace la voz y los subtítulos. Los visuales, el estilo, la música y la voz elegidos aquí no se usan. El reel llega a Contenidos, marcado «Motor B».", "badge": "Motor B"},
       "seq": {
         "depuisPost": "Reel a partir de tu post",
         "descriptionDepuisPost": "La IA escribe el guion a partir del post. Elige un estilo, visuales, música y una voz; añade indicaciones si quieres.",

@@ -59,6 +59,9 @@ export default function StudioReel() {
   const [genEnCours, setGenEnCours] = useState(false);
   const [ideeEnCours, setIdeeEnCours] = useState(false);
   const [castingEnCours, setCastingEnCours] = useState(false); // « Laisser l'IA proposer les visuels »
+  // Moteur B (test A/B) : proposé seulement aux comptes testeurs, jamais en modification d'un reel.
+  const [moteurBDispo, setMoteurBDispo] = useState(false);
+  const [moteur, setMoteur] = useState('postorico');
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -69,6 +72,7 @@ export default function StudioReel() {
       if (d?.categories?.length) setMusicCats(d.categories);
     }).catch(() => {});
     contenuService.reelBanque().then(setBanque).catch(() => setBanque([]));
+    contenuService.moteurBStatut().then((d) => setMoteurBDispo(!!d?.actif)).catch(() => setMoteurBDispo(false));
   }, []);
   useEffect(() => () => { if (audioRef.current) audioRef.current.pause(); }, []);
 
@@ -314,7 +318,10 @@ export default function StudioReel() {
         images: images.map((i) => ({ url: i.url, desc: i.desc || null, debut: i.type === 'video' && i.debut != null && i.fin != null ? i.debut : null, fin: i.type === 'video' && i.debut != null && i.fin != null ? i.fin : null })),
         style, musique, voix, montage_ia: montageIA,
       };
-      if (modification) {
+      if (moteur === 'b' && !modification) {
+        // Moteur B : il écrit, cherche ses plans et fait sa voix lui-même ; seuls le sujet et le réseau comptent.
+        await contenuService.moteurBLancer({ contenu_id: depuisPost ? source.id : null, brief: brief.trim() || null, reseau });
+      } else if (modification) {
         // Re-rendu sur place ; voix absente = on la retire explicitement (null = garder l'ancienne)
         await contenuService.regenererReel(source.id, { ...payload, voix: voix || 'none' });
       } else if (depuisPost) {
@@ -325,7 +332,7 @@ export default function StudioReel() {
       toast.success(t('contenus.toast.reelEnFile'));
       navigate('/dashboard/contenus');
     } catch (e) {
-      toast.error(e.response?.data?.detail || t('contenus.toast.reelEchec'));
+      toast.error(e.response?.data?.message || e.response?.data?.detail || t('contenus.toast.reelEchec'));
       setGenerating(false);
     }
   };
@@ -611,6 +618,21 @@ export default function StudioReel() {
 
           {/* Voix off : une phrase parlée par plan, dite par une voix du catalogue ou celle du client */}
           <VoixOff valeur={voix} onChange={setVoix} />
+
+          {moteurBDispo && !modification && (
+            <fieldset data-testid="studio-reel-moteur">
+              <legend className="text-[13px] font-medium text-slate-300 font-inter mb-1.5">{t('contenus.reel.moteurB.titre')}</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {[['postorico', t('contenus.reel.moteurB.postorico')], ['b', t('contenus.reel.moteurB.b')]].map(([id, lib]) => (
+                  <button key={id} type="button" onClick={() => setMoteur(id)} aria-pressed={moteur === id} data-testid={`studio-reel-moteur-${id}`}
+                    className={`h-10 px-3 rounded-lg text-[13px] font-semibold font-inter border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF] ${moteur === id ? 'border-[#8A6CFF] bg-[#8A6CFF]/10 text-white' : 'border-white/10 text-slate-300 hover:border-white/30'}`}>
+                    {lib}
+                  </button>
+                ))}
+              </div>
+              {moteur === 'b' && <p className="mt-2 text-[12px] text-amber-100/90 font-inter leading-snug [text-wrap:pretty]">{t('contenus.reel.moteurB.aide')}</p>}
+            </fieldset>
+          )}
 
           <button type="button" onClick={generer} disabled={generating || uploading} data-testid="studio-reel-generer"
             className="w-full text-[14px] font-semibold font-inter text-white px-5 py-3 rounded-xl bg-gradient-to-r from-[#5B6CFF] to-[#8A6CFF] hover:opacity-90 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2">
