@@ -353,7 +353,11 @@ async function principal() {
         .replace(
           /<link rel="stylesheet" href="(https:\/\/fonts\.googleapis\.com\/[^"]*)"[^>]*>/i,
           '<link rel="stylesheet" href="$1" media="print" onload="this.media=\'all\'">',
-        );
+        )
+        // React n'écrit pas l'attribut `muted` dans le DOM : sans lui, une vidéo décorative
+        // du HTML figé peut démarrer avec le son avant que React prenne la main. Toute vidéo
+        // sans boutons de lecture (donc décorative) repart muette.
+        .replace(/<video\b(?![^>]*\bcontrols\b)(?![^>]*\bmuted\b)/gi, '<video muted');
       const texte = await onglet.evaluate(
         () => document.querySelector('#root')?.innerText.trim().length || 0);
 

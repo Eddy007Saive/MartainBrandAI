@@ -162,6 +162,12 @@ function TitreAnime({ l1, l2 }) {
   );
 }
 
+// Vidéos décoratives : toujours muettes. L'attribut JSX `muted` ne suffit pas : React ne
+// l'écrit pas dans le HTML pré-rendu (scripts/prerendu.js), et la page statique peut lancer
+// la vidéo avec le son avant que React prenne la main. On pose la propriété nous-mêmes ; les
+// fichiers eux-mêmes n'ont plus de piste audio (ac_none pour la mascotte sur Cloudinary).
+const couperSon = (el) => { if (el) { el.muted = true; el.defaultMuted = true; el.volume = 0; } };
+
 export default function HomeCine() {
   const rootRef = useRef(null);
   const videoRef = useRef(null);
@@ -503,7 +509,7 @@ export default function HomeCine() {
       {/* opacité pilotée UNIQUEMENT en impératif (showClip) — pas dans le style JSX,
           sinon chaque re-render React écrase le fondu en cours */}
       {!isTouch && BG_CLIPS.filter((c) => c.src).map((c, i) => (
-        <video key={c.src} ref={i === 0 ? videoRef : undefined} className="bg-video" src={c.src}
+        <video key={c.src} ref={(el) => { couperSon(el); if (i === 0) videoRef.current = el; }} className="bg-video" src={c.src}
           muted loop playsInline preload={i === 0 ? 'auto' : 'none'}
           style={{ transition: 'opacity 700ms ease', ...(c.pos ? { objectPosition: c.pos } : {}), ...(c.transform ? { transform: c.transform } : {}) }} />
       ))}
@@ -817,7 +823,7 @@ export default function HomeCine() {
         {/* CTA FINAL */}
         <section className="final"><FondHexagones /><div className="wrap">
           <div className="ctaband">
-            {!isTouch && <video className="mascot-wave" src={`${CLD}/q_auto/marketing/mascotte-wave.mp4`} autoPlay muted loop playsInline aria-hidden="true" />}
+            {!isTouch && <video ref={couperSon} className="mascot-wave" src={`${CLD}/q_auto,ac_none/marketing/mascotte-wave.mp4`} autoPlay muted loop playsInline aria-hidden="true" />}
             <h2>{t('lp.final.title')}</h2>
             <p>{t('lp.final.text')}</p>
             {/* Le bouton principal de la page : grand, seul sur sa ligne. */}
