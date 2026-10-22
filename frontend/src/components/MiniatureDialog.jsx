@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { X, Loader2, Sparkles, Check, Type, User, Plus } from 'lucide-react';
+import { X, Loader2, Sparkles, Check, Type, User, Plus, Wand2, ArrowUp } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { contenuService } from '../services/contenuService';
 import { userService } from '../services/userService';
@@ -78,6 +78,11 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
   const [description, setDescription] = useState('');
   const [styleSujet, setStyleSujet] = useState('3d');
   const [sujetEnCours, setSujetEnCours] = useState(false);
+  // Retouche par consigne libre, une fois la miniature faite.
+  const [consigne, setConsigne] = useState('');
+  const [retoucheEnCours, setRetoucheEnCours] = useState(false);
+  const [reponseIA, setReponseIA] = useState('');
+  const consigneRef = useRef(null);
 
   useEffect(() => {
     if (!contenu) return undefined;
@@ -136,6 +141,28 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
   };
   const terminer = () => { onDone?.(mini); onClose(); };
 
+  const retoucher = async (texteConsigne) => {
+    const c = (texteConsigne ?? consigne).trim();
+    if (!c) return;
+    setRetoucheEnCours(true); setReponseIA('');
+    try {
+      const r = await contenuService.miniatureRetoucher(contenu.id, { instruction: c });
+      setMini(r.miniature);
+      // Les champs et la police suivent la retouche, pour pouvoir continuer à la main.
+      setTextes((x) => ({ ...x, ...(r.miniature?.textes || {}) }));
+      if (r.miniature?.police) setPolice(r.miniature.police);
+      onGeneree?.(r.miniature);
+      setReponseIA(r.reponse || t('contenus.miniature.retoucheOk'));
+      setConsigne('');
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.message || e.response?.data?.detail || t('contenus.miniature.retoucheEchec'));
+    } finally {
+      setRetoucheEnCours(false);
+      // Le champ était désactivé pendant la retouche : on y remet le curseur pour enchaîner.
+      setTimeout(() => consigneRef.current?.focus(), 0);
+    }
+  };
+
   const creerSujet = async () => {
     if (!description.trim()) return;
     setSujetEnCours(true);
@@ -155,9 +182,9 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
   const onglets = ONGLETS.filter((o) => o !== 'police' || polices.length > 0);
 
   return (
-    <Dialog open={!!contenu} onOpenChange={(o) => { if (!o && !generation && !sujetEnCours) onClose(); }}>
+    <Dialog open={!!contenu} onOpenChange={(o) => { if (!o && !generation && !sujetEnCours && !retoucheEnCours) onClose(); }}>
       <DialogContent sansFermeture data-testid="miniature-dialog" surcoucheClassName="bg-[#020617]/90"
-        className="flex flex-col gap-0 p-0 w-[calc(100vw-1.5rem)] max-w-[1040px] h-[min(92dvh,820px)] rounded-2xl border-white/10 bg-[#0f172a] overflow-hidden">
+        className="flex flex-col gap-0 p-0 outline-none focus:outline-none focus-visible:ring-0 w-[calc(100vw-1.5rem)] max-w-[1040px] h-[min(92dvh,820px)] rounded-2xl border-white/10 bg-[#0f172a] overflow-hidden">
         {/* En-tête */}
         <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-white/[0.06] shrink-0">
           <div className="min-w-0">
@@ -322,11 +349,11 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
                 {mini?.url
                   ? <img src={mini.url} alt={t('contenus.miniature.taMiniature')} className="w-full h-full object-cover" />
                   : g.apercu && <img src={g.apercu} alt="" className="w-full h-full object-cover opacity-45" />}
-                {generation && (
+                {(generation || retoucheEnCours) && (
                   <div className="absolute inset-0 grid place-items-center bg-[#020617]/70" role="status">
                     <span className="flex flex-col items-center gap-2 text-[12px] text-slate-200 font-inter">
                       <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
-                      {t(generation === 'texte' ? 'contenus.miniature.enCoursTexte' : 'contenus.miniature.enCours')}
+                      {t(retoucheEnCours ? 'contenus.miniature.retoucheEnCours' : generation === 'texte' ? 'contenus.miniature.enCoursTexte' : 'contenus.miniature.enCours')}
                     </span>
                   </div>
                 )}
@@ -335,6 +362,39 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
                 {mini?.url ? t('contenus.miniature.taMiniature') : t('contenus.miniature.exempleGabarit')}
               </figcaption>
             </figure>
+
+            {/* Retoucher avec l'IA : une consigne libre, appliquée sur la miniature faite. */}
+            {mini?.fond && (
+              <section aria-labelledby="miniature-retouche-titre" data-testid="miniature-retouche">
+                <h3 id="miniature-retouche-titre" className="flex items-center gap-1.5 text-[13px] font-semibold text-white font-inter">
+                  <Wand2 className="w-4 h-4 text-[#a594ff]" aria-hidden="true" />{t('contenus.miniature.retoucheTitre')}
+                </h3>
+                <form className="mt-2 relative" onSubmit={(e) => { e.preventDefault(); retoucher(); }}>
+                  <label htmlFor="miniature-retouche-consigne" className="sr-only">{t('contenus.miniature.retoucheTitre')}</label>
+                  <textarea ref={consigneRef} id="miniature-retouche-consigne" value={consigne} onChange={(e) => setConsigne(e.target.value)} maxLength={500} rows={2}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); retoucher(); } }}
+                    placeholder={t('contenus.miniature.retouchePlaceholder')} disabled={retoucheEnCours || !!generation} data-testid="miniature-retouche-consigne"
+                    className={`w-full resize-none bg-slate-950/60 border border-white/10 text-slate-100 text-[13px] font-inter rounded-lg pl-3 pr-12 py-2 outline-none focus:border-[#8A6CFF]/60 placeholder:text-slate-500 ${FOCUS}`} />
+                  <button type="submit" disabled={retoucheEnCours || !!generation || !consigne.trim()} aria-label={t('contenus.miniature.retoucheAppliquer')}
+                    data-testid="miniature-retouche-appliquer"
+                    className={`absolute right-2 bottom-2.5 w-8 h-8 rounded-md grid place-items-center bg-[#5a4ae8] text-white hover:bg-[#6757f0] disabled:opacity-40 ${FOCUS}`}>
+                    {retoucheEnCours ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <ArrowUp className="w-4 h-4" aria-hidden="true" />}
+                  </button>
+                </form>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {['raccourcir', 'percutant', 'sombre', 'police'].map((k) => (
+                    <button key={k} type="button" onClick={() => retoucher(t(`contenus.miniature.suggestion.${k}`))} disabled={retoucheEnCours || !!generation}
+                      data-testid={`miniature-retouche-suggestion-${k}`}
+                      className={`h-8 px-2.5 rounded-full text-[12px] font-inter text-slate-200 border border-white/10 hover:border-white/30 hover:text-white disabled:opacity-40 transition-colors duration-150 ${FOCUS}`}>
+                      {t(`contenus.miniature.suggestion.${k}`)}
+                    </button>
+                  ))}
+                </div>
+                <p aria-live="polite" className={`mt-2 text-[12.5px] font-inter leading-snug ${reponseIA ? 'text-slate-200' : 'text-slate-400'}`} data-testid="miniature-retouche-reponse">
+                  {reponseIA || t('contenus.miniature.retoucheAide')}
+                </p>
+              </section>
+            )}
 
             {chargement ? (
               <div className="flex items-center gap-2 text-slate-300 text-[13px] font-inter" role="status"><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />{t('contenus.miniature.chargement')}</div>

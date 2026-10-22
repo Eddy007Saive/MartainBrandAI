@@ -53,6 +53,8 @@ export const contenuService = {
   miniatureGenerer: (id, payload) => api.post(`/reels/${id}/miniature`, payload, { timeout: 240000 }).then(r => r.data),
   // Sujet de miniature (mascotte, personnage, objet) généré et rangé dans la banque d'images
   miniatureSujet: (payload) => api.post('/reels/miniature/sujet', payload, { timeout: 180000 }).then(r => r.data),
+  // Retouche libre d'une miniature faite : textes/police recomposés (gratuit), fond retouché par l'IA (quota)
+  miniatureRetoucher: (id, payload) => api.post(`/reels/${id}/miniature/retoucher`, payload, { timeout: 240000 }).then(r => r.data),
   // Image générée par l'IA pour un reel (entre dans la banque) ; l'idée d'image est gratuite.
   reelImagePrompt: (brief) => api.post('/reels/image/prompt', { brief }).then(r => r.data),
   // Casting IA des visuels : banque par pertinence + prompts à générer (analyse seule, sans quota)
