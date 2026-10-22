@@ -2677,7 +2677,7 @@
     "aud": {
       "tags": {"1a": "2 a 3 h al mes", "1b": "Cero contrataciones", "2a": "Tu voz, no un tono genérico", "2b": "Validación en 1 clic", "3a": "Todas las redes", "3b": "Sin permanencia"},
       "caption": {"1": "Tema, guion, visual, programación: todo está listo, solo tienes que validar.", "2": "El calendario del mes, escrito con tu voz. Lo relees y lo validas en un clic.", "3": "La regularidad de una agencia, sin su factura."},
-      "alt": {"1": "Rico frente a una publicación, un carrusel y un vídeo generados, con los pasos completados marcados", "2": "Rico presenta el calendario editorial del mes, lleno de publicaciones programadas", "3": "Rico, seguro de sí, con los brazos cruzados"},
+      "alt": {"1": "Rico frente a una publicación, un carrusel y un vídeo generados, con los pasos completados marcados", "2": "Rico presenta el calendario editorial del mes, lleno de publicaciones programadas", "3": "Rico, de brazos cruzados, deja volar una factura de agencia de 3.000 €; sus publicaciones salen en cinco redes"},
       "hint": "Sigue desplazándote ↓",
       "eyebrow": "Para quién",
       "title": "¿Te reconoces en alguna de estas situaciones?",
