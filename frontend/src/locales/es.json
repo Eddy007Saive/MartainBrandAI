@@ -801,6 +801,7 @@
       "refAjoutee": "Referencia añadida",
       "ajoutEchec": "Error al añadir",
       "promptErreur": "Error al preparar el prompt",
+      "promptTexteManquant": "Escribe primero el texto del post: la imagen se describe a partir de él.",
       "visuelGenere": "Visual generado",
       "imageEchec": "Error al generar la imagen",
       "choisissezImageFormats": "Elige una imagen (jpg, png, webp).",
