@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { X, Loader2, Sparkles, Check, Type, User, Plus, Wand2, ArrowUp } from 'lucide-react';
+import { X, Loader2, Sparkles, Check, Type, User, Plus, Wand2, ArrowUp, History, LayoutGrid } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { contenuService } from '../services/contenuService';
 import { userService } from '../services/userService';
+import { useUser } from '../context/UserContext';
 
 /**
  * Miniature (couverture) d'un reel : un gabarit, trois textes, une image IA en fond
  * et le texte posé par nous (net, sans faute, aux couleurs de la marque).
  *
  * « Générer » / « Nouveau fond » fabrique un fond neuf (une image du quota) ;
- * « Changer le texte » recompose sur le même fond (gratuit).
+ * « 3 propositions » en fabrique trois (trois images) et le client garde sa préférée ;
+ * « Changer le texte » recompose sur le même fond (gratuit), couleur du titre comprise.
+ * Les 3 versions précédentes restent disponibles (« Revenir »), recomposées sur leur fond.
  * La miniature devient la couverture du reel dans Contenus, et part à Instagram.
  *
  * Fenêtre Radix : elle s'ouvre par-dessus la fiche du contenu (elle-même une fenêtre
@@ -83,12 +86,21 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
   const [retoucheEnCours, setRetoucheEnCours] = useState(false);
   const [reponseIA, setReponseIA] = useState('');
   const consigneRef = useRef(null);
+  const { user } = useUser();
+  const [couleur, setCouleur] = useState(contenu?.reel_data?.miniature?.couleur || ''); // '' = celle du gabarit
+  const [historique, setHistorique] = useState(contenu?.reel_data?.miniature_historique || []);
+  const [variantes, setVariantes] = useState([]);   // propositions en attente de choix
+  const [choixEnCours, setChoixEnCours] = useState(null);
+  const [restaurEnCours, setRestaurEnCours] = useState(null);
 
   useEffect(() => {
     if (!contenu) return undefined;
     let vivant = true;
     setChargement(true);
     setMini(contenu.reel_data?.miniature || null);
+    setHistorique(contenu.reel_data?.miniature_historique || []);
+    setCouleur(contenu.reel_data?.miniature?.couleur || '');
+    setVariantes([]);
     const existante = contenu.reel_data?.miniature;
     // Textes déjà connus (miniature faite, ou proposition mémorisée sur le reel) : pas d'appel IA.
     const memo = existante?.textes || contenu.reel_data?.miniature_textes;
@@ -127,13 +139,64 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
   const policeEffective = police || g.police || 'impact';
   const peutRecomposer = !!mini?.fond && mini.gabarit === gabarit && mini.ratio === ratio && (mini.style || 'photo') === styleImg && (mini.ref || null) === (refUrl || null);
 
+  // Même règle que le serveur : la version remplacée passe en tête, 3 au plus.
+  const remplacer = (nouvelle, restaurer = null) => {
+    setHistorique((h) => [...(mini?.fond ? [mini] : []), ...h.filter((_, i) => i !== restaurer)].slice(0, 3));
+    setMini(nouvelle);
+    onGeneree?.(nouvelle);
+  };
+  const COULEURS = [
+    ['', t('contenus.miniature.couleurGabarit')],
+    ['#ffffff', t('contenus.miniature.couleurBlanc')],
+    ['#ffd60a', t('contenus.miniature.couleurJaune')],
+    [String(user?.couleur_accent || '#3AFFA3').toLowerCase(), t('contenus.miniature.couleurAccent')],
+    [String(user?.couleur_principale || '#003D2E').toLowerCase(), t('contenus.miniature.couleurPrincipale')],
+    [String(user?.couleur_secondaire || '#0077FF').toLowerCase(), t('contenus.miniature.couleurSecondaire')],
+  ].filter(([c], i, l) => l.findIndex(([x]) => x === c) === i);
+
+  const proposer3 = async () => {
+    if (champs.includes('titre') && !textes.titre.trim() && g.layout !== 'aucun') { toast.error(t('contenus.miniature.titreRequis')); return; }
+    setGeneration('variantes');
+    try {
+      const r = await contenuService.miniatureVariantes(contenu.id, { gabarit, textes, ratio, style: styleImg, police: policeEffective, ref: refUrl, couleur });
+      setVariantes(r.variantes || []);
+      if ((r.variantes || []).length < 3) toast.message(t('contenus.miniature.variantesPartielles', { count: (r.variantes || []).length }));
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.message || e.response?.data?.detail || t('contenus.miniature.echec'));
+    } finally { setGeneration(null); }
+  };
+  const choisir = async (v) => {
+    setChoixEnCours(v.fond);
+    try {
+      const r = await contenuService.miniatureChoisir(contenu.id, v.fond);
+      remplacer(r.miniature);
+      setVariantes([]);
+      toast.success(t('contenus.miniature.ok'));
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.message || e.response?.data?.detail || t('contenus.miniature.echec'));
+    } finally { setChoixEnCours(null); }
+  };
+  const restaurer = async (index) => {
+    setRestaurEnCours(index);
+    try {
+      const r = await contenuService.miniatureRestaurer(contenu.id, index);
+      remplacer(r.miniature, index);
+      const m = r.miniature || {};
+      setTextes((x) => ({ ...x, ...(m.textes || {}) }));
+      if (m.gabarit) setGabarit(m.gabarit);
+      setPolice(m.police || null); setCouleur(m.couleur || '');
+      toast.success(t('contenus.miniature.restauree'));
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.message || e.response?.data?.detail || t('contenus.miniature.echec'));
+    } finally { setRestaurEnCours(null); }
+  };
+
   const lancer = async (mode) => {
     if (champs.includes('titre') && !textes.titre.trim() && g.layout !== 'aucun') { toast.error(t('contenus.miniature.titreRequis')); return; }
     setGeneration(mode);
     try {
-      const r = await contenuService.miniatureGenerer(contenu.id, { gabarit, textes, ratio, style: styleImg, police: policeEffective, ref: refUrl, reutiliser_fond: mode === 'texte' });
-      setMini(r.miniature);
-      onGeneree?.(r.miniature);
+      const r = await contenuService.miniatureGenerer(contenu.id, { gabarit, textes, ratio, style: styleImg, police: policeEffective, ref: refUrl, couleur, reutiliser_fond: mode === 'texte' });
+      remplacer(r.miniature);
       toast.success(t(mode === 'texte' ? 'contenus.miniature.texteOk' : 'contenus.miniature.ok'));
     } catch (e) {
       if (!e.__handled) toast.error(e.response?.data?.detail || t('contenus.miniature.echec'));
@@ -147,6 +210,7 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
     setRetoucheEnCours(true); setReponseIA('');
     try {
       const r = await contenuService.miniatureRetoucher(contenu.id, { instruction: c });
+      setHistorique((h) => [...(mini?.fond ? [mini] : []), ...h].slice(0, 3));
       setMini(r.miniature);
       // Les champs et la police suivent la retouche, pour pouvoir continuer à la main.
       setTextes((x) => ({ ...x, ...(r.miniature?.textes || {}) }));
@@ -353,7 +417,7 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
                   <div className="absolute inset-0 grid place-items-center bg-[#020617]/70" role="status">
                     <span className="flex flex-col items-center gap-2 text-[12px] text-slate-200 font-inter">
                       <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
-                      {t(retoucheEnCours ? 'contenus.miniature.retoucheEnCours' : generation === 'texte' ? 'contenus.miniature.enCoursTexte' : 'contenus.miniature.enCours')}
+                      {t(retoucheEnCours ? 'contenus.miniature.retoucheEnCours' : generation === 'texte' ? 'contenus.miniature.enCoursTexte' : generation === 'variantes' ? 'contenus.miniature.variantesEnCours' : 'contenus.miniature.enCours')}
                     </span>
                   </div>
                 )}
@@ -362,6 +426,48 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
                 {mini?.url ? t('contenus.miniature.taMiniature') : t('contenus.miniature.exempleGabarit')}
               </figcaption>
             </figure>
+
+            {/* Trois propositions : le client garde sa préférée, les autres sont supprimées. */}
+            {variantes.length > 0 && (
+              <section aria-labelledby="miniature-variantes-titre" data-testid="miniature-variantes" className="rounded-xl border border-[#8A6CFF]/40 bg-[#8A6CFF]/[0.06] p-3">
+                <h3 id="miniature-variantes-titre" className="text-[13px] font-semibold text-white font-inter">{t('contenus.miniature.variantesTitre')}</h3>
+                <div className={`mt-2 grid gap-2 ${ratio === '16:9' ? 'grid-cols-1' : 'grid-cols-3'}`}>
+                  {variantes.map((v, k) => (
+                    <button key={v.fond} type="button" onClick={() => choisir(v)} disabled={!!choixEnCours} data-testid={`miniature-variante-${k + 1}`}
+                      aria-label={t('contenus.miniature.garderVariante', { n: k + 1 })}
+                      className={`group relative overflow-hidden rounded-lg border border-white/10 hover:border-[#8A6CFF] ${ratio === '16:9' ? 'aspect-video' : 'aspect-[9/16]'} ${FOCUS}`}>
+                      <img src={v.url} alt="" className="w-full h-full object-cover" />
+                      <span className="absolute inset-x-0 bottom-0 bg-black/70 text-white text-[11px] font-inter font-semibold py-1">
+                        {choixEnCours === v.fond ? <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" aria-hidden="true" /> : t('contenus.miniature.garder')}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Versions précédentes : un clic pour revenir en arrière (gratuit). */}
+            {historique.length > 0 && (
+              <section aria-labelledby="miniature-historique-titre" data-testid="miniature-historique">
+                <h3 id="miniature-historique-titre" className="flex items-center gap-1.5 text-[13px] font-semibold text-white font-inter">
+                  <History className="w-4 h-4 text-[#a594ff]" aria-hidden="true" />{t('contenus.miniature.historiqueTitre')}
+                </h3>
+                <ul className="mt-2 flex gap-2">
+                  {historique.map((h, k) => (
+                    <li key={h.fond + k}>
+                      <button type="button" onClick={() => restaurer(k)} disabled={restaurEnCours !== null || !!generation} data-testid={`miniature-revenir-${k}`}
+                        aria-label={t('contenus.miniature.revenirA', { titre: h.textes?.titre || '' })} title={h.textes?.titre || ''}
+                        className={`relative block w-[58px] ${h.ratio === '16:9' ? 'aspect-video' : 'aspect-[9/16]'} overflow-hidden rounded-md border border-white/10 hover:border-[#8A6CFF] ${FOCUS}`}>
+                        <img src={h.fond} alt="" className="w-full h-full object-cover" />
+                        <span className="absolute inset-x-0 bottom-0 bg-black/70 text-white text-[9.5px] font-inter leading-tight px-1 py-0.5 line-clamp-2">
+                          {restaurEnCours === k ? <Loader2 className="w-3 h-3 animate-spin mx-auto" aria-hidden="true" /> : (h.textes?.titre || t('contenus.miniature.revenir'))}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {/* Retoucher avec l'IA : une consigne libre, appliquée sur la miniature faite. */}
             {mini?.fond && (
@@ -427,6 +533,22 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
                     ))}
                   </div>
                 </fieldset>
+                <fieldset>
+                  <legend className="text-[13px] font-medium text-slate-300 font-inter mb-1.5">{t('contenus.miniature.couleurTitre')}</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {COULEURS.map(([c, lib]) => (
+                      <button key={c || 'gabarit'} type="button" onClick={() => setCouleur(c)} aria-pressed={couleur === c} title={lib} aria-label={lib}
+                        data-testid={`miniature-couleur-${c ? c.slice(1) : 'gabarit'}`}
+                        className={`w-9 h-9 rounded-full border-2 grid place-items-center ${FOCUS} ${couleur === c ? 'border-[#8A6CFF] ring-2 ring-[#8A6CFF]/40' : 'border-white/15 hover:border-white/40'}`}
+                        style={c ? { background: c } : { background: 'conic-gradient(#fff 0 25%, #3AFFA3 0 50%, #ffd60a 0 75%, #5b6cff 0)' }}>
+                        {couleur === c && <Check className={`w-4 h-4 ${['#ffffff', '#ffd60a', '#3affa3'].includes(c) ? 'text-[#0b1120]' : 'text-white'}`} strokeWidth={3} aria-hidden="true" />}
+                      </button>
+                    ))}
+                  </div>
+                  {mini?.url && couleur !== (mini.couleur || '') && (
+                    <p className="mt-1.5 text-[12px] text-slate-400 font-inter">{t('contenus.miniature.couleurAppliquer')}</p>
+                  )}
+                </fieldset>
               </div>
             )}
           </aside>
@@ -450,15 +572,27 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
                   {generation === 'fond' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Sparkles className="w-4 h-4" aria-hidden="true" />}
                   {t('contenus.miniature.regenerer')}
                 </button>
+                <button type="button" onClick={proposer3} disabled={!!generation || chargement} data-testid="miniature-variantes-lancer"
+                  title={t('contenus.miniature.variantesAide')} className={`${BTN_SECONDAIRE} col-span-2 sm:col-span-1`}>
+                  {generation === 'variantes' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <LayoutGrid className="w-4 h-4" aria-hidden="true" />}
+                  {t('contenus.miniature.variantes')}
+                </button>
                 <button type="button" onClick={terminer} disabled={!!generation} data-testid="miniature-terminer" className={`${BTN_PRINCIPAL} col-span-2`}>
                   <Check className="w-4 h-4" strokeWidth={2.6} aria-hidden="true" />{t('contenus.miniature.terminer')}
                 </button>
               </>
             ) : (
-              <button type="button" onClick={() => lancer('fond')} disabled={!!generation || chargement} data-testid="miniature-generer" className={`${BTN_PRINCIPAL} col-span-2`}>
-                {generation === 'fond' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Sparkles className="w-4 h-4" aria-hidden="true" />}
-                {generation === 'fond' ? t('contenus.miniature.enCours') : t('contenus.miniature.generer')}
-              </button>
+              <>
+                <button type="button" onClick={proposer3} disabled={!!generation || chargement} data-testid="miniature-variantes-lancer"
+                  title={t('contenus.miniature.variantesAide')} className={`${BTN_SECONDAIRE} col-span-2 sm:col-span-1`}>
+                  {generation === 'variantes' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <LayoutGrid className="w-4 h-4" aria-hidden="true" />}
+                  {t('contenus.miniature.variantes')}
+                </button>
+                <button type="button" onClick={() => lancer('fond')} disabled={!!generation || chargement} data-testid="miniature-generer" className={`${BTN_PRINCIPAL} col-span-2`}>
+                  {generation === 'fond' ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Sparkles className="w-4 h-4" aria-hidden="true" />}
+                  {generation === 'fond' ? t('contenus.miniature.enCours') : t('contenus.miniature.generer')}
+                </button>
+              </>
             )}
           </div>
         </div>
