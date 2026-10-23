@@ -802,6 +802,7 @@
       "refAjoutee": "Reference added",
       "ajoutEchec": "Failed to add",
       "promptErreur": "Error while preparing the prompt",
+      "promptTexteManquant": "Write the post text first: the image is described from it.",
       "visuelGenere": "Visual generated",
       "imageEchec": "Image generation failed",
       "choisissezImageFormats": "Please choose an image (jpg, png, webp).",

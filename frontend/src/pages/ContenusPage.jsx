@@ -909,10 +909,18 @@ export default function ContenusPage() {
   const chargerPrompt = async (contenu, avecPhotoOverride, styleOverride) => {
     const avecPhoto = avecPhotoOverride !== undefined ? avecPhotoOverride : imgAvecPhoto;
     const style = styleOverride || imgStyle;
+    const texte = contenu.contenu || contenu.titre || '';
+    // Le serveur décrit l'image à partir du texte du post : sans texte, il refuse (400 « texte
+    // requis »). On le vérifie avant d'appeler le serveur pour donner tout de suite la vraie raison,
+    // plutôt qu'un aller-retour réseau pour redire la même chose avec un message générique.
+    if (!texte.trim()) {
+      toast.error(t('contenus.toast.promptTexteManquant'));
+      return;
+    }
     setImgLoadingPrompt(true);
     try {
       const data = await agentService.imagePrompt(
-        contenu.contenu || contenu.titre || '',
+        texte,
         String(contenu.reseau_cible || 'linkedin').toLowerCase(),
         contenu.id,
         avecPhoto,
@@ -925,7 +933,9 @@ export default function ContenusPage() {
       setContenus((prev) => prev.map((c) => (c.id === contenu.id ? { ...c, prompt_image: data.prompt } : c)));
       setImageContenu((prev) => (prev && prev.id === contenu.id ? { ...prev, prompt_image: data.prompt } : prev));
     } catch (e) {
-      toast.error(t('contenus.toast.promptErreur'));
+      // Le serveur NestJS renvoie le motif dans `.message` (FastAPI, lui, renvoyait `.detail` —
+      // c'est ce champ-là qu'on lisait encore, donc toute erreur retombait sur le texte générique).
+      toast.error(e.response?.data?.message || t('contenus.toast.promptErreur'));
     } finally {
       setImgLoadingPrompt(false);
     }

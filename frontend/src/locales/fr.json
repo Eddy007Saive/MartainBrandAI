@@ -802,6 +802,7 @@
       "refAjoutee": "Référence ajoutée",
       "ajoutEchec": "Échec de l'ajout",
       "promptErreur": "Erreur lors de la préparation du prompt",
+      "promptTexteManquant": "Écris d'abord le texte du post : l'image se décrit à partir de lui.",
       "visuelGenere": "Visuel généré",
       "imageEchec": "Échec de la génération d'image",
       "choisissezImageFormats": "Choisissez une image (jpg, png, webp).",
