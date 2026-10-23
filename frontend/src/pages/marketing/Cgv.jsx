@@ -79,8 +79,9 @@ export default function Cgv() {
         enregistre un moyen de paiement et accepte les CGV et les CGU.
         <br />
         6.2 Tout nouvel abonnement débute par un essai gratuit de 14 jours, limité à un essai par
-        entreprise. Le moyen de paiement est enregistré dès l'inscription, mais aucune somme
-        n'est prélevée pendant l'essai.
+        entreprise. Le moyen de paiement est enregistré au moment où l'Utilisateur démarre
+        l'essai (à sa première génération de contenu), mais aucune somme n'est prélevée pendant
+        l'essai.
         <br />
         6.3 Sauf résiliation par le Client avant la fin de l'essai, l'abonnement payant démarre
         automatiquement le 15e jour et le premier mois est prélevé à cette date.
