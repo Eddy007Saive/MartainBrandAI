@@ -82,6 +82,13 @@ export const contenuService = {
   creerReel: (extra = {}) => api.post('/reels/creer', extra).then(r => r.data),
   // Moteur B (test A/B, comptes choisis) : MoneyPrinterTurbo sur le VPS
   moteurBStatut: () => api.get('/reels/moteur-b').then(r => r.data),
+  // M'inspirer d'un reel qui marche : analyse du reel importé, puis script adapté à la marque
+  inspirationAnalyser: (fichier) => {
+    const form = new FormData();
+    form.append('file', fichier);
+    return api.post('/reels/inspiration/analyser', form, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 300000 }).then(r => r.data);
+  },
+  inspirationScript: (payload) => api.post('/reels/inspiration/script', payload, { timeout: 240000 }).then(r => r.data),
   moteurBLancer: (payload) => api.post('/reels/moteur-b', payload).then(r => r.data),
   reelTemplates: () => api.get('/reels/templates').then(r => r.data),   // {templates, musiques, categories}
   reelRecommander: (id) => api.get(`/reels/recommander/${id}`).then(r => r.data),

@@ -90,6 +90,7 @@ export default function MesMontages() {
             onClips={() => navigate('/dashboard/reel')}
             onMotion={() => navigate('/dashboard/video?mode=motion')}
             onMain={() => navigate('/dashboard/editeur/nouveau')}
+            onInspiration={() => navigate('/dashboard/inspiration')}
           />
         </section>
 

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Video, Film, Wand2, Clapperboard, ChevronRight } from 'lucide-react';
+import { Video, Film, Wand2, Clapperboard, ChevronRight, Lightbulb } from 'lucide-react';
 
 /**
  * Les quatre façons de faire une vidéo. Partagé par le Studio Vidéo (on arrive avec un
@@ -8,7 +8,7 @@ import { Video, Film, Wand2, Clapperboard, ChevronRight } from 'lucide-react';
  * Sur téléphone : une ligne compacte par choix (icône, texte, chevron) ; à partir de sm,
  * des tuiles alignées en haut, pour que les icônes tombent toutes sur la même ligne.
  */
-export default function ChoixMontage({ libre = false, onFaceCam, onClips, onMotion, onMain }) {
+export default function ChoixMontage({ libre = false, onFaceCam, onClips, onMotion, onMain, onInspiration }) {
   const { t } = useTranslation();
   const CARTES = [
     { id: 'facecam', onClick: onFaceCam, titre: t('video.choix.faceCam'), desc: t(libre ? 'video.choix.faceCamLibre' : 'video.choix.faceCamDesc'),
@@ -23,9 +23,13 @@ export default function ChoixMontage({ libre = false, onFaceCam, onClips, onMoti
     { id: 'editeur', onClick: onMain, titre: t('editeur.monterMain'), desc: t('editeur.monterMainDesc'),
       Icone: Clapperboard, tuile: 'bg-[#8A6CFF]/15 border border-[#8A6CFF]/30 text-[#c4b5fd]',
       survol: 'hover:border-[#8A6CFF]/60 hover:bg-[#8A6CFF]/[0.08]' },
+    // 5e choix, seulement là où la page le propose (Éditeur vidéo) : partir d'un reel qui marche.
+    ...(onInspiration ? [{ id: 'inspiration', onClick: onInspiration, titre: t('video.choix.inspiration'), desc: t('video.choix.inspirationDesc'),
+      Icone: Lightbulb, tuile: 'bg-[#fbbf24]/15 border border-[#fbbf24]/30 text-[#fbbf24]',
+      survol: 'hover:border-[#fbbf24]/50 hover:bg-[#fbbf24]/[0.05]' }] : []),
   ];
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mt-4">
+    <div className={`grid grid-cols-1 sm:grid-cols-2 ${CARTES.length > 4 ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-2.5 sm:gap-3 mt-4`}>
       {CARTES.map(({ id, onClick, titre, desc, Icone, tuile, survol }) => (
         <button key={id} type="button" onClick={onClick} data-testid={`choix-${id}`}
           className={`group flex sm:flex-col items-center sm:items-start gap-3 text-left rounded-xl border border-white/10 bg-[#0c111f] p-3.5 sm:p-4 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6CFF] ${survol}`}>
