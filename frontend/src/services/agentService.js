@@ -43,6 +43,11 @@ export const agentService = {
   // Script vidéo en brouillon : retouche, ou nouvelle proposition de l'IA (regenere)
   majBrouillonScript: (id, script, regenere = false) =>
     api.patch(`/agent/brouillons-contenus/${id}`, { script, ...(regenere ? { regenere: true } : {}) }).then((r) => r.data),
+  // Premier commentaire (« commentaire épinglé ») proposé par l'IA pour un post -> { commentaire }
+  premierCommentaire: (texte, reseau = 'linkedin') =>
+    api.post('/agent/premier-commentaire', { texte, reseau }).then((r) => r.data),
+  // Enregistre seulement le premier commentaire d'un brouillon (sans toucher au texte du post)
+  majCommentaireBrouillon: (id, champs) => api.patch(`/agent/brouillons-contenus/${id}`, champs).then((r) => r.data),
   creerBrouillon: (carte) => api.post('/agent/brouillons-contenus', carte).then((r) => r.data),
   supprimerBrouillon: (id) => api.delete(`/agent/brouillons-contenus/${id}`).then((r) => r.data),
 
@@ -63,11 +68,12 @@ export const agentService = {
     api.post('/agent/carrousel', { sujet, reseau, nb_slides, qualite, contenu_id, ...(dimensions ? { dimensions } : {}) }).then((r) => r.data),
 
   // Génère un post à partir d'une photo (vision) -> { contenu_id, contenu, lien_visuel, credits }
-  redigerPhoto: (file, reseau = 'linkedin', qualite = 'equilibre') => {
+  redigerPhoto: (file, reseau = 'linkedin', qualite = 'equilibre', structure = 'auto') => {
     const form = new FormData();
     form.append('file', file);
     form.append('reseau', reseau);
     form.append('qualite', qualite);
+    if (structure && structure !== 'auto') form.append('structure', structure);
     return api.post('/agent/rediger-photo', form, { headers: { 'Content-Type': 'multipart/form-data' } }).then((r) => r.data);
   },
 

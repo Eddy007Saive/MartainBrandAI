@@ -2000,6 +2000,48 @@
     "ongletTexte": "Texto",
     "ongletAccroche": "Ayuda para el gancho",
     "ongletVerif": "Verificación",
+    "ongletCommentaire": "Comentario fijado",
+    "commentaireAide": "El primer comentario, publicado por usted justo después del post: inicia la conversación sin recargar el texto.",
+    "commentaireEnCours": "La IA está preparando un comentario…",
+    "commentaireErreur": "No se pudo proponer el comentario. Inténtelo de nuevo.",
+    "commentaireCopie": "Comentario copiado",
+    "copieEchec": "No se pudo copiar",
+    "copier": "Copiar",
+    "commentaireAuto": "Publicarlo automáticamente justo después del post",
+    "commentaireAutoAide": "Se publica justo después de la publicación, desde su cuenta.",
+    "commentaireAutoIndispo": "{{reseau}} no permite publicar un primer comentario automáticamente: cópielo y añádalo a mano.",
+    "commentaireSauvegardeEchec": "El comentario no se guardó. Inténtelo de nuevo.",
+    "structureTitre": "Estructura del post",
+    "structurePortee": "Para posts, stories y posts con foto.",
+    "structureActuelle": "actual",
+    "reecrireEn": "Reescribir como…",
+    "reecrireAide": "Mismo tema, nueva versión con esta estructura",
+    "structures": {
+      "auto": {
+        "nom": "Automática",
+        "aide": "La IA elige la forma más natural para el tema."
+      },
+      "aida": {
+        "nom": "AIDA",
+        "aide": "Atención, Interés, Deseo, Acción: capta, interesa, da ganas y hace actuar."
+      },
+      "pas": {
+        "nom": "Problema → Solución (PAS)",
+        "aide": "Nombra un problema, muestra lo que cuesta y aporta la solución."
+      },
+      "bab": {
+        "nom": "Antes → Después (BAB)",
+        "aide": "La situación antes, la de después y lo que marcó la diferencia."
+      },
+      "star": {
+        "nom": "Historia (STAR)",
+        "aide": "Situación, reto, acción, resultado: una historia real que termina en la lección."
+      },
+      "slay": {
+        "nom": "Lección personal (SLAY)",
+        "aide": "Una anécdota, lo que le enseñó, un consejo aplicable y una pregunta al lector."
+      }
+    },
     "statutPret": "Por revisar",
     "statutEnregistre": "Por terminar en Contenidos",
     "verifLongueur": "{{n}} caracteres de {{max}} permitidos en esta red.",

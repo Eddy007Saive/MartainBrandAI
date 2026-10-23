@@ -2000,6 +2000,48 @@
     "ongletTexte": "Texte",
     "ongletAccroche": "Aide à l'accroche",
     "ongletVerif": "Vérification",
+    "ongletCommentaire": "Commentaire épinglé",
+    "commentaireAide": "Le premier commentaire, publié par vous juste après le post : il lance la conversation sans alourdir le texte.",
+    "commentaireEnCours": "L'IA prépare un commentaire…",
+    "commentaireErreur": "Le commentaire n'a pas pu être proposé. Réessayez.",
+    "commentaireCopie": "Commentaire copié",
+    "copieEchec": "Impossible de copier",
+    "copier": "Copier",
+    "commentaireAuto": "Le publier automatiquement juste après le post",
+    "commentaireAutoAide": "Il part dans la foulée de la publication, depuis votre compte.",
+    "commentaireAutoIndispo": "{{reseau}} ne permet pas de publier un premier commentaire automatiquement : copiez-le et ajoutez-le à la main.",
+    "commentaireSauvegardeEchec": "Le commentaire n'a pas été enregistré. Réessayez.",
+    "structureTitre": "Structure du post",
+    "structurePortee": "Pour les posts, stories et posts photo.",
+    "structureActuelle": "actuelle",
+    "reecrireEn": "Réécrire en…",
+    "reecrireAide": "Même sujet, nouvelle version dans cette structure",
+    "structures": {
+      "auto": {
+        "nom": "Automatique",
+        "aide": "L'IA choisit la forme la plus naturelle pour le sujet."
+      },
+      "aida": {
+        "nom": "AIDA",
+        "aide": "Attention, Intérêt, Désir, Action : capte, intéresse, donne envie, fait agir."
+      },
+      "pas": {
+        "nom": "Problème → Solution (PAS)",
+        "aide": "Nomme un problème, montre ce qu'il coûte, puis apporte la solution."
+      },
+      "bab": {
+        "nom": "Avant → Après (BAB)",
+        "aide": "La situation avant, celle après, et ce qui a fait la différence."
+      },
+      "star": {
+        "nom": "Histoire (STAR)",
+        "aide": "Situation, enjeu, action, résultat : une histoire vécue qui finit sur la leçon."
+      },
+      "slay": {
+        "nom": "Leçon perso (SLAY)",
+        "aide": "Une anecdote, ce qu'elle vous a appris, un conseil à appliquer, une question au lecteur."
+      }
+    },
     "statutPret": "À relire",
     "statutEnregistre": "À finaliser dans Contenus",
     "verifLongueur": "{{n}} caractères sur {{max}} autorisés par ce réseau.",
