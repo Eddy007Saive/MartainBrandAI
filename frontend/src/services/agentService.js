@@ -43,6 +43,8 @@ export const agentService = {
   // Script vidéo en brouillon : retouche, ou nouvelle proposition de l'IA (regenere)
   majBrouillonScript: (id, script, regenere = false) =>
     api.patch(`/agent/brouillons-contenus/${id}`, { script, ...(regenere ? { regenere: true } : {}) }).then((r) => r.data),
+  // Six autres premières lignes pour un post -> { accroches: [{ formule, nom, texte, chiffres_non_sources }] }
+  accroches: (texte, reseau = 'linkedin') => api.post('/agent/accroches', { texte, reseau }).then((r) => r.data),
   // Premier commentaire (« commentaire épinglé ») proposé par l'IA pour un post -> { commentaire }
   premierCommentaire: (texte, reseau = 'linkedin') =>
     api.post('/agent/premier-commentaire', { texte, reseau }).then((r) => r.data),

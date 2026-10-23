@@ -117,7 +117,16 @@
     },
     "chiffre": "Check this figure, it is not in your information: {{chiffres}}",
     "apercuInstagram": "What the Instagram feed shows",
-    "plus": "… more"
+    "plus": "… more",
+    "autresTitre": "Other hooks",
+    "autresAide": "The AI writes 6 first lines, each from a different formula. Pick the one that sounds like you.",
+    "proposer": "Suggest 6 hooks",
+    "reproposer": "6 more",
+    "utiliser": "Use",
+    "enPlace": "In place",
+    "remplacee": "Hook replaced",
+    "aucune": "No hook could be suggested. Try again.",
+    "erreur": "The hooks couldn't be suggested. Try again."
   },
   "auth": {
     "tagline": "Your presence, amplified",
@@ -632,7 +641,7 @@
       "titreTexte": "Title",
       "sous": "Subtitle",
       "objet": "Featured object",
-      "objetAide": "In English, for the generator: e.g. a giant golden key.",
+      "objetAide": "E.g. a giant golden key: the AI puts it in the background.",
       "format": "Format",
       "f916": "9:16 · Reels, TikTok",
       "f169": "16:9 · YouTube",
