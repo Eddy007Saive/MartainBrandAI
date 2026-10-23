@@ -92,6 +92,8 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
   const [variantes, setVariantes] = useState([]);   // propositions en attente de choix
   const [choixEnCours, setChoixEnCours] = useState(null);
   const [restaurEnCours, setRestaurEnCours] = useState(null);
+  // Gabarits dont la vraie photo d'exemple a échoué au chargement : la maquette CSS prend le relais.
+  const [apercusEnErreur, setApercusEnErreur] = useState(() => new Set());
 
   useEffect(() => {
     if (!contenu) return undefined;
@@ -282,16 +284,19 @@ export default function MiniatureDialog({ contenu, onClose, onDone, onGeneree })
                     <button key={x.id} type="button" onClick={() => setGabarit(x.id)} aria-pressed={on} data-testid={`miniature-gabarit-${x.id}`}
                       className={`group text-left rounded-xl ${FOCUS}`}>
                       <div className={`relative aspect-[9/16] rounded-xl overflow-hidden border-[1.5px] transition-colors duration-150 ${CADRE(on)}`} style={{ background: a.fond }}>
-                        {/* L'image d'exemple ; si elle manque, la maquette CSS prend le relais */}
-                        {x.apercu && (
+                        {/* L'image d'exemple ; si elle manque (ou échoue), la maquette CSS prend le relais :
+                            jamais les deux à la fois, sinon le texte générique de la maquette se superpose
+                            au vrai style déjà dessiné dans la photo. */}
+                        {x.apercu && !apercusEnErreur.has(x.id) ? (
                           <img src={x.apercu} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover z-[1]"
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                            onError={() => setApercusEnErreur((s) => new Set(s).add(x.id))} />
+                        ) : (
+                          a.blocs.map(([k, pos]) => (
+                            <div key={k} className={`absolute inset-x-0 ${pos} ${a.align} ${BLOC_CLS[k]}`}>
+                              {k === 'k' ? 'KICKER' : k === 's' ? 'SOUS-TITRE' : k === 'c' ? 'accroche' : 'TITRE'}
+                            </div>
+                          ))
                         )}
-                        {a.blocs.map(([k, pos]) => (
-                          <div key={k} className={`absolute inset-x-0 ${pos} ${a.align} ${BLOC_CLS[k]}`}>
-                            {k === 'k' ? 'KICKER' : k === 's' ? 'SOUS-TITRE' : k === 'c' ? 'accroche' : 'TITRE'}
-                          </div>
-                        ))}
                         {on && <Coche />}
                       </div>
                       <div className={`mt-1.5 text-center text-[12px] font-inter font-semibold truncate ${LEGENDE(on)}`}>
