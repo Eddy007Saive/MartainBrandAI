@@ -23,6 +23,15 @@ export function premiereLigne(texte) {
   return ((texte || '').split('\n').find((l) => l.trim()) || '').trim();
 }
 
+/** Remplace la première ligne non vide du texte (l'accroche) par `ligne`. */
+export function remplacerPremiereLigne(texte, ligne) {
+  const lignes = (texte || '').split('\n');
+  const i = lignes.findIndex((l) => l.trim());
+  if (i < 0) return ligne;
+  lignes[i] = ligne;
+  return lignes.join('\n');
+}
+
 /** Points à améliorer sur la première ligne (vide = rien à signaler). */
 export function conseilsAccroche(texte) {
   const ligne = premiereLigne(texte);

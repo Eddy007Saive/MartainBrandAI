@@ -117,7 +117,16 @@
     },
     "chiffre": "Revisa esta cifra, no aparece en tu información: {{chiffres}}",
     "apercuInstagram": "Lo que muestra el feed de Instagram",
-    "plus": "… más"
+    "plus": "… más",
+    "autresTitre": "Otros ganchos",
+    "autresAide": "La IA escribe 6 primeras líneas, cada una con una fórmula distinta. Elige la que más se parezca a ti.",
+    "proposer": "Proponer 6 ganchos",
+    "reproposer": "6 más",
+    "utiliser": "Usar",
+    "enPlace": "Puesto",
+    "remplacee": "Gancho reemplazado",
+    "aucune": "No se pudo proponer ningún gancho. Inténtalo de nuevo.",
+    "erreur": "No se pudieron proponer los ganchos. Inténtalo de nuevo."
   },
   "auth": {
     "tagline": "Tu presencia, amplificada",
@@ -632,7 +641,7 @@
       "titreTexte": "Título",
       "sous": "Subtítulo",
       "objet": "Objeto protagonista",
-      "objetAide": "En inglés, para el generador: p. ej. a giant golden key.",
+      "objetAide": "P. ej. una llave dorada gigante: la IA la coloca en el fondo.",
       "format": "Formato",
       "f916": "9:16 · Reels, TikTok",
       "f169": "16:9 · YouTube",
@@ -2001,16 +2010,16 @@
     "ongletAccroche": "Ayuda para el gancho",
     "ongletVerif": "Verificación",
     "ongletCommentaire": "Comentario fijado",
-    "commentaireAide": "El primer comentario, publicado por usted justo después del post: inicia la conversación sin recargar el texto.",
+    "commentaireAide": "El primer comentario, publicado por ti justo después del post: inicia la conversación sin recargar el texto.",
     "commentaireEnCours": "La IA está preparando un comentario…",
-    "commentaireErreur": "No se pudo proponer el comentario. Inténtelo de nuevo.",
+    "commentaireErreur": "No se pudo proponer el comentario. Inténtalo de nuevo.",
     "commentaireCopie": "Comentario copiado",
     "copieEchec": "No se pudo copiar",
     "copier": "Copiar",
     "commentaireAuto": "Publicarlo automáticamente justo después del post",
-    "commentaireAutoAide": "Se publica justo después de la publicación, desde su cuenta.",
-    "commentaireAutoIndispo": "{{reseau}} no permite publicar un primer comentario automáticamente: cópielo y añádalo a mano.",
-    "commentaireSauvegardeEchec": "El comentario no se guardó. Inténtelo de nuevo.",
+    "commentaireAutoAide": "Se publica justo después de la publicación, desde tu cuenta.",
+    "commentaireAutoIndispo": "{{reseau}} no permite publicar un primer comentario automáticamente: cópialo y añádelo a mano.",
+    "commentaireSauvegardeEchec": "El comentario no se guardó. Inténtalo de nuevo.",
     "structureTitre": "Estructura del post",
     "structurePortee": "Para posts, stories y posts con foto.",
     "structureActuelle": "actual",
@@ -2039,7 +2048,7 @@
       },
       "slay": {
         "nom": "Lección personal (SLAY)",
-        "aide": "Una anécdota, lo que le enseñó, un consejo aplicable y una pregunta al lector."
+        "aide": "Una anécdota, lo que te enseñó, un consejo aplicable y una pregunta al lector."
       }
     },
     "statutPret": "Por revisar",

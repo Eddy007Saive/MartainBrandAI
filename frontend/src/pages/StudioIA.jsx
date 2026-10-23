@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import AideAccroche from '../components/AideAccroche';
+import { remplacerPremiereLigne } from '../lib/accroche';
 
 const FORMATS = [
   { id: 'post', labelKey: 'formatPost', icon: PenLine },
@@ -1465,7 +1466,10 @@ export default function StudioIA() {
                             <CommentaireEpingle key={sel.id} carte={sel} onChange={(champs) => majCommentaire(sel.id, champs)}
                               t={t} champ={champ} btnSecondaire={btnSecondaire} nomReseau={nomReseau} />
                           ) : onglet === 'accroche' && sel.format !== 'script' ? (
-                            <AideAccroche texte={sel.texte} reseau={sel.meta} chiffresNonSources={sel.accrocheAlerte} />
+                            <AideAccroche texte={sel.texte} reseau={sel.meta} chiffresNonSources={sel.accrocheAlerte}
+                              propositions={sel.accroches || null}
+                              onPropositions={(liste) => setContenus((prev) => prev.map((c) => (c.id === sel.id ? { ...c, accroches: liste } : c)))}
+                              onUtiliser={(ligne) => { editer(sel.id, remplacerPremiereLigne(sel.texte, ligne)); toast.success(t('accroche.remplacee')); }} />
                           ) : onglet === 'verif' && sel.format !== 'script' ? (
                             <ul className="flex flex-col gap-2 text-[13.5px] font-inter py-1">
                               {verifications(sel).map((v) => (
