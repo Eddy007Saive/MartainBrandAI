@@ -40,6 +40,7 @@ const EditionVideo = lazy(() => import("./pages/EditionVideo"));
 const EditeurVideo = lazy(() => import("./pages/EditeurVideo"));
 const MesMontages = lazy(() => import("./pages/MesMontages"));
 const StudioReel = lazy(() => import("./pages/StudioReel"));
+const InspirationReel = lazy(() => import("./pages/InspirationReel"));
 const PlanEditorial = lazy(() => import("./pages/PlanEditorial"));
 const CommentairesPage = lazy(() => import("./pages/CommentairesPage"));
 const FicheGooglePage = lazy(() => import("./pages/FicheGooglePage"));
@@ -139,6 +140,7 @@ function App({ htmlPrerendu = "" }) {
               <Route path="editeur/nouveau" element={<EditeurVideo />} />
               <Route path="editeur/:id" element={<EditeurVideo />} />
               <Route path="reel" element={<StudioReel />} />
+              <Route path="inspiration" element={<InspirationReel />} />
               <Route path="plan" element={<PlanEditorial />} />
               <Route path="contenus" element={<ContenusPage />} />
               <Route path="commentaires" element={<CommentairesPage />} />
