@@ -1999,6 +1999,48 @@
     "ongletTexte": "Text",
     "ongletAccroche": "Hook helper",
     "ongletVerif": "Checks",
+    "ongletCommentaire": "Pinned comment",
+    "commentaireAide": "The first comment, posted by you right after the post: it starts the conversation without weighing down the text.",
+    "commentaireEnCours": "The AI is writing a comment…",
+    "commentaireErreur": "The comment couldn't be suggested. Please try again.",
+    "commentaireCopie": "Comment copied",
+    "copieEchec": "Couldn't copy",
+    "copier": "Copy",
+    "commentaireAuto": "Post it automatically right after the post",
+    "commentaireAutoAide": "It goes out right after publication, from your account.",
+    "commentaireAutoIndispo": "{{reseau}} doesn't allow an automatic first comment: copy it and add it by hand.",
+    "commentaireSauvegardeEchec": "The comment wasn't saved. Please try again.",
+    "structureTitre": "Post structure",
+    "structurePortee": "For posts, stories and photo posts.",
+    "structureActuelle": "current",
+    "reecrireEn": "Rewrite as…",
+    "reecrireAide": "Same topic, new version in this structure",
+    "structures": {
+      "auto": {
+        "nom": "Automatic",
+        "aide": "The AI picks the most natural shape for the topic."
+      },
+      "aida": {
+        "nom": "AIDA",
+        "aide": "Attention, Interest, Desire, Action: hook, interest, desire, then a call to act."
+      },
+      "pas": {
+        "nom": "Problem → Solution (PAS)",
+        "aide": "Name a problem, show what it costs, then bring the solution."
+      },
+      "bab": {
+        "nom": "Before → After (BAB)",
+        "aide": "The situation before, the one after, and what made the difference."
+      },
+      "star": {
+        "nom": "Story (STAR)",
+        "aide": "Situation, task, action, result: a real story that ends on the lesson."
+      },
+      "slay": {
+        "nom": "Personal lesson (SLAY)",
+        "aide": "An anecdote, what it taught you, one tip to apply, a question to the reader."
+      }
+    },
     "statutPret": "To review",
     "statutEnregistre": "To finish in Contents",
     "verifLongueur": "{{n}} characters out of {{max}} allowed on this network.",

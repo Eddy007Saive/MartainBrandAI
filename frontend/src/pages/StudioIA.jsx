@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Loader2, Lightbulb, PenLine, Check, CheckCircle2, Clock, CircleDot,
   RefreshCw, Image as ImageIcon, AlertTriangle, Wand2, Clapperboard, Trash2, LayoutGrid, Camera,
-  ChevronLeft, ChevronRight, ChevronDown, X, ArrowRight, Upload, Eye, Maximize2, Target, Activity,
+  ChevronLeft, ChevronRight, ChevronDown, X, ArrowRight, Upload, Eye, Maximize2, Target, Activity, Copy,
 } from 'lucide-react';
 import { LogoReseau } from '../components/LogoReseau';
 import { toast } from 'sonner';
@@ -18,6 +18,8 @@ import { track } from '../lib/analytics';
 import { Button } from '../components/ui/button';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Checkbox } from '../components/ui/checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import AideAccroche from '../components/AideAccroche';
 
 const FORMATS = [
@@ -180,6 +182,84 @@ const DimSelect = ({ id, label, value, reco, options, onChange, t, libelle = (v)
   );
 };
 
+// Structures de post au choix (AIDA, PAS…) : « auto » laisse l'IA choisir la forme la plus naturelle.
+const STRUCTURES = ['auto', 'aida', 'pas', 'bab', 'star', 'slay'];
+const avecStructure = (dims, structure) => (structure && structure !== 'auto' ? { ...(dims || {}), structure } : dims);
+
+// Réseaux où Zernio publie le premier commentaire juste après le post, et leur limite de caractères.
+const LIMITE_COMMENTAIRE = { linkedin: 1250, instagram: 2200, facebook: 8000, youtube: 10000 };
+
+// Premier commentaire (« commentaire épinglé ») : proposé par l'IA à la première ouverture de l'onglet,
+// modifiable, publié automatiquement juste après le post si la case est cochée.
+const CommentaireEpingle = ({ carte, onChange, t, champ, btnSecondaire, nomReseau }) => {
+  const [chargement, setChargement] = useState(false);
+  const [erreur, setErreur] = useState('');
+  const texte = carte.premierCommentaire || '';
+  const limite = LIMITE_COMMENTAIRE[carte.meta] || 1250;
+  const autoPossible = carte.meta in LIMITE_COMMENTAIRE;
+  const proposer = async () => {
+    if (!(carte.texte || '').trim()) return;
+    setChargement(true);
+    setErreur('');
+    try {
+      const d = await agentService.premierCommentaire(carte.texte, carte.meta);
+      onChange({ premierCommentaire: d.commentaire || '' });
+    } catch (e) {
+      setErreur(e?.response?.data?.detail || t('studio.commentaireErreur'));
+    } finally {
+      setChargement(false);
+    }
+  };
+  useEffect(() => {
+    if (!texte.trim()) proposer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const copier = async () => {
+    try {
+      await navigator.clipboard.writeText(texte);
+      toast.success(t('studio.commentaireCopie'));
+    } catch (e) {
+      toast.error(t('studio.copieEchec'));
+    }
+  };
+  return (
+    <div className="space-y-3 py-1 font-inter" data-testid="studio-commentaire">
+      <p className="text-[13px] text-slate-300 max-w-[62ch]">{t('studio.commentaireAide')}</p>
+      {chargement ? (
+        <div className="space-y-2 py-1" aria-busy="true">
+          <div className="flex items-center gap-2 text-[13px] text-[#d8d2ff]"><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />{t('studio.commentaireEnCours')}</div>
+          {[96, 78].map((w) => <div key={w} className="h-3 rounded bg-white/[0.06] animate-pulse" style={{ width: `${w}%` }} />)}
+        </div>
+      ) : (
+        <Textarea value={texte} onChange={(e) => onChange({ premierCommentaire: e.target.value.slice(0, limite) })} rows={4}
+          data-testid="studio-commentaire-texte" aria-label={t('studio.ongletCommentaire')} className={`${champ} resize-y text-[14px] leading-relaxed`} />
+      )}
+      {erreur && <p role="alert" className="text-[12.5px] text-red-300">{erreur}</p>}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="ghost" onClick={proposer} disabled={chargement || !(carte.texte || '').trim()} className={btnSecondaire} data-testid="studio-commentaire-regenerer">
+          <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" /><span className="ml-1.5">{t('studio.regenerate')}</span>
+        </Button>
+        <Button size="sm" variant="ghost" onClick={copier} disabled={chargement || !texte.trim()} className={btnSecondaire}>
+          <Copy className="w-3.5 h-3.5" aria-hidden="true" /><span className="ml-1.5">{t('studio.copier')}</span>
+        </Button>
+        <span className={`ml-auto text-[12px] tabular-nums ${texte.length >= limite ? 'text-orange-300' : 'text-slate-400'}`}>{t('studio.caracteres', { n: texte.length, max: limite })}</span>
+      </div>
+      <div className="flex items-start gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2.5">
+        <Checkbox id={`studio-commentaire-auto-${carte.id}`} data-testid="studio-commentaire-auto"
+          checked={autoPossible && !!carte.premierCommentaireAuto} disabled={!autoPossible || !texte.trim()}
+          onCheckedChange={(v) => onChange({ premierCommentaireAuto: v === true })}
+          className="mt-0.5 border-white/30 data-[state=checked]:bg-[#5a4ae8] data-[state=checked]:border-[#5a4ae8] data-[state=checked]:text-white" />
+        <label htmlFor={`studio-commentaire-auto-${carte.id}`} className={`text-[13px] leading-snug ${autoPossible ? 'text-slate-100 cursor-pointer' : 'text-slate-400'}`}>
+          {t('studio.commentaireAuto')}
+          <span className="block text-[12px] text-slate-400 mt-0.5">
+            {autoPossible ? t('studio.commentaireAutoAide') : t('studio.commentaireAutoIndispo', { reseau: nomReseau(carte.meta) })}
+          </span>
+        </label>
+      </div>
+    </div>
+  );
+};
+
 export default function StudioIA() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -275,6 +355,7 @@ export default function StudioIA() {
   const [slideIdx, setSlideIdx] = useState(0);
   const [depotActif, setDepotActif] = useState(false); // glisser-déposer d'une photo
   const [modeCreation, setModeCreation] = useState('sujets'); // sujets | brief | photo
+  const [structure, setStructure] = useState('auto'); // structure imposée aux posts (AIDA, PAS…)
   const lightboxRef = useRef(null);
   // Garde le focus clavier dans la visionneuse plein écran
   const pieger = (e) => {
@@ -327,6 +408,7 @@ export default function StudioIA() {
             id: `b-${b.id}`, contenuId: b.id, brouillon: true, sujet: b.titre || '', texte: b.contenu || '',
             texteOriginal: b.contenu_original || b.contenu || '', statut: 'pret',
             format: b.type === 'Story' ? 'story' : 'post', meta: (b.reseau_cible || 'linkedin').toLowerCase(),
+            premierCommentaire: b.premier_commentaire || '', premierCommentaireAuto: !!b.premier_commentaire_auto,
           }));
         const locales = (Array.isArray(data) ? data : [])
           .filter((c) => c.statut !== 'redaction' && !c.brouillon);
@@ -496,7 +578,7 @@ export default function StudioIA() {
     const extras = fmt === 'script' ? [] : cfgReseaux.slice(1); // réseaux additionnels cochés
     const qualite = cfgQualite;
     const cardId = nextId();
-    setContenus((prev) => [{ id: cardId, sujet: s.titre, sujetId: s.id, texte: '', statut: 'redaction', format: fmt, meta, reseau, extras, qualite }, ...prev]);
+    setContenus((prev) => [{ id: cardId, sujet: s.titre, sujetId: s.id, texte: '', statut: 'redaction', format: fmt, meta, reseau, extras, qualite, structure }, ...prev]);
     setSelId(cardId);
     setOpenId(null);
     // le sujet reste dispo tant que rien n'est validé : on peut le réutiliser pour un autre réseau
@@ -521,7 +603,7 @@ export default function StudioIA() {
       }
       const d = fmt === 'script'
         ? await agentService.script(s.titre, meta, qualite, dimsEdit, { brouillon: true, ...(reseau ? { reseau } : {}) })
-        : await agentService.rediger(s.titre, meta, false, qualite, dimsEdit, { brouillon: true, ...(fmt === 'story' ? { type: 'Story' } : {}) });
+        : await agentService.rediger(s.titre, meta, false, qualite, avecStructure(dimsEdit, structure), { brouillon: true, ...(fmt === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
@@ -544,7 +626,7 @@ export default function StudioIA() {
     const qualite = bQualite;
     const cardId = nextId();
     const titre = txt.length > 80 ? txt.slice(0, 80) + '…' : txt;
-    setContenus((prev) => [{ id: cardId, sujet: titre, promptFull: txt, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite }, ...prev]);
+    setContenus((prev) => [{ id: cardId, sujet: titre, promptFull: txt, texte: '', statut: 'redaction', format: fmt, meta, extras, qualite, structure }, ...prev]);
     setSelId(cardId);
     if (!force) {
       setBriefText('');
@@ -568,7 +650,7 @@ export default function StudioIA() {
       }
       const d = fmt === 'script'
         ? await agentService.script(txt, meta, qualite, null, { brouillon: true })
-        : await agentService.rediger(txt, meta, false, qualite, null, { brouillon: true, ...(fmt === 'story' ? { type: 'Story' } : {}) });
+        : await agentService.rediger(txt, meta, false, qualite, avecStructure(null, structure), { brouillon: true, ...(fmt === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       track('contenu_genere', { format: fmt, reseau: meta, qualite, source: 'brief' });
       const texte = fmt === 'script' ? (d.script || '') : (d.contenu || '');
@@ -613,7 +695,7 @@ export default function StudioIA() {
     setSelId(cardId);
     setPhotoOpen(false);
     try {
-      const d = await agentService.redigerPhoto(file, photoReseau, photoQualite);
+      const d = await agentService.redigerPhoto(file, photoReseau, photoQualite, structure);
       if (d.credits != null) updateUser({ credits: d.credits });
       setContenus((prev) => prev.map((c) => (c.id === cardId ? { ...c, statut: 'photo', texte: d.contenu || '', texteOriginal: d.contenu || '', image: d.lien_visuel } : c)));
     } catch (e) {
@@ -625,9 +707,11 @@ export default function StudioIA() {
     }
   };
 
-  const regenerer = async (id) => {
+  // `structureVoulue` : « Réécrire en… » (AIDA, PAS…) ; sinon la structure d'origine de la carte.
+  const regenerer = async (id, structureVoulue = null) => {
     const card = contenus.find((c) => c.id === id);
     if (!card) return;
+    const structureCarte = structureVoulue || card.structure || 'auto';
     const prompt = card.promptFull || card.sujet;
     // La version actuelle (retouchée ou non) reste récupérable après la régénération
     const precedent = card.texte || null;
@@ -650,7 +734,7 @@ export default function StudioIA() {
       }
       const d = card.format === 'script'
         ? await agentService.script(prompt, card.meta, card.qualite, null, card.brouillon ? {} : { brouillon: true, ...(card.reseau ? { reseau: card.reseau } : {}) })
-        : await agentService.rediger(prompt, card.meta, false, card.qualite, null,
+        : await agentService.rediger(prompt, card.meta, false, card.qualite, avecStructure(null, structureCarte),
           card.brouillon ? {} : { brouillon: true, ...(card.format === 'story' ? { type: 'Story' } : {}) });
       if (d.credits != null) updateUser({ credits: d.credits });
       const texte = card.format === 'script' ? (d.script || '') : (d.contenu || '');
@@ -664,7 +748,7 @@ export default function StudioIA() {
       }
       // Une régénération est une nouvelle proposition de l'IA, pas une retouche du client :
       // texteOriginal repart de ce nouveau texte (même principe que carrousel() côté backend).
-      setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, texteOriginal: texte, statut: 'pret', accrocheAlerte: d.accroche_chiffres_non_sources || [] } : c)));
+      setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, texte, texteOriginal: texte, statut: 'pret', structure: structureCarte, accrocheAlerte: d.accroche_chiffres_non_sources || [] } : c)));
     } catch (e) {
       setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, statut: 'erreur' } : c)));
       erreurGen(e);
@@ -692,6 +776,30 @@ export default function StudioIA() {
           .catch(() => setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, sauvegarde: 'echec' } : c))));
       }, 900);
     }
+  };
+  // Premier commentaire : enregistré sur le brouillon après 0,9 s (tout de suite pour la case à cocher).
+  // `comDerniers` garde la dernière valeur par carte, pour ne jamais renvoyer un état périmé.
+  const comTimers = useRef({});
+  const comDerniers = useRef({});
+  const sauverCommentaire = (id, contenuId) => {
+    clearTimeout(comTimers.current[id]);
+    delete comTimers.current[id];
+    const d = comDerniers.current[id];
+    if (!d || !contenuId) return Promise.resolve();
+    return agentService.majCommentaireBrouillon(contenuId, { premier_commentaire: d.premierCommentaire, premier_commentaire_auto: d.premierCommentaireAuto })
+      .catch(() => toast.error(t('studio.commentaireSauvegardeEchec')));
+  };
+  const majCommentaire = (id, champs) => {
+    const card = contenus.find((c) => c.id === id);
+    if (!card) return;
+    comDerniers.current[id] = {
+      premierCommentaire: card.premierCommentaire || '', premierCommentaireAuto: !!card.premierCommentaireAuto,
+      ...comDerniers.current[id], ...champs,
+    };
+    setContenus((prev) => prev.map((c) => (c.id === id ? { ...c, ...champs } : c)));
+    if (!(card.brouillon && card.contenuId)) return;
+    clearTimeout(comTimers.current[id]);
+    comTimers.current[id] = setTimeout(() => sauverCommentaire(id, card.contenuId), 'premierCommentaireAuto' in champs ? 0 : 900);
   };
   // Après une validation : on ouvre le contenu suivant encore à relire et on y place le focus
   const titreApercuRef = useRef(null);
@@ -724,8 +832,13 @@ export default function StudioIA() {
         return;
       }
       clearTimeout(majTimers.current[id]);
+      if (comTimers.current[id]) await sauverCommentaire(id, card.contenuId);
       const d = await agentService.enregistrer(card.texte, card.sujet, card.meta, card.format === 'story' ? 'Story' : null, card.texteOriginal || null,
         card.brouillon ? card.contenuId : null);
+      const com = comDerniers.current[id];
+      if (!card.brouillon && d?.contenu_id && com?.premierCommentaire?.trim()) {
+        contenuService.update(d.contenu_id, { premier_commentaire: com.premierCommentaire, premier_commentaire_auto: !!com.premierCommentaireAuto }).catch(() => {});
+      }
       // Réseaux additionnels cochés : on NE duplique PLUS tout de suite (le post n'a pas encore
       // d'image → ça obligeait à régénérer une image par copie). On duplique seulement une fois
       // qu'une image existe sur cette fiche, via le bouton ♻️ Recycler dans Contenus — la même
@@ -1005,6 +1118,21 @@ export default function StudioIA() {
                   </div>
                 </>
               )}
+            </div>
+            <div className="mt-4 pt-3.5 border-t border-white/[0.07]">
+              <label htmlFor="studio-structure" className="block text-[12.5px] font-semibold text-slate-100 font-inter mb-1.5">{t('studio.structureTitre')}</label>
+              <Select value={structure} onValueChange={setStructure}>
+                <SelectTrigger id="studio-structure" data-testid="studio-structure" aria-describedby="studio-structure-aide"
+                  className={`h-10 w-full rounded-[10px] border-white/15 bg-[#111b33] px-3 text-[13.5px] text-slate-100 font-inter focus:ring-2 focus:ring-[#8A6CFF]/60 focus:ring-offset-0 ${FOCUS}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STRUCTURES.map((k) => <SelectItem key={k} value={k} className="text-[13px]">{t(`studio.structures.${k}.nom`)}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <p id="studio-structure-aide" className="mt-1.5 text-[12.5px] text-slate-400 font-inter leading-snug">
+                {t(`studio.structures.${structure}.aide`)} {t('studio.structurePortee')}
+              </p>
             </div>
             <input ref={photoRef} type="file" accept="image/*" className="hidden" data-testid="studio-photo-input"
               onChange={(e) => genererPhoto(e.target.files?.[0])} />
@@ -1329,10 +1457,14 @@ export default function StudioIA() {
                       <>
                         {sel.format !== 'script' && (
                           <Onglets id="studio-apercu" label={t('studio.apercuTitre')} valeur={onglet} onChange={setOnglet}
-                            items={[['texte', t('studio.ongletTexte')], ['accroche', t('studio.ongletAccroche')], ['verif', t('studio.ongletVerif')]]} />
+                            items={[['texte', t('studio.ongletTexte')], ['accroche', t('studio.ongletAccroche')], ['verif', t('studio.ongletVerif')],
+                              ...(sel.format === 'post' ? [['commentaire', t('studio.ongletCommentaire')]] : [])]} />
                         )}
                         <div role={sel.format !== 'script' ? 'tabpanel' : undefined} id="studio-apercu-panel" aria-labelledby={sel.format !== 'script' ? `studio-apercu-tab-${onglet}` : undefined} className="pt-2.5">
-                          {onglet === 'accroche' && sel.format !== 'script' ? (
+                          {onglet === 'commentaire' && sel.format === 'post' ? (
+                            <CommentaireEpingle key={sel.id} carte={sel} onChange={(champs) => majCommentaire(sel.id, champs)}
+                              t={t} champ={champ} btnSecondaire={btnSecondaire} nomReseau={nomReseau} />
+                          ) : onglet === 'accroche' && sel.format !== 'script' ? (
                             <AideAccroche texte={sel.texte} reseau={sel.meta} chiffresNonSources={sel.accrocheAlerte} />
                           ) : onglet === 'verif' && sel.format !== 'script' ? (
                             <ul className="flex flex-col gap-2 text-[13.5px] font-inter py-1">
@@ -1372,14 +1504,35 @@ export default function StudioIA() {
                         )}
                         {/* Actions du contenu : groupées à droite, l'action principale au bout. Le violet est
                             le bouton principal du Studio ; le vert y marque seulement une étape terminée. */}
-                        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#090d18]/95 px-4 py-3 flex items-center gap-2.5 md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:mt-4 md:justify-end">
+                        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#090d18]/95 px-4 py-3 flex items-center gap-2.5 md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:mt-4 md:justify-end md:flex-wrap">
+                          {['post', 'story'].includes(sel.format) && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" disabled={sel.saving} data-testid="studio-reecrire" aria-label={t('studio.reecrireEn')}
+                                  className={`${btnSecondaire} h-11 md:h-10 px-3 sm:px-4 rounded-[10px] font-medium flex-none`}>
+                                  <Wand2 className="w-4 h-4" aria-hidden="true" /><span className="ml-2 hidden sm:inline">{t('studio.reecrireEn')}</span>
+                                  <ChevronDown className="w-3.5 h-3.5 ml-1 opacity-70 hidden sm:block" aria-hidden="true" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-72 bg-[#111c33]/95 border-white/10 text-slate-200 font-inter">
+                                <DropdownMenuLabel className="text-[12px] text-slate-400 font-normal">{t('studio.reecrireAide')}</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {STRUCTURES.filter((k) => k !== 'auto').map((k) => (
+                                  <DropdownMenuItem key={k} data-testid={`studio-reecrire-${k}`} onSelect={() => regenerer(sel.id, k)} className="flex flex-col items-start gap-0.5 py-2">
+                                    <span className="text-[13px] font-semibold">{t(`studio.structures.${k}.nom`)}{(sel.structure || 'auto') === k && <span className="font-normal text-slate-400"> · {t('studio.structureActuelle')}</span>}</span>
+                                    <span className="text-[12px] text-slate-400 leading-snug">{t(`studio.structures.${k}.aide`)}</span>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                           <Button variant="ghost" onClick={() => regenerer(sel.id)} disabled={sel.saving}
-                            className={`${btnSecondaire} h-11 md:h-10 px-4 rounded-[10px] font-medium`}>
+                            className={`${btnSecondaire} h-11 md:h-10 px-3 sm:px-4 rounded-[10px] font-medium flex-none`}>
                             <RefreshCw className="w-4 h-4" aria-hidden="true" /><span className="ml-2">{t('studio.regenerate')}</span>
                           </Button>
                           <Button data-testid={`studio-valider-${sel.id}`} onClick={() => valider(sel.id)} disabled={sel.saving || !sel.texte.trim()}
                             aria-describedby={`studio-valider-aide-${sel.id}`}
-                            className={`${btnViolet} flex-1 md:flex-none h-11 md:h-10 px-5 rounded-[10px] font-semibold active:scale-[0.98] transition-[transform,background-color] duration-150`}>
+                            className={`${btnViolet} flex-1 min-w-0 md:flex-none h-11 md:h-10 px-4 sm:px-5 rounded-[10px] font-semibold active:scale-[0.98] transition-[transform,background-color] duration-150`}>
                             {sel.saving ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Check className="w-4 h-4" strokeWidth={2.6} aria-hidden="true" />}
                             <span className="ml-2">{t(sel.format === 'script' ? 'studio.validerScript' : 'studio.validerPost')}</span>
                           </Button>
