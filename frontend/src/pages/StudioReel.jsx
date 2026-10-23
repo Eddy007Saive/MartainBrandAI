@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus, Sparkles, Wand2, Scissors } from 'lucide-react';
+import { Clapperboard, Maximize2, X, ChevronLeft, ChevronRight, Play, Pause, Loader2, ArrowLeft, Plus, Sparkles, Wand2, Scissors, RefreshCw } from 'lucide-react';
 import { contenuService } from '../services/contenuService';
 import { OverlayFabrication } from '../components/Fabrication';
 import DecoupeMusique from '../components/DecoupeMusique';
@@ -48,6 +48,7 @@ export default function StudioReel() {
   // Case « l'IA regarde mes vidéos » : cochée, Gemini lit les clips et choisit les moments ;
   // décochée (défaut), chaque vidéo passe telle quelle, dans l'ordre numéroté, depuis son début.
   const [montageIA, setMontageIA] = useState(false);
+  const [plansVideo, setPlansVideo] = useState(true); // plans de banque (Pexels, Pixabay) sans visuel du client
   const [mp3, setMp3] = useState(false);          // import d'un MP3 perso en cours
   const [playing, setPlaying] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -92,7 +93,10 @@ export default function StudioReel() {
             const memeMorceau = (i) => i.url === url && (i.debut ?? null) === (sg.debut ?? null) && (i.fin ?? null) === (sg.fin ?? null);
             if (!imgs.some(memeMorceau)) {
               const apercu = url.replace('/upload/', `/upload/so_${sg.debut != null ? Math.max(0, sg.debut).toFixed(1) : 2},w_800,q_auto/`).replace(/\.[a-z0-9]+$/i, '.jpg');
-              imgs.push({ cle: nouvelleCle(), url, desc: null, src: 'reel', type: 'video', apercu_url: apercu, debut: sg.debut ?? null, fin: sg.fin ?? null });
+              // Plan pris dans une banque (Pexels, Pixabay) : « Autre plan » cherche un remplaçant pour ce passage.
+              const stock = /\/stock\/(pexels|pixabay)-\d+/.test(url);
+              imgs.push({ cle: nouvelleCle(), url, desc: null, src: 'reel', type: 'video', apercu_url: apercu, debut: sg.debut ?? null, fin: sg.fin ?? null,
+                ...(stock ? { stock: true, passage: sg.texte || sc.brief || '' } : {}) });
             }
           }
         });
@@ -102,6 +106,7 @@ export default function StudioReel() {
         setMusique(sc.musique || 'none');
         setVoix(sc.voix || null);
         setMontageIA(!!sc.montage_ia);
+        setPlansVideo(sc.plans_video !== false);
       } else {
         const st = params.get('style');
         if (st) setStyle(st);
@@ -155,6 +160,21 @@ export default function StudioReel() {
       : (prev.length >= 6 ? prev : [...prev, { cle: nouvelleCle(), url: img.url, desc: img.description || '', src: 'banque', apercu_url: img.apercu_url || null, type: img.type || 'image' }]));
   };
   // Découpe : début/fin d'un morceau ; « ajouter un morceau » duplique le clip juste après, à découper ensuite.
+  // Remplace un plan de banque par un autre plan pour le même passage (les plans déjà utilisés sont écartés).
+  const [planEnCours, setPlanEnCours] = useState(null);
+  const autrePlan = async (img) => {
+    setPlanEnCours(img.cle);
+    try {
+      const d = await contenuService.autrePlanStock(img.passage || brief || source?.contenu || '', images.map((i) => i.url));
+      const apercu = d.url.replace('/upload/', '/upload/so_2,w_800,q_auto/').replace(/\.[a-z0-9]+$/i, '.jpg');
+      setImages((prev) => prev.map((i) => (i.cle === img.cle ? { ...i, url: d.url, desc: d.desc, apercu_url: apercu, debut: null, fin: null } : i)));
+      toast.success(t('contenus.reel.seq.autrePlanOk'));
+    } catch (e) {
+      if (!e.__handled) toast.error(e.response?.data?.message || e.response?.data?.detail || t('contenus.reel.seq.autrePlanEchec'));
+    } finally {
+      setPlanEnCours(null);
+    }
+  };
   const regler = (cle, debut, fin) => setImages((prev) => prev.map((i) => (i.cle === cle ? { ...i, debut, fin } : i)));
   const ajouterMorceau = (cle) => setImages((prev) => {
     if (prev.length >= 6) { toast.error(t('contenus.reel.seq.maxVisuels')); return prev; }
@@ -312,7 +332,7 @@ export default function StudioReel() {
       const payload = {
         brief: brief.trim() || null,
         images: images.map((i) => ({ url: i.url, desc: i.desc || null, debut: i.type === 'video' && i.debut != null && i.fin != null ? i.debut : null, fin: i.type === 'video' && i.debut != null && i.fin != null ? i.fin : null })),
-        style, musique, voix, montage_ia: montageIA,
+        style, musique, voix, montage_ia: montageIA, plans_video: plansVideo,
       };
       if (modification) {
         // Re-rendu sur place ; voix absente = on la retire explicitement (null = garder l'ancienne)
@@ -437,6 +457,13 @@ export default function StudioReel() {
                         <button type="button" onClick={() => setDecoupeCle(decoupeCle === img.cle ? null : img.cle)} title={t('contenus.reel.seq.decouper')} data-testid={`studio-reel-decouper-${idx + 1}`}
                           className="absolute top-0.5 right-6 w-5 h-5 rounded-full bg-black/70 text-white grid place-items-center hover:bg-[#3AFFA3] hover:text-[#0b1322]"><Scissors className="w-3 h-3" /></button>
                       )}
+                      {img.stock && (
+                        <button type="button" onClick={() => autrePlan(img)} disabled={planEnCours === img.cle} data-testid={`studio-reel-autre-plan-${idx + 1}`}
+                          title={t('contenus.reel.seq.autrePlan')} aria-label={t('contenus.reel.seq.autrePlan')}
+                          className="absolute bottom-0.5 left-0.5 h-5 px-1.5 rounded-full bg-black/75 text-white text-[10px] font-inter inline-flex items-center gap-1 hover:bg-[#3AFFA3] hover:text-[#0b1322] disabled:opacity-80">
+                          {planEnCours === img.cle ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}{t('contenus.reel.seq.autrePlanCourt')}
+                        </button>
+                      )}
                       <button type="button" onClick={() => { setImages((p) => p.filter((i) => i.cle !== img.cle)); if (decoupeCle === img.cle) setDecoupeCle(null); }}
                         className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/70 text-white text-[12px] leading-none">×</button>
                     </div>
@@ -502,6 +529,21 @@ export default function StudioReel() {
                     <span className="font-semibold">🎬 {t('contenus.reel.seq.montageIA')}</span>
                     <span className="block mt-0.5 text-[11.5px] text-slate-400">
                       {montageIA ? t('contenus.reel.seq.montageNote') : t('contenus.reel.seq.montageTelQuel')}
+                    </span>
+                  </span>
+                </label>
+              </div>
+            )}
+            {/* Sans visuel du client, l'IA peut prendre de vrais plans vidéo dans une banque libre de droits. */}
+            {images.length === 0 && moteur !== 'b' && (
+              <div className="mt-3 rounded-[10px] border border-white/10 bg-white/[0.03] p-3">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input type="checkbox" checked={plansVideo} onChange={(e) => setPlansVideo(e.target.checked)}
+                    data-testid="studio-reel-plans-video" className="mt-0.5 w-4 h-4 accent-[#3AFFA3]" />
+                  <span className="text-[12.5px] leading-snug font-inter text-slate-200">
+                    <span className="font-semibold">{t('contenus.reel.seq.plansVideo')}</span>
+                    <span className="block mt-0.5 text-[11.5px] text-slate-400">
+                      {plansVideo ? t('contenus.reel.seq.plansVideoAide') : t('contenus.reel.seq.plansVideoSans')}
                     </span>
                   </span>
                 </label>
