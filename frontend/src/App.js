@@ -22,6 +22,7 @@ const Blog = lazy(() => import("./pages/marketing/Blog"));
 const Article = lazy(() => import("./pages/marketing/Article"));
 const Pourquoi = lazy(() => import("./pages/marketing/Pourquoi"));
 const Cgu = lazy(() => import("./pages/marketing/Cgu"));
+const Cgv = lazy(() => import("./pages/marketing/Cgv"));
 const Confidentialite = lazy(() => import("./pages/marketing/Confidentialite"));
 const MentionsLegales = lazy(() => import("./pages/marketing/MentionsLegales"));
 const Login = lazy(() => import("./pages/Login"));
@@ -71,6 +72,7 @@ const routesPubliques = () => (
       <Route path="blog" element={<Blog />} />
       <Route path="blog/:slug" element={<Article />} />
       <Route path="cgu" element={<Cgu />} />
+      <Route path="cgv" element={<Cgv />} />
       <Route path="confidentialite" element={<Confidentialite />} />
       <Route path="mentions-legales" element={<MentionsLegales />} />
     </Route>

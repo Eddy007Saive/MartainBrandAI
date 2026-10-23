@@ -885,6 +885,7 @@ export default function HomeCine() {
           <div className="fcol">
             <h3>{t('lp.footer.legal')}</h3>
             <Link to="/cgu">{t('lp.footer.cgu')}</Link>
+            <Link to="/cgv">{t('lp.footer.cgv')}</Link>
             <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
             <Link to="/mentions-legales">{t('lp.footer.legalNotice')}</Link>
           </div>
