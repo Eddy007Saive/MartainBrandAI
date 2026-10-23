@@ -86,6 +86,7 @@ export default function MarketingLayout() {
           <Link to="/faq">{t('lp.footer.faq')}</Link>
           <Link to="/blog">{t('lp.footer.blog')}</Link>
           <Link to="/cgu">{t('lp.footer.cgu')}</Link>
+          <Link to="/cgv">{t('lp.footer.cgv')}</Link>
           <Link to="/confidentialite">{t('lp.footer.privacy')}</Link>
           <Link to="/mentions-legales">{t('lp.footer.legal')}</Link>
         </div>
