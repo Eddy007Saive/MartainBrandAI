@@ -76,6 +76,8 @@ export const contenuService = {
   reelMusiqueSupprimer: (id) => api.delete(`/reels/musique/${id}`).then(r => r.data),
   reelMusiqueDecouper: (id, debut_s, duree_s) =>
     api.patch(`/reels/musique/${id}`, { debut_s, duree_s }).then(r => r.data),
+  // « Autre plan » : un nouveau plan vidéo de banque pour un passage du reel -> { url, desc }
+  autrePlanStock: (texte, exclure = []) => api.post('/reels/plan-stock', { texte, exclure }).then(r => r.data),
   regenererReel: (id, extra = {}) => api.post('/reels/regenerer', { reel_id: id, ...extra }).then(r => r.data),
   // Refait seulement la voix off (même scénario, mêmes images) : seul le quota voix compte.
   refaireVoixReel: (id, voix) => api.post('/reels/voix', { reel_id: id, ...(voix ? { voix } : {}) }).then(r => r.data),
