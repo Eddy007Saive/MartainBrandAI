@@ -1658,6 +1658,7 @@
     "connecter": "Conectar",
     "nombreSujets": "Número de temas",
     "aideSujets": "Estos temas se comparten con el Studio IA. Marca un tema y elige sus redes y formatos.",
+    "matrice": {"titre": "Matriz pilares × formatos", "aide": "Una idea por pilar de tu marca y por formato, para variar tu mes de un vistazo. Marca las que te quedas: se suman a tus temas. Cuenta como una generación de temas.", "remplir": "Rellenar la matriz", "refaire": "Rehacer la matriz", "enCours": "Rellenando la matriz…", "pilier": "Pilar", "vide": "Sin idea para esta casilla", "choisies_one": "{{count}} idea elegida", "choisies_other": "{{count}} ideas elegidas", "toutChoisir": "Elegir todas", "rienChoisir": "Quitar todas", "ajouter_one": "Añadir {{count}} tema", "ajouter_other": "Añadir {{count}} temas", "ajoutees_one": "{{count}} tema añadido a tu lista", "ajoutees_other": "{{count}} temas añadidos a tu lista", "dansSujets": "En tus temas", "erreur": "No se pudo rellenar la matriz. Inténtalo de nuevo.", "erreurAjout": "No se pudieron añadir las ideas. Inténtalo de nuevo."},
     "aucunSujetTitre": "Aún no hay temas",
     "briefIA": "Brief IA",
     "reseauxFormats": "Redes y formatos",
