@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
  */
 const VIDEOS_DEMO = {
   fr: 'D68Zh3sAjqs',
+  es: '3tTYBQp7t-U',
 };
 
 export const idVideoDemo = (langue) => VIDEOS_DEMO[(langue || '').slice(0, 2)] || null;
