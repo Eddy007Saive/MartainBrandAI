@@ -1657,6 +1657,7 @@
     "connecter": "Connecter",
     "nombreSujets": "Nombre de sujets",
     "aideSujets": "Ces sujets sont partagés avec le Studio IA. Coche un sujet, puis choisis ses réseaux et formats.",
+    "matrice": {"titre": "Matrice piliers × formats", "aide": "Une idée par pilier de ta marque et par format, pour varier ton mois d'un coup d'œil. Coche celles que tu gardes : elles rejoignent tes sujets. Compte une génération de sujets.", "remplir": "Remplir la matrice", "refaire": "Refaire la matrice", "enCours": "La matrice se remplit…", "pilier": "Pilier", "vide": "Pas d’idée pour cette case", "choisies_one": "{{count}} idée choisie", "choisies_other": "{{count}} idées choisies", "toutChoisir": "Tout choisir", "rienChoisir": "Tout décocher", "ajouter_one": "Ajouter {{count}} sujet", "ajouter_other": "Ajouter {{count}} sujets", "ajoutees_one": "{{count}} sujet ajouté à ta liste", "ajoutees_other": "{{count}} sujets ajoutés à ta liste", "dansSujets": "Dans tes sujets", "erreur": "La matrice n'a pas pu être remplie. Réessaie.", "erreurAjout": "Les idées n'ont pas pu être ajoutées. Réessaie."},
     "aucunSujetTitre": "Aucun sujet pour le moment",
     "briefIA": "Brief IA",
     "reseauxFormats": "Réseaux et formats",

@@ -20,6 +20,10 @@ export const agentService = {
 
   // Liste les sujets sauvegardés (persistants)
   sujetsList: () => api.get('/agent/sujets').then((r) => r.data),
+  // Matrice piliers × formats (une génération de sujets) -> { piliers, formats, idees }
+  matrice: () => api.post('/agent/matrice', {}, { timeout: 120000 }).then((r) => r.data),
+  // Idées de la matrice gardées : enregistrées comme sujets (sans quota) -> { sujets }
+  ajouterSujets: (sujets) => api.post('/agent/sujets/ajouter', { sujets }).then((r) => r.data),
 
   // Enregistre l'override de dimensions d'un sujet (la reco d'origine, l'⭐, n'est pas touchée)
   majDimensions: (id, dimensions) => api.patch(`/agent/sujets/${id}`, { dimensions }).then((r) => r.data),

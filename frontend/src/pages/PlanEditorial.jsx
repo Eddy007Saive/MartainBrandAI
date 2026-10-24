@@ -12,6 +12,7 @@ import { useUser } from '../context/UserContext';
 import { useDemarrage } from '../context/DemarrageContext';
 import { Button } from '../components/ui/button';
 import { LogoReseau } from '../components/LogoReseau';
+import MatricePiliers from '../components/MatricePiliers';
 
 const MOIS_KEYS = ['moisJanvier', 'moisFevrier', 'moisMars', 'moisAvril', 'moisMai', 'moisJuin', 'moisJuillet', 'moisAout', 'moisSeptembre', 'moisOctobre', 'moisNovembre', 'moisDecembre'];
 
@@ -405,6 +406,10 @@ export default function PlanEditorial() {
               </Button>
               <p className="text-[13px] text-slate-300 font-inter self-center">{t('plan.aideSujets')}</p>
             </div>
+
+            <MatricePiliers compte={user?.telegram_id} marqueOk={marqueOk}
+              onAjoutes={(nouveaux) => setSubjects((prev) => [...nouveaux, ...prev])}
+              onQuota={() => agentService.usage().then(setUsage).catch(() => {})} />
 
             {subjects.length === 0 ? (
               <div className={`${carte} flex flex-col items-center text-center gap-1.5 py-10 px-6 font-inter`}>

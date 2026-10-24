@@ -1657,6 +1657,7 @@
     "connecter": "Connect",
     "nombreSujets": "Number of subjects",
     "aideSujets": "These subjects are shared with the AI Studio. Tick a subject, then choose its networks and formats.",
+    "matrice": {"titre": "Pillars × formats matrix", "aide": "One idea per brand pillar and per format, to vary your month at a glance. Tick the ones you keep: they join your topics. Counts as one topic generation.", "remplir": "Fill the matrix", "refaire": "Redo the matrix", "enCours": "Filling the matrix…", "pilier": "Pillar", "vide": "No idea for this cell", "choisies_one": "{{count}} idea selected", "choisies_other": "{{count}} ideas selected", "toutChoisir": "Select all", "rienChoisir": "Clear all", "ajouter_one": "Add {{count}} topic", "ajouter_other": "Add {{count}} topics", "ajoutees_one": "{{count}} topic added to your list", "ajoutees_other": "{{count}} topics added to your list", "dansSujets": "In your topics", "erreur": "The matrix couldn't be filled. Try again.", "erreurAjout": "The ideas couldn't be added. Try again."},
     "aucunSujetTitre": "No subjects yet",
     "briefIA": "AI brief",
     "reseauxFormats": "Networks and formats",
